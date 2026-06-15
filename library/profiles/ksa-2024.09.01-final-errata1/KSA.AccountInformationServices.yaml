@@ -244,7 +244,7 @@ paths:
         - $ref: "#/components/parameters/x-fapi-auth-date"
         - $ref: "#/components/parameters/x-fapi-customer-ip-address"
         - $ref: "#/components/parameters/x-fapi-interaction-id"
-        - $ref: "#/components/parameters/x-customer-user-agent" 
+        - $ref: "#/components/parameters/x-customer-user-agent"
       responses:
         '200':
           $ref: "#/components/responses/200AccountsAccountIdRead"
@@ -283,7 +283,7 @@ paths:
         - $ref: "#/components/parameters/x-fapi-auth-date"
         - $ref: "#/components/parameters/x-fapi-customer-ip-address"
         - $ref: "#/components/parameters/x-fapi-interaction-id"
-        - $ref: "#/components/parameters/x-customer-user-agent" 
+        - $ref: "#/components/parameters/x-customer-user-agent"
       responses:
         '200':
           $ref: "#/components/responses/200AccountsAccountIdBalancesRead"
@@ -391,7 +391,7 @@ paths:
       tags:
         - "Parties"
       summary: "Get Parties for an Account"
-      description: |        
+      description: |
         **The list below outlines the Consent Permissions that are applicable to this resource:**
         * ReadParty: Returns an array with high-level information on the account owner(s)/holder(s).
 
@@ -433,7 +433,7 @@ paths:
         - "Parties"
       summary: "Get current PSU Information"
       description: |
-        For entities seeking to onboard their customers (consumers) smartly with a seamless CX (UC03 Extended Customer Attributes). 
+        For entities seeking to onboard their customers (consumers) smartly with a seamless CX (UC03 Extended Customer Attributes).
         This endpoint allows them to retrieve KYC information of their customers stored by the bank after a successful customer onboarding and account opening process.
 
         **The list below outlines the Consent Permissions that are applicable to this resource:**
@@ -1012,7 +1012,7 @@ components:
           properties:
             message:
               $ref: '#/components/schemas/OBCreateConsentResponse'
-          required: [message]          
+          required: [message]
     OBErrorResponseSigned:
       title: "OBErrorResponseSigned"
       allOf:
@@ -1120,9 +1120,9 @@ components:
           properties:
             message:
               $ref: '#/components/schemas/OBReadTransaction'
-          required: [message]                                                        
-              
-    EventNotification:  
+          required: [message]
+
+    EventNotification:
       title: "EventNotification"
       type: "object"
       description: |
@@ -1213,13 +1213,13 @@ components:
             A name used by a business to promote its products or services to customers. It can be different from the business's legal name, but customers associate it with the business.
         LegalName:
           type: "string"
-          description: | 
+          description: |
             The name under which the business is registered with government authorities (Ministry of Commerce).
           example: "Acme Accounting Legal Name"
         IdentifierType:
           type: "string"
           description: "Identifier Type"
-          enum: 
+          enum:
             - "KSAOB.UnifiedCommercialNumber"
             - "KSAOB.Other"
         Identifier:
@@ -1232,8 +1232,8 @@ components:
       type: "object"
       description: |
         The Sponsored TPP is:
-        * A TPP that itself has no direct Open Banking API integrations. 
-        * A TPP that is using the integration of another TPP that does have direct Open Banking API integrations.  
+        * A TPP that itself has no direct Open Banking API integrations.
+        * A TPP that is using the integration of another TPP that does have direct Open Banking API integrations.
       properties:
         TradingName:
           type: "string"
@@ -1246,7 +1246,7 @@ components:
           minLength: 1
           maxLength: 50
           description: |
-            The Sponsored TPP Identification 
+            The Sponsored TPP Identification
       additionalProperties: false
     OBErrorResponse:
       title: "OBErrorResponse"
@@ -1365,7 +1365,7 @@ components:
       title: "OBMetaMultiAuthorization"
       type: "object"
       description: |
-        Meta Data with Multi-Authorization relevant to the payload. 
+        Meta Data with Multi-Authorization relevant to the payload.
         For a payment, it represents any Authorizers within the PASP domain that are involved in approving the payment request.
       properties:
         MultipleAuthorizers:
@@ -1374,33 +1374,33 @@ components:
           properties:
             TotalRequired:
               description: |
-                The total number of Authorizers required to process the request 
+                The total number of Authorizers required to process the request
               type: "number"
             Authorizations:
               type: "array"
-              items: 
+              items:
                 description: |
                   Authorizer
                 type: "object"
                 properties:
-                  AuthorizerId: 
+                  AuthorizerId:
                     description: |
                       The Authorizer's Identifier
                     type: "string"
-                  AuthorizerName: 
+                  AuthorizerName:
                     description: |
                       The Authorizer's Name
                     type: "string"
-                  AuthorizerType: 
+                  AuthorizerType:
                     description: |
-                      The Type of Authorizer. For example, Financial, Management, etc. 
+                      The Type of Authorizer. For example, Financial, Management, etc.
                     type: "string"
                   AuthorizationDate:
                     description: |
                       The DateTime of when the Authorization occurred. All dates in the JSON payloads are represented in ISO 8601 date-time format. \nAll date-time fields in responses must include the timezone. An example is below:\n2023-04-05T10:43:07+00:00
                     type: "string"
                     format: "date-time"
-                  AuthorizationStatus: 
+                  AuthorizationStatus:
                     description: |
                       The Status reflecting the Authorizer's final decision regarding the request
                     type: "string"
@@ -1410,7 +1410,7 @@ components:
                       - "Rejected"
                 additionalProperties: false
           additionalProperties: false
-      additionalProperties: false            
+      additionalProperties: false
     Self:
       title: "Self"
       description: "A link to the current resource"
@@ -1625,7 +1625,7 @@ components:
       title: "OBPaymentPurposeCode:"
       description: |
         A Category code, related to the type of services or goods that corresponds to the underlying purpose of the payment.
-        The Purpose Codes can be based on either:        
+        The Purpose Codes can be based on either:
         * The SARIE IPS Message Implementation Guide - Section 21.4 - Category Purpose Codes
         * The ISO20022 External code sets
       type: "string"
@@ -1742,8 +1742,8 @@ components:
         ChargeIncluded:
           description: |
             If true then the value in the Amount has the ChargeAmount deducted from it
-          type: "boolean"  
-      additionalProperties: false  
+          type: "boolean"
+      additionalProperties: false
     OBReadDirectDebit:
       title: "OBReadDirectDebit"
       description: "List of Direct Debits for an Account"
@@ -1820,7 +1820,7 @@ components:
               type: "array"
               items:
                 $ref: "#/components/schemas/OBStandingOrder"
-          additionalProperties: false   
+          additionalProperties: false
         Links:
           $ref: "#/components/schemas/Links"
         Meta:
@@ -1879,13 +1879,13 @@ components:
         CreditorAccount:
           $ref: "#/components/schemas/OBCashAccount"
         SupplementaryData:
-          $ref: "#/components/schemas/OBSupplementaryData"    
+          $ref: "#/components/schemas/OBSupplementaryData"
       additionalProperties: false
     DebtorReference:
       title: "DebtorReference"
       description: |
         Reference in the context of the PSU (i.e. the Debtor) to refer to the payment transaction.
-        Usage: If available, the initiating party (i.e. Debtor) generates this reference for internal purposes (e.g. to enable reconciliation, refer to a PO, invoice etc). This field is captured by the PASP and is not transmitted via the payment rails to the Creditor of the payment.      
+        Usage: If available, the initiating party (i.e. Debtor) generates this reference for internal purposes (e.g. to enable reconciliation, refer to a PO, invoice etc). This field is captured by the PASP and is not transmitted via the payment rails to the Creditor of the payment.
       type: "string"
       minLength: 1
       maxLength: 35
@@ -2225,7 +2225,7 @@ components:
         |NATIONAL BANK OF BAHRAIN|SANBOB|
         |NATIONAL BANK OF KUWAIT|SANBOK|
         |NATIONAL BANK OF PAKISTAN|SANBPA|
-        |NEOLEAP|SANEOL|        
+        |NEOLEAP|SANEOL|
         |RIYAD BANK|SARIBL|
         |SAUDI NATIONAL BANK|SANCBK|
         |SAUDI ARABIAN MONETARY AUTHORITY|SASAMA|
@@ -2342,22 +2342,22 @@ components:
         Device Indicators
       required:
           - "GeoLocation"
-          - "DeviceId"  
-          - "VPNStatus"  
-          - "RemoteAccessTool"  
-          - "Screensharing"  
-          - "DeviceSoftwareRestricted"  
-          - "TrustedDeviceFlag"  
-          - "IPAddressVerison" 
-          - "DeviceType" 
-          - "DeviceName" 
-          - "ConnectionType" 
-          - "AppVersion" 
-          - "LocaleInformation" 
-          - "StorageCapacity" 
-          - "ScreenReaderActive" 
-          - "ISPName" 
-          - "NetworkType"  
+          - "DeviceId"
+          - "VPNStatus"
+          - "RemoteAccessTool"
+          - "Screensharing"
+          - "DeviceSoftwareRestricted"
+          - "TrustedDeviceFlag"
+          - "IPAddressVerison"
+          - "DeviceType"
+          - "DeviceName"
+          - "ConnectionType"
+          - "AppVersion"
+          - "LocaleInformation"
+          - "StorageCapacity"
+          - "ScreenReaderActive"
+          - "ISPName"
+          - "NetworkType"
       properties:
          GeoLocation:
           type: "object"
@@ -2371,8 +2371,8 @@ components:
               description: "latitude"
             Longitude:
               type: "string"
-              description: "longitude"              
-         DeviceId: 
+              description: "longitude"
+         DeviceId:
           type: "string"
           description: "A 16-digit IMEISV (International Mobile Equipment Identity and Software Version) number used to uniquely identify a mobile device and the version of the software currently installed on it."
           minLength: 16
@@ -2385,37 +2385,37 @@ components:
           type: "boolean"
          Screensharing:
           description: "Indicates whether screen sharing is currently active on the PSU device."
-          type: "boolean" 
+          type: "boolean"
          DeviceSoftwareRestricted:
           description: "Indicates whether the PSU device is jailbroken or rooted."
-          type: "boolean" 
+          type: "boolean"
          TrustedDeviceFlag:
           description: "Indicates whether the PSU device is trusted. If TrustedDeviceFlag is true, the fields TrustedDeviceDateAndTime and MechanismOfTrustingDevice must be populated."
-          type: "boolean" 
+          type: "boolean"
          TrustedDeviceDateAndtime:
           type: "string"
           format: "date-time"
-          description: "The date and time when the PSU device was marked as trusted."  
+          description: "The date and time when the PSU device was marked as trusted."
          MechanismOfTrustingDevice:
           description: "Identifies the mechanism used to mark the PSU device as trusted."
           type: "string"
           enum:
             - "KSAOB.IVR"
             - "KSAOB.OTP"
-            - "KSAOB.Nafath"            
+            - "KSAOB.Nafath"
          IPAddressVerison:
           description: "Indicates the Internet Protocol version used by the PSU device."
           type: "string"
           enum:
             - "KSAOB.IPv4"
-            - "KSAOB.IPv6"           
+            - "KSAOB.IPv6"
          DeviceType:
           description: "The type of the PSU device, such as smartphone, tablet, or smartwatch."
           type: "string"
           enum:
             - "KSAOB.Smartphone"
-            - "KSAOB.Tablet" 
-            - "KSAOB.Smartwatch"      
+            - "KSAOB.Tablet"
+            - "KSAOB.Smartwatch"
          DeviceName:
           description: "The name given to the device by the PSU"
           type: "string"
@@ -2424,46 +2424,46 @@ components:
           type: "string"
           enum:
             - "KSAOB.WiFi"
-            - "KSAOB.MobileData"  
+            - "KSAOB.MobileData"
          AppVersion:
           description: "The specific version of the TPP application installed on the PSU device."
-          type: "string"            
+          type: "string"
          LocaleInformation:
           description: "Regional settings of the PSU device, indicating how dates, times, and numbers are displayed. Format: (Country Code, ISO 3166-1 Alpha-2)"
           type: "string"
          StorageCapacity:
           description: "The total and available storage capacity of the PSU device, e.g. 128GB total, 30GB free."
-          type: "string"    
+          type: "string"
          ScreenReaderActive:
           description: "Indicates whether assistive technologies such as screen readers are active on the PSU device."
-          type: "boolean"                  
+          type: "boolean"
          ISPName:
           description: "The name of the Internet Service Provider (ISP) used by the PSU device."
-          type: "string"                 
+          type: "string"
          NetworkType:
           description: "The mobile network generation used by the PSU device."
           type: "string"
           enum:
             - "KSAOB.2G"
-            - "KSAOB.3G" 
-            - "KSAOB.4G" 
-            - "KSAOB.5G"                                  
-          additionalProperties: false      
+            - "KSAOB.3G"
+            - "KSAOB.4G"
+            - "KSAOB.5G"
+          additionalProperties: false
     CreateConsentOBPSUIndicators:
       title: "CreateConsentOBPSUIndicators"
       type: "object"
       description: |
         PSU Indicators
       required:
-          - "PSUName" 
-          - "PSUPhoneNumber" 
+          - "PSUName"
+          - "PSUPhoneNumber"
           - "IsCustomerRegistered"
-          - "IsCustomerVerified" 
+          - "IsCustomerVerified"
           - "FailedLoginAttempts"
           - "PasswordChangedDateTime"
-          - "PSUOnboardingDateTime" 
-      properties:          
-        PSUName: 
+          - "PSUOnboardingDateTime"
+      properties:
+        PSUName:
           type: "object"
           description: "The Name of the PSU initiating the Consent"
           properties:
@@ -2477,28 +2477,28 @@ components:
               description: "Arabic value of the string First Name, MiddleName, GrandfatherName & FamilyName (First Name and Family Name are mandatory)"
               minLength: 1
               maxLength: 50
-        PSUPhoneNumber: 
+        PSUPhoneNumber:
           type: "string"
-          description: "The Phone number of the PSU initiating the Consent"   
+          description: "The Phone number of the PSU initiating the Consent"
           minLength: 10
-          maxLength: 12     
+          maxLength: 12
         IsCustomerRegistered:
                 description: "Indicates if the PSU has an account (profile) with the AISP"
-                type: "boolean"      
+                type: "boolean"
         IsCustomerVerified:
                 description: "Indicates whether the PSU has been verified with a multifactor authentication by the AISP during the registration and login steps."
-                type: "boolean"  
+                type: "boolean"
         FailedLoginAttempts:
                 description: "Number of PSU failed login attempts prior to current session, If the PSU has an account with a TPP, this field must be populated"
-                type: "integer"        
-        PasswordChangedDateTime: 
+                type: "integer"
+        PasswordChangedDateTime:
           type: "string"
           format: "date-time"
           description: "The date and time of the last password change by the PSU on their TPP account, If the PSU has an account with a TPP, this field must be populated. All dates in the JSON payloads are represented in ISO 8601 date-time format. All date-time fields in responses must include the timezone. An example is :2024-04-05T10:43:07+00:00"
-        PSUOnboardingDateTime: 
+        PSUOnboardingDateTime:
           type: "string"
           format: "date-time"
-          description: "The exact date and time when the PSU account was activated with the TPP, If the PSU has an account with a TPP, All dates in the JSON payloads are represented in ISO 8601 date-time format. All date-time fields in responses must include the timezone. An example is :2024-04-05T10:43:07+00:00"       
+          description: "The exact date and time when the PSU account was activated with the TPP, If the PSU has an account with a TPP, All dates in the JSON payloads are represented in ISO 8601 date-time format. All date-time fields in responses must include the timezone. An example is :2024-04-05T10:43:07+00:00"
 
     CreateConsentOBRequestIndicators:
         title: "CreateConsentOBRequestIndicators"
@@ -2514,13 +2514,13 @@ components:
            type: "string"
            enum:
             - "KSAOB.UserInitiated"
-            - "KSAOB.SystemInitiated"  
+            - "KSAOB.SystemInitiated"
           AcceptanceChannel:
            description: "Indicated the channel used as the source for the request,This field is required for single consent and the first request in a long-lived consent (InitiationMode=KSAOB.UserInitiated)"
            type: "string"
            enum:
             - "KSAOB.Web"
-            - "KSAOB.Mobile"                  
+            - "KSAOB.Mobile"
     OBConsentPermissions:
       title: "OBConsentPermissions"
       type: "array"
@@ -2568,7 +2568,7 @@ components:
               type: "array"
               items:
                 $ref: "#/components/schemas/OBBeneficiary"
-          additionalProperties: false 
+          additionalProperties: false
         Links:
           $ref: "#/components/schemas/Links"
         Meta:
@@ -2620,7 +2620,7 @@ components:
               type: "array"
               items:
                 $ref: "#/components/schemas/OBAccountArrayId"
-          additionalProperties: false 
+          additionalProperties: false
         Links:
           $ref: "#/components/schemas/Links"
         Meta:
@@ -2910,7 +2910,7 @@ components:
           properties:
             Party:
               $ref: "#/components/schemas/OBPartyIdentityAssurance"
-          additionalProperties: false 
+          additionalProperties: false
         Links:
           $ref: "#/components/schemas/LinksSelf"
         Meta:
@@ -3054,15 +3054,15 @@ components:
                 Subject - Identifier for the PSU at the Issuer.
               type: "string"
             Name:
-              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"             
+              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"
             GivenName:
-              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"               
+              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"
             MiddleName:
-              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"               
+              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"
             GrandfatherName:
-              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"  
+              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"
             FamilyName:
-              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"               
+              $ref: "#/components/schemas/OBMultiLanguageRequiredFields"
             Nickname:
               $ref: "#/components/schemas/OBMultiLanguageOptionalFields"
             PreferredUsername:
@@ -3252,7 +3252,7 @@ components:
                       Type:
                         description: |
                           The type of income.
-                          
+
                           Where Type is BasicMonthlyIncome, then Source can only be one of the following:
                           * Salary
                           * FreelanceWork
@@ -3277,7 +3277,7 @@ components:
                           Source of Income.
 
                           * Salary, FreelanceWork, Subvention, Reward, Other apply only where Type is: BasicMonthlyIncome
-                          * Rental, EquityInvestment, Other apply only where Type is: AdditionalMonthlyIncome  
+                          * Rental, EquityInvestment, Other apply only where Type is: AdditionalMonthlyIncome
                         type: "string"
                         enum:
                           - KSAOB.Salary
@@ -3852,7 +3852,7 @@ components:
         BranchName:
           $ref: "#/components/schemas/BranchName"
         BranchNumber:
-          $ref: "#/components/schemas/BranchNumber"    
+          $ref: "#/components/schemas/BranchNumber"
         Flags:
           type: "array"
           items:
@@ -3936,7 +3936,7 @@ components:
         AccountIdentifiers:
           $ref: "#/components/schemas/AccountIdentifiers"
         Servicer:
-          $ref: "#/components/schemas/OBBranchAndFinancialInstitutionIdentification" 
+          $ref: "#/components/schemas/OBBranchAndFinancialInstitutionIdentification"
       additionalProperties: false
     OBAccountArrayId:
       title: "OBAccount"
@@ -3976,7 +3976,7 @@ components:
           $ref: "#/components/schemas/AccountIdentifiers"
         Servicer:
           $ref: "#/components/schemas/OBBranchAndFinancialInstitutionIdentification"
-    
+
       additionalProperties: false
     OBReadConsent:
       title: "OBReadConsent"
@@ -4004,10 +4004,10 @@ components:
               type: "string"
               format: "date-time"
             NationalIdentificationNumber:
-              description: "PSU National Identification Number.\n (i.e. national ID or Iqama)." 
+              description: "PSU National Identification Number.\n (i.e. national ID or Iqama)."
               type: "string"
               minLength: 1
-              maxLength: 10  
+              maxLength: 10
             TransactionFromDateTime:
               description: "Specified start date and time for the transaction query period.\nIf this is not populated, the start date will be open ended, and data will be returned from the earliest available transaction.All dates in the JSON payloads are represented in ISO 8601 date-time format. \nAll date-time fields in responses must include the timezone. An example is below:\n2017-04-05T10:43:07+00:00"
               type: "string"
@@ -4033,7 +4033,7 @@ components:
               items:
                 $ref: "#/components/schemas/OBConsentPurpose"
             IsPSUReadAllAccounts:
-                $ref: "#/components/schemas/OBReadAllAccounts"  
+                $ref: "#/components/schemas/OBReadAllAccounts"
         Risk:
          description: |
            The Risk section is sent by the AISP to the PASP. It is used to specify additional details for risk/fraud scoring.
@@ -4048,7 +4048,7 @@ components:
           DeviceIndicators:
            $ref: "#/components/schemas/OBDeviceIndicators"
           RequestIndicators:
-           $ref: "#/components/schemas/CreateConsentOBRequestIndicators"  
+           $ref: "#/components/schemas/CreateConsentOBRequestIndicators"
         Subscription:
           $ref: "#/components/schemas/EventNotification"
       additionalProperties: false
@@ -4075,9 +4075,9 @@ components:
             ConsentStatus:
               $ref: "#/components/schemas/OBPatchConsentStatus"
             ConsentFlags:
-              $ref: "#/components/schemas/OBPatchConsentFlags"          
+              $ref: "#/components/schemas/OBPatchConsentFlags"
             RevokedBy:
-              $ref: "#/components/schemas/OBRevokedByPatchConsent"              
+              $ref: "#/components/schemas/OBRevokedByPatchConsent"
           additionalProperties: false
         Subscription:
           $ref: "#/components/schemas/EventNotification"
@@ -4113,11 +4113,11 @@ components:
             ConsentStatus:
               $ref: "#/components/schemas/OBConsentStatus"
             ConsentFlags:
-              $ref: "#/components/schemas/OBConsentFlags"            
+              $ref: "#/components/schemas/OBConsentFlags"
             ConsentStatusUpdateDateTime:
               $ref: "#/components/schemas/StatusUpdateDateTime"
             Permissions:
-              $ref: "#/components/schemas/OBConsentPermissions"              
+              $ref: "#/components/schemas/OBConsentPermissions"
             AuthorizationExpirationTimeWindow:
               $ref: "#/components/schemas/OBAuthorizationExpirationTimeWindow"
             ExpirationDateTime:
@@ -4149,10 +4149,10 @@ components:
               items:
                 $ref: "#/components/schemas/OBConsentPurpose"
             IsPSUReadAllAccounts:
-                $ref: "#/components/schemas/OBReadAllAccounts"                            
+                $ref: "#/components/schemas/OBReadAllAccounts"
             RevokedBy:
                $ref: "#/components/schemas/OBRevokedBy"
-          additionalProperties: false       
+          additionalProperties: false
         Subscription:
           $ref: "#/components/schemas/EventNotification"
         Links:
@@ -4193,11 +4193,11 @@ components:
               ConsentStatus:
                 $ref: "#/components/schemas/OBConsentStatus"
               ConsentFlags:
-                $ref: "#/components/schemas/OBConsentFlags"            
+                $ref: "#/components/schemas/OBConsentFlags"
               ConsentStatusUpdateDateTime:
                 $ref: "#/components/schemas/StatusUpdateDateTime"
               Permissions:
-                $ref: "#/components/schemas/OBConsentPermissions"              
+                $ref: "#/components/schemas/OBConsentPermissions"
               AuthorizationExpirationTimeWindow:
                 $ref: "#/components/schemas/OBAuthorizationExpirationTimeWindow"
               ExpirationDateTime:
@@ -4229,7 +4229,7 @@ components:
                 items:
                   $ref: "#/components/schemas/OBConsentPurpose"
               IsPSUReadAllAccounts:
-                  $ref: "#/components/schemas/OBReadAllAccounts"                            
+                  $ref: "#/components/schemas/OBReadAllAccounts"
               RevokedBy:
                  $ref: "#/components/schemas/OBRevokedBy"
             additionalProperties: false
@@ -4247,7 +4247,7 @@ components:
             DeviceIndicators:
              $ref: "#/components/schemas/OBDeviceIndicators"
             RequestIndicators:
-             $ref: "#/components/schemas/CreateConsentOBRequestIndicators"            
+             $ref: "#/components/schemas/CreateConsentOBRequestIndicators"
           Subscription:
             $ref: "#/components/schemas/EventNotification"
           Links:
@@ -4257,7 +4257,7 @@ components:
         additionalProperties: false
 
 
-      
+
     OBReadBalance:
       title: "OBReadBalance"
       description: "List of Balances for an Account"
@@ -4330,7 +4330,7 @@ components:
               - "Type"
               - "Amount"
             properties:
-              
+
               Type:
                 description: "Type of credit line provided to the account. Encoded with allowable values of: Available, Credit, Emergency, Pre-Agreed, Temporary. Note: PASPs support different types of credit lines on accounts, so this list is used to support different PASP systmes in KSA."
                 type: "string"
@@ -4352,8 +4352,8 @@ components:
                   Currency:
                     $ref: "#/components/schemas/ActiveOrHistoricCurrencyCode"
                 additionalProperties: false
-            additionalProperties: false 
-            
+            additionalProperties: false
+
     OBReadScheduledPayment:
       title: "OBReadScheduledPayment"
       description: "List of Scheduled Payments for an Account"
@@ -4411,7 +4411,7 @@ components:
           $ref: "#/components/schemas/OBBranchAndFinancialInstitutionIdentification"
         CreditorAccount:
           $ref: "#/components/schemas/OBCashAccount"
-          
+
       additionalProperties: false
     TerminalId:
       title: "TerminalId"
@@ -4431,7 +4431,7 @@ components:
       description: "This field is mandatory for Teller Type of Transactions (Withdraw/Deposit)"
       type: "string"
       minLength: 10
-      maxLength: 80   
+      maxLength: 80
     BillDetails:
       title: "BillDetails"
       description : "Bill Details"
@@ -4484,11 +4484,11 @@ components:
       title: "OBConsentFlags"
       description: |
         Flags that can be associated with a Consent Status.
-        
-        A Consent Status: 
+
+        A Consent Status:
         * May not have any associated flags.
         * May have one or more associated flags.
-        
+
         A Flag cannot be changed once it is created. Its state is Immutable.
         Each Flag value that is set must have a date time stamp associated with it.
 
@@ -4512,7 +4512,7 @@ components:
           $ref: "#/components/schemas/OBFlagDateTime"
         Closed:
           $ref: "#/components/schemas/OBFlagDateTime"
-      additionalProperties: false         
+      additionalProperties: false
     OBPatchConsentStatus:
       title: "OBConsentStatus"
       description: |
@@ -4541,18 +4541,18 @@ components:
       properties:
         Revoked:
           $ref: "#/components/schemas/OBFlagDateTime"
-      additionalProperties: false   
+      additionalProperties: false
     OBRevokedBy:
       title: "OBRevokedBy"
       description: |
         Denotes the Identifier of the revocation.
-        
+
         | Identifier| Description|
         |-----------|------------|
         | PASP | Revoked by PASP without PSU initiation|
         | TPP | Revoked by TPP without PSU initiation|
         | PASP.InitiatedByPSU | Initiated by PSU via the PASP|
-        | TPP.InitiatedByPSU | Initiated by PSU via the TPP|      
+        | TPP.InitiatedByPSU | Initiated by PSU via the TPP|
       type: "string"
       enum:
         - "KSAOB.PASP"
@@ -4563,11 +4563,11 @@ components:
       title: "OBRevokedByPatchConsent"
       description: |
         Denotes the Identifier of the revocation.
-        
+
         | Identifier| Description|
         |-----------|------------|
         | TPP | Revoked by TPP without PSU initiation|
-        | TPP.InitiatedByPSU | Initiated by PSU via the TPP|      
+        | TPP.InitiatedByPSU | Initiated by PSU via the TPP|
       type: "string"
       enum:
         - "KSAOB.TPP"
@@ -4597,7 +4597,7 @@ components:
           description: "English value of the string"
         ar:
           type: "string"
-          description: "Arabic value of the string"              
+          description: "Arabic value of the string"
     OBMultiLanguageOptionalFields:
           title: "OBMultiLanguageOptionalFields"
           description: |
@@ -4611,14 +4611,14 @@ components:
               description: "English value of the string"
             ar:
               type: "string"
-              description: "Arabic value of the string"              
+              description: "Arabic value of the string"
     OBAuthorizationExpirationTimeWindow:
-      title: "OBAuthorizationExpirationTimeWindow" 
+      title: "OBAuthorizationExpirationTimeWindow"
       description: |
         A time window by which a Consent (in AwaitingAuthorization status) must be Authorized by the PSU.
-        The time window starts from the actual CreationDateTime (when the Consent is staged with the PASP). 
+        The time window starts from the actual CreationDateTime (when the Consent is staged with the PASP).
         If the current time window exceeds the Authorization Expiration Time Window (and the Consent status is AwaitingAuthorization) then the Consent Status must be set to Rejected.
-        The time window is based on a custom time format hhh:mm:ss. e.g. 720:00:00 represents a time window of 720 hours, 00 minutes, 00 seconds (30 days) after the CreationDateTime to Authorize the Consent.  
+        The time window is based on a custom time format hhh:mm:ss. e.g. 720:00:00 represents a time window of 720 hours, 00 minutes, 00 seconds (30 days) after the CreationDateTime to Authorize the Consent.
       type: "string"
       pattern: '^(00[0-9]|0[1-9][0-9]|[1-6][0-9]{2}|7[01][0-9]|720):[0-5][0-9]:[0-5][0-9]$'
       example: "720:00:00"
@@ -4659,12 +4659,12 @@ components:
           ZipCode:
             $ref: "#/components/schemas/OBZipCode"
           City:
-            $ref: "#/components/schemas/OBCity"          
+            $ref: "#/components/schemas/OBCity"
           Region:
             $ref: "#/components/schemas/OBRegion"
           Country:
-            $ref: "#/components/schemas/OBCountryCode"    
-        additionalProperties: false                          
+            $ref: "#/components/schemas/OBCountryCode"
+        additionalProperties: false
     OBAddressTypeCode:
       title: "OBAddressTypeCode"
       description: "Specifies the nature of the Address."
@@ -4727,21 +4727,21 @@ components:
       description: " Identifies the postal code; a unique code assigned to a specific geographic area for efficient mail sorting and delivery purposes."
       type: "string"
       minLength: 1
-      maxLength: 10                    
+      maxLength: 10
       example: "12345"
     OBPOBox:
       title: "POBox"
       description: " Identifies the POBox."
       type: "string"
       minLength: 1
-      maxLength: 10                    
+      maxLength: 10
       example: "11562"
     OBZipCode:
       title: "ZipCode"
       description: "Identifies the ZIP code; a unique code assigned to a specific geographic area for efficient mail sorting and delivery purposes."
       type: "string"
       minLength: 1
-      maxLength: 10                    
+      maxLength: 10
       example: "12366"
     OBSecondaryNumber:
       title: "OBSecondaryNumber"
@@ -4885,7 +4885,7 @@ components:
     ConsentRequest:
       summary: Consent Request
       description: Consent Request Example
-      value: {     
+      value: {
               "Data": {
                   "Permissions": [
                       "ReadAccountsBasic",
@@ -4983,14 +4983,14 @@ components:
               }
 
 
-  
+
       }
 
     ReadConsentByIdRequest:
       summary: Get Consent Request
       description: Consent Request Example
-      value: {     
-             
+      value: {
+
               "Risk": {
                   "PSUIndicators": {
                       "PSUName": {
@@ -5033,13 +5033,13 @@ components:
                       "AcceptanceChannel": "KSAOB.Mobile"
                   }
               },
-  
 
 
-  
+
+
       }
 
-    
+
     ConsentRequestSigned:
       summary: Consent Request
       description: Consent Request Example
@@ -5050,7 +5050,7 @@ components:
                   "aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],
                   "iat":1675765189,
                   "message":{
-        
+
 
                   "Data": {
                     "Permissions": [
@@ -5148,14 +5148,14 @@ components:
                     }
                   }
                 }
-        
-        
+
+
       }
     ConsentResponse:
       summary: Consent Response
       description: Consent Response Example
       value: {
-        
+
               "Data": {
                 "ConsentId": "aac-69255d98-ab0e-4758-92a7-cacbf3073efa",
                 "CreationDateTime": "2023-01-27T15:27:13+0300",
@@ -5236,7 +5236,7 @@ components:
                 }
               }
       }
-        
+
     ConsentResponseSigned:
       summary: Consent Response
       description: Consent Response Example
@@ -5249,8 +5249,8 @@ components:
               ],
               "iat": 1675765189,
               "message": {
-        
-   
+
+
                               "Data": {
                                 "ConsentId": "aac-69255d98-ab0e-4758-92a7-cacbf3073efa",
                                 "CreationDateTime": "2023-01-27T15:27:13+0300",
@@ -5331,7 +5331,7 @@ components:
                                 }
                               }
                             }
-            } 
+            }
 
     CreateConsentResponseSigned:
               summary: Create Consent Response
@@ -5345,8 +5345,8 @@ components:
                       ],
                       "iat": 1675765189,
                       "message": {
-                
-           
+
+
                                       "Data": {
                                         "ConsentId": "aac-69255d98-ab0e-4758-92a7-cacbf3073efa",
                                         "CreationDateTime": "2023-01-27T15:27:13+0300",
@@ -5467,7 +5467,7 @@ components:
                                         }
                                       }
                                     }
-                    }                         
+                    }
     PatchConsent:
       summary: Patch Consent
       description: Patch Consent Example
@@ -5475,7 +5475,7 @@ components:
     PatchConsentSigned:
       summary: Patch Consent
       description: Patch Consent Example
-      value: {"iss":"c50f0152-49bb-4dc4-b866-b625271c4e78","exp":3349494246,"nbf":1675765189,"aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],"iat":1675765189,"message":{"Data":{"ConsentStatus":"Finished","ConsentFlags":{"Revoked":"2023-01-27T16:27:13+0300"},"RevokedBy":"KSAOB.TPP"},"Subscription":{"Webhook":{"Url":"https://api.tpp.com/webhook/callbackUrl","IsActive":true}}}}           
+      value: {"iss":"c50f0152-49bb-4dc4-b866-b625271c4e78","exp":3349494246,"nbf":1675765189,"aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],"iat":1675765189,"message":{"Data":{"ConsentStatus":"Finished","ConsentFlags":{"Revoked":"2023-01-27T16:27:13+0300"},"RevokedBy":"KSAOB.TPP"},"Subscription":{"Webhook":{"Url":"https://api.tpp.com/webhook/callbackUrl","IsActive":true}}}}
     PermissionReadAccountsBasic:
       summary: Permission - ReadAccountsBasic
       description: Permission - ReadAccountsBasic Example
@@ -5674,7 +5674,7 @@ components:
                         "Meta": {
                             "TotalPages": 55
                         }
-                            
+
                           }}
     PermissionReadAccountsDetailSigned:
       summary: Permission - ReadAccountsDetail
@@ -5744,8 +5744,8 @@ components:
             "Meta": {
                 "TotalPages": 55
             }
-        
-        
+
+
             }}
     PermissionReadAccountsByIdBasic:
       summary: Permission - ReadAccountsBasic
@@ -5785,8 +5785,8 @@ components:
           "Meta": {
               "TotalPages": 55
           }
-                  
-                  
+
+
                 }
     PermissionReadAccountsByIdDetail:
       summary: Permission - ReadAccountsDetail
@@ -5830,7 +5830,7 @@ components:
             "TotalPages": 55
         }
 
-                
+
               }
     PermissionReadAccountsByIdBasicSigned:
       summary: Permission - ReadAccountsBasic
@@ -5875,8 +5875,8 @@ components:
           "Meta": {
               "TotalPages": 55
           }
-                  
-                  
+
+
                 }}
     PermissionReadAccountsByIdDetailSigned:
       summary: Permission - ReadAccountsDetail
@@ -5887,7 +5887,7 @@ components:
                 "aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],
                 "iat":1675765189,
                 "message":{
-                  
+
               "Data": {
               "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
               "Account": {
@@ -5926,13 +5926,13 @@ components:
               "TotalPages": 55
           }
           }
-        
+
       }
     PermissionReadBalances:
       summary: Permission - ReadBalances
       description: Permission - ReadBalances Example
       value: {
-        
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "Balance": [
@@ -5967,8 +5967,8 @@ components:
         "Meta": {
             "TotalPages": 55
         }
-        } 
-        
+        }
+
     PermissionReadBalancesSigned:
       summary: Permission - ReadBalances
       description: Permission - ReadBalances Example
@@ -5979,7 +5979,7 @@ components:
               "aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],
               "iat":1675765189,
               "message":{
-                
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "Balance": [
@@ -6014,9 +6014,9 @@ components:
         "Meta": {
             "TotalPages": 55
         }
-        } 
-                
-                
+        }
+
+
             }
     PermissionReadBeneficiariesBasic:
       summary: Permission - ReadBeneficiariesBasic
@@ -6030,7 +6030,7 @@ components:
       summary: Permission - ReadBeneficiariesBasic
       description: Permission - ReadBeneficiariesBasic Example
       value: {
-        
+
           "iss": "c50f0152-49bb-4dc4-b866-b625271c4e78",
           "exp": 3349494246,
           "nbf": 1675765189,
@@ -6066,14 +6066,14 @@ components:
                   "Self": "https://api.pasp.sa/open-banking/account-information/2024.09.01-final-errata1/accounts/f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115/beneficiaries"
               },
               "Meta": {}
-          
+
               }}
 
     PermissionReadBeneficiariesDetailSigned:
       summary: Permission - ReadBeneficiariesDetail
       description: Permission - ReadBeneficiariesDetail Example
       value: {
-        
+
           "iss": "c50f0152-49bb-4dc4-b866-b625271c4e78",
           "exp": 3349494246,
           "nbf": 1675765189,
@@ -6134,7 +6134,7 @@ components:
       summary: Permission - ReadDirectDebits
       description: Permission - ReadDirectDebits Example
       value: {
-        
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "DirectDebit": [
@@ -6163,7 +6163,7 @@ components:
             "TotalPages": 55
         }
         }
-        
+
     PermissionReadDirectDebitsSigned:
       summary: Permission - ReadDirectDebits
       description: Permission - ReadDirectDebits Example
@@ -6174,7 +6174,7 @@ components:
               "aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],
               "iat":1675765189,
               "message":{
-                
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "DirectDebit": [
@@ -6203,17 +6203,17 @@ components:
             "TotalPages": 55
         }
         }
-                
+
               }
     PermissionReadParty:
       summary: Permission - ReadParty
       description: Permission - ReadParty Example
-      value: {"Data":{"AccountId":"f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115","Party":[{"PartyId":"4369dcf4-5b08-4768-90fe-3b097829f70c","PartyType":"KSAOB.Delegate","AccountRole":"KSAOB.Administrator","VerifiedClaims":[{"Verification":{"TrustFramework":"SA_AML","AssuranceLevel":"high","Time":"2023-01-26T15:27:13+0300"},"Claims":{"Sub":"5dd713d9-2b05-4f1e-868f-f53962c28c2b","Name":{"en":"Aisha Saad Noor","ar":"عائشة سعد نور"},"GivenName":{"en":"Aisha","ar":"عائشة"},"MiddleName":{"en":"Saad","ar":"سعد"},"GrandfatherName":{"en":"Saleh","ar":"صالح"},"FamilyName":{"en":"Noor","ar":"نور"}}}]},{"PartyId":"4369dcf4-5b08-4768-90fe-3b097829f70d","PartyType":"KSAOB.Sole","AccountRole":"KSAOB.Principal","VerifiedClaims":[{"Verification":{"TrustFramework":"SA_AML","AssuranceLevel":"high","Time":"2023-01-26T15:27:13+0300"},"Claims":{"Sub":"5dd713d9-2b05-4f1e-868f-f53962c28c2b","Name":{"en":"Hamad Saad Ali","ar":"حمد سعد علي"},"GivenName":{"en":"Hamad","ar":"حامد"},"MiddleName":{"en":"Saad","ar":"سعد"},"GrandfatherName":{"en":"Saleh","ar":"صالح"},"FamilyName":{"en":"Ali","ar":"علي"}}}]}]},"Links":{"Self":"https://api.pasp.sa/open-banking/account-information/2024.09.01-final-errata1/accounts/f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115/parties"},"Meta":{}}    
+      value: {"Data":{"AccountId":"f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115","Party":[{"PartyId":"4369dcf4-5b08-4768-90fe-3b097829f70c","PartyType":"KSAOB.Delegate","AccountRole":"KSAOB.Administrator","VerifiedClaims":[{"Verification":{"TrustFramework":"SA_AML","AssuranceLevel":"high","Time":"2023-01-26T15:27:13+0300"},"Claims":{"Sub":"5dd713d9-2b05-4f1e-868f-f53962c28c2b","Name":{"en":"Aisha Saad Noor","ar":"عائشة سعد نور"},"GivenName":{"en":"Aisha","ar":"عائشة"},"MiddleName":{"en":"Saad","ar":"سعد"},"GrandfatherName":{"en":"Saleh","ar":"صالح"},"FamilyName":{"en":"Noor","ar":"نور"}}}]},{"PartyId":"4369dcf4-5b08-4768-90fe-3b097829f70d","PartyType":"KSAOB.Sole","AccountRole":"KSAOB.Principal","VerifiedClaims":[{"Verification":{"TrustFramework":"SA_AML","AssuranceLevel":"high","Time":"2023-01-26T15:27:13+0300"},"Claims":{"Sub":"5dd713d9-2b05-4f1e-868f-f53962c28c2b","Name":{"en":"Hamad Saad Ali","ar":"حمد سعد علي"},"GivenName":{"en":"Hamad","ar":"حامد"},"MiddleName":{"en":"Saad","ar":"سعد"},"GrandfatherName":{"en":"Saleh","ar":"صالح"},"FamilyName":{"en":"Ali","ar":"علي"}}}]}]},"Links":{"Self":"https://api.pasp.sa/open-banking/account-information/2024.09.01-final-errata1/accounts/f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115/parties"},"Meta":{}}
     PermissionReadPartySigned:
       summary: Permission - ReadParty
       description: Permission - ReadParty Example
       value: {
-        
+
           "iss": "c50f0152-49bb-4dc4-b866-b625271c4e78",
           "exp": 3349494246,
           "nbf": 1675765189,
@@ -6314,7 +6314,7 @@ components:
     PermissionReadPartyPSUSigned:
       summary: Permission - ReadPartyPSU
       description: Permission - ReadPartyPSU Example
-      value: { 
+      value: {
                   "iss": "c50f0152-49bb-4dc4-b866-b625271c4e78",
                     "exp": 3349494246,
                     "nbf": 1675765189,
@@ -6388,17 +6388,17 @@ components:
                         "Self": "https://api.pasp.sa/open-banking/account-information/2024.09.01-final-errata1/parties"
                       },
                       "Meta": {}
-                    }        
-                        
-                        
+                    }
+
+
                         }
-      
-      
-      
+
+
+
     PermissionReadPartyPSUIdentity:
       summary: Permission - ReadPartyPSUIdentity
       description: Permission - ReadPartyPSUIdentity Example
-      value: { 
+      value: {
         "iss": "c50f0152-49bb-4dc4-b866-b625271c4e78",
         "exp": 3349494246,
         "nbf": 1675765189,
@@ -6846,7 +6846,7 @@ components:
         "Meta": {
             "TotalPages": 55
         }
-                
+
               }}
     PermissionReadScheduledPaymentsDetailSigned:
       summary: Permission - ReadScheduledPaymentsDetail
@@ -6895,8 +6895,8 @@ components:
             "TotalPages": 55
         }
               }
-        
-        
+
+
       }
     PermissionReadStandingOrdersBasic:
       summary: Permission - ReadStandingOrdersBasic
@@ -6953,7 +6953,7 @@ components:
       summary: Permission - ReadStandingOrdersDetail
       description: Permission - ReadStandingOrdersDetail Example
       value:  {
-        
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "StandingOrder": [
@@ -7013,7 +7013,7 @@ components:
             "TotalPages": 55
         }
         }
-    
+
     PermissionReadStandingOrdersBasicSigned:
       summary: Permission - ReadStandingOrdersBasic
       description: Permission - ReadStandingOrdersBasic Example
@@ -7081,7 +7081,7 @@ components:
                 "aud":["e63df191-5fff-4e9c-bba2-b273c94e87f0"],
                 "iat":1675765189,
                 "message":{
-                  
+
               "Data": {
               "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
               "StandingOrder": [
@@ -7141,13 +7141,13 @@ components:
               "TotalPages": 55
           }
           }
-                  
+
                 }
     PermissionReadTransactionsBasic:
       summary: Permission - ReadTransactionsBasic
       description: Permission - ReadTransactionsBasic Example
       value: {
-        
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "Transaction": [
@@ -7289,14 +7289,14 @@ components:
             "FirstAvailableDateTime": "2023-01-25T12:19:24+0300",
             "LastAvailableDateTime": "2023-01-27T12:19:24+0300"
         }
-                
-                
+
+
               }
     PermissionReadTransactionsDetail:
       summary: Permission - ReadTransactionsDetail
       description: Permission - ReadTransactionsDetail Example
       value: {
-        
+
             "Data": {
             "AccountId": "f91d07d0-6d8f-4e0e-9fb4-0ac61f84d115",
             "Transaction": [
@@ -7931,7 +7931,7 @@ components:
             "FirstAvailableDateTime": "2023-01-25T12:19:24+0300",
             "LastAvailableDateTime": "2023-01-27T12:19:24+0300"
         }
-                
+
               }}
     PermissionReadTransactionsCreditsSigned:
       summary: Permission - ReadTransactionsCredits
@@ -8008,8 +8008,8 @@ components:
             "FirstAvailableDateTime": "2023-01-25T12:19:24+0300",
             "LastAvailableDateTime": "2023-01-27T12:19:24+0300"
         }
-                
-                
+
+
               }}
     PermissionReadTransactionsDebitsSigned:
       summary: Permission - ReadTransactionsDebits
@@ -8116,7 +8116,7 @@ components:
             "FirstAvailableDateTime": "2023-01-25T12:19:24+0300",
             "LastAvailableDateTime": "2023-01-27T12:19:24+0300"
         }
-              }}        
+              }}
     Error400BadRequest:
       summary: 400 Bad Request
       description: 400 Bad Request Example
