@@ -18,6 +18,6 @@ public abstract class AbstractConnectIdCibaEnsureInvalid3DSPaymentAuthorizationD
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(getInvalidAuthorizationDetailsCondition(), "CID-CIBA-4.1.3.1", "RAR-2");
+		callAndStopOnFailure(getInvalidAuthorizationDetailsCondition(), "CID-CIBA-4.1.3.1", "RFC9396-2");
 	}
 }

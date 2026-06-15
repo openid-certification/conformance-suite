@@ -26,6 +26,6 @@ public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWith3DSPaymentAuthori
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
 		callAndStopOnFailure(AddConnectIdCiba3DSPaymentAuthorizationDetailsToRequestObject.class,
-			"CID-CIBA-4.1.3.1", "RAR-2");
+			"CID-CIBA-4.1.3.1", "RFC9396-2");
 	}
 }
