@@ -80,7 +80,9 @@ import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponse
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
+import net.openid.conformance.condition.as.CreateKSASignedConsentResponseClaims;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.SignKSAConsentResponse;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -117,7 +119,10 @@ import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestRespon
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
+import net.openid.conformance.condition.rs.ExtractKSASignedConsentRequest;
+import net.openid.conformance.condition.rs.ValidateKSAConsentRequestSignature;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
@@ -163,6 +168,7 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.condition.as.clientattestation.ValidateClientAuthenticationWithClientAttestationJWT;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
@@ -1597,6 +1603,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		checkResourceEndpointRequest(true);
 
+		// KSA requires the consent to be a signed JWT (application/jwt)
+		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractKSASignedConsentRequest.class);
+		callAndContinueOnFailure(ValidateKSAConsentRequestSignature.class, Condition.ConditionResult.FAILURE);
+
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		callAndStopOnFailure(GenerateKSAAccountConsentId.class);
@@ -1604,7 +1615,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		callAndStopOnFailure(CreateKSAOBAccountRequestResponse.class);
 
-		JsonObject accountRequestResponse = env.getObject("account_request_response");
+		// Sign the response per the KSA spec (OBReadConsentResponseSigned, application/jwt)
+		callAndStopOnFailure(CreateKSASignedConsentResponseClaims.class);
+		callAndStopOnFailure(SignKSAConsentResponse.class);
+
+		String signedConsentResponse = env.getString("signed_consent_response");
 		JsonObject headerJson = env.getObject("account_request_response_headers");
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
@@ -1613,7 +1628,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
+		HttpHeaders headers = headersFromJson(headerJson);
+		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+		return new ResponseEntity<Object>(signedConsentResponse, headers, HttpStatus.OK);
 	}
 
 	protected Object accountsEndpoint(String requestId) {
