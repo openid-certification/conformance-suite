@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-connectid-ensure-authorization-request-without-3ds-payment-beneficiary-name-fails",
 	displayName = "ConnectID CIBA: Missing 3DS payment beneficiary_name should return an error",
-	summary = "This test sends a ConnectID CIBA 3DS payment backchannel authentication request with authorization_details missing beneficiary_name. The server must return an invalid_request error.",
+	summary = "This test sends a ConnectID CIBA 3DS payment backchannel authentication request with authorization_details missing beneficiary_name. The server must return an invalid_request or invalid_authorization_details error.",
 	profile = "FAPI-CIBA-ID1"
 )
 @ConfigurationFields({

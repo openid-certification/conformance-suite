@@ -21,9 +21,13 @@ public abstract class AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthoriz
 
 		validateErrorFromBackchannelAuthorizationRequestResponse();
 
-		callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest.class, Condition.ConditionResult.FAILURE, "CIBA-13");
+		checkErrorFromBackchannelAuthorizationRequestResponse();
 
 		cleanupAfterBackchannelRequestShouldHaveFailed();
+	}
+
+	protected void checkErrorFromBackchannelAuthorizationRequestResponse() {
+		callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest.class, Condition.ConditionResult.FAILURE, "CIBA-13");
 	}
 
 	@Override

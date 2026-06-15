@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-connectid-ensure-authorization-request-with-malformed-3ds-payment-currency-fails",
 	displayName = "ConnectID CIBA: Malformed 3DS payment currency should return an error",
-	summary = "This test sends a ConnectID CIBA 3DS payment backchannel authentication request with authorization_details containing an invalid instructed_amount.currency. The server must return an invalid_request error.",
+	summary = "This test sends a ConnectID CIBA 3DS payment backchannel authentication request with authorization_details containing an invalid instructed_amount.currency. The server must return an invalid_request or invalid_authorization_details error.",
 	profile = "FAPI-CIBA-ID1"
 )
 @ConfigurationFields({

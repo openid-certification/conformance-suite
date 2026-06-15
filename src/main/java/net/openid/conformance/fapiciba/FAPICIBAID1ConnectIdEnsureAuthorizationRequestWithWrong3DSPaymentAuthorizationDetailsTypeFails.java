@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-connectid-ensure-authorization-request-with-wrong-3ds-payment-authorization-details-type-fails",
 	displayName = "ConnectID CIBA: Wrong 3DS payment authorization_details type should return an error",
-	summary = "This test sends a ConnectID CIBA 3DS payment backchannel authentication request with authorization_details containing the wrong type. The server must return an invalid_request error.",
+	summary = "This test sends a ConnectID CIBA 3DS payment backchannel authentication request with authorization_details containing the wrong type. The server must return an invalid_request or invalid_authorization_details error.",
 	profile = "FAPI-CIBA-ID1"
 )
 @ConfigurationFields({
