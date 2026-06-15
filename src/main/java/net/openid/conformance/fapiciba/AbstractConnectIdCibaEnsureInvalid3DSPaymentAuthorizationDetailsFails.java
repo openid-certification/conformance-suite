@@ -10,9 +10,9 @@ public abstract class AbstractConnectIdCibaEnsureInvalid3DSPaymentAuthorizationD
 
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
-		super.performProfileAuthorizationEndpointSetup();
 		callAndStopOnFailure(SetConnectIdCibaLoginHintToCardPrimaryAccountNumber.class,
 			"CID-CIBA-4.1.3.1", "CID-CIBA-4.3-1");
+		call(new ConnectIdAuCibaServerProfileBehavior.CommonAuthorizationEndpointSetupSteps());
 	}
 
 	@Override

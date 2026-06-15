@@ -183,6 +183,13 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 		public void evaluate() {
 			callAndStopOnFailure(SetConnectIdCibaLoginHintFromConfiguration.class,
 				"CID-CIBA-4.1.1.1", "CID-CIBA-4.1.2.1", "CID-CIBA-4.1.3.1", "CID-CIBA-4.3-1");
+			call(new CommonAuthorizationEndpointSetupSteps());
+		}
+	}
+
+	public static class CommonAuthorizationEndpointSetupSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
 			callAndStopOnFailure(SetConnectIdBindingMessageToPurpose.class, "CID-IDA-5.2-10");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class,
 				"CID-CIBA-4.3-3", "CID-IDA-5.2-4", "CID-IDA-5.2-6");
