@@ -3,9 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.multipaz.cbor.Cbor;
-import org.multipaz.cbor.DataItem;
-import org.multipaz.cose.CoseSign1;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 import org.multipaz.revocation.RevocationStatus;
 
@@ -33,33 +31,11 @@ public class ValidateMdocMsoRevocationMechanism extends AbstractCondition {
 			throw error("Failed to decode mdoc_credential_cbor from base64", e);
 		}
 
-		DataItem issuerSignedItem;
-		try {
-			issuerSignedItem = Cbor.INSTANCE.decode(bytes);
-		} catch (Exception e) {
-			throw error("Failed to decode IssuerSigned CBOR", e);
-		}
-
-		DataItem issuerAuthItem = issuerSignedItem.getOrNull("issuerAuth");
-		if (issuerAuthItem == null) {
-			throw error("IssuerSigned structure missing 'issuerAuth' field");
-		}
-
-		CoseSign1 coseSign1;
-		try {
-			coseSign1 = issuerAuthItem.getAsCoseSign1();
-		} catch (Exception e) {
-			throw error("Failed to parse issuerAuth as COSE_Sign1", e);
-		}
-
 		MobileSecurityObject mso;
 		try {
-			byte[] payload = coseSign1.getPayload();
-			DataItem payloadItem = Cbor.INSTANCE.decode(payload);
-			DataItem msoDataItem = payloadItem.getAsTaggedEncodedCbor();
-			mso = MobileSecurityObject.Companion.fromDataItem(msoDataItem);
-		} catch (Exception e) {
-			throw error("Failed to parse MobileSecurityObject from issuerAuth payload", e);
+			mso = MdocUtil.parseMso(bytes);
+		} catch (MdocUtil.MdocParseException e) {
+			throw error(e.getMessage(), e);
 		}
 
 		RevocationStatus revocationStatus = mso.getRevocationStatus();

@@ -4,17 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.multipaz.cbor.Cbor;
-import org.multipaz.cbor.DataItem;
-import org.multipaz.cose.CoseSign1;
-import org.multipaz.crypto.EcPublicKey;
-import org.multipaz.crypto.EcPublicKeyDoubleCoordinate;
-import org.multipaz.mdoc.mso.MobileSecurityObject;
+import net.openid.conformance.util.MdocUtil;
 
 /**
  * Extracts the device key (MSO deviceKeyInfo.deviceKey) from each mdoc credential issued in
@@ -46,36 +40,11 @@ public class VCIExtractBatchMdocBindingKeys extends AbstractCondition {
 	}
 
 	private JsonObject extractDeviceKey(String mdocBase64Url, int index) {
-		EcPublicKey deviceKey;
+		byte[] bytes = new Base64URL(mdocBase64Url).decode();
 		try {
-			byte[] bytes = new Base64URL(mdocBase64Url).decode();
-			DataItem issuerSigned = Cbor.INSTANCE.decode(bytes);
-			DataItem issuerAuth = issuerSigned.getOrNull("issuerAuth");
-			if (issuerAuth == null) {
-				throw error("mdoc credential is missing the required 'issuerAuth' field",
-					args("credential_index", index));
-			}
-			CoseSign1 coseSign1 = issuerAuth.getAsCoseSign1();
-			DataItem msoDataItem = Cbor.INSTANCE.decode(coseSign1.getPayload()).getAsTaggedEncodedCbor();
-			MobileSecurityObject mso = MobileSecurityObject.Companion.fromDataItem(msoDataItem);
-			deviceKey = mso.getDeviceKey();
-		} catch (ConditionError e) {
-			throw e;
-		} catch (Exception e) {
-			throw error("Failed to extract the device key from the mdoc credential", e,
-				args("credential_index", index));
+			return MdocUtil.extractDeviceKeyJwk(bytes);
+		} catch (MdocUtil.MdocParseException e) {
+			throw error(e.getMessage(), e, args("credential_index", index));
 		}
-
-		if (!(deviceKey instanceof EcPublicKeyDoubleCoordinate ecKey)) {
-			throw error("The mdoc credential's device key is not an EC key with x/y coordinates",
-				args("credential_index", index, "curve", deviceKey.getCurve().name()));
-		}
-
-		JsonObject jwk = new JsonObject();
-		jwk.addProperty("kty", "EC");
-		jwk.addProperty("crv", ecKey.getCurve().getJwkName());
-		jwk.addProperty("x", Base64URL.encode(ecKey.getX()).toString());
-		jwk.addProperty("y", Base64URL.encode(ecKey.getY()).toString());
-		return jwk;
 	}
 }

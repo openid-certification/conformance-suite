@@ -7,6 +7,8 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAut
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureSdJwtVcVctMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -29,6 +31,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInSdJwtVcTypeMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
+import net.openid.conformance.vci10issuer.condition.VCICaptureCredentialForLinkability;
 import net.openid.conformance.vci10issuer.condition.VCIDetectTypeMetadataExtends;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureMandatoryClaimsArePresent;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureMdocDeviceKeyMatchesProofKey;
@@ -388,18 +391,49 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		};
 	}
 
+	/**
+	 * Per-credential verification for the VCI issuer test modules: everything
+	 * {@link #verifyCredential()} checks plus credential-content conformance checks that
+	 * are deliberately not run from validateResourceEndpointResponse(), so the FAPI2
+	 * security-profile modules sharing that path don't re-check the same content in every
+	 * module.
+	 */
+	public ConditionSequence verifyIssuedCredential() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(verifyCredential());
+
+				String format = module.getEnv().getString("vci_credential_configuration", "format");
+				if ("mso_mdoc".equals(format)) {
+					// The check only applies to mDL credentials (it no-ops for other docTypes), and
+					// ISO/IEC 18013-5 defines those mandatory data elements regardless of profile,
+					// so missing elements are always a failure.
+					callAndContinueOnFailure(EnsureMdocMdlMandatoryDataElementsPresent.class,
+						ConditionResult.FAILURE, "ISO18013-5-7.2.1");
+				}
+			}
+		};
+	}
+
 	protected ConditionSequence verifyMdocCredential() {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
+				// every following check depends on the parsed credential, so stop rather than continue
+				// into checks that would skip or see a previously parsed credential's state
+				callAndStopOnFailure(ParseMdocCredentialFromVCIIssuance.class, "OID4VCI-1FINALA-A.2");
+				// Capture the whole credential + the issuer's Date header now (see SD-JWT path). Tests
+				// that obtain two or more credentials of the same dataset later compare the MSO signed
+				// timestamps (RFC 9901 §10.1 unlinkability applies to mdoc too).
+				callAndContinueOnFailure(VCICaptureCredentialForLinkability.class, ConditionResult.WARNING, "SDJWT-10.1");
 				call(new ValidateMdocCredential(true, isHaip()));
 
 				// no proofs are sent when the credential configuration doesn't use cryptographic binding
 				call(condition(VCIEnsureMdocDeviceKeyMatchesProofKey.class)
 					.skipIfObjectMissing("credential_request_proofs")
-					.skipIfStringMissing("mdoc_credential_cbor")
+					.skipIfObjectMissing("mdoc_device_key_jwk")
 					.onSkip(ConditionResult.INFO)
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINAL-8.3")
@@ -412,8 +446,16 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
+				// every following check depends on the parsed credential, so stop rather than continue
+				// into checks that would skip or see a previously parsed credential's state
+				callAndStopOnFailure(ParseCredentialAsSdJwt.class, "SDJWT-4");
+				// Capture the whole credential + the issuer's Date header now, before any notification
+				// request overwrites the response headers. Tests that obtain two or more credentials of
+				// the same dataset later compare them (RFC 9901 §10.1 unlinkability).
+				callAndContinueOnFailure(VCICaptureCredentialForLinkability.class, ConditionResult.WARNING, "SDJWT-10.1");
 				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
+				callAndContinueOnFailure(EnsureSdJwtVcVctMatchesCredentialConfiguration.class,
+					ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.2");
 
 				if (requiresCryptographicBinding) {
 					call(condition(VCIEnsureSdJwtCnfMatchesProofKey.class)

@@ -4,16 +4,21 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchBindingKeysAreDistinct;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchBindingKeysMatchSentProofKeys;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchMdocCredentialDatasetsMatch;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchSdJwtCredentialDatasetsMatch;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchSdJwtDisclosureSaltsAreDistinct;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchStatusListIndicesAreUnpredictable;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchStatusReferencesAreDistinct;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchTimeClaimsNotLinkable;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureNotMoreCredentialsThanRequestedProofs;
 import net.openid.conformance.vci10issuer.condition.VCIExtractBatchMdocBindingKeys;
 import net.openid.conformance.vci10issuer.condition.VCIExtractBatchSdJwtBindingKeys;
 import net.openid.conformance.vci10issuer.condition.VCIPrepareBatchProofKeys;
 import net.openid.conformance.vci10issuer.condition.VCIValidateBatchCredentialIssuanceMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIWarnBatchStatusListUrisProvideHerdPrivacy;
 import net.openid.conformance.vci10issuer.condition.VCIWarnIfFewerCredentialsThanRequestedProofs;
 
 @PublishTestModule(
@@ -94,6 +99,28 @@ public class VCIIssuerBatchIssuance extends AbstractVCIIssuerTestModule {
 		}
 		callAndContinueOnFailure(VCIEnsureBatchBindingKeysMatchSentProofKeys.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		callAndContinueOnFailure(VCIEnsureBatchBindingKeysAreDistinct.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3", "OID4VCI-1FINAL-3.3.2");
+
+		// Time-claim unlinkability (RFC 9901 §10.1): within a batch the credentials are issued in the
+		// same instant, so a precise iat/nbf (mdoc signed/validFrom) is an identical high-entropy
+		// timestamp shared across the batch. The claims must instead be randomized or rounded.
+		// The §10.1 MUST literally covers the SD-JWT iat/exp/nbf claims; for mdoc validityInfo the
+		// basis is the section's privacy rationale only (and ISO 18013-5 defines 'signed' as the MSO
+		// signing time), so mdoc is checked at WARNING.
+		callAndContinueOnFailure(VCIEnsureBatchTimeClaimsNotLinkable.class,
+			"mso_mdoc".equals(format) ? ConditionResult.WARNING : ConditionResult.FAILURE, "SDJWT-10.1");
+
+		// Token Status List unlinkability: each credential must have a distinct, unpredictable status
+		// list index (HAIP §6.1 makes this a MUST for SD-JWT VCs only; Token Status List §12.5
+		// RECOMMENDS it otherwise, including for mdoc), and the status list URI should be shared
+		// rather than unique-per-credential (herd privacy).
+		boolean haip = getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP;
+		boolean mdoc = "mso_mdoc".equals(format);
+		callAndContinueOnFailure(VCIEnsureBatchStatusReferencesAreDistinct.class, ConditionResult.FAILURE,
+			mdoc ? new String[] {"OTSL-13.3"} : new String[] {"OTSL-13.3", "HAIP-6.1"});
+		callAndContinueOnFailure(VCIEnsureBatchStatusListIndicesAreUnpredictable.class,
+			haip && !mdoc ? ConditionResult.FAILURE : ConditionResult.WARNING,
+			mdoc ? new String[] {"OTSL-12.5"} : new String[] {"HAIP-6.1", "OTSL-12.5"});
+		callAndContinueOnFailure(VCIWarnBatchStatusListUrisProvideHerdPrivacy.class, ConditionResult.WARNING, "OTSL-12.2", "OTSL-12.5");
 
 		eventLog.endBlock();
 	}

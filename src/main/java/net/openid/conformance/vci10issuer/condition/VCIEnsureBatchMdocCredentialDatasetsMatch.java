@@ -8,13 +8,10 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
-import org.multipaz.cbor.CborArray;
-import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
-import org.multipaz.cose.CoseSign1;
-import org.multipaz.mdoc.mso.MobileSecurityObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,34 +93,24 @@ public class VCIEnsureBatchMdocCredentialDatasetsMatch extends AbstractCondition
 
 			DataItem issuerSigned = Cbor.INSTANCE.decode(bytes);
 
-			DataItem issuerAuth = issuerSigned.getOrNull("issuerAuth");
-			if (issuerAuth == null) {
-				throw error("mdoc credential is missing the required 'issuerAuth' field",
-					args("credential_index", index));
-			}
-			CoseSign1 coseSign1 = issuerAuth.getAsCoseSign1();
-			DataItem msoDataItem = Cbor.INSTANCE.decode(coseSign1.getPayload()).getAsTaggedEncodedCbor();
-			MobileSecurityObject mso = MobileSecurityObject.Companion.fromDataItem(msoDataItem);
-			dataset.docType = mso.getDocType();
+			dataset.docType = MdocUtil.parseMso(issuerSigned).getDocType();
 
-			DataItem nameSpaces = issuerSigned.getOrNull("nameSpaces");
-			if (nameSpaces instanceof CborMap nameSpacesMap) {
-				for (Map.Entry<DataItem, DataItem> namespaceEntry : nameSpacesMap.getItems().entrySet()) {
-					String namespace = namespaceEntry.getKey().getAsTstr();
-					Map<String, DataItem> namespaceElements = new TreeMap<>();
-					for (DataItem issuerSignedItemBytes : ((CborArray) namespaceEntry.getValue()).getItems()) {
-						DataItem issuerSignedItem = issuerSignedItemBytes.getAsTaggedEncodedCbor();
-						String elementIdentifier = issuerSignedItem.getOrNull("elementIdentifier").getAsTstr();
-						DataItem elementValue = issuerSignedItem.getOrNull("elementValue");
-						namespaceElements.put(elementIdentifier, elementValue);
-					}
-					dataset.elements.put(namespace, namespaceElements);
+			for (Map.Entry<String, List<DataItem>> namespaceEntry : MdocUtil.getIssuerSignedItems(issuerSigned).entrySet()) {
+				Map<String, DataItem> namespaceElements = new TreeMap<>();
+				for (DataItem issuerSignedItemBytes : namespaceEntry.getValue()) {
+					DataItem issuerSignedItem = issuerSignedItemBytes.getAsTaggedEncodedCbor();
+					String elementIdentifier = issuerSignedItem.getOrNull("elementIdentifier").getAsTstr();
+					DataItem elementValue = issuerSignedItem.getOrNull("elementValue");
+					namespaceElements.put(elementIdentifier, elementValue);
 				}
+				dataset.elements.put(namespaceEntry.getKey(), namespaceElements);
 			}
 
 			return dataset;
 		} catch (ConditionError e) {
 			throw e;
+		} catch (MdocUtil.MdocParseException e) {
+			throw error(e.getMessage(), e, args("credential_index", index));
 		} catch (Exception e) {
 			throw error("Failed to parse credential as an mdoc IssuerSigned structure", e,
 				args("credential_index", index));
