@@ -655,6 +655,51 @@ def run_tests():
     api_token_bearer.close()
 
     # ===================================================================
+    # 2e. RUNNER WAIT-STATE LONG-POLL ENDPOINT (/api/runner/{id}/wait-state)
+    # ===================================================================
+    # The long-poll endpoint mirrors getTestStatus auth: getRunningTestById
+    # applies owner/admin filtering and returns null (-> 404) for both unknown
+    # and not-authorized tests, so existence is never leaked. It lives under
+    # /api/runner/** which is NOT in the private-link allow-list, so share-link
+    # users must be rejected by the security layer. timeoutMs=1 keeps every call
+    # fast: the server clamps to >=1ms and returns {"timeout":true} promptly
+    # instead of holding the connection for the default 30s.
+    print("\n--- 2e. Runner wait-state endpoint ---")
+
+    # Owner/admin can wait on their own test (200 regardless of current state).
+    resp = admin_client.get(f"{base_url}api/runner/{test_id}/wait-state",
+                            params={"states": "FINISHED", "timeoutMs": 1})
+    runner.check_status("Wait-state: owner/admin can wait on own test", resp, 200)
+
+    # Unknown test id -> 404 carrying a JSON {"error":"test not found"} body (not
+    # Spring's generic HTML 404), so the error is machine-readable and consistent
+    # with the success responses. Same 404 for unknown and not-authorized: no leak.
+    resp = admin_client.get(f"{base_url}api/runner/does-not-exist-xyz/wait-state",
+                            params={"states": "FINISHED", "timeoutMs": 1})
+    runner.check_status("Wait-state: unknown test returns 404", resp, 404)
+    runner.check("Wait-state: 404 carries JSON 'test not found' marker",
+                 resp.headers.get("content-type", "").startswith("application/json")
+                 and resp.json().get("error") == "test not found",
+                 f"content-type={resp.headers.get('content-type')!r} body={resp.text[:200]}")
+
+    # Share-link (private-link) users must NOT reach runner endpoints at all:
+    # /api/runner/** is outside the private-link allow-list, so both a plan-level
+    # and a test-level share token are rejected (401/403) — even the test-level
+    # token that legitimately grants info/log access to this very test cannot use
+    # it to drive the runner.
+    ws_test_bearer = bearer_client(base_url, test_jwt, verify_ssl)
+    resp = ws_test_bearer.get(f"{base_url}api/runner/{test_id}/wait-state",
+                              params={"states": "FINISHED", "timeoutMs": 1})
+    runner.check_status_in("Wait-state: test-share token cannot reach runner", resp, {401, 403})
+    ws_test_bearer.close()
+
+    ws_plan_bearer = bearer_client(base_url, plan_jwt, verify_ssl)
+    resp = ws_plan_bearer.get(f"{base_url}api/runner/{test_id}/wait-state",
+                              params={"states": "FINISHED", "timeoutMs": 1})
+    runner.check_status_in("Wait-state: plan-share token cannot reach runner", resp, {401, 403})
+    ws_plan_bearer.close()
+
+    # ===================================================================
     # 3. UNAUTHENTICATED ACCESS REJECTION
     # ===================================================================
     print("\n--- 3. Unauthenticated access rejection ---")
@@ -674,6 +719,10 @@ def run_tests():
 
     resp = noauth_client.get(f"{base_url}api/runner/available")
     runner.check_status("Unauth: runner rejected", resp, 401)
+
+    resp = noauth_client.get(f"{base_url}api/runner/{test_id}/wait-state",
+                             params={"states": "FINISHED", "timeoutMs": 1})
+    runner.check_status("Unauth: wait-state rejected", resp, 401)
 
     resp = noauth_client.post(f"{base_url}api/plan",
                               params={"planName": plan_name},

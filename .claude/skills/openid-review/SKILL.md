@@ -76,6 +76,7 @@ Concentrate on findings related to changes made on the branch — flag pre-exist
 - Extra scrutiny for JWT, JWK, DPoP, mTLS, and crypto-related changes
 - No accidental weakening of validation (e.g., removing required checks)
 - OWASP top 10 concerns (injection, XSS) in any HTTP-handling code
+- **New or changed REST endpoints under `/api/**` must have corresponding security tests** in `scripts/run-security-tests.py`. Any added `@GetMapping`/`@PostMapping`/`@RequestMapping` handler (or change to an existing one's auth) that ships without them is a finding. The tests should cover, as applicable: unauthenticated access is rejected (401); share-link / private-link tokens cannot reach endpoints outside their allow-list (401/403); the owner/admin can access their own resource (200); and an unknown *or* unauthorized resource id returns the same not-found response (404, no existence leak). Use a short timeout on any long-poll/blocking endpoint so the suite stays fast.
 
 ### Timestamp and Duration Validation
 - When validating any time-based value, always check **both bounds** — a missing bound means the conformance suite won't catch an implementation that produces nonsensical values:
