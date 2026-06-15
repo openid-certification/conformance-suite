@@ -118,9 +118,15 @@ public class FAPI2SPID2EnsureHolderOfKeyRequired extends AbstractFAPI2SPID2Serve
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
 
+		// Add client authentication (e.g. client_id for mtls, client_assertion for private_key_jwt) so the
+		// server can identify the client, but deliberately omit the holder-of-key / sender-constraining
+		// mechanism. For mtls/RFC8705 client auth the client_id parameter is mandatory; without it the server
+		// returns invalid_client (it cannot identify the client) rather than the holder-of-key error we expect.
+		addClientAuthenticationToTokenEndpointRequest();
+
 		if (isDpop()) {
-			// nothing to do; creating the new request cleared out any previous
-			// dpop header
+			// nothing to do; creating the new request above cleared out any previous DPoP header, so the request
+			// carries no DPoP proof. That missing holder-of-key mechanism is what this test checks the server rejects.
 		} else {
 			callAndStopOnFailure(RemoveMTLSCertificates.class);
 		}
