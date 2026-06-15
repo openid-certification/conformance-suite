@@ -1,0 +1,97 @@
+{
+  "Data": {
+    "Permissions": [
+      "ReadAccountsBasic",
+      "ReadAccountsDetail",
+      "ReadBalances",
+      "ReadParty",
+      "ReadPartyPSU",
+      "ReadPartyPSUIdentity",
+      "ReadBeneficiariesBasic",
+      "ReadBeneficiariesDetail",
+      "ReadTransactionsBasic",
+      "ReadTransactionsDetail",
+      "ReadTransactionsCredits",
+      "ReadTransactionsDebits",
+      "ReadScheduledPaymentsBasic",
+      "ReadScheduledPaymentsDetail",
+      "ReadDirectDebits",
+      "ReadStandingOrdersBasic",
+      "ReadStandingOrdersDetail"
+    ],
+    "AuthorizationExpirationTimeWindow": "720:00:00",
+    "ExpirationDateTime": "2023-01-28T15:27:13+0300",
+    "NationalIdentificationNumber": "1111111111",
+    "TransactionFromDateTime": "2023-01-25T12:19:24+0300",
+    "TransactionToDateTime": "2023-01-27T12:19:24+0300",
+    "AccountType": [
+      "KSAOB.Retail"
+    ],
+    "AccountSubType": [
+      "CurrentAccount"
+    ],
+    "FourthParty": {
+      "TradingName": "Rand's Company",
+      "LegalName": "Rand's Ltd",
+      "IdentifierType": "123456",
+      "Identifier": "123456"
+    },
+    "SponsoredTPP": {
+      "TradingName": "Khalid Company",
+      "Identification": "123456"
+    },
+    "ConsentPurpose": [
+      "Account Aggregation",
+      "E-Statement"
+    ],
+    "IsPSUReadAllAccounts": true
+  },
+  "Risk": {
+    "PSUIndicators": {
+      "PSUName": {
+        "en": "Mohammed",
+        "ar": "محمد"
+      },
+      "PSUPhoneNumber": "0555555555",
+      "IsCustomerRegistered": true,
+      "IsCustomerVerified": true,
+      "FailedLoginAttempts": 2,
+      "PasswordChangedDateTime": "2023-01-27T15:27:13+0300",
+      "PSUOnboardingDateTime": "2023-01-27T15:27:13+0300"
+    },
+    "DeviceIndicators": {
+      "GeoLocation": {
+        "latitude": "40.730610",
+        "longitude": "-73.935242"
+      },
+      "DeviceId": "54234",
+      "VPNStatus": false,
+      "RemoteAccessTool": false,
+      "Screensharing": false,
+      "DeviceSoftwareRestricted": true,
+      "TrustedDeviceFlag": true,
+      "TrustedDeviceDateAndtime": "2023-01-27T15:27:13+0300",
+      "MechanismOfTrustingDevice": "KSAOB.IVR",
+      "IPAddressVerison": "KSAOB.IPv4",
+      "DeviceType": "KSAOB.Smartphone",
+      "DeviceName": "My phone",
+      "ConnectionType": "KSAOB.WiFi",
+      "AppVersion": "1.4",
+      "LocaleInformation": "SA",
+      "StorageCapacity": "128GB total, 30GB free",
+      "ScreenReaderActive": false,
+      "ISPName": "STC",
+      "NetworkType": "KSAOB.5G"
+    },
+    "RequestIndicators": {
+      "InitiationMode": "KSAOB.UserInitiated",
+      "AcceptanceChannel": "KSAOB.Mobile"
+    }
+  },
+  "Subscription": {
+    "Webhook": {
+      "Url": "https://api.tpp.com/webhook/callbackUrl",
+      "IsActive": false
+    }
+  }
+}
