@@ -47,6 +47,7 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
+import net.openid.conformance.condition.as.VP1FinalCheckEncryptionKeyNotReused;
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
@@ -151,6 +152,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
+
+		// Surface a stable per-user scope so the process-wide encryption-key reuse check
+		// (VP1FinalCheckEncryptionKeyNotReused) can attribute keys to a user without comparing
+		// across unrelated users on a shared deployment.
+		exposeOwnerIdToEnvironment();
 
 		Boolean skip = env.getBoolean("config", "skip_test");
 		if (skip != null && skip) {
@@ -449,6 +455,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 					callAndContinueOnFailure(ValidateVpClientMetadataEncryptionForHaip.class, ConditionResult.FAILURE, "HAIP-5-5", "OID4VP-1FINAL-8.3");
 				}
+				// HAIP requires an ephemeral encryption key specific to each Authorization Request; reuse is a
+				// FAILURE under HAIP and a WARNING otherwise (base OID4VP §8.3 does not clearly mandate it).
+				ConditionResult reuseSeverity = (getVariant(VPProfile.class) == VPProfile.HAIP)
+					? ConditionResult.FAILURE : ConditionResult.WARNING;
+				callAndContinueOnFailure(VP1FinalCheckEncryptionKeyNotReused.class, reuseSeverity, "HAIP-5-5", "OID4VP-1FINAL-8.3");
 				break;
 			case DIRECT_POST:
 				break;
