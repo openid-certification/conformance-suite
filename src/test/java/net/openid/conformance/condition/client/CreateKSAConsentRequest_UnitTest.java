@@ -26,7 +26,9 @@ public class CreateKSAConsentRequest_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 		env.putString("client_id", "client-1234");
-		env.putString("resource", "resourceUrlAccountRequests", "https://bank.example/open-banking/v1.1/account-requests");
+		JsonObject server = new JsonObject();
+		server.addProperty("issuer", "https://op.example/");
+		env.putObject("server", server);
 	}
 
 	@Test
@@ -36,6 +38,7 @@ public class CreateKSAConsentRequest_UnitTest {
 		JsonObject req = env.getObject("account_requests_endpoint_request");
 		assertThat(req, notNullValue());
 		assertThat(OIDFJSON.getString(req.get("iss")), is("client-1234"));
+		assertThat(OIDFJSON.getString(req.get("aud")), is("https://op.example/"));
 		assertThat(req.has("iat"), is(true));
 		assertThat(req.has("nbf"), is(true));
 		assertThat(req.has("exp"), is(true));
