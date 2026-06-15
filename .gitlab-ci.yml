@@ -141,7 +141,10 @@ ensure-playwright-image:
   stage: build
   interruptible: true
   needs: []
-  image: quay.io/skopeo/stable:latest
+  image:
+    name: quay.io/skopeo/stable:latest
+    # Clear the image ENTRYPOINT (/usr/bin/skopeo) so GitLab runs the script in a shell
+    entrypoint: [""]
   script:
     - DEST="$CI_REGISTRY_IMAGE/playwright:$PLAYWRIGHT_IMAGE_TAG"
     - SRC="mcr.microsoft.com/playwright:$PLAYWRIGHT_IMAGE_TAG"
