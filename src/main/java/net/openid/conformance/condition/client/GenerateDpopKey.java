@@ -5,8 +5,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.gen.JWKGenerator;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.RSAKey;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -29,7 +31,7 @@ public class GenerateDpopKey extends AbstractGenerateKey {
 			}
 		}
 
-		JsonObject keyJson = createKeyForAlg(dpopSigningAlg);
+		JsonObject keyJson = createKeyForAlg(env, dpopSigningAlg);
 
 		env.putObject("client", "dpop_private_jwk", keyJson);
 
@@ -38,9 +40,20 @@ public class GenerateDpopKey extends AbstractGenerateKey {
 		return env;
 	}
 
+	// Generate kid using the thumbprint so that we don't have to parse the key again to get the thumbprint.
+
 	@Override
-	protected JWKGenerator<? extends JWK> onConfigure(JWKGenerator<? extends JWK> generator) {
-		// Generate kid using the thumbprint so that we don't have to parse the key again to get the thumbprint
-		return generator.keyIDFromThumbprint(true);
+	protected ECKey.Builder onConfigureEc(ECKey.Builder b) throws JOSEException {
+		return b.keyIDFromThumbprint();
+	}
+
+	@Override
+	protected OctetKeyPair.Builder onConfigureOkp(OctetKeyPair.Builder b) throws JOSEException {
+		return b.keyIDFromThumbprint();
+	}
+
+	@Override
+	protected RSAKey.Builder onConfigureRsa(RSAKey.Builder b) throws JOSEException {
+		return b.keyIDFromThumbprint();
 	}
 }

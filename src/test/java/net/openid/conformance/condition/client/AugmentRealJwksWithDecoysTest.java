@@ -2,9 +2,12 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.gen.JWKGenerator;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.RSAKey;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -39,6 +42,9 @@ public class AugmentRealJwksWithDecoysTest {
 	public void setUp() throws Exception {
 		JsonObject server = new JsonObject();
 		env.putObject("server", server);
+		// PreGeneratedJwks requires owner_sub / owner_iss in env.
+		env.putString("owner_sub", "test-sub");
+		env.putString("owner_iss", "test-iss");
 
 		keyGenerator = new AbstractGenerateKey() {
 			@Override
@@ -46,11 +52,21 @@ public class AugmentRealJwksWithDecoysTest {
 				return null;
 			}
 
+			// use same kid for all keys
+
 			@Override
-			protected JWKGenerator<? extends JWK> onConfigure(JWKGenerator<? extends JWK> generator) {
-				// use same kid for all keys
-				generator.keyID("testKey");
-				return generator;
+			protected ECKey.Builder onConfigureEc(ECKey.Builder b) throws JOSEException {
+				return b.keyID("testKey");
+			}
+
+			@Override
+			protected OctetKeyPair.Builder onConfigureOkp(OctetKeyPair.Builder b) throws JOSEException {
+				return b.keyID("testKey");
+			}
+
+			@Override
+			protected RSAKey.Builder onConfigureRsa(RSAKey.Builder b) throws JOSEException {
+				return b.keyID("testKey");
 			}
 		};
 
@@ -77,7 +93,7 @@ public class AugmentRealJwksWithDecoysTest {
 	}
 
 	private void generateAndAddJwkToEnv(String alg) {
-		JWK jwk = keyGenerator.createJwkForAlg(alg);
+		JWK jwk = keyGenerator.createJwkForAlg(env, alg);
 		JWKSet jwks = new JWKSet(jwk);
 		env.putObject("server_jwks", JWKUtil.getPublicJwksAsJsonObject(jwks));
 	}

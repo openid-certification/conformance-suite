@@ -28,6 +28,9 @@ public class GenerateRS256ClientJWKs_UnitTest {
 
 	@BeforeEach
 	public void setup() {
+		// PreGeneratedJwks requires owner_sub / owner_iss.
+		env.putString("owner_sub", "unit-test-sub");
+		env.putString("owner_iss", "unit-test-iss");
 		cond = new GenerateRS256ClientJWKs();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}

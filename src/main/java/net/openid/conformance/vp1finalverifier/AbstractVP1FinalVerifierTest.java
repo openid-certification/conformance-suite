@@ -153,11 +153,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		// Surface a stable per-user scope so the process-wide encryption-key reuse check
-		// (VP1FinalCheckEncryptionKeyNotReused) can attribute keys to a user without comparing
-		// across unrelated users on a shared deployment.
-		exposeOwnerIdToEnvironment();
-
 		Boolean skip = env.getBoolean("config", "skip_test");
 		if (skip != null && skip) {
 			// This is intended for use in our CI where we insist all tests run to completion

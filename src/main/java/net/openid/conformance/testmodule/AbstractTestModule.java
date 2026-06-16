@@ -109,6 +109,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		this.executionManager = executionManager;
 		this.imageService = imageService;
 
+		// Surface the owner identity in env so utilities like PreGeneratedJwks
+		// and reuse-detection checks (RecentValueHistory-backed) can scope state
+		// per authenticated user without each test-family subclass having to
+		// remember to call this.
+		exposeOwnerIdToEnvironment();
+
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
 
@@ -167,9 +173,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	/**
 	 * Surface a stable identifier for the logged-in suite user (subject + issuer) into the
-	 * environment under {@code owner_id}, so conditions that scope process-wide state per user
-	 * (e.g. reuse-detection checks backed by RecentValueHistory) can read it. No-op when the
-	 * owner is unknown (e.g. some unit-test setups).
+	 * environment under {@code owner_id}, plus the split fields {@code owner_sub} /
+	 * {@code owner_iss} for code that wants to reconstruct a typed key without re-parsing
+	 * the joined string. Used by reuse-detection checks (RecentValueHistory) and by the
+	 * per-owner keypair cache (PreGeneratedJwks). No-op when the owner is unknown
+	 * (e.g. some unit-test setups).
 	 */
 	protected void exposeOwnerIdToEnvironment() {
 		Map<String, String> currentOwner = getOwner();
@@ -178,6 +186,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			String iss = currentOwner.get("iss");
 			if (sub != null && iss != null) {
 				env.putString("owner_id", sub + " " + iss);
+				env.putString("owner_sub", sub);
+				env.putString("owner_iss", iss);
 			}
 		}
 	}

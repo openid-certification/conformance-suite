@@ -1,11 +1,10 @@
 package net.openid.conformance.condition.as;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.PreGeneratedJwks;
 
 public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 
@@ -14,12 +13,7 @@ public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 	public Environment evaluate(Environment env) {
 
 		// Create a private key for the credential key binding
-		ECKey privateKey = null;
-		try {
-			privateKey = new ECKeyGenerator(Curve.P_256).generate();
-		} catch (JOSEException e) {
-			throw new RuntimeException(e);
-		}
+		ECKey privateKey = PreGeneratedJwks.nextEcKey(env, Curve.P_256);
 		String sdJwt = createSdJwt(env, privateKey.toPublicJWK(), privateKey, "urn:eudi:pid:1");
 
 		env.putString("credential", sdJwt);
