@@ -34,6 +34,7 @@ import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionIdTo
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.SetConnectIdBindingMessageToPurpose;
 import net.openid.conformance.condition.client.SetConnectIdCibaLoginHintFromConfiguration;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -49,6 +50,11 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 	@Override
 	public Class<? extends ConditionSequence> getProfileAuthorizationEndpointSetupSteps() {
 		return AuthorizationEndpointSetupSteps.class;
+	}
+
+	@Override
+	public Class<? extends ConditionSequence> getResourceConfiguration() {
+		return ResourceConfiguration.class;
 	}
 
 	@Override
@@ -184,6 +190,13 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 			callAndStopOnFailure(SetConnectIdCibaLoginHintFromConfiguration.class,
 				"CID-CIBA-4.1.1.1", "CID-CIBA-4.1.2.1", "CID-CIBA-4.1.3.1", "CID-CIBA-4.3-1");
 			call(new CommonAuthorizationEndpointSetupSteps());
+		}
+	}
+
+	public static class ResourceConfiguration extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-4");
 		}
 	}
 
