@@ -416,10 +416,11 @@ const STYLE_TEXT = css`
   /* Page-injected slots ([data-slot="error"], [data-slot="browser"])
      are empty until log-detail.js injects an alert or browser-URL
      prompt. 'display: contents' makes the slot disappear from the
-     flex flow while empty, so the parent's gap skips it. The moment
+     flex flow while empty, so it adds no stray box. The moment
      log-detail.js appends a child element, :not(:has(*)) stops
-     matching and the slot rejoins the flex flow with the standard
-     gap above and below. */
+     matching and the slot rejoins the flex flow; the populated-only
+     :has(*) rules below give it the separating margin (the hero has
+     no blanket 'gap', so each populated slot owns its own spacing). */
   cts-log-detail-header .ctsHero > [data-slot]:not(:has(*)) {
     display: contents;
   }
@@ -431,8 +432,17 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsHero > [data-slot="error"]:has(*) {
     margin-bottom: var(--space-3);
   }
-  /* Eyebrow + headline are a single title group (Gestalt proximity),
-     so they sit 4px apart instead of inheriting the 16px hero gap. */
+  /* Once the browser slot is populated by log-detail.js, separate the
+     injected browser-URL prompt from the exposed-values JSON editor
+     (or hero body) above it. Without this the prompt sits flush
+     against the editor, since the hero carries no blanket 'gap'. */
+  cts-log-detail-header .ctsHero > [data-slot="browser"]:has(*) {
+    margin-top: var(--space-4);
+  }
+  /* Eyebrow + headline read as one tight title group (Gestalt
+     proximity): the headline's margin is 0 and the hero has no
+     blanket gap, so nothing separates them. The eyebrow's margin-top
+     is what sets the title group apart from the content above it. */
   cts-log-detail-header .ctsHeroEyebrow {
     font-size: var(--fs-12);
     font-weight: var(--fw-bold);
