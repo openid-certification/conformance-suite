@@ -5,20 +5,19 @@ import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.jose.jwk.gen.JWKGenerator;
-import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.RSAKey;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.PreGeneratedJwks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,18 +77,18 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		try {
 			//changing the order of createKeys calls here may affect the signing key selection
 			//See JWKUtil.selectAsymmetricJWSKey for full details
-			createKeys(numberOfRSASigningKeysWithNoAlg, KeyType.RSA, KeyUse.SIGNATURE, null, null);
-			createKeys(numberOfECCurveP256SigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null, esCurve);
-			createKeys(numberOfECCurveSECP256KSigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null, esKCurve);
-			createKeys(numberOfOKPSigningKeysWithNoAlg, KeyType.OKP, KeyUse.SIGNATURE, null, null);
+			createKeys(env, numberOfRSASigningKeysWithNoAlg, KeyType.RSA, KeyUse.SIGNATURE, null, null);
+			createKeys(env, numberOfECCurveP256SigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null, esCurve);
+			createKeys(env, numberOfECCurveSECP256KSigningKeysWithNoAlg, KeyType.EC, KeyUse.SIGNATURE, null, esKCurve);
+			createKeys(env, numberOfOKPSigningKeysWithNoAlg, KeyType.OKP, KeyUse.SIGNATURE, null, null);
 
-			createKeys(numberOfRSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, rsSigningAlgorithm, null);
-			createKeys(numberOfES256SigningKeys, KeyType.EC, KeyUse.SIGNATURE, esSigningAlgorithm, esCurve);
-			createKeys(numberOfPSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, psSigningAlgorithm, null);
-			createKeys(numberOfEdSigningKeys, KeyType.OKP, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA, null);
+			createKeys(env, numberOfRSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, rsSigningAlgorithm, null);
+			createKeys(env, numberOfES256SigningKeys, KeyType.EC, KeyUse.SIGNATURE, esSigningAlgorithm, esCurve);
+			createKeys(env, numberOfPSSigningKeys, KeyType.RSA, KeyUse.SIGNATURE, psSigningAlgorithm, null);
+			createKeys(env, numberOfEdSigningKeys, KeyType.OKP, KeyUse.SIGNATURE, JWSAlgorithm.EdDSA, null);
 
-			createKeys(numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys, null);
-			createKeys(numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys, esCurve);
+			createKeys(env, numberOfRSAEncKeys, KeyType.RSA, KeyUse.ENCRYPTION, encryptionAlgorithmForRSAKeys, null);
+			createKeys(env, numberOfECEncKeys, KeyType.EC, KeyUse.ENCRYPTION, encryptionAlgorithmForECKeys, esCurve);
 
 			JWKSet publicJwkSet = new JWKSet(allGeneratedKeys);
 			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(publicJwkSet);
@@ -125,34 +124,44 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	 * @param algorithm if null keys won't have alg
 	 * @throws JOSEException
 	 */
-	protected void createKeys(int keyCount, KeyType keyType, KeyUse keyUse, Algorithm algorithm, Curve curveForECKeys) throws JOSEException {
+	protected void createKeys(Environment env, int keyCount, KeyType keyType, KeyUse keyUse, Algorithm algorithm, Curve curveForECKeys) throws JOSEException {
 		if(keyCount<1) {
 			return;
 		}
 		int whichKeyToUse = getIndexOfKeyToUse(keyCount);
 
 		for(int i=0; i<keyCount; i++) {
-			JWKGenerator<? extends JWK> jwkGenerator = null;
+			// Pull from a process-wide pool of pre-generated keypairs rather than
+			// running fresh RSA/EC primality work per test. The kid (when set) is
+			// still fresh per handout so kid-based lookups behave the same as before.
+			String kid = ((generateSigKids && ((null == keyUse) || KeyUse.SIGNATURE.equals(keyUse))) ||
+				(generateEncKids && ((null == keyUse) || KeyUse.ENCRYPTION.equals(keyUse))))
+				? UUID.randomUUID().toString() : null;
+			JWK generatedJWK;
 			if (KeyType.EC.equals(keyType)) {
-				jwkGenerator = new ECKeyGenerator(curveForECKeys);
-				jwkGenerator.provider(BouncyCastleProviderSingleton.getInstance());
+				ECKey base = PreGeneratedJwks.nextEcKey(env, curveForECKeys);
+				ECKey.Builder b = new ECKey.Builder(base);
+				if (keyUse != null) { b.keyUse(keyUse); }
+				if (kid != null) { b.keyID(kid); }
+				if (algorithm != null) { b.algorithm(algorithm); }
+				generatedJWK = b.build();
 			} else if (KeyType.RSA.equals(keyType)) {
-				jwkGenerator = new RSAKeyGenerator(rsaKeySize);
+				RSAKey base = PreGeneratedJwks.nextRsaKey(env, rsaKeySize);
+				RSAKey.Builder b = new RSAKey.Builder(base);
+				if (keyUse != null) { b.keyUse(keyUse); }
+				if (kid != null) { b.keyID(kid); }
+				if (algorithm != null) { b.algorithm(algorithm); }
+				generatedJWK = b.build();
 			} else if (KeyType.OKP.equals(keyType)) {
-				jwkGenerator = new OctetKeyPairGenerator(edCurve);
+				OctetKeyPair base = PreGeneratedJwks.nextOkpKey(env, edCurve);
+				OctetKeyPair.Builder b = new OctetKeyPair.Builder(base);
+				if (keyUse != null) { b.keyUse(keyUse); }
+				if (kid != null) { b.keyID(kid); }
+				if (algorithm != null) { b.algorithm(algorithm); }
+				generatedJWK = b.build();
+			} else {
+				throw new JOSEException("Unsupported key type: " + keyType);
 			}
-			if(keyUse!=null) {
-				jwkGenerator.keyUse(keyUse);
-			}
-			if( (generateSigKids && ((null == keyUse) || KeyUse.SIGNATURE.equals(keyUse))) ||
-				(generateEncKids && ((null == keyUse) || KeyUse.ENCRYPTION.equals(keyUse)))) {
-				jwkGenerator.keyID(UUID.randomUUID().toString());
-			}
-			if(algorithm!=null) {
-				jwkGenerator.algorithm(algorithm);
-			}
-
-			JWK generatedJWK = jwkGenerator.generate();
 			allGeneratedKeys.add(generatedJWK);
 			if (keyUse.equals(KeyUse.ENCRYPTION)) {
 				encryptionKeysToBeUsed.add(generatedJWK);

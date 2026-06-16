@@ -40,6 +40,9 @@ public class VCIPrepareBatchProofKeys_UnitTest {
 		cond = new VCIPrepareBatchProofKeys();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 		env = new Environment();
+		// PreGeneratedJwks requires owner_sub / owner_iss.
+		env.putString("owner_sub", "unit-test-sub");
+		env.putString("owner_iss", "unit-test-iss");
 	}
 
 	@Test

@@ -38,6 +38,9 @@ public class InvalidateSdJwtCredentialSignature_UnitTest {
 
 	@BeforeEach
 	public void setUp() {
+		// PreGeneratedJwks requires owner_sub / owner_iss.
+		env.putString("owner_sub", "unit-test-sub");
+		env.putString("owner_iss", "unit-test-iss");
 		cond = new InvalidateSdJwtCredentialSignature();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}

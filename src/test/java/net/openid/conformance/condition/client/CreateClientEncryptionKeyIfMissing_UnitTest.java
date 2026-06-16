@@ -115,4 +115,30 @@ public class CreateClientEncryptionKeyIfMissing_UnitTest {
 		assertThat(OIDFJSON.getString(jwkArray.get(0).getAsJsonObject().get("kty"))).isEqualTo("RSA");
 		assertThat(jwkArray.get(0).getAsJsonObject().has("kid")).isTrue();
 	}
+
+	@Test
+	public void testGeneratesFreshKeyPerInvocation() {
+		// OID4VP 1.0 Final § 8.3 / HAIP require the verifier to advertise an ephemeral encryption key
+		// specific to each Authorization Request; reuse is flagged by VP1FinalCheckEncryptionKeyNotReused.
+		// Two independent runs - even for the same authenticated owner - must therefore produce different
+		// key material. Guards against routing this key through a per-owner key cache again.
+		assertThat(generateEncKeyMaterial()).isNotEqualTo(generateEncKeyMaterial());
+	}
+
+	private String generateEncKeyMaterial() {
+		Environment freshEnv = new Environment();
+		// Same owner on both runs: a per-owner key cache would hand back the same key here.
+		freshEnv.putString("owner_sub", "shared-owner");
+		freshEnv.putString("owner_iss", "shared-iss");
+		freshEnv.putObject("client", new JsonObject());
+
+		CreateClientEncryptionKeyIfMissing freshCond = new CreateClientEncryptionKeyIfMissing();
+		freshCond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		freshCond.execute(freshEnv);
+
+		JsonObject encKey = freshEnv.getElementFromObject("client", "jwks.keys").getAsJsonArray().get(0).getAsJsonObject();
+		// Default alg is ECDH-ES (EC P-256); compare the public 'x' coordinate, which is independent of
+		// the per-handout random kid.
+		return OIDFJSON.getString(encKey.get("x"));
+	}
 }
