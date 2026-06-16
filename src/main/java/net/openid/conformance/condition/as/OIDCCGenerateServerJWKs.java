@@ -185,7 +185,10 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		}
 		Random random = new Random();
 		int index;
-		index = random.ints(1, 0, keyCount - 1).findFirst().getAsInt();
+		// Bound is exclusive, so it must be keyCount (not keyCount - 1) to allow every key
+		// index 0..keyCount-1 to be selectable; the old keyCount-1 never picked the last key
+		// (and was deterministically 0 for keyCount == 2).
+		index = random.ints(1, 0, keyCount).findFirst().getAsInt();
 		return index;
 	}
 
