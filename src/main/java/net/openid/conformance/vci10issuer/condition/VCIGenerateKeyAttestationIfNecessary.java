@@ -9,12 +9,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.List;
 
 public class VCIGenerateKeyAttestationIfNecessary extends AbstractSignJWT {
 
@@ -51,11 +49,17 @@ public class VCIGenerateKeyAttestationIfNecessary extends AbstractSignJWT {
 		// we need to use the keys here that are used for singing the proof
 		claims.add("attested_keys", attestedKeys.getAsJsonArray("keys"));
 
-		// TODO are we using the right values for key_storage and user_authentication here?
+		// The issuer advertises, under key_attestations_required, the attack-potential-resistance
+		// values it accepts for each component. As a cooperative wallet, assert exactly those so the
+		// attestation satisfies the issuer regardless of how it matches them. Both sub-parameters are
+		// OPTIONAL, so only assert a component the issuer actually requires; when none are required
+		// the claims are omitted (also OPTIONAL in the attestation).
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-attack-potential-resistance
-		claims.add("key_storage", OIDFJSON.convertListToJsonArray(List.of("iso_18045_moderate")));
-		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-attack-potential-resistance
-		claims.add("user_authentication", OIDFJSON.convertListToJsonArray(List.of("iso_18045_moderate")));
+		if (proofType.has("key_attestations_required") && proofType.get("key_attestations_required").isJsonObject()) {
+			JsonObject keyAttestationsRequired = proofType.getAsJsonObject("key_attestations_required");
+			copyRequiredComponent(keyAttestationsRequired, claims, "key_storage");
+			copyRequiredComponent(keyAttestationsRequired, claims, "user_authentication");
+		}
 
 		// if we received a nonce value, then add it to the key attestation
 		String cNonce = env.getString("vci", "c_nonce");
@@ -73,6 +77,17 @@ public class VCIGenerateKeyAttestationIfNecessary extends AbstractSignJWT {
 		signJWT(env, claims, keyAttestationJwks, true, false, true, true);
 
 		return env;
+	}
+
+	/**
+	 * Copies the issuer's required attack-potential-resistance values for a key attestation component
+	 * (key_storage / user_authentication) from key_attestations_required into the attestation claims,
+	 * if the issuer requires that component. Each component is OPTIONAL, so an absent one is left out.
+	 */
+	protected void copyRequiredComponent(JsonObject keyAttestationsRequired, JsonObject claims, String component) {
+		if (keyAttestationsRequired.has(component) && keyAttestationsRequired.get(component).isJsonArray()) {
+			claims.add(component, keyAttestationsRequired.getAsJsonArray(component).deepCopy());
+		}
 	}
 
 	@Override
