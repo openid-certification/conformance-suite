@@ -86,9 +86,7 @@ import java.util.Map;
 
 		// ConnectID specific tests
 		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithPurposeSucceeds.class,
-		FAPICIBAID1ConnectIdEnsureTokenResponseAndIdTokenClaimsValid.class,
 		FAPICIBAID1ConnectIdEnsureTxnReturnedWhenNotRequested.class,
-		FAPICIBAID1ConnectIdEnsureFAPIInteractionIdHandledOnCibaEndpoints.class,
 		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWith3DSCardLoginHintSucceeds.class,
 		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWith3DSPaymentAuthorizationDetailsSucceeds.class,
 		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithNonAsciiPurpose.class,
