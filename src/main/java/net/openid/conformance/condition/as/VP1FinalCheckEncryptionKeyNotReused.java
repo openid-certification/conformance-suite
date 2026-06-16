@@ -53,10 +53,10 @@ public class VP1FinalCheckEncryptionKeyNotReused extends AbstractCondition {
 
 		String scope = env.getString("owner_id");
 		if (scope == null || scope.isBlank()) {
-			// owner_id is set unconditionally by the test module's configure() (via
+			// owner_id is set unconditionally by AbstractTestModule.setProperties() (via
 			// exposeOwnerIdToEnvironment()), so its absence is a test suite bug, not a verifier issue.
-			throw error("owner_id is missing from the environment - this is a test suite bug; the test "
-				+ "module must surface it via exposeOwnerIdToEnvironment() in configure()");
+			throw error("owner_id is missing from the environment - this is a test suite bug; "
+				+ "AbstractTestModule.setProperties() should surface it via exposeOwnerIdToEnvironment()");
 		}
 
 		List<String> thumbprints = collectEncryptionKeyThumbprints(keysEl.getAsJsonArray());

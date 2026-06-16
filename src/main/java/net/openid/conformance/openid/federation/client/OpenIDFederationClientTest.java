@@ -107,10 +107,6 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		// Surface a stable per-user scope so the process-wide request-object jti reuse check
-		// (ValidateRequestObjectJti) can detect an RP reusing a jti across requests/runs.
-		exposeOwnerIdToEnvironment();
-
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
 

@@ -1,9 +1,11 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEException;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.PreGeneratedJwks;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -13,7 +15,6 @@ import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -47,17 +48,16 @@ public class GenerateFakeMTLSCertificate extends AbstractFAPIBrazilExtractCertif
 	public Environment evaluate(Environment env) {
 		var extensionOidsNotToCopy = new HashSet<String>();
 
-		KeyPairGenerator generator;
+		// Two distinct pool draws — subject keypair + fake-CA keypair. The
+		// pool's monotonic index guarantees they're different keys.
+		KeyPair kp;
+		KeyPair cakp;
 		try {
-			generator = KeyPairGenerator.getInstance("RSA");
-			generator.initialize(2048);
-		} catch (NoSuchAlgorithmException e) {
-			throw error(e.getMessage(), e);
+			kp = PreGeneratedJwks.nextRsaKey(env, 2048).toKeyPair();
+			cakp = PreGeneratedJwks.nextRsaKey(env, 2048).toKeyPair();
+		} catch (JOSEException e) {
+			throw error("Failed to materialise pre-generated RSA keypair", e);
 		}
-
-		KeyPair kp = generator.generateKeyPair();
-
-		KeyPair cakp = generator.generateKeyPair();
 
 		PublicKey newPubKey = kp.getPublic();
 
