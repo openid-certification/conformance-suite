@@ -35,5 +35,19 @@
         "condition": "FAPIEnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_ciba_profile": "plain_fapi",
+                "ciba_mode": "poll",
+                "client_registration": "static_client"
+        },
+        "configuration-filename": "*fapi-ciba-op-test-config-no-scope.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "ExtractExpiresInFromTokenEndpointResponse",
+        "expected-result": "warning",
+        "comment": "The paired RP no-scope token response test deliberately omits expires_in; CIBA treats expires_in as recommended, so the OP test records this as a warning."
     }
 ]
