@@ -56,6 +56,10 @@ import java.util.Map;
 		FAPICIBAClientInvalidMissingAudTest.class,
 		FAPICIBAClientInvalidMissingExpTest.class,
 		FAPICIBAClientInvalidMissingIssTest.class,
+		FAPICIBAClientConnectIdInvalidMissingTxnTest.class,
+		FAPICIBAClientConnectIdInvalidUnexpectedAcrTest.class,
+		FAPICIBAClientConnectIdInvalidMissingTrustFrameworkTest.class,
+		FAPICIBAClientConnectIdInvalidWrongTrustFrameworkTest.class,
 
 		// Negative test for ping mode
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class
