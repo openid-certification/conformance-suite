@@ -13,13 +13,13 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.PreGeneratedJwks;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -69,12 +69,7 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		// Create a private key for the credential key binding
-		ECKey privateKey = null;
-		try {
-			privateKey = new ECKeyGenerator(Curve.P_256).generate();
-		} catch (JOSEException e) {
-			throw new RuntimeException(e);
-		}
+		ECKey privateKey = PreGeneratedJwks.nextEcKey(env, Curve.P_256);
 
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {

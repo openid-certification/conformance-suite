@@ -9,7 +9,7 @@ public class GenerateClientAttestationClientInstanceKey extends AbstractGenerate
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JWK clientInstanceKey = super.createJwkForAlg(getClientInstanceKeyAlgorithm());
+		JWK clientInstanceKey = super.createJwkForAlg(env, getClientInstanceKeyAlgorithm());
 		String clientInstanceKeyJson = clientInstanceKey.toJSONString();
 		env.putString("client", "client_instance_key", clientInstanceKeyJson);
 		env.putString("client", "client_instance_key_public", clientInstanceKey.toPublicJWK().toString());

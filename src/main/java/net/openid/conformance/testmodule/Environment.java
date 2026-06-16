@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -63,6 +64,24 @@ public class Environment {
 		Map.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to putObject the string values
 
 	private Map<String, String> keyMap = new ConcurrentHashMap<>();
+
+	/**
+	 * Per-test-instance counters for utilities like
+	 * {@link net.openid.conformance.util.PreGeneratedJwks} that need a
+	 * monotonic "next index" within the lifetime of a single test. Lives
+	 * outside the JSON store because these counters are internal book-
+	 * keeping and not part of the test event log.
+	 */
+	private final Map<String, AtomicInteger> systemCounters = new ConcurrentHashMap<>();
+
+	/**
+	 * Returns the next value of the named per-instance counter, starting at
+	 * 0 on first call. Distinct {@code key}s have independent counters.
+	 * Thread-safe.
+	 */
+	public int nextSystemCounter(String key) {
+		return systemCounters.computeIfAbsent(key, k -> new AtomicInteger()).getAndIncrement();
+	}
 
 
 	/**

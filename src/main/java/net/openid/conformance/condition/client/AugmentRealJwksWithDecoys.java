@@ -2,10 +2,13 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.JWKGenerator;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.RSAKey;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -78,7 +81,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 			return env;
 		}
 
-		JsonObject publicJwksWithDecoys = generateDecoyPublicKeysAroundGivenPublicKey(publicKey);
+		JsonObject publicJwksWithDecoys = generateDecoyPublicKeysAroundGivenPublicKey(env, publicKey);
 
 		// augment the current server_public_jwks with additional decoy keys
 		env.putObject("server_public_jwks", publicJwksWithDecoys);
@@ -88,7 +91,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		return env;
 	}
 
-	JsonObject generateDecoyPublicKeysAroundGivenPublicKey(JWK publicKey) {
+	JsonObject generateDecoyPublicKeysAroundGivenPublicKey(Environment env, JWK publicKey) {
 
 		String keyID = publicKey.getKeyID();
 		Algorithm alg = publicKey.getAlgorithm();
@@ -99,11 +102,21 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 				return null;
 			}
 
+			// use same kid for all keys
+
 			@Override
-			protected JWKGenerator<? extends JWK> onConfigure(JWKGenerator<? extends JWK> generator) {
-				// use same kid for all keys
-				generator.keyID(keyID);
-				return generator;
+			protected ECKey.Builder onConfigureEc(ECKey.Builder b) throws JOSEException {
+				return b.keyID(keyID);
+			}
+
+			@Override
+			protected OctetKeyPair.Builder onConfigureOkp(OctetKeyPair.Builder b) throws JOSEException {
+				return b.keyID(keyID);
+			}
+
+			@Override
+			protected RSAKey.Builder onConfigureRsa(RSAKey.Builder b) throws JOSEException {
+				return b.keyID(keyID);
 			}
 		};
 
@@ -112,21 +125,21 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		switch (alg.getName()) {
 			case "ES256":
 				// generate decoys with same kid for the "other" algorithms
-				keysWithDecoys.add(keyGenerator.createJwkForAlg("EdDSA")); // decoy jwk
+				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "EdDSA")); // decoy jwk
 				keysWithDecoys.add(publicKey); // real jwk
-				keysWithDecoys.add(keyGenerator.createJwkForAlg("PS256")); // decoy jwk
+				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "PS256")); // decoy jwk
 				break;
 			case "EdDSA":
 			case "Ed25519":
 				// EdDSA and Ed25519 are the same curve/kty, so they're treated as the same "family" here
-				keysWithDecoys.add(keyGenerator.createJwkForAlg("ES256"));
+				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "ES256"));
 				keysWithDecoys.add(publicKey); // real jwk
-				keysWithDecoys.add(keyGenerator.createJwkForAlg("PS256"));
+				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "PS256"));
 				break;
 			case "PS256":
-				keysWithDecoys.add(keyGenerator.createJwkForAlg("EdDSA"));
+				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "EdDSA"));
 				keysWithDecoys.add(publicKey); // real jwk
-				keysWithDecoys.add(keyGenerator.createJwkForAlg("ES256"));
+				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "ES256"));
 				break;
 			default:
 				throw error("Invalid FAPI alg detected in JWK", Map.of("alg", alg.getName()));

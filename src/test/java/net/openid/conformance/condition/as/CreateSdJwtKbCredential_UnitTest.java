@@ -31,6 +31,9 @@ public class CreateSdJwtKbCredential_UnitTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
+		// PreGeneratedJwks requires owner_sub / owner_iss.
+		env.putString("owner_sub", "unit-test-sub");
+		env.putString("owner_iss", "unit-test-iss");
 		cond = new CreateSdJwtKbCredential();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
