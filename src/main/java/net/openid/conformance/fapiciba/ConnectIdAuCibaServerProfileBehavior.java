@@ -206,11 +206,11 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class,
 				Condition.ConditionResult.FAILURE, "FAPI-RW-8.6", "FAPI1-ADV-8.6");
 			callAndContinueOnFailure(EnsureIdTokenContainsRequestedClaims.class,
-				Condition.ConditionResult.WARNING, "OIDCC-5.5", "CID-IDA-5.1-2.9");
+				Condition.ConditionResult.WARNING, "OIDCC-5.5", "CID-IDA-5.1-9");
 			callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsTxn.class,
-				Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.6");
+				Condition.ConditionResult.FAILURE, "CID-IDA-5.1-6");
 			callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenDoesNotContainAcr.class,
-				Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.2");
+				Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2");
 			callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsTrustFramework.class,
 				Condition.ConditionResult.FAILURE, "CID-IDA-5.1-11", "CID-IDA-5.2-12");
 			callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims.class,

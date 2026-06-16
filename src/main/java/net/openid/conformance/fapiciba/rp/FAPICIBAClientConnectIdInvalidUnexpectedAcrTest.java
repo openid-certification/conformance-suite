@@ -16,7 +16,7 @@ public class FAPICIBAClientConnectIdInvalidUnexpectedAcrTest extends AbstractFAP
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-		callAndStopOnFailure(AddUnexpectedAcrToIdToken.class, "CID-IDA-5.1-2.2");
+		callAndStopOnFailure(AddUnexpectedAcrToIdToken.class, "CID-IDA-5.1-2");
 	}
 
 	@Override

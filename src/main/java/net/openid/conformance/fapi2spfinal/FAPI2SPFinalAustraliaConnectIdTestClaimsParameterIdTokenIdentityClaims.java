@@ -46,7 +46,7 @@ public class FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityCla
 			.then(condition(AustraliaConnectIdAddVerifiedClaimsToAuthorizationEndpointRequestIdTokenClaims.class)
 				.requirements("CID-IDA-5.2-2", "CID-IDA-5.2-11")
 				.onFail(Condition.ConditionResult.FAILURE))
-			.then(condition(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class).requirements("CID-IDA-5.2-2.7"));
+			.then(condition(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class).requirements("CID-IDA-5.2-7"));
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityCla
 
 		callAndContinueOnFailure(EnsureIdTokenContainsRequestedClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5");
 
-		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsMandatoryClaims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.6");
+		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsMandatoryClaims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-6");
 
 		// Check the trust_framework
 		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsTrustFramework.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.2-11");

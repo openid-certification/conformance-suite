@@ -20,6 +20,6 @@ public class FAPICIBAID1ConnectIdEnsureTxnReturnedWhenNotRequested extends Abstr
 	protected void performProfileAuthorizationEndpointSetup() {
 		super.performProfileAuthorizationEndpointSetup();
 		callAndStopOnFailure(RemoveTxnClaimRequestFromAuthorizationEndpointRequest.class,
-			"CID-IDA-5.1-2.6");
+			"CID-IDA-5.1-6");
 	}
 }

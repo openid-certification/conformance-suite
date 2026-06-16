@@ -16,7 +16,7 @@ public class FAPICIBAClientConnectIdInvalidMissingTxnTest extends AbstractFAPI1C
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-		callAndStopOnFailure(RemoveTxnFromIdToken.class, "CID-IDA-5.1-2.6", "CID-IDA-5.2-7");
+		callAndStopOnFailure(RemoveTxnFromIdToken.class, "CID-IDA-5.1-6", "CID-IDA-5.2-7");
 	}
 
 	@Override
