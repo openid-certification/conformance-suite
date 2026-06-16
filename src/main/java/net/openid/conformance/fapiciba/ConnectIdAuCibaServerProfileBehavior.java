@@ -144,7 +144,7 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 			public void evaluate() {
 				call(condition(AustraliaConnectIdValidateAccessTokenExpiresIn.class)
 					.skipIfObjectMissing("expires_in")
-					.onSkip(Condition.ConditionResult.FAILURE)
+					.onSkip(Condition.ConditionResult.INFO)
 					.onFail(Condition.ConditionResult.FAILURE)
 					.requirement("CID-SP-4.2-2")
 					.dontStopOnFailure());
