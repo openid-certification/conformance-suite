@@ -13,7 +13,9 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSu
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
+import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
+import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
@@ -93,6 +95,19 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 					.onFail(Condition.ConditionResult.FAILURE)
 					.requirements("BrazilOB-5.2.2-13")
 					.dontStopOnFailure());
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence validateTokenEndpointIdToken() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(ValidateIdTokenEncrypted.class,
+					Condition.ConditionResult.FAILURE, "BrazilOB-5.1.1-1");
+				callAndContinueOnFailure(FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM.class,
+					Condition.ConditionResult.FAILURE, "BrazilOB-5.1.1-1");
 			}
 		};
 	}
