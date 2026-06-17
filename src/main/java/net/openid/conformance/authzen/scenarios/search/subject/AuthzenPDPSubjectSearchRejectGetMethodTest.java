@@ -41,6 +41,9 @@ public class AuthzenPDPSubjectSearchRejectGetMethodTest extends AbstractAuthzenP
 
 	@Override
 	protected java.util.Set<Integer> getAcceptableHttpStatusCodes() {
-		return java.util.Set.of(400, 405);
+		// Accept the same 4xx set as the reject-PUT tests: a PDP whose route is
+		// registered for POST only may 404 an unknown verb just as plausibly for
+		// GET as for PUT, so the two negative tests stay symmetric.
+		return java.util.Set.of(400, 404, 405);
 	}
 }
