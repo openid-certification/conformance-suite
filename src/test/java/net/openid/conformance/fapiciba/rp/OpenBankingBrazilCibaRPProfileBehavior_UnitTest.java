@@ -1,7 +1,10 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
+import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.SignIdToken;
@@ -48,6 +51,22 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 		assertThat(behavior.getSignIdTokenCondition())
 			.isEqualTo(SignIdToken.class)
 			.isNotEqualTo(SignIdTokenWithX5tS256.class);
+	}
+
+	@Test
+	public void validatesIdTokenEncryptionConfiguration() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificClientConfigurationValidation());
+
+		assertThat(conditionClasses).containsExactly(
+			FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
+			FAPIEnsureClientJwksContainsAnEncryptionKey.class);
+	}
+
+	@Test
+	public void encryptsIdToken() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificIdTokenEncryption());
+
+		assertThat(conditionClasses).containsExactly(EncryptIdToken.class);
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
