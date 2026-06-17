@@ -37,6 +37,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchResourceMissingTypeTest.class,
 		AuthzenPDPSubjectSearchSubjectMissingTypeTest.class,
 		// Forward-compat: unknown fields ignored (Section 10.1.1)
+		AuthzenPDPSubjectSearchUnknownTopLevelFieldsTest.class,
 		AuthzenPDPSubjectSearchUnknownPageFieldsTest.class,
 		// Extra subject.id ignored (Section 8.4.1)
 		AuthzenPDPSubjectSearchExtraSubjectIdIgnoredTest.class,

@@ -34,6 +34,8 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPResourceSearchActionMissingNameTest.class,
 		// Extra resource.id ignored (Section 8.5.1)
 		AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.class,
+		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		AuthzenPDPResourceSearchUnknownTopLevelFieldsTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.class,
 	}

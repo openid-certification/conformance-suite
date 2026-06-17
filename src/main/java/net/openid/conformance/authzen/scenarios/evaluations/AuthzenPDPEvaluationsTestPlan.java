@@ -29,6 +29,8 @@ import net.openid.conformance.plan.TestPlan;
 		// Backward compatibility (Section 7.1)
 		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
 		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
+		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		AuthzenPDPEvaluationsUnknownTopLevelFieldsTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
