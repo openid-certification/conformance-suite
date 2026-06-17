@@ -13,9 +13,8 @@ import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthor
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
 import net.openid.conformance.condition.as.FAPIBrazilOBAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
-import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
+import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
-import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
@@ -166,7 +165,7 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
+				callAndStopOnFailure(GenerateIdTokenClaims.class);
 				callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
 			}
 		};
@@ -187,8 +186,4 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 		};
 	}
 
-	@Override
-	public Class<? extends Condition> getSignIdTokenCondition() {
-		return SignIdTokenWithX5tS256.class;
-	}
 }
