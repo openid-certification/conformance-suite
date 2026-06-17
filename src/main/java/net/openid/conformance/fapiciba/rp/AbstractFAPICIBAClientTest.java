@@ -203,7 +203,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected void onConfigurationCompleted() { }
 
-	protected void validateClientConfiguration() { }
+	protected void validateClientConfiguration() {
+		call(profileBehavior.applyProfileSpecificClientConfigurationValidation());
+	}
 
 	protected void backchannelEndpointCallComplete() {
 		setStatus(Status.WAITING);
@@ -637,14 +639,15 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	/**
-	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
+	 * The default FAPI-CIBA profile does not encrypt id_tokens, even when id_token_encrypted_response_alg is set
 	 * "5.2.3.1.  ID Token as detached signature" reads:
 	 *  "5. shall support both signed and signed & encrypted ID Tokens."
 	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
-	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
-	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 *  encryption enabled. Profiles that require encrypted id_tokens can override this with profile-specific steps.
 	 */
-	protected void encryptIdToken() { }
+	protected void encryptIdToken() {
+		call(profileBehavior.applyProfileSpecificIdTokenEncryption());
+	}
 
 	protected boolean clientHasPolledEnough(int tokenPollCount) {
 		return tokenPollCount > 2;
