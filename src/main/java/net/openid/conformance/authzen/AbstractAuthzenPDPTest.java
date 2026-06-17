@@ -255,6 +255,13 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 					if (i == 1) {
 						callAndStopOnFailure(capture);
 					} else {
+						// Idempotency is mandated by the AuthZEN certification profile
+						// (https://github.com/openid/authzen/issues/433 §2.6: "The PDP MUST
+						// return the same decision value each time"), not by the base
+						// Authorization API specification — which does not address
+						// idempotency. There is therefore deliberately no AUTHZEN- spec
+						// section tag on this assertion; the FAILURE severity reflects the
+						// cert-profile MUST.
 						callAndContinueOnFailure(match, ConditionResult.FAILURE);
 					}
 				} finally {
