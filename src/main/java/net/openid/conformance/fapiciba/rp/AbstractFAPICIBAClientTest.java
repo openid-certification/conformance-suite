@@ -553,7 +553,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private HttpStatus createTokenEndpointResponseForCiba() {
 		callAndStopOnFailure(IncrementTokenEndpointPollCount.class);
 		int tokenPollCount = env.getInteger("token_poll_count");
-		if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
+		if (shouldIssueFinalCibaTokenResponse(tokenPollCount)) {
 			issueAccessToken();
 			issueRefreshToken();
 			issueIdToken();
@@ -637,6 +637,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected boolean clientHasPolledEnough(int tokenPollCount) {
 		return tokenPollCount > 2;
+	}
+
+	protected boolean shouldIssueFinalCibaTokenResponse(int tokenPollCount) {
+		if (CIBAMode.PING.equals(cibaMode)) {
+			return clientWasPinged();
+		}
+
+		return clientHasPolledEnough(tokenPollCount);
 	}
 
 	private boolean clientWasPinged() {
