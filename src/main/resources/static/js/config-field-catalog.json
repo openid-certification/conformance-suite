@@ -258,6 +258,12 @@
           "label": "PDP API Key",
           "type": "string",
           "tooltip": "API Endpoint Key"
+        },
+        {
+          "key": "pdp.jwks",
+          "label": "PDP JWK Set",
+          "type": "object",
+          "tooltip": "PDP's public signing key(s) in JSON Web Key Set format (must begin with { &quot;keys&quot;: [ ). Used to verify the signature of the discovery metadata 'signed_metadata' JWT. OPTIONAL; only needed when the PDP exposes signed_metadata and you want its signature verified."
         }
       ]
     },
