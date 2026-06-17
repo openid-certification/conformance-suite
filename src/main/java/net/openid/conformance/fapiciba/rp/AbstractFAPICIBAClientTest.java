@@ -214,6 +214,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		setStatus(Status.WAITING);
 	}
 
+	protected void cibaTokenEndpointCallComplete(HttpStatus statusCode) {
+		if (HttpStatus.OK.equals(statusCode)) {
+			setStatus(Status.WAITING);
+		} else {
+			tokenEndpointCallComplete();
+		}
+	}
+
 	protected HttpStatus createBackchannelResponse() {
 		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
@@ -544,7 +552,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 		customizeTokenEndpointResponseHeaders();
-		tokenEndpointCallComplete();
+		cibaTokenEndpointCallComplete(statusCode);
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
