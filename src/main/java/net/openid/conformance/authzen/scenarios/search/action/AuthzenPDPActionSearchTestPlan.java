@@ -34,6 +34,8 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPActionSearchSubjectMissingIdTest.class,
 		AuthzenPDPActionSearchSubjectMissingTypeTest.class,
 		AuthzenPDPActionSearchSubjectIsStringTest.class,
+		// Forward-compat: unknown top-level fields ignored (Section 10.1.1)
+		AuthzenPDPActionSearchUnknownTopLevelFieldsTest.class,
 		// Extra action ignored (Section 10.1.1 forward compatibility)
 		AuthzenPDPActionSearchExtraActionIgnoredTest.class,
 		// Search Properties (Properties variant only)
