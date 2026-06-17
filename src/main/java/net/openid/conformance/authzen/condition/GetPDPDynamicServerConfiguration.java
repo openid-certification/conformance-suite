@@ -14,6 +14,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -34,12 +36,7 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		if (Strings.isNullOrEmpty(pdpDecisionPoint)) {
 			throw error("'Policy Decision Point Identifier' field is missing from the 'PDP' section in the test configuration (required to derive the discovery URL when using dynamic server configuration)", args("config", env.getObject("config")));
 		}
-		// Normalize trailing slash so "https://pdp/" + ".well-known/..." doesn't
-		// produce a double-slash URL that some servers reject.
-		String discoveryBase = pdpDecisionPoint.endsWith("/")
-			? pdpDecisionPoint.substring(0, pdpDecisionPoint.length() - 1)
-			: pdpDecisionPoint;
-		String discoveryUrl = discoveryBase + "/.well-known/authzen-configuration";
+		String discoveryUrl = deriveDiscoveryUrl(pdpDecisionPoint);
 
 		// fetch the value
 		String jsonString;
@@ -78,6 +75,42 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 			throw error("empty server configuration");
 		}
 
+	}
+
+	/**
+	 * Derive the AuthZEN metadata well-known URL from the PDP base URL.
+	 *
+	 * <p>Per the certification profile (https://github.com/openid/authzen/issues/433
+	 * §6.1, consistent with AuthZEN 1.0 and RFC 8414), the
+	 * {@code /.well-known/authzen-configuration} segment is inserted <em>between
+	 * the host and any existing path</em>, not appended after the whole URL.
+	 * For example {@code https://pdp.example.com/tenant1} yields
+	 * {@code https://pdp.example.com/.well-known/authzen-configuration/tenant1},
+	 * and a base URL with no path yields
+	 * {@code https://pdp.example.com/.well-known/authzen-configuration}.
+	 */
+	String deriveDiscoveryUrl(String pdpDecisionPoint) {
+		final String wellKnown = "/.well-known/authzen-configuration";
+		URI uri;
+		try {
+			uri = new URI(pdpDecisionPoint);
+		} catch (URISyntaxException e) {
+			throw error("'Policy Decision Point Identifier' field in the test configuration is not a valid URL", e, args("policy_decision_point", pdpDecisionPoint));
+		}
+		if (uri.getScheme() == null || uri.getRawAuthority() == null) {
+			throw error("'Policy Decision Point Identifier' field in the test configuration must be an absolute URL with a scheme and host", args("policy_decision_point", pdpDecisionPoint));
+		}
+		String path = uri.getRawPath();
+		String newPath;
+		if (Strings.isNullOrEmpty(path) || "/".equals(path)) {
+			newPath = wellKnown;
+		} else {
+			// Strip any trailing slash from the existing path so we don't produce a
+			// double slash when re-joining (e.g. "/tenant1/" -> "/tenant1").
+			String existingPath = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+			newPath = wellKnown + existingPath;
+		}
+		return uri.getScheme() + "://" + uri.getRawAuthority() + newPath;
 	}
 
 }
