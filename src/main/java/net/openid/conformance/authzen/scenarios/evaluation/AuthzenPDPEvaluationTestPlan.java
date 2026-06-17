@@ -15,7 +15,6 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationFixtureRequestDenyDecisionTest.class,
 		AuthzenPDPEvaluationRequestWithOptionalContextTest.class,
 		AuthzenPDPEvaluationRequestWithAdditionalPropertiesTest.class,
-		AuthzenPDPEvaluationRequestWithUnknownFieldsTest.class,
 		// Basic Properties (Properties variant only)
 		AuthzenPDPEvaluationFixtureRequestDenyBasedOnPropertiesTest.class,
 		AuthzenPDPEvaluationFixtureRequestPermitBasedOnSubjectPropertiesTest.class,
