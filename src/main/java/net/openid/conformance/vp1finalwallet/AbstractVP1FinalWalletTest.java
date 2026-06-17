@@ -124,6 +124,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -986,6 +987,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(EnsureIncomingTls13.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		call(exec().unmapKey("client_request"));
 

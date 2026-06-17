@@ -136,6 +136,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateFAPIResourcesEndpointResponse;
@@ -522,6 +523,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
+		callAndContinueOnFailure(EnsureIncomingTls13.class, ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		call(exec().unmapKey("client_request"));
 
@@ -599,6 +601,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+		callAndContinueOnFailure(EnsureIncomingTls13.class, ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		call(exec().unmapKey("client_request"));
 
