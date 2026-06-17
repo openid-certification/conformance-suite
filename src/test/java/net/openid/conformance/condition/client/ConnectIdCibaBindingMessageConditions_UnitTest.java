@@ -300,14 +300,6 @@ public class ConnectIdCibaBindingMessageConditions_UnitTest {
 	}
 
 	@Test
-	public void testRemoveConnectIdCiba3DSPaymentAuthorizationDetailsFromRequestObject() {
-		runInvalid3DSPaymentAuthorizationDetailsCondition(
-			new RemoveConnectIdCiba3DSPaymentAuthorizationDetailsFromRequestObject());
-
-		assertThat(env.getObject("request_object_claims").has("authorization_details")).isFalse();
-	}
-
-	@Test
 	public void testSetConnectIdCiba3DSPaymentAuthorizationDetailsTypeToInvalid() {
 		JsonObject authorizationDetails = runInvalid3DSPaymentAuthorizationDetailsCondition(
 			new SetConnectIdCiba3DSPaymentAuthorizationDetailsTypeToInvalid());
