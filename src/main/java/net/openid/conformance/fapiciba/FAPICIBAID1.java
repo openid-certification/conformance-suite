@@ -181,7 +181,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 	protected void performProfileIdTokenValidation() {
 		super.performProfileIdTokenValidation();
 
-		if (isSecondClient()) {
+		if (isSecondClient() && profileBehavior.shouldValidateIdTokenAcrClaims()) {
 			skipIfElementMissing("server", "acr_values_supported",
 				Condition.ConditionResult.INFO, FAPICIBAValidateIdTokenACRClaims.class,
 				Condition.ConditionResult.FAILURE, "CIBA-7.1", "FAPI-CIBA-5.2.2-8");

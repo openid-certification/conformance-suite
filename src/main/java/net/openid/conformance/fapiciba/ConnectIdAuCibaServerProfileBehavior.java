@@ -63,6 +63,11 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 	}
 
 	@Override
+	public boolean shouldValidateIdTokenAcrClaims() {
+		return false;
+	}
+
+	@Override
 	public ConditionSequence addBackchannelAuthenticationEndpointProfileHeaders() {
 		return new AbstractConditionSequence() {
 			@Override

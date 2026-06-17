@@ -67,6 +67,10 @@ public class FAPICIBAServerProfileBehavior {
 		return AbstractFAPICIBAID1.PlainFapiProfileIdTokenValidationSteps.class;
 	}
 
+	public boolean shouldValidateIdTokenAcrClaims() {
+		return true;
+	}
+
 	public boolean shouldKeepBackchannelAuthenticationEndpointAlias(ClientAuthType authType) {
 		return authType == ClientAuthType.MTLS;
 	}
