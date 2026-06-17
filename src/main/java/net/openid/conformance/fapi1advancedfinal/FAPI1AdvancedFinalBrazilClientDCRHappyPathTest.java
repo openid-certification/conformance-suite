@@ -46,6 +46,7 @@ import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.FAPIBrazilOpinCheckDirectoryKeystore;
 import net.openid.conformance.condition.common.CreateRandomRegistrationClientUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -128,6 +129,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 			call(exec().mapKey("client_request", requestId));
 
 			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+			callAndContinueOnFailure(EnsureIncomingTls13.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
 
 			call(exec().unmapKey("client_request"));
 
@@ -176,6 +178,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+		callAndContinueOnFailure(EnsureIncomingTls13.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
 		callAndContinueOnFailure(FAPIBrazilValidateRegistrationClientUriQueryParams.class, Condition.ConditionResult.WARNING, "OIDCR-3.2", "OIDCR-4.1");
 
 		call(exec().unmapKey("client_request"));
