@@ -5,32 +5,19 @@ import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
-import net.openid.conformance.condition.client.AddAudAsPaymentInitiationUriToRequestObject;
-import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
-import net.openid.conformance.condition.client.AddIatToRequestObject;
-import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
-import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
-import net.openid.conformance.condition.client.CreateIdempotencyKey;
-import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsCiba;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
-import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
-import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
-import net.openid.conformance.sequence.client.ValidateBrazilSignedResponse;
 import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.function.Supplier;
@@ -68,9 +55,8 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			boolean isSecondClient = module.isSecondClient();
 			boolean isDpop = false;
 			boolean stopAfterConsentEndpoint = false;
-			boolean payments = false;
 			return new OpenBankingBrazilPreAuthorizationSteps(
-				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, payments, false, stopAfterConsentEndpoint, false
+				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, false, false, stopAfterConsentEndpoint, false
 			);
 		};
 	}
@@ -113,35 +99,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 
 	@Override
 	public ConditionSequence setupResourceEndpointRequestBody() {
-		boolean isPayments = false; // There's an option to add payments in a future iteration
-		if (!isPayments) {
-			return null;
-		}
-
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				call(sequenceOf(
-					condition(CreateIdempotencyKey.class),
-					condition(AddIdempotencyKeyHeader.class)));
-				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
-				callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
-				callAndStopOnFailure(SetResourceMethodToPost.class);
-				callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
-				callAndStopOnFailure(AddEndToEndIdToPaymentRequestEntityClaims.class);
-
-				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-
-				callAndStopOnFailure(AddAudAsPaymentInitiationUriToRequestObject.class, "BrazilOB-6.1");
-				callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
-				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-
-				call(exec().unmapKey("request_object_claims"));
-
-				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-			}
-		};
+		return null;
 	}
 
 	@Override
@@ -152,9 +110,6 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 
 	@Override
 	public ConditionSequence validateResourceEndpointResponse() {
-		if (module.scopeContains("payments")) {
-			return ValidateBrazilSignedResponse.forResourceResponse();
-		}
 		return null;
 	}
 }
