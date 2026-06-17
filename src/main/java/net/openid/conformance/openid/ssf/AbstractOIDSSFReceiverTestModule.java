@@ -1,14 +1,20 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
+import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessToken;
+import net.openid.conformance.openid.ssf.conditions.as.OIDSSFValidateRequestedScope;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
@@ -33,14 +39,25 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFInMemoryEventStore;
+import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretJWT;
+import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
+import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.OAuthUriUtil;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,16 +77,72 @@ import java.util.function.Supplier;
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI;
 
-@VariantParameters({SsfProfile.class, SsfDeliveryMode.class,})
+@VariantParameters({SsfProfile.class, SsfDeliveryMode.class, SsfAuthMode.class, ClientAuthType.class,})
 @ConfigurationFields({
-	"ssf.transmitter.access_token",
 	"ssf.stream.audience",
 	"ssf.subjects.valid",
 	"ssf.subjects.invalid",
 })
+@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
+	"ssf.transmitter.access_token",
+})
+@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
+	"client.client_id",
+	"client.scope",
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
+	"client.client_secret",
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
+	"client.client_secret",
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
+	"client.client_secret",
+	"client.client_secret_jwt_alg",
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
+	"client.jwks",
+})
+// In static mode the receiver presents a pre-shared token, so the OAuth client-auth
+// dimension does not apply — hide its dropdown from the schedule-test UI.
+@VariantNotApplicableWhen(parameter = ClientAuthType.class, values = "*",
+	whenParameter = SsfAuthMode.class, hasValues = "static")
+// mtls requires certificate-bound-token infrastructure (mTLS endpoint alias + client
+// certificate extraction); client_attestation and none are not applicable for SSF.
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "mtls", "client_attestation"
+})
 public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTestModule {
 
 	protected OIDSSFEventStore eventStore;
+
+	/**
+	 * The per-{@link ClientAuthType} sequence used to validate client
+	 * authentication on the emulated token endpoint in
+	 * {@link SsfAuthMode#DYNAMIC} mode. Set by the {@code @VariantSetup}
+	 * initialiser matching the selected {@link ClientAuthType}.
+	 */
+	protected Class<? extends ConditionSequence> validateClientAuthenticationSteps;
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
+	public void setupClientSecretBasic() {
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretBasic.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
+	public void setupClientSecretPost() {
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretPost.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
+	public void setupClientSecretJwt() {
+		validateClientAuthenticationSteps = OIDCCValidateClientAuthenticationWithClientSecretJWT.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	public void setupPrivateKeyJwt() {
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
+	}
 
 	@Override
 	protected void configureServerMetadata() {
@@ -95,6 +168,108 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject transmitterMetadata = generateTransmitterMetadata(issuer);
 		env.putObject("ssf", "transmitter_metadata", transmitterMetadata);
+
+		env.putString("ssf", "auth_mode", getVariant(SsfAuthMode.class).name());
+		configureAuthorizationServer(issuer);
+	}
+
+	/**
+	 * When {@link SsfAuthMode#DYNAMIC} is selected the conformance suite also acts
+	 * as the Authorization Server (CAEP Interop Profile §2.7.1): it registers the
+	 * OAuth client the receiver authenticates as, publishes RFC 8414 AS metadata,
+	 * and exposes a {@code /token} endpoint. The receiver obtains a short-lived
+	 * access token via the {@code client_credentials} grant and presents it on
+	 * subsequent SSF API requests.
+	 */
+	protected void configureAuthorizationServer(String issuer) {
+
+		if (getVariant(SsfAuthMode.class) != SsfAuthMode.DYNAMIC) {
+			return;
+		}
+
+		// Register the OAuth client the receiver under test will authenticate as,
+		// reusing the standard client.* configuration fields.
+		String clientId = env.getString("config", "client.client_id");
+		if (!StringUtils.hasText(clientId)) {
+			clientId = "ssf-test-client";
+		}
+		String clientSecret = env.getString("config", "client.client_secret");
+		if (!StringUtils.hasText(clientSecret)) {
+			clientSecret = UUID.randomUUID().toString();
+		}
+		String scope = env.getString("config", "client.scope");
+		if (!StringUtils.hasText(scope)) {
+			scope = SsfConstants.SCOPE_SSF_READ + " " + SsfConstants.SCOPE_SSF_MANAGE;
+		}
+
+		JsonObject client = new JsonObject();
+		client.addProperty("client_id", clientId);
+		client.addProperty("client_secret", clientSecret);
+		client.addProperty("scope", scope);
+
+		// client_secret_jwt: the registered signing algorithm assertions must use.
+		String clientSecretJwtAlg = env.getString("config", "client.client_secret_jwt_alg");
+		if (StringUtils.hasText(clientSecretJwtAlg)) {
+			client.addProperty("token_endpoint_auth_signing_alg", clientSecretJwtAlg);
+		}
+		// private_key_jwt: the receiver's public JWKS used to verify the assertion signature.
+		JsonElement clientJwks = env.getElementFromObject("config", "client.jwks");
+		if (clientJwks != null) {
+			client.add("jwks", clientJwks);
+		}
+		env.putObject("client", client);
+
+		exposeEnvString("ssf_client_id", "client", "client_id");
+		exposeEnvString("ssf_client_secret", "client", "client_secret");
+		exposeEnvString("ssf_client_scope", "client", "scope");
+
+		// The emulated AS configuration the condition/as/ building blocks read,
+		// notably ValidateClientAssertionClaims which validates the assertion
+		// audience against the issuer / token_endpoint.
+		JsonObject server = new JsonObject();
+		server.addProperty("issuer", issuer);
+		server.addProperty("token_endpoint", issuer + "/token");
+		env.putObject("server", server);
+
+		// In-env store of issued access tokens for the dynamic-mode bearer-token check.
+		env.putObject("ssf", "issued_tokens", new JsonObject());
+
+		env.putString("ssf", "token_endpoint", issuer + "/token");
+		exposeEnvString("ssf_token_endpoint", "ssf", "token_endpoint");
+
+		// RFC 8414 metadata document URL the receiver can use to discover the AS.
+		String authorizationServerMetadataUrl = OAuthUriUtil.generateWellKnownUrlForPath(issuer, "oauth-authorization-server");
+		env.putString("ssf", "authorization_server_metadata_url", authorizationServerMetadataUrl);
+		exposeEnvString("ssf_authorization_server_url", "ssf", "authorization_server_metadata_url");
+
+		JsonObject asMetadata = generateAuthorizationServerMetadata(issuer);
+		env.putObject("ssf", "authorization_server_metadata", asMetadata);
+	}
+
+	protected JsonObject generateAuthorizationServerMetadata(String issuer) {
+
+		JsonObject metadata = new JsonObject();
+		metadata.addProperty("issuer", issuer);
+		metadata.addProperty("token_endpoint", issuer + "/token");
+		metadata.add("grant_types_supported", OIDFJSON.convertListToJsonArray(List.of("client_credentials")));
+		metadata.add("token_endpoint_auth_methods_supported",
+			OIDFJSON.convertListToJsonArray(List.of(mapClientAuthTypeToMetadataValue(getVariant(ClientAuthType.class)))));
+		metadata.add("scopes_supported",
+			OIDFJSON.convertListToJsonArray(List.of(SsfConstants.SCOPE_SSF_READ, SsfConstants.SCOPE_SSF_MANAGE)));
+		metadata.add("response_types_supported", new JsonArray());
+		return metadata;
+	}
+
+	protected String mapClientAuthTypeToMetadataValue(ClientAuthType clientAuthType) {
+		return switch (clientAuthType) {
+			case CLIENT_SECRET_BASIC -> "client_secret_basic";
+			case CLIENT_SECRET_POST -> "client_secret_post";
+			case CLIENT_SECRET_JWT -> "client_secret_jwt";
+			case PRIVATE_KEY_JWT -> "private_key_jwt";
+			case MTLS -> "tls_client_auth";
+			case CLIENT_ATTESTATION -> "attest_jwt_client_auth";
+			case NONE -> "none";
+		};
 	}
 
 	protected String resolveEffectiveIssuer() {
@@ -219,6 +394,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			switch (path) {
 				case "ssf-configuration" -> response = handleSsfConfigurationEndpoint(requestId);
 				case "jwks" -> response = handleJwksEndpoint();
+				// The token endpoint performs its own client authentication, so it is
+				// intentionally not wrapped in ensureAuthorized().
+				case "token" -> response = handleTokenEndpointRequest(req, requestId);
 				case "events" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleStreamPollingRequest(path, req, res, session, requestParts);
 				});
@@ -297,6 +475,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		try {
 			if (path.startsWith("/.well-known/ssf-configuration")) {
 				response = handleSsfConfigurationEndpoint(requestId);
+			} else if (path.startsWith("/.well-known/oauth-authorization-server")) {
+				response = handleAuthorizationServerMetadataEndpoint();
 			} else {
 				response = super.handleWellKnown(path, req, res, session, requestParts);
 			}
@@ -323,6 +503,70 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		// Serve only the public keys at the transmitter jwks_uri - it must not leak private key material.
 		JsonObject publicJwks = JWKUtil.toPublicJWKSet(env.getObject("server_jwks"));
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(publicJwks);
+	}
+
+	protected ResponseEntity<?> handleAuthorizationServerMetadataEndpoint() {
+		JsonElement asMetadataEl = env.getElementFromObject("ssf", "authorization_server_metadata");
+		if (asMetadataEl == null) {
+			// Only published in dynamic auth mode.
+			return ResponseEntity.notFound().build();
+		}
+		callAndContinueOnFailure(CheckIncomingRequestMethodIsGet.class, Condition.ConditionResult.FAILURE, "RFC8414-3");
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(asMetadataEl.getAsJsonObject());
+	}
+
+	/**
+	 * Emulated OAuth token endpoint (RFC 6749) used in {@link SsfAuthMode#DYNAMIC}
+	 * mode. Validates client authentication using the per-{@link ClientAuthType}
+	 * sequence, validates the requested SSF scope, mints a short-lived bearer
+	 * token, stores it for later bearer-token validation, and returns an
+	 * RFC 6749 §5.1 token response. Only the {@code client_credentials} grant is
+	 * supported in this slice.
+	 */
+	protected ResponseEntity<?> handleTokenEndpointRequest(HttpServletRequest req, String requestId) {
+
+		if (!"POST".equals(req.getMethod())) {
+			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+		}
+
+		env.mapKey("token_endpoint_request", requestId);
+		try {
+			String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
+			if (!"client_credentials".equals(grantType)) {
+				return tokenError("unsupported_grant_type",
+					"Only the client_credentials grant is supported", HttpStatus.BAD_REQUEST);
+			}
+
+			if (validateClientAuthenticationSteps != null) {
+				call(sequence(validateClientAuthenticationSteps));
+			}
+
+			callAndStopOnFailure(OIDSSFValidateRequestedScope.class, "CAEPIOP-2.7.2");
+			callAndStopOnFailure(GenerateBearerAccessToken.class);
+			callAndStopOnFailure(GenerateAccessTokenExpiration.class);
+			callAndStopOnFailure(OIDSSFStoreIssuedAccessToken.class);
+			callAndStopOnFailure(CreateTokenEndpointResponse.class, "RFC6749-5.1");
+
+			JsonObject tokenResponse = env.getObject("token_endpoint_response");
+			return ResponseEntity.ok()
+				.header("Cache-Control", "no-store")
+				.header("Pragma", "no-cache")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(tokenResponse);
+		} finally {
+			env.unmapKey("token_endpoint_request");
+		}
+	}
+
+	protected ResponseEntity<?> tokenError(String error, String description, HttpStatus status) {
+		JsonObject body = new JsonObject();
+		body.addProperty("error", error);
+		body.addProperty("error_description", description);
+		return ResponseEntity.status(status)
+			.header("Cache-Control", "no-store")
+			.header("Pragma", "no-cache")
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(body);
 	}
 
 	protected ResponseEntity<?> handleStreamConfigurationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
