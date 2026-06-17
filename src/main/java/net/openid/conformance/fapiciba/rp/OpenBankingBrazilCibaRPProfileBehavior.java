@@ -4,7 +4,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
-import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.EnsureScopeContainsResources;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
@@ -76,10 +75,6 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 			@Override
 			public void evaluate() {
 				callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
-				Boolean wasInitialConsentRequestToPaymentsEndpoint = getEnv().getBoolean("payments_consent_endpoint_called");
-				if (wasInitialConsentRequestToPaymentsEndpoint != null && wasInitialConsentRequestToPaymentsEndpoint) {
-					throw new TestFailureException(module.getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
-				}
 			}
 		};
 	}
@@ -117,13 +112,8 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 			@Override
 			public void evaluate() {
 				callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
-				Boolean wasInitialConsentRequestToPaymentsEndpoint = getEnv().getBoolean("payments_consent_endpoint_called");
-				if (wasInitialConsentRequestToPaymentsEndpoint != null && wasInitialConsentRequestToPaymentsEndpoint) {
-					callAndStopOnFailure(EnsureScopeContainsPayments.class);
-				} else {
-					callAndStopOnFailure(EnsureScopeContainsConsents.class);
-					callAndStopOnFailure(EnsureScopeContainsResources.class);
-				}
+				callAndStopOnFailure(EnsureScopeContainsConsents.class);
+				callAndStopOnFailure(EnsureScopeContainsResources.class);
 			}
 		};
 	}
@@ -137,11 +127,8 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	public boolean claimsProfileSpecificMtlsPath(String path) {
 		return FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH.equals(path)
 			|| FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)
-			|| FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)
-			|| FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)
 			|| FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH.equals(path)
-			|| path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")
-			|| path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/");
+			|| path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/");
 	}
 
 	@Override
@@ -152,20 +139,11 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 		if (FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 			return module.brazilHandleNewConsentRequest(requestId, false);
 		}
-		if (FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
-			return module.brazilHandleNewConsentRequest(requestId, true);
-		}
-		if (FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
-			return module.brazilHandleNewPaymentInitiationRequest(requestId);
-		}
 		if (FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH.equals(path)) {
 			return module.resourcesEndpoint(requestId);
 		}
 		if (path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
 			return module.brazilHandleGetConsentRequest(requestId, path, false);
-		}
-		if (path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
-			return module.brazilHandleGetConsentRequest(requestId, path, true);
 		}
 		throw new TestFailureException(module.getId(), "Got unexpected Open Banking Brazil mTLS call to " + path);
 	}
