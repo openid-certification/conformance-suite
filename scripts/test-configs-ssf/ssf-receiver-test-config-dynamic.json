@@ -1,0 +1,24 @@
+{
+    "alias": "ssf-rx-test-dyn-ci",
+    "description": "SSF Receiver happy path emulating an SSF Transmitter + OAuth AS using dynamic (client_secret_post) auth",
+    "client": {
+        "client_id": "ssf-test-client",
+        "client_secret": "ssf-test-secret",
+        "scope": "ssf.read ssf.manage"
+    },
+    "ssf": {
+        "stream": {
+            "audience": "{BASEURL}test/a/ssf-tx-test-dyn-ci"
+        },
+        "subjects": {
+            "valid": {
+                "format": "opaque",
+                "id": "valid"
+            },
+            "invalid": {
+                "format": "opaque",
+                "id": "invalid"
+            }
+        }
+    }
+}
