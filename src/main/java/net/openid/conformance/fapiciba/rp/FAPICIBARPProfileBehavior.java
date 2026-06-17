@@ -114,6 +114,10 @@ public class FAPICIBARPProfileBehavior {
 		};
 	}
 
+	public ConditionSequence applyProfileSpecificClientConfigurationValidation() {
+		return null;
+	}
+
 	public ConditionSequence applyProfileSpecificBackchannelEndpointResponse() {
 		return null;
 	}
@@ -151,5 +155,9 @@ public class FAPICIBARPProfileBehavior {
 
 	public Class<? extends Condition> getSignIdTokenCondition() {
 		return SignIdToken.class;
+	}
+
+	public ConditionSequence applyProfileSpecificIdTokenEncryption() {
+		return null;
 	}
 }

@@ -187,4 +187,12 @@ public class FAPICIBAServerProfileBehavior {
 	public ConditionSequence validateExpiresIn() {
 		return null;
 	}
+
+	/**
+	 * Profile-specific token endpoint ID Token validation after standard extraction and claims checks.
+	 * Default does nothing.
+	 */
+	public ConditionSequence validateTokenEndpointIdToken() {
+		return null;
+	}
 }

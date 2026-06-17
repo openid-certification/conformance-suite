@@ -5,6 +5,7 @@ import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServ
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
 import net.openid.conformance.condition.as.EnsureScopeContainsResources;
+import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
@@ -12,7 +13,9 @@ import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigning
 import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
 import net.openid.conformance.condition.as.FAPIBrazilOBAddACRClaimToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
+import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
@@ -89,6 +92,17 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 			@Override
 			public void evaluate() {
 				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence applyProfileSpecificClientConfigurationValidation() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class, "BrazilOB-5.1.1-1");
+				callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
 			}
 		};
 	}
@@ -182,6 +196,16 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 					.onFail(Condition.ConditionResult.FAILURE)
 					.requirements("OIDCC-3.1.3.7-12")
 					.dontStopOnFailure());
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence applyProfileSpecificIdTokenEncryption() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6", "BrazilOB-5.1.1-1");
 			}
 		};
 	}
