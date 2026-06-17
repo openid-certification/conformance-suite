@@ -92,8 +92,48 @@ public class SsfEvents {
 		RISC_SESSIONS_REVOKED_DEPRECATED_EVENT_TYPE //
 		);
 
+	public static final String SCIM_FEED_ADD_EVENT_TYPE = "urn:ietf:params:scim:event:feed:add";
+
+	public static final String SCIM_FEED_REMOVE_EVENT_TYPE = "urn:ietf:params:scim:event:feed:remove";
+
+	public static final String SCIM_PROV_CREATE_NOTICE_EVENT_TYPE = "urn:ietf:params:scim:event:prov:create:notice";
+
+	public static final String SCIM_PROV_CREATE_FULL_EVENT_TYPE = "urn:ietf:params:scim:event:prov:create:full";
+
+	public static final String SCIM_PROV_PATCH_NOTICE_EVENT_TYPE = "urn:ietf:params:scim:event:prov:patch:notice";
+
+	public static final String SCIM_PROV_PATCH_FULL_EVENT_TYPE = "urn:ietf:params:scim:event:prov:patch:full";
+
+	public static final String SCIM_PROV_PUT_NOTICE_EVENT_TYPE = "urn:ietf:params:scim:event:prov:put:notice";
+
+	public static final String SCIM_PROV_PUT_FULL_EVENT_TYPE = "urn:ietf:params:scim:event:prov:put:full";
+
+	public static final String SCIM_PROV_DELETE_EVENT_TYPE = "urn:ietf:params:scim:event:prov:delete";
+
+	public static final String SCIM_PROV_ACTIVATE_EVENT_TYPE = "urn:ietf:params:scim:event:prov:activate";
+
+	public static final String SCIM_PROV_DEACTIVATE_EVENT_TYPE = "urn:ietf:params:scim:event:prov:deactivate";
+
+	public static final String SCIM_MISC_ASYNCRESP_EVENT_TYPE = "urn:ietf:params:scim:event:misc:asyncresp";
+
+	public static final Set<String> SCIM_EVENT_TYPES = Set.of( //
+		// see: https://www.rfc-editor.org/rfc/rfc9967.html#name-initial-contents-of-the-sci
+		SCIM_FEED_ADD_EVENT_TYPE, //
+		SCIM_FEED_REMOVE_EVENT_TYPE, //
+		SCIM_PROV_CREATE_NOTICE_EVENT_TYPE, //
+		SCIM_PROV_CREATE_FULL_EVENT_TYPE, //
+		SCIM_PROV_PATCH_NOTICE_EVENT_TYPE, //
+		SCIM_PROV_PATCH_FULL_EVENT_TYPE, //
+		SCIM_PROV_PUT_NOTICE_EVENT_TYPE, //
+		SCIM_PROV_PUT_FULL_EVENT_TYPE, //
+		SCIM_PROV_DELETE_EVENT_TYPE, //
+		SCIM_PROV_ACTIVATE_EVENT_TYPE, //
+		SCIM_PROV_DEACTIVATE_EVENT_TYPE, //
+		SCIM_MISC_ASYNCRESP_EVENT_TYPE //
+	);
+
 	/**
-	 * Combined SSF, CAEP and RISC events.
+	 * Combined SSF, CAEP, RISC and SCIM events.
 	 */
 	public static final Set<String> STANDARD_EVENT_TYPES;
 	static {
@@ -101,6 +141,7 @@ public class SsfEvents {
 		events.addAll(SsfEvents.SSF_EVENT_TYPES);
 		events.addAll(SsfEvents.CAEP_EVENT_TYPES);
 		events.addAll(SsfEvents.RISC_EVENT_TYPES);
+		events.addAll(SsfEvents.SCIM_EVENT_TYPES);
 		STANDARD_EVENT_TYPES = Set.copyOf(events);
 	}
 
