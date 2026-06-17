@@ -7,6 +7,7 @@ import java.util.Set;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
+import net.openid.conformance.authzen.condition.ApplySignedMetadataPrecedence;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyExpectedStatus;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiEndpointPathContainsV1;
@@ -20,6 +21,8 @@ import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
+import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
+import net.openid.conformance.authzen.condition.VerifyAuthzenSignedMetadataSignature;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -48,7 +51,8 @@ import net.openid.conformance.variant.VariantSetup;
 	"pdp.access_evaluation_endpoint"
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "discovery", configurationFields = {
-	"pdp.policy_decision_point"
+	"pdp.policy_decision_point",
+	"pdp.jwks"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_id",
@@ -144,6 +148,14 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			case DISCOVERY:
 				callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
 				callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
+				// signed_metadata is OPTIONAL (§9.1.3): only when the PDP metadata carries
+				// it do we validate it, verify its signature against the configured PDP JWK
+				// Set, and apply its precedence over the plain JSON metadata so the
+				// downstream checks validate the signed (authoritative) values. When it is
+				// absent these steps are skipped (INFO) rather than run as no-ops.
+				skipIfElementMissing("pdp", "signed_metadata", ConditionResult.INFO, ValidateDiscoverySignedMetadata.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+				skipIfElementMissing("pdp", "signed_metadata", ConditionResult.INFO, VerifyAuthzenSignedMetadataSignature.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+				skipIfElementMissing("pdp", "signed_metadata", ConditionResult.INFO, ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
 				break;
 			case STATIC:
 				callAndStopOnFailure(GetPDPStaticServerConfiguration.class);
