@@ -434,9 +434,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
   });
 
-  test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({
-    page,
-  }) => {
+  test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
