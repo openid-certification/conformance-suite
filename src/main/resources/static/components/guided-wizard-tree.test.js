@@ -40,6 +40,17 @@ function collectSteps() {
   return collected;
 }
 
+/**
+ * @param {import("./guided-wizard-tree.js").WizardStep} step
+ * @param {string} id
+ * @returns {import("./guided-wizard-tree.js").WizardChoice}
+ */
+function choiceById(step, id) {
+  const choice = step.choices.find((candidate) => candidate.id === id);
+  expect(choice, `choice ${id} in ${step.id}`).toBeTruthy();
+  return /** @type {import("./guided-wizard-tree.js").WizardChoice} */ (choice);
+}
+
 describe("GUIDED_WIZARD_TREE shape", () => {
   it("has a non-empty ecosystem list", () => {
     expect(GUIDED_WIZARD_TREE.ecosystems.length).toBeGreaterThan(0);
@@ -59,6 +70,51 @@ describe("GUIDED_WIZARD_TREE shape", () => {
       expect(step.question, `question at ${path}`).toBeTruthy();
       expect(step.choices?.length, `choices at ${path}`).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("ConnectID CIBA guided paths", () => {
+  it("resolves RP and OP CIBA choices to the ConnectID CIBA profile", () => {
+    const ecosystem = GUIDED_WIZARD_TREE.ecosystems.find((item) => item.id === "connectid_au");
+    expect(ecosystem).toBeTruthy();
+
+    const roleStep = ecosystem?.steps[0];
+    expect(roleStep).toBeTruthy();
+
+    const rp = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (roleStep),
+      "rp",
+    );
+    const rpCiba = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (rp.next),
+      "ciba",
+    );
+    expect(rpCiba.result).toEqual({
+      plan_name: "fapi-ciba-id1-client-test-plan",
+      variants: {
+        client_auth_type: "private_key_jwt",
+        ciba_mode: "ping",
+        fapi_ciba_profile: "connectid_au",
+      },
+    });
+
+    const op = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (roleStep),
+      "op",
+    );
+    const opCiba = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (op.next),
+      "ciba",
+    );
+    expect(opCiba.result).toEqual({
+      plan_name: "fapi-ciba-id1-test-plan",
+      variants: {
+        client_auth_type: "private_key_jwt",
+        fapi_ciba_profile: "connectid_au",
+        ciba_mode: "ping",
+        client_registration: "static_client",
+      },
+    });
   });
 });
 

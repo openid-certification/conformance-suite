@@ -239,6 +239,62 @@ test.describe("schedule-test.html — guided journey", () => {
     );
   });
 
+  test("ConnectID RP CIBA path resolves to the client CIBA plan", async ({ page }) => {
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "connectid_au");
+    await pickChoice(page, "rp");
+    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
+    await pickChoice(page, "ciba");
+
+    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
+    await expect(page.locator("#guidedStage .plan-name-display")).toHaveText(
+      "FAPI-CIBA-ID1: Client test",
+    );
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "fapi-ciba-id1-client-test-plan",
+    );
+
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table.locator("tbody tr")).toHaveCount(3);
+    await expect(table).toContainText("Client Authentication Type");
+    await expect(table).toContainText("Private Key JWT");
+    await expect(table).toContainText("CIBA Mode");
+    await expect(table).toContainText("Ping");
+    await expect(table).toContainText("FAPI-CIBA Profile");
+    await expect(table).toContainText("ConnectID Australia");
+  });
+
+  test("ConnectID OP CIBA path resolves to the server CIBA plan", async ({ page }) => {
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "connectid_au");
+    await pickChoice(page, "op");
+    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
+    await pickChoice(page, "ciba");
+
+    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
+    await expect(page.locator("#guidedStage .plan-name-display")).toHaveText(
+      "FAPI-CIBA-ID1: Authorization server test",
+    );
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "fapi-ciba-id1-test-plan",
+    );
+
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table.locator("tbody tr")).toHaveCount(4);
+    await expect(table).toContainText("Client Authentication Type");
+    await expect(table).toContainText("Private Key JWT");
+    await expect(table).toContainText("FAPI-CIBA Profile");
+    await expect(table).toContainText("ConnectID Australia");
+    await expect(table).toContainText("CIBA Mode");
+    await expect(table).toContainText("Ping");
+    await expect(table).toContainText("Client Registration");
+    await expect(table).toContainText("Static (pre-registered) client");
+  });
+
   test("backtrack: the ecosystem chip resets the journey to the ecosystem screen", async ({
     page,
   }) => {

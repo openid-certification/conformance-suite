@@ -136,6 +136,8 @@ export const MOCK_PLANS = [
  *
  * - fapi2-message-signing-final-test-plan: KSA → OP → private_key_jwt →
  *   SAMA v2 resolution target.
+ * - fapi-ciba-id1-client-test-plan / fapi-ciba-id1-test-plan: Brazil and
+ *   ConnectID CIBA guided leaves.
  * - fapi1-advanced-final-test-plan: Brazil OP FAPI leaf (carries the
  *   also_required → DCR bundle).
  * - fapi1-advanced-final-brazil-dcr-test-plan: the bundle sibling.
@@ -213,6 +215,7 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           plain_fapi: { configurationFields: [] },
           ksa: { configurationFields: [] },
+          connectid_au: { configurationFields: [] },
         },
       },
       fapi_response_mode: {
@@ -223,6 +226,108 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           plain_response: { configurationFields: [] },
           jarm: { configurationFields: [] },
+        },
+      },
+    },
+  },
+  {
+    planName: "fapi-ciba-id1-client-test-plan",
+    displayName: "FAPI-CIBA-ID1: Client test",
+    profile: "Test a Client",
+    specFamily: "FAPI-CIBA",
+    specVersion: "ID1",
+    summary: "",
+    modules: [
+      {
+        testModule: "fapi-ciba-id1-client-happy-flow",
+        configurationFields: ["client.client_id", "client.jwks", "server.issuer"],
+      },
+    ],
+    variants: {
+      client_auth_type: {
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
+        },
+        variantValues: {
+          private_key_jwt: { configurationFields: ["client.jwks"] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+        },
+      },
+      ciba_mode: {
+        variantInfo: {
+          displayName: "CIBA Mode",
+          description: "The CIBA notification mode to test.",
+        },
+        variantValues: {
+          ping: { configurationFields: [] },
+          poll: { configurationFields: [] },
+        },
+      },
+      fapi_ciba_profile: {
+        variantInfo: {
+          displayName: "FAPI-CIBA Profile",
+          description: "The FAPI-CIBA ecosystem profile to test.",
+        },
+        variantValues: {
+          openbanking_brazil: { configurationFields: [] },
+          connectid_au: { configurationFields: [] },
+        },
+      },
+    },
+  },
+  {
+    planName: "fapi-ciba-id1-test-plan",
+    displayName: "FAPI-CIBA-ID1: Authorization server test",
+    profile: "Test an OpenID Provider / Authorization Server",
+    specFamily: "FAPI-CIBA",
+    specVersion: "ID1",
+    summary: "",
+    modules: [
+      {
+        testModule: "fapi-ciba-id1-happy-flow",
+        configurationFields: ["server.discoveryUrl", "client.client_id", "client.jwks"],
+      },
+    ],
+    variants: {
+      client_auth_type: {
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
+        },
+        variantValues: {
+          private_key_jwt: { configurationFields: ["client.jwks"] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+        },
+      },
+      fapi_ciba_profile: {
+        variantInfo: {
+          displayName: "FAPI-CIBA Profile",
+          description: "The FAPI-CIBA ecosystem profile to test.",
+        },
+        variantValues: {
+          openbanking_brazil: { configurationFields: [] },
+          connectid_au: { configurationFields: [] },
+        },
+      },
+      ciba_mode: {
+        variantInfo: {
+          displayName: "CIBA Mode",
+          description: "The CIBA notification mode to test.",
+        },
+        variantValues: {
+          ping: { configurationFields: [] },
+          poll: { configurationFields: [] },
+        },
+      },
+      client_registration: {
+        variantInfo: {
+          displayName: "Client Registration",
+          description: "How the client is registered.",
+        },
+        variantValues: {
+          static_client: { configurationFields: [] },
+          dynamic_client: { configurationFields: [] },
         },
       },
     },
