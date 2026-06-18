@@ -40,8 +40,8 @@ public abstract class AbstractCreateKSAConsentRequest extends AbstractCondition 
 		if (aud == null || aud.isEmpty()) {
 			throw error("The OP issuer is not available to set as the consent request 'aud'; the server discovery document must be fetched first");
 		}
-		JsonArray audArray = new JsonArray(1)
-		audArray.add(aud)
+		JsonArray audArray = new JsonArray(1);
+		audArray.add(aud);
 		claims.add("aud", audArray);
 		claims.add("message", message);
 
