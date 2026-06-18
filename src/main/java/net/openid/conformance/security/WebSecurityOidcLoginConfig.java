@@ -231,31 +231,22 @@ class WebSecurityOidcLoginConfig {
 			// net.openid.conformance.ui.HomeController (anonymous -> 302
 			// /login.html, authenticated -> 302 /plans.html). Both must stay
 			// permitted here so anonymous requests reach that controller at all —
-			// this chain ends with anyRequest().authenticated(). The `/plans.html`
-			// / `/logs.html` listing pages must likewise resolve for anonymous
-			// visitors (public browsing via ?public=true and the login page's
-			// "browse without signing in" links). These HTML shells carry no
-			// sensitive data; the authorization boundary stays the /api/* chain
-			// (WebSecurityResourceServerConfig), which independently restricts
-			// private-link users to their shared asset. This permit is placed
-			// AFTER the private-link denyAll matcher above (mirroring the
-			// publicRequestMatcher block below) so private-link sessions remain
-			// locked to their shared log-/plan-detail page and do not gain access
-			// to the listing pages — nor to `/`, which the denyAll matcher stops
-			// before HomeController ever runs.
+			// this chain ends with anyRequest().authenticated(). Listing pages are
+			// intentionally NOT permitted here: bare `/plans.html` and `/logs.html`
+			// represent authenticated "My" views, so anonymous users should enter
+			// the normal login flow and have Spring Security save the original URL
+			// for post-login replay. Anonymous public browsing remains available
+			// only via the explicit `?public=true` links permitted by the
+			// publicRequestMatcher block below.
 			httpRequests.requestMatchers( //
 					"/", //
-					"/index.html", //
-					"/plans.html", //
-					"/logs.html" //
+					"/index.html" //
 				) //
 				.permitAll();
 
-			// `/plans.html` and `/logs.html` are already permitted unconditionally
-			// above, so their entries here are redundant (first match wins) and kept
-			// only to leave this pre-existing block untouched. `/log-detail.html` and
-			// `/plan-detail.html` remain load-bearing: they are public ONLY with
-			// `?public=true` (the PublicRequestMatcher gate), never unconditionally.
+			// Listing and detail pages are public ONLY with `?public=true` (the
+			// PublicRequestMatcher gate), never unconditionally. The login page and
+			// anonymous navbar use these explicit URLs for browse-without-signing-in.
 			httpRequests.requestMatchers( //
 					publicRequestMatcher( //
 						"/log-detail.html", //

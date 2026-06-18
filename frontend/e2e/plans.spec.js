@@ -517,18 +517,22 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
 
 /**
  * Logged-out public browse (U3/U4). Anonymous visitors only have the Published
- * view, so plans.html canonicalises the bare URL to ?public=true (so the URL is
- * shareable and detail links carry the param) and the plan-detail links thread
- * public=true so anonymous click-through resolves (plan-detail.html is public
- * ONLY with the param). Authenticated users on a bare URL keep their My view
- * untouched.
+ * view. In production the Spring Security chain intercepts anonymous bare
+ * /plans.html before this static shell loads; this suite still covers the
+ * shell's anonymous fallback because Playwright serves static files directly.
+ * The fallback canonicalises to ?public=true (so the URL is shareable and
+ * detail links carry the param), and plan-detail links thread public=true so
+ * anonymous click-through resolves (plan-detail.html is public ONLY with the
+ * param). Authenticated users on a bare URL keep their My view untouched.
  */
 test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("U3: anonymous bare URL canonicalises to ?public=true", async ({ page }) => {
+  test("U3: static-shell anonymous bare URL fallback canonicalises to ?public=true", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);

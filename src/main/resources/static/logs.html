@@ -109,8 +109,12 @@
                 viewTabs.removeAttribute("authenticated");
             }
             // Effective view: ?public=true → Published unconditionally
-            // (the dataset decision does not depend on auth); otherwise
-            // authed → My (is-public absent), anon → Published (R6/AE3).
+            // (the dataset decision does not depend on auth). Otherwise
+            // authenticated users see My. In production, anonymous bare
+            // /logs.html is intercepted by Spring Security before this page
+            // loads and replayed after login; the anonymous fallback remains
+            // for static harnesses and degraded deployments that serve this
+            // shell directly.
             const isPublic = explicitPublic || !authenticated;
 
             // Canonicalise the anonymous bare URL to ?public=true so the URL
