@@ -375,6 +375,9 @@ const STYLE_TEXT = css`
     display: contents;
   }
   cts-log-entry .logBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     line-height: var(--lh-base);
     color: var(--fg);
     min-width: 0;
@@ -389,6 +392,8 @@ const STYLE_TEXT = css`
   cts-log-entry .logBody .logSrc {
     color: var(--fg-soft);
     font-size: var(--fs-12);
+    font-family: var(--font-mono);
+    font-weight: var(--fw-bold);
     margin-right: var(--space-2);
   }
   cts-log-entry .logBody code {
