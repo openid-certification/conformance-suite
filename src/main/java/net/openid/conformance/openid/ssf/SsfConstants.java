@@ -15,7 +15,7 @@ public final class SsfConstants {
 		DELIVERY_METHOD_POLL_RFC_8936_URI
 	);
 
-	// CAEP Interop Profile §2.7.2 reserved OAuth scopes for SSF API access.
+	// CAEP Interop Profile §2.7.3 reserved OAuth scopes for SSF API access.
 	public static final String SCOPE_SSF_READ = "ssf.read";
 
 	public static final String SCOPE_SSF_MANAGE = "ssf.manage";
