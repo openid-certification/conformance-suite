@@ -33,7 +33,7 @@
     "FourthParty": {
       "TradingName": "Rand's Company",
       "LegalName": "Rand's Ltd",
-      "IdentifierType": "123456",
+      "IdentifierType": "KSAOB.UnifiedCommercialNumber",
       "Identifier": "123456"
     },
     "SponsoredTPP": {
@@ -61,10 +61,10 @@
     },
     "DeviceIndicators": {
       "GeoLocation": {
-        "latitude": "40.730610",
-        "longitude": "-73.935242"
+        "Latitude": "40.730610",
+        "Longitude": "-73.935242"
       },
-      "DeviceId": "54234",
+      "DeviceId": "1234567890123456",
       "VPNStatus": false,
       "RemoteAccessTool": false,
       "Screensharing": false,
