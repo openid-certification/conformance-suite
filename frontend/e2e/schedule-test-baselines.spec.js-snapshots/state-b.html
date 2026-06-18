@@ -157,7 +157,7 @@
           </div>
           <select class="oidf-test-selector__family" size="14" aria-label="Filter test plans by specification family">
             <option value="" selected="">All specifications</option>
-            <!--?lit$NNNN$--><!----><option value="FAPI"><!--?lit$NNNN$-->FAPI</option><!----><!----><option value="OIDCC"><!--?lit$NNNN$-->OIDCC</option><!---->
+            <!--?lit$NNNN$--><!----><option value="FAPI"><!--?lit$NNNN$-->FAPI</option><!----><!----><option value="FAPI-CIBA"><!--?lit$NNNN$-->FAPI-CIBA</option><!----><!----><option value="OIDCC"><!--?lit$NNNN$-->OIDCC</option><!---->
           </select>
         </div>
         <div class="oidf-test-selector__list" role="list">
@@ -184,7 +184,18 @@
                     <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
                   </button>
                 <!----><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="2" tabindex="-1">
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="fapi-ciba-id1-test-plan" data-index="2" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI-CIBA-ID1: Authorization server test</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI-CIBA</span>
+                      </span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI-CIBA authorization server test plan</span>
+                  </button>
+                <!----><!---->
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="3" tabindex="-1">
                     <span class="oidf-test-selector__row-head">
                       <span class="oidf-test-selector__row-title">
                         <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
@@ -212,6 +223,10 @@
           <!--?lit$NNNN$--><!---->
         <option value="FAPI">
           <!--?lit$NNNN$-->FAPI
+        </option>
+      <!----><!---->
+        <option value="FAPI-CIBA">
+          <!--?lit$NNNN$-->FAPI-CIBA
         </option>
       <!----><!---->
         <option value="OIDCC" selected="">
