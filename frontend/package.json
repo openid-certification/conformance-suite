@@ -54,6 +54,7 @@
     "playwright": "1.60.0",
     "prettier": "3.8.4",
     "quicktype": "23.2.6",
+    "run-applescript": "7.1.0",
     "storybook": "10.4.4",
     "ts-lit-plugin": "2.0.2",
     "typescript": "5.9.3",
