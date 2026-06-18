@@ -19,6 +19,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.EnsureTLS13OrLater;
+import net.openid.conformance.condition.common.EnsureTLS13PreferredOverTLS12;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -63,6 +64,11 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		// additional ciphers are allowed on the authorization endpoint
 
 		eventLog.startBlock("Token Endpoint TLS test");
@@ -71,6 +77,11 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5", "RFC9325A-A", "RFC9325-4.2");
 
@@ -80,6 +91,11 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
 		eventLog.startBlock("Registration Endpoint TLS test");
@@ -88,6 +104,11 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 
 		eventLog.endBlock();
