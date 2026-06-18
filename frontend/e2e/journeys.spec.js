@@ -58,6 +58,14 @@ test.describe("Cross-page journeys", () => {
       return route.fallback();
     });
 
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
     // --- Plan-detail routes ---
     await page.route("**/api/plan/plan-journey-001", (route) =>
       route.fulfill({
