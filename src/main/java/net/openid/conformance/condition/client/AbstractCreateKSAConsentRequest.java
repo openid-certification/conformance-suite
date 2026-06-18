@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -39,7 +40,9 @@ public abstract class AbstractCreateKSAConsentRequest extends AbstractCondition 
 		if (aud == null || aud.isEmpty()) {
 			throw error("The OP issuer is not available to set as the consent request 'aud'; the server discovery document must be fetched first");
 		}
-		claims.addProperty("aud", aud);
+		JsonArray audArray = new JsonArray(1)
+		audArray.add(aud)
+		claims.addProperty("aud", audArray);
 		claims.add("message", message);
 
 		env.putObject("account_requests_endpoint_request", claims);
