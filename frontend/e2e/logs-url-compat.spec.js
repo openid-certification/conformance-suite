@@ -14,9 +14,10 @@ import {
  * R25/AE7). Legacy assertions pass against today's behavior; target assertions
  * are `test.fixme` so CI stays green until the owning unit lands.
  *
- * SERVER-LEVEL ASSERTIONS ARE DEFERRED TO U10 (see plans-url-compat.spec.js).
- * No `/` / `/index.html` redirect or OTT assertion lives here — those are
- * server-observable and asserted by U10's HomeRoutingTest.java.
+ * SERVER-LEVEL ASSERTIONS live in Java security-chain tests. No `/` /
+ * `/index.html` redirect, bare listing-page login redirect, or OTT assertion
+ * lives here — those are server-observable, while this harness serves static
+ * files with mocked APIs.
  *
  * Route ordering: setupFailFast() FIRST; specific routes after; all before
  * page.goto(). logs.html's scripts fire /api/currentuser (via <cts-navbar>

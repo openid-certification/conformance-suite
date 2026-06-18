@@ -43,8 +43,8 @@
             //   unambiguous, so fetch it now at connect (no auth gate). This
             //   keeps the no-flash contract: exactly one /api/plan request and
             //   it carries public=true (AE4).
-            // - No public param → the default (My for authed, Published for
-            //   anon) depends on auth, which resolves async. Suppress the
+            // - No public param → the default My view depends on auth, which
+            //   resolves async. Suppress the
             //   connect-time fetch (defer-initial-fetch) and show the list
             //   loading state; the auth probe below resolves the dataset and
             //   triggers the fetch (AE5: no premature Published fetch; R17).
@@ -119,8 +119,12 @@
                     if (user && user.isAdmin) {
                         planList.setAttribute('is-admin', '');
                     }
-                    // Resolve the deferred (no-public-param) first-paint fetch:
-                    // authed → My (is-public absent); anon → Published (AE3).
+                    // Resolve the deferred (no-public-param) first-paint fetch.
+                    // In production, anonymous bare /plans.html is intercepted
+                    // by Spring Security before this page loads and replayed
+                    // after login. The anonymous fallback is kept for static
+                    // harnesses and degraded deployments that serve this shell
+                    // directly.
                     if (planList.hasAttribute('defer-initial-fetch')) {
                         if (!authenticated) {
                             planList.setAttribute('is-public', '');

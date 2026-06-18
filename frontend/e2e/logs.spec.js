@@ -750,16 +750,19 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     expect(logRequests.every((u) => u.includes("public=true"))).toBe(true);
   });
 
-  test("U3: anonymous bare URL canonicalises to ?public=true", async ({ page }) => {
+  test("U3: static-shell anonymous bare URL fallback canonicalises to ?public=true", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await recordLogRoute(page);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/logs.html");
 
-    // After the auth probe resolves to anonymous, the URL gains public=true
-    // (history.replaceState — no reload) so the Published results browser is
-    // shareable and its detail links carry the param.
+    // In production, Spring Security intercepts anonymous bare /logs.html
+    // before this static shell loads. This static-harness fallback still
+    // canonicalises to public=true (history.replaceState — no reload) so the
+    // Published results browser is shareable and detail links carry the param.
     await page.waitForFunction(() => window.location.search.includes("public=true"));
     await expect(page.locator(ITEM).first()).toBeVisible();
     expect(page.url()).toContain("public=true");

@@ -22,12 +22,13 @@ import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
  * (net.openid.conformance.ui.HomeController): anonymous -> 302 `/login.html`,
  * authenticated -> 302 `/plans.html` (the logged-out-landing fix; formerly
  * unconditional 302s to /plans.html via ApplicationConfig view controllers).
- * The anonymous `permitAll` for `/`, `/index.html`, `/plans.html`,
- * `/logs.html` and the OTT token-generation redirect target live in
- * WebSecurityOidcLoginConfig. None of these can be exercised by this
- * mocked-API Playwright harness, which serves static files via http-server
- * with NO Spring backend — `page.goto("/")` here hits http-server, not the
- * Spring 302. The controller's branch logic is pinned by
+ * The anonymous `permitAll` for `/`, `/index.html`, explicit
+ * `?public=true` listing/detail pages, and the OTT token-generation redirect
+ * target live in WebSecurityOidcLoginConfig. Bare `/plans.html` and
+ * `/logs.html` are authenticated server routes. None of these can be
+ * exercised by this mocked-API Playwright harness, which serves static files
+ * via http-server with NO Spring backend — `page.goto("/")` here hits
+ * http-server, not the Spring 302. The controller's branch logic is pinned by
  * HomeController_UnitTest (pure unit, no Spring context); the full-stack
  * redirect chain remains live-smoke-only because booting a context requires a
  * live MongoDB (Application fires an ApplicationReadyEvent listener that
