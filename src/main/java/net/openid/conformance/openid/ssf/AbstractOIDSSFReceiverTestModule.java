@@ -16,6 +16,7 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessToken;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFValidateRequestedScope;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureTokenScopeSufficient;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
@@ -397,22 +398,22 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				// The token endpoint performs its own client authentication, so it is
 				// intentionally not wrapped in ensureAuthorized().
 				case "token" -> response = handleTokenEndpointRequest(req, requestId);
-				case "events" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "events" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleStreamPollingRequest(path, req, res, session, requestParts);
 				});
-				case "streams" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "streams" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
 				});
-				case "status" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "status" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
 				});
-				case "verify" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "verify" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleVerificationEndpointRequest(path, req, res, session, requestParts);
 				});
-				case "add_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "add_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
 				});
-				case "remove_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "remove_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
 				});
 				default -> response = super.handleHttp(path, req, res, session, requestParts);
@@ -447,19 +448,49 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}, amount, timeUnit);
 	}
 
-	protected ResponseEntity<?> ensureAuthorized(HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, Supplier<ResponseEntity<?>> requestHandler) {
+	protected ResponseEntity<?> ensureAuthorized(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, Supplier<ResponseEntity<?>> requestHandler) {
 
-		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.3");
+		// CAEPIOP §2.7.2 "The SSF Transmitter as a Resource Server": validate the bearer token.
+		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.2");
 		JsonObject authResult = env.getElementFromObject("ssf", "auth_result").getAsJsonObject();
+		if (authResult.has("error")) {
+			return errorResponseFromAuthResult(authResult);
+		}
 
-		JsonElement authErrorEl = authResult.get("error");
-		if (authErrorEl != null) {
-			JsonObject authError = authErrorEl.getAsJsonObject();
-			int statusCode = OIDFJSON.getInt(authResult.get("status_code"));
-			return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authError);
+		// CAEPIOP §2.7.2: the resource server MUST verify the token's authorization is
+		// sufficient for the requested access. Only meaningful in dynamic mode, where the
+		// token carries a granted scope (ssf.read for read/status, ssf.manage for management).
+		if (SsfAuthMode.DYNAMIC.name().equals(env.getString("ssf", "auth_mode"))) {
+			String requiredScope = requiredScopeForOperation(path, req.getMethod());
+			if (requiredScope != null) {
+				callAndStopOnFailure(new OIDSSFEnsureTokenScopeSufficient(requiredScope), "CAEPIOP-2.7.2", "CAEPIOP-2.7.3");
+				if (authResult.has("error")) {
+					return errorResponseFromAuthResult(authResult);
+				}
+			}
 		}
 
 		return requestHandler.get();
+	}
+
+	protected ResponseEntity<?> errorResponseFromAuthResult(JsonObject authResult) {
+		int statusCode = OIDFJSON.getInt(authResult.get("status_code"));
+		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authResult.get("error").getAsJsonObject());
+	}
+
+	/**
+	 * Maps an SSF API request to the OAuth scope it requires (CAEPIOP §2.7.3):
+	 * {@code ssf.read} for stream/status read operations, {@code ssf.manage} for
+	 * stream-management operations (create/update/replace/delete, verification,
+	 * subject changes). Returns {@code null} for paths that are not scope-gated.
+	 */
+	protected String requiredScopeForOperation(String path, String method) {
+		return switch (path) {
+			case "streams", "status" -> "GET".equals(method) ? SsfConstants.SCOPE_SSF_READ : SsfConstants.SCOPE_SSF_MANAGE;
+			case "verify", "add_subject", "remove_subject" -> SsfConstants.SCOPE_SSF_MANAGE;
+			case "events" -> SsfConstants.SCOPE_SSF_READ;
+			default -> null;
+		};
 	}
 
 	@Override
@@ -541,7 +572,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				call(sequence(validateClientAuthenticationSteps));
 			}
 
-			callAndStopOnFailure(OIDSSFValidateRequestedScope.class, "CAEPIOP-2.7.2");
+			callAndStopOnFailure(OIDSSFValidateRequestedScope.class, "CAEPIOP-2.7.3");
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
 			callAndStopOnFailure(GenerateAccessTokenExpiration.class);
 			callAndStopOnFailure(OIDSSFStoreIssuedAccessToken.class);
