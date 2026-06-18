@@ -28,6 +28,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.EnsureTLS13OrLater;
+import net.openid.conformance.condition.common.EnsureTLS13PreferredOverTLS12;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
@@ -89,6 +90,11 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5", "RFC9325A-A", "RFC9325-4.2");
 	}

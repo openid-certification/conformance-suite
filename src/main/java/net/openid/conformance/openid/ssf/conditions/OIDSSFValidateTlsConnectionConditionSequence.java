@@ -5,6 +5,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12OrLater;
 import net.openid.conformance.condition.common.EnsureTLS13OrLater;
+import net.openid.conformance.condition.common.EnsureTLS13PreferredOverTLS12;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class OIDSSFValidateTlsConnectionConditionSequence extends AbstractConditionSequence {
@@ -15,5 +16,10 @@ public class OIDSSFValidateTlsConnectionConditionSequence extends AbstractCondit
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
 		callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 	}
 }
