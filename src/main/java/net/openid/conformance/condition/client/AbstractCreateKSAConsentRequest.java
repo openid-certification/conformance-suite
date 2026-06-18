@@ -42,7 +42,7 @@ public abstract class AbstractCreateKSAConsentRequest extends AbstractCondition 
 		}
 		JsonArray audArray = new JsonArray(1)
 		audArray.add(aud)
-		claims.addProperty("aud", audArray);
+		claims.add("aud", audArray);
 		claims.add("message", message);
 
 		env.putObject("account_requests_endpoint_request", claims);
