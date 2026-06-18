@@ -12,8 +12,8 @@ import java.util.Set;
 
 /**
  * Validates the {@code scope} form parameter on a client_credentials token
- * request against the reserved SSF scopes (CAEP Interop Profile §2.7.2):
- * {@code ssf.read} and {@code ssf.manage}. The validated scope string is
+ * request against the reserved SSF scopes (CAEP Interop Profile §2.7.3
+ * "OAuth Scopes"): {@code ssf.read} and {@code ssf.manage}. The validated scope string is
  * echoed into {@code env.scope} so {@link
  * net.openid.conformance.condition.as.CreateTokenEndpointResponse} includes it
  * in the token endpoint response.
