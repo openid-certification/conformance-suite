@@ -1,17 +1,297 @@
+/*
+ * Reserve the scrollbar gutter permanently. Bootstrap modals briefly
+ * set `body { overflow: hidden }` when shown and add padding-right to
+ * compensate for the disappearing scrollbar. Reserving the gutter on
+ * <html> keeps scrollbar-width space stable across that transition,
+ * which avoids any horizontal layout shift the modal lifecycle could
+ * otherwise produce. Broadly useful beyond this codebase — prevents
+ * scrollbar-appearance CLS on any long page that briefly shrinks.
+ */
+html {
+	scrollbar-gutter: stable;
+}
+
+/*
+ * Cross-document View Transitions for paint-holding between pages.
+ *
+ * The cache in cts-navbar.js makes the nav render identically from
+ * first paint, but there is still a brief window between FCP and the
+ * cts-navbar custom-element upgrade where the nav slot is the
+ * invisible 60px reserved by the :not(:defined) fallback — that
+ * window reads as a "blink" when navigating between pages.
+ *
+ * @view-transition + navigation: auto gives the browser paint-holding:
+ * it freezes the outgoing document on screen until the incoming
+ * document is genuinely ready to paint the full nav, so the handoff
+ * looks continuous.
+ *
+ * We do NOT want the UA's default cross-fade — forcing the old
+ * snapshots to opacity 0 instantly renders the handoff as a hard cut,
+ * not a fade. Without this, the old snapshot sits at opacity 1 behind
+ * the new snapshot, and semi-transparent elements on the new page
+ * (e.g. schedule-test's loading modal backdrop) ghost the old page
+ * through. With it, only the new snapshot is visible during the
+ * transition window, and the effect is indistinguishable from an
+ * instant swap — except the browser had time to paint the full nav
+ * before swapping.
+ *
+ * Known benign console noise: when a traversal interrupts an in-flight
+ * transition (back then quickly forward), the browser skips it and its
+ * internal ViewTransition.ready promise rejects as "Uncaught (in
+ * promise) AbortError: Transition was skipped". No author code ever
+ * holds that promise, and the skip can land before pagereveal fires, so
+ * the line is not reliably suppressible from page code (a
+ * pagereveal-attached .catch() was tried and proven insufficient). It
+ * is accepted as-is: a skipped transition merely degrades the
+ * paint-held swap to a plain instant swap; nothing is broken.
+ */
+@view-transition {
+	navigation: auto;
+}
+
+::view-transition-old(*),
+::view-transition-new(*) {
+	animation: none;
+}
+
+::view-transition-old(*) {
+	opacity: 0;
+}
+
+/*
+ * cts-* FOUC fallback: hide or reserve space for every web-component host
+ * until its definition is registered with `customElements.define(...)`.
+ * Without this, first paint shows zero-height hosts (cts-navbar) or raw
+ * pre-upgrade modal children (cts-modal's spinner, error text, config form)
+ * that get laid out, then re-laid-out when the component upgrades — a
+ * large Cumulative Layout Shift.
+ *
+ * Three regimes:
+ *  - visibility: hidden  — reserves layout for inline-flow primitives
+ *                          (cts-button, cts-link-button, cts-badge,
+ *                          cts-icon). These flow inline with surrounding
+ *                          text/content and visibility:hidden preserves
+ *                          their inline box dimensions.
+ *  - display: block + min-height — for block-level hosts whose height
+ *                          must be reserved. cts-navbar is 60px tall
+ *                          post-upgrade; without `display: block`,
+ *                          `visibility: hidden` on an inline-default
+ *                          custom element does NOT reserve vertical
+ *                          space, so slow-to-upgrade pages (large inline
+ *                          scripts, many blocking resources) shift
+ *                          everything below the navbar down by its full
+ *                          height when the component finally defines.
+ *  - display: none       — takes no space pre-upgrade. Used only for
+ *                          cts-modal, whose raw pre-upgrade children
+ *                          (spinner, error text) should never appear in
+ *                          the document flow; post-upgrade the Bootstrap
+ *                          .modal wrapper itself is display:none so the
+ *                          effective layout does not change.
+ *  - position: fixed     — for viewport-pinned hosts (cts-action-bar)
+ *                          whose post-upgrade box is fixed to a viewport
+ *                          edge, not in flow. Reserving in-flow height
+ *                          would paint the placeholder at the host's
+ *                          source position (mid-page); the fallback must
+ *                          instead pin the same chrome at the same
+ *                          viewport edge the component will occupy.
+ *
+ * Components deliberately NOT listed here:
+ *  - cts-alert, cts-tabs, cts-tab-panel: their post-upgrade layout can be
+ *    smaller than pre-upgrade (an alert may not render at all, tabs show
+ *    only one panel). Hiding them pre-upgrade with display:none causes a
+ *    larger 0 -> full-height shift on definition than allowing the raw
+ *    children to flow. They rely on modulepreload to upgrade before
+ *    first paint instead.
+ */
+cts-button:not(:defined),
+cts-link-button:not(:defined),
+cts-badge:not(:defined),
+cts-icon:not(:defined) {
+	visibility: hidden;
+}
+
+/* Block-level full-width fallback: the inline-flow visibility:hidden rule
+ * above does not reserve vertical height for a block-level host. When
+ * `[full-width]` is set we know the post-upgrade host renders as a block
+ * (the OIDF button rule injected by cts-button.js), so reserve the default
+ * control height pre-upgrade to keep CLS at zero. Routed through
+ * --control-height (loaded via <link> before component modules, so it is
+ * computable when :not(:defined) applies) to track the button's md rung. */
+cts-button[full-width]:not(:defined),
+cts-link-button[full-width]:not(:defined) {
+	display: block;
+	min-height: var(--control-height);
+}
+
+/* cts-empty-state is "often used as a block-level fill" (Coherence F4) — a
+ * dashboard tile slot, a table-empty row, an onboarding surface. The
+ * post-upgrade layout is a centered flex column whose intrinsic height
+ * depends on the content (icon + heading + body + CTA), but pre-upgrade
+ * the host has no children and would collapse to zero. Reserve a
+ * conservative 120px so the surrounding layout (cards, table rows) does
+ * not jump when the component upgrades. */
+cts-empty-state:not(:defined) {
+	display: block;
+	min-height: 120px;
+}
+
+/* cts-loading-state is the loading-branch sibling of cts-empty-state — both
+ * lists (cts-log-list, cts-plan-list) render it as a block-level fill while
+ * their fetch is in flight. Pre-upgrade the host has no children and would
+ * collapse to zero; reserve the same conservative 120px so the surrounding
+ * layout does not jump when the component upgrades. */
+cts-loading-state:not(:defined) {
+	display: block;
+	min-height: 120px;
+}
+
+/* cts-data-table replaces jQuery DataTables on plans.html / logs.html /
+ * tokens.html. Pre-upgrade the host has no children and would collapse to
+ * zero height, leaving the page chrome jumpy until the AJAX round-trip
+ * resolves. Reserve a conservative 200px (roughly: search row + sticky
+ * header + a couple of rows) so the surrounding layout settles before the
+ * fetch returns. `display: block` is required because the inline-default
+ * custom element would otherwise ignore `min-height`. */
+cts-data-table:not(:defined) {
+	display: block;
+	min-height: 200px;
+}
+
+/* cts-page-head is the standard page header pattern used by every
+ * page-level migration in Phase D (32px title + optional subtitle +
+ * actions slot). The post-upgrade footprint is roughly 80px tall (32px
+ * title + 13px subtitle + the bottom border + spacing). Reserve that
+ * height pre-upgrade so the page body does not jump when the component
+ * defines. `display: block` is required because the inline-default
+ * custom element would otherwise ignore `min-height`. */
+cts-page-head:not(:defined) {
+	display: block;
+	min-height: 80px;
+}
+
+/* cts-footer is the suite-wide page footer (static OIDF brand line + an
+ * optional server-info line fetched from /api/server). It is a block-level
+ * custom-element host that reserves zero height before upgrade (inline
+ * default), so the page body would jump when it defines and again when the
+ * async server-info fetch resolves. Reserve ~56px to match the post-upgrade
+ * footprint (border-top + brand line + server-info line + the --space-6
+ * vertical padding). `display: block` is required because the inline-default
+ * custom element would otherwise ignore `min-height`. (KTD6 of the
+ * plans-page-as-home plan.) */
+cts-footer:not(:defined) {
+	display: block;
+	min-height: 56px;
+}
+
+/* cts-view-tabs is the URL-driven My/Published navigation control on the
+ * plans (and logs) listing. It is a block-level custom-element host that
+ * reserves zero height before upgrade (inline default), so the list below it
+ * would jump up when the tabs define. Reserve the measured post-upgrade
+ * footprint — 60px on a single-row layout: the 44px anchor row + bottom
+ * border + the --space-4 (16px) bottom margin, which the upgraded host
+ * contains via its inline-size containment. `display: block` is required
+ * because the inline-default custom element would otherwise ignore
+ * `min-height`. (KTD6 of the plans-page-as-home plan; values re-measured for
+ * the view-tabs mobile-stacking plan.) */
+cts-view-tabs:not(:defined) {
+	display: block;
+	min-height: 60px;
+}
+
+/* Below a 680px viewport the component's narrow-state @container block fires
+ * (640px container threshold + 2× the 20px --space-5 padding on
+ * .listing-page = 680px viewport — exact alignment, no mismatch band) and the
+ * upgraded control is a taller stack: anchor row + divider + full-width 44px
+ * Schedule-test CTA. Measured stacked footprint: 116px. Without this tier the
+ * mobile reservation under-reserves and plans.html content jumps on upgrade.
+ * Keyed on [create-test-href] (server-rendered, so visible pre-upgrade):
+ * only the CTA opt-in (plans.html) grows a second row — logs.html stays a
+ * single ~60px line at every width and keeps the base reservation. */
+@media (width < 680px) {
+	cts-view-tabs[create-test-href]:not(:defined) {
+		min-height: 116px;
+	}
+}
+
+/* cts-run-status-strip is the always-on in-progress/failing runs strip on the
+ * authenticated logs "My" tab. It is a block-level custom-element host that
+ * reserves zero height before upgrade (inline default), so the toolbar below
+ * it would jump down when the strip's skeleton paints. Reserve ~60px to match
+ * the full post-upgrade footprint: the .runStrip min-height (44px) PLUS its
+ * --space-4 (16px) bottom margin, which pushes the log list below it. Reserving
+ * only the 44px content would leave a 16px jump as the margin appears on
+ * upgrade. `display: block` is required because the inline-default custom
+ * element would otherwise ignore `min-height`. The anon / Published / zero-run
+ * paths collapse the strip to zero after upgrade (it renders nothing) — a minor
+ * one-time shift on those secondary paths is the accepted trade-off for a
+ * stable authed home (relocated from plans.html in the Fit & Finish batch). */
+cts-run-status-strip:not(:defined) {
+	display: block;
+	min-height: 60px;
+}
+
+/* cts-action-bar is the viewport-pinned bottom bar on schedule-test.html
+ * (Create Test Plan / Share buttons). Post-upgrade the component renders its
+ * chrome as `position: fixed; bottom: 0`, so document height never positions
+ * it — but pre-upgrade the host is a zero-size inline element and the bottom
+ * of the viewport stays empty until /components/cts-action-bar.js executes.
+ * On a slow or cold load the bar pops in only when the page has finished
+ * loading. Pin a placeholder with the same chrome (background, top border,
+ * shadow — mirroring .oidf-action-bar in cts-action-bar.js) at the same
+ * viewport position so the bar exists from first paint. 80px matches the
+ * `var(--cts-action-bar-height, 80px)` pre-measure fallback the page already
+ * uses to reserve its bottom padding. The `position="static"` variant
+ * (Storybook / dev previews) renders in normal flow and is excluded. */
+cts-action-bar:not([position="static"]):not(:defined) {
+	display: block;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	min-height: 80px;
+	background: var(--bg);
+	border-top: 1px solid var(--border);
+	box-shadow: var(--shadow-3, 0 -4px 16px rgba(26, 22, 17, 0.08));
+	z-index: 2;
+}
+
+cts-navbar:not(:defined) {
+	visibility: hidden;
+	display: block;
+	background: var(--ink-900);
+	/* Matches the post-upgrade .cts-nav `height: 60px`. The OIDF redesign
+	 * (U15) flattened the navbar to a 60px chrome rectangle with no
+	 * external margin, so the fallback reservation matches the rendered
+	 * footprint exactly. The background prevents a momentary white flash
+	 * before the upgrade paints the dark chrome. */
+	min-height: 60px;
+}
+
+cts-modal:not(:defined) {
+	display: none;
+}
+
 /** Generic styles **/
 body {
-	font-family: 'PT Sans', sans-serif;
 	font-size: 16px;
 }
 
 .pageHeader {
-	margin-top: 5px;
+	margin-top: 0;
 	margin-bottom: 20px;
-	padding-bottom: 10px;
+	padding: 0 24px 10px;
 }
 
 .pageHeader img {
-	max-height: 40px;
+	/*
+	 * Explicit dimensions reserve the logo's box at first layout so any
+	 * legacy `.pageHeader` block does not reflow when the image loads.
+	 * The cts-navbar uses openid-dark.svg with width/height attributes
+	 * on the <img> itself for CLS; this rule covers any non-component
+	 * page-header that still renders a raster logo.
+	 */
+	width: 100px;
+	height: 40px;
 }
 
 h1 {
@@ -31,15 +311,17 @@ h3 {
 }
 
 a {
-	text-decoration: none;
+	text-decoration-line: underline;
+	text-underline-offset: 2px;
+	text-decoration-color: transparent;
 }
 
-a:hover {
-	text-decoration: underline;
+a:hover,
+a:focus-visible {
+	text-decoration-color: var(--link-decoration-color);
 }
 
 input[type=text], textarea {
-	text-indent: 5px;
 	border: 1px solid #ccc;
 }
 
@@ -74,11 +356,6 @@ textarea {
 
 .runningTest:hover {
 	background-color: #f6fefe;
-}
-
-#running-tests {
-	border-left: 1px #eee solid;
-	border-top: 1px #eee solid;
 }
 
 .testResult {
@@ -128,50 +405,6 @@ textarea {
 	padding: 5px;
 }
 
-.externalURLLink {
-	background-color: #111;
-	padding: 5px;
-}
-
-/* JSON form tabs */
-.tab-content {
-	padding: 0px 12px;
-	border: 1px solid #ddd;
-	border-top: none;
-}
-
-.tab-pane {
-	padding: 0px;
-}
-
-.tab-content input {
-	width: 100%;
-}
-
-.tab-content textarea {
-	width: 100%;
-	height: 240px;
-}
-
-.tab-content .row {
-	margin-bottom: 10px;
-}
-
-#config {
-	border: none;
-}
-
-.config-form-container-header {
-	border-bottom: 1px #dcdcdc solid;
-	background: linear-gradient(#ffffff, #efefef);
-}
-
-.config-form-element-array {
-	text-indent: 0px !important;
-	height: auto !important;
-	min-height: auto !important;
-}
-
 /** index.html end **/
 
 /** logs listing **/
@@ -193,17 +426,6 @@ textarea {
           z-index: 750;
 }
 
-.listHeader {
-	padding: 5px 0px 0px;
-	background-color: #fff;
-	border: 1px solid #ddd;
-	border-radius: 3px;
-}
-
-.logContent {
-	border-top: 1px #eee solid;
-}
-
 .logItem {
 	border-bottom: 1px #eee solid;
 	padding-top: 7px;
@@ -218,24 +440,6 @@ textarea {
 
 .logItem:hover {
 	background-color: #f6fefe;
-}
-
-.log-source {
-	font-family: monospace;
-	font-size: 85%;
-	color: #666666;
-}
-
-/* Override the default link color */
-.log-requirement a:link, .log-requirement a:visited {
-	color: #ffffff;
-}
-
-.bgSummary {
-	padding: 5px 10px;
-	margin: 4px;
-	border: 1px #ddd solid;
-	border-radius: 2px;
 }
 
 .testStatusResultBlock {
@@ -253,7 +457,7 @@ textarea {
 	margin: 1px;
 	text-align: center;
 	font-size: 110%;
-	height: 2rem;
+	height: 32px;
 }
 
 .testStatus-created {
@@ -334,8 +538,8 @@ textarea {
 }
 
 .pageFooter {
-	padding: 4rem 0;
-	margin-top: 4rem;
+	padding: 64px 0;
+	margin-top: 64px;
 	font-size: 85%;
 	text-align: center;
 	background-color: #f7f7f7;
@@ -394,56 +598,41 @@ textarea {
 }
 
 
+.log-owner {
+	display: inline-flex;
+	align-items: stretch;
+	flex-wrap: nowrap;
+	white-space: nowrap;
+}
+
+/* The two halves below split their border-radius along the chip's vertical
+ * midline: .ownerSub rounds the left corners, .ownerIss rounds the right.
+ * This assumes .ownerSub precedes .ownerIss in DOM order (see
+ * templates/owner.html). Reordering the halves would round the wrong sides
+ * and break the seam. */
 .ownerSub {
+	display: inline-flex;
+	align-items: center;
 	background: #d9c9fe;
 	color: black;
 	padding: 2px 10px;
 	border-top-left-radius: 6px;
 	border-bottom-left-radius: 6px;
-	border-top: 1px darkgrey solid;
-	border-left: 1px darkgrey solid;
-	border-bottom: 1px darkgrey solid;
 }
 
 .ownerIss {
+	display: inline-flex;
+	align-items: center;
 	background: #d3dcf5;
 	color: black;
 	padding: 2px 10px;
 	border-top-right-radius: 6px;
 	border-bottom-right-radius: 6px;
-	border-top: 1px darkgrey solid;
-	border-right: 1px darkgrey solid;
-	border-bottom: 1px darkgrey solid;
 }
 
 /* pretty-printed JSON blocks */
 pre.prettyprint {
 	border: none !important;
-}
-
-/* highlighted JWTs */
-.jwtHeader {
-	color: #fb015b;
-}
-
-.jwtPayload {
-	color: #d63aff;
-}
-
-.jwtSignature {
-	color: #00b9f1;
-}
-
-.jweCypher {
-	color: #f1a551;
-}
-
-.jweTag {
-	color: #38a321;
-}
-
-.darkblue {
-	color: #23527c;
 }
 
 /* spacers for page elements */
@@ -493,10 +682,6 @@ pre.prettyprint {
         background-color: #f1f1f1;
 }
 
-.row-bg-light {
-        background-color: #f9f9f9;
-}
-
 .qr > img {
 	width: 100%;
 }
@@ -519,11 +704,4 @@ pre.prettyprint {
 
 /* <= Phones portrait */
 @media all and (max-width : 320px) {
-}
-
-/* Wider tooltips for test descriptions */
-.tooltip-inner {
-	max-width: 500px;
-	text-align: left;
-	white-space: pre-wrap;
 }

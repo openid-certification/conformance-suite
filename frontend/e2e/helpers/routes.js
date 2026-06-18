@@ -1,8 +1,10 @@
 /**
  * Playwright page.route() helpers for E2E tests.
  *
- * All routes MUST be registered before page.goto() because fapi.ui.js fires
- * fetch('api/ui/spec_links?public=true') at script parse time (loadSpecLinksMapping IIFE).
+ * All routes MUST be registered before page.goto() because page scripts fire
+ * fetches at load time — e.g. <cts-navbar> requests /api/currentuser, and
+ * lib/spec-links.js requests api/ui/spec_links?public=true on log views —
+ * before the test can interact with the page.
  *
  * Playwright matches routes in REVERSE registration order (last registered = first tried).
  * Register setupFailFast() FIRST, then specific routes, so the catch-all runs last.
@@ -11,12 +13,19 @@
 import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
+import { MOCK_LOG_LIST } from "../fixtures/mock-log-list.js";
+import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "../fixtures/mock-plans.js";
 
 /**
  * Register the three routes every page needs:
  * - /api/currentuser
  * - /api/server
- * - api/ui/spec_links (note: no leading slash — the IIFE uses a relative URL)
+ * - api/ui/spec_links (note: no leading slash — lib/spec-links.js uses a relative URL)
+ *
+ * Also stubs Google Fonts so the JetBrains Mono <link> on
+ * log-detail/schedule-test/tokens/upload never stalls page.goto() on a real
+ * CDN fetch — the resulting load-event delay was the source of intermittent
+ * modal/visibility flakes after the OIDF design tokens landed.
  *
  * @param {import('@playwright/test').Page} page
  * @param {object} [options]
@@ -24,6 +33,13 @@ import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
  */
 export async function setupCommonRoutes(page, options = {}) {
   const user = options.user !== undefined ? options.user : MOCK_USER;
+
+  await page.route("**fonts.googleapis.com/**", (route) =>
+    route.fulfill({ status: 200, contentType: "text/css", body: "" }),
+  );
+  await page.route("**fonts.gstatic.com/**", (route) =>
+    route.fulfill({ status: 200, contentType: "font/woff2", body: "" }),
+  );
 
   await page.route("**/api/currentuser", (route) => {
     if (user === null) {
@@ -53,6 +69,37 @@ export async function setupCommonRoutes(page, options = {}) {
       }),
     }),
   );
+}
+
+/**
+ * Register the routes schedule-test.html's init chain always hits,
+ * regardless of mode: fail-fast first (per the registration-order
+ * convention above), then the plans catalog, the lastconfig probe, and the
+ * common trio. Shared by schedule-test-guided.spec.js and
+ * schedule-test-monaco.spec.js.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {object} [options]
+ * @param {Array<object>} [options.plans] - /api/plan/available payload
+ *   (defaults to the full mock catalog including the guided-tree plans).
+ * @param {object|null} [options.user] - Forwarded to setupCommonRoutes
+ *   (null → 401 anonymous).
+ */
+export async function setupScheduleTestRoutes(page, options = {}) {
+  await setupFailFast(page);
+  await page.route("**/api/plan/available", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(
+        options.plans || [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS],
+      ),
+    }),
+  );
+  await page.route("**/api/lastconfig", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+  );
+  await setupCommonRoutes(page, options.user !== undefined ? { user: options.user } : {});
 }
 
 /**
@@ -132,8 +179,44 @@ export function expectNoUnmockedCalls(page) {
   }
   const calls = page.__unmockedApiCalls;
   if (calls.length > 0) {
-    throw new Error(
-      `Unmocked API calls detected:\n  ${calls.join("\n  ")}`,
-    );
+    throw new Error(`Unmocked API calls detected:\n  ${calls.join("\n  ")}`);
   }
+}
+
+/**
+ * Register an /api/log route that records every request URL, plus the per-id
+ * /api/plan/<id> name-resolution stub cts-log-list fires. Returns the recorded
+ * URL array so a test can assert WHICH dataset (My vs Published) was fetched
+ * across My/Published tab switches. Shared by logs.spec.js and
+ * logs-url-compat.spec.js (the route-helper convention — CLAUDE.md).
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {ReadonlyArray<{planId?: string, testId?: string, status?: string, result?: string}>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)
+ * @returns {Promise<string[]>} requested /api/log URLs, in order
+ */
+export async function recordLogRoute(page, rows = MOCK_LOG_LIST) {
+  /** @type {string[]} */
+  const logRequests = [];
+  await page.route("**/api/log?*", (route) => {
+    logRequests.push(route.request().url());
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        draw: 1,
+        recordsTotal: rows.length,
+        recordsFiltered: rows.length,
+        data: rows,
+      }),
+    });
+  });
+  await page.route("**/api/plan/*", (route) => {
+    const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
+    });
+  });
+  return logRequests;
 }

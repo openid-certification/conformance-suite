@@ -121,6 +121,203 @@ export const MOCK_FAILED_LOG_ENTRIES = [
   },
 ];
 
+/**
+ * Three blocks with mixed counts for U5 per-block aggregation tests.
+ * Block A: 2 SUCCESS — clean (renders ✓2 only).
+ * Block B: 1 SUCCESS, 1 FAILURE — renders ✓1 ✗1.
+ * Block C: 1 WARNING, 1 INFO — INFO is excluded from block badges so the
+ *          cluster reads ⚠1 only (the INFO still counts toward `total`).
+ */
+export const MOCK_BLOCKS_WITH_STATUS = [
+  {
+    _id: "blk-a-start",
+    testId: "test-blocks-001",
+    src: "StartBlockA",
+    time: NOW - 9000,
+    msg: "Block A — passing checks",
+    blockId: "block-a",
+    startBlock: true,
+  },
+  {
+    _id: "blk-a-1",
+    testId: "test-blocks-001",
+    src: "CheckOne",
+    time: NOW - 8800,
+    msg: "First check passed",
+    blockId: "block-a",
+    result: "SUCCESS",
+  },
+  {
+    _id: "blk-a-2",
+    testId: "test-blocks-001",
+    src: "CheckTwo",
+    time: NOW - 8600,
+    msg: "Second check passed",
+    blockId: "block-a",
+    result: "SUCCESS",
+  },
+  {
+    _id: "blk-b-start",
+    testId: "test-blocks-001",
+    src: "StartBlockB",
+    time: NOW - 8000,
+    msg: "Block B — one failure",
+    blockId: "block-b",
+    startBlock: true,
+  },
+  {
+    _id: "blk-b-1",
+    testId: "test-blocks-001",
+    src: "CheckOne",
+    time: NOW - 7800,
+    msg: "Setup ok",
+    blockId: "block-b",
+    result: "SUCCESS",
+  },
+  {
+    _id: "blk-b-2",
+    testId: "test-blocks-001",
+    src: "ValidateIdToken",
+    time: NOW - 7600,
+    msg: "Signature validation failed",
+    blockId: "block-b",
+    result: "FAILURE",
+    requirements: ["OIDCC-3.1.3.7-6"],
+  },
+  {
+    _id: "blk-c-start",
+    testId: "test-blocks-001",
+    src: "StartBlockC",
+    time: NOW - 7000,
+    msg: "Block C — warning + info",
+    blockId: "block-c",
+    startBlock: true,
+  },
+  {
+    _id: "blk-c-1",
+    testId: "test-blocks-001",
+    src: "CheckExtraField",
+    time: NOW - 6800,
+    msg: "Unexpected extra_claim in id_token",
+    blockId: "block-c",
+    result: "WARNING",
+  },
+  {
+    _id: "blk-c-2",
+    testId: "test-blocks-001",
+    src: "LogContext",
+    time: NOW - 6600,
+    msg: "Context dump",
+    blockId: "block-c",
+    result: "INFO",
+  },
+];
+
+/**
+ * Block A from MOCK_BLOCKS_WITH_STATUS in two halves: the initial poll
+ * returns the start row + 2 successes; the second poll appends a third
+ * success and a failure. Used by `BlockCountsUpdateOnPolling` to assert
+ * the badge cluster transitions from `✓2` → `✓3 ✗1`.
+ */
+export const MOCK_BLOCKS_POLL_FIRST = [
+  {
+    _id: "poll-blk-start",
+    testId: "test-poll-001",
+    src: "StartBlockPoll",
+    time: NOW - 5000,
+    msg: "Streaming block",
+    blockId: "block-poll",
+    startBlock: true,
+  },
+  {
+    _id: "poll-blk-1",
+    testId: "test-poll-001",
+    src: "FirstCheck",
+    time: NOW - 4900,
+    msg: "First check passed",
+    blockId: "block-poll",
+    result: "SUCCESS",
+  },
+  {
+    _id: "poll-blk-2",
+    testId: "test-poll-001",
+    src: "SecondCheck",
+    time: NOW - 4800,
+    msg: "Second check passed",
+    blockId: "block-poll",
+    result: "SUCCESS",
+  },
+];
+
+export const MOCK_BLOCKS_POLL_SECOND = [
+  {
+    _id: "poll-blk-3",
+    testId: "test-poll-001",
+    src: "ThirdCheck",
+    time: NOW - 4700,
+    msg: "Third check passed",
+    blockId: "block-poll",
+    result: "SUCCESS",
+  },
+  {
+    _id: "poll-blk-4",
+    testId: "test-poll-001",
+    src: "FailingCheck",
+    time: NOW - 4600,
+    msg: "Validation failed",
+    blockId: "block-poll",
+    result: "FAILURE",
+  },
+];
+
+/**
+ * /api/log entries for a test that was INTERRUPTED before any block
+ * started — none of the rows carry `startBlock: true`, so the
+ * cts-log-viewer's block-summary list stays empty and the cts-log-toc
+ * rail must hide itself (and the page grid must collapse to single
+ * column). Mirrors the production shape that surfaced the empty
+ * "TEST STRUCTURE" card bug.
+ */
+export const MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES = [
+  {
+    _id: "ib-1",
+    testId: "test-interrupted-noblock-001",
+    src: "TEST-RUNNER",
+    time: NOW - 9000,
+    msg: "Test instance test-interrupted-noblock-001 created",
+    result: "INFO",
+  },
+  {
+    _id: "ib-2",
+    testId: "test-interrupted-noblock-001",
+    src: "GetStaticServerConfiguration",
+    time: NOW - 8000,
+    msg: "Test set to use static server configuration but configuration is missing required fields",
+    result: "FAILURE",
+  },
+  {
+    _id: "ib-3",
+    testId: "test-interrupted-noblock-001",
+    src: "test-interrupted-noblock-001",
+    time: NOW - 7000,
+    msg: "Test was interrupted before it could complete.",
+    result: "INTERRUPTED",
+  },
+];
+
+/** A block-start row with no children yet — WAITING / RUNNING state. */
+export const MOCK_EMPTY_BLOCK = [
+  {
+    _id: "empty-blk-start",
+    testId: "test-empty-block-001",
+    src: "StartBlockEmpty",
+    time: NOW - 3000,
+    msg: "Awaiting checks",
+    blockId: "block-empty",
+    startBlock: true,
+  },
+];
+
 /** Log entries for a test with warnings (R20) */
 export const MOCK_WARNING_LOG_ENTRIES = [
   {
@@ -147,5 +344,116 @@ export const MOCK_WARNING_LOG_ENTRIES = [
     time: NOW - 1000,
     msg: "Test passed with 1 warning",
     result: "WARNING",
+  },
+];
+
+/**
+ * Two blocks spanning four result types — SUCCESS×3, FAILURE×1, REVIEW×1,
+ * WARNING×1 — for the result-summary FILTER tests. Block A holds the lone
+ * FAILURE; Block B holds the lone REVIEW, so filtering by FAILURE shows one
+ * entry and elides Block B, and FAILURE+REVIEW unions to one entry per block.
+ */
+export const MOCK_BLOCKS_FILTERABLE = [
+  {
+    _id: "flt-a-start",
+    testId: "test-filter-001",
+    src: "StartBlockA",
+    time: NOW - 9000,
+    msg: "Block A — authorization",
+    blockId: "block-a",
+    startBlock: true,
+  },
+  {
+    _id: "flt-a-1",
+    testId: "test-filter-001",
+    src: "CheckOne",
+    time: NOW - 8800,
+    msg: "First check passed",
+    blockId: "block-a",
+    result: "SUCCESS",
+  },
+  {
+    _id: "flt-a-2",
+    testId: "test-filter-001",
+    src: "CheckTwo",
+    time: NOW - 8600,
+    msg: "Second check passed",
+    blockId: "block-a",
+    result: "SUCCESS",
+  },
+  {
+    _id: "flt-a-3",
+    testId: "test-filter-001",
+    src: "ValidateIdToken",
+    time: NOW - 8400,
+    msg: "ID token signature validation failed",
+    blockId: "block-a",
+    result: "FAILURE",
+    requirements: ["OIDCC-3.1.3.7-6"],
+  },
+  {
+    _id: "flt-b-start",
+    testId: "test-filter-001",
+    src: "StartBlockB",
+    time: NOW - 8000,
+    msg: "Block B — token",
+    blockId: "block-b",
+    startBlock: true,
+  },
+  {
+    _id: "flt-b-1",
+    testId: "test-filter-001",
+    src: "ExtractToken",
+    time: NOW - 7800,
+    msg: "Access token extracted",
+    blockId: "block-b",
+    result: "SUCCESS",
+  },
+  {
+    _id: "flt-b-2",
+    testId: "test-filter-001",
+    src: "CheckScreenshot",
+    time: NOW - 7600,
+    msg: "Screenshot requires manual review",
+    blockId: "block-b",
+    result: "REVIEW",
+  },
+  {
+    _id: "flt-b-3",
+    testId: "test-filter-001",
+    src: "CheckForUnexpectedFields",
+    time: NOW - 7400,
+    msg: "Unexpected field 'extra_claim'",
+    blockId: "block-b",
+    result: "WARNING",
+  },
+];
+
+/** Single-result-type log (all SUCCESS) — the lone summary badge must stay
+ * a read-only label (nothing to filter against). */
+export const MOCK_SUCCESS_LOG = [
+  {
+    _id: "s-1",
+    testId: "test-ok-456",
+    src: "CheckServerConfiguration",
+    time: NOW - 5000,
+    msg: "Server configuration valid",
+    result: "SUCCESS",
+  },
+  {
+    _id: "s-2",
+    testId: "test-ok-456",
+    src: "ValidateIdToken",
+    time: NOW - 3000,
+    msg: "ID token is valid",
+    result: "SUCCESS",
+  },
+  {
+    _id: "s-3",
+    testId: "test-ok-456",
+    src: "CheckTestOutcome",
+    time: NOW - 1000,
+    msg: "Test passed",
+    result: "SUCCESS",
   },
 ];

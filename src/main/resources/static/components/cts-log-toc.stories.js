@@ -1,0 +1,223 @@
+import { html } from "lit";
+import { expect, waitFor, userEvent } from "storybook/test";
+import "./cts-log-toc.js";
+
+export default {
+  title: "Components/cts-log-toc",
+  component: "cts-log-toc",
+};
+
+const BLOCKS = [
+  {
+    blockId: "block-1",
+    label: "Authorization request",
+    counts: { success: 4, failure: 0, warning: 0, review: 0, info: 1, total: 5 },
+  },
+  {
+    blockId: "block-2",
+    label: "Token response",
+    counts: { success: 2, failure: 1, warning: 0, review: 0, info: 0, total: 3 },
+  },
+  {
+    blockId: "block-3",
+    label: "Userinfo request",
+    counts: { success: 1, failure: 0, warning: 1, review: 0, info: 0, total: 2 },
+  },
+  {
+    blockId: "block-4",
+    label: "ID token validation",
+    counts: { success: 0, failure: 0, warning: 0, review: 1, info: 0, total: 1 },
+  },
+  {
+    blockId: "block-5",
+    label: "Cleanup",
+    counts: { success: 3, failure: 0, warning: 0, review: 0, info: 0, total: 3 },
+  },
+];
+
+const FAILURES = [
+  {
+    _id: "f1",
+    result: "FAILURE",
+    src: "ValidateIdToken",
+    msg: "Signature invalid",
+    blockId: "block-2",
+  },
+  {
+    _id: "f2",
+    result: "WARNING",
+    src: "CheckScope",
+    msg: "Extra scope present",
+    blockId: "block-3",
+  },
+];
+
+// Wide host so the rail's natural sticky positioning has room to breathe
+// when rendered inside the storybook iframe.
+const WIDE_HOST = (rail) =>
+  html`<div style="display: grid; grid-template-columns: 1fr 320px; gap: 16px; min-height: 600px;">
+    <div style="border: 1px dashed #c7c2b8; padding: 12px;">Entries stream placeholder</div>
+    ${rail}
+  </div>`;
+
+export const Default = {
+  render: () =>
+    WIDE_HOST(html`<cts-log-toc id="ctsLogToc" .blocks=${BLOCKS} test-id="test-1"></cts-log-toc>`),
+  async play({ canvasElement }) {
+    const list = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="toc-list"]');
+      if (!el) throw new Error("toc-list not yet rendered");
+      return el;
+    });
+
+    const rows = list.querySelectorAll("li.ctsLogTocItem");
+    expect(rows).toHaveLength(BLOCKS.length);
+    expect(rows[0].textContent).toContain("Authorization request");
+    expect(rows[1].textContent).toContain("Token response");
+    // Block 2 surfaces a failure pill; block 1 surfaces a single ✓ pill.
+    expect(rows[1].querySelector('cts-badge[label="✗1"]')).toBeTruthy();
+    expect(rows[0].querySelector('cts-badge[label="✓4"]')).toBeTruthy();
+    // INFO is intentionally omitted from block badges.
+    expect(rows[0].querySelector('cts-badge[label="ⓘ1"]')).toBeNull();
+  },
+};
+
+export const ClickDispatchesScrollEvent = {
+  render: () => WIDE_HOST(html`<cts-log-toc .blocks=${BLOCKS}></cts-log-toc>`),
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="toc-list"]');
+      if (!el) throw new Error("toc-list not yet rendered");
+      return el;
+    });
+
+    /** @type {Array<string>} */
+    const fired = [];
+    canvasElement.addEventListener("cts-scroll-to-block", (evt) => {
+      fired.push(/** @type {CustomEvent} */ (evt).detail.blockId);
+    });
+
+    const row = canvasElement.querySelector('[data-testid="toc-row-block-3"] button');
+    await userEvent.click(row);
+
+    expect(fired).toEqual(["block-3"]);
+  },
+};
+
+export const EmptyDuringWaiting = {
+  render: () => WIDE_HOST(html`<cts-log-toc .blocks=${[]} .failures=${[]}></cts-log-toc>`),
+  async play({ canvasElement }) {
+    const rail = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-log-toc");
+        if (!el) throw new Error("rail not yet rendered");
+        return el;
+      })
+    );
+    await rail.updateComplete;
+    // Empty rail self-hides via the `hidden` attribute. The page-level
+    // grid (.log-page--with-toc at ≥1440px) now keeps the 320px right
+    // column reserved unconditionally — see
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U1.
+    // The hidden rail only zeroes out its own paint; the grid track
+    // stays so blocks arriving later don't trigger a layout reflow.
+    // The aside is still in the DOM (so populating `.blocks` later
+    // un-hides without a re-mount) but `display: none` means it takes
+    // zero space within its grid cell.
+    expect(rail.hasAttribute("hidden")).toBe(true);
+    // Computed-style guard: the base `cts-log-toc { display: block }`
+    // rule beats the UA `[hidden]` rule on specificity, so without the
+    // scoped `cts-log-toc[hidden] { display: none }` override the
+    // attribute is visually inert and the empty "TEST STRUCTURE" card
+    // paints on log-detail. Pin the computed value here so any future
+    // CSS change that re-breaks the override fails this story.
+    expect(getComputedStyle(rail).display).toBe("none");
+  },
+};
+
+export const ReappearsWhenBlocksArrive = {
+  // Mirrors the streaming-poll case: the rail starts empty (so it's
+  // hidden), then a polling cycle delivers a non-empty blocks array.
+  // The rail must drop the hidden attribute so the page grid re-expands.
+  render: () =>
+    WIDE_HOST(html`<cts-log-toc id="reappearRail" .blocks=${[]} .failures=${[]}></cts-log-toc>`),
+  async play({ canvasElement, step }) {
+    const rail = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-log-toc");
+        if (!el) throw new Error("rail not yet rendered");
+        return el;
+      })
+    );
+    await rail.updateComplete;
+
+    await step("empty rail starts hidden", async () => {
+      expect(rail.hasAttribute("hidden")).toBe(true);
+    });
+
+    await step("delivering blocks un-hides the rail and renders the list", async () => {
+      rail.blocks = BLOCKS;
+      await rail.updateComplete;
+      expect(rail.hasAttribute("hidden")).toBe(false);
+      expect(canvasElement.querySelector('[data-testid="toc-list"]')).toBeTruthy();
+    });
+  },
+};
+
+export const WithFailures = {
+  render: () =>
+    WIDE_HOST(
+      html`<cts-log-toc
+        .blocks=${BLOCKS}
+        .failures=${FAILURES}
+        test-id="test-with-failures"
+      ></cts-log-toc>`,
+    ),
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector(".ctsLogTocFailures");
+      if (!el) throw new Error("failure section not yet rendered");
+      return el;
+    });
+    // The compact failure-summary inherits all of cts-failure-summary's
+    // contracts (group-by-block, references, etc.). Just verify the host
+    // mounted with compact=true and rendered the two failure rows.
+    const summary = canvasElement.querySelector(".ctsLogTocFailures cts-failure-summary");
+    expect(summary).toBeTruthy();
+    expect(summary.hasAttribute("compact")).toBe(true);
+    const list = summary.querySelector('[data-testid="failure-list"]');
+    expect(list.querySelectorAll(".failureItem")).toHaveLength(2);
+  },
+};
+
+export const ActiveBlockHighlight = {
+  // Synthetically promote a block to "active" by setting the internal
+  // _activeBlockId after the rail mounts. This avoids depending on
+  // IntersectionObserver behaviour inside the storybook canvas.
+  render: () => WIDE_HOST(html`<cts-log-toc id="activeRail" .blocks=${BLOCKS}></cts-log-toc>`),
+  async play({ canvasElement, step }) {
+    const rail = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-log-toc");
+        if (!el) throw new Error("rail not yet rendered");
+        return el;
+      })
+    );
+    rail._activeBlockId = "block-3";
+    rail.requestUpdate();
+    await rail.updateComplete;
+
+    await step("the promoted block renders as active", async () => {
+      const activeRow = canvasElement.querySelector('[data-testid="toc-row-block-3"]');
+      expect(activeRow.classList.contains("is-active")).toBe(true);
+      const button = activeRow.querySelector("button");
+      expect(button.getAttribute("aria-current")).toBe("location");
+    });
+
+    await step("other rows are not active", async () => {
+      const inactiveRow = canvasElement.querySelector('[data-testid="toc-row-block-1"]');
+      expect(inactiveRow.classList.contains("is-active")).toBe(false);
+      expect(inactiveRow.querySelector("button").getAttribute("aria-current")).toBe("false");
+    });
+  },
+};

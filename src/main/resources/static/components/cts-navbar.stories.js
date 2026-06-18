@@ -1,0 +1,1076 @@
+import { html } from "lit";
+import "./cts-icon.js";
+import { expect, within, waitFor, fn, userEvent } from "storybook/test";
+import "./cts-navbar.js";
+
+export default {
+  title: "Components/cts-navbar",
+  component: "cts-navbar",
+  argTypes: {
+    currentPage: {
+      control: "select",
+      options: ["plans", "logs", "tokens", "api-docs"],
+    },
+  },
+};
+
+// --- Fetch mocking helpers ---
+
+const MOCK_USER = {
+  iss: "https://accounts.google.com",
+  sub: "12345",
+  principal: "testuser@example.com",
+  displayName: "Test User",
+  isAdmin: false,
+  isGuest: false,
+};
+
+const MOCK_ADMIN = {
+  ...MOCK_USER,
+  displayName: "Admin User",
+  isAdmin: true,
+};
+
+const MOCK_GUEST = {
+  ...MOCK_USER,
+  displayName: "Guest User",
+  isGuest: true,
+};
+
+/**
+ * Creates a decorator that intercepts fetch("/api/currentuser") with a
+ * configurable response, and restores the real fetch after the story unmounts.
+ * Also clears sessionStorage so cts-navbar's user cache does not leak the
+ * previous story's mock response into the next story.
+ */
+function withMockUser(mockResponse, { delay = 0, status = 200 } = {}) {
+  return (storyFn) => {
+    // Keep stories hermetic: cts-navbar reads /api/currentuser result from
+    // sessionStorage on first render to stabilize across real-app page
+    // navigations; inside Storybook, each story must start clean so its
+    // assertions hold.
+    try {
+      sessionStorage.clear();
+    } catch {
+      // Storybook sometimes runs in sandboxed contexts where sessionStorage
+      // is unavailable; the stories still render, just without isolation
+      // guarantees when run in that mode.
+    }
+    const realFetch = window.fetch;
+    window.fetch = (url, opts) => {
+      if (typeof url === "string" && url.includes("/api/currentuser")) {
+        return new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve(
+                new Response(JSON.stringify(mockResponse), {
+                  status,
+                  headers: { "Content-Type": "application/json" },
+                }),
+              ),
+            delay,
+          ),
+        );
+      }
+      return realFetch(url, opts);
+    };
+
+    const result = storyFn();
+
+    // Restore after a tick so connectedCallback has fired
+    queueMicrotask(() => {
+      window.fetch = realFetch;
+    });
+
+    return result;
+  };
+}
+
+function withUnauthenticated() {
+  return withMockUser(null, { status: 401 });
+}
+
+// --- Helper to wait for component to finish loading ---
+
+/**
+ * Wait until the loading skeleton avatar is gone — the only DOM signal that
+ * the auth probe has resolved (whether to an authenticated user or a 401).
+ * @param {HTMLElement} canvasElement - The Storybook canvas root.
+ */
+async function waitForNavbar(canvasElement) {
+  await waitFor(
+    () => {
+      const skel = canvasElement.querySelector(".cts-skel-avatar");
+      expect(skel).toBeNull();
+    },
+    { timeout: 3000 },
+  );
+}
+
+/**
+ * Regression guard for the account-menu hover-overshoot bug: each
+ * `.cts-account-item` paints its hover/focus background across its own
+ * padding box, so every item must sit inside the menu's bounds (containment)
+ * while still spanning the menu's inner width (fill — guards against a
+ * shrink-wrap over-correction). One measurement basis throughout:
+ * getBoundingClientRect(), with a ±2px tolerance on the fill check for
+ * sub-pixel rounding. The menu's padding and border are read from computed
+ * style so the expected fill width tracks token retunes instead of
+ * false-failing on them.
+ * @param {HTMLElement} canvasElement - The Storybook canvas root.
+ */
+function expectAccountMenuItemsWithinMenu(canvasElement) {
+  const menu = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-account-menu"));
+  const menuRect = menu.getBoundingClientRect();
+  const menuStyle = getComputedStyle(menu);
+  const innerWidth =
+    menuRect.width -
+    parseFloat(menuStyle.borderLeftWidth) -
+    parseFloat(menuStyle.borderRightWidth) -
+    parseFloat(menuStyle.paddingLeft) -
+    parseFloat(menuStyle.paddingRight);
+  const items = canvasElement.querySelectorAll(".cts-account-item");
+  expect(items.length).toBeGreaterThan(0);
+  for (const item of items) {
+    const rect = item.getBoundingClientRect();
+    // Containment: the hover background paints the item's padding box, so
+    // the rect must not overshoot the menu on either side.
+    expect(rect.right).toBeLessThanOrEqual(menuRect.right);
+    expect(rect.left).toBeGreaterThanOrEqual(menuRect.left);
+    // Fill: items still span the menu's inner width edge-to-edge.
+    expect(Math.abs(rect.width - innerWidth)).toBeLessThanOrEqual(2);
+  }
+}
+
+// --- Stories ---
+
+export const Authenticated = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    await step("collapsed authenticated nav links render", async () => {
+      // Collapsed authenticated nav (U9): Home and Create Test were removed —
+      // the plans listing is the home (reached via the brand logo) and Create
+      // test is an in-page CTA (U8).
+      expect(canvas.queryByText("Home")).toBeNull();
+      expect(canvas.queryByText("Create Test")).toBeNull();
+      expect(canvas.getByText("Test Plans")).toBeInTheDocument();
+      expect(canvas.getByText("Test Logs")).toBeInTheDocument();
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    });
+
+    await step("tokens link visible in nav and account menu", async () => {
+      const tokensLinks = canvas.getAllByText("Tokens");
+      expect(tokensLinks.length).toBeGreaterThanOrEqual(2);
+    });
+
+    await step("account menu trigger present and closed by default", async () => {
+      const trigger = /** @type {HTMLButtonElement} */ (
+        canvasElement.querySelector(".cts-account-trigger")
+      );
+      expect(trigger).toBeTruthy();
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      expect(trigger.getAttribute("aria-label")).toBe("Account menu for Test User");
+    });
+
+    await step("user name + principal live inside the account menu", async () => {
+      // In DOM regardless of open state — the menu uses opacity/pointer-events
+      // for closed state, not display:none, so Testing Library still finds them.
+      expect(canvas.getByText("Test User")).toBeInTheDocument();
+      expect(canvas.getByText("testuser@example.com")).toBeInTheDocument();
+      expect(canvas.getByText("Sign out")).toBeInTheDocument();
+    });
+
+    await step("no admin affordances for a regular user", async () => {
+      // No ADMIN badge for a regular user.
+      expect(canvas.queryByText("ADMIN")).toBeNull();
+      // Avatar should NOT carry the admin ring.
+      const avatar = canvasElement.querySelector(".cts-avatar");
+      expect(avatar.classList.contains("is-admin")).toBe(false);
+    });
+
+    await step("active link reflects currentPage", async () => {
+      // Test Plans link should be active (currentPage = "plans").
+      const plansLink = canvas.getByText("Test Plans");
+      expect(plansLink.classList.contains("active")).toBe(true);
+    });
+
+    await step("logo present and brand points at the plans home", async () => {
+      // OpenID logo present, and the brand points at the plans home for
+      // authenticated users (logged-out visitors get login.html instead —
+      // see the Unauthenticated story).
+      const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
+      expect(logo).toBeTruthy();
+      const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+      expect(brand.getAttribute("href")).toBe("plans.html");
+    });
+  },
+};
+
+export const Admin = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_ADMIN)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    await step("admin badge surfaces in menu and on the avatar", async () => {
+      // ADMIN badge visible inside the menu, AND surfaced on the avatar via
+      // the rust ring class so it persists when the menu is closed.
+      expect(canvas.getByText("ADMIN")).toBeInTheDocument();
+      expect(canvas.getByText("Admin User")).toBeInTheDocument();
+      const avatar = canvasElement.querySelector(".cts-avatar");
+      expect(avatar.classList.contains("is-admin")).toBe(true);
+    });
+
+    await step("tokens hidden in both nav and menu for admin", async () => {
+      // Tokens nav link should be hidden for admin.
+      const navLinks = canvasElement.querySelectorAll(".cts-navlink");
+      const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
+      expect(navLinkTexts).not.toContain("Tokens");
+      // Tokens menu item should also be hidden for admin.
+      const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
+      expect(tokensMenuItem).toBeNull();
+    });
+
+    await step("sign out always available", async () => {
+      expect(canvas.getByText("Sign out")).toBeInTheDocument();
+    });
+
+    await step("single-item menu stays contained and fills the menu", async () => {
+      // Geometry regression guard for the single-item menu shape: with
+      // Tokens hidden, the lone form-nested Sign out button must still be
+      // contained in and fill the open menu.
+      const trigger = /** @type {HTMLButtonElement} */ (
+        canvasElement.querySelector(".cts-account-trigger")
+      );
+      await userEvent.click(trigger);
+      expectAccountMenuItemsWithinMenu(canvasElement);
+    });
+  },
+};
+
+export const Guest = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_GUEST)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    await step("guest user has no admin affordances", async () => {
+      // Guest user: no ADMIN badge.
+      expect(canvas.queryByText("ADMIN")).toBeNull();
+      expect(canvas.getByText("Guest User")).toBeInTheDocument();
+      // Avatar has no admin ring.
+      const avatar = canvasElement.querySelector(".cts-avatar");
+      expect(avatar.classList.contains("is-admin")).toBe(false);
+    });
+
+    await step("tokens hidden in both nav and menu for guest", async () => {
+      const navLinks = canvasElement.querySelectorAll(".cts-navlink");
+      const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
+      expect(navLinkTexts).not.toContain("Tokens");
+      const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
+      expect(tokensMenuItem).toBeNull();
+    });
+  },
+};
+
+export const Unauthenticated = {
+  args: { currentPage: "" },
+  decorators: [withUnauthenticated()],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    await step("public nav exposes listings with ?public=true", async () => {
+      // Public nav always exposes the primary listings (Test Plans, Test Logs)
+      // alongside API Docs. The public links carry ?public=true so anonymous
+      // clicks land directly in the Published browser.
+      const plansLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Plans"));
+      const logsLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Logs"));
+      expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
+      expect(logsLink.getAttribute("href")).toBe("logs.html?public=true");
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    });
+
+    await step("authenticated-only links absent for anonymous visitors", async () => {
+      expect(canvas.queryByText("Home")).toBeNull();
+      expect(canvas.queryByText("Create Test")).toBeNull();
+      expect(canvas.queryByText("Tokens")).toBeNull();
+    });
+
+    await step("no account menu, no sign out", async () => {
+      expect(canvasElement.querySelector(".cts-account")).toBeNull();
+      expect(canvas.queryByText("Sign out")).toBeNull();
+    });
+
+    await step("sign in button points at the login page", async () => {
+      const signIn = /** @type {HTMLAnchorElement} */ (canvas.getByText("Sign in"));
+      expect(signIn).toBeInTheDocument();
+      expect(signIn.getAttribute("href")).toBe("login.html");
+    });
+
+    await step("logo present and brand points at the login page", async () => {
+      // Logged-out visitors land on login.html, not the plans listing
+      // (logged-out-landing fix; the published view stays reachable via the
+      // ?public=true nav links asserted above).
+      const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
+      expect(logo).toBeTruthy();
+      const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+      expect(brand.getAttribute("href")).toBe("login.html");
+    });
+  },
+};
+
+export const Loading = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER, { delay: 60000 })],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+
+    await step("skeleton avatar appears while auth fetch is pending", async () => {
+      // Loading uses a skeleton avatar — a 30x30 ink-700 disc — instead of a
+      // text label that would shift layout when the user resolves. Wait for
+      // it to appear (the auth fetch is delayed by the decorator).
+      await waitFor(() => {
+        const skel = canvasElement.querySelector(".cts-skel-avatar");
+        expect(skel).toBeTruthy();
+      });
+    });
+
+    await step('logo visible and brand delegates to "/"', async () => {
+      // The brand delegates to "/" so the auth-aware server redirect
+      // (HomeController) decides the destination — a stale client guess could
+      // misroute an authenticated user to login.html.
+      const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
+      expect(logo).toBeTruthy();
+      const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+      expect(brand.getAttribute("href")).toBe("/");
+    });
+
+    await step("public nav links show while user is null", async () => {
+      // While loading, user is null so component shows the public nav links
+      // (Test Plans, Test Logs, API Docs); the collapsed-in-U9 Home link stays
+      // absent.
+      expect(canvas.queryByText("Home")).toBeNull();
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    });
+
+    await step("only the skeleton shows — no account, sign in, or sign out", async () => {
+      expect(canvasElement.querySelector(".cts-account-trigger")).toBeNull();
+      expect(canvas.queryByText("Sign in")).toBeNull();
+      expect(canvas.queryByText("Sign out")).toBeNull();
+    });
+  },
+};
+
+export const ActivePagePlans = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(true);
+
+    const logsLink = canvas.getByText("Test Logs");
+    expect(logsLink.classList.contains("active")).toBe(false);
+  },
+};
+
+export const ActivePageLogs = {
+  args: { currentPage: "logs" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    const logsLink = canvas.getByText("Test Logs");
+    expect(logsLink.classList.contains("active")).toBe(true);
+
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(false);
+  },
+};
+
+export const ActivePageTokens = {
+  args: { currentPage: "tokens" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    // The Tokens nav link is the active one; a sibling (Test Plans) is not.
+    // (Replaces the retired ActivePageCreateTest story — Create Test was
+    // removed from the nav in U9.)
+    const tokensNavLink = /** @type {HTMLAnchorElement} */ (
+      canvasElement.querySelector('.cts-navlink[href="tokens.html"]')
+    );
+    expect(tokensNavLink).toBeTruthy();
+    expect(tokensNavLink.classList.contains("active")).toBe(true);
+
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(false);
+  },
+};
+
+/**
+ * Guards classMap-driven active-class toggle across a live `current-page`
+ * attribute change. Exercises the path that motivated adopting classMap:
+ * only one link should carry `active` after the attribute flips.
+ */
+export const ActivePageTransition = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    const navbar = canvasElement.querySelector("cts-navbar");
+    expect(navbar).toBeTruthy();
+
+    await step("initially only Test Plans is active", async () => {
+      const activeLinks = canvasElement.querySelectorAll(".cts-navlink.active");
+      expect(activeLinks).toHaveLength(1);
+      expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(true);
+    });
+
+    await step("flipping current-page moves the active class", async () => {
+      // classMap must move `active` to the new link and strip it from the
+      // previous one.
+      navbar.setAttribute("current-page", "logs");
+      await navbar.updateComplete;
+
+      const activeLinks = canvasElement.querySelectorAll(".cts-navlink.active");
+      expect(activeLinks).toHaveLength(1);
+      expect(canvas.getByText("Test Logs").classList.contains("active")).toBe(true);
+      expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(false);
+    });
+  },
+};
+
+/**
+ * Account menu opens on click and exposes ARIA state. Verifies the
+ * common-pattern dropdown contract: aria-expanded flips, the popover
+ * receives data-open="true", and menu items are reachable.
+ */
+export const AccountMenuOpens = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const account = canvasElement.querySelector(".cts-account");
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+
+    await step("menu is closed by default", async () => {
+      expect(account.getAttribute("data-open")).toBe("false");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    });
+
+    await step("clicking the trigger opens the menu and flips ARIA", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+      expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    });
+
+    await step("tokens link in the open menu points at /tokens.html", async () => {
+      const tokensItem = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-account-item[href="tokens.html"]')
+      );
+      expect(tokensItem).toBeTruthy();
+      expect(tokensItem.getAttribute("role")).toBe("menuitem");
+    });
+
+    await step("sign out is a CSRF-bound POST /logout form", async () => {
+      // Sign out is a form submit button so the existing CSRF-bound POST
+      // /logout flow keeps working — not a plain link.
+      const signOutForm = /** @type {HTMLFormElement} */ (
+        canvasElement.querySelector(".cts-account-form")
+      );
+      expect(signOutForm.getAttribute("action")).toBe("/logout");
+      expect(signOutForm.getAttribute("method")).toBe("post");
+    });
+
+    await step("both menu items stay inside the menu and fill its width", async () => {
+      // Geometry regression guard: both items (the Tokens link and the
+      // Sign out button) stay inside the menu and fill its inner width.
+      const signOutItem = canvasElement.querySelector(".cts-account-item--danger");
+      expect(signOutItem).toBeTruthy();
+      expectAccountMenuItemsWithinMenu(canvasElement);
+    });
+  },
+};
+
+/**
+ * Escape closes the menu and returns focus to the trigger. Matches native
+ * popover/details behavior so keyboard users land back where they invoked
+ * the menu.
+ */
+export const AccountMenuClosesOnEscape = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const account = canvasElement.querySelector(".cts-account");
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+
+    await step("open the account menu", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
+
+    await step("Escape closes the menu and returns focus to the trigger", async () => {
+      await userEvent.keyboard("{Escape}");
+
+      const navbar = canvasElement.querySelector("cts-navbar");
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("false");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      // Focus returns to the trigger so screen-reader users keep their place.
+      expect(document.activeElement).toBe(trigger);
+    });
+  },
+};
+
+/**
+ * A pointerdown anywhere outside the account dismisses the menu. This is
+ * the common-pattern "click outside to close" affordance — required so the
+ * menu doesn't trap users who change their mind after opening it.
+ *
+ * Dispatching the synthetic pointerdown directly on document.body avoids
+ * userEvent.click on a real element (which would, e.g., follow the brand
+ * link's href and tear down the Storybook iframe mid-test).
+ */
+export const AccountMenuClosesOnOutsideClick = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const account = canvasElement.querySelector(".cts-account");
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+
+    await step("open the account menu", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
+
+    await step("outside pointerdown dismisses the menu", async () => {
+      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+
+      const navbar = canvasElement.querySelector("cts-navbar");
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("false");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    });
+  },
+};
+
+/**
+ * Sign-out pending state: submitting the logout form disables the button,
+ * swaps the label to "Signing out…" with a ring spinner, and freezes every
+ * menu-dismissal path so the feedback stays visible through the logout
+ * navigation (whose Clear-Site-Data cache purge can stall for seconds on a
+ * real browser profile). The play function intercepts the real submit with
+ * preventDefault — the only divergence from production, where the native
+ * POST proceeds — so the Storybook iframe is not torn down mid-test.
+ */
+export const AccountMenuSignOutPending = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const navbar = canvasElement.querySelector("cts-navbar");
+    const account = canvasElement.querySelector(".cts-account");
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+    const form = /** @type {HTMLFormElement} */ (canvasElement.querySelector(".cts-account-form"));
+    const signOutButton = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-item--danger")
+    );
+
+    // Iframe-safety listener: stop the real POST navigation. Track calls so
+    // the double-submit assertion below can prove no second submit fired.
+    // Hoisted above the steps so submitCount stays in scope across phases.
+    let submitCount = 0;
+    const safetyListener = (e) => {
+      submitCount += 1;
+      e.preventDefault();
+    };
+    form.addEventListener("submit", safetyListener);
+
+    await step("open the menu and submit the logout form", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+
+      await userEvent.click(signOutButton);
+      await navbar.updateComplete;
+    });
+
+    await step("pending state painted: disabled, busy, spinner + label", async () => {
+      expect(signOutButton).toBeDisabled();
+      expect(signOutButton.getAttribute("aria-busy")).toBe("true");
+      expect(signOutButton.textContent).toContain("Signing out…");
+      expect(canvasElement.querySelector(".cts-account-spinner")).toBeTruthy();
+      expect(submitCount).toBe(1);
+
+      // Dropdown stays open — the pending feedback is the user's only signal.
+      expect(account.getAttribute("data-open")).toBe("true");
+
+      // Geometry guard still holds with the spinner inside the button.
+      expectAccountMenuItemsWithinMenu(canvasElement);
+    });
+
+    await step("a second click on the disabled button fires no submit", async () => {
+      await userEvent.click(signOutButton);
+      expect(submitCount).toBe(1);
+    });
+
+    await step("Escape does not dismiss the menu while POST is in flight", async () => {
+      await userEvent.keyboard("{Escape}");
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
+
+    await step("outside-click does not dismiss it either", async () => {
+      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
+
+    await step("the avatar trigger cannot dismiss it while pending", async () => {
+      await userEvent.click(trigger);
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
+
+    await step("component's own double-submit guard cancels programmatic submits", async () => {
+      // Remove the safety listener, then dispatch a synthetic submit.
+      // dispatchEvent returns false when a handler called preventDefault —
+      // with the safety listener gone, only the component's guard can have
+      // cancelled it. (The disabled-click assertion above proves `disabled`
+      // semantics; THIS is the canonical R3 guard assertion.)
+      form.removeEventListener("submit", safetyListener);
+      const submitWasCancelled = !form.dispatchEvent(
+        new SubmitEvent("submit", { bubbles: true, cancelable: true }),
+      );
+      expect(submitWasCancelled).toBe(true);
+    });
+
+    await step("bfcache Back-restore resets the pending state", async () => {
+      // A restored page never shows a frozen, disabled "Signing out…" button.
+      window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+      await navbar.updateComplete;
+      expect(signOutButton.disabled).toBe(false);
+      expect(signOutButton.textContent).toContain("Sign out");
+      expect(canvasElement.querySelector(".cts-account-spinner")).toBeNull();
+    });
+  },
+};
+
+/**
+ * Geometry regression guard with wrapped header content: a long principal
+ * exercises the menu's word-break wrapping (the popover itself stays at its
+ * 240px min-width because it shrink-wraps against the avatar-sized
+ * `.cts-account` containing block). Menu items must stay inside the menu's
+ * bounds and span its inner width — the hover fill must never overshoot
+ * the popover edge.
+ */
+export const AccountMenuLongPrincipal = {
+  args: { currentPage: "plans" },
+  decorators: [
+    withMockUser({
+      ...MOCK_USER,
+      principal:
+        "really.long.email.address.used.for.layout.testing@subdomain.example-organization.example.co.uk",
+    }),
+  ],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    await waitForNavbar(canvasElement);
+
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+    await userEvent.click(trigger);
+
+    expectAccountMenuItemsWithinMenu(canvasElement);
+  },
+};
+
+/**
+ * The API Docs link opens in a new tab — it's a separate viewer the user
+ * typically wants kept open while iterating on tests. Verifies the link
+ * carries target="_blank", rel="noopener noreferrer", and the visible
+ * external-link affordance icon.
+ */
+export const ApiDocsIsExternalLink = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    await step("API Docs link opens in a new tab with safe rel", async () => {
+      const apiLink = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-navlink[href="api-document.html"]')
+      );
+      expect(apiLink).toBeTruthy();
+      expect(apiLink.getAttribute("target")).toBe("_blank");
+      expect(apiLink.getAttribute("rel")).toBe("noopener noreferrer");
+      expect(apiLink.classList.contains("cts-navlink-external")).toBe(true);
+    });
+
+    await step("external-link icon mounts and resolves to the vendored SVG", async () => {
+      // cts-icon updates async via Lit. Wait until the icon's <svg> has been
+      // mounted, then re-query so TS narrowing isn't lost across the callback.
+      await waitFor(
+        () => {
+          const svg = canvasElement.querySelector(
+            '.cts-navlink[href="api-document.html"] cts-icon[name="external-link"] svg',
+          );
+          expect(svg).toBeTruthy();
+        },
+        { timeout: 5000 },
+      );
+      const iconSvg = /** @type {SVGElement} */ (
+        canvasElement.querySelector(
+          '.cts-navlink[href="api-document.html"] cts-icon[name="external-link"] svg',
+        )
+      );
+      expect(iconSvg.getAttribute("aria-hidden")).toBe("true");
+      const iconUse = iconSvg.querySelector("use");
+      expect(iconUse).toBeTruthy();
+      expect(iconUse?.getAttribute("href")).toBe("/vendor/coolicons/icons/external-link.svg#i");
+    });
+
+    await step("no other nav link carries external-link signals", async () => {
+      const otherInternalLink = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-navlink[href="plans.html"]')
+      );
+      expect(otherInternalLink.getAttribute("target")).toBe("_self");
+      expect(otherInternalLink.querySelector('cts-icon[name="external-link"]')).toBeNull();
+    });
+  },
+};
+
+/**
+ * Mobile hamburger toggles the nav-link panel. The link <ul> stays in
+ * the same DOM position; the media query at ≤820px repositions it as
+ * a popover and the [data-mobile-open] attribute on .cts-nav controls
+ * its visibility. Verifies the ARIA contract on the toggle.
+ *
+ * Pins the viewport to mobile1 (320×568) so the rendered story actually
+ * shows the mobile chrome (hamburger visible, wordmark hidden, nav
+ * panel pinned to the navbar's bottom edge) rather than the desktop
+ * layout where the toggle is display:none.
+ */
+export const MobileMenuTogglesNavlinks = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const nav = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-nav"));
+    const toggle = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-menu-toggle")
+    );
+
+    await step("toggle exposes the ARIA contract and starts closed", async () => {
+      expect(toggle).toBeTruthy();
+      expect(toggle.getAttribute("aria-haspopup")).toBe("true");
+      expect(toggle.getAttribute("aria-controls")).toBe("cts-navlinks");
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(nav.getAttribute("data-mobile-open")).toBe("false");
+    });
+
+    await step("clicking the toggle opens the nav panel", async () => {
+      await userEvent.click(toggle);
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      expect(toggle.getAttribute("aria-label")).toBe("Close navigation menu");
+      expect(nav.getAttribute("data-mobile-open")).toBe("true");
+    });
+
+    await step("navlinks <ul> is the same DOM node across layouts", async () => {
+      // The same DOM node serves both layouts, so its id is consistent and the
+      // active state is preserved across viewport changes.
+      const navlinks = canvasElement.querySelector("#cts-navlinks");
+      expect(navlinks).toBeTruthy();
+      expect(navlinks.tagName).toBe("UL");
+    });
+
+    await step("clicking the toggle again closes the panel", async () => {
+      await userEvent.click(toggle);
+      expect(nav.getAttribute("data-mobile-open")).toBe("false");
+      expect(toggle.getAttribute("aria-label")).toBe("Open navigation menu");
+    });
+  },
+};
+
+/**
+ * Escape and outside-pointerdown both close the mobile nav panel — same
+ * affordance as the account menu. Escape additionally returns focus to
+ * the hamburger toggle.
+ *
+ * Pinned to mobile1 (320×568) so the rendered story shows the actual
+ * mobile chrome where the hamburger lives.
+ */
+export const MobileMenuClosesOnEscape = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const nav = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-nav"));
+    const toggle = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-menu-toggle")
+    );
+
+    await step("open the mobile nav panel", async () => {
+      await userEvent.click(toggle);
+      expect(nav.getAttribute("data-mobile-open")).toBe("true");
+    });
+
+    await step("Escape closes the panel and returns focus to the toggle", async () => {
+      await userEvent.keyboard("{Escape}");
+
+      const navbar = canvasElement.querySelector("cts-navbar");
+      await navbar.updateComplete;
+      expect(nav.getAttribute("data-mobile-open")).toBe("false");
+      expect(document.activeElement).toBe(toggle);
+    });
+  },
+};
+
+/**
+ * Non-401 failure from /api/currentuser (e.g. gateway 502, backend 500):
+ * the navbar still renders the public nav (it's chrome — no better fallback)
+ * but logs a warning so the failure is diagnosable.
+ */
+export const ServerErrorLogsWarning = {
+  args: { currentPage: "" },
+  decorators: [withMockUser(null, { status: 500 })],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await waitForNavbar(canvasElement);
+
+      await step("falls back to the public nav on server error", async () => {
+        // Same as the unauthenticated case (Test Plans, Test Logs, API Docs).
+        expect(canvas.getByText("Test Plans")).toBeInTheDocument();
+        expect(canvas.getByText("Test Logs")).toBeInTheDocument();
+        expect(canvas.getByText("API Docs")).toBeInTheDocument();
+        expect(canvas.queryByText("Sign out")).toBeNull();
+        expect(canvas.getByText("Sign in")).toBeInTheDocument();
+      });
+
+      await step("a 500 warns so operators see the failure", async () => {
+        // Unlike 401, a 500 must warn.
+        await waitFor(() => {
+          expect(warnSpy).toHaveBeenCalled();
+          const joined = warnSpy.mock.calls.flat().join(" ");
+          expect(joined).toContain("cts-navbar");
+          expect(joined).toContain("/api/currentuser");
+          expect(joined).toContain("500");
+        });
+      });
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};
+
+/**
+ * Visual contract: the rendered DOM matches the OIDF design system navbar
+ * preview structure. Asserts the scoped class names and the avatar element
+ * are present so the design-token stylesheet (--ink-900 / --orange-400 /
+ * etc.) actually applies.
+ */
+export const DesignSystemStructure = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvasElement);
+
+    await step("container uses the OIDF .cts-nav class", async () => {
+      // That's what the scoped stylesheet selector keys off, so missing this
+      // class means the dark chrome will not paint.
+      const nav = canvasElement.querySelector("nav.cts-nav");
+      expect(nav).toBeTruthy();
+    });
+
+    await step("brand block renders the dark logo with reserved box", async () => {
+      // Logo is the dark-on-dark SVG; explicit width/height attributes reserve
+      // the logo box so the brand row does not reflow during the first paint.
+      const brand = canvasElement.querySelector(".cts-nav .cts-brand");
+      expect(brand).toBeTruthy();
+      const brandLogo = /** @type {HTMLImageElement} */ (
+        canvasElement.querySelector('.cts-brand img[alt="OpenID Foundation"]')
+      );
+      expect(brandLogo).toBeTruthy();
+      expect(brandLogo.getAttribute("src")).toBe("/images/openid-dark.svg");
+      expect(brandLogo.getAttribute("width")).toBe("93");
+      expect(brandLogo.getAttribute("height")).toBe("28");
+      expect(canvas.getByText("CONFORMANCE SUITE")).toBeInTheDocument();
+    });
+
+    await step("centered link block has exactly four links", async () => {
+      // The collapsed authenticated nav (U9) for a non-admin, non-guest user
+      // is exactly four links: Test Plans, Test Logs, Tokens, API Docs.
+      const navlinks = canvasElement.querySelector(".cts-nav .cts-navlinks");
+      expect(navlinks).toBeTruthy();
+      const links = navlinks.querySelectorAll("a.cts-navlink");
+      expect(links.length).toBe(4);
+    });
+
+    await step("right-hand account zone with trigger and popover menu", async () => {
+      const navright = canvasElement.querySelector(".cts-nav .cts-navright");
+      expect(navright).toBeTruthy();
+      const account = canvasElement.querySelector(".cts-nav .cts-account");
+      expect(account).toBeTruthy();
+      expect(account.getAttribute("data-open")).toBe("false");
+
+      const trigger = canvasElement.querySelector(".cts-account-trigger");
+      expect(trigger).toBeTruthy();
+      expect(trigger.getAttribute("aria-haspopup")).toBe("true");
+      expect(trigger.getAttribute("aria-controls")).toBe("cts-account-menu");
+
+      const avatar = canvasElement.querySelector(".cts-account-trigger .cts-avatar");
+      expect(avatar).toBeTruthy();
+      // Initials fall back to two letters from the display name ("Test User" -> "TU").
+      expect(avatar.textContent.trim()).toBe("TU");
+
+      const menu = canvasElement.querySelector("#cts-account-menu");
+      expect(menu).toBeTruthy();
+      expect(menu.getAttribute("role")).toBe("menu");
+    });
+  },
+};
+
+/**
+ * FOUC: the `:not(:defined)` fallback in css/layout.css must reserve 60px of
+ * vertical space so content below the navbar does not shift when the custom
+ * element finally upgrades. Verifies the rule both selects cts-navbar hosts
+ * and applies the 60px min-height — see
+ * docs/solutions/web-components/cts-navbar-inline-visibility-bug-2026-04-24.md.
+ */
+export const FoucFallbackReservesHeight = {
+  args: { currentPage: "" },
+  decorators: [withUnauthenticated()],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play() {
+    const sheet = Array.from(document.styleSheets).find((s) =>
+      (s.href || "").includes("/css/layout.css"),
+    );
+    expect(sheet).toBeTruthy();
+    const cssRules = /** @type {CSSStyleRule[]} */ (
+      Array.from(/** @type {CSSStyleSheet} */ (sheet).cssRules)
+    );
+    const fallback = cssRules.find(
+      (r) => r.selectorText && r.selectorText.includes("cts-navbar:not(:defined)"),
+    );
+    expect(fallback).toBeTruthy();
+    const fb = /** @type {CSSStyleRule} */ (fallback);
+    expect(fb.style.minHeight).toBe("60px");
+    expect(fb.style.display).toBe("block");
+    expect(fb.style.visibility).toBe("hidden");
+  },
+};
+
+/**
+ * 401 is the expected response when the user is not logged in. The navbar
+ * must NOT warn — it would spam the console on every anonymous page load.
+ */
+export const UnauthenticatedNoWarn = {
+  args: { currentPage: "" },
+  decorators: [withUnauthenticated()],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await waitForNavbar(canvasElement);
+
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+      const currentuserWarns = warnSpy.mock.calls
+        .flat()
+        .filter((arg) => typeof arg === "string" && arg.includes("/api/currentuser"));
+      expect(currentuserWarns).toEqual([]);
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};

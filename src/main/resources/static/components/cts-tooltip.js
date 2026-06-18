@@ -1,0 +1,278 @@
+/**
+ * Self-contained tooltip primitive. Wraps a single child trigger; on
+ * `mouseenter`/`focusin` it positions a `<div class="oidf-tooltip">` in
+ * `document.body` relative to the trigger's bounding rect, and removes it on
+ * `mouseleave`/`focusout`/`Escape`.
+ *
+ * No Bootstrap, no Popper, no global state. The tooltip element is appended
+ * to `document.body` so it never gets clipped by an `overflow: hidden`
+ * ancestor.
+ *
+ * Vanilla HTMLElement — has no `static properties`; attributes are read
+ * directly in `connectedCallback` and on each show.
+ * @property {string} content - Tooltip text (read from the `content`
+ *   attribute). When absent, the component is inert.
+ * @property {string} placement - One of `top` (default), `bottom`, `left`,
+ *   `right`, `auto`. `auto` picks the side with the most viewport space.
+ */
+
+// Distance between the trigger edge and the tooltip body.
+const OFFSET_PX = 4;
+
+const VALID_PLACEMENTS = new Set(["top", "bottom", "left", "right", "auto"]);
+
+let stylesInjected = false;
+
+function injectStylesOnce() {
+  if (stylesInjected) return;
+  stylesInjected = true;
+  const style = document.createElement("style");
+  style.setAttribute("data-cts-tooltip-styles", "");
+  style.textContent = `
+    cts-tooltip {
+      display: contents;
+    }
+    .oidf-tooltip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1080;
+      max-width: 280px;
+      padding: 6px 10px;
+      background: var(--ink-900);
+      color: var(--ink-0);
+      font-family: var(--font-sans);
+      font-size: var(--fs-12);
+      line-height: 1.35;
+      border-radius: var(--radius-2);
+      box-shadow: var(--shadow-2);
+      pointer-events: none;
+      word-wrap: break-word;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+class CtsTooltip extends HTMLElement {
+  connectedCallback() {
+    injectStylesOnce();
+
+    const content = this.getAttribute("content") || "";
+    if (!content) return;
+
+    // Observe childList for the element's whole connected life so a trigger
+    // SWAP — the child element being replaced (e.g. Lit re-rendering
+    // <span>→<a> at the same template slot) — re-wires onto the new child
+    // instead of leaving listeners on the detached old one. This also covers
+    // the deferred-insertion case (no child yet at connect). The initial
+    // wire-up is just the first sync. disconnectedCallback disconnects the
+    // observer, so there is no leak — a cts-tooltip that never gets a child
+    // simply holds an idle observer until it leaves the DOM. The guard makes
+    // creation idempotent: a normal disconnect→reconnect is fresh (the
+    // disconnect nulled _childObserver), and a reconnect-without-disconnect
+    // never stacks a second observer.
+    if (!this._childObserver) {
+      this._childObserver = new MutationObserver(() => this._syncTrigger());
+      this._childObserver.observe(this, { childList: true });
+    }
+    this._syncTrigger();
+  }
+
+  disconnectedCallback() {
+    this._stopObserving();
+    this._teardownTrigger();
+    this._removeTooltip();
+  }
+
+  /**
+   * Reconcile the wired trigger with the current direct child. Called on
+   * connect and on every childList mutation. When the child element is
+   * replaced, tear down the old listeners, drop any tooltip still showing for
+   * the old trigger, and bind the new child — so the tooltip survives a
+   * trigger swap instead of going dead on the detached node.
+   */
+  _syncTrigger() {
+    const next = this.querySelector(":scope > *");
+    if (next === this._trigger) return;
+    this._teardownTrigger();
+    // The old trigger was yanked (possibly mid-hover) → its mouseleave /
+    // focusout never fires, so proactively remove any visible tooltip to
+    // avoid a stuck tip pointing at the detached node.
+    this._removeTooltip();
+    if (next) this._wireUp(next);
+  }
+
+  /**
+   * Bind the show/hide/escape listeners onto a trigger element. Callers must
+   * run `_teardownTrigger()` first when replacing an existing trigger — it
+   * reads the OLD bound-handler refs, which this method then overwrites.
+   * @param {Element} trigger - The direct child to wire as the hover/focus
+   *   trigger.
+   */
+  _wireUp(trigger) {
+    this._trigger = trigger;
+    // Bound handlers so add/removeEventListener pair correctly.
+    this._onShow = () => this._show();
+    this._onHide = () => this._hide();
+    this._onKey = (/** @type {Event} */ e) => {
+      if (/** @type {KeyboardEvent} */ (e).key === "Escape") this._hide();
+    };
+
+    trigger.addEventListener("mouseenter", this._onShow);
+    trigger.addEventListener("mouseleave", this._onHide);
+    trigger.addEventListener("focusin", this._onShow);
+    trigger.addEventListener("focusout", this._onHide);
+    trigger.addEventListener("keydown", this._onKey);
+  }
+
+  _teardownTrigger() {
+    const trigger = this._trigger;
+    if (!trigger) return;
+    if (this._onShow) {
+      trigger.removeEventListener("mouseenter", this._onShow);
+      trigger.removeEventListener("focusin", this._onShow);
+    }
+    if (this._onHide) {
+      trigger.removeEventListener("mouseleave", this._onHide);
+      trigger.removeEventListener("focusout", this._onHide);
+    }
+    if (this._onKey) {
+      trigger.removeEventListener("keydown", this._onKey);
+    }
+    this._trigger = null;
+  }
+
+  _show() {
+    // Re-read content so dynamic content updates take effect on next show.
+    const content = this.getAttribute("content") || "";
+    if (!content || !this._trigger) return;
+
+    // If a tooltip is already showing for this instance, just reposition.
+    if (!this._tooltipEl) {
+      const el = document.createElement("div");
+      el.className = "oidf-tooltip";
+      el.setAttribute("role", "tooltip");
+      const body = document.createElement("span");
+      body.className = "oidf-tooltip__inner";
+      body.textContent = content;
+      el.appendChild(body);
+      document.body.appendChild(el);
+      this._tooltipEl = el;
+    } else {
+      const inner = this._tooltipEl.querySelector(".oidf-tooltip__inner");
+      if (inner) inner.textContent = content;
+    }
+
+    this._position();
+  }
+
+  _hide() {
+    this._removeTooltip();
+  }
+
+  _removeTooltip() {
+    if (this._tooltipEl && this._tooltipEl.parentNode) {
+      this._tooltipEl.parentNode.removeChild(this._tooltipEl);
+    }
+    this._tooltipEl = null;
+  }
+
+  _resolvePlacement() {
+    const raw = this.getAttribute("placement") || "top";
+    const requested = VALID_PLACEMENTS.has(raw) ? raw : "top";
+    if (requested !== "auto") return requested;
+    if (!this._trigger || !this._tooltipEl) return "top";
+
+    // Pick the side with the most viewport space.
+    const triggerRect = this._trigger.getBoundingClientRect();
+    const tipRect = this._tooltipEl.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const space = {
+      top: triggerRect.top,
+      bottom: vh - triggerRect.bottom,
+      left: triggerRect.left,
+      right: vw - triggerRect.right,
+    };
+    const need = {
+      top: tipRect.height + OFFSET_PX,
+      bottom: tipRect.height + OFFSET_PX,
+      left: tipRect.width + OFFSET_PX,
+      right: tipRect.width + OFFSET_PX,
+    };
+
+    // Prefer top when it fits; then bottom; then the side with the most
+    // remaining space among any that fit; otherwise the side with the most
+    // raw space.
+    if (space.top >= need.top) return "top";
+    if (space.bottom >= need.bottom) return "bottom";
+    /** @type {Array<"top"|"bottom"|"left"|"right">} */
+    const order = ["top", "bottom", "right", "left"];
+    let best = order[0];
+    let bestSpace = space[best];
+    for (const side of order) {
+      if (space[side] > bestSpace) {
+        best = side;
+        bestSpace = space[side];
+      }
+    }
+    return best;
+  }
+
+  _position() {
+    if (!this._trigger || !this._tooltipEl) return;
+
+    const placement = this._resolvePlacement();
+    this._tooltipEl.setAttribute("data-placement", placement);
+
+    const triggerRect = this._trigger.getBoundingClientRect();
+    const tipRect = this._tooltipEl.getBoundingClientRect();
+    // Page-relative coordinates so absolute positioning survives scroll.
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+
+    let top;
+    let left;
+
+    switch (placement) {
+      case "bottom":
+        top = triggerRect.bottom + scrollY + OFFSET_PX;
+        left = triggerRect.left + scrollX + (triggerRect.width - tipRect.width) / 2;
+        break;
+      case "left":
+        top = triggerRect.top + scrollY + (triggerRect.height - tipRect.height) / 2;
+        left = triggerRect.left + scrollX - tipRect.width - OFFSET_PX;
+        break;
+      case "right":
+        top = triggerRect.top + scrollY + (triggerRect.height - tipRect.height) / 2;
+        left = triggerRect.right + scrollX + OFFSET_PX;
+        break;
+      case "top":
+      default:
+        top = triggerRect.top + scrollY - tipRect.height - OFFSET_PX;
+        left = triggerRect.left + scrollX + (triggerRect.width - tipRect.width) / 2;
+        break;
+    }
+
+    // Clamp horizontally to the viewport so a centred tooltip near a screen
+    // edge doesn't overflow. Vertical clamp not applied — auto placement
+    // already chose the side with the most space.
+    const minLeft = scrollX + 4;
+    const maxLeft = scrollX + window.innerWidth - tipRect.width - 4;
+    if (left < minLeft) left = minLeft;
+    if (left > maxLeft) left = maxLeft;
+
+    this._tooltipEl.style.top = `${top}px`;
+    this._tooltipEl.style.left = `${left}px`;
+  }
+
+  _stopObserving() {
+    if (this._childObserver) {
+      this._childObserver.disconnect();
+      this._childObserver = null;
+    }
+  }
+}
+
+customElements.define("cts-tooltip", CtsTooltip);

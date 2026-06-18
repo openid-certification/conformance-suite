@@ -5,76 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OIDF Conformance: Login</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
     <!-- Boostrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
+    <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/oidf-app.css">
+
+    <script>window.litDisableBundleWarning = true;</script>
+    <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
+    <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-login-page.js"></script>
+    <script type="module" src="/js/cts-toast-api.js"></script>
+    <script type="module" src="/components/cts-footer.js"></script>
 </head>
 <body>
-    <div class="pageHeader container-fluid">
-        <div class="row">
-            <div class="col-md-8">
-                <a href="index.html"><img src="/images/openid.png"></a>
-            </div>
-            <div id="userInfoDiv" class="col-md-4 text-end"></div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
+    <a class="oidf-skip-link" href="#loginContent">Skip to main content</a>
 
-    <div id="loginContent" class="container-fluid">
-        <div class="row">
-            <div class="col-xs-12 col-md-6 col-md-offset-3 mx-auto center-text">
-                <h1 class="text-center">Login to or Register with the OpenID Foundation Conformance Suite</h1>
-                <p id="error" class="bg-danger collapse">There was an error logging you in: <span id="error-details"></span></p>
-                <p id="logout" class="bg-info collapse">You have been logged out.</p>
-                <p class="text-center">
-                    <a class="btn btn-lg btn-danger bg-gradient border border-secondary" href="/oauth2/authorization/google">Proceed with Google</a>
-                    <a class="btn btn-lg btn-primary bg-gradient border border-secondary" href="/oauth2/authorization/gitlab">Proceed with GitLab</a>
-                </p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="mx-auto col-md-2">
-                <div class="d-grid gap-2">
-                    <a href="logs.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-files"></span> View published logs</a>
-                    <a href="plans.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> View published plans</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
-integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <cts-navbar current-page=""></cts-navbar>
 
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-    </footer>
+    <cts-login-page id="loginPage"></cts-login-page>
+
+    <cts-footer></cts-footer>
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", () => {
-            var urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search);
+            const loginPage = document.getElementById("loginPage");
 
-            var error = urlParams.get('error');
-            var logout = urlParams.get('logout');
-
+            const error = urlParams.get("error");
             if (error) {
-                   document.getElementById('error').classList.add('show');
-                   document.getElementById('error-details').textContent = error;
+                loginPage.setAttribute("error", error);
             }
 
+            const logout = urlParams.get("logout");
             if (logout) {
-                   document.getElementById('logout').classList.add('show');
+                loginPage.setAttribute("logout-message", "");
             }
 
-            let token = urlParams.get("token");
+            const token = urlParams.get("token");
             if (token) {
-                // Hide the normal login UI while the private link is being processed
-                document.getElementById('loginContent').style.display = 'none';
+                // Hide the normal login UI while the private link is being processed.
+                // The cts-login-page renders a hidden iframe pointing at token-auth-url;
+                // we still need to drive the form submit / navigation lifecycle here
+                // because it depends on cross-frame access to the contentWindow.
+                loginPage.style.display = "none";
 
                 const iframe = document.createElement("iframe");
                 iframe.style.display = "none";
@@ -108,6 +82,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         });
     </script>
 
-
+    <cts-toast-host></cts-toast-host>
 </body>
 </html>

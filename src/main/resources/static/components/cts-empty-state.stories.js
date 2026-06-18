@@ -1,0 +1,304 @@
+import { html } from "lit";
+import { expect } from "storybook/test";
+import "./cts-icon.js";
+import "./cts-link-button.js";
+import "./cts-empty-state.js";
+
+export default {
+  title: "Components/cts-empty-state",
+  component: "cts-empty-state",
+  argTypes: {
+    heading: { control: "text" },
+    body: { control: "text" },
+    icon: { control: "text" },
+    ctaLabel: { control: "text" },
+    ctaHref: { control: "text" },
+    secondaryCtaLabel: { control: "text" },
+    secondaryCtaHref: { control: "text" },
+  },
+};
+
+// --- Stories ---
+
+/**
+ * Happy path: icon + heading + body + built-in CTA all render.
+ */
+export const Default = {
+  args: {
+    heading: "No test plans yet",
+    body: "Create your first plan to get started running conformance tests.",
+    icon: "folder-open",
+    ctaLabel: "Create a plan",
+    ctaHref: "schedule-test.html",
+  },
+  render: ({ heading, body, icon, ctaLabel, ctaHref }) =>
+    html`<cts-empty-state
+      heading=${heading}
+      body=${body}
+      icon=${icon}
+      cta-label=${ctaLabel}
+      cta-href=${ctaHref}
+    ></cts-empty-state>`,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    await step("wrapper renders", async () => {
+      const wrapper = host.querySelector(".oidf-empty-state");
+      expect(wrapper).toBeTruthy();
+    });
+
+    await step("icon glyph rendered above the heading", async () => {
+      const iconHost = host.querySelector("cts-icon");
+      expect(iconHost).toBeTruthy();
+      expect(iconHost.getAttribute("name")).toBe("folder-open");
+      expect(iconHost.getAttribute("size")).toBe("24");
+    });
+
+    await step("heading text matches", async () => {
+      const heading = host.querySelector(".oidf-empty-state-heading");
+      expect(heading).toBeTruthy();
+      expect(heading.tagName).toBe("H2");
+      expect(heading.textContent.trim()).toBe("No test plans yet");
+    });
+
+    await step("body paragraph rendered with the supplied copy", async () => {
+      const body = host.querySelector(".oidf-empty-state-body");
+      expect(body).toBeTruthy();
+      expect(body.textContent.trim()).toBe(
+        "Create your first plan to get started running conformance tests.",
+      );
+    });
+
+    await step("built-in CTA renders a primary cts-link-button", async () => {
+      // The inner anchor carries the OIDF button classes.
+      const ctaHost = host.querySelector("cts-link-button");
+      expect(ctaHost).toBeTruthy();
+      await ctaHost.updateComplete;
+      const ctaAnchor = ctaHost.querySelector("a");
+      expect(ctaAnchor).toBeTruthy();
+      expect(ctaAnchor.getAttribute("href")).toBe("schedule-test.html");
+      expect(ctaAnchor.textContent.trim()).toBe("Create a plan");
+      expect(ctaAnchor.classList.contains("oidf-btn-primary")).toBe(true);
+      expect(ctaAnchor.classList.contains("oidf-btn-sm")).toBe(true);
+    });
+  },
+};
+
+/**
+ * Two built-in CTAs side by side: the primary action plus a secondary
+ * alternative (e.g. "Schedule test" next to "View published plans" on the
+ * plans.html My-view empty state). The secondary renders after the primary
+ * with the `secondary` button variant.
+ */
+export const PrimaryAndSecondaryCta = {
+  args: {
+    heading: "No test plans yet",
+    body: "Schedule your first test to get started.",
+    icon: "folder",
+    ctaLabel: "Schedule test",
+    ctaHref: "schedule-test.html",
+    secondaryCtaLabel: "View published plans",
+    secondaryCtaHref: "plans.html?public=true",
+  },
+  render: ({ heading, body, icon, ctaLabel, ctaHref, secondaryCtaLabel, secondaryCtaHref }) =>
+    html`<cts-empty-state
+      heading=${heading}
+      body=${body}
+      icon=${icon}
+      cta-label=${ctaLabel}
+      cta-href=${ctaHref}
+      secondary-cta-label=${secondaryCtaLabel}
+      secondary-cta-href=${secondaryCtaHref}
+    ></cts-empty-state>`,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    const ctaHosts = host.querySelectorAll("cts-link-button");
+    expect(ctaHosts.length).toBe(2);
+    await Promise.all([...ctaHosts].map((c) => c.updateComplete));
+
+    await step("primary CTA renders first", async () => {
+      const anchor = ctaHosts[0].querySelector("a");
+      expect(anchor.getAttribute("href")).toBe("schedule-test.html");
+      expect(anchor.textContent.trim()).toBe("Schedule test");
+      expect(anchor.classList.contains("oidf-btn-primary")).toBe(true);
+    });
+
+    await step("secondary CTA renders beside it with the secondary variant", async () => {
+      const anchor = ctaHosts[1].querySelector("a");
+      expect(anchor.getAttribute("href")).toBe("plans.html?public=true");
+      expect(anchor.textContent.trim()).toBe("View published plans");
+      expect(anchor.classList.contains("oidf-btn-secondary")).toBe(true);
+    });
+
+    await step("both buttons share the CTA row", async () => {
+      const row = host.querySelector(".oidf-empty-state-cta");
+      expect(row.querySelectorAll("cts-link-button").length).toBe(2);
+    });
+  },
+};
+
+/**
+ * Secondary CTA on its own: the consumer has no primary action to offer but
+ * still wants a low-emphasis pointer elsewhere (e.g. "View published logs"
+ * on the logs.html My-view empty state, where logs only appear as tests are
+ * scheduled). The built-in row renders without requiring the primary pair.
+ */
+export const SecondaryCtaOnly = {
+  args: {
+    heading: "No logs to show",
+    body: "Logs will appear here as tests are scheduled.",
+    icon: "folder",
+    secondaryCtaLabel: "View published logs",
+    secondaryCtaHref: "logs.html?public=true",
+  },
+  render: ({ heading, body, icon, secondaryCtaLabel, secondaryCtaHref }) =>
+    html`<cts-empty-state
+      heading=${heading}
+      body=${body}
+      icon=${icon}
+      secondary-cta-label=${secondaryCtaLabel}
+      secondary-cta-href=${secondaryCtaHref}
+    ></cts-empty-state>`,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    await step("only the secondary CTA renders", async () => {
+      const ctaHosts = host.querySelectorAll("cts-link-button");
+      expect(ctaHosts.length).toBe(1);
+      await ctaHosts[0].updateComplete;
+      const anchor = ctaHosts[0].querySelector("a");
+      expect(anchor.getAttribute("href")).toBe("logs.html?public=true");
+      expect(anchor.textContent.trim()).toBe("View published logs");
+      expect(anchor.classList.contains("oidf-btn-secondary")).toBe(true);
+    });
+  },
+};
+
+/**
+ * Edge case: no `icon` and no `cta-label` / `cta-href`. The component
+ * should drop the icon glyph cleanly and render no CTA (and no slot
+ * fallback content because the slot is empty).
+ */
+export const HeadingAndBodyOnly = {
+  args: {
+    heading: "Nothing to show here",
+    body: "Once data arrives, it will appear in this panel.",
+  },
+  render: ({ heading, body }) =>
+    html`<cts-empty-state heading=${heading} body=${body}></cts-empty-state>`,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    await step("heading still renders", async () => {
+      const heading = host.querySelector(".oidf-empty-state-heading");
+      expect(heading).toBeTruthy();
+      expect(heading.textContent.trim()).toBe("Nothing to show here");
+    });
+
+    await step("body still renders", async () => {
+      const body = host.querySelector(".oidf-empty-state-body");
+      expect(body).toBeTruthy();
+    });
+
+    await step("icon and CTA are omitted cleanly", async () => {
+      expect(host.querySelector("cts-icon")).toBeNull();
+      expect(host.querySelector("cts-link-button")).toBeNull();
+    });
+  },
+};
+
+/**
+ * Edge case: `heading` only. No body paragraph or CTA either; verifies
+ * that `body` omits cleanly the same way `icon` and the CTA do.
+ */
+export const HeadingOnly = {
+  args: { heading: "All clear" },
+  render: ({ heading }) => html`<cts-empty-state heading=${heading}></cts-empty-state>`,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    expect(host.querySelector(".oidf-empty-state-heading").textContent.trim()).toBe("All clear");
+    expect(host.querySelector(".oidf-empty-state-body")).toBeNull();
+    expect(host.querySelector("cts-icon")).toBeNull();
+    expect(host.querySelector("cts-link-button")).toBeNull();
+  },
+};
+
+/**
+ * Slot escape hatch: when `cta-label` / `cta-href` aren't enough (for
+ * example, the consumer needs a `<cts-button>` wired to a click handler,
+ * or wants to stack two buttons), they can pass arbitrary CTA content
+ * via the default slot. The built-in `<cts-link-button>` is NOT rendered
+ * in this mode.
+ */
+export const SlottedCta = {
+  render: () => html`
+    <cts-empty-state
+      heading="No tokens issued yet"
+      body="Generate an API token to integrate with the conformance suite."
+      icon="lock"
+    >
+      <button type="button" id="slotted-cta" class="oidf-btn oidf-btn-sm oidf-btn-primary">
+        Generate token
+      </button>
+    </cts-empty-state>
+  `,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    await step("built-in CTA is NOT rendered (no cta-label / cta-href)", async () => {
+      expect(host.querySelector("cts-link-button")).toBeNull();
+    });
+
+    await step("slotted button is captured into the CTA slot wrapper", async () => {
+      // Light DOM + <slot> means the slotted child remains the same node —
+      // the slot simply renders it in place.
+      const slotted = host.querySelector("#slotted-cta");
+      expect(slotted).toBeTruthy();
+      expect(slotted.textContent.trim()).toBe("Generate token");
+    });
+  },
+};
+
+/**
+ * Demonstrates the "block-level fill" intent (Coherence F4) by placing
+ * the empty state inside a sized container — the same shape it takes
+ * when used as a dashboard tile or a table-empty row.
+ */
+export const FillsContainer = {
+  render: () => html`
+    <div
+      style="width: 480px; min-height: 240px; border: 1px dashed var(--ink-300); border-radius: var(--radius-3);"
+    >
+      <cts-empty-state
+        heading="No log entries"
+        body="Run a test to populate the log viewer."
+        icon="book"
+        cta-label="Run a test"
+        cta-href="schedule-test.html"
+      ></cts-empty-state>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+    // The component remains centered inside the container; we just verify
+    // that the wrapper renders and the icon glyph is present.
+    expect(host.querySelector(".oidf-empty-state")).toBeTruthy();
+    expect(host.querySelector("cts-icon")).toBeTruthy();
+  },
+};

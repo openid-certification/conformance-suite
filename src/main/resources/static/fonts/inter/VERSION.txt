@@ -1,0 +1,18 @@
+Inter Variable (upright)
+
+Upstream:        https://github.com/rsms/inter
+Release tag:     v4.1
+Source archive:  https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip
+Source path:     web/InterVariable.woff2
+
+File:            Inter-Variable.woff2
+SHA-256:         693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3
+Size:            352240 bytes
+Format:          WOFF2 with weight axis (100..900), upright only
+
+License:         SIL Open Font License, Version 1.1 (see OFL.txt)
+
+To upgrade: download the latest Inter release from the upstream URL above,
+extract web/InterVariable.woff2 and LICENSE.txt, place them here as
+Inter-Variable.woff2 and OFL.txt, then update Release tag, SHA-256 and Size
+in this file. Verify the new SHA matches the computed hash of the new file.

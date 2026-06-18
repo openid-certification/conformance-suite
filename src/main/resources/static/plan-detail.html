@@ -1,717 +1,304 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <title>OIDF Conformance: Test Plan</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
     <!-- Boostrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
+    <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
+    <link rel="stylesheet" href="/css/oidf-app.css">
+    <link rel="stylesheet" href="/css/cert-package.css">
 
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
-integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="/vendor/lodash/js/lodash.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
+    <script>window.litDisableBundleWarning = true;</script>
+    <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
+    <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-spinner.js"></script>
+    <script type="module" src="/components/cts-loading-state.js"></script>
+    <script type="module" src="/components/cts-button.js"></script>
+    <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-alert.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-crumb.js"></script>
+    <script type="module" src="/components/cts-tooltip.js"></script>
+    <script type="module" src="/components/cts-plan-header.js"></script>
+    <script type="module" src="/components/cts-plan-actions.js"></script>
+    <script type="module" src="/components/cts-plan-modules.js"></script>
+    <script type="module" src="/components/cts-plan-status.js"></script>
+    <script type="module" src="/js/cts-toast-api.js"></script>
+    <script type="module" src="/components/cts-footer.js"></script>
+
+    <style>
+        .oidf-plan-detail-page {
+            padding: var(--space-5) var(--space-6);
+            max-width: 1320px;
+            margin: 0 auto;
+            font-family: var(--font-sans);
+        }
+        .oidf-plan-detail-crumb {
+            margin-bottom: var(--space-3);
+        }
+        .oidf-plan-detail-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 240px;
+            gap: var(--space-5);
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .oidf-plan-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* The grid starts hidden while the plan loads (an in-page
+           cts-loading-state shows in its place). The native [hidden]
+           attribute sets display:none via the UA stylesheet, but the
+           `display: grid` author rule above outranks it — so this
+           higher-specificity rule is required for [hidden] to take
+           effect. Removed by the bootstrap once the fetch settles. */
+        .oidf-plan-detail-grid[hidden] {
+            display: none;
+        }
+        /* FOUC reservation for the whole-plan status bar: a custom element is
+           display:inline until upgraded, so visibility:hidden would not reserve
+           height. Reserve the bar's measured height (track ~14px + the
+           count-badge row ~28px + its ~12px margin) so the module list does not
+           jump when cts-plan-status upgrades. (The grid is also [hidden] during
+           the plan fetch, so this only bites if the upgrade lags the un-hide.) */
+        cts-plan-status:not(:defined) {
+            display: block;
+            min-height: 54px;
+        }
+        /* Certification submission package form styles live in
+           /css/cert-package.css (linked above) so the modal can be shown in
+           Storybook without duplicating CSS. */
+        .oidf-private-link-result {
+            margin-top: var(--space-3);
+            padding: var(--space-3);
+            background: var(--ink-50);
+            border-radius: var(--radius-2);
+            font-family: var(--font-mono);
+            font-size: var(--fs-12);
+            word-break: break-all;
+        }
+        /* The "Filter by result" control is no longer a page-level popover —
+           cts-plan-status renders it (R9) as a row of interactive count badges
+           below the bar, merged with the count summary (mirrors log-detail's
+           logResultSummary). All its styling lives in the component; the page
+           only needs to space the status block off the module list below. */
+        #planDetailModules {
+            display: block;
+            margin-top: var(--space-4);
+        }
+        /* Screen-reader-only live region for filter-change announcements. */
+        .oidf-visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
 </head>
 
 <body>
+    <a class="oidf-skip-link" href="#planDetail">Skip to main content</a>
 
-    <div class="pageHeader container-fluid">
-        <div class="row">
-            <div class="col-md-7">
-                <a id="openIdImage" href="index.html"><img src="/images/openid.png"></a>
-            </div>
-            <div id="userInfoHolder" class="col-md-5"></div>
+    <cts-navbar current-page=""></cts-navbar>
+
+    <cts-modal id="errorModal" heading="Error">
+        Error: <span id="errorMessage"></span>
+    </cts-modal>
+
+    <!-- Kept for the transitional busy state only: runTest() calls
+         FAPI_UI.showBusy() before navigating to the new test's log. The
+         initial page load no longer uses this modal — it shows the in-page
+         cts-loading-state in <main> instead. -->
+    <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
+        <cts-spinner size="lg" label="Loading"></cts-spinner>
+        <div aria-live="polite">
+            <span id="loadingMessage"></span>
         </div>
-    </div>
-    <div class="clearfix"></div>
+    </cts-modal>
 
-    <!-- error modal -->
-    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Error: <span id="errorMessage"></span>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+    <cts-modal id="publishModal" heading="Publish"
+        footer-buttons='[{"label": "Publish", "class": "btn-primary", "id": "confirmPublishBtn", "data": {"publish": "everything"}, "dismiss": false}, {"label": "Cancel"}]'>
+        Are you sure? This will make all keys, secrets, and all other test information publicly visible.
+    </cts-modal>
+
+    <!-- Certification submission modal (converted from raw Bootstrap modal in U35) -->
+    <cts-modal id="certificationPackageModal" heading="Prepare Certification Submission Package" size="lg" static-backdrop>
+        <form class="oidf-cert-package-form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data">
+            <div id="certificationPackageFormModalBody">
+                <div id="certificationPackageFormErrors"></div>
+                <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
+                <ol class="top15">
+                    <li>
+                        <strong>The test plan will be published.</strong>
+                        <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
+                    </li>
+                    <li class="top10">
+                        <strong>The test plan will be marked as immutable.</strong>
+                        <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                    </li>
+                    <li class="top10">
+                        <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
+                        <p class="form-text">Please follow <a href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                        to complete the certification process.</p>
+                    </li>
+                </ol>
+
+                <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
+                <fieldset>
+                    <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
+                    <p class="top10"><input type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
+                    <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                </fieldset>
             </div>
-        </div>
-    </div>
 
-    <!-- loading modal -->
-    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <img src="/images/spinner.gif" width="100px" height="30px" />
-                    </div>
-                    <div>
-                        <span id="loadingMessage"></span>
-                    </div>
-                </div>
+            <div id="certificationPackageDownloaded" hidden>
+                <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
+                    is complete then you will find the zip file in your browser download directory.</p>
+                <p>Please proceed to <a href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                    to submit it.</p>
+                <p><b>Warning: don't change the zip file, as it will not be accepted during certification publishing process.</b></p>
             </div>
-        </div>
-    </div>
 
-    <!-- Config modal popup -->
-    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
-                        Configuration for <code id="configTestId" class="text-muted"></code>
-                    </h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="wrapLongStrings row-bg-light p-1">
-                        <pre id="config"></pre>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+            <div class="oidf-cert-package-actions">
+                <cts-button id="cancelCertificationPackageFormModal" label="Cancel"></cts-button>
+                <cts-button id="certificationPackageFormSubmitBtn" type="submit" variant="primary" label="Create Certification Package"></cts-button>
+                <cts-button id="closeCertificationPackageFormModal" hidden label="Close"></cts-button>
             </div>
-        </div>
-    </div>
+        </form>
+    </cts-modal>
 
-    <!-- Publish modal -->
-    <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Publish</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure? This will make all keys, secrets, and all other test information publicly visible.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal" data-publish="everything">Publish</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
+    <cts-modal id="reRunTestModal" heading="Run test confirmation"
+        footer-buttons='[{"label": "Sure, Run it", "class": "btn-danger", "id": "reRunTestModalBtn", "dismiss": false}, {"label": "Cancel"}]'>
+        Are you sure you want to rerun this test? It is owned by a different user.
+    </cts-modal>
+
+    <main id="planDetail" class="oidf-plan-detail-page">
+        <cts-crumb id="planDetailCrumb" class="oidf-plan-detail-crumb"></cts-crumb>
+        <!-- In-page loader shown while the plan fetch is in flight, mirroring
+             log-detail.html's in-page loading rather than a blocking modal +
+             overlay. Removed by the bootstrap once the load settles, at which
+             point the grid below is un-hidden. -->
+        <cts-loading-state id="planDetailLoading" label="Loading test plan"></cts-loading-state>
+        <div id="planDetailGrid" class="oidf-plan-detail-grid" hidden>
+            <div>
+                <cts-plan-header id="planDetailHeader"></cts-plan-header>
+                <!-- Whole-plan completion overview (R8): one segment per module,
+                     fed by the same module data the rows use. Clicking a segment
+                     deep-links to its row (wired in getPlan). Below the bar the
+                     component renders the merged count-summary + "Filter by
+                     result" control (R9): a row of interactive count badges,
+                     mirroring log-detail's logResultSummary. Toggling a badge
+                     emits `cts-plan-status-filter`; the coordinator below holds
+                     the active filter and pushes it to both cts-plan-modules
+                     (row narrowing) and cts-plan-status (segment dimming +
+                     pressed state). -->
+                <cts-plan-status id="planDetailStatus" mode="detail"></cts-plan-status>
+                <!-- Polite live region: announces filter changes to assistive
+                     tech (the row narrowing + badge toggles are otherwise
+                     silent). -->
+                <span id="resultFilterStatus" class="oidf-visually-hidden" aria-live="polite"></span>
+                <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
+            <cts-plan-actions id="planDetailActions"></cts-plan-actions>
         </div>
-    </div>
-
-    <!-- Certification submission modal -->
-    <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content pad28">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
-                    <div id="certificationPackageFormModalBody" class="modal-body">
-                    <div id="certificationPackageFormErrors"></div>
-                    <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
-                    <ol class="top15">
-                        <li>
-                            <strong>The test plan will be published.</strong>
-                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
-                        </li>
-                        <li>
-                            <strong>The test plan will be marked as immutable.</strong>
-                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
-                        </li>
-                        <li>
-                            <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
-                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
-                            to complete the certification process.</p>
-                        </li>
-                    </ol>
-
-                    <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
-                    <div>
-                        <div class="mb-3 row">
-                            <fieldset>
-                                <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
-                                <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
-                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
-                            </fieldset>
-                        </div>
-                    </div>
-                </div>
-
-                    <div id="certificationPackageDownloaded" class="modal-body" hidden>
-                        <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
-                            is complete then you will find the zip file in your browser download directory.</p>
-                        <p>Please proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
-                            to submit it.</p>
-                        <p><b>Warning: don't change the zip file, as it will not be accepted during certification publishing process.</b></p>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">Create Certification Package</button>
-                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Rerun test confirmation modal -->
-    <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Run test confirmation</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to rerun this test? It is owned by a different user.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete plan modal -->
-    <div class="modal" id="deletePlanModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content pad28">
-                <div class="modal-header">
-                    <h4 class="modal-title" >Delete plan</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div id="deleteMutablePlanModalBody" class="modal-body">
-
-                    <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
-                        <ul>
-                            <li>Delete the test plan.</li>
-                            <li>Delete the test plan configuration.</li>
-                            <li>Delete the individual tests and logs belonging to the plan.</li>
-                        </ul>
-                    </p>
-                    <p class="top10"><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
-                    <p class="top10">After deletion, this page will be reloaded and you will see an <strong>HTTP 404 Not Found</strong>
-                    error, confirming that the deletion was successful.</p>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button id="confirmDeletePlanBtn" type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary">Delete plan</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- resident DOM -->
-    <div class="container-fluid">
-        <div id="planDetail">
-            <div class="header"></div>
-            <div class="content container-fluid">
-                <!-- main page is rendered here -->
-            </div>
-        </div>
-    </div>
+    </main>
 
     <script type="text/javascript">
-
-        function getPlan(planId, public) {
-            return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                var readonly = public || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
-                document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
-                document.querySelectorAll('.content')?.forEach(function(element) {
-                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, readonly: readonly, variant: FAPI_UI.formatVariant(data.variant)}));
-                });
-
-                if (document.getElementById('downloadAllBtn') != null) {
-                    document.getElementById('downloadAllBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
-                    };
-                }
-
-                // wire up configuration button
-                if (document.getElementById('showConfigBtn') != null) {
-                    document.getElementById('showConfigBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
-                        document.getElementById('configTestId').innerHTML = _.escape(planId);
-
-                        var myModalEl = document.getElementById('configModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    };
-                }
-
-                // wire up publish button
-                if (document.getElementById('publishBtn') != null) {
-                    document.getElementById('publishBtn').onclick = function(evt) {
-                        evt.preventDefault();
-
-                        var myModalEl = document.getElementById('publishModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    };
-                }
-
-                if (document.getElementById('certificationPackageBtn') != null) {
-                    document.getElementById('certificationPackageBtn').onclick = function(evt) {
-                        evt.preventDefault();
-
-                        var myModalEl = document.getElementById('certificationPackageModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    };
-                }
-
-                if(document.querySelector('#deleteMutablePlanBtn')) {
-                    document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
-                        var myModalEl = document.getElementById('deletePlanModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    });
-                }
-
-                FAPI_UI.setupPrivateLinkSharing('/api/plan/' + encodeURIComponent(planId) + '/share');
-
-                if (readonly) {
-                    document.getElementById('openIdImage').href = "javascript:void(0)";
-                }
-
-                document.querySelectorAll('[data-module]')?.forEach(function(element) {
-                    element.onclick = function(evt) {
-                        evt.preventDefault();
-                        var testName = this.dataset.module;
-                        var variant = this.dataset.variant;
-                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
-                            document.getElementById('reRunTestModalBtn').dataset.testName = testName;
-                            document.getElementById('reRunTestModalBtn').dataset.variant = variant;
-
-                            var myModalEl = document.getElementById('reRunTestModal');
-                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                            modal.show();
-                        } else {
-                            runTest(testName, (variant !== "null") ? variant : null, planId);
-                        }
-                    };
-                });
-
-                document.querySelectorAll('[data-instance-id]')?.forEach(function(element) {
-                    var testId = element.dataset.instanceId;
-
-                    if (testId) {
-                        // wire up the download button
-                        element.querySelectorAll('.downloadBtn')?.forEach(function(element1) {
-                            element1.onclick = function(evt) {
-                                evt.preventDefault();
-                                window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
-                            };
-
-                            element1.classList.add('show');
-                        });
-
-                        // show the view button
-                        element.querySelectorAll('.viewBtn')?.forEach(function(element1) {
-                            element1.style.display = 'inline-block';
-                        });
-
-                        // fetch the test status
-                        console.log('Fetching |' + testId + '|');
-                        fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            return response.json();
-                        })
-                        .then((data) => {
-                            element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
-                                element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
-                            });
-
-                            element.querySelectorAll('.testVersion')?.forEach(function(element1) {
-                                element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version});
-                            });
-
-                            FAPI_UI.activeTooltip();
-                            if(data.status === 'FINISHED'
-                                && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
-                                && document.querySelector('#certificationPackageBtn')) {
-                                    document.querySelector('#certificationPackageBtn').disabled = false;
-                            }
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                if (error.status == 404) {
-                                    // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
-                                    // we won't be able to fetch the status (error 404).
-                                    // Just ignore it.
-                                }
-                                else {
-                                    var message = error.statusText;
-                                    var responseClone = error.clone();
-
-                                    error.text()
-                                    .then(textError => {
-                                        // Text error thrown by the app
-                                        messageParsed = true;
-
-                                        try {
-                                            const errorObj = JSON.parse(textError);
-
-                                            if (errorObj.error.length != 0) {
-                                                message = errorObj.error;
-                                            }
-                                        }
-                                        catch (e) {
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(error1 => {
-                                        // JSON error thrown by the app
-                                        responseClone.json()
-                                        .then(jsonError => {
-                                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                message = jsonError;
-                                            }
-
-                                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                                        })
-                                        .catch(genericError => {
-                                            // Error thrown by the server
-                                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                        });
-                                    });
-                                }
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-                        });
-                    } else {
-                        // render an "UNKNOWN" field
-                        element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
-                            element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: {}});
-                        });
-                        element.querySelectorAll('.testVersion')?.forEach(function(element1) {
-                            element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''});
-                        });
-                        FAPI_UI.activeTooltip();
-                    }
-                });
-
-                document.querySelectorAll('[data-publish]')?.forEach(function(element) {
-
-                    element.onclick = function(evt) {
-                        evt.preventDefault();
-
-                        var publish = this.dataset.publish;
-
-                        fetch('/api/plan/' + encodeURIComponent(planId) + '/publish', {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ publish: publish }),
-                        })
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            return response.json();
-                        })
-                        .then((data) => {
-                            // redirect to the published version or reload
-                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                var message = error.statusText;
-                                var responseClone = error.clone();
-
-                                error.text()
-                                .then(textError => {
-                                    // Text error thrown by the app
-                                    messageParsed = true;
-
-                                    try {
-                                        const errorObj = JSON.parse(textError);
-
-                                        if (errorObj.error.length != 0) {
-                                            message = errorObj.error;
-                                        }
-                                    }
-                                    catch (e) {
-                                    }
-
-                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                })
-                                .catch(error1 => {
-                                    // JSON error thrown by the app
-                                    responseClone.json()
-                                    .then(jsonError => {
-                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                            message = jsonError;
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(genericError => {
-                                        // Error thrown by the server
-                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                    });
-                                });
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-                        });
-                    };
-                });
-
-                //only for making an immutable plan mutable again
-                document.querySelectorAll('[data-immutable]')?.forEach(function(element) {
-                    element.onclick = function(evt) {
-                        evt.preventDefault();
-
-                        fetch('/api/plan/' + encodeURIComponent(planId) + '/makemutable', {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded",
-                            },
-                        })
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            // redirect to the published version or reload
-                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                var message = error.statusText;
-                                var responseClone = error.clone();
-
-                                error.text()
-                                .then(textError => {
-                                    // Text error thrown by the app
-                                    messageParsed = true;
-
-                                    try {
-                                        const errorObj = JSON.parse(textError);
-
-                                        if (errorObj.error.length != 0) {
-                                            message = errorObj.error;
-                                        }
-                                    }
-                                    catch (e) {
-                                    }
-
-                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                })
-                                .catch(error1 => {
-                                    // JSON error thrown by the app
-                                    responseClone.json()
-                                    .then(jsonError => {
-                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                            message = jsonError;
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(genericError => {
-                                        // Error thrown by the server
-                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                    });
-                                });
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-                        });
-                    };
-                });
-
-                document.getElementById('reRunTestModalBtn').onclick = function(evt) {
-                    evt.preventDefault();
-                    var testName = this.dataset.testName;
-                    var variant = this.dataset.variant;
-                    runTest(testName, (variant !== "null") ? variant : null, planId);
-                };
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-
-                // Percolate the error up.
-                return Promise.reject(error);
-            });
-        }
-
-        function runTest(testName, testVariant, planId) {
-            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
-
-            if (testVariant !== null && testVariant !== undefined) {
-                runTestUrl += '&variant=' + encodeURIComponent(testVariant);
-            }
-
-            FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
-
-            fetch(runTestUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                // we need to switch to the new window now
-                window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-            });
-        }
-
         function showDialogError(containerId, error) {
-            document.getElementById(containerId).insertAdjacentHTML('beforeend',
-                '<div class="alert alert-danger">' +
-                '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
-                '</button>' + error + '</div>');
+            // Replace any existing error rather than appending, so repeated
+            // failed submits show a single current banner instead of stacking.
+            // Build the alert with textContent (not HTML interpolation) so a
+            // user-chosen filename in the message can't inject markup.
+            var alert = document.createElement('cts-alert');
+            alert.setAttribute('variant', 'danger');
+            alert.setAttribute('dismissible', '');
+            alert.textContent = error;
+            document.getElementById(containerId).replaceChildren(alert);
+        }
+
+        /** Clears any error banners from a dialog's error container. */
+        function clearDialogErrors(containerId) {
+            document.getElementById(containerId).replaceChildren();
+        }
+
+        // R12: after a guided create whose tree node still has remaining
+        // also_required siblings, schedule-test writes a one-shot handoff
+        // record to sessionStorage (key oidf-also-required). Consume it here
+        // — read + remove, so the banner cannot resurface on later visits —
+        // and show a dismissible info banner naming the remaining plans with
+        // a link back into guided mode. The banner renders only when the
+        // record belongs to THIS plan, the viewer is authenticated, and this
+        // is not a public view. Built with element construction/textContent
+        // (no HTML interpolation), matching showDialogError's discipline.
+        function maybeShowAlsoRequiredBanner(planId, isPublic) {
+            // Keep in sync with HANDOFF_STORAGE_KEY in
+            // /components/guided-wizard.js (this classic script cannot
+            // import the ES module's constant).
+            var ALSO_REQUIRED_KEY = 'oidf-also-required';
+            var raw;
+            try {
+                raw = window.sessionStorage.getItem(ALSO_REQUIRED_KEY);
+                if (!raw) return;
+                window.sessionStorage.removeItem(ALSO_REQUIRED_KEY);
+            } catch (e) {
+                return; // storage unavailable — nothing to consume
+            }
+            var record;
+            try {
+                record = JSON.parse(raw);
+            } catch (e) {
+                console.warn('[plan-detail] malformed oidf-also-required record', e);
+                return;
+            }
+            if (!record || record.planId !== planId) return;
+            if (isPublic) return;
+            if (!FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest) return;
+            var siblings = Array.isArray(record.remainingSiblings) ? record.remainingSiblings : [];
+            if (!siblings.length || !record.preset) return;
+
+            var alert = document.createElement('cts-alert');
+            alert.setAttribute('variant', 'info');
+            alert.setAttribute('dismissible', '');
+            alert.id = 'alsoRequiredBanner';
+            // "🇧🇷 OpenFinance Brazil" → "OpenFinance Brazil" (strip the flag).
+            var ecoName = String(record.ecosystemLabel || '').replace(/^\S+\s+/, '');
+            var names = siblings.map(function (s) { return s.label; }).join(', ');
+            alert.appendChild(document.createTextNode(
+                'This plan is one part of your ' + (ecoName || 'ecosystem')
+                + ' certification. Still to set up: ' + names + '. '
+            ));
+            var link = document.createElement('a');
+            link.href = 'schedule-test.html?wizard_preset='
+                + encodeURIComponent(JSON.stringify(record.preset));
+            link.textContent = 'Set up ' + siblings[0].label + ' next';
+            alert.appendChild(link);
+
+            // Between the breadcrumb and the plan-detail grid.
+            document.getElementById('planDetailCrumb').insertAdjacentElement('afterend', alert);
         }
 
         /**
-         * Checks file inputs to make sure they're within max file size limits
+         * Checks file inputs to make sure they're within max file size limits.
          * @param filesToCheck array of file 'input' element IDs to check
          * @param maxFileSize max file size
          * @return {number} -1 if all files are less than maxFileSize
@@ -719,10 +306,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
          *                   in the list
          */
         function validateFileSizes(filesToCheck, maxFileSize) {
-            for(var i = 0; i < filesToCheck.length; i++) {
+            for (var i = 0; i < filesToCheck.length; i++) {
                 var file = document.getElementById(filesToCheck[i]);
-                if(file.files && file.files.length > 0) {
-                    if(file.files[0].size > maxFileSize) {
+                if (file.files && file.files.length > 0) {
+                    if (file.files[0].size > maxFileSize) {
                         return i;
                     }
                 }
@@ -730,96 +317,707 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             return -1;
         }
 
-        document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
+        function getPlan(planId, isPublic) {
+            return fetch('/api/plan/' + encodeURIComponent(planId) + (isPublic ? '?public=true' : ''))
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    var readonly = isPublic || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
+                    var isAdmin = !!(FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin);
 
-            const filesToCheck = [ "clientSideDataBtn" ];
-            const maxFileSize = 1024000;
-            const fileNum = validateFileSizes(filesToCheck, maxFileSize);
-            if (fileNum >= 0) {
-                evt.preventDefault();
-                showDialogError('certificationPackageFormErrors', document.getElementById(filesToCheck[fileNum]).files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
-                return false;
+                    document.getElementById('certificationPackageForm')
+                        .setAttribute('action', '/api/plan/' + planId + '/certificationpackage');
+
+                    // Breadcrumb: Plans > <plan name>
+                    var crumb = document.getElementById('planDetailCrumb');
+                    crumb.items = [
+                        { label: 'Plans', target: '/plans.html' },
+                        { label: data.planName || planId, target: '' },
+                    ];
+
+                    // Header
+                    var header = document.getElementById('planDetailHeader');
+                    header.plan = data;
+                    header.isAdmin = isAdmin;
+                    header.isPublic = isPublic;
+
+                    // Modules
+                    var modulesEl = document.getElementById('planDetailModules');
+                    var statusEl = document.getElementById('planDetailStatus');
+                    var mappedModules = (data.modules || []).map(function (mod) {
+                        // Preserve the original module shape; copy `instances`
+                        // into a fresh array so cts-plan-modules' internal
+                        // _getLastInstance() reads from a stable list (the
+                        // legacy template called .pop() on the original array).
+                        return Object.assign({}, mod, {
+                            instances: Array.isArray(mod.instances) ? mod.instances.slice() : [],
+                        });
+                    });
+                    modulesEl.modules = mappedModules;
+                    modulesEl.planId = planId;
+                    modulesEl.isReadonly = readonly;
+                    modulesEl.isImmutable = !!data.immutable;
+                    modulesEl.isPublic = isPublic;
+
+                    // Whole-plan status overview (detail mode): seed with the
+                    // same modules so segments render immediately (pending until
+                    // the /api/info fan-out below resolves each one). Each
+                    // segment is an in-page anchor (#cts-module-N) to its row;
+                    // the native hash jump sets the URL + the row's :target
+                    // highlight, and hashchange (below) adds the arrival flash.
+                    statusEl.modules = mappedModules.slice();
+                    statusEl.addEventListener('cts-plan-status-activate', function (evt) {
+                        // Only the DIMMED case needs JS: the target row is
+                        // filtered out of the DOM, so the component cancelled the
+                        // native jump (R11). Clear the filter, then once the row
+                        // re-renders set the hash so it scrolls + highlights. A
+                        // visible segment's native anchor already did all this.
+                        if (!evt.detail.dimmed) return;
+                        clearResultFilter();
+                        // Row id scheme MUST match moduleRowId() in
+                        // js/module-status.js (classic script cannot import it).
+                        var targetHash = '#cts-module-' + evt.detail.index;
+                        if (modulesEl.updateComplete) {
+                            modulesEl.updateComplete.then(function () {
+                                window.location.hash = targetHash;
+                            });
+                        } else {
+                            window.location.hash = targetHash;
+                        }
+                    });
+
+                    // On-load deep link: if the page opened on a #cts-module-N
+                    // link, the row didn't exist at initial parse so the browser
+                    // couldn't scroll to it. Once the rows render, pulse it (the
+                    // :target highlight applies from CSS as soon as the id exists).
+                    if (modulesEl.updateComplete) {
+                        modulesEl.updateComplete.then(flashRowFromHash);
+                    }
+
+                    // Actions
+                    var actionsEl = document.getElementById('planDetailActions');
+                    actionsEl.plan = data;
+                    actionsEl.isAdmin = isAdmin;
+                    actionsEl.isReadonly = readonly;
+
+                    // Wire up action events from cts-plan-actions ----------
+
+                    actionsEl.addEventListener('cts-download-all', function () {
+                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId)
+                            + (isPublic ? '?public=true' : ''));
+                    });
+
+                    actionsEl.addEventListener('cts-publish', function (evt) {
+                        // Open the secrets-warning confirmation modal (R1).
+                        // The modal's "Publish" button has data-publish set
+                        // from the descriptor; rewrite it for this run so the
+                        // mode (summary | everything) the user picked sticks.
+                        var confirmBtn = document.getElementById('confirmPublishBtn');
+                        if (confirmBtn) {
+                            confirmBtn.setAttribute('data-publish', evt.detail.mode);
+                        }
+                        document.getElementById('publishModal').show();
+                    });
+
+                    actionsEl.addEventListener('cts-unpublish', function () {
+                        sendPublish(planId, '');
+                    });
+
+                    actionsEl.addEventListener('cts-make-mutable', function () {
+                        makeMutable(planId);
+                    });
+
+                    actionsEl.addEventListener('cts-certify', function () {
+                        // Clear any banner left over from a previous open so a
+                        // stale error doesn't show before the user resubmits.
+                        clearDialogErrors('certificationPackageFormErrors');
+                        document.getElementById('certificationPackageModal').show();
+                    });
+
+                    actionsEl.addEventListener('cts-delete-plan', function () {
+                        deletePlan(planId);
+                    });
+
+                    actionsEl.addEventListener('cts-generate-private-link', function (evt) {
+                        var days = evt.detail.days;
+                        var uri = '/api/plan/' + encodeURIComponent(planId) + '/share?exp='
+                            + encodeURIComponent(days);
+                        var fetchPromise = fetch(uri, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                        }).then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+                            return response.json();
+                        });
+
+                        // Start clipboard.write() synchronously inside the
+                        // event handler so Safari permits it; the ClipboardItem
+                        // resolves later from the fetch promise.
+                        var clipboardWritePromise = null;
+                        try {
+                            clipboardWritePromise = navigator.clipboard.write([
+                                new ClipboardItem({
+                                    'text/plain': fetchPromise.then(shareLink =>
+                                        new Blob([shareLink.link], { type: 'text/plain' })),
+                                }),
+                            ]);
+                        } catch (e) {
+                            console.warn('[plan-detail] async clipboard write unavailable:', e);
+                        }
+
+                        fetchPromise.then((shareLink) => {
+                            // Write the link into cts-plan-actions's internal
+                            // result-display state. Reaching into the private
+                            // `_privateLinkResult` is how the page signals
+                            // "show the result"; the property is a Lit `state`
+                            // so assigning it triggers a re-render.
+                            actionsEl._privateLinkResult = shareLink.link;
+
+                            if (clipboardWritePromise) {
+                                clipboardWritePromise
+                                    .then(() => null, () => null);
+                            }
+                        }).catch((error) => {
+                            console.warn('[plan-detail] private link generation failed:', error);
+                            handleApiError(error);
+                        });
+                    });
+
+                    // Wire up module events -------------------------------
+
+                    modulesEl.addEventListener('cts-run-test', function (evt) {
+                        var testName = evt.detail.testModule;
+                        var variant = evt.detail.variant;
+                        if (FAPI_UI.currentUser && data.owner
+                            && FAPI_UI.currentUser.sub !== data.owner.sub) {
+                            var btn = document.getElementById('reRunTestModalBtn');
+                            btn.dataset.testName = testName;
+                            btn.dataset.variant = JSON.stringify(variant);
+                            document.getElementById('reRunTestModal').show();
+                        } else {
+                            runTest(testName, variant, planId);
+                        }
+                    });
+
+                    modulesEl.addEventListener('cts-download-log', function (evt) {
+                        window.open('/api/log/export/' + encodeURIComponent(evt.detail.testId)
+                            + (isPublic ? '?public=true' : ''));
+                    });
+
+                    // Fetch per-module status. Each module row carries the
+                    // last instance ID via data-instance-id on .module-row;
+                    // for each non-empty ID, fetch /api/info and merge the
+                    // status/result back into the corresponding module entry
+                    // so the badge re-renders with the live result.
+                    var modulesData = modulesEl.modules.slice();
+                    Promise.all(modulesData.map(function (mod, idx) {
+                        var lastInstance = mod.instances[mod.instances.length - 1];
+                        if (!lastInstance) return Promise.resolve();
+                        return fetch('/api/info/' + encodeURIComponent(lastInstance)
+                            + (isPublic ? '?public=true' : ''))
+                            .then((response) => {
+                                if (!response.ok) {
+                                    return Promise.reject(response);
+                                }
+                                return response.json();
+                            })
+                            .then((info) => {
+                                modulesData[idx] = Object.assign({}, modulesData[idx], {
+                                    status: info.status,
+                                    result: info.result,
+                                    // R18/KTD3: mark the segment resolved so
+                                    // cts-plan-status stops pulsing and colours it.
+                                    _statusResolved: true,
+                                });
+                            })
+                            .catch((error) => {
+                                // Settle the status segment even on failure
+                                // (R18) so it stops pulsing — set _statusResolved
+                                // in BOTH the 404 and the other-error branches.
+                                modulesData[idx] = Object.assign({}, modulesData[idx], {
+                                    _statusResolved: true,
+                                });
+                                if (error instanceof Response && error.status === 404) {
+                                    // Latest run inaccessible (e.g. unpublished
+                                    // by an admin). Leave the row at PENDING; the
+                                    // segment settles to the neutral skip colour.
+                                    return;
+                                }
+                                handleApiError(error);
+                            });
+                    })).then(() => {
+                        // Reassign so cts-plan-modules observes the change.
+                        modulesEl.modules = modulesData;
+                        // Feed the resolved modules to the status overview too
+                        // (fresh slice so Lit's reference-equality hasChanged
+                        // fires); pending segments now settle to their colour.
+                        statusEl.modules = modulesData.slice();
+
+                        // R26: show "Publish for certification" only when at
+                        // least one test has FINISHED and none of the
+                        // FINISHED tests has a FAILED result. WARNING / REVIEW
+                        // / SKIPPED do not block certification — only an
+                        // explicit FAILED does. cts-plan-actions renders the
+                        // button when this property is true.
+                        var finished = modulesData.filter(function (m) {
+                            return m.status === 'FINISHED';
+                        });
+                        var hasFailed = finished.some(function (m) {
+                            return m.result === 'FAILED';
+                        });
+                        actionsEl.canCertify = finished.length > 0 && !hasFailed;
+
+                        // R28 deep-link follow-on: for each FAILED row,
+                        // fetch the test log once and resolve the first
+                        // failed entry's LOG-NNNN reference, so the
+                        // status lozenge href deep-links to that entry
+                        // instead of the top of the log.
+                        //
+                        // Iteration mirrors the canonical site at
+                        // src/main/resources/static/components/cts-log-viewer.js
+                        // (formatter at lines 18-20, _buildReferences()
+                        // around line 403). The rule: every entry in the
+                        // chronological stream consumes an ordinal,
+                        // including `startBlock` rows. The shim is
+                        // duplicated here because plan-detail.html opens
+                        // a classic <script type="text/javascript"> and
+                        // cannot ES-import the helper. If the rule
+                        // changes there, update the iteration here too.
+                        //
+                        // Fail-soft: any fetch / parse error or a missing
+                        // FAILURE entry leaves firstFailureRef undefined
+                        // and the lozenge keeps the R28 top-of-log
+                        // fallback href. A single console.warn surfaces
+                        // the swallowed failure to dev tools so a real
+                        // contract drift on /api/log is detectable.
+                        Promise.all(modulesData.map(function (mod, idx) {
+                            if (mod.result !== 'FAILED') return Promise.resolve();
+                            var lastInstance = mod.instances[mod.instances.length - 1];
+                            if (!lastInstance) return Promise.resolve();
+                            return fetch('/api/log/' + encodeURIComponent(lastInstance)
+                                + (isPublic ? '?public=true' : ''))
+                                .then((response) => {
+                                    if (!response.ok) {
+                                        return Promise.reject(
+                                            new Error('HTTP ' + response.status));
+                                    }
+                                    return response.json();
+                                })
+                                .then((entries) => {
+                                    if (!Array.isArray(entries)) {
+                                        return Promise.reject(
+                                            new Error('expected array, got ' + typeof entries));
+                                    }
+                                    for (var i = 0; i < entries.length; i++) {
+                                        if (entries[i] && entries[i].result === 'FAILURE') {
+                                            var ordinal = i + 1;
+                                            var ref = 'LOG-'
+                                                + String(ordinal).padStart(4, '0');
+                                            modulesData[idx] = Object.assign(
+                                                {}, modulesData[idx], { firstFailureRef: ref });
+                                            return;
+                                        }
+                                    }
+                                    return Promise.reject(
+                                        new Error('no FAILURE entry found'));
+                                })
+                                .catch((error) => {
+                                    // Swallow by design (R1 fail-soft).
+                                    // Log once for observability so a real
+                                    // /api/log contract drift surfaces in
+                                    // dev tools and bug reports.
+                                    console.warn(
+                                        '[plan-detail] R28 deep-link resolution failed for '
+                                            + lastInstance + ':',
+                                        error);
+                                });
+                        })).then(() => {
+                            // Reassign with a fresh slice so Lit's default
+                            // hasChanged (reference equality) detects the
+                            // change and re-renders any FAILED rows whose
+                            // firstFailureRef just resolved. modulesData
+                            // here is the same array reference as the
+                            // first reassign above, so the slice is what
+                            // makes the property update fire.
+                            modulesEl.modules = modulesData.slice();
+                        });
+                    });
+                })
+                .catch((error) => {
+                    handleApiError(error);
+                    return Promise.reject(error);
+                });
+        }
+
+        function sendPublish(planId, publish) {
+            fetch('/api/plan/' + encodeURIComponent(planId) + '/publish', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publish: publish }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId)
+                        + (publish ? '&public=true' : ''));
+                })
+                .catch(handleApiError);
+        }
+
+        function makeMutable(planId) {
+            fetch('/api/plan/' + encodeURIComponent(planId) + '/makemutable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
+                })
+                .catch(handleApiError);
+        }
+
+        function deletePlan(planId) {
+            fetch('/api/plan/' + encodeURIComponent(planId), {
+                method: 'DELETE',
+            })
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    FAPI_UI.showError(error);
+                });
+        }
+
+        // Single source of truth for the /api/runner URL shape. The
+        // variant arg is serialised the same way the legacy single-module
+        // path expected: pass-through when it's already a string, JSON
+        // when it's an object, omitted when null/undefined. Kept as a
+        // helper (instead of inlining at the single call site) so any
+        // future query-param change happens in one place.
+        function buildRunnerUrl(testName, testVariant, planId) {
+            var url = '/api/runner?test=' + encodeURIComponent(testName)
+                + '&plan=' + encodeURIComponent(planId);
+            if (testVariant !== null && testVariant !== undefined) {
+                url += '&variant=' + encodeURIComponent(typeof testVariant === 'string'
+                    ? testVariant : JSON.stringify(testVariant));
+            }
+            return url;
+        }
+
+        function runTest(testName, testVariant, planId) {
+            FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+
+            fetch(buildRunnerUrl(testName, testVariant, planId), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
+                })
+                .catch(handleApiError);
+        }
+
+        /**
+         * Surface a failed fetch to the user via the error modal. Mirrors
+         * the legacy nested-catch pattern previously inlined at every fetch
+         * site, but extracted so each call site stays focused on its own
+         * happy-path flow. Network errors and HTTP errors with text/JSON
+         * bodies are normalised to {code, error} for FAPI_UI.showError.
+         */
+        function handleApiError(error) {
+            if (error instanceof Response) {
+                var message = error.statusText;
+                var responseClone = error.clone();
+                error.text()
+                    .then((textError) => {
+                        try {
+                            const errorObj = JSON.parse(textError);
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+                        } catch (e) {
+                            // Response body was not JSON; keep statusText.
+                        }
+                        FAPI_UI.showError({ code: error.status.toString(), error: message });
+                    })
+                    .catch(() => {
+                        responseClone.json()
+                            .then((jsonError) => {
+                                if (typeof jsonError === 'string' && jsonError.length != 0) {
+                                    message = jsonError;
+                                }
+                                FAPI_UI.showError({ code: error.status.toString(), error: message });
+                            })
+                            .catch(() => {
+                                FAPI_UI.showError({ code: error.status.toString(), error: error.statusText });
+                            });
+                    });
             } else {
-                // Hide previous modal content and the cancel and certification package buttons
+                FAPI_UI.showError({ code: '', error: error });
+            }
+        }
+
+        // ----- "Filter by result" coordinator (R9/R10/R11) -----
+        // cts-plan-status renders the merged count-summary + filter as a row of
+        // interactive count badges below the bar and emits cts-plan-status-filter
+        // when one is toggled (or "Clear filters" is pressed). The page holds the
+        // active filter once (a Set of raw result tokens plus the "NOT_RUN"
+        // sentinel) and pushes a fresh copy to BOTH cts-plan-modules (row
+        // narrowing) and cts-plan-status (segment dimming + badge pressed state),
+        // so the two never drift. Both children interpret the Set via the shared
+        // moduleMatchesResultFilter helper. Tokens must match js/module-status.js
+        // (this classic script cannot import the ES-module constants):
+        // "NOT_RUN" === NOT_RUN_FILTER_VALUE.
+        var activeResultFilter = new Set();
+
+        // Friendly labels for the live-region announcement, keyed by filter
+        // token. The badges carry their own visible labels; this map exists only
+        // for the screen-reader announcement. Mirrors RESULT_BADGES labels in
+        // cts-plan-status.js.
+        var RESULT_FILTER_LABELS = {
+            PASSED: 'Passed',
+            FAILED: 'Failed',
+            WARNING: 'Warning',
+            REVIEW: 'Review',
+            SKIPPED: 'Skipped',
+            NOT_RUN: 'Not run'
+        };
+
+        function applyResultFilter() {
+            // A fresh Set (or null when empty) so Lit's reference-equality
+            // hasChanged fires on both children.
+            var filter = activeResultFilter.size ? new Set(activeResultFilter) : null;
+            var modulesEl = document.getElementById('planDetailModules');
+            var statusEl = document.getElementById('planDetailStatus');
+            if (modulesEl) modulesEl.resultFilter = filter;
+            if (statusEl) statusEl.activeResultFilter = filter;
+            // Announce the filter change to assistive tech — the row narrowing +
+            // badge toggles are otherwise silent. applyResultFilter is only
+            // called on user action, so this never fires a spurious announcement.
+            var liveEl = document.getElementById('resultFilterStatus');
+            if (liveEl) {
+                if (activeResultFilter.size) {
+                    var labels = [];
+                    activeResultFilter.forEach(function (token) {
+                        labels.push(RESULT_FILTER_LABELS[token] || token);
+                    });
+                    liveEl.textContent = 'Filtering modules by: ' + labels.join(', ') + '.';
+                } else {
+                    liveEl.textContent = 'Filter cleared. Showing all modules.';
+                }
+            }
+        }
+
+        function toggleResultFilter(value) {
+            if (activeResultFilter.has(value)) {
+                activeResultFilter.delete(value);
+            } else {
+                activeResultFilter.add(value);
+            }
+            applyResultFilter();
+        }
+
+        function clearResultFilter() {
+            if (!activeResultFilter.size) return;
+            activeResultFilter.clear();
+            applyResultFilter();
+        }
+
+        function wireResultFilter() {
+            // cts-plan-status emits cts-plan-status-filter when a count badge is
+            // toggled ({ value: token }) or "Clear filters" is pressed
+            // ({ clear: true }).
+            var statusEl = document.getElementById('planDetailStatus');
+            if (!statusEl) return;
+            statusEl.addEventListener('cts-plan-status-filter', function (evt) {
+                if (evt.detail && evt.detail.clear) {
+                    clearResultFilter();
+                } else if (evt.detail && evt.detail.value) {
+                    toggleResultFilter(evt.detail.value);
+                }
+            });
+        }
+
+        // Deep-link arrival flash: when the URL hash points at a module row
+        // (a cts-plan-status detail segment was clicked, or the page was opened
+        // on such a link), pulse the row. The :target CSS in cts-plan-modules
+        // gives the persistent highlight; this adds the one-shot flash. Row id
+        // scheme MUST match moduleRowId() in js/module-status.js.
+        function flashRowFromHash() {
+            var match = /^#cts-module-(\d+)$/.exec(window.location.hash || '');
+            if (!match) return;
+            var modulesEl = document.getElementById('planDetailModules');
+            if (modulesEl && typeof modulesEl.highlightModule === 'function') {
+                modulesEl.highlightModule(Number(match[1]));
+            }
+        }
+
+        /**
+         * Wire up the modals and crumb. Runs from DOMContentLoaded so the
+         * cts-modal/cts-button/cts-crumb custom elements have upgraded —
+         * footer-button descriptors and slotted children only exist in the
+         * DOM after the component's connectedCallback runs. Reaching for
+         * these IDs at script parse time was a `null.addEventListener`
+         * crash.
+         */
+        function wireUpStaticHandlers(planId) {
+            document.getElementById('certificationPackageForm').addEventListener('submit', function (evt) {
+                const filesToCheck = ['clientSideDataBtn'];
+                const maxFileSize = 1024000;
+                const fileNum = validateFileSizes(filesToCheck, maxFileSize);
+                if (fileNum >= 0) {
+                    evt.preventDefault();
+                    showDialogError('certificationPackageFormErrors',
+                        document.getElementById(filesToCheck[fileNum]).files[0].name
+                        + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
+                    return false;
+                }
+
+                // Hide previous content + cancel/submit buttons; reveal the
+                // download-info content + Close button.
                 document.querySelector('#certificationPackageFormModalBody').hidden = true;
                 document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
                 document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
 
-                // Show the file download info content in the modal and the close button
                 document.querySelector('#certificationPackageDownloaded').hidden = false;
                 document.querySelector('#closeCertificationPackageFormModal').hidden = false;
-
                 return true;
+            });
+
+            document.getElementById('cancelCertificationPackageFormModal').addEventListener('cts-click', function () {
+                document.getElementById('certificationPackageModal').hide();
+            });
+
+            document.getElementById('closeCertificationPackageFormModal').addEventListener('cts-click', function () {
+                document.getElementById('certificationPackageModal').hide();
+                window.location.reload();
+            });
+
+            // publishModal — confirm button POSTs and navigates. The button
+            // is generated by cts-modal from the footer-buttons descriptor;
+            // it only exists after the component's connectedCallback runs.
+            var confirmPublishBtn = document.getElementById('confirmPublishBtn');
+            if (confirmPublishBtn) {
+                confirmPublishBtn.addEventListener('click', function (evt) {
+                    evt.preventDefault();
+                    var publish = this.getAttribute('data-publish') || '';
+                    document.getElementById('publishModal').hide();
+                    sendPublish(planId, publish);
+                });
             }
-        });
 
-        document.getElementById('closeCertificationPackageFormModal').onclick = function(evt) {
-            var myModalEl = document.getElementById('certificationPackageModal');
-            var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-            if (modal != null) {
-                modal.hide();
+            // reRunTestModal — confirm runs the test
+            var reRunBtn = document.getElementById('reRunTestModalBtn');
+            if (reRunBtn) {
+                reRunBtn.addEventListener('click', function (evt) {
+                    evt.preventDefault();
+                    var testName = this.dataset.testName;
+                    var variantRaw = this.dataset.variant;
+                    var variant = null;
+                    try {
+                        variant = variantRaw && variantRaw !== 'null' ? JSON.parse(variantRaw) : null;
+                    } catch (e) {
+                        variant = variantRaw;
+                    }
+                    document.getElementById('reRunTestModal').hide();
+                    runTest(testName, variant, planId);
+                });
             }
-            window.location.reload();
-        };
 
-        document.addEventListener("DOMContentLoaded", () => {
+            // Crumb navigation — bubble target into a window navigation
+            document.getElementById('planDetailCrumb').addEventListener('cts-crumb-navigate', function (evt) {
+                if (evt.detail && evt.detail.target) {
+                    window.location.assign(evt.detail.target);
+                }
+            });
+
+            // Inline result filter (R9/R10/R11). cts-plan-status emits the
+            // toggle events, so this wires up once at load.
+            wireResultFilter();
+            // Deep-link arrival flash for segment clicks (the :target highlight
+            // is CSS). Registered once; getPlan also calls it after the rows
+            // first render so an on-load #cts-module-N link pulses too.
+            window.addEventListener('hashchange', flashRowFromHash);
+        }
+
+        /**
+         * Wait for the cts-modal / cts-button / cts-plan-* custom elements
+         * to be defined. customElements.whenDefined() resolves once the
+         * element class is registered; only then are footer-button
+         * descriptors materialised and getElementById('confirmPublishBtn')
+         * returns the rendered <button>.
+         */
+        function waitForComponents() {
+            return Promise.all([
+                customElements.whenDefined('cts-modal'),
+                customElements.whenDefined('cts-button'),
+                customElements.whenDefined('cts-plan-header'),
+                customElements.whenDefined('cts-plan-actions'),
+                customElements.whenDefined('cts-plan-modules'),
+                customElements.whenDefined('cts-plan-status'),
+                customElements.whenDefined('cts-crumb'),
+            ]);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             var urlParams = new URLSearchParams(window.location.search);
             var planId = urlParams.get('plan');
-            var public = Boolean(urlParams.get('public'));
+            var isPublic = Boolean(urlParams.get('public'));
 
-            FAPI_UI.showBusy();
-
-            FAPI_UI.loadPlanTemplates() // Load the templates
-            .then(function() {
-                return FAPI_UI.getUserInfo() // Then get the current user info
-            }).then(function() {
-                return getPlan(planId, public); // Only once the user is loaded, then render the plan info
-            }).finally(function() {
-                FAPI_UI.activeTooltip();
-                FAPI_UI.hideBusy();
-            });
-
-            var clipboard = new ClipboardJS('.btn-clipboard');
-            clipboard.on('success', function(e) {
-                console.log(e);
-            });
-            clipboard.on('error', function(e) {
-                console.log(e);
-            });
-
-
-            document.querySelector('#confirmDeletePlanBtn').addEventListener('click', evt => {
-                fetch('/api/plan/' + encodeURIComponent(planId), {
-                    method:'DELETE'
-                }).then(response => {
-                    var myModalEl = document.getElementById('deletePlanModal');
-                    var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-                    if (modal != null) {
-                        modal.hide();
-                    }
-                    window.location.reload();
-                    return;
-                }).catch(error => {
-                    var myModalEl = document.getElementById('deletePlanModal');
-                    var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-                    if (modal != null) {
-                        modal.hide();
-                    }
-                    FAPI_UI.showError(error);
+            // No FAPI_UI.showBusy() here: the in-page cts-loading-state in the
+            // static markup is the initial-load indicator, so the page loads
+            // like log-detail.html (in-page loader, no blocking modal +
+            // overlay). The #loadingModal is still used by runTest() for the
+            // transitional "Creating a new test…" action.
+            waitForComponents()
+                .then(function () {
+                    wireUpStaticHandlers(planId);
+                })
+                .then(function () {
+                    return FAPI_UI.getUserInfo();
+                })
+                .then(function () {
+                    return getPlan(planId, isPublic);
+                })
+                .finally(function () {
+                    // Reveal the plan grid and drop the in-page loader once
+                    // the load settles — same reveal timing the old
+                    // FAPI_UI.hideBusy() had (success or error; on error the
+                    // #errorModal surfaces over the revealed page).
+                    var loading = document.getElementById('planDetailLoading');
+                    if (loading) loading.remove();
+                    var grid = document.getElementById('planDetailGrid');
+                    if (grid) grid.hidden = false;
+                    // After the plan load settles either way — the banner is
+                    // navigation chrome, not plan data, so a failed plan
+                    // fetch must not strand the record un-consumed.
+                    maybeShowAlsoRequiredBanner(planId, isPublic);
                 });
-            });
-
         });
     </script>
 
 
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-    </footer>
+    <cts-footer></cts-footer>
 
+    <cts-toast-host></cts-toast-host>
 </body>
 
 </html>

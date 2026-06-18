@@ -1,0 +1,431 @@
+import { test, expect } from "@playwright/test";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  MOCK_IMAGES_PENDING,
+  MOCK_IMAGES_EMPTY,
+  MOCK_UPLOAD_TEST_INFO,
+  MOCK_UPLOAD_TEST_INFO_LONG_TOKEN,
+} from "./fixtures/upload-data.js";
+
+/**
+ * Helper: register upload-page-specific routes.
+ * Must be called after setupFailFast and before setupCommonRoutes.
+ *
+ * upload.html consumes:
+ *   - /api/log/:testId/images       (GET) — list of pending/existing entries
+ *   - /api/info/:testId             (GET) — test info for the page header
+ *   - /api/log/:testId/images/:slot (POST) — fixed-slot upload submit
+ *   - /api/log/:testId/images       (POST) — ad-hoc additional upload submit
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ testId: string; images: unknown; uploadStatus?: number; testInfo?: object }} options
+ */
+async function setupUploadRoutes(
+  page,
+  { testId, images, uploadStatus = 200, testInfo = MOCK_UPLOAD_TEST_INFO },
+) {
+  await page.route(`**/api/log/${testId}/images*`, (/** @type {any} */ route) => {
+    if (route.request().method() === "GET") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(images),
+      });
+    }
+    if (uploadStatus === 200) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          _id: "img-new-001",
+          img: "data:image/png;base64,iVBORw0KGgo=",
+        }),
+      });
+    }
+    return route.fulfill({
+      status: uploadStatus,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Upload rejected" }),
+    });
+  });
+
+  await page.route(`**/api/info/${testId}`, (/** @type {any} */ route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ...testInfo, testId }),
+    }),
+  );
+}
+
+test.describe("upload.html — Image Uploader", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("renders a single cts-image-upload instance hooked to the test id", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // The page wraps cts-image-upload in a headerless <cts-card>. Assert
+    // the card chrome is present so a future revert of the wrapper surfaces
+    // as a test failure rather than passing silently. toBeVisible() is
+    // strictly stronger than toHaveCount(1) — it also catches a card that
+    // exists in the DOM but is hidden (display:none, zero dimensions, etc.).
+    await expect(page.locator("cts-card")).toBeVisible();
+
+    const uploader = page.locator("cts-image-upload");
+    await expect(uploader).toHaveCount(1);
+
+    // The page sets testId as a property (no attribute reflection).
+    await expect
+      .poll(async () => uploader.evaluate((el) => /** @type {any} */ (el).testId))
+      .toBe("test-upload-001");
+  });
+
+  test("empty server list still offers an ad-hoc editable-description slot", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // One pending image (the synthetic additional uploader) and zero existing.
+    const uploader = page.locator("cts-image-upload");
+    await expect(uploader.locator('[data-testid="pending-image"]')).toHaveCount(1);
+
+    // The slot renders the editable description input.
+    const desc = uploader.locator(".oidf-image-upload__description-input");
+    await expect(desc).toBeVisible();
+    await expect(desc).toHaveAttribute("required", "");
+
+    // Upload button starts disabled (no file + no description).
+    const upload = uploader.locator("button.oidf-image-upload__upload-btn");
+    await expect(upload).toBeDisabled();
+  });
+
+  test("server-provided pending entry renders read-only description", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_PENDING,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const uploader = page.locator("cts-image-upload");
+    // One server pending + one synthetic additional (total < limit).
+    await expect(uploader.locator('[data-testid="pending-image"]')).toHaveCount(2);
+
+    // The server pending renders the spec message as a read-only label.
+    await expect(uploader).toContainText(
+      "Upload a screenshot showing the browser when the authorization endpoint was reached.",
+    );
+
+    // Exactly one description-input on the page (only the editable slot has one).
+    await expect(uploader.locator(".oidf-image-upload__description-input")).toHaveCount(1);
+  });
+
+  test("page-head and test info render from /api/info", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const pageHead = page.locator("cts-page-head");
+    await expect(pageHead).toBeVisible();
+    await expect(pageHead).toContainText("Image Uploader");
+
+    const testInfo = page.locator("#testInfo");
+    await expect(testInfo).toContainText("oidcc-server");
+    await expect(testInfo).toContainText("test-upload-001");
+    await expect(testInfo).toContainText("Upload screenshots for this test run");
+  });
+
+  test("return link renders above the test info card and points at log-detail", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // Scope to <main> — cts-navbar renders its own links (strict mode).
+    const returnLink = page.locator("main cts-link-button#returnToLog");
+    await expect(returnLink).toBeVisible();
+    await expect(returnLink).toContainText("Return to test log");
+
+    // The inner anchor carries the navigation semantics, not the host
+    // (docs/solutions/web-components/cts-button-host-vs-inner-button-semantics-2026-04-17.md).
+    await expect(returnLink.locator("a")).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-upload-001",
+    );
+
+    // The link precedes the card in DOM order — it must not depend on
+    // renderTestInfo() to appear.
+    const linkPrecedesCard = await page.evaluate(() => {
+      const link = document.getElementById("returnToLog");
+      const info = document.getElementById("testInfo");
+      if (!link || !info) return false;
+      return Boolean(link.compareDocumentPosition(info) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(linkPrecedesCard).toBe(true);
+  });
+
+  test("info card does not overflow horizontally at 375px when the summary holds a long token", async ({
+    page,
+  }) => {
+    // overflow-wrap: anywhere + the minmax(0, 1fr) value track must break
+    // long unbroken tokens instead of widening the page. Modeled on
+    // log-detail.spec.js "entries stream does not overflow horizontally".
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+      testInfo: MOCK_UPLOAD_TEST_INFO_LONG_TOKEN,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // Wait for the long-token summary to land in the card.
+    await expect(page.locator("#testInfo")).toContainText("CiRmWkRB");
+
+    const overflow = await page.evaluate(() => {
+      const card = document.getElementById("testInfo");
+      const summary = card && card.querySelector(".upload-test-info__summary");
+      if (!card || !summary) {
+        return { found: false };
+      }
+      return {
+        found: true,
+        cardScroll: card.scrollWidth,
+        cardClient: card.clientWidth,
+        summaryScroll: summary.scrollWidth,
+        summaryClient: summary.clientWidth,
+        pageScroll: document.documentElement.scrollWidth,
+        pageClient: document.documentElement.clientWidth,
+      };
+    });
+
+    expect(overflow.found).toBe(true);
+    // documentElement is the real horizontal-scroll surface; the summary
+    // element itself must also fit so future clipping on an ancestor
+    // can't mask child overflow.
+    expect(overflow.cardScroll).toBeLessThanOrEqual(overflow.cardClient ?? 0);
+    expect(overflow.summaryScroll).toBeLessThanOrEqual(overflow.summaryClient ?? 0);
+    expect(overflow.pageScroll).toBeLessThanOrEqual(overflow.pageClient ?? 0);
+  });
+
+  test("return link keeps its href when /api/info fails", async ({ page }) => {
+    await setupFailFast(page);
+    await page.route("**/api/log/test-upload-001/images*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_IMAGES_EMPTY),
+      }),
+    );
+    await page.route("**/api/info/test-upload-001", (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "boom" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // The error surfaces through the modal, but the link is wired from
+    // the URL param at DOMContentLoaded and stays navigable.
+    await expect(page.locator("#errorModal")).toBeVisible();
+    await expect(page.locator("main cts-link-button#returnToLog a")).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-upload-001",
+    );
+  });
+
+  test("return link renders disabled when the log param is missing", async ({ page }) => {
+    await setupFailFast(page);
+    // With no ?log= the page still fires its API calls with the literal
+    // "null" id (pre-existing behavior) — mock them so fail-fast doesn't trip.
+    await page.route("**/api/log/null/images*", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Invalid log id" }),
+      }),
+    );
+    await page.route("**/api/info/null", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Invalid log id" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html");
+
+    // cts-link-button drops the href entirely when disabled — the user
+    // can't navigate to a broken log-detail.html?log= URL.
+    const anchor = page.locator("main cts-link-button#returnToLog a");
+    await expect(anchor).toHaveAttribute("aria-disabled", "true");
+    const href = await anchor.getAttribute("href");
+    expect(href).toBeNull();
+  });
+
+  test("dropping a valid PNG on the inline zone enables Upload (with description)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const uploader = page.locator("cts-image-upload");
+    const zone = uploader.locator('label[data-testid="inline-dropzone"]');
+    await expect(zone).toBeVisible();
+
+    const upload = uploader.locator("button.oidf-image-upload__upload-btn");
+    await expect(upload).toBeDisabled();
+
+    // Type a description.
+    await uploader
+      .locator(".oidf-image-upload__description-input")
+      .fill("Manual additional screenshot");
+
+    // Synthesize a drop with a small valid PNG.
+    await zone.evaluate((el) => {
+      // 1x1 transparent PNG header — decodes as a real image so the preview
+      // doesn't render the broken-image glyph during interactive review.
+      const PNG = atob(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+      );
+      const buf = new Uint8Array(PNG.length);
+      for (let i = 0; i < PNG.length; i++) buf[i] = PNG.charCodeAt(i);
+      const file = new File([buf], "drop.png", { type: "image/png" });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      el.dispatchEvent(new DragEvent("drop", { bubbles: true, dataTransfer: dt }));
+    });
+
+    // FileReader is async — wait for the Upload button to flip.
+    await expect(upload).toBeEnabled();
+  });
+
+  test("successful upload surfaces a non-blocking 'Image uploaded' toast", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // The host mount must be on the page before the upload event fires —
+    // the cross-page wiring promises an always-mounted region per page.
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
+    const uploader = page.locator("cts-image-upload");
+    await expect(uploader).toBeVisible();
+
+    // The cts-toast-api module is a deferred `<script type="module">`;
+    // wait until window.ctsToast has been installed before firing the
+    // event so the test never races module evaluation. Without this, a
+    // fast page-load on CI could let `cts-image-uploaded` fire while the
+    // module is still parsing — the listener's `typeof === 'function'`
+    // guard would silently no-op the toast and the test would flake.
+    await page.waitForFunction(() => typeof (/** @type {any} */ (window).ctsToast) === "function");
+
+    // The page's `cts-image-uploaded` listener calls window.ctsToast +
+    // refreshImages. Dispatching the event here exercises the exact
+    // seam the plan's R7 smoke-test migration touches, without depending
+    // on cts-image-upload's internal POST plumbing.
+    await uploader.evaluate((el) => {
+      el.dispatchEvent(new CustomEvent("cts-image-uploaded", { bubbles: true }));
+    });
+
+    const toast = page.locator("cts-toast-host cts-toast");
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText("Image uploaded");
+    // `kind: "ok"` resolves to the status-pass left rule (green) — the
+    // inline style on `.oidf-toast` carries the CSS custom-property name.
+    await expect(toast.locator(".oidf-toast")).toHaveAttribute("style", /--status-pass/);
+
+    // Time-coupling note (residual finding #10 from
+    // docs/residual-review-findings/2026-05-19-cts-toast-cross-page-379767a39.md):
+    // this assertion is hard-coupled to the 5000ms default `duration` on
+    // `cts-toast`. Wall-clock cost: ~5.5s per CI run. If the component
+    // default duration were raised above ~5800ms the timeout below would
+    // flake; lowered, the test would be silently slow.
+    //
+    // **Decision: accept the cost (option A).** The single-test ~5.5s
+    // budget is acceptable today, and the production `cts-image-uploaded`
+    // event listener stays free of test-only knobs. The 1s slack covers
+    // scheduler jitter on busy CI runners — `dismiss()` removes the
+    // element synchronously (the CSS transition is cosmetic), so the
+    // slack exists for timer-firing latency, not the fade-out.
+    //
+    // **Revisit option B if** multiple future toast-driven e2es
+    // accumulate similar 5s waits. Option B = plumb a
+    // `duration: 500` override into the dispatched `cts-image-uploaded`
+    // event handler (e.g. read `event.detail?.toastDurationOverride` in
+    // `upload.html` for test-only injection) and drop the timeout to
+    // ~1500ms here.
+    await expect(toast).toHaveCount(0, { timeout: 6000 });
+  });
+
+  test("server error on initial load surfaces through the errorModal", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/log/test-upload-001/images*", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Invalid log id" }),
+      }),
+    );
+    await page.route("**/api/info/test-upload-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_UPLOAD_TEST_INFO),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const errorModal = page.locator("#errorModal");
+    await expect(errorModal).toBeVisible();
+    await expect(errorModal).toContainText("Invalid log id");
+  });
+});

@@ -49,9 +49,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
+import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -154,6 +156,9 @@ class WebSecurityOidcLoginConfig {
 					"/login.html",  //
 					"/css/**",  //
 					"/js/**",  //
+					"/vendor/**", // bundled third-party libs (bootstrap, lit, jquery, ...)
+					"/components/**", // Lit web components loaded by public pages
+					"/lib/**", // ES module support libs (e.g. lib/time-format.js) imported by public-page components
 					"/images/**", //
 					"/templates/**", //
 					"/favicon.ico",  //
@@ -222,6 +227,35 @@ class WebSecurityOidcLoginConfig {
 				}
 			}).denyAll();
 
+			// `/` and the legacy `/index.html` resolve via the auth-aware
+			// net.openid.conformance.ui.HomeController (anonymous -> 302
+			// /login.html, authenticated -> 302 /plans.html). Both must stay
+			// permitted here so anonymous requests reach that controller at all —
+			// this chain ends with anyRequest().authenticated(). The `/plans.html`
+			// / `/logs.html` listing pages must likewise resolve for anonymous
+			// visitors (public browsing via ?public=true and the login page's
+			// "browse without signing in" links). These HTML shells carry no
+			// sensitive data; the authorization boundary stays the /api/* chain
+			// (WebSecurityResourceServerConfig), which independently restricts
+			// private-link users to their shared asset. This permit is placed
+			// AFTER the private-link denyAll matcher above (mirroring the
+			// publicRequestMatcher block below) so private-link sessions remain
+			// locked to their shared log-/plan-detail page and do not gain access
+			// to the listing pages — nor to `/`, which the denyAll matcher stops
+			// before HomeController ever runs.
+			httpRequests.requestMatchers( //
+					"/", //
+					"/index.html", //
+					"/plans.html", //
+					"/logs.html" //
+				) //
+				.permitAll();
+
+			// `/plans.html` and `/logs.html` are already permitted unconditionally
+			// above, so their entries here are redundant (first match wins) and kept
+			// only to leave this pre-existing block untouched. `/log-detail.html` and
+			// `/plan-detail.html` remain load-bearing: they are public ONLY with
+			// `?public=true` (the PublicRequestMatcher gate), never unconditionally.
 			httpRequests.requestMatchers( //
 					publicRequestMatcher( //
 						"/log-detail.html", //
@@ -249,7 +283,7 @@ class WebSecurityOidcLoginConfig {
 		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+$");
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
-			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
+			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/plans.html"));
 			ott.failureHandler(loginFailureHandler);
 			ott.successHandler(new AuthenticationSuccessHandler() {
 				@Override
@@ -334,7 +368,22 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.logout(logout -> {
-			logout.logoutSuccessUrl("/login.html");
+			// `?logout=true` lights up the "You have been logged out." banner
+			// on login.html (it gates on the param VALUE being truthy, so a
+			// bare `?logout` would not trigger it).
+			logout.logoutSuccessUrl("/login.html?logout=true");
+			// Pages are bfcache-eligible now that they send "Cache-Control:
+			// no-cache" instead of no-store (ApplicationConfig
+			// addResourceHandlers). Evict the browser's cache for this origin
+			// on logout so the Back button cannot restore an
+			// authenticated-looking shell on a shared machine. CACHE only:
+			// cookies/storage are owned by the session logout itself.
+			// Requires the request to look secure, which forward-headers
+			// handling guarantees behind the TLS proxy
+			// (server.forward-headers-strategy=NATIVE) and
+			// RejectPlainHttpTrafficFilter enforces.
+			logout.addLogoutHandler(new HeaderWriterLogoutHandler(
+				new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE)));
 		});
 
 		//added to disable x-frame-options only for certain paths

@@ -1,0 +1,20 @@
+# Legacy static assets (not migrated to the component-refactor tree)
+../src/main/resources/static/vendor/**
+../src/main/resources/static/js/fapi.ui.js
+../src/main/resources/static/*.html
+../src/main/resources/static/css/**
+# lodash `_.template()` files; Prettier's HTML mode mangles `<% %>` blocks.
+../src/main/resources/static/templates/**
+
+# Generated / tooling output
+node_modules/
+test-results/
+playwright-report/
+storybook-static/
+.vite/
+public/mockServiceWorker.js
+**/*.min.js
+
+# Playwright snapshot baselines — recorded byte-for-byte from the live page;
+# reformatting would diverge from runtime output and fail the next test run.
+e2e/**/*-snapshots/**

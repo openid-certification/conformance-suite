@@ -1,0 +1,413 @@
+import { LitElement, html, nothing, css } from "lit";
+import "./cts-link-button.js";
+import "./cts-tooltip.js";
+import "./cts-icon.js";
+
+const STYLE_ID = "cts-view-tabs-styles";
+
+const STYLE_TEXT = css`
+  /* The host is the size container that the narrow-state block at the bottom
+   of this sheet queries. Custom elements default to display:inline, which
+   cannot establish size containment, so the host is made a block-level
+   inline-size container — the control then adapts to its actual available
+   width in any embedding context (page, Storybook iframe, a future narrow
+   pane) rather than to the viewport. */
+  cts-view-tabs {
+    display: block;
+    container-type: inline-size;
+  }
+  .cts-view-tabs {
+    display: flex;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  /* Direct-child combinator (> a), NOT a descendant selector: the My/Published
+   tabs are the nav's own anchors, while the opt-in "Schedule test" CTA renders a
+   nested <a class="oidf-btn"> (inside cts-link-button) that is a grandchild.
+   A bare ".cts-view-tabs a" would outspecify ".oidf-btn" (0,1,1 vs 0,1,0) and
+   leak the tab styling (grey text, 2px bottom border, -1px margin) onto the
+   button. Keep this scoped to > a. */
+  .cts-view-tabs > a {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    text-decoration: none;
+    /* Labels never wrap mid-label ("My Test / Plans"); below ~360px viewports
+     the row may clip instead, which is accepted (see the mobile-stacking
+     plan's scope boundaries). */
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition:
+      color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard);
+  }
+  .cts-view-tabs > a:hover {
+    color: var(--fg);
+  }
+  .cts-view-tabs > a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
+  .cts-view-tabs > a[aria-current="page"] {
+    color: var(--fg);
+    border-bottom-color: var(--orange-400);
+  }
+  /* Opt-in "Schedule test" CTA (R11), rendered at the end of the tabs row in
+   every state whenever a page sets create-test-href. Pushed to the right edge
+   (margin-left:auto) and vertically centered so it sits in the tab row without
+   inheriting the anchors' bottom-border overlap. */
+  .cts-view-tabs .cts-view-tabs-cta {
+    margin-left: auto;
+    align-self: center;
+    /* Inherits down to the inner .oidf-btn so the label never wraps
+     ("Schedule / test") while the row is being squeezed. */
+    white-space: nowrap;
+  }
+  /* Opt-in Published help affordance (R22): a circled-question-mark icon sitting
+   inside the Published anchor, immediately after its label, revealing a
+   descriptor tooltip on hover/focus. The cts-icon itself is the focusable
+   trigger (tabindex=0) so the tooltip is keyboard-reachable; align-self centers
+   it within the anchor's inline-flex box, and margin-left keeps it from sitting
+   snug against the label text. Mirrors the established cts-plan-modules
+   help-icon colour + focus-ring treatment. */
+  .cts-view-tabs .cts-view-tabs-help-icon {
+    align-self: center;
+    margin-left: var(--space-2);
+    color: var(--fg-faint);
+    cursor: help;
+  }
+  .cts-view-tabs .cts-view-tabs-help-icon:hover {
+    color: var(--fg);
+  }
+  .cts-view-tabs .cts-view-tabs-help-icon:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
+  /* Narrow-state stacking: below a 640px container width (the codebase's
+   small-tier precedent — cts-log-viewer/cts-log-entry query the same value)
+   the single row no longer fits "My Test Plans | Published Test Plans (?) |
+   Schedule test", so the CTA drops to its own full-width row BELOW the tabs
+   and their divider. Wide rendering (>= 640px) is untouched by this block. */
+  @container (width < 640px) {
+    .cts-view-tabs {
+      flex-wrap: wrap;
+      /* The base "gap" shorthand would become a 4px row-gap between wrapped
+       lines, which the anchors' -1px bottom margin cannot close — the
+       divider must sit flush under the anchor line so the active tab's 2px
+       underline keeps overlapping it exactly as on desktop. Keep the
+       horizontal gap, zero the vertical one. */
+      column-gap: var(--space-1);
+      row-gap: 0;
+      /* The full-width divider moves from the nav's own border to the
+       ::after line box below so it can sit between the tabs and the CTA. */
+      border-bottom: none;
+    }
+    /* The wrapped-state divider: a zero-height full-width flex item whose
+     border paints the same 1px rule the nav's border-bottom paints on
+     desktop. Default order (0) + last-child box position put it after the
+     anchors; the CTA's order:1 pushes the CTA below it. */
+    .cts-view-tabs::after {
+      content: "";
+      flex-basis: 100%;
+      border-bottom: 1px solid var(--border);
+    }
+    /* ::after paints as the nav's last box, which would draw the grey rule
+     over the active anchor's overlapping underline pixel. Positioned boxes
+     paint above non-positioned ones, restoring the desktop paint order
+     (underline above rule). */
+    .cts-view-tabs > a {
+      position: relative;
+    }
+    .cts-view-tabs .cts-view-tabs-cta {
+      order: 1;
+      flex-basis: 100%;
+      margin-left: 0;
+      margin-top: var(--space-3);
+    }
+    /* Mirror cts-link-button's own [full-width] pattern (cts-link-button.js:
+     "cts-link-button[full-width] .oidf-btn { width: 100% }") for the narrow
+     state only — the attribute itself cannot be toggled by a container
+     query — and lift the sm button (30px) to a 44px touch target per
+     WCAG 2.5.8 / platform guidance. */
+    .cts-view-tabs .cts-view-tabs-cta .oidf-btn {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+`;
+
+/**
+ * Inject the scoped stylesheet for `cts-view-tabs` into `<head>` once. The
+ * `STYLE_ID` flag makes this a no-op on subsequent component mounts so
+ * multiple instances on the same page do not duplicate the rules. Mirrors
+ * the head-style injection pattern used by `cts-footer`.
+ */
+function ensureStylesInjected() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT.cssText;
+  document.head.appendChild(style);
+}
+
+/**
+ * URL-driven **navigation** control for the My / Published dataset split,
+ * consumed by both `plans.html` and `logs.html`.
+ *
+ * This is deliberately a `<nav>` landmark with anchor links and
+ * `aria-current="page"` on the active view — NOT an ARIA tablist
+ * (`role="tab"`/`role="tablist"`). My vs Published changes the dataset that is
+ * fetched and must be URL-addressable (deep-link, back/forward, the
+ * `?public=true` alias), which is a navigation concern, not in-page content
+ * switching (KTD1). The existing `cts-tabs` is a content-switching widget with
+ * no URL state and is the wrong primitive here.
+ *
+ * An optional "Schedule test" CTA (opt-in via `create-test-href`, see that
+ * property) renders at the end of the row in every state (My, Published, and
+ * anonymous) as a persistent entry point to start a test (R11). It is hosted
+ * inside this `<nav>` by deliberate choice: a "Schedule test" link navigates to
+ * another page, so it is navigation, and the visual placement at the end of the
+ * tabs row is the product intent. The accessible name stays "Dataset view".
+ *
+ * Responsive behavior: the host is an inline-size container, and below a 640px
+ * container width the row stacks — the anchors keep a single line, the divider
+ * moves to a full-width `::after` line under them, and the CTA drops to its own
+ * full-width 44px-tall row beneath the divider (DOM order is unchanged; the
+ * stacking is pure CSS in the `@container` block of `STYLE_TEXT`).
+ *
+ * The canonical "Published" signal is `?public=true`; "My" is the absence of
+ * the `public` param (KTD2). The control merely reads/writes that param:
+ * clicking a tab `pushState`s the new URL (so each switch is a back/forward
+ * step) and emits `cts-view-tab-change`. The host `<nav aria-label="Dataset
+ * view">` is uniquely labelled so screen-reader landmark navigation
+ * distinguishes it from the main `cts-navbar` nav (WCAG 2.4.1).
+ *
+ * popstate ownership: because `pushState` changes the URL without re-mounting
+ * the component, a `popstate` listener re-derives the active tab from
+ * `location.search`, re-renders, AND re-emits `cts-view-tab-change` so the page
+ * (which hydrates from the URL only once at connect) re-fetches the matching
+ * dataset on back/forward. Without this, back/forward would change the address
+ * bar but not the dataset (R5).
+ *
+ * On initial connect the component derives + renders the active state from the
+ * URL but does NOT emit `cts-view-tab-change` — the page already issues the
+ * initial fetch via its auth-gated inline path, so emitting here would
+ * double-fetch.
+ *
+ * Light DOM (`createRenderRoot` returns `this`). Scoped CSS is injected into
+ * `<head>` once on first connect. The `:not(:defined)` block-height
+ * reservation lives in `css/layout.css` (KTD6).
+ * @property {boolean} authenticated - When false (the anon-safe default), the
+ *   My anchor is NOT rendered — anonymous visitors only see Published. Reflects
+ *   the `authenticated` attribute. Set authoritatively by the page once
+ *   `/api/currentuser` resolves.
+ * @property {string} createTestHref - Opt-in destination for a "Schedule test"
+ *   CTA rendered at the end of the tabs row (R11). When set, the CTA appears in
+ *   every state — on the My and Published views, and for anonymous visitors —
+ *   so it is a persistent entry point to start a test (an anonymous click lands
+ *   on the server-auth-gated schedule page). Pages that should not offer test
+ *   scheduling (e.g. `logs.html`) simply leave it unset, so the shared control
+ *   stays page-neutral. Reflects the `create-test-href` attribute.
+ * @property {string} publishedHelp - Opt-in descriptor text for the Published
+ *   view (R22). When set, a circled-question-mark help icon renders inside the
+ *   Published anchor, just after its label; hovering or keyboard-focusing it reveals a
+ *   tooltip carrying this text, and the same text is the icon's `aria-label`
+ *   (the only screen-reader channel, since `cts-tooltip` has no
+ *   `aria-describedby`). The copy differs per page (published plans vs.
+ *   published logs), so each page sets its own; pages that want no help affordance
+ *   leave it unset. Reflects the `published-help` attribute.
+ * @property {string} datasetNoun - Opt-in noun appended to the tab labels so
+ *   they name the dataset the page shows: set `"Test Plans"` on plans.html and
+ *   `"Test Logs"` on logs.html, yielding "My Test Plans" / "Published Test
+ *   Plans" and "My Test Logs" / "Published Test Logs". When unset (the default),
+ *   the labels fall back to plain "My" / "Published". Reflects the
+ *   `dataset-noun` attribute.
+ * @fires cts-view-tab-change - When the active view changes (click or
+ *   back/forward), with `{ detail: { view, isPublic } }` where `view` is
+ *   `"my"` | `"published"`; bubbles and is composed.
+ */
+class CtsViewTabs extends LitElement {
+  static properties = {
+    authenticated: { type: Boolean, attribute: "authenticated" },
+    createTestHref: { type: String, attribute: "create-test-href" },
+    publishedHelp: { type: String, attribute: "published-help" },
+    datasetNoun: { type: String, attribute: "dataset-noun" },
+  };
+
+  constructor() {
+    super();
+    // Anon-safe default: never flash the My tab to an anonymous visitor. The
+    // page sets this to true once /api/currentuser confirms a session.
+    this.authenticated = false;
+    // Empty by default: the CTA is opt-in per page (only plans.html sets it).
+    this.createTestHref = "";
+    // Empty by default: the Published help affordance is opt-in per page.
+    this.publishedHelp = "";
+    // Empty by default: labels fall back to plain "My" / "Published" until a
+    // page sets the noun (e.g. "Test Plans" / "Test Logs").
+    this.datasetNoun = "";
+    this._handlePopState = this._handlePopState.bind(this);
+  }
+
+  createRenderRoot() {
+    ensureStylesInjected();
+    return this;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Re-render on back/forward and re-emit so the page re-fetches the
+    // dataset matching the restored URL — connectedCallback-only hydration
+    // does not satisfy the back/forward requirement (R5).
+    window.addEventListener("popstate", this._handlePopState);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener("popstate", this._handlePopState);
+  }
+
+  /**
+   * The currently-active view, derived from auth + the URL. Anonymous visitors
+   * are always on Published; otherwise the canonical Published signal is
+   * `?public=true` (an exact `=== 'true'` match), and its absence means My.
+   * @returns {"my" | "published"} The active view.
+   */
+  get _activeView() {
+    if (!this.authenticated) return "published";
+    return new URLSearchParams(location.search).get("public") === "true" ? "published" : "my";
+  }
+
+  /**
+   * Re-render and re-emit when the user navigates back/forward. The active
+   * view is re-derived from the new URL inside render()/`_activeView`, so this
+   * only needs to request an update and dispatch the change for the page.
+   * @returns {void}
+   */
+  _handlePopState() {
+    this.requestUpdate();
+    this._emitChange();
+  }
+
+  /**
+   * Dispatch `cts-view-tab-change` carrying the current active view so the
+   * page can set/clear `is-public` and re-fetch.
+   * @returns {void}
+   */
+  _emitChange() {
+    const view = this._activeView;
+    this.dispatchEvent(
+      new CustomEvent("cts-view-tab-change", {
+        bubbles: true,
+        composed: true,
+        detail: { view, isPublic: view === "published" },
+      }),
+    );
+  }
+
+  /**
+   * Click handler for both anchors. Prevents the default navigation, writes
+   * the target view into the URL via `pushState` (preserving `location.hash`
+   * and any non-`public` params), re-renders so `aria-current` updates, then
+   * emits `cts-view-tab-change`.
+   * @param {MouseEvent} event - The anchor click event.
+   * @returns {void}
+   */
+  _handleTabClick(event) {
+    // Let the browser handle modifier-key / non-primary clicks natively so
+    // "open in new tab/window" and middle-click work on the anchors.
+    const me = /** @type {MouseEvent} */ (event);
+    if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    const view = /** @type {HTMLElement} */ (event.currentTarget).dataset.view;
+    const params = new URLSearchParams(location.search);
+    if (view === "published") {
+      params.set("public", "true");
+    } else {
+      params.delete("public");
+    }
+    const query = params.toString();
+    const newUrl = location.pathname + (query ? `?${query}` : "") + location.hash;
+    history.pushState(null, "", newUrl);
+    this.requestUpdate();
+    this._emitChange();
+  }
+
+  /**
+   * Href for a view's anchor, computed from `location.pathname` so the control
+   * is page-agnostic (reused by plans.html and logs.html). Used for graceful
+   * degradation and middle-click; the click handler preventDefaults the
+   * in-page navigation.
+   * @param {"my" | "published"} view - The view the anchor targets.
+   * @returns {string} The href for that view.
+   */
+  _hrefFor(view) {
+    return view === "published" ? `${location.pathname}?public=true` : location.pathname;
+  }
+
+  render() {
+    const active = this._activeView;
+    // Append the dataset noun when set ("My Test Plans"); otherwise plain "My".
+    const suffix = this.datasetNoun ? ` ${this.datasetNoun}` : "";
+    // Inactive anchors carry aria-current="false" (a valid token) rather than
+    // omitting the attribute, mirroring cts-log-toc. Only the active anchor
+    // matches the `[aria-current='page']` selector the URL-compat gate asserts.
+    return html`
+      <nav class="cts-view-tabs" aria-label="Dataset view">
+        ${this.authenticated
+          ? html`<a
+              data-view="my"
+              href="${this._hrefFor("my")}"
+              aria-current="${active === "my" ? "page" : "false"}"
+              @click=${this._handleTabClick}
+              >My${suffix}</a
+            >`
+          : nothing}
+        <a
+          data-view="published"
+          href="${this._hrefFor("published")}"
+          aria-current="${active === "published" ? "page" : "false"}"
+          @click=${this._handleTabClick}
+          >Published${suffix}${this.publishedHelp
+            ? html`<cts-tooltip content="${this.publishedHelp}" placement="bottom"
+                ><cts-icon
+                  name="circle-help"
+                  size="16"
+                  class="cts-view-tabs-help-icon"
+                  tabindex="0"
+                  aria-label="${this.publishedHelp}"
+                  data-testid="published-help"
+                ></cts-icon
+              ></cts-tooltip>`
+            : nothing}</a
+        >
+        ${this.createTestHref
+          ? html`<cts-link-button
+              class="cts-view-tabs-cta"
+              variant="primary"
+              size="sm"
+              icon="add-plus"
+              href="${this.createTestHref}"
+              label="Create a new test"
+              data-testid="schedule-test-cta"
+            ></cts-link-button>`
+          : nothing}
+      </nav>
+    `;
+  }
+}
+
+customElements.define("cts-view-tabs", CtsViewTabs);
+
+export {};

@@ -1,351 +1,191 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
-    <title>OIDF Conformance: Available logs</title>
+    <title>OIDF Conformance: Test Logs</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
-    <!-- Boostrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
+    <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
-integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
-
-    <!-- jQuery (necessary for DataTables -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="/css/oidf-app.css">
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
+    <script>window.litDisableBundleWarning = true;</script>
+    <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
+    <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-view-tabs.js"></script>
+    <script type="module" src="/components/cts-run-status-strip.js"></script>
+    <script type="module" src="/components/cts-log-list.js"></script>
+    <script type="module" src="/js/cts-toast-api.js"></script>
+    <script type="module" src="/components/cts-footer.js"></script>
 </head>
 
 <body>
+    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
 
-    <div class="pageHeader container-fluid">
-        <div class="row">
-            <div class="col-md-7">
-                <a href="index.html"><img src="/images/openid.png"></a>
-            </div>
-            <div id="userInfoHolder" class="col-md-5"></div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
+    <cts-navbar current-page="logs"></cts-navbar>
 
-    <!-- resident DOM -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-
-                <table id="logsListing" class="table table-striped table-bordered table-hover">
-                    <thead>
-                    </thead>
-
-                    <tbody>
-                    </tbody>
-                </table>
-
-            </div>
-        </div>
-    </div>
-
-
-    <!-- error modal -->
-    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Error: <span id="errorMessage"></span>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- loading modal -->
-    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <img src="/images/spinner.gif" width="100px" height="30px" />
-                    </div>
-                    <div>
-                        <span id="loadingMessage"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Config modal popup -->
-    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
-                        Configuration for <code id="configTestId" class="text-muted"></code>
-                    </h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="wrapLongStrings">
-                        <pre id="config" class="row-bg-light p-1"></pre>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <main id="main-content" class="listing-page">
+        <!-- The Published-view descriptor (R22) lives as a help tooltip on the
+             Published tab inside cts-view-tabs (published-help), not as a page
+             heading or persistent paragraph. -->
+        <cts-view-tabs id="viewTabs" dataset-noun="Test Logs" published-help="Published test logs are conformance results that implementers have chosen to make public. Browse them to review how products performed against the OpenID specifications."></cts-view-tabs>
+        <!-- The in-progress / failing runs strip is user-scoped run telemetry,
+             shown on the authenticated My tab only. It is page-driven (KTD5):
+             the boot script below calls fetchRuns() on the authed My view and
+             hide() for anon / Published; the component never self-fetches. The
+             host is resident so css/layout.css can reserve its height before the
+             module upgrades (no first-paint shift). -->
+        <cts-run-status-strip id="runStatusStrip"></cts-run-status-strip>
+        <script>
+            // Cache-first auth guess: set `authenticated` on the tabs
+            // synchronously so a returning authed user does not see the My tab
+            // pop in after /api/currentuser resolves. The authoritative value
+            // is set by the async probe in the boot script below. Reuses
+            // cts-navbar's sessionStorage cache key (shared contract).
+            (function () {
+                var tabs = document.getElementById('viewTabs');
+                var strip = document.getElementById('runStatusStrip');
+                var cachedUser = null;
+                try { cachedUser = sessionStorage.getItem('cts-navbar:user'); } catch (e) {}
+                if (cachedUser) { tabs.setAttribute('authenticated', ''); }
+                // ?public=true is the public results browser; the personal-home
+                // strip is out of place there, so start it hidden to skip the
+                // first-paint skeleton before auth resolves (mirrors plans.html).
+                var params = new URLSearchParams(window.location.search);
+                if (strip && params.get('public') === 'true') {
+                    strip.setAttribute('start-hidden', '');
+                }
+            })();
+        </script>
+        <!-- The cts-log-list component owns its own search input, filter
+             chip groups, sort selector, list-of-cards rendering, active-
+             filter summary, pagination ("Show more"), and config-viewer
+             modal. The element is created imperatively in the boot script
+             below so `is-public` / `is-admin` are set BEFORE the element's
+             connectedCallback() fires its initial `/api/log` fetch — the
+             component reads both attrs once at connect time. -->
+        <div id="logsListingMount"></div>
+    </main>
 
 
-    <script>
-        /**
-         *
-         */
-        document.addEventListener("DOMContentLoaded", () => {
-            var urlParams = new URLSearchParams(window.location.search);
-            var public = Boolean(urlParams.get('public'));
+    <cts-modal id="errorModal" heading="Error">
+        Error: <span id="errorMessage"></span>
+    </cts-modal>
 
-            FAPI_UI.showBusy();
-            FAPI_UI.loadLogListTemplates()
-            .then(function() {
-                return FAPI_UI.getUserInfo();
-            }).then(function() {
-                return loadAvailableLogs(public);
-            }).finally(function() {
-                FAPI_UI.hideBusy();
-            });
 
-            var clipboard = new ClipboardJS('.btn-clipboard');
-            clipboard.on('success', function(e) {
-                console.log(e);
-            });
-            clipboard.on('error', function(e) {
-                console.log(e);
+    <script type="module">
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            // Canonical Published signal: ?public=true exactly, matching
+            // cts-view-tabs and plans.html. NOT Boolean(get("public")), which
+            // is truthy for any value (so ?public=false would wrongly render
+            // Published).
+            const explicitPublic = urlParams.get("public") === "true";
+            const viewTabs = document.getElementById("viewTabs");
+            const runStatusStrip = document.getElementById("runStatusStrip");
+
+            // No page-level busy modal here: cts-log-list renders its own
+            // loading state (a shared <cts-loading-state>) the moment it mounts
+            // below, so a full-page spinner over the auth probe would just be a
+            // second, redundant loader. During the brief getUserInfo() probe the
+            // mount stays empty while the navbar, tabs, and runs strip are
+            // already painted; the list then mounts and shows its own spinner.
+            await FAPI_UI.getUserInfo();
+            // Authoritative auth state on the tabs (the synchronous
+            // cached-user guess above may have been stale/absent). A
+            // successful /api/currentuser means authenticated; a 401 is
+            // swallowed by getUserInfo, leaving currentUser unset (R23).
+            const authenticated = !!FAPI_UI.currentUser;
+            if (authenticated) {
+                viewTabs.setAttribute("authenticated", "");
+            } else {
+                viewTabs.removeAttribute("authenticated");
+            }
+            // Effective view: ?public=true → Published unconditionally
+            // (the dataset decision does not depend on auth); otherwise
+            // authed → My (is-public absent), anon → Published (R6/AE3).
+            const isPublic = explicitPublic || !authenticated;
+
+            // Canonicalise the anonymous bare URL to ?public=true so the URL
+            // reflects public mode (shareable) and downstream detail links
+            // carry the param. isPublic && !explicitPublic fires only for
+            // anonymous visitors who arrived without the param; authed users on
+            // a bare URL keep their My view untouched. replaceState (no reload)
+            // preserves the single-probe no-flash flow.
+            if (isPublic && !explicitPublic) {
+                const url = new URL(window.location.href);
+                url.searchParams.set("public", "true");
+                window.history.replaceState(window.history.state, "", url);
+            }
+
+            // Wait for the registration so attributes set below take
+            // effect synchronously before connectedCallback runs. Await the
+            // strip's definition too (symmetry): the boot calls
+            // fetchRuns()/hide() on it below, so guard the call site against
+            // a future lazy-load/code-split rather than relying on the
+            // implicit module-script-before-DOMContentLoaded ordering.
+            await customElements.whenDefined("cts-log-list");
+            await customElements.whenDefined("cts-run-status-strip");
+            const list = document.createElement("cts-log-list");
+            list.id = "logsListing";
+            if (isPublic) list.setAttribute("is-public", "");
+            // Set is-admin whenever the user is admin; cts-log-list ignores
+            // it in public mode, so this stays correct across a Published→My
+            // switch without needing to re-set it on tab change.
+            if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) {
+                list.setAttribute("is-admin", "");
+            }
+            document.getElementById("logsListingMount").replaceChildren(list);
+
+            // Drive the runs strip off the same single auth probe (no second
+            // /api/currentuser round-trip). It shows only on the authenticated
+            // My view and fetches its OWN unfiltered /api/log window; anon and
+            // the Published view hide it. On the ?public=true path it was
+            // already started hidden synchronously, so this hide() is a no-op.
+            if (runStatusStrip) {
+                if (authenticated && !isPublic) {
+                    runStatusStrip.fetchRuns();
+                } else {
+                    runStatusStrip.hide();
+                }
+            }
+
+            // A single handler serves BOTH the tab click and the
+            // back/forward popstate — cts-view-tabs emits cts-view-tab-change
+            // for both. On a view change, switch the dataset and reset the
+            // status/result chip filters (R16) via reloadForViewChange().
+            viewTabs.addEventListener("cts-view-tab-change", (evt) => {
+                const isPublicView = !!(evt.detail && evt.detail.isPublic);
+                if (isPublicView) {
+                    list.setAttribute("is-public", "");
+                } else {
+                    list.removeAttribute("is-public");
+                }
+                list.reloadForViewChange();
+                // The strip is a personal-home signal: refresh it on a return
+                // to My, hide it on Published. Only authed users have a My tab
+                // to switch to, so fetchRuns() here is always on an authed view.
+                if (runStatusStrip) {
+                    if (isPublicView) {
+                        runStatusStrip.hide();
+                    } else {
+                        runStatusStrip.fetchRuns();
+                    }
+                }
             });
         });
-
-        /**
-         *
-         */
-
-        /**
-         *
-         */
-        function loadAvailableLogs(public) {
-            return new Promise((resolve, reject) => {
-                const dataTable = $('#logsListing').DataTable({
-                    serverSide: true,
-                    ajax: {
-                        url: '/api/log' + (public ? '?public=true' : ''),
-                        cache: true,
-                        data: function(data) {
-                            // Translate query parameters into a simpler schema
-                            return {
-                                draw: data.draw,
-                                start: data.start,
-                                length: data.length,
-                                search: data.search.value,
-                                order: _.map(data.order, function(x) {
-                                    return data.columns[x.column].data + ',' + x.dir;
-                                }).join(',')
-                            };
-                        },
-                        error: function(jqxhr, status, error) {
-                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                code: jqxhr.status,
-                                error: error
-                            });
-                        }
-                    },
-                    columns: [
-                        {
-                            title: 'Instance ID',
-                            data: 'testId',
-                            render: {
-                                display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data, public: public }); }
-                            }
-                        },
-                        {
-                            title: 'Config',
-                            data: null,
-                            render: {
-                                display: function() { return FAPI_UI.logTemplates.CONFIG(); }
-                            },
-                            createdCell: function(cell) { $(cell).addClass('configColumn'); },
-                            orderable: false,
-                            visible: !public
-                        },
-                        {
-                            title: 'Name',
-                            data: 'testName',
-                            render: $('#logsListing').DataTable.render.text()
-                        },
-                        {
-                            title: 'Variant',
-                            data: 'variant',
-                            defaultContent: '',
-                            render: {
-                                display: function(v) { return FAPI_UI.formatVariant(v); }
-                            }
-                        },
-                        {
-                            title: 'Description',
-                            data: 'description',
-                            render: $('#logsListing').DataTable.render.text(),
-                            defaultContent: ''
-                        },
-                        {
-                            title: 'Started',
-                            data: 'started',
-                            render: {
-                                display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
-                            }
-                        },
-                        {
-                            title: 'Plan ID',
-                            data: 'planId',
-                            defaultContent: '',
-                            render: {
-                                display: function(data) {
-                                    if (data)
-                                        return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public });
-                                    else
-                                        return '';
-                                }
-                            }
-                        },
-                        {
-                            title: 'Status',
-                            data: 'status',
-                            defaultContent: ''
-                        },
-                        {
-                            title: 'Result',
-                            data: 'result',
-                            defaultContent: ''
-                        },
-                        {
-                            title: 'Owner',
-                            data: function(row) { return { owner: row.owner ? row.owner : {} }; },
-                            render: {
-                                display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
-                            },
-                            visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
-                        }
-                    ],
-                    createdRow: function(row, data) {
-                        // wire up configuration button
-                        $('.showConfigBtn', row).click(function(evt) {
-                            evt.preventDefault();
-
-                            fetch('/api/plan/' + encodeURIComponent(data.planId) + (public ? '?public=true' : ''))
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        return Promise.reject(response);
-                                    }
-
-                                    return response.json();
-                                }).then(jsonData => {
-
-
-                                $('#config').html(_.escape(JSON.stringify(jsonData.config, null, 4)));
-                                $('#configTestId').html(_.escape(data.testId));
-
-                                var myModalEl = document.getElementById('configModal');
-                                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                                modal.show();
-                            });
-                        });
-                    },
-                    pagingType: "simple",
-                    language: {
-                        info: "Showing _START_ to _END_",
-                        infoEmpty: "No entries to show",
-                        infoFiltered: ""
-                    },
-                    initComplete: function() {
-                        var api = this.api();
-                        var container = api.table().container();
-                        var searchInput = $('div.dataTables_filter input', container);
-
-                        // Disable default live-search behaviour
-                        searchInput.off();
-
-                        // Add a search button after the input
-                        var searchBtn = $('<button type="button" class="btn btn-sm btn-primary ms-2"><i class="bi bi-search"></i> Search</button>');
-                        searchInput.after(searchBtn);
-
-                        function doSearch() {
-                            FAPI_UI.showBusy('Searching...');
-                            api.search(searchInput.val()).draw();
-                        }
-
-                        searchBtn.on('click', doSearch);
-
-                        searchInput.on('keydown', function(e) {
-                            if (e.key === 'Enter' || e.keyCode === 13) {
-                                e.preventDefault();
-                                doSearch();
-                            }
-                        });
-
-                        // Hide busy indicator when AJAX completes
-                        api.on('xhr.dt', function() {
-                            FAPI_UI.hideBusy();
-                        });
-                    },
-                    order: [[5, "desc"]] // sort by the "date" column, descending, by default
-                });
-
-                dataTable.on('xhr.dt', function() {
-                    resolve(dataTable); // Resolve with the DataTable instance if needed
-                });
-
-                // Handle potential errors (optional)
-                dataTable.on('error.dt', function(e, settings, techNote, message) {
-                    reject(new Error(message));
-                });
-            });
-        }
     </script>
 
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-    </footer>
+    <cts-footer></cts-footer>
 
+    <cts-toast-host></cts-toast-host>
 </body>
 
 </html>

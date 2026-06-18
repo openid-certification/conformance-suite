@@ -1,0 +1,519 @@
+
+
+            <div class="schedule-test-header">
+                <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
+
+                <div class="schedule-test-toolbar">
+                    <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary" disabled=""><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="clock" size="16"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="16">
+        <use href="/vendor/coolicons/icons/clock.svg#i"></use>
+      </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Load last configuration</button></cts-button>
+                </div>
+            </div>
+
+            <!-- Guided→advanced prefill bridge (R8): shown when a resolved,
+                 undeclined, unadopted guided journey exists on entering
+                 advanced. Wired by the journey controller. -->
+            <div class="bridge-prompt" id="bridgePrompt" hidden="">
+                <cts-icon class="bp-icon" name="bulb" size="24" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
+        <use href="/vendor/coolicons/icons/bulb.svg#i"></use>
+      </svg></cts-icon>
+                <div class="bp-body">
+                    <div class="bp-title">Prefill from your guided answers?</div>
+                    <div class="bp-sub" id="bridgeSub"></div>
+                </div>
+                <div class="bp-actions">
+                    <cts-button id="bridgeDeclineBtn" size="sm" variant="secondary" label="No thanks"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary"><!--?lit$NNNN$--><!--?lit$NNNN$--><!--?lit$NNNN$-->No thanks</button></cts-button>
+                    <cts-button id="bridgeAcceptBtn" size="sm" variant="primary" icon="check" label="Prefill"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-primary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="check" size="16"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="16">
+        <use href="/vendor/coolicons/icons/check.svg#i"></use>
+      </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Prefill</button></cts-button>
+                </div>
+            </div>
+
+            <cts-test-selector id="planSearch"><!---->
+      <div class="oidf-test-selector">
+        <div class="oidf-test-selector__rail">
+          <div class="oidf-test-selector__search-wrap">
+            <cts-icon name="search-magnifying-glass" class="oidf-test-selector__search-leading" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/search-magnifying-glass.svg#i"></use>
+      </svg></cts-icon>
+            <input type="search" class="oidf-test-selector__search" placeholder="Search test plans..." aria-label="Search test plans" autocomplete="off" spellcheck="false">
+            <!--?lit$NNNN$-->
+          </div>
+          <select class="oidf-test-selector__family" size="14" aria-label="Filter test plans by specification family">
+            <option value="" selected="">All specifications</option>
+            <!--?lit$NNNN$--><!----><option value="FAPI"><!--?lit$NNNN$-->FAPI</option><!----><!----><option value="OIDCC"><!--?lit$NNNN$-->OIDCC</option><!---->
+          </select>
+        </div>
+        <div class="oidf-test-selector__list" role="list">
+          <!--?lit$NNNN$--><!---->
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+                      </span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="4 test modules"><!--?lit$NNNN$-->4</span></cts-tooltip>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
+                  </button>
+                <!----><!---->
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="fapi2-security-profile-final-test-plan" data-index="1" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
+                      </span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
+                  </button>
+                <!----><!---->
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="2" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+                      </span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="1 test module"><!--?lit$NNNN$-->1</span></cts-tooltip>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
+                  </button>
+                <!---->
+        </div>
+      </div>
+    </cts-test-selector>
+            <!-- Wrap the cascade + variant selectors so the scroll-in flash
+                 wash (fired after a search-list plan pick) covers both as one
+                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <cts-flash-highlight id="selectionFlash">
+                <cts-spec-cascade id="specCascade"><!---->
+      <div class="oidf-spec-cascade">
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="specFamilySelect-field" style="">
+        <label class="oidf-spec-cascade__label" for="specFamilySelect"><!--?lit$NNNN$-->Specification</label>
+        <select class="oidf-spec-cascade__select" id="specFamilySelect">
+          <option value=""><!--?lit$NNNN$-->--- Select a Specification ---</option>
+          <!--?lit$NNNN$--><!---->
+        <option value="FAPI">
+          <!--?lit$NNNN$-->FAPI
+        </option>
+      <!----><!---->
+        <option value="OIDCC">
+          <!--?lit$NNNN$-->OIDCC
+        </option>
+      <!---->
+        </select>
+      </div>
+    
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="entitySelect-field" style="display:none">
+        <label class="oidf-spec-cascade__label" for="entitySelect"><!--?lit$NNNN$-->Entity Under Test</label>
+        <select class="oidf-spec-cascade__select" id="entitySelect">
+          <option value=""><!--?lit$NNNN$-->--- Select Entity ---</option>
+          <!--?lit$NNNN$-->
+        </select>
+      </div>
+    
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="specVersionSelect-field" style="display:none">
+        <label class="oidf-spec-cascade__label" for="specVersionSelect"><!--?lit$NNNN$-->Version</label>
+        <select class="oidf-spec-cascade__select" id="specVersionSelect">
+          <option value=""><!--?lit$NNNN$-->--- Select Version ---</option>
+          <!--?lit$NNNN$-->
+        </select>
+      </div>
+    
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="planSelect-field" style="display:none">
+        <label class="oidf-spec-cascade__label" for="planSelect"><!--?lit$NNNN$-->Test Type</label>
+        <select class="oidf-spec-cascade__select" id="planSelect">
+          <option value=""><!--?lit$NNNN$-->--- Select A Test Type ----</option>
+          <!--?lit$NNNN$-->
+        </select>
+      </div>
+    
+      </div>
+    </cts-spec-cascade>
+                <form id="variantSelectors" style="display: none;"></form>
+            </cts-flash-highlight>
+
+            <div id="configForm" style="display:none">
+                <h3>Configure Test</h3>
+                <div id="jwksGeneratorRow" class="oidf-jwks-generator-row" hidden=""></div>
+                <cts-config-form id="ctsConfigForm"><!---->
+      <div class="oidf-config-form">
+        <cts-tabs><ul class="oidf-tabs" role="tablist" aria-orientation="horizontal" aria-label="Configure test input mode"><li role="presentation"><button type="button" class="oidf-tab oidf-tab-active" id="cts-config-form-form-panel-tab" role="tab" aria-selected="true" aria-controls="cts-config-form-form-panel" tabindex="0"><span class="oidf-tab-label">Form</span></button></li><li role="presentation"><button type="button" class="oidf-tab" id="cts-config-form-json-panel-tab" role="tab" aria-selected="false" aria-controls="cts-config-form-json-panel" tabindex="-1"><span class="oidf-tab-label">JSON</span></button></li></ul><div><div id="cts-config-form-form-panel" role="tabpanel" aria-labelledby="cts-config-form-form-panel-tab">
+            <form>
+              <!--?lit$NNNN$-->
+              <div class="oidf-config-form-actions">
+                <cts-button type="submit" variant="primary" label="Validate Configuration"><!----><button type="submit" class="oidf-btn oidf-btn-sm oidf-btn-primary"><!--?lit$NNNN$--><!--?lit$NNNN$--><!--?lit$NNNN$-->Validate Configuration</button></cts-button>
+                <div role="status" data-testid="validate-verdict" class=" oidf-config-form-verdict ">
+                  <!--?lit$NNNN$-->
+                </div>
+              </div>
+            </form>
+          </div><div id="cts-config-form-json-panel" role="tabpanel" aria-labelledby="cts-config-form-json-panel-tab" hidden="">
+            <!--?lit$NNNN$-->
+          </div></div>
+          
+          
+        </cts-tabs>
+      </div>
+    </cts-config-form>
+            </div>
+
+            <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions"><div class="oidf-action-bar" data-position="bottom" role="region" aria-label="Test plan actions"><div class="oidf-action-bar__inner" style="max-width: var(--maxw-page); padding-inline: var(--space-5);">
+                <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-primary" disabled=""><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="flag" size="24"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
+        <use href="/vendor/coolicons/icons/flag.svg#i"></use>
+      </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Create Test Plan</button></cts-button>
+                <cts-button id="copyPlanUrlBtn" size="lg" variant="secondary" icon="copy" label="Share Test Plan Configuration" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-secondary" disabled=""><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="copy" size="24"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
+        <use href="/vendor/coolicons/icons/copy.svg#i"></use>
+      </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Share Test Plan Configuration</button></cts-button>
+            </div></div></cts-action-bar>
+
+            <cts-unsaved-changes-guard id="exitGuard" config-form-id="ctsConfigForm" for="variantSelectors"><!---->
+      <cts-modal id="exitGuard-modal" heading="You have unsaved changes" footer-buttons="[{&quot;label&quot;:&quot;Stay on page&quot;,&quot;class&quot;:&quot;btn-secondary&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;exitGuard-modal-stay&quot;},{&quot;label&quot;:&quot;Leave page&quot;,&quot;class&quot;:&quot;btn-primary&quot;,&quot;icon&quot;:&quot;log-out&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;exitGuard-modal-leave&quot;}]"><dialog class="oidf-modal" aria-labelledby="exitGuard-modal-title"><div class="oidf-modal-header"><h4 class="oidf-modal-title" id="exitGuard-modal-title">You have unsaved changes</h4><button type="button" class="oidf-modal-close" aria-label="Close"><cts-icon name="close-md" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/close-md.svg#i"></use>
+      </svg></cts-icon></button></div><div class="oidf-modal-body">
+        <p><!--?lit$NNNN$-->If you leave this page now, the edits you have made to the test plan configuration will be lost.</p>
+      </div><div class="oidf-modal-footer"><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary" id="exitGuard-modal-stay">Stay on page</button><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-primary" id="exitGuard-modal-leave"><cts-icon name="log-out" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/log-out.svg#i"></use>
+      </svg></cts-icon> Leave page</button></div></dialog></cts-modal>
+    </cts-unsaved-changes-guard>
+
+            <cts-modal id="copyTestPlanUrlModal" heading="Link copied to clipboard" footer-buttons="[{&quot;label&quot;:&quot;Copy link again&quot;,&quot;class&quot;:&quot;btn-outline-secondary&quot;,&quot;icon&quot;:&quot;copy&quot;,&quot;dismiss&quot;:false,&quot;id&quot;:&quot;copyPlanUrlAgainBtn&quot;},{&quot;label&quot;:&quot;Got it&quot;,&quot;class&quot;:&quot;btn-primary&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;shareModalDismissBtn&quot;}]"><dialog class="oidf-modal" aria-labelledby="copyTestPlanUrlModal-title"><div class="oidf-modal-header"><h4 class="oidf-modal-title" id="copyTestPlanUrlModal-title">Link copied to clipboard</h4><button type="button" class="oidf-modal-close" aria-label="Close"><cts-icon name="close-md" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/close-md.svg#i"></use>
+      </svg></cts-icon></button></div><div class="oidf-modal-body">
+                <div class="share-modal-success">
+                    <cts-icon name="check-big" size="20" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/check-big.svg#i"></use>
+      </svg></cts-icon>
+                    <span class="share-modal-success__eyebrow">Copied</span>
+                </div>
+                <p>Anyone with this link can recreate your test plan configuration.</p>
+                <cts-alert variant="warning"><div class="oidf-alert oidf-alert-warning" role="alert"><div class="oidf-alert-body">
+                    Heads up — the link may contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> from your configuration. Anyone you share it with will see those values.
+                </div></div></cts-alert>
+            </div><div class="oidf-modal-footer"><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary" id="copyPlanUrlAgainBtn"><cts-icon name="copy" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/copy.svg#i"></use>
+      </svg></cts-icon> Copy link again</button><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-primary" id="shareModalDismissBtn">Got it</button></div></dialog></cts-modal>
+        

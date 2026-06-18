@@ -2,39 +2,6 @@ var FAPI_UI = {
 
 		logTemplates : {},
 
-		loadServerInfo: function() {
-			return fetch('/api/server')
-				.then((response) => response.json())
-				.then((data) => {
-
-					let serverInfos = {
-						"external_ip": "External IP",
-						"version": "Version",
-						"revision": "Revision",
-						"tag": "Tag",
-						"build_time": "Build Time"
-					};
-
-					const serverInfoHtml =
-						`<div>` +
-						Object.entries(serverInfos)
-							.filter(([k]) => k in data)
-							.map(([k, label]) => `${label}: <span id="serverinfo-${k}">${data[k]}</span>`)
-							.join(" | ")
-						+ `</div>`;
-					const element = document.querySelector('.serverInfo');
-					element.innerHTML = serverInfoHtml;
-				});
-		},
-
-		loadHomepageTemplates : function() {
-			return fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-		},
-
 		loadScheduleTestPageTemplates : function() {
 			const p1 = fetch('templates/testOption.html')
 				.then((response) => response.text())
@@ -89,389 +56,39 @@ var FAPI_UI = {
 			return Promise.allSettled(promises);
 		},
 
-		loadLogDetailTemplates: function() {
-			const p1 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const p2 = fetch('templates/logHeader.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.LOG_START = _.template(data);
-				});
-
-			const p3 = fetch('templates/logEntry.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
-				});
-
-			const p4 = fetch('templates/source.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.SOURCE = _.template(data);
-				});
-
-			const p5 = fetch('templates/message.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.MESSAGE = _.template(data);
-				});
-
-			const p6 = fetch('templates/requirements.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.REQUIREMENTS = _.template(data);
-				});
-
-			const p7 = fetch('templates/upload.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.UPLOAD = _.template(data);
-				});
-
-			const p8 = fetch('templates/owner.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.OWNER = _.template(data);
-				});
-
-			const p9 = fetch('templates/result.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.RESULT = _.template(data);
-				});
-
-			const p10 = fetch('templates/time.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.TIME = _.template(data);
-				});
-
-			const p11 = fetch('templates/more.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.MORE = _.template(data);
-				});
-
-			const p12 = fetch('templates/moreButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.MORE_BUTTON = _.template(data);
-				});
-
-			const p13 = fetch('templates/exported.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.EXPORTED = _.template(data);
-				});
-
-			const p14 = fetch('templates/browser.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.BROWSER = _.template(data);
-				});
-
-			const p15 = fetch('templates/http.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.HTTP = _.template(data);
-				});
-
-			const p16 = fetch('templates/finalError.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.FINAL_ERROR = _.template(data);
-				});
-
-			const p17 = fetch('templates/statusAndResult.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-				});
-
-			const p18 = fetch('templates/resultsSummary.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.SUMMARY = _.template(data);
-				});
-
-			const p19 = fetch('templates/startBlock.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.START_BLOCK = _.template(data);
-				});
-
-			const p20 = fetch('templates/failureSummary.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.FAILURE_SUMMARY = _.template(data);
-				});
-
-			const p21 = fetch('templates/privateLinkModals.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PRIVATE_LINK_MODALS = data;
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadLogListTemplates: function() {
-			const p1 = fetch('templates/configButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.CONFIG = _.template(data);
-				});
-
-			const p2 = fetch('templates/date.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.DATE = _.template(data);
-				});
-
-			const p3 = fetch('templates/logDetailButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
-				});
-
-			const p4 = fetch('templates/owner.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.OWNER = _.template(data);
-				});
-
-			const p5 = fetch('templates/planDetailButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-				});
-
-			const p6 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadPlanTemplates: function() {
-			const p1 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const p2 = fetch('templates/plan.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_START = _.template(data);
-				});
-
-			const p3 = fetch('templates/owner.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.OWNER = _.template(data);
-				});
-
-			const p4 = fetch('templates/statusAndResult.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-				});
-
-			const p5 = fetch('templates/testVersion.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
-				});
-
-			const p6 = fetch('templates/privateLinkModals.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PRIVATE_LINK_MODALS = data;
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadPlanListTemplates: function() {
-			const p1 = fetch('templates/configButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.CONFIG = _.template(data);
-				});
-
-			const p2 = fetch('templates/date.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.DATE = _.template(data);
-				});
-
-			const p3 = fetch('templates/planDetailButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-				});
-
-			const p4 = fetch('templates/planModules.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
-				});
-
-			const p5 = fetch('templates/owner.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.OWNER = _.template(data);
-				});
-
-			const p6 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadImageUploadTemplates: function() {
-			const p1 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const p2 = fetch('templates/pendingImageUploader.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PENDING = _.template(data);
-				});
-
-			const p3 = fetch('templates/existingImage.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.EXISTING = _.template(data);
-				});
-
-			const p4 = fetch('templates/source.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.SOURCE = _.template(data);
-				});
-
-			const p5 = fetch('templates/message.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.MESSAGE = _.template(data);
-				});
-
-			const p6 = fetch('templates/uploadHeader.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.UPLOAD_HEADER = _.template(data);
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadTokenListTemplates: function() {
-			const p1 = fetch('templates/date.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.DATE = _.template(data);
-				});
-
-			const p2 = fetch('templates/tokenTable.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.TOKEN_TABLE = _.template(data);
-				});
-
-			const p3 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const promises = [p1, p2, p3];
-
-			return Promise.allSettled(promises);
-		},
-		//when you add a new value to this list also update net.openid.conformance.export.LogEntryHelper
-		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
-
-		availableTests : {},
-
 		availablePlans : {},
-
-		running: false,
-
-		status: 'unknown',
-
-		latestTestEntry: undefined,
-
-		reloadPause: 100,
-
-		maxReloadPause: 5000, // cap at ~5s
-
-		resetReloadPause : function() {
-			FAPI_UI.reloadPause = 100; // start at 100ms on reset
-		},
-
-		incrementReloadPause : function() {
-			if (FAPI_UI.reloadPause < FAPI_UI.maxReloadPause) {
-				FAPI_UI.reloadPause += Math.floor(FAPI_UI.reloadPause / 4); // increment by 25%
-			}
-		},
 
 		getUserInfo : function() {
 			// get the current user info
 			return fetch("/api/currentuser")
 				.then((response) => {
 					if (! response.ok) {
-						throw new Error("Network response was not OK");
+						// Tag the error with the status so the catch can
+						// distinguish expected-401 from real failures.
+						const err = new Error("Network response was not OK");
+						err.status = response.status;
+						throw err;
 					}
 
 					return response.json();
 				})
 				.then((userInfo) => {
 					this.currentUser = userInfo;
+					// Pages using <cts-navbar> no longer have #userInfoHolder;
+					// guard against its absence while still setting currentUser above.
 					const elem = document.getElementById('userInfoHolder');
-					elem.innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo});
-					FAPI_UI.activeTooltip();
+					if (elem && FAPI_UI.logTemplates.USER_INFO) {
+						elem.innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo});
+					}
 				})
 				.catch((error) => {
-					// User is not logged in; don't fill in the user info holder
+					// 401 is the expected "not logged in" path — stay quiet.
+					// Anything else (network error, 5xx) should log so operators
+					// can diagnose silent breakage.
+					if (error && error.status !== 401) {
+						console.warn("[fapi.ui.js getUserInfo] /api/currentuser failed:", error);
+					}
 				});
-
-		},
-
-		activeTooltip : function() {
-
-			const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-			[...tooltipTriggerList].forEach((tooltipTriggerEl) => {
-				const title = tooltipTriggerEl.getAttribute('title');
-				if (title != null) {
-					tooltipTriggerEl.setAttribute('title', title.replace(/\s+/g, ' ').trim());
-				}
-			});
-
-			const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
 		},
 
@@ -537,18 +154,11 @@ var FAPI_UI = {
 			}
 
 			FAPI_UI.hideBusy(); // only one modal at a time
-			var myModalEl = document.getElementById('errorModal');
-			var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-			modal.show();
+			document.getElementById('errorModal').show();
 		},
 
 		hideError : function() {
-			var myModalEl = document.getElementById('errorModal');
-			var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-			if (modal != null) {
-			    modal.hide();
-			}
+			document.getElementById('errorModal')?.hide();
 		},
 
 		showBusy : function(label, message) {
@@ -556,190 +166,20 @@ var FAPI_UI = {
 				label = "Loading...";
 			}
 
-			var elem = document.getElementById('loadingLabel');
+			var elem = document.getElementById('loadingModal-title');
 			elem.innerHTML = _.escape(label);
 			var elem = document.getElementById('loadingMessage');
 			elem.innerHTML = _.escape(message);
 
 			FAPI_UI.hideError(); // only one modal at a time
 
-			var myModalEl = document.getElementById('loadingModal');
-			var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-			modal.show();
+			document.getElementById('loadingModal').show();
 		},
 
 		hideBusy : function() {
-			var myModalEl = document.getElementById('loadingModal');
-			var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-			if (modal != null) {
-			    modal.hide();
-			}
-		},
-
-		// responsible for converting any dot syntax in our key parameter into object refs
-		prop : function(obj, prop, val){
-			var props = prop.split('.')
-			, final = props.pop(), p;
-			while(p = props.shift()){
-				if (typeof obj[p] === 'undefined') {
-					obj[p] = {}; // create the object
-				}
-
-				obj = obj[p];
-			}
-
-			return val ? (obj[final] = val) : obj[final];
-		},
-
-		removeFromObject : function(obj, key) {
-			if (obj !== undefined) {
-				var elements = key.split('.');
-				if (elements.length > 1) {
-					this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
-				} else {
-					if (_.isObject(obj) && _.isArray(elements) && elements.length) {
-						delete(obj[elements[0]]);
-					}
-				}
-			}
-		},
-
-		formatVariant : function(v) {
-			if (!v) {
-				return "";
-			} else if (typeof(v) === 'string') {
-				return v;
-			} else {
-				return Object.entries(v).map(function(val, index, arr) {
-					return val.join('=');
-				}).join(', ');
-			}
-		},
-
-		testJSON : {},
-
-		setupPrivateLinkSharing: function(shareUri) {
-			if (document.getElementById('btnShareLink') === null) {
-				return;
-			}
-
-			// Inject modal HTML from template (once)
-			if (!document.getElementById('privateLinkExpirationModal')) {
-				document.body.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PRIVATE_LINK_MODALS);
-
-				document.getElementById('privateLinkCopyBtn').onclick = function() {
-					var linkText = document.getElementById('privateLinkResultModalBody').textContent;
-					navigator.clipboard.writeText(linkText);
-				};
-			}
-
-			document.getElementById('btnShareLink').onclick = function(evt) {
-				evt.preventDefault();
-
-				var myModalEl = document.getElementById('privateLinkExpirationModal');
-				var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-
-				if (document.getElementById('privateLinkExpirationModalBtn') !== null) {
-					// Restrict the input to digits and navigation/deletion keys only.
-					document.getElementById('privateLinkExpirationDays').onkeydown = function(evt) {
-						if (/^\d+$/.test(evt.key) || (evt.key === "Backspace" || evt.key === "Delete" || evt.key.startsWith("Arrow"))) {
-							return true;
-						}
-						return false;
-					};
-
-					// On focus clear any previous invalid value highlighting.
-					document.getElementById('privateLinkExpirationDays').onfocus = function(evt) {
-						document.getElementById('privateLinkExpirationDays').classList.remove("bg-danger");
-					};
-
-					document.getElementById('privateLinkExpirationModalBtn').onclick = function(evt) {
-						evt.preventDefault();
-
-						var expiresInDays = document.getElementById('privateLinkExpirationDays').value;
-
-						let intVal = parseInt(expiresInDays);
-
-						if (isNaN(intVal) || intVal<1 || intVal>1000)
-						{
-							document.getElementById('privateLinkExpirationDays').classList.add("bg-danger");
-							return;
-						}
-
-						modal.hide();
-
-						let uri = shareUri + '?exp=' + encodeURIComponent(expiresInDays);
-						let fetchPromise = fetch(uri, {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							}}).then((response) => {
-								if (!response.ok) {
-									return Promise.reject(response);
-								}
-								return response.json();
-							});
-
-						// Start clipboard.write() synchronously within the click handler so
-						// Safari permits it. The ClipboardItem resolves its content from the
-						// fetch promise, which completes later.
-						var clipboardWritePromise = null;
-						try {
-							clipboardWritePromise = navigator.clipboard.write([
-								new ClipboardItem({
-									'text/plain': fetchPromise.then(shareLink =>
-										new Blob([shareLink.link], { type: 'text/plain' }))
-								})
-							]);
-						} catch (e) {
-							/* ClipboardItem not supported (e.g. older Firefox) */
-						}
-
-						fetchPromise.then(shareLink => {
-							var showResultModal = function(clipboardSucceeded) {
-								var myModalEl = document.getElementById('privateLinkResultModal');
-								var resultModal = bootstrap.Modal.getOrCreateInstance(myModalEl);
-
-								myModalEl.addEventListener('show.bs.modal', function (event) {
-									document.getElementById('privateLinkResultModalLabel').textContent =
-										clipboardSucceeded ? 'Private Link (Copied To Clipboard)' : 'Private Link';
-									document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
-									document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
-								}, { once: true });
-
-								resultModal.show();
-							};
-
-							if (clipboardWritePromise) {
-								clipboardWritePromise.then(
-									() => showResultModal(true),
-									() => showResultModal(false)
-								);
-							} else {
-								showResultModal(false);
-							}
-						}).catch(error => {
-							FAPI_UI.showError(error);
-						});
-					};
-				}
-
-				// Initialise the expirations days input.
-				document.getElementById('privateLinkExpirationDays').value = 1;
-				document.getElementById('privateLinkExpirationDays').classList.remove("bg-danger");
-
-				modal.show();
-			};
-
+			document.getElementById('loadingModal')?.hide();
 		},
 
 		selectedVariant: undefined
 
 };
-
-(async function loadSpecLinksMapping() {
-	let response = await fetch('api/ui/spec_links?public=true');
-	let specLinks = await response.json();
-	FAPI_UI.specLinks = specLinks;
-})();

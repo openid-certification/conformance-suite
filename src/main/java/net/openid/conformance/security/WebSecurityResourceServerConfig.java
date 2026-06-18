@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -62,6 +63,20 @@ public class WebSecurityResourceServerConfig {
 		http.addFilterAfter(new RejectPlainHttpTrafficFilter(), WebAsyncManagerIntegrationFilter.class);
 
 		http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.NEVER));
+
+		// Never save anonymous API requests for post-login replay. Without this,
+		// an anonymous fetch() from a public page (e.g. the footer's /api/server
+		// version probe on login.html) 401s here, but ExceptionTranslationFilter
+		// first writes SPRING_SECURITY_SAVED_REQUEST into the HttpSession shared
+		// with the OIDC login chain — whose success handler then "returns" the
+		// user to that API URL after OAuth login, landing them on raw JSON at
+		// /api/server?continue instead of the plans home. An API URL is never a
+		// sensible browser navigation target, so this chain opts out of the
+		// request cache entirely. Note SessionCreationPolicy.NEVER above does NOT
+		// make this line redundant: the default HttpSessionRequestCache has
+		// createSessionAllowed=true and Spring auto-installs a NullRequestCache
+		// only for STATELESS. Guarded by ResourceServerRequestCache_UnitTest.
+		http.requestCache(cache -> cache.requestCache(new NullRequestCache()));
 
 		http.authorizeHttpRequests(requests -> {
 			requests.requestMatchers(request -> {

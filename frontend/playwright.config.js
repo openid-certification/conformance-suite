@@ -12,6 +12,12 @@ export default defineConfig({
     trace: "on-first-retry",
   },
 
+  // Project- and platform-agnostic snapshot file names so locally generated
+  // snapshots match what CI produces. Single project (chromium), single
+  // tested rendering surface — the disambiguator suffixes add noise without
+  // value and would split locally-generated baselines from CI's.
+  snapshotPathTemplate: "{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}",
+
   projects: [
     {
       name: "chromium",
@@ -20,7 +26,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "./node_modules/.bin/http-server ../src/main/resources/static -a 127.0.0.1 -p 9876 -s",
+    command: "npx http-server ../src/main/resources/static -p 9876 -s",
     port: 9876,
     reuseExistingServer: !process.env.CI,
   },

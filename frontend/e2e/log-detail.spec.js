@@ -1,18 +1,142 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_TEST_STATUS, MOCK_TEST_FAILED, MOCK_TEST_WARNING } from "./fixtures/mock-test-data.js";
-import { MOCK_LOG_ENTRIES, MOCK_FAILED_LOG_ENTRIES, MOCK_WARNING_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
+import {
+  MOCK_TEST_STATUS,
+  MOCK_TEST_STATUS_LONG_VARIANT,
+  MOCK_TEST_FAILED,
+  MOCK_TEST_RUNNING,
+} from "./fixtures/mock-test-data.js";
+import {
+  MOCK_LOG_ENTRIES,
+  MOCK_FAILED_LOG_ENTRIES,
+  MOCK_BLOCKS_WITH_STATUS,
+  MOCK_BLOCKS_FILTERABLE,
+  MOCK_BLOCKS_POLL_FIRST,
+  MOCK_BLOCKS_POLL_SECOND,
+  MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+  MOCK_SUCCESS_LOG,
+} from "./fixtures/mock-log-entries.js";
 
 /**
- * Helper: register log-detail-specific routes.
- * Must be called after setupFailFast and before setupCommonRoutes
- * (in practice: after failFast, before goto).
+ * Coverage for log-detail.html — the new Lit-triad-based page.
+ * This spec navigates directly to the new page (no flag, no cookie),
+ * mocks the API surface the bootstrap depends on, and asserts that
+ * cts-log-detail-header + cts-log-viewer render with the right data
+ * and that the new affordances (Edit configuration, Share Link,
+ * Repeat Test) fire the expected events / navigations.
+ *
+ * Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ * U2 — Coverage matrix vs legacy frontend/e2e/log-detail.spec.js
+ * ─────────────────────────────────────────────────────────────────────
+ * The legacy spec is the behavioral oracle for parity. For each
+ * legacy test() block, this matrix records either the v2 equivalent
+ * here or an explicit "obsolete: <reason>" note. Built during U2 of
+ * docs/plans/2026-04-27-002-refactor-retire-legacy-log-detail-plan.md.
+ *
+ * R16 "loads and renders log header" → covered by
+ *     "renders cts-log-detail-header with test metadata".
+ * R17 "renders log entries with source/message/result badges" →
+ *     covered by "renders cts-log-viewer with mocked log entries"
+ *     and "per-block status badges render in each block summary".
+ * R18 "clicking a log entry expands detailed content" → covered at
+ *     component scope by cts-log-entry stories. (v2 blocks are not
+ *     collapsible; the prior block-collapse example was retired.)
+ * R19 "failed test shows failure summary section" → covered by
+ *     "failure summary jump-link bubbles cts-scroll-to-entry to the
+ *     page" and "failure summary swaps between header and page-level
+ *     positions".
+ * R20 "warning results are styled distinctly from failures and
+ *     passes" → obsolete at e2e scope: variant rendering is owned by
+ *     cts-badge stories; v2 uses canonical badge variants throughout
+ *     and a regression there would be caught by the badge story
+ *     suite, not log-detail e2e.
+ * "View configuration button opens modal with test configuration
+ *     JSON" → covered by "Edit configuration button fires
+ *     cts-edit-config" plus the cts-action-overflow stories that
+ *     drive the new kebab-housed view-config flow; the legacy modal
+ *     template (templates/privateLinkModals.html, etc.) is gone in U5.
+ * "status and result tooltips render on header" → obsolete: the v2
+ *     sticky bar uses self-describing cts-badge labels (PASSED /
+ *     FAILED / RUNNING). No tooltip surface remains in the new chrome.
+ * "log entry more panel shows HTTP request/response details and
+ *     collapses on second click" → covered at component scope by
+ *     cts-log-entry stories.
+ * "banner transitions: FINISHED runner shows Inactive, hides
+ *     Active/Archived" → obsolete: the legacy three-banner Active /
+ *     Inactive / Archived semantics collapsed in v2 into the hero's
+ *     lifecycle-driven dispatch. FINISHED is the absence of the
+ *     RUNNING / WAITING states; the verdict is the terminal banner.
+ * "banner transitions: RUNNING runner shows Active" → obsolete: the
+ *     RUNNING hero (data-testid="hero-running") replaces the legacy
+ *     #runningTestActive banner; verified by the
+ *     cts-log-detail-header RunningTest story.
+ * "banner transitions: runner 404 shows Archived banner" → obsolete:
+ *     the archived note was dropped once the terminal banner replaced
+ *     the "did this test pass?" signal — the kebab menu still allows
+ *     download of the archived log.
+ * "runner error response injects cts-alert + stacktrace reveals on
+ *     click" → covered by "INTERRUPTED runner error renders danger
+ *     alert with stacktrace toggle" (this file).
+ * "failure summary items are clickable" → covered by "failure
+ *     summary jump-link bubbles cts-scroll-to-entry" and
+ *     "failure-summary jump-link scrolls the entry inside a block into view".
+ * R24 split-marker variants → covered by cts-log-detail-header
+ *     stories (PassedHeroDescriptionAndMarkerSplit /
+ *     PassedHeroDescriptionOnly / WaitingHeroWithInstructions /
+ *     WaitingHeroFallbackInstructions).
+ * R21 nav widget (4 legacy tests) → covered at component scope by
+ *     cts-test-nav-controls.stories.js; v2 page-level wiring is the
+ *     same handler set.
+ * ─────────────────────────────────────────────────────────────────────
  */
-async function setupLogDetailRoutes(page, { testInfo, logEntries }) {
+
+/**
+ * Install a `scrollIntoView` spy in the page before load. It records the
+ * `data-entry-id` (or `id`) of every element scrolled into view on
+ * `window.__scrolledEntryIds`. The scroll-to-entry tests assert against
+ * this so they verify the scroll HANDLER ran on the right element — not
+ * just that the target is visible, which is always true now that blocks
+ * are non-collapsible and would make a bare `toBeVisible()` pass even if
+ * the handler were removed.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function installScrollIntoViewSpy(page) {
+  await page.addInitScript(() => {
+    /** @type {string[]} */
+    const ids = [];
+    window.__scrolledEntryIds = ids;
+    const orig = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (
+      /** @type {boolean | ScrollIntoViewOptions | undefined} */ arg,
+    ) {
+      // At the wide layout the cts-log-entry host is display:contents, so
+      // scrollEntryIntoView scrolls the painted .logItem INSIDE the host —
+      // attribute the scroll to the owning entry via closest() so callers
+      // keep asserting on entry ids regardless of which box was scrolled.
+      const host = this.closest("cts-log-entry") || this;
+      const id = host.getAttribute("data-entry-id") || host.id || "";
+      if (id) ids.push(id);
+      return orig.call(this, arg);
+    };
+  });
+}
+
+/**
+ * Register all routes the new bootstrap depends on. Mirror of
+ * setupLogDetailRoutes from log-detail.spec.js but trimmed to the
+ * surface the new bootstrap actually fires (no /api/runner poll for
+ * a FINISHED test, no /api/uploaded-images multi-shape variants, etc.).
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ testInfo: any, logEntries: any, planModules?: any[] }} options
+ */
+async function setupV2Routes(page, { testInfo, logEntries, planModules }) {
   const testId = testInfo.testId;
 
-  // /api/info/:testId
-  await page.route(`**/api/info/${testId}`, (route) =>
+  await page.route(`**/api/info/${testId}*`, (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -20,7 +144,6 @@ async function setupLogDetailRoutes(page, { testInfo, logEntries }) {
     }),
   );
 
-  // /api/log/:testId — return entries on first call, empty on subsequent (since > 0)
   await page.route(`**/api/log/${testId}**`, (route) => {
     const url = new URL(route.request().url());
     const since = url.searchParams.get("since");
@@ -38,261 +161,2380 @@ async function setupLogDetailRoutes(page, { testInfo, logEntries }) {
     });
   });
 
-  // /api/runner/:testId — return FINISHED to stop the reloader
-  await page.route(`**/api/runner/${testId}`, (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        id: testId,
-        name: testInfo.testName,
-        status: "FINISHED",
-        created: testInfo.created,
-        updated: testInfo.created,
-        owner: testInfo.owner,
-      }),
-    }),
-  );
-
-  // /api/plan/:planId — for the "Return to Plan" button
   if (testInfo.planId) {
-    await page.route(`**/api/plan/${testInfo.planId}`, (route) =>
+    // Trailing wildcard tolerates ?public=true — Playwright globs match
+    // the full URL including the query string (same convention as the
+    // /api/info and /api/log routes above).
+    await page.route(`**/api/plan/${testInfo.planId}*`, (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ _id: testInfo.planId, planName: "test-plan" }),
+        body: JSON.stringify({
+          _id: testInfo.planId,
+          planName: "test-plan",
+          ...(planModules
+            ? { modules: planModules }
+            : {
+                modules: [{ testModule: testInfo.testName, variant: testInfo.variant || {} }],
+              }),
+        }),
       }),
     );
   }
+
+  // /api/runner — return 404 for FINISHED tests so the runner-poll
+  // helper exits cleanly. RUNNING / WAITING tests would return data
+  // here; specs that need that path will register a more specific
+  // route before calling this helper.
+  await page.route(`**/api/runner/${testId}`, (route) => route.fulfill({ status: 404, body: "" }));
+
+  await page.route("**/api/uploaded-images*", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+  );
 }
 
-test.describe("log-detail.html — Log Detail", () => {
+test.describe("log-detail.html — new Lit-triad page", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("loads and renders log header (R16)", async ({ page }) => {
+  test("renders cts-log-detail-header with test metadata", async ({ page }) => {
     await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
+    await setupV2Routes(page, {
       testInfo: MOCK_TEST_STATUS,
       logEntries: MOCK_LOG_ENTRIES,
     });
     await setupCommonRoutes(page);
 
-    await page.goto("/log-detail.html?log=test-inst-001");
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
 
-    // Header shows test name and test ID
-    const header = page.locator("#logHeader");
-    await expect(header).toContainText("oidcc-server");
-    await expect(header).toContainText("test-inst-001");
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from log-detail.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
 
-    // Status and result display
-    await expect(page.locator("#testStatusAndResult")).toContainText("FINISHED");
-    await expect(page.locator("#testStatusAndResult")).toContainText("PASSED");
+    // Test name + ID land in the header.
+    const header = page.locator("cts-log-detail-header");
+    await expect(header).toContainText(MOCK_TEST_STATUS.testName);
+    await expect(header).toContainText(MOCK_TEST_STATUS.testId);
+
+    // Result + status badges.
+    await expect(page.locator('cts-badge[label="PASSED"]')).toBeVisible();
+    await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
-  test("renders log entries with source, message, and result badges (R17)", async ({ page }) => {
+  test("nav row renders above the sticky status bar (IA hierarchy)", async ({ page }) => {
+    // The nav row carries plan-level orientation ("Plan progress:
+    // Module N of M" + Continue Plan). It sits one level UP the IA
+    // hierarchy from the sticky bar's per-test verdict + actions, so
+    // reading the page top-to-bottom must be:
+    //   breadcrumb (plan link) → nav row (plan progress) → sticky bar
+    //   (this test's verdict) → terminal banner → hero → drawer
+    // This regression locks in the order so a future render-template
+    // refactor of cts-log-detail-header can't silently invert it.
     await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
+    await setupV2Routes(page, {
       testInfo: MOCK_TEST_STATUS,
       logEntries: MOCK_LOG_ENTRIES,
+      planModules: [
+        {
+          testModule: "oidcc-server",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+        {
+          testModule: "oidcc-server-rotate-keys",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+      ],
     });
     await setupCommonRoutes(page);
 
-    await page.goto("/log-detail.html?log=test-inst-001");
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
 
-    // Wait for log entries to render
-    const logItems = page.locator(".logItem");
-    await expect(logItems.first()).toBeVisible();
+    // Wait for both zones to be present.
+    await expect(page.locator('[data-testid="nav-row"]')).toBeVisible();
+    await expect(page.locator('[data-testid="status-bar"]')).toBeVisible();
 
-    // Check that entries have source labels
-    await expect(page.locator(".logContent")).toContainText("CheckServerConfiguration");
-
-    // Check result badges exist
-    await expect(page.locator('[data-entry-result="success"]').first()).toBeVisible();
-
-    // Check WARNING badge exists (entry-6 has result: "WARNING")
-    await expect(page.locator('[data-entry-result="warning"]').first()).toBeVisible();
-
-    // Requirement badge renders as a clickable link when specLinks prefix matches (R7-specLinks)
-    const requirementLink = page.locator('.log-requirement a[href*="openid-connect-core"]').first();
-    await expect(requirementLink).toBeVisible();
-    await expect(requirementLink).toContainText("OIDCC-3.1.3.3");
-    await expect(requirementLink).toHaveAttribute("href", "https://openid.net/specs/openid-connect-core-1_0.html#section-3.1.3.3");
-    await expect(requirementLink).toHaveAttribute("target", "_blank");
+    // Walk the DOM: the nav row must precede the sticky bar.
+    const orderCheck = await page.evaluate(() => {
+      const navRow = document.querySelector('[data-testid="nav-row"]');
+      const statusBar = document.querySelector('[data-testid="status-bar"]');
+      if (!navRow || !statusBar) return { ok: false, reason: "zones not mounted" };
+      // Node.DOCUMENT_POSITION_FOLLOWING — true when statusBar follows
+      // navRow in document order.
+      const followsNav = !!(
+        navRow.compareDocumentPosition(statusBar) & Node.DOCUMENT_POSITION_FOLLOWING
+      );
+      return { ok: true, navBeforeBar: followsNav };
+    });
+    expect(orderCheck.ok).toBe(true);
+    expect(orderCheck.navBeforeBar).toBe(true);
   });
 
-  test("clicking a log entry expands detailed content (R18)", async ({ page }) => {
+  // ── U6: plan-status progress bar (cts-plan-status, log mode) ─────────
+  // Plan: docs/plans/2026-06-08-003-feat-plan-status-component-plan.md
+  // The orange single-track position bar is replaced by the segmented
+  // cts-plan-status bar in the nav row: one segment per module, the "you
+  // are here" marker on the viewed instance's module, "Module N of M", and
+  // sibling navigation (R13/R14/R15/R17/R5/R18).
+
+  /**
+   * Build N plan modules whose `markedIndex` module carries `markedInstances`
+   * (so it owns the viewed instance) and every other module carries a single
+   * sibling instance `s-<i>` so the post-paint /api/info fan-out fires for it.
+   *
+   * @param {number} count
+   * @param {{ markedIndex: number, markedInstances: string[] }} opts
+   * @returns {Array<{testModule: string, variant: object, instances: string[]}>}
+   */
+  function makePlanModules(count, { markedIndex, markedInstances }) {
+    return Array.from({ length: count }, (_, i) => ({
+      testModule: i === markedIndex ? "oidcc-server" : `sibling-${i}`,
+      variant:
+        i === markedIndex ? { client_auth_type: "client_secret_basic", response_type: "code" } : {},
+      instances: i === markedIndex ? markedInstances : [`s-${i}`],
+    }));
+  }
+
+  test("U6/AE2: viewing test 6 of 28 marks segment 6 and reads 'Module 6 of 28'", async ({
+    page,
+  }) => {
     await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
+    // 28 modules; the viewed test (test-inst-001) is the most-recent (only)
+    // instance of the 6th module (index 5).
+    const planModules = makePlanModules(28, {
+      markedIndex: 5,
+      markedInstances: [MOCK_TEST_STATUS.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    // Sibling fan-out: each non-marked module's last instance s-<i> resolves
+    // to a PASSED status. Registered AFTER setupV2Routes so it shadows the
+    // fail-fast catch-all but not the specific main-test /api/info route.
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+
+    // The position label reads Module 6 of 28 (AE2/R14).
+    await expect(page.locator('[data-testid="progress-position"]')).toHaveText("Module 6 of 28");
+
+    // 28 segments; the 6th (index 5) carries the "you are here" marker.
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(28);
+    await expect(segments.nth(5)).toHaveClass(/is-current/);
+    await expect(segments.nth(0)).not.toHaveClass(/is-current/);
+  });
+
+  test("U6/R17: viewing an OLDER re-run still marks the right segment", async ({ page }) => {
+    await setupFailFast(page);
+    // The marked module has TWO instances; the viewed one is the FIRST
+    // (older re-run), not the module's last. The marker must still land on it
+    // because cts-plan-status matches the FULL instances list.
+    const planModules = makePlanModules(10, {
+      markedIndex: 3,
+      markedInstances: [MOCK_TEST_STATUS.testId, "newer-rerun"],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    // The marked module's LAST instance (newer-rerun) is what its segment's
+    // status fan-out fetches — give it a result too.
+    await page.route("**/api/info/newer-rerun*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments.nth(3)).toHaveClass(/is-current/);
+    await expect(page.locator('[data-testid="progress-position"]')).toHaveText("Module 4 of 10");
+  });
+
+  test("U6/R15: clicking a sibling segment navigates to that instance's log", async ({ page }) => {
+    await setupFailFast(page);
+    const planModules = makePlanModules(8, {
+      markedIndex: 2,
+      markedInstances: [MOCK_TEST_STATUS.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+
+    // Off the public view every sibling with an instance is a navigable link
+    // from first paint — its href is seeded at map time, before the colour
+    // fan-out runs. The FIRST segment (index 0 → instance s-0) carries that href;
+    // clicking it navigates natively (no event round-trip).
+    const firstSeg = bar.locator("a.cts-pst-seg").first();
+    await expect(firstSeg).toHaveAttribute("href", "/log-detail.html?log=s-0");
+    await firstSeg.click();
+    await page.waitForURL("**/log-detail.html?log=s-0");
+    expect(new URL(page.url()).searchParams.get("log")).toBe("s-0");
+  });
+
+  test("U6: an off-public never-run sibling is an inert anchor (no dead-end click)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // Off-public plan: the viewed module (index 0, has an instance) plus a
+    // sibling that has never run (no instances). The never-run sibling has no
+    // navigation target, so the page seeds no href and its segment is an inert
+    // <a role="img"> — not a clickable dead end (an improvement over the old
+    // always-a-button form).
+    const planModules = [
+      {
+        testModule: "oidcc-server",
+        variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        instances: [MOCK_TEST_STATUS.testId],
+      },
+      { testModule: "never-run-sib", variant: {}, instances: [] },
+    ];
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+    await expect(bar.locator('[data-testid="plan-status-segment"]')).toHaveCount(2);
+
+    // Viewed module → navigable link; never-run sibling → inert anchor, no href.
+    await expect(bar.locator("a.cts-pst-seg[href]")).toHaveCount(1);
+    const inert = bar.locator("a.cts-pst-seg:not([href])");
+    await expect(inert).toHaveCount(1);
+    await expect(inert).toHaveAttribute("role", "img");
+  });
+
+  test("U6/R5/R18: siblings pending then colour after fan-out; a 404 sibling settles to skip", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // 4 modules: marked at index 0; sibling 1 resolves PASSED, sibling 2
+    // resolves FAILED, sibling 3 404s (its latest run is inaccessible).
+    const planModules = [
+      {
+        testModule: "oidcc-server",
+        variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        instances: [MOCK_TEST_STATUS.testId],
+      },
+      { testModule: "sib-pass", variant: {}, instances: ["sib-pass-1"] },
+      { testModule: "sib-fail", variant: {}, instances: ["sib-fail-1"] },
+      { testModule: "sib-404", variant: {}, instances: ["sib-404-1"] },
+    ];
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/sib-pass-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await page.route("**/api/info/sib-fail-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    // 404 sibling: its segment must settle to the static skip fill, not pulse
+    // pending forever (R18/KTD3 — _statusResolved set in the error branch).
+    await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(4);
+
+    // After the fan-out resolves: sibling 1 = pass, sibling 2 = fail, sibling
+    // 3 settled to skip (NOT pending). The marked module (the viewed test)
+    // has no fan-out status of its own (its only instance is the viewed one,
+    // which 200s through the main /api/info route) → resolves to PASSED.
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    // The 404 segment must NOT keep the pending class.
+    await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
+  });
+
+  test("U6 public view: published-plan siblings navigate, fan-out carries ?public=true", async ({
+    page,
+  }) => {
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/info/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    const planModules = makePlanModules(5, {
+      markedIndex: 1,
+      markedInstances: [MOCK_TEST_STATUS.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await setupCommonRoutes(page, { user: null }); // anonymous viewer
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+
+    // Wait until the sibling fan-out has settled (the first sibling colours,
+    // which is the same moment its segment becomes navigable).
+    await expect(bar.locator('[data-testid="plan-status-segment"]').nth(0)).toHaveClass(
+      /cts-pst-seg--pass/,
+    );
+
+    // Every sibling fan-out request carried public=true.
+    const siblingCalls = apiRequests.filter((u) => u.includes("/api/info/s-"));
+    expect(siblingCalls.length).toBeGreaterThan(0);
+    for (const url of siblingCalls) {
+      expect(new URL(url).searchParams.get("public")).toBe("true");
+    }
+
+    // On a published-plan public view the reachable siblings become navigable
+    // links once the fan-out confirms each target instance returns 200 — the page
+    // sets each segment's href (threading &public=true). Clicking the first
+    // sibling navigates natively to that instance's public log.
+    const firstLink = bar.locator("a.cts-pst-seg[href]").first();
+    await expect(firstLink).toHaveAttribute("href", "/log-detail.html?log=s-0&public=true");
+    await firstLink.click();
+    // Loose glob (tolerates query-param reordering); the searchParams asserts
+    // below are the real contract check.
+    await page.waitForURL("**/log-detail.html?log=s-0**");
+    const navUrl = new URL(page.url());
+    expect(navUrl.searchParams.get("log")).toBe("s-0");
+    expect(navUrl.searchParams.get("public")).toBe("true");
+  });
+
+  test("U6 public view: a reachable sibling navigates but an unreachable (404) sibling stays an inert anchor", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // Published-plan public view, 4 modules: marked at index 0 (the viewed test);
+    // siblings 1 and 2 are publicly reachable (200), sibling 3 is not (404 — e.g.
+    // a re-run created a newer, unpublished instance after the plan was published).
+    const planModules = [
+      {
+        testModule: "oidcc-server",
+        variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        instances: [MOCK_TEST_STATUS.testId],
+      },
+      { testModule: "sib-pass", variant: {}, instances: ["sib-pass-1"] },
+      { testModule: "sib-fail", variant: {}, instances: ["sib-fail-1"] },
+      { testModule: "sib-404", variant: {}, instances: ["sib-404-1"] },
+    ];
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/sib-pass-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await page.route("**/api/info/sib-fail-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
+    await setupCommonRoutes(page, { user: null }); // anonymous viewer
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(4);
+
+    // Wait until the fan-out settles: the reachable siblings colour, and the 404
+    // sibling settles to the neutral skip fill (not stuck pending — R18/KTD3).
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
+
+    // The unreachable 404 sibling stays an inert <a role="img"> with no href (R2);
+    // the reachable siblings (and the viewed module) are navigable links (R1).
+    const inert = bar.locator("a.cts-pst-seg:not([href])");
+    await expect(inert).toHaveCount(1);
+    await expect(inert).toHaveAttribute("role", "img");
+    await expect(bar.locator("a.cts-pst-seg[href]")).toHaveCount(3);
+  });
+
+  test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({
+    page,
+  }) => {
+    // The breadcrumb must give a planned-test viewer three levels of
+    // orientation: the Plans index, this test's parent plan (named, not
+    // opaque ID), and finally the test module's own name (not the
+    // runtime testId). Mirrors plan-detail.html's `Plans > <planName>`
+    // convention extended with the test-name terminal.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
       testInfo: MOCK_TEST_STATUS,
       logEntries: MOCK_LOG_ENTRIES,
     });
     await setupCommonRoutes(page);
 
-    await page.goto("/log-detail.html?log=test-inst-001");
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
 
-    // Wait for entries to render
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    // Wait for the plan-name fetch to land (crumb re-renders with the
+    // real plan name once /api/plan resolves).
+    await expect(crumb.locator("button.crumbLink").nth(1)).toHaveText("test-plan");
+
+    // Three items: two clickable, last is terminal.
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveText("Plans");
+    await expect(buttons.nth(1)).toHaveText("test-plan");
+
+    const terminal = crumb.locator("span.crumbCurrent");
+    await expect(terminal).toHaveText(MOCK_TEST_STATUS.testName);
+    await expect(terminal).toHaveAttribute("aria-current", "page");
+  });
+
+  test('breadcrumb keeps literal "Plan" label when /api/plan returns 404', async ({ page }) => {
+    // Optimistic-render path: updateBreadcrumb fires before /api/plan
+    // resolves with `planName || "Plan"`. If the plan fetch fails the
+    // page must still show the 3-level trail with the literal fallback,
+    // never an empty / undefined middle crumb.
+    await setupFailFast(page);
+    await page.route(`**/api/info/${MOCK_TEST_STATUS.testId}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_STATUS),
+      }),
+    );
+    await page.route(`**/api/log/${MOCK_TEST_STATUS.testId}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    // /api/plan deliberately fails — the bootstrap's optimistic crumb
+    // render is the only thing that survives.
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route(`**/api/runner/${MOCK_TEST_STATUS.testId}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveText("Plans");
+    await expect(buttons.nth(1)).toHaveText("Plan");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(MOCK_TEST_STATUS.testName);
+  });
+
+  test("breadcrumb renders Logs > <testName> for an ad-hoc test (no planId)", async ({ page }) => {
+    // No planId on /api/info means the test wasn't started from a plan.
+    // The trail collapses to two levels: `Logs > <test name>`.
+    const adhocInfo = { ...MOCK_TEST_STATUS, planId: undefined };
+    delete adhocInfo.planId;
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: adhocInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(adhocInfo.testId)}`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(adhocInfo.testName);
+
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(1);
+    await expect(buttons.nth(0)).toHaveText("Logs");
+  });
+
+  // ── Public mode (?public=true) ──────────────────────────────────────
+  // Anonymous viewers reach this page via published-log links. The
+  // security filter chain only permits unauthenticated GETs on
+  // /api/info, /api/plan, and /api/log when the request carries
+  // public=true, so the bootstrap and the viewer must thread the param
+  // through every fetch — and must NOT touch /api/runner, which has no
+  // public mode at all.
+  // Plan: docs/plans/2026-06-03-003-fix-log-detail-public-mode-plan.md
+
+  test("public mode: entries load and plan name resolves via public=true requests", async ({
+    page,
+  }) => {
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null }); // anonymous viewer
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    // Plan name resolves through the public plan endpoint — the crumb
+    // upgrades from the optimistic literal "Plan" to the real name.
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    await expect(crumb.locator("button.crumbLink").nth(1)).toHaveText("test-plan");
+
+    // Log entries render for the anonymous viewer.
+    await expect(page.locator("cts-log-viewer .logItem").first()).toBeVisible();
+
+    // Every security-gated fetch carried public=true.
+    const gated = apiRequests.filter(
+      (u) =>
+        u.includes(`/api/info/${MOCK_TEST_STATUS.testId}`) ||
+        u.includes(`/api/log/${MOCK_TEST_STATUS.testId}`) ||
+        u.includes(`/api/plan/${MOCK_TEST_STATUS.planId}`),
+    );
+    // All three endpoints were actually hit (info + log + plan).
+    expect(gated.some((u) => u.includes("/api/info/"))).toBe(true);
+    expect(gated.some((u) => u.includes("/api/log/"))).toBe(true);
+    expect(gated.some((u) => u.includes("/api/plan/"))).toBe(true);
+    for (const url of gated) {
+      expect(new URL(url).searchParams.get("public")).toBe("true");
+    }
+
+    // Crumb links keep the anonymous viewer in the public view.
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons.nth(0)).toHaveAttribute("data-target", "/plans.html?public=true");
+    await expect(buttons.nth(1)).toHaveAttribute(
+      "data-target",
+      `/plan-detail.html?plan=${encodeURIComponent(MOCK_TEST_STATUS.planId)}&public=true`,
+    );
+  });
+
+  test("public mode: ad-hoc test crumb targets /logs.html?public=true", async ({ page }) => {
+    // The Logs-branch of updateBreadcrumb threads publicSuffix too — an
+    // anonymous viewer of a published ad-hoc test (no planId) must stay
+    // in the public view when clicking the root crumb.
+    const adhocPublic = { ...MOCK_TEST_STATUS, planId: undefined };
+    delete adhocPublic.planId;
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: adhocPublic,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(adhocPublic.testId)}&public=true`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(1);
+    await expect(buttons.nth(0)).toHaveText("Logs");
+    await expect(buttons.nth(0)).toHaveAttribute("data-target", "/logs.html?public=true");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(adhocPublic.testName);
+  });
+
+  test('public mode: breadcrumb keeps literal "Plan" when the plan is not published', async ({
+    page,
+  }) => {
+    // A log can be published while its parent plan is not — the public
+    // plan fetch 404s and the optimistic "Plan" fallback must survive.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    // Shadow the helper's plan stub (last registered = matched first).
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}*`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveText("Plans");
+    await expect(buttons.nth(1)).toHaveText("Plan");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(MOCK_TEST_STATUS.testName);
+  });
+
+  test("public mode: running test never requests /api/runner", async ({ page }) => {
+    // /api/runner has no public matcher entry — anonymous GETs would 401
+    // on every poll cycle. The poll loop must keep refreshing /api/info
+    // (live status for the public viewer) while skipping the runner
+    // fetch entirely.
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}&public=true`,
+    );
+
+    // Wait until the first poll cycle has run: the bootstrap /api/info
+    // fetch plus pollOnce's refresh land near t=0. In non-public mode
+    // pollOnce would fire /api/runner in that same first cycle.
+    await expect
+      .poll(
+        () => apiRequests.filter((u) => u.includes(`/api/info/${MOCK_TEST_RUNNING.testId}`)).length,
+      )
+      .toBeGreaterThan(1);
+
+    expect(apiRequests.filter((u) => u.includes("/api/runner/"))).toHaveLength(0);
+  });
+
+  test("public mode: Download Logs requests /api/log/export/<id> with public=true", async ({
+    page,
+  }) => {
+    // The export route is /api/log/export/{id} — the swapped
+    // /api/log/{id}/export form has no server-side route and 404s. The
+    // download item only shows in public (readonly) mode when the test
+    // is published with publish === "everything".
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    const publishedInfo = { ...MOCK_TEST_STATUS, publish: "everything" };
+    await setupV2Routes(page, {
+      testInfo: publishedInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await page.route("**/api/log/export/**", (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: "PK" }),
+    );
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(publishedInfo.testId)}&public=true`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await page.locator('button[data-action-id="download-log"]').click();
+
+    await expect
+      .poll(() => apiRequests.filter((u) => u.includes("/api/log/export/")).length)
+      .toBeGreaterThan(0);
+    const exportUrl = new URL(apiRequests.find((u) => u.includes("/api/log/export/")) || "");
+    expect(exportUrl.pathname).toBe(`/api/log/export/${publishedInfo.testId}`);
+    expect(exportUrl.searchParams.get("public")).toBe("true");
+  });
+
+  /**
+   * Run the post-terminal verdict refresh against a parametrized verdict
+   * (PASSED / FAILED / REVIEW / WARNING / SKIPPED / INTERRUPTED). The
+   * scenario is the same for every result: the page lands on a RUNNING
+   * test, the runner-poll loop catches the verdict, /api/info refresh
+   * surfaces it, and the terminal banner appears without a reload.
+   *
+   * @param {{ result: string, finalStatus: string, bannerText: RegExp, statusBadgeLabel: string }} cfg
+   */
+  function terminalRefreshTest(cfg) {
+    return async ({ page }) => {
+      await setupFailFast(page);
+
+      const runningInfo = {
+        ...MOCK_TEST_RUNNING,
+        testId: `test-running-${cfg.result.toLowerCase()}-001`,
+        _id: `test-running-${cfg.result.toLowerCase()}-001`,
+        planId: `plan-terminal-refresh-${cfg.result.toLowerCase()}`,
+      };
+      const finishedInfo = {
+        ...runningInfo,
+        status: cfg.finalStatus,
+        result: cfg.result,
+      };
+
+      await setupV2Routes(page, {
+        testInfo: runningInfo,
+        logEntries: MOCK_LOG_ENTRIES,
+      });
+      await setupCommonRoutes(page);
+
+      // Override /api/info: first two calls (bootstrap + first poll)
+      // return the RUNNING state — simulating /api/info lagging behind
+      // the runner. Subsequent calls return the verdict. This exercises
+      // the "verdict not persisted yet" race that the old single-shot
+      // refresh-after-terminal hook missed.
+      let infoCallCount = 0;
+      await page.route(
+        `**/api/info/${runningInfo.testId}*`,
+        /** @param {import('@playwright/test').Route} route */ (route) => {
+          infoCallCount += 1;
+          route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify(infoCallCount <= 2 ? runningInfo : finishedInfo),
+          });
+        },
+      );
+
+      // Override /api/runner: first poll returns RUNNING (page renders
+      // the running state), subsequent polls return 404 (runner has
+      // flushed the test) — but the poll loop continues until /api/info
+      // confirms the verdict, NOT just because the runner went terminal.
+      let runnerCallCount = 0;
+      await page.route(
+        `**/api/runner/${runningInfo.testId}`,
+        /** @param {import('@playwright/test').Route} route */ (route) => {
+          runnerCallCount += 1;
+          if (runnerCallCount === 1) {
+            return route.fulfill({
+              status: 200,
+              contentType: "application/json",
+              body: JSON.stringify({ status: "RUNNING" }),
+            });
+          }
+          return route.fulfill({ status: 404, body: "" });
+        },
+      );
+
+      await page.goto(`/log-detail.html?log=${encodeURIComponent(runningInfo.testId)}`);
+
+      // Initial render: running test, no terminal banner yet.
+      await expect(page.locator("cts-log-detail-header")).toContainText(runningInfo.testName);
+      await expect(page.locator('[data-testid="terminal-banner"]')).toHaveCount(0);
+
+      // After several poll cycles (~3s each), /api/info finally serves
+      // the verdict and the banner appears.
+      await expect(page.locator('[data-testid="terminal-banner"]')).toBeVisible({
+        timeout: 20000,
+      });
+      await expect(page.locator('[data-testid="terminal-banner"]')).toContainText(cfg.bannerText);
+
+      // Sticky bar picks up the result pill alongside the status badge.
+      await expect(
+        page.locator(`[data-testid="status-bar"] cts-badge[label="${cfg.result}"]`),
+      ).toBeVisible();
+      await expect(
+        page.locator(`[data-testid="status-bar"] cts-badge[label="${cfg.statusBadgeLabel}"]`),
+      ).toBeVisible();
+
+      // Sanity: the loop stopped once the verdict landed. /api/info was
+      // called at least 3 times (bootstrap + lag-poll + verdict-poll)
+      // but not unbounded.
+      expect(infoCallCount).toBeGreaterThanOrEqual(3);
+      expect(infoCallCount).toBeLessThanOrEqual(8);
+    };
+  }
+
+  test(
+    "terminal-state refresh — PASSED: banner renders without reload",
+    terminalRefreshTest({
+      result: "PASSED",
+      finalStatus: "FINISHED",
+      bannerText: /Test passed/i,
+      statusBadgeLabel: "FINISHED",
+    }),
+  );
+
+  test(
+    "terminal-state refresh — REVIEW: banner renders without reload",
+    terminalRefreshTest({
+      result: "REVIEW",
+      finalStatus: "FINISHED",
+      bannerText: /Test needs review/i,
+      statusBadgeLabel: "FINISHED",
+    }),
+  );
+
+  test(
+    "terminal-state refresh — FAILED: banner renders without reload",
+    terminalRefreshTest({
+      result: "FAILED",
+      finalStatus: "FINISHED",
+      bannerText: /Test failed/i,
+      statusBadgeLabel: "FINISHED",
+    }),
+  );
+
+  test(
+    "terminal-state refresh — INTERRUPTED: banner renders without reload",
+    terminalRefreshTest({
+      result: "FAILED",
+      finalStatus: "INTERRUPTED",
+      bannerText: /Test interrupted/i,
+      statusBadgeLabel: "INTERRUPTED",
+    }),
+  );
+
+  test("renders cts-log-viewer with mocked log entries", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const viewer = page.locator("cts-log-viewer");
+    await expect(viewer).toBeVisible();
+
+    // Wait for at least one log entry row.
     await expect(page.locator(".logItem").first()).toBeVisible();
-
-    // Find a log entry that has a "more" button (entries with extra fields get one)
-    const moreBtn = page.locator(".moreBtn").first();
-    await expect(moreBtn).toBeVisible();
-
-    // The more info panel should be hidden initially
-    const moreInfo = page.locator(".moreInfo").first();
-    await expect(moreInfo).not.toBeVisible();
-
-    // Click the more button
-    await moreBtn.click();
-
-    // The more info panel should now be visible
-    await expect(moreInfo).toBeVisible();
   });
 
-  test("failed test shows failure summary section (R19)", async ({ page }) => {
+  test("Edit configuration button fires cts-edit-config with the right detail", async ({
+    page,
+  }) => {
     await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
-      testInfo: MOCK_TEST_FAILED,
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for the header to render (await testInfo flow).
+    const header = page.locator("cts-log-detail-header");
+    await expect(header).toContainText(MOCK_TEST_STATUS.testName);
+
+    // Capture the cts-edit-config event before driving the menu — the
+    // page-level handler in log-detail.js tries to navigate to
+    // schedule-test.html, which in turn fires its own /api/plan/available
+    // call. Asserting on the event detail (rather than the URL) keeps
+    // this test focused on U1's contract: header → event → page-level
+    // handler. Edit Configuration now lives inside the action-overflow
+    // menu, not as a top-level cts-button — drive the overflow surface
+    // (trigger → data-action-id="edit-config") instead.
+    const detailJson = /** @type {string} */ (
+      await page.evaluate(() => {
+        return new Promise((resolve) => {
+          document.addEventListener(
+            "cts-edit-config",
+            /** @param {Event} e */ (e) => {
+              const detail = /** @type {CustomEvent} */ (e).detail;
+              resolve(JSON.stringify(detail));
+            },
+            { once: true },
+          );
+          // Stop the page-level handler from following through to
+          // schedule-test.html — we don't need to load that page, only
+          // observe the bubbled event.
+          window.addEventListener(
+            "beforeunload",
+            (ev) => {
+              ev.preventDefault();
+              ev.returnValue = "";
+            },
+            { once: true },
+          );
+          const trigger = /** @type {HTMLButtonElement | null} */ (
+            document.querySelector(
+              'cts-action-overflow[data-testid="status-bar-overflow"] [data-testid="overflow-trigger"]',
+            )
+          );
+          if (!trigger) return;
+          trigger.click();
+          // popover-target opens synchronously on click; the menu item is
+          // immediately interactive.
+          const item = /** @type {HTMLButtonElement | null} */ (
+            document.querySelector(
+              'cts-action-overflow[data-testid="status-bar-overflow"] [data-action-id="edit-config"]',
+            )
+          );
+          if (item) item.click();
+        });
+      })
+    );
+
+    const detail = JSON.parse(detailJson);
+    expect(detail.testId).toBe(MOCK_TEST_STATUS.testId);
+    expect(detail.planId).toBe(MOCK_TEST_STATUS.planId);
+    expect(detail.config).toEqual(MOCK_TEST_STATUS.config);
+  });
+
+  test("Private link button opens the expiration modal", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for the header → action stack → share-link button.
+    const header = page.locator("cts-log-detail-header");
+    await expect(header).toContainText(MOCK_TEST_STATUS.testName);
+
+    const expirationModal = page.locator("#privateLinkExpirationModal");
+    await expect(expirationModal).toBeHidden();
+
+    // Private link now lives inside the action-overflow menu, not as a
+    // top-level cts-button. Open the menu, then click the menuitem.
+    const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
+    await overflow.locator('[data-testid="overflow-trigger"]').click();
+    await overflow.locator('[data-action-id="share-link"]').click();
+
+    // cts-modal is built on native <dialog>; show() sets the host's
+    // `open` state and the host becomes visible via :host([open]) CSS.
+    await expect(expirationModal).toBeVisible();
+  });
+
+  test("failure summary jump-link bubbles cts-scroll-to-entry to the page", async ({ page }) => {
+    // Inject FAILURE entries into testInfo.results so the Lit header's
+    // _renderFailureSummary() has data to render. The base MOCK_TEST_FAILED
+    // fixture defines result: "FAILED" but no per-condition results.
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        {
+          _id: "fail-r1",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature invalid",
+          requirements: ["OIDCC-3.1.3.7-6"],
+        },
+      ],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
       logEntries: MOCK_FAILED_LOG_ENTRIES,
     });
     await setupCommonRoutes(page);
 
-    await page.goto("/log-detail.html?log=test-fail-001");
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(failedTestInfo.testId)}`);
 
-    // Header shows FAILED result
-    await expect(page.locator("#testStatusAndResult")).toContainText("FAILED");
+    // The failure-summary section is gated on having FAILURE/WARNING/
+    // SKIPPED/INTERRUPTED entries in testInfo.results; injected above.
+    const failureItem = page.locator(".failureSummary .failureText").first();
+    await expect(failureItem).toBeVisible();
 
-    // Failure summary section is visible
-    await expect(page.locator(".failureSummaryTitle")).toBeVisible();
-
-    // Failure summary contains the failing condition details
-    await expect(page.locator(".failureSummary")).toContainText("ValidateIdToken");
-    await expect(page.locator(".failureSummary")).toContainText("FAILURE");
-  });
-
-  test("warning results are styled distinctly from failures and passes (R20)", async ({ page }) => {
-    await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
-      testInfo: MOCK_TEST_WARNING,
-      logEntries: MOCK_WARNING_LOG_ENTRIES,
+    // Capture the bubbled cts-scroll-to-entry event from the document.
+    const eventDetail = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        document.addEventListener(
+          "cts-scroll-to-entry",
+          /** @param {Event} e */ (e) => {
+            const detail = /** @type {CustomEvent} */ (e).detail;
+            resolve(detail);
+          },
+          { once: true },
+        );
+        const failure = document.querySelector(".failureSummary .failureText");
+        if (failure) /** @type {HTMLElement} */ (failure).click();
+      });
     });
-    await setupCommonRoutes(page);
 
-    await page.goto("/log-detail.html?log=test-warn-001");
-
-    // Header shows WARNING result
-    await expect(page.locator("#testStatusAndResult")).toContainText("WARNING");
-
-    // Warning badges use result-warning class
-    await expect(page.locator('[data-entry-result="warning"]').first()).toBeVisible();
-
-    // Failure summary section also visible for warnings
-    await expect(page.locator(".failureSummaryTitle")).toBeVisible();
+    expect(eventDetail).toMatchObject({ entryId: expect.any(String) });
   });
 
-  test("View Config button opens modal with test configuration JSON", async ({ page }) => {
+  test("failure summary swaps between header and page-level positions at 1024px breakpoint", async ({
+    page,
+  }) => {
+    // U4: two `<cts-failure-summary>` instances render simultaneously in
+    // log-detail.html — one inside the header card (desktop position)
+    // and one directly below the sticky status bar
+    // (`#ctsTopFailureSummary`, mobile/tablet position). Page-level CSS
+    // hides whichever doesn't apply at the current breakpoint
+    // (`render-twice-hide-one`).
+    // Plan: docs/plans/2026-04-26-005-feat-extract-cts-failure-summary-plan.md
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        {
+          _id: "swap-r1",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature invalid",
+        },
+      ],
+    };
+
     await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
-      testInfo: MOCK_TEST_STATUS,
-      logEntries: MOCK_LOG_ENTRIES,
-    });
-    await setupCommonRoutes(page);
-
-    await page.goto("/log-detail.html?log=test-inst-001");
-
-    // Config button should be visible
-    const configBtn = page.locator("#showConfigBtn");
-    await expect(configBtn).toBeVisible();
-
-    // Config modal hidden initially
-    const configModal = page.locator("#configModal");
-    await expect(configModal).not.toBeVisible();
-
-    // Click config button → modal opens with JSON
-    await configBtn.click();
-    await expect(configModal).toBeVisible();
-    await expect(page.locator("#config")).toContainText("server.issuer");
-    await expect(page.locator("#configTestId")).toContainText("test-inst-001");
-
-    // Close modal
-    await configModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(configModal).not.toBeVisible();
-  });
-
-  test("status and result tooltips render on header", async ({ page }) => {
-    await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
-      testInfo: MOCK_TEST_STATUS,
-      logEntries: MOCK_LOG_ENTRIES,
-    });
-    await setupCommonRoutes(page);
-
-    await page.goto("/log-detail.html?log=test-inst-001");
-
-    // Status/result block should have tooltip elements
-    const statusBlock = page.locator("#testStatusAndResult");
-    await expect(statusBlock).toBeVisible();
-
-    // Tooltip trigger elements should exist
-    const tooltips = statusBlock.locator('[data-bs-toggle="tooltip"]');
-    await expect(tooltips.first()).toBeVisible();
-
-    // Bootstrap moves title to data-bs-original-title after tooltip init
-    const origTitle = await tooltips.first().getAttribute("data-bs-original-title");
-    expect(origTitle || "").toBeTruthy();
-  });
-
-  test("log entry more panel shows HTTP request/response details and collapses on second click", async ({ page }) => {
-    await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
-      testInfo: MOCK_TEST_STATUS,
-      logEntries: MOCK_LOG_ENTRIES,
-    });
-    await setupCommonRoutes(page);
-
-    await page.goto("/log-detail.html?log=test-inst-001");
-
-    await expect(page.locator(".logItem").first()).toBeVisible();
-
-    // Find a more button and click it
-    const moreBtn = page.locator(".moreBtn").first();
-    await moreBtn.click();
-
-    // Panel expands — should show key-value pairs from the "more" data
-    const moreInfo = page.locator(".moreInfo").first();
-    await expect(moreInfo).toBeVisible();
-
-    // Chevron should point up when expanded
-    await expect(moreBtn.locator(".bi-chevron-up")).toBeVisible();
-
-    // Click again to collapse
-    await moreBtn.click();
-    await expect(moreInfo).not.toBeVisible();
-
-    // Chevron should point down when collapsed
-    await expect(moreBtn.locator(".bi-chevron-down")).toBeVisible();
-  });
-
-  test("failure summary items are clickable", async ({ page }) => {
-    await setupFailFast(page);
-    await setupLogDetailRoutes(page, {
-      testInfo: MOCK_TEST_FAILED,
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
       logEntries: MOCK_FAILED_LOG_ENTRIES,
     });
     await setupCommonRoutes(page);
 
-    await page.goto("/log-detail.html?log=test-fail-001");
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(failedTestInfo.testId)}`);
 
-    // Failure summary should be visible
-    await expect(page.locator(".failureSummaryTitle")).toBeVisible();
+    // Wait for the failure summary to mount inside the header before
+    // measuring breakpoints — the header reactively renders when
+    // testInfo lands.
+    await expect(page.locator("cts-log-detail-header cts-failure-summary")).toBeAttached();
 
-    // Failure text items should be clickable (they have onclick that scrolls)
-    const failureText = page.locator(".failureText").first();
-    await expect(failureText).toBeVisible();
-    await expect(failureText).toContainText("ValidateIdToken");
+    // Desktop (≥ 1024px): in-header instance is visible, page-level
+    // instance is `display: none`.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const headerSummaryDisplay = await page.evaluate(
+      () =>
+        getComputedStyle(
+          /** @type {Element} */ (
+            document.querySelector("cts-log-detail-header cts-failure-summary")
+          ),
+        ).display,
+    );
+    const topSummaryDisplay = await page.evaluate(
+      () =>
+        getComputedStyle(/** @type {Element} */ (document.getElementById("ctsTopFailureSummary")))
+          .display,
+    );
+    expect(headerSummaryDisplay).not.toBe("none");
+    expect(topSummaryDisplay).toBe("none");
 
-    // Click the failure text — should not throw an error (scrolls to entry)
-    await failureText.click();
+    // Tablet (< 1024px): inverse — page-level visible, in-header hidden.
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const headerSummaryDisplayTablet = await page.evaluate(
+      () =>
+        getComputedStyle(
+          /** @type {Element} */ (
+            document.querySelector("cts-log-detail-header cts-failure-summary")
+          ),
+        ).display,
+    );
+    const topSummaryDisplayTablet = await page.evaluate(
+      () =>
+        getComputedStyle(/** @type {Element} */ (document.getElementById("ctsTopFailureSummary")))
+          .display,
+    );
+    expect(headerSummaryDisplayTablet).toBe("none");
+    expect(topSummaryDisplayTablet).not.toBe("none");
+
+    // The visible (page-level) instance still bubbles
+    // cts-scroll-to-entry to the document — same contract as the
+    // in-header instance.
+    const eventDetail = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        document.addEventListener(
+          "cts-scroll-to-entry",
+          /** @param {Event} e */ (e) => {
+            const detail = /** @type {CustomEvent} */ (e).detail;
+            resolve(detail);
+          },
+          { once: true },
+        );
+        const failure = document.querySelector(
+          "#ctsTopFailureSummary .failureSummary .failureText",
+        );
+        if (failure) /** @type {HTMLElement} */ (failure).click();
+      });
+    });
+    expect(eventDetail).toMatchObject({ entryId: "swap-r1" });
+  });
+
+  test("entries stream does not overflow horizontally at 375px viewport", async ({ page }) => {
+    // U3: cts-log-entry uses a container query keyed on the host's inline
+    // size to reflow at < 640px. At 375px the entries stream must stack
+    // each row's meta cluster on top of body+actions rather than overflow
+    // horizontally — measured directly on the .logEntries scroll container.
+    // Plan: docs/plans/2026-04-26-004-feat-log-entry-container-query-reflow-plan.md
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for at least one row to land in the DOM.
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    const overflow = await page.evaluate(() => {
+      const stream = document.querySelector("cts-log-viewer .logEntries");
+      if (!stream) return { found: false, scrollWidth: 0, clientWidth: 0 };
+      return {
+        found: true,
+        scrollWidth: stream.scrollWidth,
+        clientWidth: stream.clientWidth,
+      };
+    });
+
+    expect(overflow.found).toBe(true);
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+  });
+
+  test("page does not overflow and Test details stack at 375px viewport", async ({ page }) => {
+    // The .logEntries guard above measures a sub-container with its own
+    // overflow handling — it never caught the status bar inflating the
+    // whole page. This guard targets the document element: a long nowrap
+    // test name used to grow the bar's auto grid track to ~644px at a
+    // 360px viewport (grid items default to min-width: auto), zooming
+    // the entire page out on phones. The same fixture's five-entry
+    // variant map exercises the stacked metadata layout: the drawer's
+    // .logMetaTable must collapse to a single column below 640px
+    // container width so values get the full drawer width instead of
+    // the ~100px the legacy two-column grid left them.
+    // Plan: docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS_LONG_VARIANT,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS_LONG_VARIANT.testId)}`,
+    );
+    await expect(page.locator("cts-log-detail-header .ctsStatusBar")).toBeVisible();
+
+    // Document-level horizontal overflow guard (R2).
+    const doc = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+
+    // Open the Test details disclosure and assert the stacked layout (R1).
+    const details = page.locator('[data-testid="drawer-test-details"]');
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", true);
+
+    const tracks = await page
+      .locator("cts-log-detail-header .logMetaTable")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/));
+    expect(tracks).toHaveLength(1);
+  });
+
+  test("sticky status bar pins to the top of the viewport on scroll", async ({ page }) => {
+    // U2: <cts-log-detail-header>'s status bar uses position: sticky at
+    // >= 640px. Playwright's default viewport (1280x720) sits in that
+    // range. The bar publishes its measured height to
+    // document.documentElement.--status-bar-height, which downstream
+    // sticky descendants (connection-lost banner, R32 entry anchors)
+    // read for top-offset coordination.
+    // Plan: docs/plans/2026-04-26-003-feat-status-bar-sticky-and-mode-aware-plan.md
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for the bar to mount before measuring.
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar).toBeVisible();
+
+    // The component publishes a non-zero pixel value to the inline style
+    // on document.documentElement after firstUpdated() runs the
+    // ResizeObserver attach + initial measure. Downstream descendants
+    // (banner, R32 anchors) read this property for top-offset.
+    await expect
+      .poll(async () =>
+        page.evaluate(() =>
+          getComputedStyle(document.documentElement).getPropertyValue("--status-bar-height").trim(),
+        ),
+      )
+      .toMatch(/^\d+px$/);
+
+    const publishedHeight = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--status-bar-height").trim(),
+    );
+    expect(publishedHeight).not.toBe("0px");
+
+    // Pad the bar's containing block (.log-page-main) so a 1200px scroll
+    // has somewhere to go without depending on the height of mock log
+    // entries. The bar's `position: sticky` is bounded by its containing
+    // block, not by the document height — padding the body alone leaves
+    // the bar trapped at the bottom of its short parent.
+    await page.evaluate(() => {
+      const main = document.querySelector(".log-page-main");
+      if (main instanceof HTMLElement) main.style.minHeight = "3000px";
+      document.body.style.minHeight = "3000px";
+    });
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    // After scrolling, the sticky bar should still report top === 0
+    // because it pins to the viewport, not the document.
+    const top = await bar.evaluate((el) => el.getBoundingClientRect().top);
+    expect(top).toBe(0);
+
+    // Primary action button stays in the viewport (its top y is
+    // less than viewport height) so it remains clickable through
+    // the scroll. boundingBox() returns null only for elements with
+    // display: none / not in layout — the visibility assertion above
+    // already excludes that case, so destructure with a non-null cast.
+    const primary = page.locator('[data-testid="status-bar-primary"]');
+    const primaryBox = /** @type {{ x: number; y: number; width: number; height: number }} */ (
+      await primary.boundingBox()
+    );
+    expect(primaryBox).not.toBeNull();
+    const viewportHeight = page.viewportSize()?.height ?? 720;
+    expect(primaryBox.y).toBeLessThan(viewportHeight);
+  });
+
+  // U5 — Per-block status aggregation (non-collapsible blocks).
+  // Plan: docs/plans/2026-04-26-006-feat-r27-per-block-status-aggregation-plan.md
+  test("per-block status badges render in each block header", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    await expect(page.locator('.logBlock[data-block-id="block-a"]')).toBeAttached();
+    await expect(page.locator('.logBlock[data-block-id="block-b"]')).toBeAttached();
+    await expect(page.locator('.logBlock[data-block-id="block-c"]')).toBeAttached();
+
+    // Block A: ✓2 only.
+    const aBadges = page.locator('.logBlock[data-block-id="block-a"] .startBlockCounts cts-badge');
+    await expect(aBadges).toHaveCount(1);
+    await expect(aBadges.first()).toHaveAttribute("label", "✓2");
+
+    // Block B: ✓1 ✗1, in spec order.
+    const bBadges = page.locator('.logBlock[data-block-id="block-b"] .startBlockCounts cts-badge');
+    await expect(bBadges).toHaveCount(2);
+    await expect(bBadges.nth(0)).toHaveAttribute("label", "✓1");
+    await expect(bBadges.nth(1)).toHaveAttribute("label", "✗1");
+
+    // Block C: ⚠1 only — INFO is excluded by design.
+    const cBadges = page.locator('.logBlock[data-block-id="block-c"] .startBlockCounts cts-badge');
+    await expect(cBadges).toHaveCount(1);
+    await expect(cBadges.first()).toHaveAttribute("label", "⚠1");
+  });
+
+  test("cts-log-toc rail hides itself but the grid column stays reserved for an interrupted test with no blocks", async ({
+    page,
+  }) => {
+    // The rail's `_applyVisibility()` still toggles `hidden=true` when
+    // an INTERRUPTED test has no blocks and no failures, and the
+    // component's scoped `cts-log-toc[hidden] { display: none }`
+    // override still pulls computed display to "none" — so the rail
+    // itself does not paint an empty card.
+    //
+    // The page grid, however, reserves the 320px track unconditionally
+    // when `.log-page--with-toc` is set on <main> (see
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
+    // U1). This eliminates the page-wide horizontal reflow that
+    // previously fired when the first `cts-blocks-updated` event
+    // flipped the grid from single-column to 1fr 320px. The empty
+    // 320px track is the explicit trade-off — an interrupted-test
+    // whitespace gap is preferred to the reflow on every normal log
+    // load. Reverses U2 of
+    // docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md.
+    await setupFailFast(page);
+    // Wide viewport — the two-column grid only activates at ≥ 1440px,
+    // so this assertion is meaningful only above that breakpoint.
+    await page.setViewportSize({ width: 1500, height: 900 });
+    // Mirror the production /api/info shape for an interrupted-before-
+    // results test: no `results` array at all (selectFailures() in
+    // log-detail.js then returns []). MOCK_TEST_STATUS already omits
+    // `results`, so the spread copy inherits the right shape.
+    const interruptedInfo = {
+      ...MOCK_TEST_STATUS,
+      testId: "test-interrupted-noblock-001",
+      status: "INTERRUPTED",
+      result: "FAILED",
+    };
+    await setupV2Routes(page, {
+      testInfo: interruptedInfo,
+      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-interrupted-noblock-001")}`);
+
+    // Wait for the bootstrap to settle — the viewer must have fetched
+    // and rendered at least the leaf rows so we know the rail had a
+    // chance to update its blocks array.
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    const rail = page.locator("#ctsLogToc");
+    await expect(rail).toHaveAttribute("hidden", "");
+
+    const railDisplay = await rail.evaluate((el) => getComputedStyle(el).display);
+    expect(railDisplay).toBe("none");
+
+    // Page grid stays two-column: `.log-page--with-toc` activates the
+    // grid unconditionally at ≥ 1440px, so the 320px track is reserved
+    // even when the rail itself paints nothing into it. Pattern pins
+    // exactly two tracks (`<mainpx> 320px`) so a future regression that
+    // adds a stray third track is also caught.
+    const mainGridCols = await page
+      .locator("#main-content")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(mainGridCols).toMatch(/^\d+(\.\d+)?px 320px$/);
+  });
+
+  test("page grid does not reflow when cts-blocks-updated lands new blocks", async ({ page }) => {
+    // Regression guard for
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
+    // U1. The user-visible bug was a hard horizontal shrink of the
+    // entries stream a second or two into page load: the rail starts
+    // empty (no blocks yet), so the previous `:has()` guard kept the
+    // page in single-column mode; the first `cts-blocks-updated`
+    // event then unhid the rail and flipped the grid to 1fr 320px.
+    //
+    // After U1 the column is always reserved at ≥ 1440px, so the
+    // grid-template-columns value must be stable across the
+    // empty-rail → populated-rail transition. We stall the initial
+    // `/api/log` response so the snapshot is provably captured BEFORE
+    // any `cts-blocks-updated` event can fire, then release the
+    // response and snapshot again after the rail populates. Without
+    // the stall, the bootstrap fetch resolves so fast that the
+    // pre-event snapshot races against the event and the equality
+    // assertion would pass trivially (both snapshots would reflect
+    // post-event state).
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    const testId = "test-reflow-guard-001";
+
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    // Gate the initial /api/log fetch behind a manually-resolved
+    // promise. Polling /api/log?since=... is left to setupV2Routes;
+    // only the seed fetch (no `since` param) is stalled. Registered
+    // AFTER setupV2Routes so Playwright's LIFO route-matching picks
+    // this handler ahead of the helper's instantaneous one.
+    /** @type {(value?: void) => void} */
+    let releaseInitialLog = () => {};
+    const initialLogReleased = new Promise((resolve) => {
+      releaseInitialLog = resolve;
+    });
+    await page.route(`**/api/log/${testId}**`, async (route) => {
+      const url = new URL(route.request().url());
+      const since = url.searchParams.get("since");
+      if (since && Number(since) > 0) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify([]),
+        });
+      }
+      await initialLogReleased;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_BLOCKS_WITH_STATUS),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const main = page.locator("#main-content");
+    const rail = page.locator("#ctsLogToc");
+
+    // Snapshot grid-template-columns before the rail receives any
+    // blocks. `.log-page--with-toc` is set by setupLogToc() in
+    // log-detail.js synchronously on bootstrap, so the two-column
+    // grid is already active even though the rail itself is still
+    // `[hidden]` because /api/log has not yet responded.
+    await expect(main).toHaveClass(/log-page--with-toc/);
+    // Pin the pre-event state explicitly: the rail must still be
+    // `[hidden]` when colsBefore is captured. The stall above
+    // guarantees this; without the stall the bootstrap fetch resolved
+    // so fast that this assertion would race. This assertion is
+    // load-bearing — it's what makes the equality check below
+    // meaningful rather than vacuous.
+    await expect(rail).toHaveAttribute("hidden", "");
+    const colsBefore = await main.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(colsBefore).toMatch(/^\d+(\.\d+)?px 320px$/);
+
+    // Release the stalled /api/log response. The viewer ingests the
+    // entries, emits `cts-blocks-updated`, and the rail un-hides.
+    releaseInitialLog();
+
+    // Wait for the rail to populate — the toc-list rendering is the
+    // observable proxy for cts-blocks-updated having fired.
+    await expect(page.locator('#ctsLogToc [data-testid="toc-list"]')).toBeVisible();
+
+    const colsAfter = await main.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(colsAfter).toBe(colsBefore);
+  });
+
+  test("cts-log-toc rail renders and grid expands when blocks arrive", async ({ page }) => {
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    // Block list inside the rail confirms the cts-blocks-updated event
+    // landed and the rail re-rendered with non-empty blocks.
+    await expect(page.locator('#ctsLogToc [data-testid="toc-list"]')).toBeVisible();
+
+    const rail = page.locator("#ctsLogToc");
+    await expect(rail).not.toHaveAttribute("hidden", /.*/);
+
+    const railDisplay = await rail.evaluate((el) => getComputedStyle(el).display);
+    expect(railDisplay).toBe("block");
+
+    // Two-column grid is active: `1fr 320px` resolves to "<mainpx> 320px".
+    const mainGridCols = await page
+      .locator("#main-content")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(mainGridCols).toMatch(/\s320px$/);
+  });
+
+  test("failure-summary jump-link scrolls the entry inside a block into view", async ({ page }) => {
+    // Block-aware failed test info: the failure entry's _id (blk-b-2)
+    // matches a child of the non-collapsible .logBlock[data-block-id="block-b"].
+    // The bootstrap's document-level cts-scroll-to-entry handler scrolls the
+    // entry into view; since blocks are not collapsible, the entry is always
+    // in the layout — no ancestor-reveal step is needed.
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      testId: "test-blocks-001",
+      results: [
+        {
+          _id: "blk-b-2",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature validation failed",
+        },
+      ],
+    };
+
+    // Spy on scrollIntoView so the assertion verifies the scroll HANDLER
+    // ran on the right element — not just that the entry is visible (it
+    // always is now that blocks don't collapse, which would make a plain
+    // toBeVisible() assertion pass even if the handler were deleted).
+    await installScrollIntoViewSpy(page);
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    const block = page.locator('.logBlock[data-block-id="block-b"]');
+    await expect(block).toBeAttached();
+
+    // Click the matching failure-summary item — the visible instance at the
+    // current viewport (the page-level #ctsTopFailureSummary one for the
+    // default 1280x720 viewport falls under desktop, so click the in-header
+    // one). Use first() to avoid ambiguity between the two render-twice-
+    // hide-one positions.
+    const link = page.locator(`.failureSummary .failureText[data-entry-id="blk-b-2"]`).first();
+    await expect(link).toBeAttached();
+    await link.click();
+
+    // The scroll handler ran on the target entry (discriminating signal),
+    // and the entry is in the layout.
+    await expect
+      .poll(() => page.evaluate(() => window.__scrolledEntryIds || []))
+      .toContain("blk-b-2");
+    const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
+    await expect(entry).toBeVisible();
+  });
+
+  test("timestamp deep-link: anchor carries the canonical URL and click sets the hash", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // The timestamp doubles as the entry's citation handle: a deep-link
+    // anchor (the LOG-NNNN copy chip was retired from the log stream).
+    const link = page.locator("cts-log-entry a.logTimeLink").first();
+    await expect(link).toBeVisible();
+
+    // The href is a relative fragment; the browser's "Copy Link Address"
+    // resolves it against the current ?log=<testId> URL, yielding the
+    // canonical deep link. Assert the resolved absolute href is that link.
+    const resolved = await link.evaluate((el) => /** @type {HTMLAnchorElement} */ (el).href);
+    expect(resolved).toMatch(/log-detail\.html\?log=.+#LOG-\d{4}$/);
+    expect(resolved).toContain(`log=${MOCK_TEST_STATUS.testId}`);
+
+    // The accessible name disambiguates same-second rows and carries the
+    // LOG reference that sighted users lose with the chip gone.
+    await expect(link).toHaveAttribute("aria-label", /LOG-\d{4}/);
+
+    // Left-click performs in-page fragment navigation (no reload): the URL
+    // hash updates to this entry's reference.
+    const fragment = (await link.getAttribute("href")) || "";
+    await link.click();
+    await expect.poll(async () => page.evaluate(() => window.location.hash)).toBe(fragment);
+  });
+
+  test("U6: deep-URL hash scrolls the targeted entry into view below the sticky bar", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // Navigate directly with the hash already on the URL so the viewer
+    // reads window.location.hash inside its first-fetch finally block.
+    // MOCK_LOG_ENTRIES has block-start entries that don't render as
+    // cts-log-entry hosts (they become the .startBlock header instead), so
+    // not every LOG-NNNN slot is reachable. LOG-0004 maps to entry-4
+    // which IS a leaf entry — a stable target for the deep-link assertion.
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-0004`);
+
+    // The targeted entry must be visible (not still hidden under chrome).
+    const target = page.locator("#LOG-0004");
+    await expect(target).toBeAttached();
+    await expect(target).toBeVisible();
+
+    // The status bar publishes its measured height to documentElement;
+    // the row's scroll-margin-top consumes it. After the scroll lands,
+    // the row's top must sit below the status bar's bottom. Measure the
+    // painted .logItem (at the wide layout the host is display:contents
+    // and reports an empty rect), and poll so the smooth scroll has time
+    // to settle before the position is judged. The poll returns
+    // (top - barBottom), expected >= -1 (a 1 px float-rounding fudge).
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const el = document.getElementById("LOG-0004");
+            if (!el) return Number.NEGATIVE_INFINITY;
+            const box = el.getClientRects().length > 0 ? el : el.querySelector(".logItem");
+            if (!box) return Number.NEGATIVE_INFINITY;
+            const bar = document.getElementById("ctsLogStatusBar");
+            const barBottom = bar ? bar.getBoundingClientRect().bottom : 0;
+            return box.getBoundingClientRect().top - Math.floor(barBottom);
+          }),
+        { message: "entry row should settle below the sticky status bar" },
+      )
+      .toBeGreaterThanOrEqual(-1);
+  });
+
+  test("U6: out-of-range hash loads the page without errors", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    /** @type {string[]} */
+    const errors = [];
+    page.on("pageerror", (err) => errors.push(err.message));
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-9999`);
+    // First entry still renders normally; the page recovers gracefully.
+    await expect(page.locator("cts-log-entry").first()).toBeAttached();
+    expect(errors).toHaveLength(0);
+  });
+
+  test("U6: hash navigation scrolls to an entry inside a block", async ({ page }) => {
+    // MOCK_BLOCKS_WITH_STATUS has block-b children including blk-b-2.
+    // We render that fixture, then navigate to the matching reference id
+    // (which the viewer assigns in chronological order). Blocks are not
+    // collapsible, so the viewer's hashchange handler scrolls the entry
+    // into view directly — the entry is always in the layout.
+    const blockTestId = "test-blocks-001";
+    await installScrollIntoViewSpy(page);
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: blockTestId, planId: undefined },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    // Pre-load to discover the reference id assigned to blk-b-2 — the
+    // ordinal depends on the fixture order, and computing it inline keeps
+    // the test resilient if the fixture is later reshuffled.
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(blockTestId)}`);
+    // Wait for the viewer to land the entries — page.goto returns on load
+    // event but the /api/log fetch fires asynchronously, so the entries
+    // may not be in the DOM yet at this point.
+    await expect(page.locator('cts-log-entry[data-entry-id="blk-b-2"]')).toBeAttached();
+    const referenceId = await page.evaluate(() => {
+      const target = document.querySelector('cts-log-entry[data-entry-id="blk-b-2"]');
+      return target ? target.id : "";
+    });
+    expect(referenceId).toMatch(/^LOG-\d{4}$/);
+
+    // Same-page navigation: change only the hash. The viewer listens for
+    // `hashchange` and runs its real scroll routine, so driving the
+    // fragment exercises the component (not a hand-rolled copy of the
+    // algorithm). Setting location.hash fires a real hashchange in the
+    // page context.
+    await page.evaluate((refId) => {
+      window.location.hash = `#${refId}`;
+    }, referenceId);
+
+    // The hashchange scroll handler ran on the target entry (discriminating
+    // signal — the entry is always in the layout, so toBeVisible() alone
+    // would pass even if the handler never fired).
+    await expect
+      .poll(() => page.evaluate(() => window.__scrolledEntryIds || []))
+      .toContain("blk-b-2");
+    const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
+    await expect(entry).toBeVisible();
+  });
+
+  test("U6: failure-summary chip click copies the same deep URL contract", async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__copiedText = null;
+      const original = navigator.clipboard?.writeText?.bind(navigator.clipboard);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText = (text) => {
+          window.__copiedText = text;
+          if (original) {
+            try {
+              return original(text);
+            } catch {
+              return Promise.resolve();
+            }
+          }
+          return Promise.resolve();
+        };
+      }
+    });
+
+    // Use entry-3 from MOCK_LOG_ENTRIES so the failure summary chip and
+    // the entry chip resolve to the same LOG-NNNN.
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        {
+          _id: "entry-3",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature invalid",
+        },
+      ],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(failedTestInfo.testId)}`);
+
+    // The failure summary renders a chip alongside its severity badge.
+    const chip = page.locator('.failureSummary [data-testid="log-entry-id-chip"]').first();
+    await expect(chip).toBeAttached();
+    await expect(chip).toBeVisible();
+
+    await chip.click();
+    await expect
+      .poll(async () => page.evaluate(() => window.__copiedText), { timeout: 2000 })
+      .toMatch(/log-detail\.html\?log=.+#LOG-\d{4}$/);
+
+    const urlCopied = await page.evaluate(() => window.__copiedText);
+    expect(urlCopied).toContain(`log=${failedTestInfo.testId}`);
+  });
+
+  test("polling-driven badge updates as new entries arrive", async ({ page }) => {
+    // Custom /api/log route: first call returns batch 1 (✓2); subsequent
+    // calls return batch 2 (the third success + failure). The viewer
+    // polls every POLL_INTERVAL_MS (3s) — we don't override that here;
+    // expect.poll handles waiting for the next cycle.
+    //
+    // Route registration order: setupFailFast() must come FIRST because
+    // Playwright matches routes in reverse registration order. Our
+    // specific routes register after, so they take priority over the
+    // catch-all unmocked-call recorder.
+    await setupFailFast(page);
+
+    let callCount = 0;
+    const testIdLocal = "test-poll-001";
+    await page.route(`**/api/log/${testIdLocal}**`, (route) => {
+      callCount += 1;
+      const body = callCount === 1 ? MOCK_BLOCKS_POLL_FIRST : MOCK_BLOCKS_POLL_SECOND;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(body),
+      });
+    });
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, testId: testIdLocal, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const block = page.locator('.logBlock[data-block-id="block-poll"]');
+    const badges = block.locator(".startBlockCounts cts-badge");
+
+    // Initial state: ✓2.
+    await expect(badges).toHaveCount(1);
+    await expect(badges.first()).toHaveAttribute("label", "✓2");
+
+    // After the second poll fires, the cluster should transition to ✓3 ✗1.
+    // Default poll interval is 3s; allow up to 8s for the next cycle plus
+    // re-render to land.
+    await expect(badges).toHaveCount(2, { timeout: 8000 });
+    await expect(badges.nth(0)).toHaveAttribute("label", "✓3");
+    await expect(badges.nth(1)).toHaveAttribute("label", "✗1");
+  });
+
+  // ──────────── U1: DC API handler parity ────────────
+  // Mirrors the legacy DC handler at log-detail.html:1491–1538. Wire
+  // format is frozen — Java parses it structurally in
+  // src/main/java/.../ExtractBrowserApiResponse.java and
+  // ExtractVP1FinalBrowserApiResponse.java. Schema lives in
+  // js/log-detail.js handleVisitBrowserApi.
+
+  test("DC API: success POSTs {data, protocol} to submitUrl", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/api/dc-callback/${testIdLocal}`;
+    const browserApiRequest = { providers: [{ protocol: "openid4vp", request: "abc" }] };
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: { browserApiRequests: [{ request: browserApiRequest, submitUrl }] },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+
+    /** @type {{ url: string, body: string }[]} */
+    const captured = [];
+    await page.route(submitUrl, async (route) => {
+      const req = route.request();
+      captured.push({ url: req.url(), body: req.postData() || "" });
+      await route.fulfill({ status: 200, body: "" });
+    });
+
+    // Stub navigator.credentials.get BEFORE the page loads so the v2
+    // bootstrap and the click handler both see the mock. Use init script
+    // so it runs in every document context. Override via Object.defineProperty
+    // because navigator.credentials is a non-writable accessor in Chromium.
+    await page.addInitScript(() => {
+      class DigitalCredential {
+        constructor(data, protocol) {
+          /** @type {any} */ (this).data = data;
+          /** @type {any} */ (this).protocol = protocol;
+        }
+      }
+      Object.defineProperty(navigator, "credentials", {
+        configurable: true,
+        value: {
+          get: async () => new DigitalCredential("ABC123", "openid4vp"),
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    // Wait for the running-test browser slot to render the DC button and click it.
+    const apiBtn = page.locator(".visitBrowserApiBtn button").first();
+    await expect(apiBtn).toBeVisible();
+    await apiBtn.click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const post = JSON.parse(captured[0].body);
+    expect(post).toEqual({ data: "ABC123", protocol: "openid4vp" });
+  });
+
+  test("DC API: exception POSTs {exception:{name,message}} and surfaces error chrome", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/api/dc-callback/${testIdLocal}`;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: { browserApiRequests: [{ request: { foo: "bar" }, submitUrl }] },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+
+    /** @type {{ body: string }[]} */
+    const captured = [];
+    await page.route(submitUrl, async (route) => {
+      captured.push({ body: route.request().postData() || "" });
+      await route.fulfill({ status: 200, body: "" });
+    });
+
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "credentials", {
+        configurable: true,
+        value: {
+          get: async () => {
+            const err = new Error("user dismissed");
+            err.name = "NotAllowedError";
+            throw err;
+          },
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const apiBtn = page.locator(".visitBrowserApiBtn button").first();
+    await expect(apiBtn).toBeVisible();
+    await apiBtn.click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const post = JSON.parse(captured[0].body);
+    expect(post).toEqual({ exception: { name: "NotAllowedError", message: "user dismissed" } });
+
+    // Error chrome is the v2 page's #errorModal (showError), not window.alert.
+    await expect(page.locator("#errorModal")).toBeVisible();
+    await expect(page.locator("#errorMessage")).toContainText("user dismissed");
+  });
+
+  test("DC API: non-DigitalCredential response POSTs {bad_response_type}", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/api/dc-callback/${testIdLocal}`;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: { browserApiRequests: [{ request: { foo: "bar" }, submitUrl }] },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+
+    /** @type {{ body: string }[]} */
+    const captured = [];
+    await page.route(submitUrl, async (route) => {
+      captured.push({ body: route.request().postData() || "" });
+      await route.fulfill({ status: 200, body: "" });
+    });
+
+    await page.addInitScript(() => {
+      class PasswordCredential {}
+      Object.defineProperty(navigator, "credentials", {
+        configurable: true,
+        value: {
+          get: async () => new PasswordCredential(),
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const apiBtn = page.locator(".visitBrowserApiBtn button").first();
+    await expect(apiBtn).toBeVisible();
+    await apiBtn.click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const post = JSON.parse(captured[0].body);
+    expect(post).toEqual({ bad_response_type: "PasswordCredential" });
+  });
+
+  test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_TEST_RUNNING,
+          status: "INTERRUPTED",
+          result: null,
+          planId: undefined,
+        }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "INTERRUPTED",
+          error: {
+            error: "Something exploded",
+            error_class: "RuntimeException",
+            stacktrace: [
+              "at net.openid.ExampleCondition.evaluate(ExampleCondition.java:42)",
+              "at net.openid.TestRunner.run(TestRunner.java:99)",
+            ],
+            cause_stacktrace: ["at net.openid.Inner.cause(Inner.java:7)"],
+          },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const errorSlot = page.locator('[data-testid="running-error-slot"]');
+    const alert = errorSlot.locator('cts-alert[variant="danger"]');
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText("Something exploded");
+    await expect(alert).toContainText("RuntimeException");
+
+    const stacktrace = page.locator("#stacktrace");
+    const causeStacktrace = page.locator("#causeStacktrace");
+    await expect(stacktrace).toBeHidden();
+    await expect(causeStacktrace).toBeHidden();
+
+    const stacktraceBtn = page.locator("#stacktraceBtn");
+    await expect(stacktraceBtn).toBeVisible();
+    await stacktraceBtn.locator("button").click();
+
+    await expect(stacktraceBtn).toBeHidden();
+    await expect(stacktrace).toHaveClass(/show/);
+    await expect(causeStacktrace).toHaveClass(/show/);
+    await expect(stacktrace).toContainText("ExampleCondition.evaluate");
+    await expect(causeStacktrace).toContainText("Inner.cause");
+  });
+
+  // ────────────────────────────────────────────────────────────────────
+  // U4 — Repeat Test / Continue Plan POST shape (A3)
+  // ────────────────────────────────────────────────────────────────────
+  // Thomas's screenshot 09 from MR 1998 showed "Error: Failed to repeat
+  // test: HTTP 400" because the v2 page-level handler was sending the
+  // runtime testId where the runner endpoint wants the module name.
+  // These tests assert the URL shape (test=<testName>, &plan=, &variant=,
+  // Content-Type: application/json) the backend's @RequestParam contract
+  // requires — see TestRunner.java:215.
+
+  test("U4 — Repeat Test POSTs /api/runner with testName + plan + variant", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules: [
+        { testModule: "oidcc-server", variant: { response_type: "code" } },
+        { testModule: "oidcc-server-rotate-keys", variant: { response_type: "code" } },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    /** @type {{ url: string, method: string, contentType: string | null }[]} */
+    const captured = [];
+    await page.route("**/api/runner?**", (route) => {
+      const req = route.request();
+      captured.push({
+        url: req.url(),
+        method: req.method(),
+        contentType: req.headers()["content-type"] || null,
+      });
+      // No `id` in the response so the handler reloads — fine for the
+      // capture; the route stays mocked across reloads. Sending an `id`
+      // here would race the success-branch navigation against the test.
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    // Trigger the status-bar primary, which is the Repeat Test affordance
+    // for terminal-phase tests. The status-bar-primary inner <button>
+    // dispatches the cts-repeat-test event the page bootstraps onto
+    // handleRepeat.
+    await page
+      .locator('cts-log-detail-header [data-testid="status-bar-primary"] button')
+      .first()
+      .click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const repeat = captured[0];
+    expect(repeat.method).toBe("POST");
+    expect(repeat.contentType).toBe("application/json");
+    const repeatUrl = new URL(repeat.url);
+    expect(repeatUrl.searchParams.get("test")).toBe("oidcc-server");
+    expect(repeatUrl.searchParams.get("plan")).toBe("plan-abc-123");
+    const repeatVariant = JSON.parse(repeatUrl.searchParams.get("variant") || "{}");
+    expect(repeatVariant).toMatchObject({
+      client_auth_type: "client_secret_basic",
+      response_type: "code",
+    });
+  });
+
+  test("U4 — Continue Plan POSTs /api/runner with next module's testName + variant", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // Use a multi-module plan where the test's variant is a superset of
+    // the per-module variant (mirrors how the real /api/plan response
+    // carries only constraint keys per module, while /api/info carries
+    // the full resolved variant). The bootstrap's subset match is what
+    // makes Continue Plan find the *next* module.
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules: [
+        {
+          testModule: "oidcc-server",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+        {
+          testModule: "oidcc-server-rotate-keys",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+        {
+          testModule: "oidcc-codereuse",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    /** @type {{ url: string, method: string, contentType: string | null }[]} */
+    const captured = [];
+    await page.route("**/api/runner?**", (route) => {
+      const req = route.request();
+      captured.push({
+        url: req.url(),
+        method: req.method(),
+        contentType: req.headers()["content-type"] || null,
+      });
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    // Wait for the nav-controls to ingest the plan modules and enable
+    // Continue Plan (nextEnabled flips true once the page locates the
+    // current module and confirms a next exists).
+    await expect(page.locator('cts-test-nav-controls [data-testid="continue-btn"]')).toBeVisible();
+
+    await page.locator('cts-test-nav-controls [data-testid="continue-btn"] button').first().click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const cont = captured[0];
+    expect(cont.method).toBe("POST");
+    expect(cont.contentType).toBe("application/json");
+    const contUrl = new URL(cont.url);
+    expect(contUrl.searchParams.get("test")).toBe("oidcc-server-rotate-keys");
+    expect(contUrl.searchParams.get("plan")).toBe("plan-abc-123");
+    const contVariant = JSON.parse(contUrl.searchParams.get("variant") || "{}");
+    expect(contVariant).toMatchObject({
+      client_auth_type: "client_secret_basic",
+      response_type: "code",
+    });
+  });
+
+  test("U4 — Repeat error path surfaces the server's error message, not 'HTTP 400'", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // Backend rejects with a JSON {error: "..."} body, the same shape
+    // TestRunner returns on real failures. The fix in handleRepeat
+    // parses this and surfaces it via showError — the legacy code
+    // showed only `HTTP 400` which gave the user no useful detail.
+    await page.route("**/api/runner?**", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "test plan was created on an old version of the suite" }),
+      }),
+    );
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    await page
+      .locator('cts-log-detail-header [data-testid="status-bar-primary"] button')
+      .first()
+      .click();
+
+    const errorMessage = page.locator("#errorMessage");
+    await expect(errorMessage).toContainText(
+      "test plan was created on an old version of the suite",
+    );
+    // Pre-fix the modal would have shown the literal "HTTP 400" — assert
+    // the new message replaces it entirely.
+    await expect(errorMessage).not.toContainText("HTTP 400");
+  });
+
+  // ──────────── Result-summary filter (U2/U3) ────────────
+  // Plan: docs/plans/2026-05-28-001-feat-log-result-summary-filter-plan.md
+  // The .logResultSummary count badges become multi-select toggle filters
+  // over the rendered entry stream. Page-level coverage: toggling narrows
+  // the stream, multi-select unions, clear restores, and a single-result
+  // log keeps its lone badge read-only.
+
+  test("result-summary filter narrows the stream, unions, and clears", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-filter-001", planId: undefined },
+      logEntries: MOCK_BLOCKS_FILTERABLE,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-filter-001")}`);
+
+    const entries = page.locator("cts-log-viewer cts-log-entry");
+    const blocks = page.locator("cts-log-viewer .logBlock");
+    await expect(entries).toHaveCount(6);
+    await expect(blocks).toHaveCount(2);
+
+    // Toggle FAILURE: only the lone failure entry survives; the failure-free
+    // Block B is elided entirely.
+    const failureBadge = page.locator(
+      'cts-log-viewer .logResultSummary cts-badge[data-result="FAILURE"] .badge',
+    );
+    await failureBadge.click();
+    await expect(entries).toHaveCount(1);
+    await expect(
+      page.locator('cts-log-viewer cts-log-entry[data-entry-id="flt-a-3"]'),
+    ).toBeVisible();
+    await expect(blocks).toHaveCount(1);
+    await expect(failureBadge).toHaveAttribute("aria-pressed", "true");
+
+    // Multi-select union: add REVIEW → the failure (Block A) and the review
+    // (Block B), both blocks present again.
+    const reviewBadge = page.locator(
+      'cts-log-viewer .logResultSummary cts-badge[data-result="REVIEW"] .badge',
+    );
+    await reviewBadge.click();
+    await expect(entries).toHaveCount(2);
+    await expect(
+      page.locator('cts-log-viewer cts-log-entry[data-entry-id="flt-b-2"]'),
+    ).toBeVisible();
+    await expect(blocks).toHaveCount(2);
+
+    // Count badge still shows the TRUE total, not the filtered subset.
+    await expect(page.locator('cts-log-viewer cts-badge[data-result="SUCCESS"]')).toHaveAttribute(
+      "label",
+      "SUCCESS (3)",
+    );
+
+    // Clear restores the full stream; the badge drops back to a plain
+    // command button (no aria-pressed, never aria-pressed="false").
+    await page.locator("cts-log-viewer .logFilterClear").click();
+    await expect(entries).toHaveCount(6);
+    await expect(blocks).toHaveCount(2);
+    await expect(failureBadge).not.toHaveAttribute("aria-pressed", /.*/);
+  });
+
+  test("single-result-type log keeps the lone summary badge read-only", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-ok-456", planId: undefined },
+      logEntries: MOCK_SUCCESS_LOG,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-ok-456")}`);
+
+    await expect(page.locator("cts-log-viewer cts-log-entry")).toHaveCount(3);
+
+    const summary = page.locator("cts-log-viewer .logResultSummary");
+    await expect(summary).toBeVisible();
+    // Single result type → no group semantics, no discoverability hint, no
+    // clear control, and the lone badge is not a toggle.
+    await expect(summary).not.toHaveAttribute("role", "group");
+    await expect(summary.locator(".logResultSummaryHint")).toHaveCount(0);
+    await expect(summary.locator(".logFilterClear")).toHaveCount(0);
+
+    const badge = summary.locator("cts-badge");
+    await expect(badge).toHaveCount(1);
+    await expect(badge).toHaveAttribute("label", "SUCCESS (3)");
+    await expect(badge).not.toHaveAttribute("clickable", /.*/);
+    await expect(badge.locator(".badge")).not.toHaveAttribute("role", "button");
   });
 });

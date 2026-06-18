@@ -6,7 +6,7 @@ workflow:
 
 variables:
   LM_JAVA_VERSION: 17
-  PLAYWRIGHT_IMAGE_TAG: "v1.59.1-noble"
+  PLAYWRIGHT_IMAGE_TAG: "v1.60.0-noble"
 
 stages:
   - build
@@ -164,9 +164,10 @@ frontend_e2e_test:
   needs: ["ensure-playwright-image"]
   image: $CI_REGISTRY_IMAGE/playwright:$PLAYWRIGHT_IMAGE_TAG
   script:
+    - node -v && npm -v
     - cd frontend
-    - npm ci --ignore-scripts
-    - ./node_modules/.bin/playwright test --config playwright.config.js
+    - npm install
+    - npx playwright test --config playwright.config.js
   artifacts:
     when: on_failure
     paths:
@@ -174,6 +175,129 @@ frontend_e2e_test:
     expire_in: 7 days
   only:
     - branches
+
+# frontend_lint: runs the same `npm run test:ci` chain contributors run locally
+# (format:check + lint + type-check + lint:jsdoc). Parallel to `build` (needs: []);
+# conceptually a peer of `check-trailing-whitespace` in the build stage.
+#
+# Promotion criterion (R22):
+# - Job has been green on `main` for 2 consecutive weeks
+#   (Joseph or Thomas sign-off in the MR that flips allow_failure)
+# - AND all open entries in the named legacy-override tier in eslint.config.js
+#   have been either deleted (rule error on all files) or have their cleanup
+#   GitLab issue closed. Current count: 0 entries.
+# - AND the a11y CI gate follow-up (see
+#   docs/brainstorms/2026-04-17-a11y-ci-gate-requirements.md) has landed.
+# Sunset (R23): `allow_failure: true` is a temporary concession. Owner
+# (Joseph or Thomas) sets a calendar reminder for 2026-06-12 to flip it to
+# `false`. The R22 criteria above are the hard preconditions for the flip;
+# if they aren't met by that date, the flip slips — but the slip requires
+# a written rationale in a new MR, not silence.
+#
+# --ignore-scripts justification: safe here because test:ci launches no
+# browser and doesn't need MSW's postinstall hook — the MSW worker is
+# pre-checked-in at frontend/public/mockServiceWorker.js. This is documented
+# in frontend/README.md so no one copies the flag into test:e2e (where it
+# would break browser provisioning).
+#
+# corepack enable npm justification: node:22-alpine ships npm 10.9.7 but
+# package.json pins `packageManager: npm@11.12.1`, and the two majors encode
+# optional peer deps differently in the lockfile. `corepack enable npm` shims
+# npm to the pinned version so CI and contributors use the same tool.
+frontend_lint:
+  stage: build
+  interruptible: true
+  needs: []
+  image: node:22-alpine
+  cache:
+    key: frontend-npm
+    paths:
+      - frontend/.npm    # npm's package cache (populated via NPM_CONFIG_CACHE below)
+      # Do NOT cache frontend/node_modules: a cached copy can drift from
+      # package.json / package-lock.json and mask install-time errors.
+  variables:
+    # npm's default cache is $HOME/.npm, which GitLab's cache directive can't reach.
+    # Override to a path inside $CI_PROJECT_DIR so the cache block above is effective.
+    NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/frontend/.npm"
+  before_script:
+    - apk add --no-cache bash   # lint-jsdoc-properties.sh uses #!/usr/bin/env bash; Alpine ships ash only
+    - corepack enable npm       # activate packageManager pin (npm 11.12.1 instead of Alpine's bundled 10.9.7)
+  script:
+    - cd frontend
+    - npm ci --ignore-scripts
+    - npm run test:ci
+  allow_failure: true     # R22: sunset in 6 weeks — see Unit 9's sunset doc
+  only:
+    - branches
+
+# chromatic: publishes the frontend Storybook to https://www.chromatic.com for
+# visual regression review (https://www.chromatic.com/docs/gitlab/).
+# CLI behavior lives in frontend/chromatic.config.json so local runs and CI
+# stay identical: exitZeroOnChanges, onlyChanged (TurboSnap), storybookBaseDir.
+#
+# Non-blocking by design, two layers deep:
+# - `exitZeroOnChanges` (config file): visual diffs against the accepted
+#   baseline exit 0; changes are reviewed and accepted/denied in the Chromatic
+#   UI, not by failing the pipeline.
+# - `allow_failure: true`: broken stories or Chromatic infrastructure errors
+#   surface as a pipeline warning, never a failure. Flip to blocking only with
+#   team sign-off, once the a11y backlog is fixed or formally dismissed in
+#   Chromatic (mirrors the frontend_lint promotion approach above).
+#
+# Snapshot quota: `onlyChanged` (TurboSnap) snapshots only stories whose
+# dependency graph intersects the changed files — TurboSnap activates after
+# Chromatic's 10-successful-CI-builds threshold; until then builds are full
+# (~650 snapshots). The `changes:` filter below already skips backend-only
+# pushes entirely.
+#
+# The project token is committed in plain text deliberately: per Chromatic's
+# docs (https://www.chromatic.com/docs/custom-ci-provider/) it can only be used
+# to *publish* builds — it grants no access to the account, settings, or
+# baseline acceptance. Setting a masked CI/CD variable requires Maintainer
+# access on this project; a maintainer can move it to Settings > CI/CD >
+# Variables (name: CHROMATIC_PROJECT_TOKEN) and delete the line here — the CLI
+# reads the environment variable automatically.
+#
+# GIT_DEPTH: 0 disables GitLab's shallow clone so Chromatic can walk git
+# history to find the baseline build on an ancestor commit; without it every
+# build is treated as new and snapshot diffs are meaningless.
+#
+# The `changes:` filter skips the job for backend-only pushes — each run
+# snapshots all ~650 stories, which counts against the Chromatic plan's
+# monthly snapshot quota. Chromatic tolerates the gaps: baseline lookup walks
+# ancestor commits until it finds the last published build.
+#
+# --ignore-scripts is safe here for the same reason as frontend_lint: the
+# Storybook *build* needs no browser and no postinstall hooks (esbuild/rollup
+# ship platform binaries as optionalDependencies, not postinstall scripts).
+chromatic:
+  stage: build
+  interruptible: true
+  needs: []
+  image: node:22-alpine
+  cache:
+    key: frontend-npm
+    paths:
+      - frontend/.npm
+  variables:
+    NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/frontend/.npm"
+    GIT_DEPTH: 0
+    CHROMATIC_PROJECT_TOKEN: "chpt_f4cadedd64e8a97"
+  before_script:
+    - apk add --no-cache git   # the Chromatic CLI shells out to git for baseline detection
+    - corepack enable npm      # activate packageManager pin (see frontend_lint)
+  script:
+    - cd frontend
+    - npm ci --ignore-scripts
+    - npx chromatic
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    changes:
+      - frontend/**/*
+      - src/main/resources/static/**/*
+      - .gitlab-ci.yml
 
 .compare: &compare
   stage: compare
