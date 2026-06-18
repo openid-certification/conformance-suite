@@ -49,6 +49,13 @@ Concentrate on findings related to changes made on the branch — flag pre-exist
 - American English throughout (e.g., "authorization" not "authorisation")
 - **TLS certificate failures**: if new code handles TLS errors, verify it does not hard-fail on certificate rejections — the test should accept refusals at the SSL/TLS layer or HTML error responses where JSON is expected (warn, not fail)
 
+### Frontend Changes
+- Frontend changes must follow `frontend/README.md`: `npm run test:ci` for JS/component changes, targeted Playwright E2E for changed static pages under `src/main/resources/static/`, and `test-storybook` when components, stories, play functions, or a11y-relevant behavior change.
+- For UI-visible changes, verify the affected surface in a browser before reporting no findings: run the relevant Playwright spec for changed static pages (`cd frontend && npx playwright test e2e/<page>.spec.js`), run `npm run test-storybook` for changed `cts-*` components/stories, or open Storybook/the page manually when no automated spec covers the path. Flag missing coverage or observed regressions in keyboard/focus behavior, responsive layout, accessibility names/roles, loading/error/empty states, and text overflow/overlap.
+- New or changed frontend API consumption must update the matching mocked fixtures in `frontend/e2e/fixtures/` and route helpers/specs; unmocked API calls or fixture shapes that do not match the backend are findings.
+- Prefer existing `cts-*` components, OIDF tokens, and established page patterns. Flag hard-coded colors/spacing, ad hoc controls, raw Bootstrap-era markup, or new UI primitives where an existing component fits.
+- `schedule-test.html` and guided-wizard changes require dedicated browser coverage for the affected user path, including resolved variants/config fields and any hide/show behavior.
+
 ### HTTP Endpoint Validation
 - Use a **single condition** to make the HTTP call; perform **all validation** (status codes, headers, body) in **separate subsequent conditions** — this keeps each check isolated so the caller controls severity
 - When calling an external endpoint: validate HTTP status code, `Content-Type`, `Cache-Control` (where spec requires it), required response body fields, and flag unknown fields as WARNING via a separate condition
