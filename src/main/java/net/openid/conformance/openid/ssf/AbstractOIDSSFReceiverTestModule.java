@@ -361,7 +361,17 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			eventsSupported.addAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
 			return eventsSupported;
 		}
-		return List.copyOf(SsfEvents.STANDARD_EVENT_TYPES);
+		// Advertise only the event families this emulated transmitter can generate
+		// valid example SETs for (see generateSsfEventExample). SCIM events (RFC 9967)
+		// are intentionally excluded: they are recognised in the validation allow-list
+		// (SsfEvents.STANDARD_EVENT_TYPES) but require SCIM-shaped subjects and
+		// event-specific content that we do not yet generate, so advertising them here
+		// would let a correct receiver request events we can only deliver as invalid SETs.
+		List<String> eventsSupported = new ArrayList<>();
+		eventsSupported.addAll(SsfEvents.SSF_EVENT_TYPES);
+		eventsSupported.addAll(SsfEvents.CAEP_EVENT_TYPES);
+		eventsSupported.addAll(SsfEvents.RISC_EVENT_TYPES);
+		return eventsSupported;
 	}
 
 	@Override
