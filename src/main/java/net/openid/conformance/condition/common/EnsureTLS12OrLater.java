@@ -55,9 +55,11 @@ public class EnsureTLS12OrLater extends AbstractCondition {
 			}
 		} catch (FAPITLSClient.ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
+
+			negotiatedProtocolVersions(env, serverVersion);
+
 			if (Set.of(getAllowedProtocolVersions()).contains(serverVersion)) {
-				String protocolVersionNames = Arrays.stream(getAllowedProtocolVersions()).map(ProtocolVersion::getName).collect(Collectors.joining(" or "));
-				logSuccess("Server agreed to " + protocolVersionNames, args("host", tlsTestHost, "port", tlsTestPort));
+				logSuccessMessage(tlsTestHost, tlsTestPort);
 				return env;
 			} else {
 				throw error("Server used incorrect TLS version",
@@ -85,6 +87,14 @@ public class EnsureTLS12OrLater extends AbstractCondition {
 
 	protected ProtocolVersion[] getAllowedProtocolVersions() {
 		return new ProtocolVersion[]{ProtocolVersion.TLSv12, ProtocolVersion.TLSv13};
+	}
+
+	protected void logSuccessMessage(String tlsTestHost, Integer tlsTestPort) {
+		String protocolVersionNames = Arrays.stream(getAllowedProtocolVersions()).map(ProtocolVersion::getName).collect(Collectors.joining(" or "));
+		logSuccess("Server agreed to " + protocolVersionNames, args("host", tlsTestHost, "port", tlsTestPort));
+	}
+
+	protected void negotiatedProtocolVersions(Environment env, ProtocolVersion serverVersion) {
 	}
 
 }

@@ -20,6 +20,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12RequireBCP195Ciphers;
 import net.openid.conformance.condition.common.EnsureTLS13OrLater;
+import net.openid.conformance.condition.common.EnsureTLS13PreferredOverTLS12;
 import net.openid.conformance.condition.common.RequireOnlyBCP195RecommendedCiphersForTLS12;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -73,6 +74,11 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 			callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+			call(condition(EnsureTLS13PreferredOverTLS12.class)
+				.skipIfStringMissing("tls13_negotiated")
+				.onFail(Condition.ConditionResult.FAILURE)
+				.requirement("RFC9325-3.1.1")
+				.dontStopOnFailure());
 			// additional ciphers are allowed on the authorization endpoint
 
 			eventLog.startBlock("Userinfo Endpoint TLS test");
@@ -81,6 +87,11 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 			skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 			skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 			skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+			call(condition(EnsureTLS13PreferredOverTLS12.class)
+				.skipIfStringMissing("tls13_negotiated")
+				.onFail(Condition.ConditionResult.FAILURE)
+				.requirement("RFC9325-3.1.1")
+				.dontStopOnFailure());
 			skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2", "FAPI-ISSUES-847");
 		}
 
@@ -90,6 +101,11 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2", "FAPI-ISSUES-847");
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.2", "RFC9325A-A", "RFC9325-4.2");
 
@@ -99,6 +115,11 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
+		call(condition(EnsureTLS13PreferredOverTLS12.class)
+			.skipIfStringMissing("tls13_negotiated")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirement("RFC9325-3.1.1")
+			.dontStopOnFailure());
 		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2", "FAPI-ISSUES-847");
 
 		eventLog.endBlock();
