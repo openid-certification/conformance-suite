@@ -336,6 +336,89 @@ const STYLE_TEXT = css`
     transition: background var(--dur-1) var(--ease-standard);
   }
 
+  /* ── Whole-row disclosure (R1–R7) ──────────────────────────────────────
+     Expandable rows (.is-expandable) turn the entire .logItem into a click
+     target. The .logDisclosure button stays STATICALLY positioned and paints
+     a stretched ::after overlay over the position:relative .logItem (the
+     Adrian Roselli block-control pattern, as in cts-plan-modules). Making the
+     button positioned would collapse the overlay onto the chevron, so it must
+     stay static. In-row links/buttons are lifted on z-index so they keep
+     receiving their own clicks above the overlay. These rules sit AFTER
+     is-fail / is-warn / :target so those backgrounds survive (the hover tint
+     composites over them via box-shadow rather than replacing background). */
+  cts-log-entry .logDisclosure {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-600);
+    cursor: pointer;
+  }
+  cts-log-entry .logDisclosure::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  /* Whole-row focus ring: drawn on the overlay (already inset:0 = the row
+     box) so keyboard users see the ROW as the actionable unit, not just the
+     chevron. The button stays static, so ::after keeps spanning the row. */
+  cts-log-entry .logDisclosure:focus-visible {
+    outline: none;
+  }
+  cts-log-entry .logDisclosure:focus-visible::after {
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
+  /* Chevron rotates 180° when open — mirrors the cts-button disclosure
+     convention (one static chevron-down + a CSS transform keyed on
+     aria-expanded; no chevron-up/down icon swap). cts-icon strokes with
+     currentColor, so the glyph colour tracks the button's color. */
+  cts-log-entry .logDisclosure cts-icon[name="chevron-down"] {
+    transition: transform var(--dur-1) var(--ease-standard);
+    transform-origin: center;
+  }
+  cts-log-entry .logDisclosure[aria-expanded="true"] cts-icon[name="chevron-down"] {
+    transform: rotate(180deg);
+  }
+  /* In-row interactive controls ride above the disclosure overlay so their
+     own clicks land (the deep-link timestamp, the Copy-as-cURL button, and
+     spec-requirement anchors). Without the lift the overlay would swallow
+     every click on the row, including these. Non-link requirement chips
+     (span.logRequirement) are intentionally not lifted — they are inert, so
+     a click on them may toggle the row like any other non-interactive area. */
+  cts-log-entry .logTimeLink,
+  cts-log-entry .curlBtn,
+  cts-log-entry a.logRequirement {
+    position: relative;
+    z-index: 1;
+  }
+  /* Neutralise the global layout.css .logItem:hover near-white repaint
+     (#f6fefe) for component rows — it signals "interactive" on rows that are
+     not. (0,2,1) beats the global (0,2,0); placed after is-fail/is-warn/
+     :target so their backgrounds are untouched. */
+  cts-log-entry .logItem:hover {
+    background-color: transparent;
+  }
+  /* Expandable-row hover/focus affordances. The tint is painted with an
+     inset box-shadow (not background) so it COMPOSITES over the is-fail /
+     is-warn gradient and the :target wash instead of fighting them on
+     specificity — touching background here would wipe the failure cue.
+     :has() carries the same tint to keyboard focus for parity. */
+  cts-log-entry .logItem.is-expandable:hover,
+  cts-log-entry .logItem.is-expandable:has(.logDisclosure:focus-visible) {
+    box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--ink-900) 4%, transparent);
+  }
+  /* On hover the source label shifts to the active/link colour and the
+     chevron darkens --ink-600 → --ink-900, reinforcing that the row is live. */
+  cts-log-entry .logItem.is-expandable:hover .logSrc {
+    color: var(--fg-link);
+  }
+  cts-log-entry .logItem.is-expandable:hover .logDisclosure {
+    color: var(--ink-900);
+  }
+
   cts-log-entry .logTime {
     font-family: var(--font-mono);
     font-size: var(--fs-12);
@@ -615,8 +698,9 @@ function ensureStylesInjected() {
 /**
  * Renders a single log entry row. Layout reflows via container queries on the
  * host: at >= 640px the row is a 5-column grid (timestamp / severity badge /
- * HTTP marker / body / More toggle); below 640px it collapses to two visual
- * rows (meta cluster on row 1, body+actions on row 2, More panel on row 3).
+ * HTTP marker / body / disclosure chevron); below 640px it collapses to two
+ * visual rows (meta cluster on row 1, body+actions on row 2, detail panel on
+ * row 3).
  * Container queries — not viewport media queries — so the entry reflows based
  * on its container's width, supporting future side-by-side compare views and
  * narrow rails without coupling to viewport size. Failure rows get a left-edge
@@ -628,12 +712,15 @@ function ensureStylesInjected() {
  * tokens vendored in `oidf-tokens.css`. No Bootstrap classes are emitted.
  *
  * Severity is rendered via `cts-badge` (canonical `pass`/`fail`/`warn`/etc.
- * variants). The "More" toggle is composed of a `cts-badge` (count chip)
- * and a `cts-button` (`size="xs"`, `variant="secondary"`, chevron via
- * `icon`); the `.moreBtn` class on the cts-button host preserves the
- * legacy DOM hook used by `log-detail.html`'s non-Lit code path and the
- * Playwright spec. Clicking the button reveals the `.moreInfo` panel
- * listing every key in `entry.more`. R30: keys named `expected` / `actual`
+ * variants). Disclosure is whole-row: when the entry has extra payload
+ * (`extractMoreFields` non-empty) the `.logItem` gains an `is-expandable`
+ * class and a `.logDisclosure` button whose `::after` overlay stretches over
+ * the row, so clicking anywhere outside an in-row link toggles the
+ * `.moreInfo` panel (the Adrian Roselli block-control pattern; in-row links
+ * are lifted on `z-index` to stay clickable). The button carries
+ * `aria-expanded` and `aria-controls` (linking to the panel's `_panelId`).
+ * Rows with no extra payload render no chevron and stay inert. R30: keys
+ * named `expected` / `actual`
  * (or prefixed
  * `expected_…` / `actual_…`) are surfaced with semantic labels ("Expected
  * (per spec)" / "Actual (received)") and rendered in expected → actual →
@@ -712,6 +799,16 @@ class CtsLogEntry extends LitElement {
 
   _toggleMore() {
     this._expanded = !this._expanded;
+  }
+
+  /**
+   * Stable per-entry id for the detail panel, linking the disclosure
+   * button's `aria-controls` to the `.moreInfo` panel it reveals. Derived
+   * from the entry's server `_id` so it is unique across rows on the page.
+   * @returns {string} The panel element id (e.g. `more-panel-evt-42`).
+   */
+  get _panelId() {
+    return `more-panel-${this.entry?._id ?? ""}`;
   }
 
   _formatCurl() {
@@ -822,31 +919,31 @@ class CtsLogEntry extends LitElement {
     `;
   }
 
-  _renderMoreButton() {
+  _renderDisclosure() {
     const more = extractMoreFields(this.entry);
     if (Object.keys(more).length === 0) return nothing;
-    // Subtle disclosure: chevron + "Details" in a ghost button.
-    // No border, no count number — "Details" tells the user *what* will
-    // appear (request payload, expected/actual values, headers …) rather
-    // than just how many items, which on its own delivers no meaning.
-    // Visually this recedes behind the FAILURE/SUCCESS pills that need
-    // attention. The .moreBtn class hook is preserved for log-detail.html
-    // and the e2e specs that rely on it.
-    //
-    // The chevron icon is the static `chevron-down`; cts-button rotates it
-    // 180° via CSS keyed on the forwarded `aria-expanded` attribute (see
-    // cts-button.js styles). One transition, one DOM node — no per-render
-    // glyph swap.
+    // Whole-row disclosure. The visible control is a bare chevron glyph that
+    // reads as part of the row's chrome (quiet --ink-600, darkening to
+    // --ink-900 on row hover) rather than a labelled "Details" button —
+    // de-noising the actions column so the FAILURE/SUCCESS pills keep
+    // attention. The button itself stays chrome-less and statically
+    // positioned; its `::after` overlay (see STYLE_TEXT) stretches across the
+    // `position: relative` .logItem so a click anywhere on the row that isn't
+    // an in-row link toggles the panel — the Adrian Roselli block-control
+    // technique already used by cts-plan-modules. The static `chevron-down`
+    // rotates 180° via CSS keyed on `aria-expanded` (mirroring the
+    // cts-button convention) — one transition, one DOM node, no glyph swap.
     return html`
-      <cts-button
-        class="moreBtn"
-        variant="ghost"
-        size="xs"
-        icon="chevron-down"
-        label="Details"
+      <button
+        class="logDisclosure"
+        type="button"
         aria-expanded="${this._expanded ? "true" : "false"}"
-        @cts-click=${this._toggleMore}
-      ></cts-button>
+        aria-controls="${this._panelId}"
+        aria-label="Toggle entry details"
+        @click=${this._toggleMore}
+      >
+        <cts-icon name="chevron-down" size="20"></cts-icon>
+      </button>
     `;
   }
 
@@ -856,7 +953,7 @@ class CtsLogEntry extends LitElement {
     if (Object.keys(more).length === 0) return nothing;
     const rows = classifyMoreEntries(more);
     return html`
-      <div class="moreInfo">
+      <div class="moreInfo" id="${this._panelId}">
         <dl>
           ${rows.map(
             ({ kind, key, displayLabel, value }) => html`
@@ -887,10 +984,15 @@ class CtsLogEntry extends LitElement {
     const result = (entry.result || "").toLowerCase();
     const isFail = result === "failure";
     const isWarn = result === "warning";
+    const hasMore = Object.keys(extractMoreFields(entry)).length > 0;
     const itemClasses = ["logItem"];
     if (isFail) itemClasses.push("is-fail");
     if (isWarn) itemClasses.push("is-warn");
     if (entry.blockId) itemClasses.push("is-block");
+    // Gate every whole-row affordance (overlay hit area, hover shade,
+    // pointer cursor, chevron) on the row actually having something to
+    // disclose. Rows with no extra payload stay inert.
+    if (hasMore) itemClasses.push("is-expandable");
 
     // The timestamp doubles as this entry's citation handle: when the
     // entry has a reference id it renders as a deep-link anchor
@@ -923,7 +1025,7 @@ class CtsLogEntry extends LitElement {
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
         </div>
-        <div class="logActions">${this._renderMoreButton()}</div>
+        <div class="logActions">${this._renderDisclosure()}</div>
         ${this._hasFooter()
           ? html`<div class="logFooter">
               ${this._renderRequirements()} ${this._renderMorePanel()}
