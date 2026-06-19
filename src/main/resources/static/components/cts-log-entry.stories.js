@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, spyOn } from "storybook/test";
+import { expect, within, waitFor, spyOn, userEvent } from "storybook/test";
 import "./cts-log-entry.js";
 import { __seedSpecLinks, __resetSpecLinks } from "../lib/spec-links.js";
 
@@ -137,7 +137,7 @@ const UPLOAD_ENTRY = {
 // Thymeleaf export computed the disclosure view on the server side via
 // LogEntryHelper.visibleFields — the new Lit component has to do the same
 // strip itself because the browser API returns raw entries. Before U7 these
-// real-shape entries rendered with no Details button at all (D1).
+// real-shape entries rendered with no disclosure chevron at all (D1).
 const REAL_HTTP_REQUEST_ENTRY = {
   _id: "entry-real-http-req",
   testId: "test-real",
@@ -323,6 +323,20 @@ export const FailureEntry = {
       const item = canvasElement.querySelector(".logItem");
       expect(item.classList.contains("is-fail")).toBe(true);
     });
+
+    await step(
+      "requirements-only row stays inert (footer renders, disclosure does not)",
+      async () => {
+        // This entry has requirements but no `more` payload. The footer renders
+        // (for the requirement chips above), yet _hasFooter returning true must
+        // NOT pull in a disclosure: no chevron, no is-expandable, no overlay.
+        expect(canvasElement.querySelector(".logFooter")).toBeTruthy();
+        expect(canvasElement.querySelector(".logDisclosure")).toBeNull();
+        expect(canvasElement.querySelector(".logItem").classList.contains("is-expandable")).toBe(
+          false,
+        );
+      },
+    );
   },
 };
 
@@ -506,11 +520,12 @@ export const HttpRequestEntry = {
       expect(curlHost?.getAttribute("variant")).toBe("ghost");
     });
 
-    await step("disclosure toggle renders", async () => {
-      // The disclosure toggle is icon + count (no "More" text); query it
-      // by its class hook instead of by visible label.
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      expect(moreBtn).toBeTruthy();
+    await step("disclosure chevron renders", async () => {
+      // The disclosure control is a bare chevron button (no label); query it
+      // by its class hook and confirm the chevron glyph.
+      const toggle = canvasElement.querySelector("button.logDisclosure");
+      expect(toggle).toBeTruthy();
+      expect(toggle.querySelector('cts-icon[name="chevron-down"]')).toBeTruthy();
     });
 
     await step("REQUEST pill routes through static info variant (no spinner)", async () => {
@@ -581,29 +596,30 @@ export const ClickMoreToggle = {
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvasElement.querySelector("cts-button.moreBtn")).toBeTruthy();
+      expect(canvasElement.querySelector("button.logDisclosure")).toBeTruthy();
     });
 
-    await step("disclosure is collapsed and labeled before interaction", async () => {
+    await step("disclosure is collapsed and shows a chevron before interaction", async () => {
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
 
-      // The disclosure toggle is a single ghost button labeled "Details".
-      // Confirm both the class hook and the visible label before driving
-      // the click path.
-      const moreHost = canvasElement.querySelector("cts-button.moreBtn");
-      expect(moreHost).toBeTruthy();
-      expect(moreHost.getAttribute("label")).toBe("Details");
-      const moreBtn = moreHost.querySelector("button");
-      expect(moreBtn).toBeTruthy();
-      expect(moreBtn.getAttribute("aria-expanded")).toBe("false");
+      // The disclosure control is now a bare chevron button (no "Details"
+      // label). Confirm the chevron glyph, the collapsed aria-expanded state,
+      // and the is-expandable hook the whole-row affordances key on.
+      const toggle = canvasElement.querySelector("button.logDisclosure");
+      expect(toggle).toBeTruthy();
+      expect(toggle.querySelector('cts-icon[name="chevron-down"]')).toBeTruthy();
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(canvasElement.querySelector(".logItem").classList.contains("is-expandable")).toBe(
+        true,
+      );
     });
 
     await step("clicking the toggle reveals humanized field labels", async () => {
-      const moreBtn = /** @type {HTMLButtonElement | null} */ (
-        canvasElement.querySelector(".moreBtn button")
+      const toggle = /** @type {HTMLButtonElement | null} */ (
+        canvasElement.querySelector("button.logDisclosure")
       );
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
-      await moreBtn.click();
+      if (!toggle) throw new Error("button.logDisclosure did not render");
+      toggle.click();
 
       await waitFor(() => {
         expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
@@ -615,19 +631,21 @@ export const ClickMoreToggle = {
       expect(canvas.getByText("Token type")).toBeInTheDocument();
       expect(canvasElement.querySelector('[data-key="access_token"]')).toBeTruthy();
 
-      // After expanding, aria-expanded flips to true so screen readers
-      // announce the new state without depending on the chevron glyph alone.
-      expect(canvasElement.querySelector(".moreBtn button").getAttribute("aria-expanded")).toBe(
-        "true",
-      );
+      // After expanding, aria-expanded flips to true so screen readers announce
+      // the new state without depending on the chevron glyph alone, and
+      // aria-controls resolves to the revealed panel.
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      const panelId = toggle.getAttribute("aria-controls");
+      expect(panelId).toBeTruthy();
+      expect(canvasElement.querySelector(".moreInfo").id).toBe(panelId);
     });
 
     await step("clicking again collapses the disclosure", async () => {
-      const moreBtn = /** @type {HTMLButtonElement | null} */ (
-        canvasElement.querySelector(".moreBtn button")
+      const toggle = /** @type {HTMLButtonElement | null} */ (
+        canvasElement.querySelector("button.logDisclosure")
       );
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
-      await moreBtn.click();
+      if (!toggle) throw new Error("button.logDisclosure did not render");
+      toggle.click();
 
       await waitFor(() => {
         expect(canvasElement.querySelector(".moreInfo")).toBeNull();
@@ -650,6 +668,12 @@ export const CopyAsCurl = {
       expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
     });
 
+    // The cURL control sits inside an expandable row, so it must ride above
+    // the disclosure overlay (z-index:1) to keep its own click — otherwise the
+    // overlay would swallow the click and toggle the row instead of copying.
+    const curlHost = canvasElement.querySelector("cts-button.curlBtn");
+    expect(getComputedStyle(curlHost).zIndex).toBe("1");
+
     const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
     await curlBtn.click();
 
@@ -657,6 +681,12 @@ export const CopyAsCurl = {
     const curlCmd = writeSpy.mock.calls[0][0];
     expect(curlCmd).toContain("curl -X GET");
     expect(curlCmd).toContain("op.example.com");
+
+    // Clicking cURL copied; it must not have toggled the row's detail panel.
+    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    expect(canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded")).toBe(
+      "false",
+    );
   },
 };
 
@@ -668,8 +698,129 @@ export const NoMoreFields = {
       expect(canvas.getByText("Test passed")).toBeInTheDocument();
     });
 
-    // No `more` payload → no disclosure toggle should render at all.
-    expect(canvasElement.querySelector(".moreBtn")).toBeNull();
+    // R3: no `more` payload → no disclosure chevron, and the row stays inert
+    // (no is-expandable hook, so it gets no overlay / hover / pointer).
+    expect(canvasElement.querySelector(".logDisclosure")).toBeNull();
+    expect(canvasElement.querySelector(".logItem").classList.contains("is-expandable")).toBe(false);
+  },
+};
+
+/**
+ * R1/R2/R5: whole-row disclosure mechanics. The disclosure button paints a
+ * stretched `::after` overlay over the row so a pointer anywhere on the body
+ * hit-tests to the button (whole-row click), while in-row links are lifted on
+ * z-index so they keep their own clicks and the row toggle never fires for
+ * them. The button is a focusable native control.
+ */
+export const WholeRowDisclosure = {
+  render: () =>
+    html`<cts-log-entry reference-id="LOG-0001" .entry=${ENTRY_WITH_MORE}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector("button.logDisclosure")).toBeTruthy();
+    });
+
+    await step("the overlay stretches across the whole row (R1)", async () => {
+      // inset:0 absolute ::after on the disclosure button → its hit area is
+      // the entire .logItem, so clicking the row body (not just the chevron)
+      // toggles the panel. Geometry is deterministic regardless of row size.
+      const toggle = canvasElement.querySelector("button.logDisclosure");
+      const overlay = getComputedStyle(toggle, "::after");
+      expect(overlay.position).toBe("absolute");
+      expect(overlay.top).toBe("0px");
+      expect(overlay.right).toBe("0px");
+      expect(overlay.bottom).toBe("0px");
+      expect(overlay.left).toBe("0px");
+    });
+
+    await step("in-row links ride above the overlay and do not toggle (R2)", async () => {
+      const link = canvasElement.querySelector("a.logTimeLink");
+      expect(link).toBeTruthy();
+      // Lifted above the overlay so the link keeps its own click target.
+      expect(getComputedStyle(link).zIndex).toBe("1");
+
+      // A click on the link must not flip the row's disclosure state. Cancel
+      // the anchor's default so its in-page #LOG-0001 navigation doesn't run
+      // (the navigation is irrelevant here and would tear down the test
+      // harness); the click still bubbles, so a stray row-level toggle handler
+      // would fire and be caught by the assertions below.
+      link.addEventListener("click", (e) => e.preventDefault(), { once: true });
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      link.click();
+      expect(
+        canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded"),
+      ).toBe("false");
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    });
+
+    await step("the disclosure is keyboard-focusable and Enter-activated (R5)", async () => {
+      const toggle = canvasElement.querySelector("button.logDisclosure");
+      expect(toggle.tagName).toBe("BUTTON");
+      toggle.focus();
+      // The focus ring is drawn on the button's ::after overlay so the whole
+      // row reads as the focused target.
+      expect(toggle.matches(":focus")).toBe(true);
+
+      // Native <button> semantics: Enter activates the toggle. Exercising the
+      // real key event (not just focus) guards against a future swap to a
+      // div+role=button that would silently break keyboard users.
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+        expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      });
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => expect(canvasElement.querySelector(".moreInfo")).toBeNull());
+    });
+  },
+};
+
+/**
+ * Regression guard for the disclosure overlay vs. the disclosed panel: once a
+ * row is expanded, the .moreInfo panel renders inside the same .logItem the
+ * .logDisclosure::after overlay stretches over. The panel is lifted on
+ * z-index:1 so it sits ABOVE the overlay — otherwise clicking the
+ * expected/actual payload would re-fire the toggle and collapse the panel, and
+ * the text could not be selected. This story expands the panel, clicks inside
+ * it, and asserts it stays open.
+ */
+export const DisclosurePanelStaysInteractive = {
+  render: () => html`<cts-log-entry .entry=${ENTRY_WITH_MORE}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector("button.logDisclosure")).toBeTruthy();
+    });
+
+    /** @type {HTMLElement} */
+    let panel;
+    await step("expand the row", async () => {
+      canvasElement.querySelector("button.logDisclosure").click();
+      await waitFor(() => {
+        panel = canvasElement.querySelector(".moreInfo");
+        expect(panel).toBeTruthy();
+      });
+    });
+
+    await step("the panel rides above the disclosure overlay", async () => {
+      // z-index:1 keeps the open payload above the inset:0 overlay.
+      expect(getComputedStyle(panel).zIndex).toBe("1");
+    });
+
+    await step("clicking inside the open panel does not collapse it", async () => {
+      // A click on the payload (e.g. selecting a JSON value) must not re-fire
+      // the row toggle. With the panel lifted, the click lands on the panel,
+      // not the overlay, so the row stays expanded.
+      const pre = panel.querySelector("pre") || panel;
+      pre.click();
+      // Give any erroneous toggle a full Lit update cycle to surface.
+      await waitFor(() =>
+        expect(
+          canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded"),
+        ).toBe("true"),
+      );
+      expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+    });
   },
 };
 
@@ -725,8 +876,8 @@ export const ClickMoreHttpRequest = {
     });
 
     await step("clicking More reveals request method, URL, and header", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render");
       await moreBtn.click();
 
       /** @type {Element | null | undefined} */
@@ -745,8 +896,8 @@ export const ClickMoreHttpRequest = {
     });
 
     await step("clicking again collapses the disclosure", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render");
       await moreBtn.click();
       await waitFor(() => {
         expect(canvasElement.querySelector(".moreInfo")).toBeNull();
@@ -767,8 +918,8 @@ export const ClickMoreHttpResponse = {
     });
 
     await step("clicking More reveals response status and body field", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render");
       await moreBtn.click();
 
       /** @type {Element | null | undefined} */
@@ -786,8 +937,8 @@ export const ClickMoreHttpResponse = {
     });
 
     await step("clicking again collapses the disclosure", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render");
       await moreBtn.click();
       await waitFor(() => {
         expect(canvasElement.querySelector(".moreInfo")).toBeNull();
@@ -799,7 +950,7 @@ export const ClickMoreHttpResponse = {
 /**
  * U7: real-shape HTTP request entry — payload lives at the entry top level
  * (`request_uri`, `request_method`, `request_headers`, `request_body`),
- * not under a `more: {}` envelope. Before U7 the Details button never
+ * not under a `more: {}` envelope. Before U7 the disclosure never
  * rendered against this shape because `entry.more` was undefined and the
  * component short-circuited; the new `extractMoreFields` helper synthesises
  * the disclosure view by stripping the envelope keys (mirror of
@@ -813,8 +964,8 @@ export const ClickMoreRealHttpRequest = {
     });
 
     await step("opening the disclosure surfaces top-level payload fields", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render against real-shape entry");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render against real-shape entry");
       await moreBtn.click();
 
       /** @type {Element | null | undefined} */
@@ -862,8 +1013,8 @@ export const ClickMoreRealHttpResponse = {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Response"]')).toBeTruthy();
     });
 
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render against real-shape entry");
+    const moreBtn = canvasElement.querySelector(".logDisclosure");
+    if (!moreBtn) throw new Error(".logDisclosure did not render against real-shape entry");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */
@@ -885,7 +1036,7 @@ export const ClickMoreRealHttpResponse = {
 /**
  * U7 boundary: an entry whose only fields are envelope keys (`_id`, `src`,
  * `time`, `result`, plus per-test metadata like `baseUrl`/`variant`/`planId`)
- * has nothing to disclose. The Details button must NOT render — surfacing
+ * has nothing to disclose. The disclosure chevron must NOT render — surfacing
  * an empty disclosure for every plain success row would re-introduce the
  * noise the strip set was designed to remove.
  */
@@ -896,7 +1047,7 @@ export const EnvelopeOnlyEntryHasNoMoreButton = {
     await waitFor(() => {
       expect(canvas.getByText("Test passed")).toBeInTheDocument();
     });
-    expect(canvasElement.querySelector(".moreBtn")).toBeNull();
+    expect(canvasElement.querySelector(".logDisclosure")).toBeNull();
     expect(canvasElement.querySelector(".moreInfo")).toBeNull();
   },
 };
@@ -916,8 +1067,8 @@ export const ExpectedVsActualEntry = {
     });
 
     await step("opening the disclosure renders both expected/actual labels", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render");
       await moreBtn.click();
 
       await waitFor(() => {
@@ -970,8 +1121,8 @@ export const ExpectedActualSuffixVariants = {
     });
 
     await step("prefixed keys carry their suffix and unprefixed stays other", async () => {
-      const moreBtn = canvasElement.querySelector(".moreBtn button");
-      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      const moreBtn = canvasElement.querySelector(".logDisclosure");
+      if (!moreBtn) throw new Error(".logDisclosure did not render");
       await moreBtn.click();
 
       await waitFor(() => {
@@ -1018,8 +1169,8 @@ export const SubstringBoundaryRespectsPrefix = {
       expect(canvas.getByText("WARNING")).toBeInTheDocument();
     });
 
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render");
+    const moreBtn = canvasElement.querySelector(".logDisclosure");
+    if (!moreBtn) throw new Error(".logDisclosure did not render");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */

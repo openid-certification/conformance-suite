@@ -481,7 +481,11 @@ class CtsJsonEditor extends LitElement {
       // Default reserves 5 chars; configs run a few hundred lines at most,
       // so 3 keeps the gutter compact without truncating.
       lineNumbersMinChars: 3,
-      lineDecorationsWidth: 0,
+      // The line-decorations column sits between the line numbers and the
+      // code text, so its width is the gap between the two. Keep a few
+      // pixels here (Monaco's default is 10) so the line numbers don't butt
+      // up against the first glyph — 0 would collapse the gap entirely.
+      lineDecorationsWidth: 6,
       glyphMargin: false,
       folding: false,
       scrollBeyondLastLine: false,

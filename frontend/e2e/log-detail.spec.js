@@ -2537,4 +2537,292 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(badge).not.toHaveAttribute("clickable", /.*/);
     await expect(badge.locator(".badge")).not.toHaveAttribute("role", "button");
   });
+
+  // ───────────────────────────────────────────────────────────────────────
+  // Collapsible Test-structure rail (feat/log-toc-collapsible).
+  //
+  // The toggle only exists at ≥ 1440px with a populated rail, so these load a
+  // blocks-bearing test at a 1500px viewport (mirroring "cts-log-toc rail
+  // renders and grid expands when blocks arrive" above) and then exercise the
+  // collapse, a11y, persistence, and focus contracts. The collapsed state is
+  // a `toc-collapsed` class on <html> (set pre-paint by the inline <head>
+  // script); the toggle is a cts-button forwarding aria-expanded / aria-controls
+  // onto its inner <button>.
+  // ───────────────────────────────────────────────────────────────────────
+
+  /**
+   * Load a blocks-bearing log at ≥ 1440px and wait for the rail to populate,
+   * so the collapse toggle is present and visible.
+   * @param {import('@playwright/test').Page} page
+   * @param {{ testId?: string, width?: number }} [opts]
+   */
+  async function gotoWithRail(page, { testId = "test-blocks-001", width = 1500 } = {}) {
+    await setupFailFast(page);
+    await page.setViewportSize({ width, height: 900 });
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+    await expect(page.locator('#ctsLogToc [data-testid="toc-list"]')).toBeVisible();
+  }
+
+  test("toc collapse: default state is expanded with aria wired on the inner button", async ({
+    page,
+  }) => {
+    await gotoWithRail(page);
+
+    const toggleBtn = page.locator("#ctsLogTocToggle button");
+    await expect(toggleBtn).toBeVisible();
+    // aria-controls (U2 cts-button forwarding) + aria-expanded land on the
+    // FOCUSABLE inner button, not the custom-element host.
+    await expect(toggleBtn).toHaveAttribute("aria-controls", "ctsLogToc");
+    await expect(toggleBtn).toHaveAttribute("aria-expanded", "true");
+    // Icon-only button — the action lives in aria-label, not visible text.
+    await expect(toggleBtn).toHaveAttribute("aria-label", "Hide test structure");
+
+    // Not collapsed: no class on <html>, rail not inert, grid keeps the rail.
+    await expect(page.locator("html")).not.toHaveClass(/toc-collapsed/);
+    await expect(page.locator("#ctsLogToc")).not.toHaveAttribute("inert", /.*/);
+    const cols = await page
+      .locator("#main-content")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(cols).toMatch(/ 320px$/);
+  });
+
+  test("toc collapse: the toggle has a hover tooltip that tracks the action", async ({ page }) => {
+    await gotoWithRail(page);
+
+    await page.locator("#ctsLogTocToggle button").hover();
+    await expect(page.locator(".oidf-tooltip__inner")).toHaveText("Hide test structure");
+
+    // Collapse — the shown tooltip is dismissed so it never displays stale text.
+    await page.locator("#ctsLogTocToggle button").click();
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+
+    // Move away and re-hover → the tooltip now reflects the expand action.
+    await page.mouse.move(10, 400);
+    await page.locator("#ctsLogTocToggle button").hover();
+    await expect(page.locator(".oidf-tooltip__inner")).toHaveText("Show test structure");
+  });
+
+  test("toc collapse: clicking collapses, widens the stream, and settles inert", async ({
+    page,
+  }) => {
+    await gotoWithRail(page);
+
+    await page.locator("#ctsLogTocToggle button").click();
+
+    // The collapsed class + aria flip + label swap happen synchronously.
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+    const toggleBtn = page.locator("#ctsLogTocToggle button");
+    await expect(toggleBtn).toHaveAttribute("aria-expanded", "false");
+    await expect(toggleBtn).toHaveAttribute("aria-label", "Show test structure");
+
+    // The rail settles to `inert` once the collapse animation completes (the
+    // animated path defers it to a duration-matched timeout — the synchronous
+    // branch is covered separately by the reduced-motion test). Asserting only
+    // the eventual state avoids a flaky lower-bound timing check.
+    await expect(page.locator("#ctsLogToc")).toHaveAttribute("inert", "");
+
+    // The reclaimed column widens the entries stream — the rail track animates
+    // to 0, so poll until the transition settles.
+    await expect
+      .poll(() =>
+        page.locator("#main-content").evaluate((el) => getComputedStyle(el).gridTemplateColumns),
+      )
+      .toMatch(/ 0px$/);
+  });
+
+  test("toc collapse: a second click expands again and clears inert", async ({ page }) => {
+    await gotoWithRail(page);
+
+    await page.locator("#ctsLogTocToggle button").click();
+    await expect(page.locator("#ctsLogToc")).toHaveAttribute("inert", "");
+
+    await page.locator("#ctsLogTocToggle button").click();
+
+    await expect(page.locator("html")).not.toHaveClass(/toc-collapsed/);
+    await expect(page.locator("#ctsLogToc")).not.toHaveAttribute("inert", /.*/);
+    await expect(page.locator("#ctsLogTocToggle button")).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("toc collapse: reduced motion applies inert immediately (no timeout)", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await gotoWithRail(page);
+
+    await page.locator("#ctsLogTocToggle button").click();
+
+    // Under reduced motion the inert settle is synchronous — readable right
+    // after the click with no auto-retry window masking a deferred set.
+    expect(
+      await page.locator("#ctsLogToc").evaluate((el) => /** @type {HTMLElement} */ (el).inert),
+    ).toBe(true);
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+  });
+
+  test("toc collapse: rapid collapse→expand leaves the rail visible (no stuck inert)", async ({
+    page,
+  }) => {
+    await gotoWithRail(page);
+
+    // Collapse then expand before the inert timeout (~280ms) can fire.
+    await page.locator("#ctsLogTocToggle button").click();
+    await page.locator("#ctsLogTocToggle button").click();
+
+    // Wait past the original collapse's duration to prove the pending timeout
+    // was cleared and never re-applies inert to the now-visible rail.
+    await page.waitForTimeout(450);
+
+    await expect(page.locator("html")).not.toHaveClass(/toc-collapsed/);
+    expect(
+      await page.locator("#ctsLogToc").evaluate((el) => /** @type {HTMLElement} */ (el).inert),
+    ).toBe(false);
+    await expect(page.locator("#ctsLogToc")).toBeVisible();
+  });
+
+  test("toc collapse: choice persists across a reload (and applies pre-paint)", async ({
+    page,
+  }) => {
+    await gotoWithRail(page);
+
+    await page.locator("#ctsLogTocToggle button").click();
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+
+    // Reload — the inline <head> script re-reads localStorage and re-applies
+    // the collapsed class before first paint, so the rail loads collapsed.
+    // The collapsed rail clips to 0 width, so wait on the entries stream (not
+    // the now-hidden toc-list) as the load signal.
+    await page.reload();
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+    await expect(page.locator("#ctsLogTocToggle button")).toHaveAttribute("aria-expanded", "false");
+    // Grid loads with the rail track already at 0 (collapsed); poll to be
+    // robust against any settle timing. The transition-enable class is added
+    // after first paint so the load state itself never animates open.
+    await expect
+      .poll(() =>
+        page.locator("#main-content").evaluate((el) => getComputedStyle(el).gridTemplateColumns),
+      )
+      .toMatch(/ 0px$/);
+    await expect(page.locator("#main-content")).toHaveClass(/log-page--toc-animate/);
+  });
+
+  test("toc collapse: preference carries across different logs", async ({ page }) => {
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    // Mock two distinct logs up front (route registrations accumulate).
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-002" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
+    await expect(page.locator('#ctsLogToc [data-testid="toc-list"]')).toBeVisible();
+    await page.locator("#ctsLogTocToggle button").click();
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+
+    // Full document load of a different log id — cross-log navigation re-reads
+    // the (global) preference. The collapsed rail clips to 0 width, so wait on
+    // the entries stream rather than the now-hidden toc-list.
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-002")}`);
+    await expect(page.locator(".logItem").first()).toBeVisible();
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+  });
+
+  test("toc collapse: still toggles in-session when localStorage is unavailable", async ({
+    page,
+  }) => {
+    // Simulate private-browsing / disabled storage: the probe's setItem throws,
+    // exactly what tryGetStorage guards against. Init script applies before
+    // every page script (and survives reloads/navigations).
+    await page.addInitScript(() => {
+      window.localStorage.setItem = () => {
+        throw new Error("storage disabled");
+      };
+    });
+
+    await gotoWithRail(page);
+
+    // No throw on load (head-script probe degrades to null → expanded).
+    await expect(page.locator("html")).not.toHaveClass(/toc-collapsed/);
+
+    // In-session collapse/expand still works without persistence.
+    await page.locator("#ctsLogTocToggle button").click();
+    await expect(page.locator("html")).toHaveClass(/toc-collapsed/);
+    await page.locator("#ctsLogTocToggle button").click();
+    await expect(page.locator("html")).not.toHaveClass(/toc-collapsed/);
+  });
+
+  test("toc collapse: collapsing moves focus out of the rail to the toggle (R11)", async ({
+    page,
+  }) => {
+    await gotoWithRail(page);
+
+    // Put focus inside the rail, then drive the collapse via a direct cts-click
+    // dispatch (a real pointer click would move focus to the toggle first,
+    // hiding the focus-rescue path this asserts).
+    await page.locator("#ctsLogToc button.ctsLogTocRow").first().focus();
+    expect(await page.evaluate(() => document.activeElement?.closest("#ctsLogToc") !== null)).toBe(
+      true,
+    );
+
+    await page
+      .locator("#ctsLogTocToggle")
+      .evaluate((el) => el.dispatchEvent(new CustomEvent("cts-click", { bubbles: true })));
+
+    // Focus landed on the toggle (inside #ctsLogTocToggle), not silently on <body>.
+    const focusInToggle = await page.evaluate(
+      () => document.activeElement?.closest("#ctsLogTocToggle") !== null,
+    );
+    expect(focusInToggle).toBe(true);
+  });
+
+  test("toc collapse: no toggle when the rail is empty (R10)", async ({ page }) => {
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    const interruptedInfo = {
+      ...MOCK_TEST_STATUS,
+      testId: "test-interrupted-noblock-001",
+      status: "INTERRUPTED",
+      result: "FAILED",
+    };
+    await setupV2Routes(page, {
+      testInfo: interruptedInfo,
+      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-interrupted-noblock-001")}`);
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    // Empty rail → cts-log-toc sets its own [hidden] → the `:has()` rule
+    // suppresses the toggle row (nothing to collapse).
+    await expect(page.locator("#ctsLogToc")).toHaveAttribute("hidden", "");
+    await expect(page.locator("#ctsLogTocToggle")).not.toBeVisible();
+  });
+
+  test("toc collapse: no toggle below the 1440px breakpoint (R3)", async ({ page }) => {
+    await setupFailFast(page);
+    // Narrow viewport — the rail itself is display:none and the toggle row is
+    // hidden, so nothing about the layout changes.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    await expect(page.locator("#ctsLogTocToggle")).not.toBeVisible();
+  });
 });

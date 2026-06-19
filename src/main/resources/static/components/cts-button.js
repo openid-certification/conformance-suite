@@ -290,6 +290,15 @@ injectStyles();
  * @property {boolean} disabled - Disables the button
  * @property {string} type - Native button type: "button" (default) or "submit"
  * @property {boolean} full-width - Stretches the button to fill its parent's width
+ * @property {string} aria-label - Forwarded onto the inner native `<button>`
+ *   (the focusable target). Omitted entirely when empty so it never overrides
+ *   the visible label with an empty accessible name.
+ * @property {string} aria-expanded - Forwarded onto the inner `<button>` for
+ *   disclosure toggles. Omitted when empty.
+ * @property {string} aria-controls - Forwarded onto the inner `<button>` so the
+ *   toggle's controls relationship reaches assistive tech (host-level
+ *   `aria-controls` would sit on the non-focusable custom element). Omitted
+ *   when empty.
  * @fires cts-click - When the inner button is activated (not fired while disabled or loading)
  *
  * ## Programmatic activation
@@ -332,6 +341,7 @@ class CtsButton extends LitElement {
     fullWidth: { type: Boolean, attribute: "full-width", reflect: true },
     ariaLabel: { type: String, attribute: "aria-label" },
     ariaExpanded: { type: String, attribute: "aria-expanded" },
+    ariaControls: { type: String, attribute: "aria-controls" },
   };
 
   constructor() {
@@ -346,6 +356,7 @@ class CtsButton extends LitElement {
     this.fullWidth = false;
     this.ariaLabel = "";
     this.ariaExpanded = "";
+    this.ariaControls = "";
   }
 
   connectedCallback() {
@@ -417,12 +428,14 @@ class CtsButton extends LitElement {
     // cts-button custom element, not the focusable target.
     const ariaLabelAttr = this.ariaLabel ? this.ariaLabel : nothing;
     const ariaExpandedAttr = this.ariaExpanded ? this.ariaExpanded : nothing;
+    const ariaControlsAttr = this.ariaControls ? this.ariaControls : nothing;
     return html`<button
       type="${this.type}"
       class="${buttonClass}"
       ?disabled="${isDisabled}"
       aria-label=${ariaLabelAttr}
       aria-expanded=${ariaExpandedAttr}
+      aria-controls=${ariaControlsAttr}
       @click="${this._handleClick}"
       >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
     >`;

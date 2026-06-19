@@ -366,14 +366,14 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsTerminalBanner {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4) 20px;
-    margin-inline: -20px;
+    gap: var(--space-2);
+    padding: var(--space-3);
     font-family: var(--font-sans);
     font-weight: var(--fw-bold);
     font-size: var(--fs-16);
     line-height: var(--lh-tight);
-    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    margin-top: var(--space-5);
   }
   cts-log-detail-header .ctsTerminalBanner cts-icon {
     flex: 0 0 auto;
@@ -381,22 +381,18 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsTerminalBanner--pass {
     background: var(--status-pass-bg);
     color: var(--status-pass);
-    border-bottom-color: var(--status-pass-border);
   }
   cts-log-detail-header .ctsTerminalBanner--fail {
     background: var(--status-fail-bg);
     color: var(--status-fail);
-    border-bottom-color: var(--status-fail-border);
   }
   cts-log-detail-header .ctsTerminalBanner--warn {
     background: var(--status-warning-bg);
     color: var(--status-warning);
-    border-bottom-color: var(--status-warning-border);
   }
   cts-log-detail-header .ctsTerminalBanner--skip {
     background: var(--status-skipped-bg);
     color: var(--status-skipped);
-    border-bottom-color: var(--status-skipped-border);
   }
 
   /* Hero — the lifecycle-driven dominant zone. Flat section on the
@@ -409,7 +405,7 @@ const STYLE_TEXT = css`
        breathing room as a section so it never sits flush against the
        nav row's border above or the drawer summaries below. */
     padding-inline: 0;
-    padding-block: var(--space-5) var(--space-2);
+    padding-block: var(--space-2);
     display: flex;
     flex-direction: column;
   }

@@ -29,8 +29,18 @@
 
 import { renderErrorIntoSlot } from "./log-detail-error-slot.js";
 import { scrollEntryIntoView } from "../components/cts-log-entry.js";
+import { tryGetStorage } from "../components/guided-wizard.js";
 
 const POLL_INTERVAL_MS = 3000;
+
+/**
+ * localStorage key for the Test-structure rail collapse preference
+ * (feat/log-toc-collapsible). Stored as the string "true" / "false". Read
+ * pre-paint by the inline <head> script in log-detail.html and again here so
+ * the toggle's label + aria state match the rendered rail. Global (one key),
+ * so the choice carries across logs.
+ */
+const TOC_COLLAPSE_STORAGE_KEY = "oidf-log-toc-collapsed";
 
 /** @type {string} */
 let testId = "";
@@ -1180,6 +1190,160 @@ function setupLogToc() {
   });
 }
 
+/**
+ * Read the `--dur-3` motion token (e.g. "280ms") off the page root and return
+ * it in milliseconds, so the JS `inert` settle stays in lockstep with the CSS
+ * collapse transition without hard-coding the duration. Falls back to 280 if
+ * the token is unreadable.
+ *
+ * @returns {number}
+ */
+function readMotionDurationMs() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--dur-3").trim();
+  const value = parseFloat(raw);
+  if (Number.isNaN(value)) return 280;
+  // Tokens are authored in ms ("280ms"); tolerate a seconds form ("0.28s").
+  return raw.endsWith("ms") ? value : value * 1000;
+}
+
+/**
+ * feat/log-toc-collapsible — wire the Test-structure rail collapse toggle.
+ *
+ * The collapsed/expanded choice persists in `localStorage` (global, one key)
+ * and is applied PRE-PAINT by the inline `<head>` script in log-detail.html
+ * (which sets `documentElement.classList.toc-collapsed` before first paint so a
+ * collapsed-by-preference load never shows an expanded frame — R6). This
+ * function only re-syncs the toggle's label + `aria-expanded` to that pre-paint
+ * state, manages the rail's `inert` lifecycle, persists user toggles, and keeps
+ * keyboard focus off the collapsed rail.
+ *
+ * Named (not an inline closure in bootstrap) so a future keyboard shortcut can
+ * call the same toggle handler — see the plan's "Deferred to follow-up work".
+ *
+ * R10 (suppress the toggle when the rail is empty) is handled declaratively in
+ * the page CSS via `#main-content:has(#ctsLogToc[hidden]) .log-toc-toggle-slot`,
+ * NOT here: the rail's `[hidden]` state is set inside cts-log-toc's async Lit
+ * `updated()` cycle, so a synchronous read on `cts-blocks-updated` would race
+ * it. The `:has()` selector tracks the attribute reactively with no timing
+ * coupling.
+ */
+function setupTocCollapse() {
+  /** @type {any} */
+  const toggle = document.getElementById("ctsLogTocToggle");
+  /** @type {HTMLElement | null} */
+  const rail = document.getElementById("ctsLogToc");
+  const root = document.documentElement;
+  if (!toggle || !rail) return;
+
+  /** The cts-tooltip wrapping the toggle (hover/focus discoverability). */
+  const tooltip = toggle.closest("cts-tooltip");
+
+  const storage = tryGetStorage("localStorage");
+  const motionDurationMs = readMotionDurationMs();
+
+  /**
+   * Pending timeout id for the duration-matched `inert` settle. Cleared on
+   * every toggle so a rapid collapse→expand never re-applies `inert` to a
+   * now-visible rail.
+   * @type {number}
+   */
+  let inertTimer = 0;
+
+  const prefersReducedMotion = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /**
+   * Sync the toggle's accessible label, `aria-expanded` (forwarded by
+   * cts-button onto the inner button), and hover-tooltip text to the given
+   * collapsed state. The button is icon-only, so the action lives in
+   * `aria-label` + the tooltip, not visible text. Driven through `setAttribute`
+   * so the host attributes stay consistent with the rendered inner button.
+   * @param {boolean} collapsed
+   */
+  function syncToggle(collapsed) {
+    const action = collapsed ? "Show test structure" : "Hide test structure";
+    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    toggle.setAttribute("aria-label", action);
+    if (tooltip) tooltip.setAttribute("content", action);
+  }
+
+  // Mirror the pre-paint state onto the toggle + the rail's inert state without
+  // animating (the animate class is enabled one frame later, below).
+  const initialCollapsed = root.classList.contains("toc-collapsed");
+  syncToggle(initialCollapsed);
+  rail.inert = initialCollapsed;
+
+  // Enable the collapse transition one frame after first paint so the
+  // load-time state applies instantly and only later user toggles animate (R6).
+  requestAnimationFrame(() => {
+    const main = document.getElementById("main-content");
+    if (main) main.classList.add("log-page--toc-animate");
+  });
+
+  toggle.addEventListener("cts-click", () => {
+    // Clear any pending inert settle so an interrupted collapse→expand never
+    // re-applies inert to a visible rail.
+    if (inertTimer) {
+      clearTimeout(inertTimer);
+      inertTimer = 0;
+    }
+
+    const willCollapse = !root.classList.contains("toc-collapsed");
+
+    if (willCollapse) {
+      // R11 — never silently drop focus to <body>: move focus to the toggle
+      // BEFORE the rail becomes inert if focus currently sits inside the rail.
+      // The focus target is cts-button's inner <button> (light DOM); the host
+      // itself is not focusable, so guard the query rather than focusing the
+      // host. Via the real triggers the inner button is always rendered by now
+      // (a pointer click already moved focus onto it; a future keyboard
+      // shortcut fires on a fully-loaded page), so this is defensive.
+      if (rail.contains(document.activeElement)) {
+        const innerBtn = toggle.querySelector("button");
+        if (innerBtn) innerBtn.focus();
+      }
+      root.classList.add("toc-collapsed");
+    } else {
+      // Expand — restore focus-reachability synchronously.
+      rail.inert = false;
+      root.classList.remove("toc-collapsed");
+    }
+
+    syncToggle(willCollapse);
+
+    // A tooltip shown from the pre-click hover keeps its old text (cts-tooltip
+    // only re-reads `content` on the next show), which would read e.g. "Hide
+    // test structure" over an already-hidden rail. Dismiss it via the trigger's
+    // own hide event; the next hover/focus shows the updated action.
+    if (tooltip) toggle.dispatchEvent(new MouseEvent("mouseleave"));
+
+    if (willCollapse) {
+      if (prefersReducedMotion()) {
+        // No animation, so settle inert immediately (R5 + R9).
+        rail.inert = true;
+      } else {
+        // Settle inert once the collapse animation has finished. Driven off a
+        // duration-matched timeout, NOT `transitionend` for the registered
+        // custom property (engine-inconsistent; see the plan's KTDs).
+        inertTimer = window.setTimeout(() => {
+          rail.inert = true;
+          inertTimer = 0;
+        }, motionDurationMs);
+      }
+    }
+
+    // Persist the choice. Degrades to session-only (no-op) when storage is
+    // unavailable, so the in-session toggle still works (R7).
+    if (storage) {
+      try {
+        storage.setItem(TOC_COLLAPSE_STORAGE_KEY, willCollapse ? "true" : "false");
+      } catch {
+        /* storage became unavailable mid-session — ignore, stay in-session */
+      }
+    }
+  });
+}
+
 /** ──────────── Keyboard shortcuts ──────────── */
 
 function handleKeydown(event) {
@@ -1231,6 +1395,7 @@ async function bootstrap() {
   document.addEventListener("cts-scroll-to-entry", handleScrollToEntry);
   document.addEventListener("keydown", handleKeydown);
   setupLogToc();
+  setupTocCollapse();
   // U6: cts-log-viewer dispatches cts-references-updated after each
   // successful poll that appended rows. Forward the map to every
   // failure summary instance so chips render in lockstep with the
