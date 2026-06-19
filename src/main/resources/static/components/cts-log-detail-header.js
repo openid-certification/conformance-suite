@@ -366,7 +366,7 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsTerminalBanner {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     padding: var(--space-3);
     font-family: var(--font-sans);
     font-weight: var(--fw-bold);
@@ -381,22 +381,18 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsTerminalBanner--pass {
     background: var(--status-pass-bg);
     color: var(--status-pass);
-    border-bottom-color: var(--status-pass-border);
   }
   cts-log-detail-header .ctsTerminalBanner--fail {
     background: var(--status-fail-bg);
     color: var(--status-fail);
-    border-bottom-color: var(--status-fail-border);
   }
   cts-log-detail-header .ctsTerminalBanner--warn {
     background: var(--status-warning-bg);
     color: var(--status-warning);
-    border-bottom-color: var(--status-warning-border);
   }
   cts-log-detail-header .ctsTerminalBanner--skip {
     background: var(--status-skipped-bg);
     color: var(--status-skipped);
-    border-bottom-color: var(--status-skipped-border);
   }
 
   /* Hero — the lifecycle-driven dominant zone. Flat section on the
