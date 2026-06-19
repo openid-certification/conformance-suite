@@ -33,6 +33,39 @@
 <link rel="stylesheet" href="/css/oidf-tokens.css">
 <link rel="stylesheet" href="/css/oidf-app.css">
 
+<!-- Pre-paint Test-structure-rail collapse state (feat/log-toc-collapsible,
+     R6). This non-deferred classic script runs synchronously during head
+     parsing, BEFORE first paint, so a collapsed-by-preference load never
+     paints the expanded rail and then animates it shut. bootstrap() runs on
+     DOMContentLoaded — too late to beat the first composite — so the
+     pre-paint state cannot be deferred to it. A classic script cannot import
+     guided-wizard.js, so it carries the same minimal private-browsing-safe
+     storage probe as the inline twin in schedule-test.html (the one
+     intentional duplication of tryGetStorage). -->
+<script>
+  (function () {
+    function tryGetStorage(type) {
+      try {
+        var storage = window[type];
+        var x = "__storage_test__";
+        storage.setItem(x, x);
+        storage.removeItem(x);
+        return storage;
+      } catch (e) {
+        return null;
+      }
+    }
+    try {
+      var ls = tryGetStorage("localStorage");
+      if (ls && ls.getItem("oidf-log-toc-collapsed") === "true") {
+        document.documentElement.classList.add("toc-collapsed");
+      }
+    } catch (e) {
+      /* never block first paint on a storage error */
+    }
+  })();
+</script>
+
 <!-- Vendor JS used only by the running-test slot wiring (browser-URL QR
      code) inside js/log-detail.js. Loaded as a classic <script> so the
      global QRCode binding is ready before the bootstrap module
@@ -113,16 +146,124 @@
      preferred to the page-wide horizontal shift on every normal log
      load. Reverses U2 of
      docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md. */
+  /* Collapsible rail (feat/log-toc-collapsible, U1). Register the animatable
+     rail-width custom property. A registered `<length>` interpolates reliably
+     across engines AND recomputes the grid track, which raw
+     `grid-template-columns` track-list interpolation does not do consistently
+     in Safari/Firefox. The 320px initial value is what `getComputedStyle`
+     resolves `1fr var(--log-toc-width)` to in the expanded state, so the rail
+     keeps its intrinsic width budget and the existing grid-track assertion in
+     log-detail.spec.js stays green. `@property` is Baseline (Chrome 85,
+     Safari 16.4, Firefox 128). */
+  @property --log-toc-width {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 320px;
+  }
+
   @media (min-width: 1440px) {
     .log-page--with-toc {
       display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: var(--space-10);
+      grid-template-columns: 1fr var(--log-toc-width);
+      column-gap: var(--space-10);
       align-items: start;
+    }
+    /* Collapsed state — set pre-paint on <html> by the inline <head> script,
+       so a collapsed-by-preference load never paints the expanded frame and
+       then animates it closed (R6). */
+    html.toc-collapsed .log-page--with-toc {
+      --log-toc-width: 0px;
+      column-gap: 0;
+    }
+    /* The transition lives ONLY on the animate-enabled class, which the
+       bootstrap adds one frame after first paint — so the pre-paint
+       collapsed/expanded state applies instantly and only later user toggles
+       animate (R4, R6). Animating the registered custom property repaints the
+       1fr track in lockstep; column-gap closes alongside it. */
+    .log-page--with-toc.log-page--toc-animate {
+      transition:
+        --log-toc-width var(--dur-3) var(--ease-standard),
+        column-gap var(--dur-3) var(--ease-standard);
+    }
+    /* Clip the 320px rail content as the track shrinks to 0 rather than
+       letting it spill or reflow the page. `overflow-x: hidden` MUST stay on
+       the host (never an ancestor wrapper) or it would establish a scroll
+       container and break the rail's `position: sticky`; pairing it with the
+       rail's own `overflow-y: auto` (here as the `hidden auto` shorthand)
+       preserves both the vertical scroll and sticky behaviour. */
+    #ctsLogToc {
+      overflow: hidden auto;
+    }
+    /* The rail fades out AND gives up its box entirely as it collapses. The
+       grid track alone can't shrink the host past its own padding + border
+       (~34px of non-compressible box), which would leave a sliver of width
+       when "hidden"; zeroing the inline padding + border collapses it to a
+       true 0 width so the entries stream reclaims the full column. */
+    html.toc-collapsed #ctsLogToc {
+      opacity: 0;
+      padding-inline: 0;
+      border-inline-width: 0;
+    }
+    .log-page--toc-animate #ctsLogToc {
+      transition:
+        opacity var(--dur-3) var(--ease-standard),
+        padding-inline var(--dur-3) var(--ease-standard),
+        border-inline-width var(--dur-3) var(--ease-standard);
     }
   }
   @media (max-width: 1439px) {
     #ctsLogToc {
+      display: none;
+    }
+  }
+
+  /* R5 — honor reduced motion: the collapse/expand applies instantly with no
+     transition. The oidf-tokens.css global reduced-motion block only resets
+     `a { transition }`, so this page-local override is required (mirrors the
+     reduced-motion zeroing pattern in cts-modal.js). */
+  @media (prefers-reduced-motion: reduce) {
+    .log-page--with-toc.log-page--toc-animate,
+    .log-page--toc-animate #ctsLogToc {
+      transition: none;
+    }
+  }
+
+  /* Breadcrumb row + collapse toggle (feat/log-toc-collapsible, U3). The crumb
+     flows normally; the toggle is positioned ABSOLUTELY at the far right so it
+     never contributes to the row's box model — otherwise the taller toggle
+     would inflate the row height and the breadcrumb would jump vertically when
+     navigating between a toggle page and a no-toggle page. The slot is hidden
+     by default and shown only at ≥ 1440px where the rail exists (R3 — nothing
+     changes below the breakpoint). */
+  .log-crumb-row {
+    position: relative;
+  }
+  .log-toc-toggle-slot {
+    display: none;
+  }
+  @media (min-width: 1440px) {
+    .log-toc-toggle-slot {
+      display: block;
+      position: absolute;
+      right: 0;
+      /* Nudge up to vertically align the square toggle with the breadcrumb. */
+      top: -5px;
+    }
+    /* Square icon-only button: the base .oidf-btn is already
+       `height: var(--control-height)` + inline-flex centered, so matching the
+       width and zeroing the horizontal padding yields a square that centers
+       the 20px icon (cts-button size="md"). */
+    #ctsLogTocToggle button {
+      width: var(--control-height);
+      height: var(--control-height);
+      padding: 0;
+    }
+    /* R10 — when the rail is empty (interrupted test with no blocks AND no
+       failures, cts-log-toc sets its own [hidden]) there is nothing to
+       collapse, so suppress the toggle. Declarative `:has()` tracks the rail's
+       hidden state — which cts-log-toc flips inside its async Lit update — with
+       no JS timing race. */
+    #main-content:has(#ctsLogToc[hidden]) .log-toc-toggle-slot {
       display: none;
     }
   }
@@ -273,7 +414,34 @@
        ≥ 1440 px when the user preference is enabled. -->
   <main id="main-content" class="log-page">
     <div class="log-page-main">
-      <cts-crumb id="logDetailCrumb"></cts-crumb>
+      <!-- Breadcrumb row. At ≥ 1440px it also hosts the Test-structure-rail
+           collapse toggle, pushed to the far right; below that breakpoint (and
+           when the rail is empty) the toggle slot is hidden and the crumb owns
+           the row alone. -->
+      <div class="log-crumb-row">
+        <cts-crumb id="logDetailCrumb"></cts-crumb>
+        <!-- Collapse toggle (feat/log-toc-collapsible). MUST live outside
+             #ctsLogToc (the collapsing column) so it stays visible as the
+             single re-open affordance once the rail is fully hidden. Icon-only;
+             the action is exposed via aria-label, which setupTocCollapse() keeps
+             in sync with the persisted state on bootstrap. -->
+        <div class="log-toc-toggle-slot">
+          <!-- Tooltip surfaces the icon-only toggle's purpose on hover/focus.
+               Its `content` is kept in sync with the action by
+               setupTocCollapse() (cts-tooltip re-reads it on each show). -->
+          <cts-tooltip content="Hide test structure" placement="bottom">
+            <cts-button
+              id="ctsLogTocToggle"
+              variant="ghost"
+              size="md"
+              icon="window-sidebar"
+              aria-label="Hide test structure"
+              aria-controls="ctsLogToc"
+              aria-expanded="true"
+            ></cts-button>
+          </cts-tooltip>
+        </div>
+      </div>
       <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
       <!-- Page-level cts-test-summary instance (Region B1, U7). Carries
            the WAITING-state instructions banner above the failure summary,
