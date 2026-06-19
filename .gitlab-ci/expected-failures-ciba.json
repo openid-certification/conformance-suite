@@ -35,5 +35,387 @@
         "condition": "FAPIEnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
+    },
+    {
+        "test-name": "fapi-ciba-id1",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-ciba-id1-*.json",
+        "current-block": "*",
+        "condition": "EnsureTLS13OrLater",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-mtls-holder-of-key-required",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi-ciba-id1-*.json",
+        "current-block": "*",
+        "condition": "EnsureTLS13OrLater",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "*",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "*",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-auth-req-id-expired",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-auth-req-id-expired",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-authorization-request-with-binding-message-succeeds",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-authorization-request-with-binding-message-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-requested-expiry-as-string-succeeds",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-requested-expiry-as-string-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-401",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-401",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-403",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-403",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-has-body",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-has-body",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-return-redirect-request",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-backchannel-notification-endpoint-return-redirect-request",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-with-mtls-ciba-notification-endpoint-response-401-and-require-server-does-not-retry",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ping-with-mtls-ciba-notification-endpoint-response-401-and-require-server-does-not-retry",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-refresh-token",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "*",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "*",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-user-rejects-authentication",
+        "variant": {
+            "client_auth_type": "mtls",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "plain_fapi"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
+    },
+    {
+        "test-name": "fapi-ciba-id1-user-rejects-authentication",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "client_registration": "dynamic_client",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_uk"
+        },
+        "configuration-filename": "authlete-fapi-ciba-id1-dcr.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureIncomingTls13",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support tls 1.3"
     }
 ]
