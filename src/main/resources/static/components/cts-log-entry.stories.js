@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, spyOn } from "storybook/test";
+import { expect, within, waitFor, spyOn, userEvent } from "storybook/test";
 import "./cts-log-entry.js";
 import { __seedSpecLinks, __resetSpecLinks } from "../lib/spec-links.js";
 
@@ -323,6 +323,20 @@ export const FailureEntry = {
       const item = canvasElement.querySelector(".logItem");
       expect(item.classList.contains("is-fail")).toBe(true);
     });
+
+    await step(
+      "requirements-only row stays inert (footer renders, disclosure does not)",
+      async () => {
+        // This entry has requirements but no `more` payload. The footer renders
+        // (for the requirement chips above), yet _hasFooter returning true must
+        // NOT pull in a disclosure: no chevron, no is-expandable, no overlay.
+        expect(canvasElement.querySelector(".logFooter")).toBeTruthy();
+        expect(canvasElement.querySelector(".logDisclosure")).toBeNull();
+        expect(canvasElement.querySelector(".logItem").classList.contains("is-expandable")).toBe(
+          false,
+        );
+      },
+    );
   },
 };
 
@@ -654,6 +668,12 @@ export const CopyAsCurl = {
       expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
     });
 
+    // The cURL control sits inside an expandable row, so it must ride above
+    // the disclosure overlay (z-index:1) to keep its own click — otherwise the
+    // overlay would swallow the click and toggle the row instead of copying.
+    const curlHost = canvasElement.querySelector("cts-button.curlBtn");
+    expect(getComputedStyle(curlHost).zIndex).toBe("1");
+
     const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
     await curlBtn.click();
 
@@ -661,6 +681,12 @@ export const CopyAsCurl = {
     const curlCmd = writeSpy.mock.calls[0][0];
     expect(curlCmd).toContain("curl -X GET");
     expect(curlCmd).toContain("op.example.com");
+
+    // Clicking cURL copied; it must not have toggled the row's detail panel.
+    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    expect(canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded")).toBe(
+      "false",
+    );
   },
 };
 
@@ -727,14 +753,73 @@ export const WholeRowDisclosure = {
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
     });
 
-    await step("the disclosure is a focusable native button (R5)", async () => {
+    await step("the disclosure is keyboard-focusable and Enter-activated (R5)", async () => {
       const toggle = canvasElement.querySelector("button.logDisclosure");
       expect(toggle.tagName).toBe("BUTTON");
       toggle.focus();
-      // Native <button> → reachable by Tab and activated by Enter/Space; here
-      // we just confirm it can hold focus (the focus ring is drawn on its
-      // ::after overlay so the whole row reads as the focused target).
+      // The focus ring is drawn on the button's ::after overlay so the whole
+      // row reads as the focused target.
       expect(toggle.matches(":focus")).toBe(true);
+
+      // Native <button> semantics: Enter activates the toggle. Exercising the
+      // real key event (not just focus) guards against a future swap to a
+      // div+role=button that would silently break keyboard users.
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+        expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      });
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => expect(canvasElement.querySelector(".moreInfo")).toBeNull());
+    });
+  },
+};
+
+/**
+ * Regression guard for the disclosure overlay vs. the disclosed panel: once a
+ * row is expanded, the .moreInfo panel renders inside the same .logItem the
+ * .logDisclosure::after overlay stretches over. The panel is lifted on
+ * z-index:1 so it sits ABOVE the overlay — otherwise clicking the
+ * expected/actual payload would re-fire the toggle and collapse the panel, and
+ * the text could not be selected. This story expands the panel, clicks inside
+ * it, and asserts it stays open.
+ */
+export const DisclosurePanelStaysInteractive = {
+  render: () => html`<cts-log-entry .entry=${ENTRY_WITH_MORE}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector("button.logDisclosure")).toBeTruthy();
+    });
+
+    /** @type {HTMLElement} */
+    let panel;
+    await step("expand the row", async () => {
+      canvasElement.querySelector("button.logDisclosure").click();
+      await waitFor(() => {
+        panel = canvasElement.querySelector(".moreInfo");
+        expect(panel).toBeTruthy();
+      });
+    });
+
+    await step("the panel rides above the disclosure overlay", async () => {
+      // z-index:1 keeps the open payload above the inset:0 overlay.
+      expect(getComputedStyle(panel).zIndex).toBe("1");
+    });
+
+    await step("clicking inside the open panel does not collapse it", async () => {
+      // A click on the payload (e.g. selecting a JSON value) must not re-fire
+      // the row toggle. With the panel lifted, the click lands on the panel,
+      // not the overlay, so the row stays expanded.
+      const pre = panel.querySelector("pre") || panel;
+      pre.click();
+      // Give any erroneous toggle a full Lit update cycle to surface.
+      await waitFor(() =>
+        expect(
+          canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded"),
+        ).toBe("true"),
+      );
+      expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
     });
   },
 };

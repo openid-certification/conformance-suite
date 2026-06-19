@@ -394,24 +394,9 @@ const STYLE_TEXT = css`
     position: relative;
     z-index: 1;
   }
-  /* Neutralise the global layout.css .logItem:hover near-white repaint
-     (#f6fefe) for component rows — it signals "interactive" on rows that are
-     not. (0,2,1) beats the global (0,2,0); placed after is-fail/is-warn/
-     :target so their backgrounds are untouched. */
-  cts-log-entry .logItem:hover {
-    background-color: transparent;
-  }
-  /* Expandable-row hover/focus affordances. The tint is painted with an
-     inset box-shadow (not background) so it COMPOSITES over the is-fail /
-     is-warn gradient and the :target wash instead of fighting them on
-     specificity — touching background here would wipe the failure cue.
-     :has() carries the same tint to keyboard focus for parity. */
-  cts-log-entry .logItem.is-expandable:hover,
-  cts-log-entry .logItem.is-expandable:has(.logDisclosure:focus-visible) {
-    box-shadow: inset 0 0 0 9999px color-mix(in srgb, var(--ink-900) 4%, transparent);
-  }
-  /* On hover the source label shifts to the active/link colour and the
-     chevron darkens --ink-600 → --ink-900, reinforcing that the row is live. */
+  /* Hover affordances are foreground-only: the source label shifts to the
+     active/link colour and the chevron darkens --ink-600 → --ink-900,
+     reinforcing that the row is live without any background fill. */
   cts-log-entry .logItem.is-expandable:hover .logSrc {
     color: var(--fg-link);
   }
@@ -477,7 +462,6 @@ const STYLE_TEXT = css`
     font-size: var(--fs-12);
     font-family: var(--font-mono);
     font-weight: var(--fw-bold);
-    margin-right: var(--space-2);
   }
   cts-log-entry .logBody code {
     background: var(--ink-50);
@@ -535,6 +519,15 @@ const STYLE_TEXT = css`
     text-decoration-color: var(--link-decoration-color);
   }
   cts-log-entry .moreInfo {
+    /* Ride above the disclosure overlay. The .logDisclosure::after stretches
+       inset:0 over the whole .logItem, which (once expanded) includes this
+       footer panel. Without the lift the overlay would sit on top of the
+       payload: clicking the expected/actual JSON would re-fire the toggle and
+       collapse the panel, and the text could not be selected or copied — the
+       exact debugging workflow the panel exists for. z-index:1 matches the
+       in-row link lifts above. */
+    position: relative;
+    z-index: 1;
     background: var(--ink-50);
     border: 1px solid var(--border);
     border-radius: var(--radius-2);
@@ -919,9 +912,15 @@ class CtsLogEntry extends LitElement {
     `;
   }
 
-  _renderDisclosure() {
-    const more = extractMoreFields(this.entry);
-    if (Object.keys(more).length === 0) return nothing;
+  _renderDisclosure(hasMore) {
+    if (!hasMore) return nothing;
+    // Keep the accessible name unique across rows: a page can render hundreds
+    // of entries, so a constant "Toggle entry details" would read identically
+    // for every disclosure in an AT button list. referenceId (the LOG-NNNN
+    // ordinal) disambiguates when present, mirroring the timestamp link.
+    const label = this.referenceId
+      ? `Toggle details for ${this.referenceId}`
+      : "Toggle entry details";
     // Whole-row disclosure. The visible control is a bare chevron glyph that
     // reads as part of the row's chrome (quiet --ink-600, darkening to
     // --ink-900 on row hover) rather than a labelled "Details" button —
@@ -939,7 +938,7 @@ class CtsLogEntry extends LitElement {
         type="button"
         aria-expanded="${this._expanded ? "true" : "false"}"
         aria-controls="${this._panelId}"
-        aria-label="Toggle entry details"
+        aria-label="${label}"
         @click=${this._toggleMore}
       >
         <cts-icon name="chevron-down" size="20"></cts-icon>
@@ -947,9 +946,8 @@ class CtsLogEntry extends LitElement {
     `;
   }
 
-  _renderMorePanel() {
+  _renderMorePanel(more) {
     if (!this._expanded) return nothing;
-    const more = extractMoreFields(this.entry);
     if (Object.keys(more).length === 0) return nothing;
     const rows = classifyMoreEntries(more);
     return html`
@@ -970,11 +968,10 @@ class CtsLogEntry extends LitElement {
     `;
   }
 
-  _hasFooter() {
+  _hasFooter(hasMore) {
     const { requirements } = this.entry;
     const hasReqs = Array.isArray(requirements) && requirements.length > 0;
-    const hasMore = this._expanded && Object.keys(extractMoreFields(this.entry)).length > 0;
-    return hasReqs || hasMore;
+    return hasReqs || (this._expanded && hasMore);
   }
 
   render() {
@@ -984,7 +981,11 @@ class CtsLogEntry extends LitElement {
     const result = (entry.result || "").toLowerCase();
     const isFail = result === "failure";
     const isWarn = result === "warning";
-    const hasMore = Object.keys(extractMoreFields(entry)).length > 0;
+    // Resolve the disclosure payload once per render and thread the result
+    // through the helpers below — extractMoreFields walks the entry's keys, so
+    // a single call per row keeps the long log stream cheap to re-render.
+    const more = extractMoreFields(entry);
+    const hasMore = Object.keys(more).length > 0;
     const itemClasses = ["logItem"];
     if (isFail) itemClasses.push("is-fail");
     if (isWarn) itemClasses.push("is-warn");
@@ -1025,10 +1026,10 @@ class CtsLogEntry extends LitElement {
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
         </div>
-        <div class="logActions">${this._renderDisclosure()}</div>
-        ${this._hasFooter()
+        <div class="logActions">${this._renderDisclosure(hasMore)}</div>
+        ${this._hasFooter(hasMore)
           ? html`<div class="logFooter">
-              ${this._renderRequirements()} ${this._renderMorePanel()}
+              ${this._renderRequirements()} ${this._renderMorePanel(more)}
             </div>`
           : nothing}
       </div>
