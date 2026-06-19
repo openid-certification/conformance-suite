@@ -508,3 +508,38 @@ export const VariantPropertySetter = {
     });
   },
 };
+
+// aria-controls forwarding (feat/log-toc-collapsible, U2). The log-detail TOC
+// collapse toggle is a cts-button that must expose `aria-controls` ON THE
+// FOCUSABLE inner <button>, not the non-focusable host. Mirrors the existing
+// aria-expanded forwarding contract.
+export const AriaControlsForwarding = {
+  render: () => html`
+    <cts-button label="Toggle panel" aria-controls="some-panel" aria-expanded="true"></cts-button>
+    <cts-button label="Plain"></cts-button>
+    <!-- aria-controls is an IDREF, so the controlled element must exist or
+         axe's aria-valid-attr-value rule (a11y addon) flags it. -->
+    <div id="some-panel">Controlled panel</div>
+  `,
+
+  async play({ canvasElement, step }) {
+    const [withControls, withoutControls] = canvasElement.querySelectorAll("cts-button");
+    await withControls.updateComplete;
+    await withoutControls.updateComplete;
+
+    await step("aria-controls is forwarded onto the inner <button>", async () => {
+      const btn = withControls.querySelector("button");
+      expect(btn.getAttribute("aria-controls")).toBe("some-panel");
+      // aria-expanded forwarding is pinned alongside so the two forwarded
+      // disclosure attributes stay covered together.
+      expect(btn.getAttribute("aria-expanded")).toBe("true");
+    });
+
+    await step("no aria-controls attribute when the property is unset", async () => {
+      const btn = withoutControls.querySelector("button");
+      // The binding emits `nothing`, so the attribute is absent — not
+      // aria-controls="" (which AT treats as "controls nothing").
+      expect(btn.hasAttribute("aria-controls")).toBe(false);
+    });
+  },
+};
