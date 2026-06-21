@@ -22,6 +22,7 @@ import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatches
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
+import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
 import net.openid.conformance.authzen.condition.VerifyAuthzenSignedMetadataSignature;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -144,6 +145,8 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		PDPAuthType PdpAuthType = getVariant(PDPAuthType.class);
 		env.putString("client_auth_type", PdpAuthType.toString());
 
+		callAndStopOnFailure(ValidatePDPIdentifier.class, "AUTHZEN-9.1.1");
+
 		switch (getVariant(PDPServerMetadata.class)) {
 			case DISCOVERY:
 				callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
@@ -166,6 +169,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			call(sequence(supportMTLSEndpointAliases));
 		}
 
+		eventLog.startBlock("Check PDP Server Configuration");
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
@@ -175,6 +179,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
 		env.unmapKey("server");
+		eventLog.endBlock();
 
 		// Set up the client configuration
 		configureClient();
