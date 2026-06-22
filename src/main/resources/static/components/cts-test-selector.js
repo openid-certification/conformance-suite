@@ -32,9 +32,38 @@ import "./cts-loading-state.js";
  *   caller (schedule-test.html) sets it while `/api/plan/available` is in
  *   flight and clears it once `plans` is populated, so the page chrome stays
  *   visible instead of being hidden behind a full-page modal.
+ * @property {Array} favourites - Controlled list of favourited `planName`s.
+ *   The component renders these as starred/pinned but never mutates the
+ *   array itself — exactly like `selected`. The caller owns persistence:
+ *   it listens for `cts-favourite-toggle`, updates the array optimistically,
+ *   and reverts on a backend failure. In the prototype the caller is a
+ *   Storybook adapter backed by `localStorage`; in production it becomes
+ *   `/api/favourite-plans`. The component template is identical either way.
+ * @property {boolean} favouritesLoading - When set, the favourites surface
+ *   (the V1 group region, the V2 view count, etc.) shows a skeleton instead
+ *   of stars while the caller's first favourites fetch is in flight. Distinct
+ *   from `loading`, which governs the whole plan list.
+ * @property {boolean} canFavourite - Whether the current principal may save
+ *   favourites. Defaults to `true`. When `false` (anonymous / private-link
+ *   users, who have no server-side principal to key a favourite on) the star
+ *   controls render disabled with an explanatory tooltip rather than
+ *   vanishing, so the affordance is discoverable.
+ * @property {string} favouritesLayout - Selects where favourites surface,
+ *   reflected to the `favourites-layout` attribute so a story (or
+ *   schedule-test.html) can set it declaratively. One of `'group'` (pinned
+ *   "★ Favourites" section atop the list), `'view'` (a saved-view entry in
+ *   the family listbox), `'chip'` (a "Favourites only" filter toggle), or
+ *   `''`/absent (today's plain list — full back-compat).
  * @fires cts-plan-select - When a list item is selected, with
  *   `{ detail: { plan, via } }` where `via` is `'click'` or `'keyboard'`;
  *   bubbles.
+ * @fires cts-favourite-toggle - When a plan's star is toggled, with
+ *   `{ detail: { plan, favourite, via } }` where `plan` is the `planName`,
+ *   `favourite` is the requested next state (`true` = add, `false` = remove),
+ *   and `via` is `'click'` or `'keyboard'`; bubbles. The component does not
+ *   update `favourites` in response — the caller does (optimistically), which
+ *   is what lets the same event drive both the localStorage fake and the
+ *   future `/api/favourite-plans` wiring.
  */
 
 const STYLE_ID = "cts-test-selector-styles";
@@ -286,6 +315,12 @@ class CtsTestSelector extends LitElement {
     // cleared from the DOM when the page sets `loading = false` after the
     // plans fetch — otherwise the stale attribute lingers on the element.
     loading: { type: Boolean, reflect: true },
+    favourites: { type: Array },
+    favouritesLoading: { type: Boolean, attribute: "favourites-loading" },
+    canFavourite: { type: Boolean, attribute: "can-favourite" },
+    // Reflected so a declarative `<cts-test-selector favourites-layout="group">`
+    // round-trips and the active variant is inspectable in the DOM.
+    favouritesLayout: { type: String, reflect: true, attribute: "favourites-layout" },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
     _focusedRowIndex: { state: true },
@@ -300,6 +335,10 @@ class CtsTestSelector extends LitElement {
     this.plans = [];
     this.selected = "";
     this.loading = false;
+    this.favourites = [];
+    this.favouritesLoading = false;
+    this.canFavourite = true;
+    this.favouritesLayout = "";
     this._searchTerm = "";
     this._selectedFamily = "";
     // -1 means "no row focused — search input owns focus (or focus is
@@ -436,6 +475,34 @@ class CtsTestSelector extends LitElement {
     this.selected = plan.planName;
     this.dispatchEvent(
       new CustomEvent("cts-plan-select", { bubbles: true, detail: { plan, via } }),
+    );
+  }
+
+  // True when a favourites layout is selected. The star controls and the
+  // layout-specific surfaces (group / view / chip) only render when this is
+  // on; absent / "off" keeps the plain back-compat list.
+  get _favouritesActive() {
+    return (
+      this.favouritesLayout === "group" ||
+      this.favouritesLayout === "view" ||
+      this.favouritesLayout === "chip"
+    );
+  }
+
+  _isFavourite(planName) {
+    return this.favourites.includes(planName);
+  }
+
+  // Announce the user's intent to toggle a favourite. Crucially this does NOT
+  // touch `this.favourites` — the caller owns that array and updates it
+  // optimistically, so the same event drives the localStorage fake (prototype)
+  // and `/api/favourite-plans` (production) with no template change.
+  _emitFavouriteToggle(planName, favourite, via) {
+    this.dispatchEvent(
+      new CustomEvent("cts-favourite-toggle", {
+        bubbles: true,
+        detail: { plan: planName, favourite, via },
+      }),
     );
   }
 
