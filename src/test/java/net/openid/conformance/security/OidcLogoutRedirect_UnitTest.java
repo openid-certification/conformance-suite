@@ -29,7 +29,6 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
 import java.util.Map;
@@ -147,14 +146,6 @@ public class OidcLogoutRedirect_UnitTest {
 		@Bean
 		public PrivateLinkUserDetailsService privateLinkUserDetailsService() {
 			return Mockito.mock(PrivateLinkUserDetailsService.class);
-		}
-
-		@Bean(name = "mvcHandlerMappingIntrospector")
-		public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-			// The chain's string-pattern matchers resolve to MvcRequestMatcher
-			// because Spring MVC is on the classpath; Spring Security insists
-			// on this bean being present in the same context.
-			return new HandlerMappingIntrospector();
 		}
 
 		@Bean

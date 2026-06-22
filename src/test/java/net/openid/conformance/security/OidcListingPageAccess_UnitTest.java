@@ -31,7 +31,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
 import java.util.Map;
@@ -182,11 +181,6 @@ public class OidcListingPageAccess_UnitTest {
 		@Bean
 		public PrivateLinkUserDetailsService privateLinkUserDetailsService() {
 			return Mockito.mock(PrivateLinkUserDetailsService.class);
-		}
-
-		@Bean(name = "mvcHandlerMappingIntrospector")
-		public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-			return new HandlerMappingIntrospector();
 		}
 
 		@Bean
