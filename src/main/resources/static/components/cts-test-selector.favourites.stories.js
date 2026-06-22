@@ -1,27 +1,46 @@
 import { html } from "lit";
-import { expect, waitFor, userEvent } from "storybook/test";
+import { expect, waitFor, userEvent, spyOn } from "storybook/test";
 import { MOCK_PLANS } from "@fixtures/mock-plans.js";
 import "./cts-test-selector.js";
+// Side-effect import installs window.ctsToast so the failure stories can spy
+// on it (the adapter raises an error toast through that global, KTD4).
+import "../js/cts-toast-api.js";
+import {
+  createFavouritesController,
+  attachFavourites,
+} from "./cts-test-selector.favourites-fake.js";
+
+/** The localStorage key the fake adapter persists under (see U6). */
+const FAV_KEY = "cts:favourite-plans";
 
 /**
  * Favourites prototype for cts-test-selector.
  *
  * Favourites is a *controlled* capability: the host takes a `favourites`
  * array in and emits `cts-favourite-toggle` out; it never mutates its own
- * array. These stories stand in for the future caller (schedule-test.html /
- * `/api/favourite-plans`) — most simulate the caller's optimistic update by
- * setting `host.favourites` from the event in the play function. The
- * localStorage-backed adapter (U6) and the failure/persist matrix (U7) build
- * on top of this contract.
+ * array. Most stories simulate the caller's optimistic update inline
+ * (`wireOptimistic`); the persist/failure stories drive the real
+ * localStorage-backed fake adapter (U6) via `attachFavourites`, exactly the
+ * shape schedule-test.html will use against `/api/favourite-plans`.
  *
  * The three layouts are driven by one `favourites-layout` attribute (KTD2):
  * `group` (V1, pinned section), `view` (V2, saved-view listbox entry), and
- * `chip` (V3, filter toggle). This file starts with the shared row-level
- * contract; the variant-specific surfaces and the full State Matrix follow.
+ * `chip` (V3, filter toggle). Coverage follows the plan's State Matrix:
+ * `group` is the front-runner and carries the deepest lifecycle coverage;
+ * `view`/`chip` carry enough to compare look and the shared lifecycle. The
+ * shared row-level behaviours (the star toggle, cannot-favourite, and stale
+ * pins) are layout-independent by construction, so they are proven once on
+ * `group` rather than re-tested per variant.
  */
 export default {
   title: "Components/cts-test-selector/Favourites",
   component: "cts-test-selector",
+  // Clear persisted favourites before every story so the localStorage-backed
+  // adapter never leaks state across stories. (This component does not write
+  // to the URL, so no history reset is needed.)
+  beforeEach: () => {
+    localStorage.removeItem(FAV_KEY);
+  },
 };
 
 const FAV = "fapi2-security-profile-final-test-plan";
@@ -784,6 +803,168 @@ export const ChipUnstarLastFavouriteUpdatesLive = {
           "No favourites yet",
         );
       });
+    });
+  },
+};
+
+/** View loading: the saved-view option shows "(…)" until favourites arrive. */
+export const ViewLoadingShowsEllipsisCount = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      favourites-layout="view"
+      favourites-loading
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    await step("the count placeholder reads … while favourites load", async () => {
+      expect(viewOption(host).textContent).toContain("★ Favourites (…)");
+    });
+  },
+};
+
+/** Chip loading: the toggle is replaced by a read-only "Loading favourites…" badge. */
+export const ChipLoadingShowsPlaceholder = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      favourites-layout="chip"
+      favourites-loading
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    await step("a read-only loading badge stands in for the toggle", async () => {
+      const wrap = host.querySelector(".oidf-test-selector__chip-wrap");
+      expect(wrap.textContent).toContain("Loading favourites");
+      // No clickable toggle while loading.
+      expect(wrap.querySelector('[role="button"]')).toBeNull();
+    });
+  },
+};
+
+// ───────────────────────────────────────────────────────────────────────────
+// Adapter-driven cells (V1): persist across reload + failure → revert + toast.
+// These drive the real localStorage-backed fake (U6) end-to-end, the same wire
+// schedule-test.html will use against /api/favourite-plans.
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * Persist across reload: a favourite saved through the adapter survives a
+ * full re-mount, because the second selector is seeded only from storage.
+ */
+export const PersistsAcrossReload = {
+  render: () => html`
+    <div class="reload-harness">
+      <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    </div>
+  `,
+  async play({ canvasElement, step }) {
+    const harness = canvasElement.querySelector(".reload-harness");
+    const first = harness.querySelector("cts-test-selector");
+    const controller = createFavouritesController();
+    first.favourites = (await controller.get()).plans;
+    const detach = attachFavourites(first, controller);
+    await first.updateComplete;
+
+    await step("starring a plan persists it through the adapter", async () => {
+      await userEvent.click(starFor(first, NOT_FAV));
+      await waitFor(() => expect(controller.snapshot()).toEqual([NOT_FAV]));
+    });
+
+    await step("a remounted selector seeded only from storage shows it", async () => {
+      detach();
+      first.remove();
+      // "Reload": a brand-new component + controller over the same key.
+      const reloaded = createFavouritesController();
+      const second = document.createElement("cts-test-selector");
+      second.plans = MOCK_PLANS;
+      second.setAttribute("favourites-layout", "group");
+      second.favourites = (await reloaded.get()).plans;
+      harness.appendChild(second);
+      await second.updateComplete;
+      expect(groupRows(second).length).toBe(1);
+      expect(groupStarFor(second, NOT_FAV)).toBeTruthy();
+    });
+  },
+};
+
+/**
+ * Save failure: a rejected add reverts the optimistic star and raises a plain
+ * error toast (KTD4 — no undo affordance; re-starring is the undo path).
+ */
+export const SaveFailureRevertsWithErrorToast = {
+  render: () => html`
+    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    const toastSpy = spyOn(window, "ctsToast").mockImplementation(() => {});
+    // Latency separates the optimistic state from the rejection so the
+    // intermediate add is observable (with latency 0 both land in one flush).
+    const controller = createFavouritesController({ failOn: NOT_FAV, latency: 60 });
+    host.favourites = (await controller.get()).plans;
+    attachFavourites(host, controller);
+
+    await step("the optimistic add lands on the prop, then reverts on failure", async () => {
+      await userEvent.click(starFor(host, NOT_FAV));
+      // The optimistic add is applied to the controlled prop synchronously.
+      expect(host.favourites).toEqual([NOT_FAV]);
+      // The rejected save reverts the prop and the star.
+      await waitFor(() => expect(host.favourites).toEqual([]));
+      await waitFor(() =>
+        expect(starFor(host, NOT_FAV).getAttribute("aria-pressed")).toBe("false"),
+      );
+      // Storage was never written.
+      expect(controller.snapshot()).toEqual([]);
+    });
+
+    await step("a kind:error toast is raised", () => {
+      expect(toastSpy).toHaveBeenCalledTimes(1);
+      expect(toastSpy).toHaveBeenCalledWith(expect.objectContaining({ kind: "error" }));
+    });
+  },
+};
+
+/**
+ * Remove failure: a rejected delete restores the unstarred favourite and
+ * raises an error toast.
+ */
+export const RemoveFailureRevertsWithErrorToast = {
+  render: () => html`
+    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    const toastSpy = spyOn(window, "ctsToast").mockImplementation(() => {});
+    // Seed one favourite, then make remove reject (latency separates the
+    // optimistic remove from the rejection so the intermediate state shows).
+    const controller = createFavouritesController({
+      failOn: (_n, op) => op === "remove",
+      latency: 60,
+    });
+    await controller.add(FAV);
+    host.favourites = (await controller.get()).plans;
+    attachFavourites(host, controller);
+    await host.updateComplete;
+
+    await step("unstarring optimistically removes, then restores on failure", async () => {
+      expect(groupRows(host).length).toBe(1);
+      await userEvent.click(groupStarFor(host, FAV));
+      // Optimistic remove drops it from the controlled prop...
+      expect(host.favourites).toEqual([]);
+      // ...then the rejected delete restores it.
+      await waitFor(() => expect(host.favourites).toEqual([FAV]));
+      expect(controller.snapshot()).toEqual([FAV]);
+    });
+
+    await step("a kind:error toast is raised", () => {
+      expect(toastSpy).toHaveBeenCalledWith(expect.objectContaining({ kind: "error" }));
     });
   },
 };
