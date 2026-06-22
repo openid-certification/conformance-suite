@@ -125,7 +125,7 @@ const PLAN_MODULES_FOR_PAGE = [
   {
     testModule: "oidcc-server-3",
     instances: ["page-3"],
-    status: "FINISHED",
+    status: "INTERRUPTED",
     result: "FAILED",
     _statusResolved: true,
   },

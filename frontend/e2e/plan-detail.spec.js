@@ -260,7 +260,10 @@ test.describe("plan-detail.html — Plan Detail", () => {
       "test-inst-003": {
         ...MOCK_TEST_STATUS,
         testId: "test-inst-003",
-        status: "FINISHED",
+        // A failed test is reported as INTERRUPTED+FAILED, not FINISHED+FAILED
+        // (it never reaches FINISHED). The row badge and the status-bar segment
+        // must still render the FAILED verdict in red (GitLab #1858/#1859).
+        status: "INTERRUPTED",
         result: "FAILED",
       },
     });
@@ -319,6 +322,21 @@ test.describe("plan-detail.html — Plan Detail", () => {
       "aria-label",
       "Jump to first failure in logs for oidcc-ensure-redirect-uri-in-authorization-request",
     );
+
+    // GitLab #1859: the FAILED row's status badge reads "FAILED" (not the
+    // lifecycle status "INTERRUPTED") on the fail palette — the verdict wins
+    // over the status.
+    await expect(failedRow.locator("cts-badge")).toHaveAttribute("label", "FAILED");
+    await expect(failedRow.locator("cts-badge")).toHaveAttribute("variant", "fail");
+
+    // GitLab #1858: the whole-plan status bar paints the failed module's
+    // segment red. This is the regression that shipped because the segment
+    // colour gated on status === "FINISHED" and an INTERRUPTED+FAILED test
+    // fell through to the neutral skip grey.
+    const failedSegment = page
+      .locator('#planDetailStatus [data-testid="plan-status-segment"]')
+      .nth(2);
+    await expect(failedSegment).toHaveClass(/cts-pst-seg--fail/);
 
     // Each module name with a testSummary is wrapped in a cts-tooltip
     // whose content attribute carries the summary. Hovering the help-icon
@@ -429,7 +447,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     // The FAILED row triggers an R28 /api/log deep-link fetch.
