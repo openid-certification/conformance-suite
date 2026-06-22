@@ -215,23 +215,47 @@ const STYLE_TEXT = css`
     background: var(--bg-elev);
     overflow: hidden;
   }
+  /* Row container. The single-button row was split into a select button +
+     a sibling favourite button (button-in-button is invalid and fails
+     a11y), so the divider/background that used to live on the row now live
+     on this flex wrapper. role="listitem" sits here; the inner controls are
+     plain buttons. */
+  .oidf-test-selector__item {
+    display: flex;
+    align-items: stretch;
+    border-top: 1px solid var(--divider);
+    background: var(--bg-elev);
+  }
+  .oidf-test-selector__item:first-child {
+    border-top: none;
+  }
+  /* The whole item follows the select button's hover/active state so the
+     star strip never reads as a separate, lighter column. :has() keeps the
+     background rules single-sourced on the row (where the
+     RowHoverStyleRegistered story still asserts them) instead of
+     duplicating them here. */
+  .oidf-test-selector__item:has(.oidf-test-selector__row:hover) {
+    background: var(--ink-50);
+  }
+  .oidf-test-selector__item:has(.oidf-test-selector__row.is-active) {
+    background: var(--orange-50);
+  }
   .oidf-test-selector__row {
-    display: block;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     text-align: left;
     padding: var(--space-3) var(--space-4);
     border: none;
-    border-top: 1px solid var(--divider);
-    background: var(--bg-elev);
+    /* Transparent so the item container's background (and its hover/active
+       variants) shows through; the row's own hover/active rules below layer
+       the same token on top, so the column reads uniformly either way. */
+    background: transparent;
     color: var(--fg);
     font-family: var(--font-sans);
     font-size: var(--fs-13);
     line-height: var(--lh-base);
     cursor: pointer;
     transition: background var(--dur-1) var(--ease-standard);
-  }
-  .oidf-test-selector__row:first-child {
-    border-top: none;
   }
   .oidf-test-selector__row:hover {
     background: var(--ink-50);
@@ -246,6 +270,48 @@ const STYLE_TEXT = css`
     background: var(--orange-50);
     color: var(--fg);
     font-weight: var(--fw-bold);
+  }
+  /* Secondary favourite toggle, sibling of the select button. A roving
+     tabindex (mirroring the select button's) keeps Tab from cycling every
+     star; the focused row exposes both its select and star as tab stops,
+     and the "f" shortcut toggles the focused row's star without leaving the
+     keyboard roving model. */
+  .oidf-test-selector__fav {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+    border: none;
+    border-left: 1px solid var(--divider);
+    background: transparent;
+    color: var(--fg-faint);
+    cursor: pointer;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-test-selector__fav:hover {
+    background: var(--ink-100);
+    color: var(--fg-soft);
+  }
+  .oidf-test-selector__fav:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    position: relative;
+    z-index: 1;
+  }
+  .oidf-test-selector__fav.is-favourited {
+    color: var(--orange-500);
+  }
+  .oidf-test-selector__fav[aria-disabled="true"] {
+    color: var(--fg-faint);
+    cursor: not-allowed;
+  }
+  .oidf-test-selector__fav[aria-disabled="true"]:hover {
+    background: transparent;
+    color: var(--fg-faint);
   }
   .oidf-test-selector__row-head {
     display: flex;
@@ -320,7 +386,11 @@ class CtsTestSelector extends LitElement {
     canFavourite: { type: Boolean, attribute: "can-favourite" },
     // Reflected so a declarative `<cts-test-selector favourites-layout="group">`
     // round-trips and the active variant is inspectable in the DOM.
-    favouritesLayout: { type: String, reflect: true, attribute: "favourites-layout" },
+    favouritesLayout: {
+      type: String,
+      reflect: true,
+      attribute: "favourites-layout",
+    },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
     _focusedRowIndex: { state: true },
@@ -449,6 +519,17 @@ class CtsTestSelector extends LitElement {
       }
       return;
     }
+    if ((key === "f" || key === "F") && this._favouritesActive && this.canFavourite) {
+      // Focused-row shortcut: toggle this row's favourite without leaving the
+      // roving model or reaching for the star with Tab. The star is also a
+      // real tab stop on the focused row, so both affordances coexist.
+      e.preventDefault();
+      const plan = this._filteredPlans[index];
+      if (plan) {
+        this._emitFavouriteToggle(plan.planName, !this._isFavourite(plan.planName), "keyboard");
+      }
+      return;
+    }
     if (key === "Enter" || key === " ") {
       // Tag the activation modality so the click event that follows
       // (native <button> Enter/Space activation fires a click) reports
@@ -474,7 +555,10 @@ class CtsTestSelector extends LitElement {
   _handleSelectPlan(plan, via) {
     this.selected = plan.planName;
     this.dispatchEvent(
-      new CustomEvent("cts-plan-select", { bubbles: true, detail: { plan, via } }),
+      new CustomEvent("cts-plan-select", {
+        bubbles: true,
+        detail: { plan, via },
+      }),
     );
   }
 
@@ -557,71 +641,122 @@ class CtsTestSelector extends LitElement {
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
-            <option value="" ?selected=${this._selectedFamily === ""}>All specifications</option>
+            <option value="" ?selected=${this._selectedFamily === ""}> All specifications </option>
             ${this._renderFamilyOptions()}
           </select>
         </div>
         <div class="oidf-test-selector__list" role="list">
           ${this._filteredPlans.length > 0
-            ? this._filteredPlans.map(
-                (plan, index) => html`
-                  <button
-                    type="button"
-                    role="listitem"
-                    class=${classMap({
-                      "oidf-test-selector__row": true,
-                      "is-active": this.selected === plan.planName,
-                    })}
-                    data-plan-name="${plan.planName}"
-                    data-index="${index}"
-                    tabindex="${this._focusedRowIndex === index ? 0 : -1}"
-                    @click=${this._handleRowClick}
-                    @keydown=${this._handleRowKeydown}
-                  >
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"
-                          >${plan.displayName || plan.planName}</strong
-                        >
-                        ${plan.specFamily
-                          ? html`<span class="oidf-test-selector__row-family"
-                              >${plan.specFamily}</span
-                            >`
-                          : nothing}
-                      </span>
-                      ${plan.modules
-                        ? html`<cts-tooltip
-                            content="Number of test modules in this plan"
-                            placement="left"
-                            ><span
-                              class="oidf-test-selector__row-count"
-                              aria-label="${plan.modules.length} test ${plan.modules.length === 1
-                                ? "module"
-                                : "modules"}"
-                              >${plan.modules.length}</span
-                            ></cts-tooltip
-                          >`
-                        : nothing}
-                    </span>
-                    ${plan.summary
-                      ? html`<span class="oidf-test-selector__row-summary"
-                          >${formatSummaryPreview(plan.summary)}</span
-                        >`
-                      : nothing}
-                  </button>
-                `,
-              )
+            ? this._filteredPlans.map((plan, index) => this._renderRow(plan, index))
             : this.loading
               ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
-              : html`<div class="oidf-test-selector__empty">No plans match your search</div>`}
+              : html`<div class="oidf-test-selector__empty"> No plans match your search </div>`}
         </div>
       </div>
     `;
   }
 
+  // Render one plan row: a role="listitem" container holding the primary
+  // select <button> (unchanged class/data/handlers/roving tabindex so the
+  // existing stories and keyboard model keep working) and, when a favourites
+  // layout is active, a sibling favourite <button>. Extracted from render()
+  // so the V1 group sublist (U3) can reuse the same row markup.
+  _renderRow(plan, index) {
+    const favTabindex = this._focusedRowIndex === index ? 0 : -1;
+    return html`
+      <div class="oidf-test-selector__item" role="listitem">
+        <button
+          type="button"
+          class=${classMap({
+            "oidf-test-selector__row": true,
+            "is-active": this.selected === plan.planName,
+          })}
+          data-plan-name="${plan.planName}"
+          data-index="${index}"
+          tabindex="${this._focusedRowIndex === index ? 0 : -1}"
+          @click=${this._handleRowClick}
+          @keydown=${this._handleRowKeydown}
+        >
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"
+                >${plan.displayName || plan.planName}</strong
+              >
+              ${plan.specFamily
+                ? html`<span class="oidf-test-selector__row-family">${plan.specFamily}</span>`
+                : nothing}
+            </span>
+            ${plan.modules
+              ? html`<cts-tooltip content="Number of test modules in this plan" placement="left"
+                  ><span
+                    class="oidf-test-selector__row-count"
+                    aria-label="${plan.modules.length} test ${plan.modules.length === 1
+                      ? "module"
+                      : "modules"}"
+                    >${plan.modules.length}</span
+                  ></cts-tooltip
+                >`
+              : nothing}
+          </span>
+          ${plan.summary
+            ? html`<span class="oidf-test-selector__row-summary"
+                >${formatSummaryPreview(plan.summary)}</span
+              >`
+            : nothing}
+        </button>
+        ${this._favouritesActive ? this._renderFavouriteButton(plan, favTabindex) : nothing}
+      </div>
+    `;
+  }
+
+  // The per-row star. aria-pressed is the source of truth for the favourited
+  // state (the filled/outline icon swap is the matching visual cue). The
+  // tabindex roves in lockstep with its row's select button, so Tab visits
+  // "select then star" on the focused row and skips the rest of the list.
+  // When the principal can't favourite, the star renders as an aria-disabled,
+  // no-op affordance with an explanatory tooltip rather than disappearing.
+  _renderFavouriteButton(plan, tabindex) {
+    const planName = plan.planName;
+    const name = plan.displayName || planName;
+    if (!this.canFavourite) {
+      return html`<cts-tooltip content="Sign in to save favourites" placement="left"
+        ><button
+          type="button"
+          class="oidf-test-selector__fav"
+          aria-disabled="true"
+          aria-label="Sign in to save favourites: ${name}"
+          tabindex="${tabindex}"
+        >
+          <cts-icon name="star" size="20"></cts-icon></button
+      ></cts-tooltip>`;
+    }
+    const fav = this._isFavourite(planName);
+    return html`<button
+      type="button"
+      class=${classMap({
+        "oidf-test-selector__fav": true,
+        "is-favourited": fav,
+      })}
+      aria-pressed="${fav ? "true" : "false"}"
+      aria-label="${fav ? "Remove favourite" : "Add favourite"}: ${name}"
+      data-plan-name="${planName}"
+      tabindex="${tabindex}"
+      @click=${this._handleFavouriteClick}
+    >
+      <cts-icon name="${fav ? "star-fill" : "star"}" size="20"></cts-icon>
+    </button>`;
+  }
+
+  _handleFavouriteClick(e) {
+    const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.planName;
+    if (!planName) return;
+    // Request the opposite of the current state; the caller flips the prop.
+    this._emitFavouriteToggle(planName, !this._isFavourite(planName), "click");
+  }
+
   _renderFamilyOptions() {
     return this._families.map(
-      (f) => html`<option value="${f}" ?selected=${this._selectedFamily === f}>${f}</option>`,
+      (f) => html`<option value="${f}" ?selected=${this._selectedFamily === f}> ${f} </option>`,
     );
   }
 }
