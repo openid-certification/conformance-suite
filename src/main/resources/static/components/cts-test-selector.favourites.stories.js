@@ -664,3 +664,126 @@ export const ViewFamilySelectionExitsView = {
     });
   },
 };
+
+// ───────────────────────────────────────────────────────────────────────────
+// V3 — "chip" layout: a "★ Favourites only" filter toggle beside the search.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** The chip's inner role=button (cts-badge puts the affordance on a child span). */
+function chipButton(host) {
+  return host.querySelector('.oidf-test-selector__chip-wrap cts-badge [role="button"]');
+}
+
+/** Chip toggle: on filters to favourites; off restores the full list. */
+export const ChipTogglesFavouritesOnly = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      .favourites=${[FAV, OIDCC_BASIC]}
+      favourites-layout="chip"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+
+    await step("the chip starts unpressed and the full list shows", async () => {
+      expect(chipButton(host).getAttribute("aria-pressed")).toBeNull();
+      expect(mainRows(host).length).toBe(MOCK_PLANS.length);
+    });
+
+    await step("toggling on filters to favourites and reads pressed", async () => {
+      await userEvent.click(chipButton(host));
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(2);
+        expect(chipButton(host).getAttribute("aria-pressed")).toBe("true");
+      });
+    });
+
+    await step("toggling off restores the full list", async () => {
+      await userEvent.click(chipButton(host));
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(MOCK_PLANS.length);
+        expect(chipButton(host).getAttribute("aria-pressed")).toBeNull();
+      });
+    });
+  },
+};
+
+/** Chip ∩ search: searching within the favourites-only set composes. */
+export const ChipComposesWithSearch = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      .favourites=${[FAV, OIDCC_BASIC]}
+      favourites-layout="chip"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    const search = host.querySelector(".oidf-test-selector__search");
+
+    await step("toggle favourites-only, then search within it", async () => {
+      await userEvent.click(chipButton(host));
+      await waitFor(() => expect(mainRows(host).length).toBe(2));
+      await userEvent.type(search, "FAPI");
+      await waitFor(() => {
+        // Only the FAPI favourite remains: search ∩ favourites-only.
+        expect(mainRows(host).length).toBe(1);
+        expect(starFor(host, FAV)).toBeTruthy();
+      });
+    });
+  },
+};
+
+/** Chip empty: toggling on with no favourites shows the empty state. */
+export const ChipEmptyWhileActive = {
+  render: () => html`
+    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="chip"></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+
+    await step("toggling on with no favourites shows favourites empty copy", async () => {
+      await userEvent.click(chipButton(host));
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(0);
+        const empty = host.querySelector(".oidf-test-selector__empty");
+        expect(empty.textContent).toContain("No favourites yet");
+      });
+    });
+  },
+};
+
+/** Chip live update: unstarring the last favourite empties the active filter. */
+export const ChipUnstarLastFavouriteUpdatesLive = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      .favourites=${[FAV]}
+      favourites-layout="chip"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    wireOptimistic(host);
+
+    await step("toggle favourites-only — the one favourite shows", async () => {
+      await userEvent.click(chipButton(host));
+      await waitFor(() => expect(mainRows(host).length).toBe(1));
+    });
+
+    await step("unstarring it empties the filtered list live", async () => {
+      await userEvent.click(starFor(host, FAV));
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(0);
+        expect(host.querySelector(".oidf-test-selector__empty").textContent).toContain(
+          "No favourites yet",
+        );
+      });
+    });
+  },
+};

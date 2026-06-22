@@ -4,6 +4,7 @@ import { formatSummaryPreview } from "./format-description.js";
 import "./cts-icon.js";
 import "./cts-tooltip.js";
 import "./cts-loading-state.js";
+import "./cts-badge.js";
 
 /**
  * Searchable, family-filterable list of test plans. Caller supplies the
@@ -167,6 +168,12 @@ const STYLE_TEXT = css`
     outline: none;
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
+  }
+  /* V3 chip lives in the rail under the search box. The flex wrap keeps the
+     cts-badge at its content width (left-aligned) instead of stretching to
+     fill the rail column. */
+  .oidf-test-selector__chip-wrap {
+    display: flex;
   }
   .oidf-test-selector__search-leading {
     display: inline-flex;
@@ -644,6 +651,14 @@ class CtsTestSelector extends LitElement {
     );
     if (input) input.focus();
   }
+  // V3 chip toggle. The cts-badge fires cts-badge-click; we flip the
+  // favourites-only filter (the badge's pressed state is driven back from
+  // _favouritesOnly, so the visual + aria-pressed stay in sync).
+  _handleFavouritesChipToggle() {
+    this._favouritesOnly = !this._favouritesOnly;
+    this._focusedRowIndex = -1;
+  }
+
   _handleFamilyFilter(e) {
     const value = e.target.value;
     if (value === FAVOURITES_VIEW_VALUE) {
@@ -836,6 +851,21 @@ class CtsTestSelector extends LitElement {
                 </button>`
               : nothing}
           </div>
+          ${this.favouritesLayout === "chip"
+            ? html`<div class="oidf-test-selector__chip-wrap">
+                <cts-badge
+                  variant="secondary"
+                  clickable
+                  aria-label="${this._favouritesOnly
+                    ? "Showing favourites only. Activate to show all plans."
+                    : "Show favourites only"}"
+                  ?pressed=${this._favouritesOnly}
+                  icon="${this._favouritesOnly ? "star-fill" : "star"}"
+                  @cts-badge-click=${this._handleFavouritesChipToggle}
+                  >Favourites only</cts-badge
+                >
+              </div>`
+            : nothing}
           <select
             class="oidf-test-selector__family"
             size="14"
