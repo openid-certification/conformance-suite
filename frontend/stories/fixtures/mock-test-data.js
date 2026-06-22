@@ -83,7 +83,10 @@ export const MOCK_MODULES_WITH_STATUS = [
   { ...MOCK_PLAN_DETAIL.modules[1], status: "FINISHED", result: "WARNING" },
   {
     ...MOCK_PLAN_DETAIL.modules[2],
-    status: "FINISHED",
+    // A failed test is reported by the runner as INTERRUPTED+FAILED, not
+    // FINISHED+FAILED (which never occurs). Using the production-accurate
+    // shape so the status-vs-result rendering is genuinely exercised.
+    status: "INTERRUPTED",
     result: "FAILED",
     firstFailureRef: "LOG-0042",
   },
@@ -98,7 +101,7 @@ export const MOCK_MODULES_WITH_STATUS = [
  */
 export const MOCK_MODULES_FAILED_WITHOUT_REF = [
   { ...MOCK_PLAN_DETAIL.modules[0], status: "FINISHED", result: "PASSED" },
-  { ...MOCK_PLAN_DETAIL.modules[2], status: "FINISHED", result: "FAILED" },
+  { ...MOCK_PLAN_DETAIL.modules[2], status: "INTERRUPTED", result: "FAILED" },
 ];
 
 /**
@@ -171,12 +174,13 @@ export const MOCK_TEST_WAITING = {
   result: null,
 };
 
-/** A failed test */
+/** A failed test — reported by the runner as INTERRUPTED+FAILED (the test is
+ * stopped on the first hard failure and never reaches FINISHED). */
 export const MOCK_TEST_FAILED = {
   ...MOCK_TEST_STATUS,
   _id: "test-fail-001",
   testId: "test-fail-001",
-  status: "FINISHED",
+  status: "INTERRUPTED",
   result: "FAILED",
 };
 

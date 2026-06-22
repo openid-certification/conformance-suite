@@ -23,8 +23,10 @@ const PLAN_WITH_RESULTS = {
       result: "PASSED",
     },
     {
+      // A failed test is reported as INTERRUPTED+FAILED, not FINISHED+FAILED
+      // (the runner never reaches FINISHED on a hard failure) — #1858/#1859.
       ...MOCK_PLAN_DETAIL.modules[1],
-      status: "FINISHED",
+      status: "INTERRUPTED",
       result: "FAILED",
     },
     {

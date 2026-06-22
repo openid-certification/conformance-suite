@@ -179,6 +179,6 @@ export const MOCK_PLAN_INFO = {
   "inst-001": { status: "FINISHED", result: "PASSED" },
   "inst-002": { status: "FINISHED", result: "WARNING" },
   "inst-003": { status: "FINISHED", result: "PASSED" },
-  "inst-004": { status: "FINISHED", result: "FAILED" },
+  "inst-004": { status: "INTERRUPTED", result: "FAILED" },
   "inst-005": { status: "FINISHED", result: "PASSED" },
 };
