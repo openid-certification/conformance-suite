@@ -363,6 +363,115 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     line-height: var(--lh-base);
   }
+  /* Second grid column wrapper: stacks the optional favourites group above
+     the main list. min-width:0 keeps a long plan name from blowing the grid
+     wider than its track (the constraint that used to live on the list). */
+  .oidf-test-selector__main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  /* V1 pinned favourites group. */
+  .oidf-test-selector__favourites {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .oidf-test-selector__favourites-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--divider);
+    background: var(--bg-muted);
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    color: var(--fg-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .oidf-test-selector__favourites-head cts-icon {
+    color: var(--orange-500);
+  }
+  .oidf-test-selector__favourites-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--orange-100);
+    color: var(--orange-700);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+  }
+  /* Bounds the pinned region so "many favourites" scrolls within the group
+     rather than pushing the main list off-screen. */
+  .oidf-test-selector__favourites-list {
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .oidf-test-selector__favourites-empty {
+    padding: var(--space-4);
+    color: var(--fg-soft);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+  }
+  .oidf-test-selector__favourites-empty strong {
+    color: var(--fg);
+    font-weight: var(--fw-medium);
+  }
+  .oidf-test-selector__favourites-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+  .oidf-test-selector__favourites-skeleton span {
+    height: 16px;
+    border-radius: var(--radius-1);
+    background: linear-gradient(90deg, var(--ink-100), var(--ink-50), var(--ink-100));
+    background-size: 200% 100%;
+    animation: oidf-test-selector-shimmer 1.2s var(--ease-standard) infinite;
+  }
+  .oidf-test-selector__favourites-skeleton span:first-child {
+    width: 70%;
+  }
+  .oidf-test-selector__favourites-skeleton span:last-child {
+    width: 45%;
+  }
+  @keyframes oidf-test-selector-shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .oidf-test-selector__favourites-skeleton span {
+      animation: none;
+    }
+  }
+  /* Stale pin: a favourited plan that has dropped out of the plans list. The
+     body is a non-interactive span (selecting it is a no-op); only the remove
+     control is actionable. */
+  .oidf-test-selector__row--stale {
+    color: var(--fg-faint);
+    cursor: default;
+  }
+  .oidf-test-selector__row--stale .oidf-test-selector__row-name {
+    text-decoration: line-through;
+    color: var(--fg-soft);
+  }
+  .oidf-test-selector__item--stale:hover {
+    background: var(--bg-elev);
+  }
 `;
 
 function injectStyles() {
@@ -449,6 +558,30 @@ class CtsTestSelector extends LitElement {
       );
     }
     return filtered;
+  }
+
+  // The favourites surface, in caller-supplied order (most-recently-added
+  // ordering is the adapter's job — see U6). Each entry is either a live
+  // plan or a `stale` pin whose plan has vanished from `plans`. Live
+  // favourites respect the active search + family filter (KTD6) by reusing
+  // `_filteredPlans`; stale pins have no plan object, so they match a raw
+  // search against their planName and hide under a family filter.
+  get _favouriteGroupEntries() {
+    return this.favourites
+      .map((name) => {
+        const plan = this.plans.find((p) => p.planName === name);
+        return plan ? { name, plan, stale: false } : { name, plan: null, stale: true };
+      })
+      .filter((entry) => {
+        if (entry.stale) {
+          if (this._selectedFamily) return false;
+          if (this._searchTerm) {
+            return entry.name.toLowerCase().includes(this._searchTerm.toLowerCase());
+          }
+          return true;
+        }
+        return this._filteredPlans.some((p) => p.planName === entry.name);
+      });
   }
 
   _handleSearch(e) {
@@ -540,9 +673,11 @@ class CtsTestSelector extends LitElement {
   }
 
   _handleRowClick(e) {
-    const index = this._rowIndexFromEvent(e);
-    if (index < 0) return;
-    const plan = this._filteredPlans[index];
+    // Resolve by plan name rather than the roving index so the same handler
+    // serves both the main list and the V1 group sublist (whose rows are not
+    // part of the index-based roving model).
+    const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.planName;
+    const plan = this.plans.find((p) => p.planName === planName);
     if (!plan) return;
     // Read and clear the intent flag in one step. If keydown(Enter|Space)
     // marked the activation as keyboard-driven, honor that; otherwise the
@@ -550,6 +685,25 @@ class CtsTestSelector extends LitElement {
     const via = this._activationVia ?? "click";
     this._activationVia = null;
     this._handleSelectPlan(plan, via);
+  }
+
+  // Keydown for V1 group rows. These sit outside the index-based roving
+  // model (the group is a small pinned surface), so they only need
+  // Enter/Space activation tagging and the "f" favourite shortcut — arrow
+  // roving stays exclusive to the main list.
+  _handleGroupRowKeydown(e) {
+    const key = e.key;
+    if ((key === "f" || key === "F") && this.canFavourite) {
+      e.preventDefault();
+      const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.planName;
+      if (planName) {
+        this._emitFavouriteToggle(planName, !this._isFavourite(planName), "keyboard");
+      }
+      return;
+    }
+    if (key === "Enter" || key === " ") {
+      this._activationVia = "keyboard";
+    }
   }
 
   _handleSelectPlan(plan, via) {
@@ -596,7 +750,12 @@ class CtsTestSelector extends LitElement {
     // handler) ensures the new tabindex="0" / -1 mapping is already in
     // the DOM before .focus() is called.
     if (changed.has("_focusedRowIndex") && this._focusedRowIndex >= 0) {
-      const rows = this.querySelectorAll(".oidf-test-selector__row");
+      // Scope to the main list: the V1 group sublist also renders
+      // .oidf-test-selector__row buttons, but only the main list participates
+      // in the index-based roving, so an unscoped query would mis-map the
+      // index onto a pinned group row.
+      const list = this.querySelector(".oidf-test-selector__list");
+      const rows = list ? list.querySelectorAll(".oidf-test-selector__row") : [];
       const target = /** @type {HTMLElement | undefined} */ (rows[this._focusedRowIndex]);
       if (target) target.focus();
     }
@@ -645,24 +804,103 @@ class CtsTestSelector extends LitElement {
             ${this._renderFamilyOptions()}
           </select>
         </div>
-        <div class="oidf-test-selector__list" role="list">
-          ${this._filteredPlans.length > 0
-            ? this._filteredPlans.map((plan, index) => this._renderRow(plan, index))
-            : this.loading
-              ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
-              : html`<div class="oidf-test-selector__empty"> No plans match your search </div>`}
+        <div class="oidf-test-selector__main">
+          ${this.favouritesLayout === "group" ? this._renderFavouritesGroup() : nothing}
+          <div class="oidf-test-selector__list" role="list">
+            ${this._filteredPlans.length > 0
+              ? this._filteredPlans.map((plan, index) => this._renderRow(plan, index))
+              : this.loading
+                ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
+                : html`<div class="oidf-test-selector__empty"> No plans match your search </div>`}
+          </div>
         </div>
       </div>
     `;
   }
 
+  // V1 "group" layout: a pinned "★ Favourites" section above the main list.
+  // The section reflects the controlled `favourites` array; its rows are
+  // duplicates of the main-list rows (Open Question default: favourited plans
+  // also remain in the main list with a filled star).
+  _renderFavouritesGroup() {
+    if (this.favouritesLoading) {
+      return html`<section class="oidf-test-selector__favourites" aria-label="Favourite test plans">
+        ${this._renderFavouritesHead()}
+        <div class="oidf-test-selector__favourites-skeleton" aria-hidden="true">
+          <span></span><span></span>
+        </div>
+      </section>`;
+    }
+    const entries = this._favouriteGroupEntries;
+    return html`<section class="oidf-test-selector__favourites" aria-label="Favourite test plans">
+      ${this._renderFavouritesHead()}
+      ${this.favourites.length === 0
+        ? html`<div class="oidf-test-selector__favourites-empty">
+            <strong>No favourites yet.</strong> Star a plan to pin it here for quick access.
+          </div>`
+        : html`<div class="oidf-test-selector__favourites-list" role="list">
+            ${entries.length > 0
+              ? entries.map((entry) =>
+                  entry.stale
+                    ? this._renderStaleFavourite(entry.name)
+                    : this._renderRow(entry.plan, -1, { group: true }),
+                )
+              : html`<div class="oidf-test-selector__favourites-empty">
+                  No favourites match your search.
+                </div>`}
+          </div>`}
+    </section>`;
+  }
+
+  _renderFavouritesHead() {
+    const count = this.favourites.length;
+    return html`<div class="oidf-test-selector__favourites-head">
+      <cts-icon name="star-fill" size="16"></cts-icon>
+      <span>Favourites</span>
+      <span class="oidf-test-selector__favourites-count" aria-label="${count} favourite plans"
+        >${count}</span
+      >
+    </div>`;
+  }
+
+  // A favourited planName that is no longer in `plans`. Rendered as a
+  // non-interactive, disabled-looking row with an explicit remove control so
+  // the user understands why a pin vanished rather than seeing it silently
+  // disappear (KTD5). Selecting it is a no-op (the body is a <span>).
+  _renderStaleFavourite(name) {
+    return html`<div
+      class="oidf-test-selector__item oidf-test-selector__item--stale"
+      role="listitem"
+    >
+      <span class="oidf-test-selector__row oidf-test-selector__row--stale" aria-disabled="true">
+        <span class="oidf-test-selector__row-head">
+          <span class="oidf-test-selector__row-title">
+            <strong class="oidf-test-selector__row-name">${name}</strong>
+            <span class="oidf-test-selector__row-family">No longer available</span>
+          </span>
+        </span>
+      </span>
+      <button
+        type="button"
+        class="oidf-test-selector__fav"
+        aria-label="Remove favourite: ${name}"
+        data-plan-name="${name}"
+        @click=${this._handleFavouriteClick}
+      >
+        <cts-icon name="close-md" size="20"></cts-icon>
+      </button>
+    </div>`;
+  }
+
   // Render one plan row: a role="listitem" container holding the primary
   // select <button> (unchanged class/data/handlers/roving tabindex so the
   // existing stories and keyboard model keep working) and, when a favourites
-  // layout is active, a sibling favourite <button>. Extracted from render()
-  // so the V1 group sublist (U3) can reuse the same row markup.
-  _renderRow(plan, index) {
-    const favTabindex = this._focusedRowIndex === index ? 0 : -1;
+  // layout is active, a sibling favourite <button>. `opts.group` renders the
+  // V1 pinned-group variant of the same row: statically focusable (the group
+  // is small) and outside the main list's index-based roving.
+  _renderRow(plan, index, opts = {}) {
+    const group = opts.group === true;
+    const rowTabindex = group ? 0 : this._focusedRowIndex === index ? 0 : -1;
     return html`
       <div class="oidf-test-selector__item" role="listitem">
         <button
@@ -672,10 +910,10 @@ class CtsTestSelector extends LitElement {
             "is-active": this.selected === plan.planName,
           })}
           data-plan-name="${plan.planName}"
-          data-index="${index}"
-          tabindex="${this._focusedRowIndex === index ? 0 : -1}"
+          data-index="${group ? -1 : index}"
+          tabindex="${rowTabindex}"
           @click=${this._handleRowClick}
-          @keydown=${this._handleRowKeydown}
+          @keydown=${group ? this._handleGroupRowKeydown : this._handleRowKeydown}
         >
           <span class="oidf-test-selector__row-head">
             <span class="oidf-test-selector__row-title">
@@ -704,7 +942,7 @@ class CtsTestSelector extends LitElement {
               >`
             : nothing}
         </button>
-        ${this._favouritesActive ? this._renderFavouriteButton(plan, favTabindex) : nothing}
+        ${this._favouritesActive ? this._renderFavouriteButton(plan, rowTabindex) : nothing}
       </div>
     `;
   }
