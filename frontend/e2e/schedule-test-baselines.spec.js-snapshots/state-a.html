@@ -155,46 +155,62 @@
             <input type="search" class="oidf-test-selector__search" placeholder="Search test plans..." aria-label="Search test plans" autocomplete="off" spellcheck="false">
             <!--?lit$NNNN$-->
           </div>
+          <!--?lit$NNNN$-->
           <select class="oidf-test-selector__family" size="14" aria-label="Filter test plans by specification family">
-            <option value="" selected="">All specifications</option>
-            <!--?lit$NNNN$--><!----><option value="FAPI"><!--?lit$NNNN$-->FAPI</option><!----><!----><option value="OIDCC"><!--?lit$NNNN$-->OIDCC</option><!---->
+            <!--?lit$NNNN$-->
+            <option value="" selected="">
+              All specifications
+            </option>
+            <!--?lit$NNNN$--><!----><option value="FAPI"> <!--?lit$NNNN$-->FAPI </option><!----><!----><option value="OIDCC"> <!--?lit$NNNN$-->OIDCC </option><!---->
           </select>
         </div>
-        <div class="oidf-test-selector__list" role="list">
-          <!--?lit$NNNN$--><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="4 test modules"><!--?lit$NNNN$-->4</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
-                  </button>
-                <!----><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="fapi2-security-profile-final-test-plan" data-index="1" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
-                  </button>
-                <!----><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="2" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="1 test module"><!--?lit$NNNN$-->1</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
-                  </button>
-                <!---->
+        <div class="oidf-test-selector__main">
+          <!--?lit$NNNN$-->
+          <div class="oidf-test-selector__list" role="list">
+            <!--?lit$NNNN$--><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="4 test modules"><!--?lit$NNNN$-->4</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
+        </button>
+        <!--?lit$NNNN$-->
+      </div>
+    <!----><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="fapi2-security-profile-final-test-plan" data-index="1" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
+        </button>
+        <!--?lit$NNNN$-->
+      </div>
+    <!----><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="2" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="1 test module"><!--?lit$NNNN$-->1</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
+        </button>
+        <!--?lit$NNNN$-->
+      </div>
+    <!---->
+          </div>
         </div>
       </div>
     </cts-test-selector>

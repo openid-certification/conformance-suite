@@ -6,19 +6,22 @@
 - button "Load last configuration"
 - searchbox "Search test plans"
 - listbox "Filter test plans by specification family":
-  - option "All specifications"
+  - option "All specifications" [selected]
   - option "FAPI"
   - option "OIDCC"
 - list:
   - listitem:
-    - strong: "OpenID Connect Core: Basic Certification Profile"
-    - text: OIDCC 4 Basic OP certification test plan for OpenID Connect Core 1.0
+    - 'button "OpenID Connect Core: Basic Certification Profile OIDCC 4 test modules Basic OP certification test plan for OpenID Connect Core 1.0"':
+      - strong: "OpenID Connect Core: Basic Certification Profile"
+      - text: OIDCC 4 Basic OP certification test plan for OpenID Connect Core 1.0
   - listitem:
-    - strong: FAPI 2.0 Security Profile
-    - text: FAPI 2 FAPI 2.0 Security Profile conformance test plan
+    - button "FAPI 2.0 Security Profile FAPI 2 test modules FAPI 2.0 Security Profile conformance test plan":
+      - strong: FAPI 2.0 Security Profile
+      - text: FAPI 2 FAPI 2.0 Security Profile conformance test plan
   - listitem:
-    - strong: "OpenID Connect Client: Basic Certification"
-    - text: OIDCC 1 Client-side certification test plan for OpenID Connect
+    - 'button "OpenID Connect Client: Basic Certification OIDCC 1 test module Client-side certification test plan for OpenID Connect"':
+      - strong: "OpenID Connect Client: Basic Certification"
+      - text: OIDCC 1 Client-side certification test plan for OpenID Connect
 - text: Specification
 - combobox "Specification":
   - option "--- Select a Specification ---"
@@ -60,6 +63,7 @@
       - text: https://baseline.example.com
     - text: Full URL that server will use as the 'iss' value in id_token.
   - button "Validate Configuration"
+  - status
 - region "Test plan actions":
   - button "Create Test Plan"
   - button "Share Test Plan Configuration"

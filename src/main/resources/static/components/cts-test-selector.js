@@ -49,9 +49,9 @@ import "./cts-badge.js";
  *   users, who have no server-side principal to key a favorite on) the star
  *   controls render disabled with an explanatory tooltip rather than
  *   vanishing, so the affordance is discoverable.
- * @property {string} favoritesLayout - Selects where favorites surface,
- *   reflected to the `favorites-layout` attribute so a story (or
- *   schedule-test.html) can set it declaratively. One of `'group'` (pinned
+ * @property {string} favoritesLayout - Selects where favorites surface, set
+ *   via the `favorites-layout` attribute so a story (or schedule-test.html)
+ *   can choose it declaratively. One of `'group'` (pinned
  *   "★ Favorites" section atop the list), `'view'` (a saved-view entry in
  *   the family listbox), `'chip'` (a "Favorites only" filter toggle), or
  *   `''`/absent (today's plain list — full back-compat).
@@ -513,13 +513,12 @@ class CtsTestSelector extends LitElement {
     favorites: { type: Array },
     favoritesLoading: { type: Boolean, attribute: "favorites-loading" },
     canFavorite: { type: Boolean, attribute: "can-favorite" },
-    // Reflected so a declarative `<cts-test-selector favorites-layout="group">`
-    // round-trips and the active variant is inspectable in the DOM.
-    favoritesLayout: {
-      type: String,
-      reflect: true,
-      attribute: "favorites-layout",
-    },
+    // Not reflected: the declarative `<cts-test-selector favorites-layout="group">`
+    // attribute still maps to the property (attribute→property needs no
+    // reflection), and NOT reflecting avoids stamping an empty
+    // `favorites-layout=""` onto every back-compat element (e.g. the
+    // production schedule-test.html picker, which sets no layout).
+    favoritesLayout: { type: String, attribute: "favorites-layout" },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
     // V2 "view": the synthetic "★ Favorites" saved view is selected in the
