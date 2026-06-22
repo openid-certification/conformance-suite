@@ -9,6 +9,7 @@
 #
 # Excluded:
 #   *.stories.js — test-only files, not components.
+#   *.test.js    — unit-test files, not components.
 #   _button-classes.js — shared helper module, not a custom element.
 #
 # Exits non-zero and lists any component file missing the tag.
@@ -28,9 +29,9 @@ fi
 
 missing=()
 for file in "$COMPONENTS_DIR"/cts-*.js; do
-  # Skip *.stories.js (test-only) and _button-classes.js (shared helper).
+  # Skip *.stories.js / *.test.js (test-only) and _button-classes.js (helper).
   case "$(basename "$file")" in
-    *.stories.js|_*) continue ;;
+    *.stories.js|*.test.js|_*) continue ;;
   esac
   if ! grep -q "@property" "$file"; then
     missing+=("$file")
