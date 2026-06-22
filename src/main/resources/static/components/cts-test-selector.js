@@ -68,6 +68,10 @@ import "./cts-loading-state.js";
 
 const STYLE_ID = "cts-test-selector-styles";
 
+// Sentinel <option> value for the V2 "★ Favourites" saved view. Namespaced so
+// it can never collide with a real spec-family name.
+const FAVOURITES_VIEW_VALUE = "__cts_favourites_view__";
+
 const STYLE_TEXT = css`
   .oidf-test-selector {
     display: grid;
@@ -124,6 +128,15 @@ const STYLE_TEXT = css`
     white-space: normal;
     text-wrap: pretty;
     line-height: var(--lh-snug);
+  }
+  /* V2 saved-view option: an orange accent + bottom divider sets the
+     "★ Favourites" entry apart from the real spec families below it. (Native
+     <option> styling is limited, but colour and weight are honoured in sized
+     listboxes across the supported modern browsers.) */
+  .oidf-test-selector__family-view {
+    color: var(--orange-700);
+    font-weight: var(--fw-medium);
+    border-bottom: 1px solid var(--divider);
   }
   .oidf-test-selector__family option:checked {
     /* Under appearance:none the OS still paints the selected row via
@@ -502,6 +515,11 @@ class CtsTestSelector extends LitElement {
     },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
+    // V2 "view": the synthetic "★ Favourites" saved view is selected in the
+    // family listbox. Kept distinct from _selectedFamily (a real spec family).
+    _favouritesView: { state: true },
+    // V3 "chip": the "★ Favourites only" filter toggle is on.
+    _favouritesOnly: { state: true },
     _focusedRowIndex: { state: true },
   };
 
@@ -520,6 +538,8 @@ class CtsTestSelector extends LitElement {
     this.favouritesLayout = "";
     this._searchTerm = "";
     this._selectedFamily = "";
+    this._favouritesView = false;
+    this._favouritesOnly = false;
     // -1 means "no row focused — search input owns focus (or focus is
     // elsewhere on the page)". A non-negative value names the row that
     // should receive focus on the next render-completion tick.
@@ -544,9 +564,21 @@ class CtsTestSelector extends LitElement {
     return Array.from(families).sort();
   }
 
+  // True when the list should be narrowed to favourites only: the V2 saved
+  // view is selected, or the V3 chip is toggled on. Guarded by layout so a
+  // stale state flag from another variant can't leak in.
+  get _favouritesFilterActive() {
+    return (
+      (this.favouritesLayout === "view" && this._favouritesView) ||
+      (this.favouritesLayout === "chip" && this._favouritesOnly)
+    );
+  }
+
   get _filteredPlans() {
     let filtered = this.plans;
-    if (this._selectedFamily) {
+    if (this._favouritesFilterActive) {
+      filtered = filtered.filter((p) => this._isFavourite(p.planName));
+    } else if (this._selectedFamily) {
       filtered = filtered.filter((p) => p.specFamily === this._selectedFamily);
     }
     if (this._searchTerm) {
@@ -613,7 +645,17 @@ class CtsTestSelector extends LitElement {
     if (input) input.focus();
   }
   _handleFamilyFilter(e) {
-    this._selectedFamily = e.target.value;
+    const value = e.target.value;
+    if (value === FAVOURITES_VIEW_VALUE) {
+      // Entering the saved view; a real family and the favourites view are
+      // mutually exclusive.
+      this._favouritesView = true;
+      this._selectedFamily = "";
+    } else {
+      // Picking any real family (or "All specifications") leaves the view.
+      this._favouritesView = false;
+      this._selectedFamily = value;
+    }
     this._focusedRowIndex = -1;
   }
 
@@ -800,7 +842,18 @@ class CtsTestSelector extends LitElement {
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
-            <option value="" ?selected=${this._selectedFamily === ""}> All specifications </option>
+            ${this.favouritesLayout === "view"
+              ? html`<option
+                  value="${FAVOURITES_VIEW_VALUE}"
+                  class="oidf-test-selector__family-view"
+                  ?selected=${this._favouritesView}
+                >
+                  ★ Favourites (${this.favourites.length})
+                </option>`
+              : nothing}
+            <option value="" ?selected=${this._selectedFamily === "" && !this._favouritesView}>
+              All specifications
+            </option>
             ${this._renderFamilyOptions()}
           </select>
         </div>
@@ -811,7 +864,7 @@ class CtsTestSelector extends LitElement {
               ? this._filteredPlans.map((plan, index) => this._renderRow(plan, index))
               : this.loading
                 ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
-                : html`<div class="oidf-test-selector__empty"> No plans match your search </div>`}
+                : this._renderListEmpty()}
           </div>
         </div>
       </div>
@@ -996,6 +1049,20 @@ class CtsTestSelector extends LitElement {
     return this._families.map(
       (f) => html`<option value="${f}" ?selected=${this._selectedFamily === f}> ${f} </option>`,
     );
+  }
+
+  // Empty-list copy. When a favourites-only filter is active (V2 view / V3
+  // chip) the message is favourites-specific rather than the generic
+  // search-miss line, so an empty view never reads as "no plans exist".
+  _renderListEmpty() {
+    if (this._favouritesFilterActive) {
+      return html`<div class="oidf-test-selector__empty">
+        ${this.favourites.length === 0
+          ? html`<strong>No favourites yet.</strong> Star a plan to add it to this view.`
+          : "No favourites match your search."}
+      </div>`;
+    }
+    return html`<div class="oidf-test-selector__empty">No plans match your search</div>`;
   }
 }
 customElements.define("cts-test-selector", CtsTestSelector);

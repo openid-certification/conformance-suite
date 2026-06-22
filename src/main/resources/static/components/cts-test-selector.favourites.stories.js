@@ -536,3 +536,131 @@ export const GroupManyFavouritesOverflow = {
     });
   },
 };
+
+// ───────────────────────────────────────────────────────────────────────────
+// V2 — "view" layout: a "★ Favourites (n)" saved view in the family listbox.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** Rows rendered in the main list. */
+function mainRows(host) {
+  return host.querySelectorAll(".oidf-test-selector__list .oidf-test-selector__item");
+}
+/** The synthetic "★ Favourites" option in the family listbox. */
+function viewOption(host) {
+  return host.querySelector(".oidf-test-selector__family-view");
+}
+/** Select the saved-view entry in the family listbox. */
+async function selectFavouritesView(host) {
+  await userEvent.selectOptions(
+    host.querySelector(".oidf-test-selector__family"),
+    viewOption(host),
+  );
+}
+
+/** View Read: selecting "★ Favourites" filters the right list to favourites. */
+export const ViewFiltersListToFavourites = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      .favourites=${[FAV, OIDCC_BASIC]}
+      favourites-layout="view"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+
+    await step("the saved view sits atop the listbox with the count", async () => {
+      expect(viewOption(host).textContent).toContain("★ Favourites (2)");
+      // Before selection the full list is shown.
+      expect(mainRows(host).length).toBe(MOCK_PLANS.length);
+    });
+
+    await step("selecting it narrows the list to favourites only", async () => {
+      await selectFavouritesView(host);
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(2);
+        expect(starFor(host, FAV)).toBeTruthy();
+        expect(starFor(host, "fapi-ciba-test-plan")).toBeFalsy();
+      });
+    });
+  },
+};
+
+/** View count + unstar: removing a favourite from the view drops it live. */
+export const ViewCountAndUnstarUpdateLive = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      .favourites=${[FAV, OIDCC_BASIC]}
+      favourites-layout="view"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    wireOptimistic(host);
+
+    await step("enter the favourites view", async () => {
+      await selectFavouritesView(host);
+      await waitFor(() => expect(mainRows(host).length).toBe(2));
+    });
+
+    await step("unstarring a row removes it and decrements the count", async () => {
+      await userEvent.click(starFor(host, FAV));
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(1);
+        expect(starFor(host, FAV)).toBeFalsy();
+        expect(viewOption(host).textContent).toContain("★ Favourites (1)");
+      });
+    });
+  },
+};
+
+/** View Read (empty): the favourites view with no favourites shows its own copy. */
+export const ViewEmptyStateCopy = {
+  render: () => html`
+    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="view"></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+
+    await step("the empty view shows favourites-specific copy, not a plain miss", async () => {
+      await selectFavouritesView(host);
+      await waitFor(() => {
+        const empty = host.querySelector(".oidf-test-selector__empty");
+        expect(empty).toBeTruthy();
+        expect(empty.textContent).toContain("No favourites yet");
+        expect(empty.textContent).not.toContain("No plans match your search");
+      });
+    });
+  },
+};
+
+/** Family ∩ favourites: picking a real family leaves the favourites view. */
+export const ViewFamilySelectionExitsView = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      .favourites=${[FAV]}
+      favourites-layout="view"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    const select = host.querySelector(".oidf-test-selector__family");
+
+    await step("enter the view, then switch to a real family", async () => {
+      await selectFavouritesView(host);
+      await waitFor(() => expect(mainRows(host).length).toBe(1));
+      await userEvent.selectOptions(select, "OIDCC");
+      await waitFor(() => {
+        // The OIDCC family has 3 plans; the favourites view is no longer active.
+        expect(mainRows(host).length).toBe(3);
+        expect(viewOption(host).selected).toBe(false);
+      });
+    });
+  },
+};
