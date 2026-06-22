@@ -1,6 +1,6 @@
-// Story-only fake persistence adapter for the cts-test-selector favourites
+// Story-only fake persistence adapter for the cts-test-selector favorites
 // prototype. It is NOT imported by any page — it stands in for the deferred
-// `/api/favourite-plans` backend so the Storybook stories can exercise the
+// `/api/favorite-plans` backend so the Storybook stories can exercise the
 // full optimistic lifecycle (persist across reload, injectable latency, and
 // failure → revert) without a server.
 //
@@ -8,14 +8,14 @@
 // localStorage reads/writes for `fetch()` behind get/add/remove is all the
 // production wiring (schedule-test.html) needs — the component never changes:
 //
-//   GET    /api/favourite-plans          -> 200 { plans: string[] }
-//   POST   /api/favourite-plans { plan }  -> 200 { plans: string[] }   (added)
-//   DELETE /api/favourite-plans/{plan}    -> 200 { plans: string[] }   (removed)
+//   GET    /api/favorite-plans          -> 200 { plans: string[] }
+//   POST   /api/favorite-plans { plan }  -> 200 { plans: string[] }   (added)
+//   DELETE /api/favorite-plans/{plan}    -> 200 { plans: string[] }   (removed)
 //
 // Ordering is insertion order, most-recently-added LAST (a plain append),
 // matching how a chronological server-side list would grow.
 
-const DEFAULT_KEY = "cts:favourite-plans";
+const DEFAULT_KEY = "cts:favorite-plans";
 
 /**
  * Minimal Storage shape the controller actually uses — narrower than the DOM
@@ -37,14 +37,14 @@ function delay(ms) {
 }
 
 /**
- * Normalise the `failOn` option into a predicate.
+ * Normalize the `failOn` option into a predicate.
  * @param {string|string[]|((name: string, op: string) => boolean)|null} failOn - A
  *   planName, a list of planNames, or a `(name, op) => boolean` predicate where
  *   `op` is `"add"` or `"remove"`.
  * @returns {(name: string, op: string) => boolean} A predicate that returns
  *   true when the operation should reject.
  */
-function normaliseFailOn(failOn) {
+function normalizeFailOn(failOn) {
   if (!failOn) return () => false;
   if (typeof failOn === "function") return failOn;
   const set = new Set(Array.isArray(failOn) ? failOn : [failOn]);
@@ -52,14 +52,14 @@ function normaliseFailOn(failOn) {
 }
 
 /**
- * Create a fake favourites controller backed by `storage` (defaults to the
+ * Create a fake favorites controller backed by `storage` (defaults to the
  * page's `localStorage`). Storage is injectable so a node unit test can pass a
  * Map-backed fake without a DOM.
  * @param {object} [options] - Controller configuration.
  * @param {string} [options.key] - Storage key (namespaced by default).
  * @param {number} [options.latency] - Milliseconds delay applied to every op.
  * @param {string|string[]|((name: string, op: string) => boolean)|null} [options.failOn] -
- *   Which operations reject — see {@link normaliseFailOn}.
+ *   Which operations reject — see {@link normalizeFailOn}.
  * @param {StorageLike} [options.storage] - Storage backend (default `localStorage`).
  * @returns {{
  *   snapshot: () => string[],
@@ -67,18 +67,18 @@ function normaliseFailOn(failOn) {
  *   get: () => Promise<{ plans: string[] }>,
  *   add: (name: string) => Promise<{ plans: string[] }>,
  *   remove: (name: string) => Promise<{ plans: string[] }>,
- * }} A controller mirroring the `/api/favourite-plans` surface.
+ * }} A controller mirroring the `/api/favorite-plans` surface.
  */
-export function createFavouritesController({
+export function createFavoritesController({
   key = DEFAULT_KEY,
   latency = 0,
   failOn = null,
   storage = globalThis.localStorage,
 } = {}) {
-  const shouldFail = normaliseFailOn(failOn);
+  const shouldFail = normalizeFailOn(failOn);
 
   /**
-   * Read the persisted favourites, tolerating corrupt/unset storage as empty.
+   * Read the persisted favorites, tolerating corrupt/unset storage as empty.
    * @returns {string[]} The persisted planNames.
    */
   function read() {
@@ -92,7 +92,7 @@ export function createFavouritesController({
   }
 
   /**
-   * Persist the favourites set.
+   * Persist the favorites set.
    * @param {string[]} plans - The planNames to store.
    * @returns {void}
    */
@@ -103,7 +103,7 @@ export function createFavouritesController({
   return {
     /**
      * Synchronous current set — for seeding a story's initial render and for
-     * assertions that storage matches the rendered favourites.
+     * assertions that storage matches the rendered favorites.
      * @returns {string[]} The persisted planNames.
      */
     snapshot() {
@@ -112,7 +112,7 @@ export function createFavouritesController({
 
     /**
      * Clear persisted state. The meta-level `beforeEach` calls this so
-     * favourites never leak between stories.
+     * favorites never leak between stories.
      * @returns {void}
      */
     reset() {
@@ -120,8 +120,8 @@ export function createFavouritesController({
     },
 
     /**
-     * GET /api/favourite-plans.
-     * @returns {Promise<{ plans: string[] }>} The current favourites.
+     * GET /api/favorite-plans.
+     * @returns {Promise<{ plans: string[] }>} The current favorites.
      */
     async get() {
       await delay(latency);
@@ -129,13 +129,13 @@ export function createFavouritesController({
     },
 
     /**
-     * POST /api/favourite-plans { plan } — append, idempotent.
+     * POST /api/favorite-plans { plan } — append, idempotent.
      * @param {string} name - The planName to add.
-     * @returns {Promise<{ plans: string[] }>} The updated favourites.
+     * @returns {Promise<{ plans: string[] }>} The updated favorites.
      */
     async add(name) {
       await delay(latency);
-      if (shouldFail(name, "add")) throw new Error(`favourites: save failed for ${name}`);
+      if (shouldFail(name, "add")) throw new Error(`favorites: save failed for ${name}`);
       const plans = read();
       if (!plans.includes(name)) plans.push(name);
       write(plans);
@@ -143,13 +143,13 @@ export function createFavouritesController({
     },
 
     /**
-     * DELETE /api/favourite-plans/{plan}.
+     * DELETE /api/favorite-plans/{plan}.
      * @param {string} name - The planName to remove.
-     * @returns {Promise<{ plans: string[] }>} The updated favourites.
+     * @returns {Promise<{ plans: string[] }>} The updated favorites.
      */
     async remove(name) {
       await delay(latency);
-      if (shouldFail(name, "remove")) throw new Error(`favourites: remove failed for ${name}`);
+      if (shouldFail(name, "remove")) throw new Error(`favorites: remove failed for ${name}`);
       const plans = read().filter((n) => n !== name);
       write(plans);
       return { plans };
@@ -159,43 +159,43 @@ export function createFavouritesController({
 
 /**
  * Wire a `cts-test-selector` to a controller exactly the way schedule-test.html
- * will wire it to `/api/favourite-plans`: optimistically update the `favourites`
- * prop on every `cts-favourite-toggle`, reconcile with the persisted truth on
+ * will wire it to `/api/favorite-plans`: optimistically update the `favorites`
+ * prop on every `cts-favorite-toggle`, reconcile with the persisted truth on
  * success, and revert + raise an error toast on failure.
- * @param {HTMLElement & { favourites: string[] }} host - The cts-test-selector.
- * @param {ReturnType<typeof createFavouritesController>} controller - The fake
+ * @param {HTMLElement & { favorites: string[] }} host - The cts-test-selector.
+ * @param {ReturnType<typeof createFavoritesController>} controller - The fake
  *   persistence controller to drive.
  * @returns {() => void} A detach function that removes the listener.
  */
-export function attachFavourites(host, controller) {
+export function attachFavorites(host, controller) {
   const handler = async (/** @type {Event} */ e) => {
-    const { plan, favourite } = /** @type {CustomEvent} */ (e).detail;
-    const before = host.favourites;
+    const { plan, favorite } = /** @type {CustomEvent} */ (e).detail;
+    const before = host.favorites;
     // Optimistic: append on add (insertion order), filter out on remove.
-    host.favourites = favourite
+    host.favorites = favorite
       ? [...before.filter((n) => n !== plan), plan]
       : before.filter((n) => n !== plan);
     try {
-      const { plans } = favourite ? await controller.add(plan) : await controller.remove(plan);
-      host.favourites = plans;
+      const { plans } = favorite ? await controller.add(plan) : await controller.remove(plan);
+      host.favorites = plans;
     } catch {
       // Revert the optimistic change and surface a plain error toast (KTD4:
       // no undo affordance — re-starring is the undo path).
-      host.favourites = before;
+      host.favorites = before;
       const ctsToast =
         typeof window !== "undefined"
           ? /** @type {{ ctsToast?: Function }} */ (/** @type {unknown} */ (window)).ctsToast
           : undefined;
       if (typeof ctsToast === "function") {
         ctsToast({
-          title: favourite ? "Couldn’t save favourite" : "Couldn’t remove favourite",
+          title: favorite ? "Couldn’t save favorite" : "Couldn’t remove favorite",
           message: "Please try again.",
           kind: "error",
         });
       }
     }
   };
-  host.addEventListener("cts-favourite-toggle", /** @type {EventListener} */ (handler));
+  host.addEventListener("cts-favorite-toggle", /** @type {EventListener} */ (handler));
   return () =>
-    host.removeEventListener("cts-favourite-toggle", /** @type {EventListener} */ (handler));
+    host.removeEventListener("cts-favorite-toggle", /** @type {EventListener} */ (handler));
 }

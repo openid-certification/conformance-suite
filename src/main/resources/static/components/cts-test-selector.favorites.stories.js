@@ -5,37 +5,34 @@ import "./cts-test-selector.js";
 // Side-effect import installs window.ctsToast so the failure stories can spy
 // on it (the adapter raises an error toast through that global, KTD4).
 import "../js/cts-toast-api.js";
-import {
-  createFavouritesController,
-  attachFavourites,
-} from "./cts-test-selector.favourites-fake.js";
+import { createFavoritesController, attachFavorites } from "./cts-test-selector.favorites-fake.js";
 
 /** The localStorage key the fake adapter persists under (see U6). */
-const FAV_KEY = "cts:favourite-plans";
+const FAV_KEY = "cts:favorite-plans";
 
 /**
- * Favourites prototype for cts-test-selector.
+ * Favorites prototype for cts-test-selector.
  *
- * Favourites is a *controlled* capability: the host takes a `favourites`
- * array in and emits `cts-favourite-toggle` out; it never mutates its own
+ * Favorites is a *controlled* capability: the host takes a `favorites`
+ * array in and emits `cts-favorite-toggle` out; it never mutates its own
  * array. Most stories simulate the caller's optimistic update inline
  * (`wireOptimistic`); the persist/failure stories drive the real
- * localStorage-backed fake adapter (U6) via `attachFavourites`, exactly the
- * shape schedule-test.html will use against `/api/favourite-plans`.
+ * localStorage-backed fake adapter (U6) via `attachFavorites`, exactly the
+ * shape schedule-test.html will use against `/api/favorite-plans`.
  *
- * The three layouts are driven by one `favourites-layout` attribute (KTD2):
+ * The three layouts are driven by one `favorites-layout` attribute (KTD2):
  * `group` (V1, pinned section), `view` (V2, saved-view listbox entry), and
  * `chip` (V3, filter toggle). Coverage follows the plan's State Matrix:
  * `group` is the front-runner and carries the deepest lifecycle coverage;
  * `view`/`chip` carry enough to compare look and the shared lifecycle. The
- * shared row-level behaviours (the star toggle, cannot-favourite, and stale
+ * shared row-level behaviors (the star toggle, cannot-favorite, and stale
  * pins) are layout-independent by construction, so they are proven once on
  * `group` rather than re-tested per variant.
  */
 export default {
-  title: "Components/cts-test-selector/Favourites",
+  title: "Components/cts-test-selector/Favorites",
   component: "cts-test-selector",
-  // Clear persisted favourites before every story so the localStorage-backed
+  // Clear persisted favorites before every story so the localStorage-backed
   // adapter never leaks state across stories. (This component does not write
   // to the URL, so no history reset is needed.)
   beforeEach: () => {
@@ -48,7 +45,7 @@ const NOT_FAV = "oidcc-basic-certification-test-plan";
 
 /**
  * Find a row's star button in the MAIN list (not the V1 group region, which
- * renders duplicate rows for favourited plans). Scoped so star counts and
+ * renders duplicate rows for favorited plans). Scoped so star counts and
  * lookups stay deterministic regardless of the active layout.
  */
 function starFor(host, planName) {
@@ -58,9 +55,9 @@ function starFor(host, planName) {
   return row?.closest(".oidf-test-selector__item")?.querySelector(".oidf-test-selector__fav");
 }
 
-/** The star/remove button for a plan inside the V1 "★ Favourites" group region. */
+/** The star/remove button for a plan inside the V1 "★ Favorites" group region. */
 function groupStarFor(host, planName) {
-  const row = host.querySelector(`.oidf-test-selector__favourites [data-plan-name="${planName}"]`);
+  const row = host.querySelector(`.oidf-test-selector__favorites [data-plan-name="${planName}"]`);
   return row?.closest(".oidf-test-selector__item")?.querySelector(".oidf-test-selector__fav");
 }
 
@@ -70,21 +67,21 @@ function mainStars(host) {
 }
 
 /**
- * Wire the controlled loop a real caller would: on `cts-favourite-toggle`,
- * optimistically add/remove the plan from `host.favourites`. No persistence,
+ * Wire the controlled loop a real caller would: on `cts-favorite-toggle`,
+ * optimistically add/remove the plan from `host.favorites`. No persistence,
  * no latency — that is the U6 adapter's job. Returns the captured events so a
  * play function can assert payloads.
  */
 function wireOptimistic(host) {
   /** @type {any[]} */
   const events = [];
-  host.addEventListener("cts-favourite-toggle", (e) => {
-    const { plan, favourite } = /** @type {CustomEvent} */ (e).detail;
+  host.addEventListener("cts-favorite-toggle", (e) => {
+    const { plan, favorite } = /** @type {CustomEvent} */ (e).detail;
     events.push(/** @type {CustomEvent} */ (e).detail);
-    const next = new Set(host.favourites);
-    if (favourite) next.add(plan);
+    const next = new Set(host.favorites);
+    if (favorite) next.add(plan);
     else next.delete(plan);
-    host.favourites = [...next];
+    host.favorites = [...next];
   });
   return events;
 }
@@ -94,12 +91,12 @@ function wireOptimistic(host) {
  * an unstarred plan shows the outline star with aria-pressed=false. The star
  * is a *sibling* of the select button, never nested inside it.
  */
-export const RowStarsReflectFavouriteState = {
+export const RowStarsReflectFavoriteState = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV]}
-      favourites-layout="group"
+      .favorites=${[FAV]}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -107,7 +104,7 @@ export const RowStarsReflectFavouriteState = {
     await host.updateComplete;
 
     await step(
-      "every main-list row has a sibling favourite button (no nested buttons)",
+      "every main-list row has a sibling favorite button (no nested buttons)",
       async () => {
         expect(mainStars(host).length).toBe(MOCK_PLANS.length);
         // Button-in-button is invalid and fails a11y — the star must not live
@@ -116,18 +113,18 @@ export const RowStarsReflectFavouriteState = {
       },
     );
 
-    await step("the favourited row reads pressed with the filled star", async () => {
+    await step("the favorited row reads pressed with the filled star", async () => {
       const star = starFor(host, FAV);
       expect(star.getAttribute("aria-pressed")).toBe("true");
-      expect(star.getAttribute("aria-label")).toBe("Remove favourite: FAPI 2.0 Security Profile");
+      expect(star.getAttribute("aria-label")).toBe("Remove favorite: FAPI 2.0 Security Profile");
       expect(star.querySelector("cts-icon").getAttribute("name")).toBe("star-fill");
-      expect(star.classList.contains("is-favourited")).toBe(true);
+      expect(star.classList.contains("is-favorited")).toBe(true);
     });
 
-    await step("a non-favourited row reads unpressed with the outline star", async () => {
+    await step("a non-favorited row reads unpressed with the outline star", async () => {
       const star = starFor(host, NOT_FAV);
       expect(star.getAttribute("aria-pressed")).toBe("false");
-      expect(star.getAttribute("aria-label")).toContain("Add favourite:");
+      expect(star.getAttribute("aria-label")).toContain("Add favorite:");
       expect(star.querySelector("cts-icon").getAttribute("name")).toBe("star");
     });
   },
@@ -135,12 +132,12 @@ export const RowStarsReflectFavouriteState = {
 
 /**
  * Create via star click: clicking an unstarred row's star fires
- * `cts-favourite-toggle { favourite:true, via:'click' }`. Once the caller
+ * `cts-favorite-toggle { favorite:true, via:'click' }`. Once the caller
  * applies the optimistic update, the star flips to pressed/filled.
  */
 export const StarClickFiresToggleAndOptimisticallyAdds = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
@@ -152,7 +149,7 @@ export const StarClickFiresToggleAndOptimisticallyAdds = {
       expect(events.length).toBe(1);
       expect(events[0]).toEqual({
         plan: NOT_FAV,
-        favourite: true,
+        favorite: true,
         via: "click",
       });
     });
@@ -169,7 +166,7 @@ export const StarClickFiresToggleAndOptimisticallyAdds = {
       await userEvent.click(starFor(host, NOT_FAV));
       expect(events[1]).toEqual({
         plan: NOT_FAV,
-        favourite: false,
+        favorite: false,
         via: "click",
       });
       await waitFor(() => {
@@ -181,11 +178,11 @@ export const StarClickFiresToggleAndOptimisticallyAdds = {
 
 /**
  * Keyboard create/delete: the "f" shortcut toggles the focused row's
- * favourite without leaving the roving model, tagged via:'keyboard'.
+ * favorite without leaving the roving model, tagged via:'keyboard'.
  */
 export const KeyboardFTogglesFocusedRow = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
@@ -200,12 +197,12 @@ export const KeyboardFTogglesFocusedRow = {
       await waitFor(() => expect(document.activeElement).toBe(firstRow));
     });
 
-    await step("'f' toggles the focused row's favourite via keyboard", async () => {
+    await step("'f' toggles the focused row's favorite via keyboard", async () => {
       await userEvent.keyboard("f");
       expect(events.length).toBe(1);
       expect(events[0]).toEqual({
         plan: MOCK_PLANS[0].planName,
-        favourite: true,
+        favorite: true,
         via: "keyboard",
       });
     });
@@ -222,16 +219,16 @@ export const KeyboardFTogglesFocusedRow = {
 };
 
 /**
- * Cannot-favourite (no principal): anonymous / private-link users have no
- * server-side principal to key a favourite on, so the star renders disabled
+ * Cannot-favorite (no principal): anonymous / private-link users have no
+ * server-side principal to key a favorite on, so the star renders disabled
  * with an explanatory tooltip rather than vanishing, and clicking is a no-op.
  */
-export const CannotFavouriteDisablesStar = {
+export const CannotFavoriteDisablesStar = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .canFavourite=${false}
-      favourites-layout="group"
+      .canFavorite=${false}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -239,14 +236,14 @@ export const CannotFavouriteDisablesStar = {
     await host.updateComplete;
     /** @type {any[]} */
     const events = [];
-    host.addEventListener("cts-favourite-toggle", (e) =>
+    host.addEventListener("cts-favorite-toggle", (e) =>
       events.push(/** @type {CustomEvent} */ (e).detail),
     );
 
     await step("stars render aria-disabled with an explanatory label", async () => {
       const star = starFor(host, NOT_FAV);
       expect(star.getAttribute("aria-disabled")).toBe("true");
-      expect(star.getAttribute("aria-label")).toContain("Sign in to save favourites");
+      expect(star.getAttribute("aria-label")).toContain("Sign in to save favorites");
       expect(star.closest("cts-tooltip")).not.toBeNull();
     });
 
@@ -258,7 +255,7 @@ export const CannotFavouriteDisablesStar = {
 };
 
 /**
- * Back-compat guard: with no `favourites-layout`, no stars render and the
+ * Back-compat guard: with no `favorites-layout`, no stars render and the
  * list is exactly today's plain list.
  */
 export const NoLayoutRendersNoStars = {
@@ -272,39 +269,39 @@ export const NoLayoutRendersNoStars = {
 };
 
 // ───────────────────────────────────────────────────────────────────────────
-// V1 — "group" layout: pinned "★ Favourites" section above the list.
+// V1 — "group" layout: pinned "★ Favorites" section above the list.
 // ───────────────────────────────────────────────────────────────────────────
 
 const OIDCC_BASIC = "oidcc-basic-certification-test-plan";
-const STALE = "retired-plan-no-longer-in-catalogue";
+const STALE = "retired-plan-no-longer-in-catalog";
 
 /** Rows rendered inside the V1 group region. */
 function groupRows(host) {
-  return host.querySelectorAll(".oidf-test-selector__favourites-list .oidf-test-selector__item");
+  return host.querySelectorAll(".oidf-test-selector__favorites-list .oidf-test-selector__item");
 }
 /** The count badge text in the group header. */
 function groupCount(host) {
-  return host.querySelector(".oidf-test-selector__favourites-count")?.textContent?.trim();
+  return host.querySelector(".oidf-test-selector__favorites-count")?.textContent?.trim();
 }
 
 /**
- * Group Read: favourites render in the pinned section in caller order, with a
- * count badge. Favourited plans also remain in the main list (Open Question
+ * Group Read: favorites render in the pinned section in caller order, with a
+ * count badge. Favorited plans also remain in the main list (Open Question
  * default: "remain") carrying a filled star.
  */
-export const GroupRendersFavouritesWithCount = {
+export const GroupRendersFavoritesWithCount = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="group"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
 
-    await step("the group lists both favourites, in caller order, with a count", async () => {
+    await step("the group lists both favorites, in caller order, with a count", async () => {
       const rows = groupRows(host);
       expect(rows.length).toBe(2);
       expect(rows[0].querySelector(".oidf-test-selector__row-name").textContent).toContain(
@@ -313,7 +310,7 @@ export const GroupRendersFavouritesWithCount = {
       expect(groupCount(host)).toBe("2");
     });
 
-    await step("the favourited plans still appear in the main list, filled", async () => {
+    await step("the favorited plans still appear in the main list, filled", async () => {
       expect(starFor(host, FAV).querySelector("cts-icon").getAttribute("name")).toBe("star-fill");
       // The main list still shows every plan.
       expect(mainStars(host).length).toBe(MOCK_PLANS.length);
@@ -321,17 +318,17 @@ export const GroupRendersFavouritesWithCount = {
   },
 };
 
-/** Group Read (empty): no favourites yet shows a CTA, not an empty box. */
+/** Group Read (empty): no favorites yet shows a CTA, not an empty box. */
 export const GroupEmptyStateShowsCta = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
-    await step("empty favourites renders the CTA, no group rows", async () => {
+    await step("empty favorites renders the CTA, no group rows", async () => {
       expect(groupRows(host).length).toBe(0);
-      const empty = host.querySelector(".oidf-test-selector__favourites-empty");
+      const empty = host.querySelector(".oidf-test-selector__favorites-empty");
       expect(empty.textContent).toContain("Star a plan to pin it here");
       expect(groupCount(host)).toBe("0");
     });
@@ -343,18 +340,18 @@ export const GroupLoadingShowsSkeleton = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV]}
-      favourites-layout="group"
-      favourites-loading
+      .favorites=${[FAV]}
+      favorites-layout="group"
+      favorites-loading
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
-    await step("skeleton renders instead of rows while favourites load", async () => {
-      expect(host.querySelector(".oidf-test-selector__favourites-skeleton")).toBeTruthy();
+    await step("skeleton renders instead of rows while favorites load", async () => {
+      expect(host.querySelector(".oidf-test-selector__favorites-skeleton")).toBeTruthy();
       expect(groupRows(host).length).toBe(0);
-      expect(host.querySelector(".oidf-test-selector__favourites-empty")).toBeNull();
+      expect(host.querySelector(".oidf-test-selector__favorites-empty")).toBeNull();
     });
   },
 };
@@ -362,7 +359,7 @@ export const GroupLoadingShowsSkeleton = {
 /** Group Create: starring a plan in the main list pins it into the group. */
 export const GroupAddViaStarPinsToGroup = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
@@ -371,7 +368,7 @@ export const GroupAddViaStarPinsToGroup = {
 
     await step("starring a main-list row pins it into the group", async () => {
       await userEvent.click(starFor(host, NOT_FAV));
-      expect(events[0]).toEqual({ plan: NOT_FAV, favourite: true, via: "click" });
+      expect(events[0]).toEqual({ plan: NOT_FAV, favorite: true, via: "click" });
       await waitFor(() => {
         expect(groupRows(host).length).toBe(1);
         expect(groupStarFor(host, NOT_FAV)).toBeTruthy();
@@ -386,8 +383,8 @@ export const GroupRemoveViaUnstar = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV]}
-      favourites-layout="group"
+      .favorites=${[FAV]}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -397,10 +394,10 @@ export const GroupRemoveViaUnstar = {
 
     await step("unstarring inside the group removes it and reveals the CTA", async () => {
       await userEvent.click(groupStarFor(host, FAV));
-      expect(events[0]).toEqual({ plan: FAV, favourite: false, via: "click" });
+      expect(events[0]).toEqual({ plan: FAV, favorite: false, via: "click" });
       await waitFor(() => {
         expect(groupRows(host).length).toBe(0);
-        expect(host.querySelector(".oidf-test-selector__favourites-empty")).toBeTruthy();
+        expect(host.querySelector(".oidf-test-selector__favorites-empty")).toBeTruthy();
         // The main-list star reverts to the outline.
         expect(starFor(host, FAV).querySelector("cts-icon").getAttribute("name")).toBe("star");
       });
@@ -411,7 +408,7 @@ export const GroupRemoveViaUnstar = {
 /** Idempotent: star → unstar → star nets exactly one group entry. */
 export const GroupIdempotentToggle = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
@@ -437,8 +434,8 @@ export const GroupRespectsSearch = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="group"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -446,10 +443,10 @@ export const GroupRespectsSearch = {
     await host.updateComplete;
     const search = host.querySelector(".oidf-test-selector__search");
 
-    await step("typing FAPI narrows the group to the matching favourite", async () => {
+    await step("typing FAPI narrows the group to the matching favorite", async () => {
       await userEvent.type(search, "FAPI");
       await waitFor(() => {
-        // Only the FAPI favourite remains pinned; the OIDCC one is filtered out.
+        // Only the FAPI favorite remains pinned; the OIDCC one is filtered out.
         expect(groupRows(host).length).toBe(1);
         expect(groupStarFor(host, FAV)).toBeTruthy();
         expect(groupStarFor(host, OIDCC_BASIC)).toBeFalsy();
@@ -463,8 +460,8 @@ export const GroupRespectsFamilyFilter = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="group"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -472,7 +469,7 @@ export const GroupRespectsFamilyFilter = {
     await host.updateComplete;
     const select = host.querySelector(".oidf-test-selector__family");
 
-    await step("selecting the FAPI family leaves only the FAPI favourite", async () => {
+    await step("selecting the FAPI family leaves only the FAPI favorite", async () => {
       await userEvent.selectOptions(select, "FAPI");
       await waitFor(() => {
         expect(groupRows(host).length).toBe(1);
@@ -483,16 +480,16 @@ export const GroupRespectsFamilyFilter = {
 };
 
 /**
- * KTD5 stale pin: a favourited planName missing from `plans` renders disabled
+ * KTD5 stale pin: a favorited planName missing from `plans` renders disabled
  * with an explicit remove control and a "no longer available" note. Selecting
  * the body is a no-op; only remove is actionable.
  */
-export const GroupStaleFavouriteIsRemovable = {
+export const GroupStaleFavoriteIsRemovable = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[STALE]}
-      favourites-layout="group"
+      .favorites=${[STALE]}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -520,36 +517,36 @@ export const GroupStaleFavouriteIsRemovable = {
 
     await step("the remove control unpins it", async () => {
       await userEvent.click(groupStarFor(host, STALE));
-      expect(events[0]).toEqual({ plan: STALE, favourite: false, via: "click" });
+      expect(events[0]).toEqual({ plan: STALE, favorite: false, via: "click" });
       await waitFor(() => expect(groupRows(host).length).toBe(0));
     });
   },
 };
 
 /**
- * Many favourites: every favourite pins into the group, which is bounded so it
+ * Many favorites: every favorite pins into the group, which is bounded so it
  * scrolls within a fixed height rather than pushing the main list off-screen.
  */
-export const GroupManyFavouritesOverflow = {
+export const GroupManyFavoritesOverflow = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${MOCK_PLANS.map((p) => p.planName)}
-      favourites-layout="group"
+      .favorites=${MOCK_PLANS.map((p) => p.planName)}
+      favorites-layout="group"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
 
-    await step("all favourites pin into the group", async () => {
+    await step("all favorites pin into the group", async () => {
       expect(groupRows(host).length).toBe(MOCK_PLANS.length);
       expect(groupCount(host)).toBe(String(MOCK_PLANS.length));
     });
 
     await step("the group region is height-bounded so it scrolls", async () => {
       const css = document.getElementById("cts-test-selector-styles")?.textContent || "";
-      expect(css).toContain(".oidf-test-selector__favourites-list");
+      expect(css).toContain(".oidf-test-selector__favorites-list");
       expect(css).toContain("max-height");
       expect(css).toContain("overflow-y: auto");
     });
@@ -557,32 +554,32 @@ export const GroupManyFavouritesOverflow = {
 };
 
 // ───────────────────────────────────────────────────────────────────────────
-// V2 — "view" layout: a "★ Favourites (n)" saved view in the family listbox.
+// V2 — "view" layout: a "★ Favorites (n)" saved view in the family listbox.
 // ───────────────────────────────────────────────────────────────────────────
 
 /** Rows rendered in the main list. */
 function mainRows(host) {
   return host.querySelectorAll(".oidf-test-selector__list .oidf-test-selector__item");
 }
-/** The synthetic "★ Favourites" option in the family listbox. */
+/** The synthetic "★ Favorites" option in the family listbox. */
 function viewOption(host) {
   return host.querySelector(".oidf-test-selector__family-view");
 }
 /** Select the saved-view entry in the family listbox. */
-async function selectFavouritesView(host) {
+async function selectFavoritesView(host) {
   await userEvent.selectOptions(
     host.querySelector(".oidf-test-selector__family"),
     viewOption(host),
   );
 }
 
-/** View Read: selecting "★ Favourites" filters the right list to favourites. */
-export const ViewFiltersListToFavourites = {
+/** View Read: selecting "★ Favorites" filters the right list to favorites. */
+export const ViewFiltersListToFavorites = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="view"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="view"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -590,13 +587,13 @@ export const ViewFiltersListToFavourites = {
     await host.updateComplete;
 
     await step("the saved view sits atop the listbox with the count", async () => {
-      expect(viewOption(host).textContent).toContain("★ Favourites (2)");
+      expect(viewOption(host).textContent).toContain("★ Favorites (2)");
       // Before selection the full list is shown.
       expect(mainRows(host).length).toBe(MOCK_PLANS.length);
     });
 
-    await step("selecting it narrows the list to favourites only", async () => {
-      await selectFavouritesView(host);
+    await step("selecting it narrows the list to favorites only", async () => {
+      await selectFavoritesView(host);
       await waitFor(() => {
         expect(mainRows(host).length).toBe(2);
         expect(starFor(host, FAV)).toBeTruthy();
@@ -606,13 +603,13 @@ export const ViewFiltersListToFavourites = {
   },
 };
 
-/** View count + unstar: removing a favourite from the view drops it live. */
+/** View count + unstar: removing a favorite from the view drops it live. */
 export const ViewCountAndUnstarUpdateLive = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="view"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="view"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -620,8 +617,8 @@ export const ViewCountAndUnstarUpdateLive = {
     await host.updateComplete;
     wireOptimistic(host);
 
-    await step("enter the favourites view", async () => {
-      await selectFavouritesView(host);
+    await step("enter the favorites view", async () => {
+      await selectFavoritesView(host);
       await waitFor(() => expect(mainRows(host).length).toBe(2));
     });
 
@@ -630,40 +627,40 @@ export const ViewCountAndUnstarUpdateLive = {
       await waitFor(() => {
         expect(mainRows(host).length).toBe(1);
         expect(starFor(host, FAV)).toBeFalsy();
-        expect(viewOption(host).textContent).toContain("★ Favourites (1)");
+        expect(viewOption(host).textContent).toContain("★ Favorites (1)");
       });
     });
   },
 };
 
-/** View Read (empty): the favourites view with no favourites shows its own copy. */
+/** View Read (empty): the favorites view with no favorites shows its own copy. */
 export const ViewEmptyStateCopy = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="view"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="view"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
 
-    await step("the empty view shows favourites-specific copy, not a plain miss", async () => {
-      await selectFavouritesView(host);
+    await step("the empty view shows favorites-specific copy, not a plain miss", async () => {
+      await selectFavoritesView(host);
       await waitFor(() => {
         const empty = host.querySelector(".oidf-test-selector__empty");
         expect(empty).toBeTruthy();
-        expect(empty.textContent).toContain("No favourites yet");
+        expect(empty.textContent).toContain("No favorites yet");
         expect(empty.textContent).not.toContain("No plans match your search");
       });
     });
   },
 };
 
-/** Family ∩ favourites: picking a real family leaves the favourites view. */
+/** Family ∩ favorites: picking a real family leaves the favorites view. */
 export const ViewFamilySelectionExitsView = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV]}
-      favourites-layout="view"
+      .favorites=${[FAV]}
+      favorites-layout="view"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -672,11 +669,11 @@ export const ViewFamilySelectionExitsView = {
     const select = host.querySelector(".oidf-test-selector__family");
 
     await step("enter the view, then switch to a real family", async () => {
-      await selectFavouritesView(host);
+      await selectFavoritesView(host);
       await waitFor(() => expect(mainRows(host).length).toBe(1));
       await userEvent.selectOptions(select, "OIDCC");
       await waitFor(() => {
-        // The OIDCC family has 3 plans; the favourites view is no longer active.
+        // The OIDCC family has 3 plans; the favorites view is no longer active.
         expect(mainRows(host).length).toBe(3);
         expect(viewOption(host).selected).toBe(false);
       });
@@ -685,7 +682,7 @@ export const ViewFamilySelectionExitsView = {
 };
 
 // ───────────────────────────────────────────────────────────────────────────
-// V3 — "chip" layout: a "★ Favourites only" filter toggle beside the search.
+// V3 — "chip" layout: a "★ Favorites only" filter toggle beside the search.
 // ───────────────────────────────────────────────────────────────────────────
 
 /** The chip's inner role=button (cts-badge puts the affordance on a child span). */
@@ -693,13 +690,13 @@ function chipButton(host) {
   return host.querySelector('.oidf-test-selector__chip-wrap cts-badge [role="button"]');
 }
 
-/** Chip toggle: on filters to favourites; off restores the full list. */
-export const ChipTogglesFavouritesOnly = {
+/** Chip toggle: on filters to favorites; off restores the full list. */
+export const ChipTogglesFavoritesOnly = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="chip"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="chip"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -711,7 +708,7 @@ export const ChipTogglesFavouritesOnly = {
       expect(mainRows(host).length).toBe(MOCK_PLANS.length);
     });
 
-    await step("toggling on filters to favourites and reads pressed", async () => {
+    await step("toggling on filters to favorites and reads pressed", async () => {
       await userEvent.click(chipButton(host));
       await waitFor(() => {
         expect(mainRows(host).length).toBe(2);
@@ -729,13 +726,13 @@ export const ChipTogglesFavouritesOnly = {
   },
 };
 
-/** Chip ∩ search: searching within the favourites-only set composes. */
+/** Chip ∩ search: searching within the favorites-only set composes. */
 export const ChipComposesWithSearch = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV, OIDCC_BASIC]}
-      favourites-layout="chip"
+      .favorites=${[FAV, OIDCC_BASIC]}
+      favorites-layout="chip"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -743,12 +740,12 @@ export const ChipComposesWithSearch = {
     await host.updateComplete;
     const search = host.querySelector(".oidf-test-selector__search");
 
-    await step("toggle favourites-only, then search within it", async () => {
+    await step("toggle favorites-only, then search within it", async () => {
       await userEvent.click(chipButton(host));
       await waitFor(() => expect(mainRows(host).length).toBe(2));
       await userEvent.type(search, "FAPI");
       await waitFor(() => {
-        // Only the FAPI favourite remains: search ∩ favourites-only.
+        // Only the FAPI favorite remains: search ∩ favorites-only.
         expect(mainRows(host).length).toBe(1);
         expect(starFor(host, FAV)).toBeTruthy();
       });
@@ -756,33 +753,33 @@ export const ChipComposesWithSearch = {
   },
 };
 
-/** Chip empty: toggling on with no favourites shows the empty state. */
+/** Chip empty: toggling on with no favorites shows the empty state. */
 export const ChipEmptyWhileActive = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="chip"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="chip"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
 
-    await step("toggling on with no favourites shows favourites empty copy", async () => {
+    await step("toggling on with no favorites shows favorites empty copy", async () => {
       await userEvent.click(chipButton(host));
       await waitFor(() => {
         expect(mainRows(host).length).toBe(0);
         const empty = host.querySelector(".oidf-test-selector__empty");
-        expect(empty.textContent).toContain("No favourites yet");
+        expect(empty.textContent).toContain("No favorites yet");
       });
     });
   },
 };
 
-/** Chip live update: unstarring the last favourite empties the active filter. */
-export const ChipUnstarLastFavouriteUpdatesLive = {
+/** Chip live update: unstarring the last favorite empties the active filter. */
+export const ChipUnstarLastFavoriteUpdatesLive = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      .favourites=${[FAV]}
-      favourites-layout="chip"
+      .favorites=${[FAV]}
+      favorites-layout="chip"
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -790,7 +787,7 @@ export const ChipUnstarLastFavouriteUpdatesLive = {
     await host.updateComplete;
     wireOptimistic(host);
 
-    await step("toggle favourites-only — the one favourite shows", async () => {
+    await step("toggle favorites-only — the one favorite shows", async () => {
       await userEvent.click(chipButton(host));
       await waitFor(() => expect(mainRows(host).length).toBe(1));
     });
@@ -800,38 +797,38 @@ export const ChipUnstarLastFavouriteUpdatesLive = {
       await waitFor(() => {
         expect(mainRows(host).length).toBe(0);
         expect(host.querySelector(".oidf-test-selector__empty").textContent).toContain(
-          "No favourites yet",
+          "No favorites yet",
         );
       });
     });
   },
 };
 
-/** View loading: the saved-view option shows "(…)" until favourites arrive. */
+/** View loading: the saved-view option shows "(…)" until favorites arrive. */
 export const ViewLoadingShowsEllipsisCount = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      favourites-layout="view"
-      favourites-loading
+      favorites-layout="view"
+      favorites-loading
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
-    await step("the count placeholder reads … while favourites load", async () => {
-      expect(viewOption(host).textContent).toContain("★ Favourites (…)");
+    await step("the count placeholder reads … while favorites load", async () => {
+      expect(viewOption(host).textContent).toContain("★ Favorites (…)");
     });
   },
 };
 
-/** Chip loading: the toggle is replaced by a read-only "Loading favourites…" badge. */
+/** Chip loading: the toggle is replaced by a read-only "Loading favorites…" badge. */
 export const ChipLoadingShowsPlaceholder = {
   render: () => html`
     <cts-test-selector
       .plans=${MOCK_PLANS}
-      favourites-layout="chip"
-      favourites-loading
+      favorites-layout="chip"
+      favorites-loading
     ></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
@@ -839,7 +836,7 @@ export const ChipLoadingShowsPlaceholder = {
     await host.updateComplete;
     await step("a read-only loading badge stands in for the toggle", async () => {
       const wrap = host.querySelector(".oidf-test-selector__chip-wrap");
-      expect(wrap.textContent).toContain("Loading favourites");
+      expect(wrap.textContent).toContain("Loading favorites");
       // No clickable toggle while loading.
       expect(wrap.querySelector('[role="button"]')).toBeNull();
     });
@@ -849,25 +846,25 @@ export const ChipLoadingShowsPlaceholder = {
 // ───────────────────────────────────────────────────────────────────────────
 // Adapter-driven cells (V1): persist across reload + failure → revert + toast.
 // These drive the real localStorage-backed fake (U6) end-to-end, the same wire
-// schedule-test.html will use against /api/favourite-plans.
+// schedule-test.html will use against /api/favorite-plans.
 // ───────────────────────────────────────────────────────────────────────────
 
 /**
- * Persist across reload: a favourite saved through the adapter survives a
+ * Persist across reload: a favorite saved through the adapter survives a
  * full re-mount, because the second selector is seeded only from storage.
  */
 export const PersistsAcrossReload = {
   render: () => html`
     <div class="reload-harness">
-      <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+      <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
     </div>
   `,
   async play({ canvasElement, step }) {
     const harness = canvasElement.querySelector(".reload-harness");
     const first = harness.querySelector("cts-test-selector");
-    const controller = createFavouritesController();
-    first.favourites = (await controller.get()).plans;
-    const detach = attachFavourites(first, controller);
+    const controller = createFavoritesController();
+    first.favorites = (await controller.get()).plans;
+    const detach = attachFavorites(first, controller);
     await first.updateComplete;
 
     await step("starring a plan persists it through the adapter", async () => {
@@ -879,11 +876,11 @@ export const PersistsAcrossReload = {
       detach();
       first.remove();
       // "Reload": a brand-new component + controller over the same key.
-      const reloaded = createFavouritesController();
+      const reloaded = createFavoritesController();
       const second = /** @type {any} */ (document.createElement("cts-test-selector"));
       second.plans = MOCK_PLANS;
-      second.setAttribute("favourites-layout", "group");
-      second.favourites = (await reloaded.get()).plans;
+      second.setAttribute("favorites-layout", "group");
+      second.favorites = (await reloaded.get()).plans;
       harness.appendChild(second);
       await second.updateComplete;
       expect(groupRows(second).length).toBe(1);
@@ -898,7 +895,7 @@ export const PersistsAcrossReload = {
  */
 export const SaveFailureRevertsWithErrorToast = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
@@ -906,16 +903,16 @@ export const SaveFailureRevertsWithErrorToast = {
     const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
     // Latency separates the optimistic state from the rejection so the
     // intermediate add is observable (with latency 0 both land in one flush).
-    const controller = createFavouritesController({ failOn: NOT_FAV, latency: 60 });
-    host.favourites = (await controller.get()).plans;
-    attachFavourites(host, controller);
+    const controller = createFavoritesController({ failOn: NOT_FAV, latency: 60 });
+    host.favorites = (await controller.get()).plans;
+    attachFavorites(host, controller);
 
     await step("the optimistic add lands on the prop, then reverts on failure", async () => {
       await userEvent.click(starFor(host, NOT_FAV));
       // The optimistic add is applied to the controlled prop synchronously.
-      expect(host.favourites).toEqual([NOT_FAV]);
+      expect(host.favorites).toEqual([NOT_FAV]);
       // The rejected save reverts the prop and the star.
-      await waitFor(() => expect(host.favourites).toEqual([]));
+      await waitFor(() => expect(host.favorites).toEqual([]));
       await waitFor(() =>
         expect(starFor(host, NOT_FAV).getAttribute("aria-pressed")).toBe("false"),
       );
@@ -931,35 +928,35 @@ export const SaveFailureRevertsWithErrorToast = {
 };
 
 /**
- * Remove failure: a rejected delete restores the unstarred favourite and
+ * Remove failure: a rejected delete restores the unstarred favorite and
  * raises an error toast.
  */
 export const RemoveFailureRevertsWithErrorToast = {
   render: () => html`
-    <cts-test-selector .plans=${MOCK_PLANS} favourites-layout="group"></cts-test-selector>
+    <cts-test-selector .plans=${MOCK_PLANS} favorites-layout="group"></cts-test-selector>
   `,
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
     const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
-    // Seed one favourite, then make remove reject (latency separates the
+    // Seed one favorite, then make remove reject (latency separates the
     // optimistic remove from the rejection so the intermediate state shows).
-    const controller = createFavouritesController({
+    const controller = createFavoritesController({
       failOn: (_n, op) => op === "remove",
       latency: 60,
     });
     await controller.add(FAV);
-    host.favourites = (await controller.get()).plans;
-    attachFavourites(host, controller);
+    host.favorites = (await controller.get()).plans;
+    attachFavorites(host, controller);
     await host.updateComplete;
 
     await step("unstarring optimistically removes, then restores on failure", async () => {
       expect(groupRows(host).length).toBe(1);
       await userEvent.click(groupStarFor(host, FAV));
       // Optimistic remove drops it from the controlled prop...
-      expect(host.favourites).toEqual([]);
+      expect(host.favorites).toEqual([]);
       // ...then the rejected delete restores it.
-      await waitFor(() => expect(host.favourites).toEqual([FAV]));
+      await waitFor(() => expect(host.favorites).toEqual([FAV]));
       expect(controller.snapshot()).toEqual([FAV]);
     });
 
