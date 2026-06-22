@@ -853,17 +853,21 @@ class CtsTestSelector extends LitElement {
           </div>
           ${this.favouritesLayout === "chip"
             ? html`<div class="oidf-test-selector__chip-wrap">
-                <cts-badge
-                  variant="secondary"
-                  clickable
-                  aria-label="${this._favouritesOnly
-                    ? "Showing favourites only. Activate to show all plans."
-                    : "Show favourites only"}"
-                  ?pressed=${this._favouritesOnly}
-                  icon="${this._favouritesOnly ? "star-fill" : "star"}"
-                  @cts-badge-click=${this._handleFavouritesChipToggle}
-                  >Favourites only</cts-badge
-                >
+                ${this.favouritesLoading
+                  ? html`<cts-badge variant="secondary" icon="star" aria-label="Loading favourites"
+                      >Loading favourites…</cts-badge
+                    >`
+                  : html`<cts-badge
+                      variant="secondary"
+                      clickable
+                      aria-label="${this._favouritesOnly
+                        ? "Showing favourites only. Activate to show all plans."
+                        : "Show favourites only"}"
+                      ?pressed=${this._favouritesOnly}
+                      icon="${this._favouritesOnly ? "star-fill" : "star"}"
+                      @cts-badge-click=${this._handleFavouritesChipToggle}
+                      >Favourites only</cts-badge
+                    >`}
               </div>`
             : nothing}
           <select
@@ -878,7 +882,7 @@ class CtsTestSelector extends LitElement {
                   class="oidf-test-selector__family-view"
                   ?selected=${this._favouritesView}
                 >
-                  ★ Favourites (${this.favourites.length})
+                  ★ Favourites (${this.favouritesLoading ? "…" : this.favourites.length})
                 </option>`
               : nothing}
             <option value="" ?selected=${this._selectedFamily === "" && !this._favouritesView}>
