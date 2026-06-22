@@ -18,6 +18,15 @@
 const DEFAULT_KEY = "cts:favourite-plans";
 
 /**
+ * Minimal Storage shape the controller actually uses — narrower than the DOM
+ * `Storage` interface so a Map-backed fake (node unit test) satisfies it.
+ * @typedef {object} StorageLike
+ * @property {(key: string) => string | null} getItem - Read a value.
+ * @property {(key: string, value: string) => void} setItem - Write a value.
+ * @property {(key: string) => void} removeItem - Delete a value.
+ */
+
+/**
  * Resolve after `ms` (0 → a resolved promise) so a story can observe the
  * optimistic state before the persisted truth lands.
  * @param {number} ms - Delay in milliseconds.
@@ -51,7 +60,7 @@ function normaliseFailOn(failOn) {
  * @param {number} [options.latency] - Milliseconds delay applied to every op.
  * @param {string|string[]|((name: string, op: string) => boolean)|null} [options.failOn] -
  *   Which operations reject — see {@link normaliseFailOn}.
- * @param {Storage} [options.storage] - Storage backend (default `localStorage`).
+ * @param {StorageLike} [options.storage] - Storage backend (default `localStorage`).
  * @returns {{
  *   snapshot: () => string[],
  *   reset: () => void,
@@ -159,12 +168,8 @@ export function createFavouritesController({
  * @returns {() => void} A detach function that removes the listener.
  */
 export function attachFavourites(host, controller) {
-  /**
-   * @param {CustomEvent} e - The cts-favourite-toggle event.
-   * @returns {Promise<void>} Resolves once the persist round-trip settles.
-   */
-  const handler = async (e) => {
-    const { plan, favourite } = e.detail;
+  const handler = async (/** @type {Event} */ e) => {
+    const { plan, favourite } = /** @type {CustomEvent} */ (e).detail;
     const before = host.favourites;
     // Optimistic: append on add (insertion order), filter out on remove.
     host.favourites = favourite
@@ -177,8 +182,12 @@ export function attachFavourites(host, controller) {
       // Revert the optimistic change and surface a plain error toast (KTD4:
       // no undo affordance — re-starring is the undo path).
       host.favourites = before;
-      if (typeof window !== "undefined" && typeof window.ctsToast === "function") {
-        window.ctsToast({
+      const ctsToast =
+        typeof window !== "undefined"
+          ? /** @type {{ ctsToast?: Function }} */ (/** @type {unknown} */ (window)).ctsToast
+          : undefined;
+      if (typeof ctsToast === "function") {
+        ctsToast({
           title: favourite ? "Couldn’t save favourite" : "Couldn’t remove favourite",
           message: "Please try again.",
           kind: "error",
@@ -186,6 +195,7 @@ export function attachFavourites(host, controller) {
       }
     }
   };
-  host.addEventListener("cts-favourite-toggle", handler);
-  return () => host.removeEventListener("cts-favourite-toggle", handler);
+  host.addEventListener("cts-favourite-toggle", /** @type {EventListener} */ (handler));
+  return () =>
+    host.removeEventListener("cts-favourite-toggle", /** @type {EventListener} */ (handler));
 }

@@ -880,7 +880,7 @@ export const PersistsAcrossReload = {
       first.remove();
       // "Reload": a brand-new component + controller over the same key.
       const reloaded = createFavouritesController();
-      const second = document.createElement("cts-test-selector");
+      const second = /** @type {any} */ (document.createElement("cts-test-selector"));
       second.plans = MOCK_PLANS;
       second.setAttribute("favourites-layout", "group");
       second.favourites = (await reloaded.get()).plans;
@@ -903,7 +903,7 @@ export const SaveFailureRevertsWithErrorToast = {
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
-    const toastSpy = spyOn(window, "ctsToast").mockImplementation(() => {});
+    const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
     // Latency separates the optimistic state from the rejection so the
     // intermediate add is observable (with latency 0 both land in one flush).
     const controller = createFavouritesController({ failOn: NOT_FAV, latency: 60 });
@@ -941,7 +941,7 @@ export const RemoveFailureRevertsWithErrorToast = {
   async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-test-selector");
     await host.updateComplete;
-    const toastSpy = spyOn(window, "ctsToast").mockImplementation(() => {});
+    const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
     // Seed one favourite, then make remove reject (latency separates the
     // optimistic remove from the rejection so the intermediate state shows).
     const controller = createFavouritesController({
