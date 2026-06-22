@@ -219,7 +219,6 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks",
-	"client.acr_value",
 	"consent.productType",
 	"resource.consentUrl",
 	"resource.brazilCpf",
