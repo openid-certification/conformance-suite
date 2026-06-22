@@ -3,7 +3,7 @@
 # $ docker compose -f docker-compose-dev-linux-nodocker.yml build
 # $ docker compose -f docker-compose-dev-linux-nodocker.yml up --remove-orphans
 # Run/Debug Application.main() with program arguments
-# --fintechlabs.devmode=true --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
+# --fintechlabs.devmode=true --spring.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
 services:
   mongodb:
     image: mongo:6.0.13
