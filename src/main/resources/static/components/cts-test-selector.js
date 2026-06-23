@@ -160,22 +160,25 @@ const STYLE_TEXT = css`
   /* Saved-view option: an orange accent sets the "★ Favorites" entry apart
      from the real spec families below it. (Native <option> styling is limited,
      but color and weight are honored in sized listboxes across the supported
-     modern browsers.) The divider is NOT a border-bottom on this option —
-     once the row is selected the orange :checked fill covers its padding box,
-     leaving no breathing room above the line. Instead it is drawn on the
-     FOLLOWING option's border-top (rule below), so it floats in the
-     inter-option gap with 4px of white above it (this option's margin-bottom,
-     which sits outside the orange fill) and 4px below (the next option's
-     reduced padding-top): 4px gap, divider, 4px gap. Native <option>s do not
-     render ::after, so a pseudo-element divider is not available here. */
+     modern browsers.) */
   .oidf-test-selector__family-view {
     color: var(--orange-700);
     font-weight: var(--fw-medium);
-    margin-bottom: var(--space-1);
   }
-  .oidf-test-selector__family-view + option {
+  /* Divider under the saved-view entry. It is a real <hr> in the listbox flow
+     (supported in <select> across the modern browser floor), NOT a border on
+     either adjacent option: an option's orange :checked fill covers its padding
+     box up to its border, so a border-divider on either option would be abutted
+     by that option's fill when selected (★ in the favorites view, "All
+     specifications" by default). The <hr> floats in the inter-option gap with
+     4px of white above and below it in BOTH states. Native <option>s render
+     neither ::after nor a free-floating border, so the <hr> is the only way to
+     get symmetric breathing room here. */
+  .oidf-test-selector__family-divider {
+    height: 0;
+    margin: var(--space-1) var(--space-3);
+    border: none;
     border-top: 1px solid var(--divider);
-    padding-top: var(--space-1);
   }
   .oidf-test-selector__family option:checked {
     /* Under appearance:none the OS still paints the selected row via
@@ -832,6 +835,20 @@ class CtsTestSelector extends LitElement {
       this._selectedFamily = "";
       this._persistFilter();
     }
+    // Reflect the component's filter state in the native listbox selection.
+    // A `?selected` option binding does not reliably move the native
+    // selectedIndex on programmatic changes (the escape hatch clearing the
+    // filter, or restoring a persisted filter on mount), so set `value`
+    // explicitly. Re-runs on `plans` too, so the selection re-syncs once a
+    // restored family's <option> has rendered.
+    if (changed.has("_selectedFamily") || changed.has("_favoritesView") || changed.has("plans")) {
+      const select = /** @type {HTMLSelectElement | null} */ (
+        this.querySelector(".oidf-test-selector__family")
+      );
+      if (select) {
+        select.value = this._favoritesView ? FAVORITES_VIEW_VALUE : this._selectedFamily;
+      }
+    }
   }
 
   render() {
@@ -880,6 +897,7 @@ class CtsTestSelector extends LitElement {
             >
               ★ Favorites (${this._favoritesViewLabel})
             </option>
+            <hr class="oidf-test-selector__family-divider" />
             <option value="" ?selected=${this._selectedFamily === "" && !this._favoritesView}>
               All specifications
             </option>

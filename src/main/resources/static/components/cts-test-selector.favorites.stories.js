@@ -511,24 +511,36 @@ export const EscapeHatchClearsFilterAndFocusesSearch = {
 };
 
 /**
- * Separator spacing (U4): the 4px breathing room above/below the ★ Favorites
- * divider is a pure style; assert the rule is registered in the injected
- * stylesheet so a regression in the head-injection pipeline is caught. The
- * divider is drawn on the FOLLOWING option's border-top (not this option's
- * border-bottom, which the orange :checked fill would cover), floating in the
- * inter-option gap with 4px white above and below.
+ * Separator (U4): the ★ Favorites divider is a real <hr> in the listbox flow,
+ * NOT a border on either adjacent option — an option's orange :checked fill
+ * abuts its own border, so a border-divider would lose its breathing room
+ * whenever that option is selected. The <hr> floats in the inter-option gap
+ * with symmetric 4px white above and below in both states.
  */
-export const SeparatorSpacingStyleRegistered = {
+export const SeparatorRendersAsHr = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
-  async play() {
-    const css = document.getElementById("cts-test-selector-styles")?.textContent || "";
-    expect(css).toContain(".oidf-test-selector__family-view");
-    // 4px white above the divider (this option's margin-bottom).
-    expect(css).toContain("margin-bottom: var(--space-1)");
-    // The divider line + 4px below it, on the following option.
-    expect(css).toContain(".oidf-test-selector__family-view + option");
-    expect(css).toContain("border-top: 1px solid var(--divider)");
-    expect(css).toContain("padding-top: var(--space-1)");
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+
+    await step("an <hr> divider sits between the ★ Favorites and the first option", () => {
+      const hr = host.querySelector(".oidf-test-selector__family-divider");
+      expect(hr).toBeTruthy();
+      expect(hr.tagName).toBe("HR");
+      // Immediately follows the saved-view option in the listbox.
+      expect(hr.previousElementSibling?.classList.contains("oidf-test-selector__family-view")).toBe(
+        true,
+      );
+      // It is not a selectable option, so it never disturbs the family value.
+      expect(host.querySelector(".oidf-test-selector__family").value).toBe("");
+    });
+
+    await step("the divider style is registered with 4px breathing above/below", () => {
+      const css = document.getElementById("cts-test-selector-styles")?.textContent || "";
+      expect(css).toContain(".oidf-test-selector__family-divider");
+      expect(css).toContain("border-top: 1px solid var(--divider)");
+      expect(css).toContain("margin: var(--space-1) var(--space-3)");
+    });
   },
 };
 
