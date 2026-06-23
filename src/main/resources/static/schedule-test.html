@@ -175,11 +175,11 @@
         #guidedIsland:focus,
         #scheduleTestPage:focus { outline: none; }
 
-        /* revealPlanSelection() scrolls the cascade to block:start; land it
-           16px shy of the viewport top so the selection (and the flash wash
+        /* revealPlanSelection() scrolls #selectionFlash to block:start; land
+           it 16px shy of the viewport top so the selection (and the flash wash
            around it) gets breathing room. scroll-margin offsets the scroll
            target position only — unlike padding, the box doesn't change. */
-        #specCascade { scroll-margin-top: var(--space-4); }
+        #selectionFlash { scroll-margin-top: var(--space-4); }
 
         .sr-only { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
 
@@ -641,6 +641,18 @@
                 </div>
             </div>
 
+            <!-- Plans-load-failure banner (KTD5). Hidden by default; revealed
+                 from loadAvailablePlans()'s catch when /api/plan/available
+                 fails. A successful-but-empty response is left to the picker's
+                 own empty state — only a fetch failure shows this. Replaces
+                 the deleted cts-spec-cascade's `spec-cascade-error` banner. -->
+            <cts-alert
+                id="plansLoadError"
+                variant="danger"
+                data-testid="plans-load-error"
+                hidden
+            >Unable to load test plans — please reload the page.</cts-alert>
+
             <cts-test-selector id="planSearch" loading></cts-test-selector>
             <!-- Wrap the cascade + variant selectors so the scroll-in flash
                  wash (fired after a search-list plan pick) covers both as one
@@ -750,34 +762,44 @@
         }
 
         // Shared arrival cue for the user-pick paths (clicking a search
-        // result, accepting the guided prefill bridge): scroll the cascade
-        // into view, then — once the smooth scroll has *settled* — flash the
-        // cascade + variant selectors group and drop focus into the first
-        // variant <select> (falling back to the cascade's first <select> for
-        // plans with no variants) so the user can carry straight on to
-        // configuring. The flash fires post-settle so the wash reads as
-        // "you've arrived" rather than playing mid-flight; reduced-motion
-        // handling lives inside flashHighlight(). Deliberately NOT called on
-        // the non-scrolling deep-link / edit-plan / last-config restore
-        // paths. The rAF defers until the post-selection render (variants +
+        // result, accepting the guided prefill bridge): scroll the selection
+        // group into view, then — once the smooth scroll has *settled* —
+        // flash the variant-selectors group and drop focus into the first
+        // variant <select> (falling back to the Create button for plans with
+        // no variants) so the user can carry straight on to configuring. The
+        // flash fires post-settle so the wash reads as "you've arrived"
+        // rather than playing mid-flight; reduced-motion handling lives
+        // inside flashHighlight(). Deliberately NOT called on the
+        // non-scrolling deep-link / edit-plan / last-config restore paths.
+        // The rAF defers until the post-selection render (variants +
         // config-form mutations) has laid out, so the scroll target reflects
         // the final layout — call it synchronously after selecting the plan.
         function revealPlanSelection() {
             requestAnimationFrame(function() {
-                var cascadeEl = document.getElementById('specCascade');
-                if (!cascadeEl) return;
-                cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // #selectionFlash wraps the variant selectors (it used to wrap
+                // the now-deleted cascade too); it is the scroll + flash
+                // target and carries the scroll-margin-top rule.
+                var flashEl = document.getElementById('selectionFlash');
+                if (!flashEl) return;
+                flashEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 whenScrollSettles(function() {
-                    var flashEl = document.getElementById('selectionFlash');
-                    if (flashEl && typeof flashEl.flashHighlight === 'function') {
+                    if (typeof flashEl.flashHighlight === 'function') {
                         flashEl.flashHighlight();
                     }
                     // No preventScroll: the scroll has already rested, so
                     // letting .focus() nudge an off-screen control into view
                     // is desirable here, not a conflict.
                     var variantForm = document.getElementById('variantSelectors');
-                    var firstField = (variantForm && variantForm.querySelector('select'))
-                        || cascadeEl.querySelector('select');
+                    var firstField = variantForm && variantForm.querySelector('select');
+                    if (!firstField) {
+                        // No-variant plan: #variantSelectors is empty. Don't
+                        // strand focus back in the search list — advance to the
+                        // primary action. cts-button renders a native <button>
+                        // in its light DOM (createRenderRoot returns `this`), so
+                        // focus that; the host element itself isn't focusable.
+                        var createBtn = document.getElementById('createPlanBtn');
+                        firstField = (createBtn && createBtn.querySelector('button')) || createBtn;
+                    }
                     if (firstField) firstField.focus();
                 });
             });
@@ -807,9 +829,8 @@
             }
 
             // No full-page "Loading available tests..." modal: the test
-            // selector (#planSearch) boots with its own in-list loader and the
-            // cts-spec-cascade self-fetches with its own loading state, so the
-            // page chrome stays visible and only the list areas show spinners.
+            // selector (#planSearch) boots with its own in-list loader, so the
+            // page chrome stays visible and only the list area shows a spinner.
             // The selector's loader is cleared in the chain's .finally below.
             FAPI_UI.loadScheduleTestPageTemplates()
             .then(function() {
@@ -866,7 +887,7 @@
                 // page is wired and interactive (the cts-plan-select handler is
                 // installed by loadScheduleTestPage in the chain above). On a
                 // failed plans fetch the rows fall back to the empty message
-                // and cts-spec-cascade surfaces the error banner.
+                // and loadAvailablePlans()'s catch reveals #plansLoadError.
                 var planSearch = document.getElementById('planSearch');
                 if (planSearch) {
                     planSearch.loading = false;
@@ -1098,13 +1119,16 @@
                     }
                 })
                 .catch((err) => {
-                    // Swallow fetch / response.ok failures here so the init
-                    // chain proceeds. The component's own _fetchPlans (run
-                    // from connectedCallback) sees the same error and
-                    // renders the error banner. Downstream readers index
-                    // `FAPI_UI.availablePlans[planName]` and guard on
+                    // Reveal the page-level load-failure banner (KTD5). The
+                    // page owns the fetch, so this catch is the one place that
+                    // can distinguish a real fetch failure (-> banner) from a
+                    // successful-but-empty response (-> the picker's own empty
+                    // state). The init chain still proceeds: downstream readers
+                    // index `FAPI_UI.availablePlans[planName]` and guard on
                     // truthiness, so an empty object is a safe fallback.
                     FAPI_UI.availablePlans = {};
+                    var loadError = document.getElementById('plansLoadError');
+                    if (loadError) loadError.hidden = false;
                     console.warn('[schedule-test] /api/plan/available fetch failed:', err);
                 });
         }
