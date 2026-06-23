@@ -6,6 +6,14 @@ import "./cts-test-selector.js";
 export default {
   title: "Components/cts-test-selector",
   component: "cts-test-selector",
+  // Favorites is always-on, so selecting a family (FamilyFilter) now persists
+  // the choice to cts:test-selector-filter. Clear it (and the favorites list)
+  // before every story so a persisted filter never leaks into a sibling story
+  // that expects the default "All specifications" view.
+  beforeEach: () => {
+    localStorage.removeItem("cts:test-selector-filter");
+    localStorage.removeItem("cts:favorite-plans");
+  },
 };
 
 export const Default = {
