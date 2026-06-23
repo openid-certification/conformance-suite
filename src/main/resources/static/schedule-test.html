@@ -88,6 +88,32 @@
         });
     </script>
 
+    <script>
+        // Promise-shim for the favorites store module (same pattern as
+        // __configFormAdapterReady / __guidedModeReady above): the inline init
+        // chain awaits this before seeding planSearch.favorites and wiring the
+        // optimistic cts-favorite-toggle persistence, because the module
+        // script that creates the controller runs async relative to inline
+        // scripts.
+        window.__favoritesReady = new Promise(function (resolve) {
+            window.__resolveFavoritesReady = resolve;
+        });
+    </script>
+    <script type="module">
+        // Favorites persistence: localStorage IS the interim backend (the Java
+        // /api/favorite-plans store is a deferred follow-up). Single-source the
+        // store module and re-expose the controller + attachFavorites on window
+        // so the inline <script> chain below (which cannot use ES imports) can
+        // seed favorites and wire optimistic persistence once the plans load.
+        import {
+            createFavoritesController,
+            attachFavorites,
+        } from "/components/cts-test-selector.favorites-store.js";
+        window.__favoritesController = createFavoritesController();
+        window.__attachFavorites = attachFavorites;
+        window.__resolveFavoritesReady();
+    </script>
+
     <style>
         /* ── Guided | Advanced mode header ──────────────────────────── */
         .schedule-test-mode-head {
@@ -1041,6 +1067,30 @@
                     var planSearch = document.getElementById('planSearch');
                     if (planSearch) {
                         planSearch.plans = planList;
+                        // Favorites: seed from the interim localStorage store
+                        // and wire the optimistic cts-favorite-toggle
+                        // persistence. This is fully independent of plan
+                        // selection — favoriting changes no selected plan, so it
+                        // never routes through selectPlanByName /
+                        // clearConfigForNewPlan and never touches the
+                        // isSystemSelectingPlan suppression counter.
+                        if (window.__favoritesReady) {
+                            window.__favoritesReady.then(function () {
+                                var favController = window.__favoritesController;
+                                var attachFav = window.__attachFavorites;
+                                if (!favController || !attachFav) return;
+                                favController.get().then(function (res) {
+                                    planSearch.favorites = (res && res.plans) || [];
+                                }).catch(function () {
+                                    // get() rejecting (the future fetch swap:
+                                    // network / 401-unauthenticated) degrades to
+                                    // an empty list rather than blocking the
+                                    // picker.
+                                    planSearch.favorites = [];
+                                });
+                                attachFav(planSearch, favController);
+                            });
+                        }
                     }
                 })
                 .catch((err) => {

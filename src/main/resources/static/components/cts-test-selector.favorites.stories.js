@@ -5,7 +5,10 @@ import "./cts-test-selector.js";
 // Side-effect import installs window.ctsToast so the failure stories can spy
 // on it (the adapter raises an error toast through that global, KTD4).
 import "../js/cts-toast-api.js";
-import { createFavoritesController, attachFavorites } from "./cts-test-selector.favorites-fake.js";
+import {
+  createFavoritesController,
+  attachFavorites,
+} from "./cts-test-selector.favorites-store.js";
 
 /** The localStorage key the fake adapter persists under (see U6). */
 const FAV_KEY = "cts:favorite-plans";
