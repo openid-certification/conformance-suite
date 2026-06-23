@@ -1,12 +1,12 @@
-// Story-only fake persistence adapter for the cts-test-selector favorites
-// prototype. It is NOT imported by any page — it stands in for the deferred
-// `/api/favorite-plans` backend so the Storybook stories can exercise the
-// full optimistic lifecycle (persist across reload, injectable latency, and
-// failure → revert) without a server.
+// Favorites persistence store for the cts-test-selector picker. localStorage
+// IS the interim backend (the deferred `/api/favorite-plans` Java store is a
+// later follow-up), so this module is imported by BOTH the production page
+// (schedule-test.html) and the Storybook stories — single-sourcing the exact
+// get/add/remove surface that the future backend swaps `fetch()` into.
 //
 // The request/response wire shape is mirrored deliberately, so swapping the
 // localStorage reads/writes for `fetch()` behind get/add/remove is all the
-// production wiring (schedule-test.html) needs — the component never changes:
+// production wiring needs — the component never changes:
 //
 //   GET    /api/favorite-plans          -> 200 { plans: string[] }
 //   POST   /api/favorite-plans { plan }  -> 200 { plans: string[] }   (added)
@@ -14,6 +14,12 @@
 //
 // Ordering is insertion order, most-recently-added LAST (a plain append),
 // matching how a chronological server-side list would grow.
+//
+// `latency` / `failOn` are optional test scaffolding the stories inject to
+// demo slow / failed writes (default off in production, where they stay
+// inert). They are distinct from real browser storage errors (quota,
+// private-mode `setItem` throws), which add/remove always surface as a
+// rejected promise so the page can toast.
 
 const DEFAULT_KEY = "cts:favorite-plans";
 
@@ -52,8 +58,8 @@ function normalizeFailOn(failOn) {
 }
 
 /**
- * Create a fake favorites controller backed by `storage` (defaults to the
- * page's `localStorage`). Storage is injectable so a node unit test can pass a
+ * Create a favorites controller backed by `storage` (defaults to the page's
+ * `localStorage`). Storage is injectable so a node unit test can pass a
  * Map-backed fake without a DOM.
  * @param {object} [options] - Controller configuration.
  * @param {string} [options.key] - Storage key (namespaced by default).
@@ -159,29 +165,34 @@ export function createFavoritesController({
 
 /**
  * Wire a `cts-test-selector` to a controller exactly the way schedule-test.html
- * will wire it to `/api/favorite-plans`: optimistically update the `favorites`
- * prop on every `cts-favorite-toggle`, reconcile with the persisted truth on
- * success, and revert + raise an error toast on failure.
+ * wires it (and the way the future `/api/favorite-plans` swap will): optimistically
+ * update the `favorites` prop on every `cts-favorite-toggle`, reconcile with the
+ * persisted truth on success, and revert + raise an error toast on failure.
  * @param {HTMLElement & { favorites: string[] }} host - The cts-test-selector.
- * @param {ReturnType<typeof createFavoritesController>} controller - The fake
+ * @param {ReturnType<typeof createFavoritesController>} controller - The
  *   persistence controller to drive.
  * @returns {() => void} A detach function that removes the listener.
  */
 export function attachFavorites(host, controller) {
   const handler = async (/** @type {Event} */ e) => {
     const { plan, favorite } = /** @type {CustomEvent} */ (e).detail;
-    const before = host.favorites;
     // Optimistic: append on add (insertion order), filter out on remove.
     host.favorites = favorite
-      ? [...before.filter((n) => n !== plan), plan]
-      : before.filter((n) => n !== plan);
+      ? [...host.favorites.filter((n) => n !== plan), plan]
+      : host.favorites.filter((n) => n !== plan);
     try {
       const { plans } = favorite ? await controller.add(plan) : await controller.remove(plan);
       host.favorites = plans;
     } catch {
-      // Revert the optimistic change and surface a plain error toast (KTD4:
-      // no undo affordance — re-starring is the undo path).
-      host.favorites = before;
+      // Revert ONLY this plan's optimistic change, computed against the
+      // *current* favorites (not a snapshot captured before the await): an
+      // add-failure removes the plan, a remove-failure re-adds it. This keeps
+      // a concurrent toggle of another plan that resolved during the await
+      // intact, so one plan's failure never mutates another's state (KTD4: no
+      // undo affordance — re-starring is the undo path).
+      host.favorites = favorite
+        ? host.favorites.filter((n) => n !== plan)
+        : [...host.favorites.filter((n) => n !== plan), plan];
       const ctsToast =
         typeof window !== "undefined"
           ? /** @type {{ ctsToast?: Function }} */ (/** @type {unknown} */ (window)).ctsToast
