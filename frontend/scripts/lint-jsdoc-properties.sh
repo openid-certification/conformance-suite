@@ -11,6 +11,10 @@
 #   *.stories.js — test-only files, not components.
 #   *.test.js    — unit-test files, not components.
 #   _button-classes.js — shared helper module, not a custom element.
+#   any cts-*.js that does NOT call customElements.define — plain helper /
+#     adapter modules (e.g. cts-test-selector.favorites-store.js) live in the
+#     components dir for colocation but define no element, so the @property
+#     rule does not apply to them.
 #
 # Exits non-zero and lists any component file missing the tag.
 
@@ -33,6 +37,11 @@ for file in "$COMPONENTS_DIR"/cts-*.js; do
   case "$(basename "$file")" in
     *.stories.js|*.test.js|_*) continue ;;
   esac
+  # Only files that actually define a custom element are components; plain
+  # helper / adapter modules (no customElements.define) are exempt.
+  if ! grep -q "customElements.define" "$file"; then
+    continue
+  fi
   if ! grep -q "@property" "$file"; then
     missing+=("$file")
   fi

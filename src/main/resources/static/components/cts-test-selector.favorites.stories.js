@@ -5,10 +5,14 @@ import "./cts-test-selector.js";
 // Side-effect import installs window.ctsToast so the failure stories can spy
 // on it (the store raises an error toast through that global, KTD4).
 import "../js/cts-toast-api.js";
-import { createFavoritesController, attachFavorites } from "./cts-test-selector.favorites-store.js";
+import { attachFavorites } from "./cts-test-selector.favorites-store.js";
+import { createFakeFavoritesController } from "./cts-test-selector.favorites-store.fake.js";
 
-/** The two localStorage keys the picker owns (favorites list + filter pref). */
-const FAV_KEY = "cts:favorite-plans";
+// The favorites LIST is account data stored server-side (the production store
+// does `fetch /api/favorite-plans`), which can't run against a server in
+// Storybook — so the persist/failure stories drive the shared attachFavorites
+// logic with an in-memory fake controller. Only the component-internal FILTER
+// preference is localStorage, so that's the single key to reset between stories.
 const FILTER_KEY = "cts:test-selector-filter";
 
 /**
@@ -19,23 +23,22 @@ const FILTER_KEY = "cts:test-selector-filter";
  * "★ Favorites (n)" entry sits atop the family listbox and filters the plan
  * list to favorites only; every row carries a star toggle. Most stories
  * simulate the caller's optimistic update inline (`wireOptimistic`); the
- * persist/failure stories drive the real localStorage-backed store via
- * `attachFavorites`, exactly the shape schedule-test.html uses (and the future
- * `/api/favorite-plans` swap will).
+ * persist/failure stories drive `attachFavorites` with an in-memory fake
+ * controller — the same wiring schedule-test.html uses against the real
+ * `/api/favorite-plans` server store.
  *
  * The selected filter choice (a spec family or the ★ Favorites view) is
  * persisted component-internally to `cts:test-selector-filter` and restored on
- * mount; the favorites list is the caller-owned `cts:favorite-plans` store.
+ * mount; the favorites list itself is server-side, keyed on the principal.
  */
 export default {
   title: "Components/cts-test-selector/Favorites",
   component: "cts-test-selector",
-  // Clear BOTH persisted keys before every story so neither the favorites list
-  // nor the filter preference leaks across stories. (This component does not
-  // write to the URL, so no history reset is needed.) Resilient to a throwing
-  // story: removeItem never throws for a missing key.
+  // Reset the filter preference before every story so it never leaks across
+  // stories. The favorites list lives in each story's own fake controller, so
+  // there is no shared favorites state to clear. (No URL writes → no history
+  // reset.) removeItem never throws for a missing key.
   beforeEach: () => {
-    localStorage.removeItem(FAV_KEY);
     localStorage.removeItem(FILTER_KEY);
   },
 };
@@ -212,6 +215,47 @@ export const KeyboardFTogglesFocusedRow = {
       await waitFor(() => expect(star.getAttribute("tabindex")).toBe("0"));
       const otherStar = starFor(host, MOCK_PLANS[2].planName);
       expect(otherStar.getAttribute("tabindex")).toBe("-1");
+    });
+  },
+};
+
+/**
+ * Cannot favorite: when the favorites API can't be reached (a 401 with no
+ * signed-in principal, or a network error) the page sets canFavorite=false. The
+ * stars render disabled with an explanatory tooltip rather than vanishing,
+ * clicking is a no-op, and the ★ Favorites view explains why it is empty.
+ */
+export const CannotFavoriteDisablesStar = {
+  render: () => html`
+    <cts-test-selector .plans=${MOCK_PLANS} .canFavorite=${false}></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    /** @type {any[]} */
+    const events = [];
+    host.addEventListener("cts-favorite-toggle", (e) =>
+      events.push(/** @type {CustomEvent} */ (e).detail),
+    );
+
+    await step("stars render aria-disabled with an explanatory tooltip", () => {
+      const star = starFor(host, NOT_FAV);
+      expect(star.getAttribute("aria-disabled")).toBe("true");
+      expect(star.getAttribute("aria-label")).toContain("Sign in to save favorites");
+      expect(star.closest("cts-tooltip")).not.toBeNull();
+    });
+
+    await step("clicking a disabled star fires nothing", async () => {
+      await userEvent.click(starFor(host, NOT_FAV));
+      expect(events.length).toBe(0);
+    });
+
+    await step("the ★ Favorites view explains it needs sign-in", async () => {
+      await selectFavoritesView(host);
+      await waitFor(() => {
+        const empty = host.querySelector(".oidf-test-selector__empty");
+        expect(empty.textContent).toContain("Sign in to save favorites");
+      });
     });
   },
 };
@@ -546,13 +590,14 @@ export const SeparatorRendersAsHr = {
 
 // ───────────────────────────────────────────────────────────────────────────
 // Store-driven lifecycle: persist across reload + failure → revert + toast.
-// These drive the real localStorage-backed store end-to-end, the same wire
-// schedule-test.html uses against /api/favorite-plans.
+// These drive attachFavorites with an in-memory fake controller — the same
+// wiring schedule-test.html uses against the real /api/favorite-plans server.
 // ───────────────────────────────────────────────────────────────────────────
 
 /**
  * Persist across reload: a favorite saved through the store survives a full
- * re-mount, because the second selector is seeded only from storage.
+ * re-mount, because the remounted selector is seeded from the same store (the
+ * server in production; the fake controller's in-memory state here).
  */
 export const PersistsAcrossReload = {
   render: () => html`
@@ -563,7 +608,8 @@ export const PersistsAcrossReload = {
   async play({ canvasElement, step }) {
     const harness = canvasElement.querySelector(".reload-harness");
     const first = harness.querySelector("cts-test-selector");
-    const controller = createFavoritesController();
+    // One controller stands in for the server: its state survives the remount.
+    const controller = createFakeFavoritesController();
     first.favorites = (await controller.get()).plans;
     const detach = attachFavorites(first, controller);
     await first.updateComplete;
@@ -573,14 +619,14 @@ export const PersistsAcrossReload = {
       await waitFor(() => expect(controller.snapshot()).toEqual([NOT_FAV]));
     });
 
-    await step("a remounted selector seeded only from storage shows it starred", async () => {
+    await step("a remounted selector re-seeded from the store shows it starred", async () => {
       detach();
       first.remove();
-      // "Reload": a brand-new component + controller over the same key.
-      const reloaded = createFavoritesController();
+      // "Reload": a brand-new component, re-seeded from the same store (the
+      // server still has the favorite).
       const second = /** @type {any} */ (document.createElement("cts-test-selector"));
       second.plans = MOCK_PLANS;
-      second.favorites = (await reloaded.get()).plans;
+      second.favorites = (await controller.get()).plans;
       harness.appendChild(second);
       await second.updateComplete;
       const star = starFor(second, NOT_FAV);
@@ -602,7 +648,7 @@ export const SaveFailureRevertsWithErrorToast = {
     const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
     // Latency separates the optimistic state from the rejection so the
     // intermediate add is observable (with latency 0 both land in one flush).
-    const controller = createFavoritesController({ failOn: NOT_FAV, latency: 60 });
+    const controller = createFakeFavoritesController({ failOn: NOT_FAV, latency: 60 });
     host.favorites = (await controller.get()).plans;
     attachFavorites(host, controller);
 
@@ -638,7 +684,7 @@ export const RemoveFailureRevertsWithErrorToast = {
     const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
     // Seed one favorite, then make remove reject (latency separates the
     // optimistic remove from the rejection so the intermediate state shows).
-    const controller = createFavoritesController({
+    const controller = createFakeFavoritesController({
       failOn: (_n, op) => op === "remove",
       latency: 60,
     });

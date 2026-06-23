@@ -100,11 +100,11 @@
         });
     </script>
     <script type="module">
-        // Favorites persistence: localStorage IS the interim backend (the Java
-        // /api/favorite-plans store is a deferred follow-up). Single-source the
-        // store module and re-expose the controller + attachFavorites on window
-        // so the inline <script> chain below (which cannot use ES imports) can
-        // seed favorites and wire optimistic persistence once the plans load.
+        // Favorites persistence: the favorites list is account data, stored
+        // server-side per principal via the auth-gated /api/favorite-plans API.
+        // Re-expose the controller + attachFavorites on window so the inline
+        // <script> chain below (which cannot use ES imports) can seed favorites
+        // and wire optimistic persistence once the plans load.
         import {
             createFavoritesController,
             attachFavorites,
@@ -1067,13 +1067,13 @@
                     var planSearch = document.getElementById('planSearch');
                     if (planSearch) {
                         planSearch.plans = planList;
-                        // Favorites: seed from the interim localStorage store
-                        // and wire the optimistic cts-favorite-toggle
-                        // persistence. This is fully independent of plan
-                        // selection — favoriting changes no selected plan, so it
-                        // never routes through selectPlanByName /
-                        // clearConfigForNewPlan and never touches the
-                        // isSystemSelectingPlan suppression counter.
+                        // Favorites: seed the saved list from the server
+                        // (/api/favorite-plans) and wire the optimistic
+                        // cts-favorite-toggle persistence. This is fully
+                        // independent of plan selection — favoriting changes no
+                        // selected plan, so it never routes through
+                        // selectPlanByName / clearConfigForNewPlan and never
+                        // touches the isSystemSelectingPlan suppression counter.
                         if (window.__favoritesReady) {
                             window.__favoritesReady.then(function () {
                                 var favController = window.__favoritesController;
@@ -1081,12 +1081,16 @@
                                 if (!favController || !attachFav) return;
                                 favController.get().then(function (res) {
                                     planSearch.favorites = (res && res.plans) || [];
+                                    planSearch.canFavorite = true;
                                 }).catch(function () {
-                                    // get() rejecting (the future fetch swap:
-                                    // network / 401-unauthenticated) degrades to
-                                    // an empty list rather than blocking the
-                                    // picker.
+                                    // get() rejecting (401 when there is no
+                                    // authenticated principal, or a network
+                                    // error) disables favorites: the stars
+                                    // render as a "Sign in to save favorites"
+                                    // affordance instead of offering toggles
+                                    // that would fail. The picker stays usable.
                                     planSearch.favorites = [];
+                                    planSearch.canFavorite = false;
                                 });
                                 attachFav(planSearch, favController);
                             });

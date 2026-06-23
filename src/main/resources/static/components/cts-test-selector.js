@@ -56,6 +56,12 @@ import "./cts-loading-state.js";
  *   count shows an ellipsis placeholder while the caller's first favorites
  *   fetch is in flight. Distinct from `loading`, which governs the whole
  *   plan list.
+ * @property {boolean} canFavorite - Whether the current user can save
+ *   favorites. Defaults to `true`. The caller sets it to `false` when the
+ *   favorites API could not be reached (a 401 with no authenticated principal,
+ *   or a network error). When `false` the per-row stars render disabled with a
+ *   "Sign in to save favorites" tooltip rather than vanishing — the affordance
+ *   stays discoverable — and the ★ Favorites view explains why it is empty.
  * @fires cts-plan-select - When a list item is selected, with
  *   `{ detail: { plan, via } }` where `via` is `'click'` or `'keyboard'`;
  *   bubbles.
@@ -395,6 +401,18 @@ const STYLE_TEXT = css`
   .oidf-test-selector__fav.is-favorited {
     color: var(--orange-500);
   }
+  /* canFavorite=false: the star is a no-op, explanatory affordance (the user
+     is not signed in / favorites failed to load). aria-disabled rather than
+     the disabled attribute so it stays in the tab order and the tooltip is
+     reachable. */
+  .oidf-test-selector__fav[aria-disabled="true"] {
+    color: var(--fg-faint);
+    cursor: not-allowed;
+  }
+  .oidf-test-selector__fav[aria-disabled="true"]:hover {
+    background: transparent;
+    color: var(--fg-faint);
+  }
   .oidf-test-selector__row-head {
     display: flex;
     justify-content: space-between;
@@ -499,6 +517,7 @@ class CtsTestSelector extends LitElement {
     loading: { type: Boolean, reflect: true },
     favorites: { type: Array },
     favoritesLoading: { type: Boolean, attribute: "favorites-loading" },
+    canFavorite: { type: Boolean, attribute: "can-favorite" },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
     // The synthetic "★ Favorites" saved view is selected in the family
@@ -519,6 +538,7 @@ class CtsTestSelector extends LitElement {
     this.loading = false;
     this.favorites = [];
     this.favoritesLoading = false;
+    this.canFavorite = true;
     this._searchTerm = "";
     this._selectedFamily = "";
     this._favoritesView = false;
@@ -709,11 +729,12 @@ class CtsTestSelector extends LitElement {
       }
       return;
     }
-    if (key === "f" || key === "F") {
+    if ((key === "f" || key === "F") && this.canFavorite) {
       // Focused-row shortcut: toggle this row's favorite without leaving the
       // roving model or reaching for the star with Tab. The star is also a
       // real tab stop on the focused row, so both affordances coexist. Stale
-      // rows have no select button, so they never receive this keydown.
+      // rows have no select button, so they never receive this keydown. Gated
+      // on canFavorite so it stays a no-op when favorites can't be saved.
       e.preventDefault();
       const plan = this._filteredPlans[index];
       if (plan) {
@@ -986,9 +1007,24 @@ class CtsTestSelector extends LitElement {
   // state (the filled/outline icon swap is the matching visual cue). The
   // tabindex roves in lockstep with its row's select button, so Tab visits
   // "select then star" on the focused row and skips the rest of the list.
+  // When favorites can't be saved (canFavorite=false — no signed-in principal /
+  // the favorites API failed to load) the star renders as an aria-disabled,
+  // no-op affordance with an explanatory tooltip rather than disappearing.
   _renderFavoriteButton(plan, tabindex) {
     const planName = plan.planName;
     const name = plan.displayName || planName;
+    if (!this.canFavorite) {
+      return html`<cts-tooltip content="Sign in to save favorites" placement="left"
+        ><button
+          type="button"
+          class="oidf-test-selector__fav"
+          aria-disabled="true"
+          aria-label="Sign in to save favorites: ${name}"
+          tabindex="${tabindex}"
+        >
+          <cts-icon name="star" size="20"></cts-icon></button
+      ></cts-tooltip>`;
+    }
     const fav = this._isFavorite(planName);
     return html`<button
       type="button"
@@ -1060,7 +1096,10 @@ class CtsTestSelector extends LitElement {
   _renderListEmpty() {
     if (this._favoritesView) {
       let message;
-      if (this.favorites.length === 0) {
+      if (!this.canFavorite) {
+        message = html`<strong>Sign in to save favorites</strong> — your favorites are stored with
+          your account.`;
+      } else if (this.favorites.length === 0) {
         message = html`<strong>No favorites yet</strong> — star a plan to add it here.`;
       } else if (!this._hasLiveFavorites) {
         message = html`All your favorites are unavailable.`;

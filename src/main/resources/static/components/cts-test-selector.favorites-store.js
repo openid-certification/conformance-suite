@@ -1,151 +1,98 @@
-// Favorites persistence store for the cts-test-selector picker. localStorage
-// IS the interim backend (the deferred `/api/favorite-plans` Java store is a
-// later follow-up), so this module is imported by BOTH the production page
-// (schedule-test.html) and the Storybook stories — single-sourcing the exact
-// get/add/remove surface that the future backend swaps `fetch()` into.
+// Favorites persistence store for the cts-test-selector picker. The favorites
+// LIST is account data, persisted server-side per logged-in principal via the
+// `/api/favorite-plans` REST API (the component-internal filter preference is a
+// separate localStorage concern — see cts-test-selector.js). This module is
+// imported by the production page (schedule-test.html); the Storybook stories
+// drive `attachFavorites` with an in-memory double from
+// cts-test-selector.favorites-store.fake.js (real `fetch` can't run against a
+// server in Storybook), so production ships no test scaffolding.
 //
-// The request/response wire shape is mirrored deliberately, so swapping the
-// localStorage reads/writes for `fetch()` behind get/add/remove is all the
-// production wiring needs — the component never changes:
+// Wire shape (all responses 200 with the full updated set; 401 when there is no
+// authenticated principal — the API is auth-gated, mirroring /api/lastconfig):
 //
-//   GET    /api/favorite-plans          -> 200 { plans: string[] }
-//   POST   /api/favorite-plans { plan }  -> 200 { plans: string[] }   (added)
-//   DELETE /api/favorite-plans/{plan}    -> 200 { plans: string[] }   (removed)
+//   GET    /api/favorite-plans            -> { plans: string[] }
+//   POST   /api/favorite-plans { plan }   -> { plans: string[] }   (idempotent add)
+//   DELETE /api/favorite-plans/{plan}     -> { plans: string[] }   (remove)
 //
-// Ordering is insertion order, most-recently-added LAST (a plain append),
-// matching how a chronological server-side list would grow.
-//
-// `latency` / `failOn` are optional test scaffolding the stories inject to
-// demo slow / failed writes (default off in production, where they stay
-// inert). They are distinct from real browser storage errors (quota,
-// private-mode `setItem` throws), which add/remove always surface as a
-// rejected promise so the page can toast.
+// Ordering is insertion order, most-recently-added LAST (a chronological list),
+// matching how the picker renders the saved view.
 
-const DEFAULT_KEY = "cts:favorite-plans";
+const DEFAULT_BASE_URL = "/api/favorite-plans";
 
 /**
- * Minimal Storage shape the controller actually uses — narrower than the DOM
- * `Storage` interface so a Map-backed fake (node unit test) satisfies it.
- * @typedef {object} StorageLike
- * @property {(key: string) => string | null} getItem - Read a value.
- * @property {(key: string, value: string) => void} setItem - Write a value.
- * @property {(key: string) => void} removeItem - Delete a value.
+ * The request init the controller builds — a structural subset of the DOM
+ * `RequestInit` (named locally so the JSDoc linter doesn't need the DOM lib).
+ * @typedef {{ method: string, headers: Record<string, string>, body?: string }} FavoritesRequestInit
  */
 
 /**
- * Resolve after `ms` (0 → a resolved promise) so a story can observe the
- * optimistic state before the persisted truth lands.
- * @param {number} ms - Delay in milliseconds.
- * @returns {Promise<void>} A promise that settles after the delay.
+ * The minimal `fetch` surface the controller actually uses. The DOM `Response`
+ * satisfies the return shape (it has `ok`/`status`/`json`), and the page's
+ * `fetch` accepts a {@link FavoritesRequestInit}, so neither the page nor a unit
+ * test needs to fake a whole `Response`.
+ * @typedef {(input: string, init: FavoritesRequestInit) => Promise<{
+ *   ok: boolean, status: number, json: () => Promise<unknown>
+ * }>} FavoritesFetch
  */
-function delay(ms) {
-  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
-}
 
 /**
- * Normalize the `failOn` option into a predicate.
- * @param {string|string[]|((name: string, op: string) => boolean)|null} failOn - A
- *   planName, a list of planNames, or a `(name, op) => boolean` predicate where
- *   `op` is `"add"` or `"remove"`.
- * @returns {(name: string, op: string) => boolean} A predicate that returns
- *   true when the operation should reject.
- */
-function normalizeFailOn(failOn) {
-  if (!failOn) return () => false;
-  if (typeof failOn === "function") return failOn;
-  const set = new Set(Array.isArray(failOn) ? failOn : [failOn]);
-  return (name) => set.has(name);
-}
-
-/**
- * Create a favorites controller backed by `storage` (defaults to the page's
- * `localStorage`). Storage is injectable so a node unit test can pass a
- * Map-backed fake without a DOM.
+ * Create a favorites controller backed by the `/api/favorite-plans` API. The
+ * `fetch` implementation is injectable so a node unit test can drive it without
+ * a real server.
  * @param {object} [options] - Controller configuration.
- * @param {string} [options.key] - Storage key (namespaced by default).
- * @param {number} [options.latency] - Milliseconds delay applied to every op.
- * @param {string|string[]|((name: string, op: string) => boolean)|null} [options.failOn] -
- *   Which operations reject — see {@link normalizeFailOn}.
- * @param {StorageLike} [options.storage] - Storage backend (default `localStorage`).
+ * @param {string} [options.baseUrl] - API base path (default `/api/favorite-plans`).
+ * @param {FavoritesFetch} [options.fetchImpl] - Fetch implementation (default the
+ *   page's `fetch`).
  * @returns {{
- *   snapshot: () => string[],
- *   reset: () => void,
  *   get: () => Promise<{ plans: string[] }>,
  *   add: (name: string) => Promise<{ plans: string[] }>,
  *   remove: (name: string) => Promise<{ plans: string[] }>,
- * }} A controller mirroring the `/api/favorite-plans` surface.
+ * }} A controller over the `/api/favorite-plans` surface.
  */
-export function createFavoritesController({
-  key = DEFAULT_KEY,
-  latency = 0,
-  failOn = null,
-  storage = globalThis.localStorage,
-} = {}) {
-  const shouldFail = normalizeFailOn(failOn);
+export function createFavoritesController({ baseUrl = DEFAULT_BASE_URL, fetchImpl } = {}) {
+  const doFetch = fetchImpl ?? ((input, init) => fetch(input, init));
 
   /**
-   * Read the persisted favorites, tolerating corrupt/unset storage as empty.
-   * @returns {string[]} The persisted planNames.
+   * Issue one request and normalize the `{ plans }` response.
+   * @param {string} method - HTTP method.
+   * @param {string} path - Path appended to `baseUrl`.
+   * @param {object} [body] - Optional JSON body.
+   * @returns {Promise<{ plans: string[] }>} The updated favorites set.
    */
-  function read() {
-    try {
-      const raw = storage.getItem(key);
-      const parsed = raw ? JSON.parse(raw) : null;
-      return Array.isArray(parsed?.plans) ? parsed.plans : [];
-    } catch {
-      return [];
+  async function request(method, path, body) {
+    /** @type {FavoritesRequestInit} */
+    const init = { method, headers: { Accept: "application/json" } };
+    if (body !== undefined) {
+      init.headers["Content-Type"] = "application/json";
+      init.body = JSON.stringify(body);
     }
-  }
-
-  /**
-   * Persist the favorites set.
-   * @param {string[]} plans - The planNames to store.
-   * @returns {void}
-   */
-  function write(plans) {
-    storage.setItem(key, JSON.stringify({ plans }));
+    const res = await doFetch(`${baseUrl}${path}`, init);
+    // Any non-2xx (401 when unauthenticated, 5xx, network) rejects so the
+    // caller can fall back (disable favorites on seed) or revert + toast (on a
+    // toggle).
+    if (!res.ok) {
+      throw new Error(`favorites: ${method} ${baseUrl}${path} -> ${res.status}`);
+    }
+    const data = /** @type {{ plans?: string[] }} */ (await res.json());
+    return { plans: Array.isArray(data.plans) ? data.plans : [] };
   }
 
   return {
     /**
-     * Synchronous current set — for seeding a story's initial render and for
-     * assertions that storage matches the rendered favorites.
-     * @returns {string[]} The persisted planNames.
-     */
-    snapshot() {
-      return read();
-    },
-
-    /**
-     * Clear persisted state. The meta-level `beforeEach` calls this so
-     * favorites never leak between stories.
-     * @returns {void}
-     */
-    reset() {
-      storage.removeItem(key);
-    },
-
-    /**
      * GET /api/favorite-plans.
      * @returns {Promise<{ plans: string[] }>} The current favorites.
      */
-    async get() {
-      await delay(latency);
-      return { plans: read() };
+    get() {
+      return request("GET", "", undefined);
     },
 
     /**
-     * POST /api/favorite-plans { plan } — append, idempotent.
+     * POST /api/favorite-plans { plan } — idempotent add.
      * @param {string} name - The planName to add.
      * @returns {Promise<{ plans: string[] }>} The updated favorites.
      */
-    async add(name) {
-      await delay(latency);
-      if (shouldFail(name, "add")) throw new Error(`favorites: save failed for ${name}`);
-      const plans = read();
-      if (!plans.includes(name)) plans.push(name);
-      write(plans);
-      return { plans };
+    add(name) {
+      return request("POST", "", { plan: name });
     },
 
     /**
@@ -153,24 +100,23 @@ export function createFavoritesController({
      * @param {string} name - The planName to remove.
      * @returns {Promise<{ plans: string[] }>} The updated favorites.
      */
-    async remove(name) {
-      await delay(latency);
-      if (shouldFail(name, "remove")) throw new Error(`favorites: remove failed for ${name}`);
-      const plans = read().filter((n) => n !== name);
-      write(plans);
-      return { plans };
+    remove(name) {
+      return request("DELETE", `/${encodeURIComponent(name)}`, undefined);
     },
   };
 }
 
 /**
- * Wire a `cts-test-selector` to a controller exactly the way schedule-test.html
- * wires it (and the way the future `/api/favorite-plans` swap will): optimistically
- * update the `favorites` prop on every `cts-favorite-toggle`, reconcile with the
- * persisted truth on success, and revert + raise an error toast on failure.
+ * Wire a `cts-test-selector` to a controller: optimistically update the
+ * `favorites` prop on every `cts-favorite-toggle`, reconcile with the server
+ * truth on success, and revert + raise an error toast on failure. The same
+ * function drives both production (a `fetch` controller) and the stories (an
+ * in-memory fake), so the optimistic logic is single-sourced.
  * @param {HTMLElement & { favorites: string[] }} host - The cts-test-selector.
- * @param {ReturnType<typeof createFavoritesController>} controller - The
- *   persistence controller to drive.
+ * @param {{
+ *   add: (name: string) => Promise<{ plans: string[] }>,
+ *   remove: (name: string) => Promise<{ plans: string[] }>,
+ * }} controller - The persistence controller to drive.
  * @returns {() => void} A detach function that removes the listener.
  */
 export function attachFavorites(host, controller) {
@@ -195,7 +141,9 @@ export function attachFavorites(host, controller) {
         : [...host.favorites.filter((n) => n !== plan), plan];
       const ctsToast =
         typeof window !== "undefined"
-          ? /** @type {{ ctsToast?: Function }} */ (/** @type {unknown} */ (window)).ctsToast
+          ? /** @type {{ ctsToast?: (opts: { title: string, message?: string, kind: string }) => void }} */ (
+              /** @type {unknown} */ (window)
+            ).ctsToast
           : undefined;
       if (typeof ctsToast === "function") {
         ctsToast({
@@ -206,7 +154,6 @@ export function attachFavorites(host, controller) {
       }
     }
   };
-  host.addEventListener("cts-favorite-toggle", /** @type {EventListener} */ (handler));
-  return () =>
-    host.removeEventListener("cts-favorite-toggle", /** @type {EventListener} */ (handler));
+  host.addEventListener("cts-favorite-toggle", handler);
+  return () => host.removeEventListener("cts-favorite-toggle", handler);
 }
