@@ -596,10 +596,16 @@ export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE)
  * @property {(error: unknown) => Promise<{code: string, message: string}>} [normalizeCreateError] -
  *   The page's shared error normalizer (same one the advanced modal uses).
  * @property {() => void} [revealPlanSelection] - The page's shared arrival
- *   cue: scroll the spec cascade into view, flash the selection group once
- *   the scroll settles, focus the first variant select. Called after a
- *   bridge prefill so accepting reads exactly like picking the plan from
- *   the search list.
+ *   cue: scroll the selection group into view, flash it once the scroll
+ *   settles, focus the first variant select. Called after a bridge prefill
+ *   so accepting reads exactly like picking the plan from the search list.
+ * @property {(planName: string) => boolean} [selectPlanByName] - The page's
+ *   user-pick plan selection (dispatchPlanSelection): sets the current-plan
+ *   source of truth and dispatches cts-plan-selected with the suppression
+ *   counter at 0, so the bridge prefill clears the in-flight config.
+ *   Synchronous — the variant <select>s are rendered before it returns.
+ * @property {() => string} [getSelectedPlanName] - Reads the page's
+ *   current-plan source of truth; used to dedup an already-applied prefill.
  * @property {Storage|null} [session] - sessionStorage (or test double) for
  *   the recovery + handoff records.
  */
@@ -1500,10 +1506,11 @@ export function startGuidedJourney(modeController, deps) {
       hideBridge();
       return;
     }
-    const planSelectEl = /** @type {HTMLSelectElement|null} */ (
-      document.getElementById("planSelect")
-    );
-    if (planSelectEl && planSelectEl.value === resolved.plan_name) {
+    // Dedup against the page-owned current-plan source of truth (the page
+    // re-homed this off cts-spec-cascade's deleted `#planSelect`): if the
+    // advanced form already holds the resolved plan, there is nothing to
+    // prefill, so don't offer the bridge.
+    if (deps.getSelectedPlanName && deps.getSelectedPlanName() === resolved.plan_name) {
       hideBridge();
       return;
     }
@@ -1514,22 +1521,21 @@ export function startGuidedJourney(modeController, deps) {
     bridgePrompt.hidden = false;
   }
 
-  async function acceptBridge() {
+  function acceptBridge() {
     const resolved = state.result;
     const plan = resolved ? planByName(resolved.plan_name) : null;
-    const cascade = /** @type {any} */ (document.getElementById("specCascade"));
-    if (!resolved || !plan || !cascade) {
+    if (!resolved || !plan || !deps.selectPlanByName) {
       hideBridge();
       return;
     }
-    // Route through the cascade with user-pick semantics: the page's
+    // Drive the page's plan selection with user-pick semantics: the page's
     // cts-plan-selected listener sees isSystemSelectingPlan === 0 and clears
     // the in-flight config (the system-event-suppression counter is reserved
-    // for restore flows). The dispatched event is deferred via
-    // updateComplete, so awaiting it here means the variant <select>s are
-    // rendered when we overlay the journey's values below.
-    cascade.selectPlanByName(resolved.plan_name);
-    await cascade.updateComplete;
+    // for restore flows). The selection is synchronous — the page's listener
+    // renders the variant <select>s via updateVariants() before
+    // selectPlanByName returns — so the journey's variant values overlay onto
+    // already-rendered selects below.
+    deps.selectPlanByName(resolved.plan_name);
     for (const [param, value] of Object.entries(resolved.variants || {})) {
       const el = /** @type {HTMLSelectElement|null} */ (
         document.querySelector(`.variant-selector[data-variant-parameter="${param}"]`)
