@@ -973,7 +973,7 @@ class CtsTestSelector extends LitElement {
       })}
       aria-pressed="${fav ? "true" : "false"}"
       aria-label="${fav ? "Remove favorite" : "Add favorite"}: ${name}"
-      data-plan-name="${planName}"
+      data-favorite-plan="${planName}"
       tabindex="${tabindex}"
       @click=${this._handleFavoriteClick}
     >
@@ -1004,7 +1004,7 @@ class CtsTestSelector extends LitElement {
         type="button"
         class="oidf-test-selector__fav"
         aria-label="Remove favorite: ${name}"
-        data-plan-name="${name}"
+        data-favorite-plan="${name}"
         @click=${this._handleFavoriteClick}
       >
         <cts-icon name="close-md" size="20"></cts-icon>
@@ -1013,7 +1013,10 @@ class CtsTestSelector extends LitElement {
   }
 
   _handleFavoriteClick(e) {
-    const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.planName;
+    // The favorite + stale-remove buttons carry the plan in `data-favorite-plan`
+    // (NOT `data-plan-name`, which is the row's selection identity) so a
+    // `[data-plan-name="X"]` query unambiguously resolves to the row.
+    const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.favoritePlan;
     if (!planName) return;
     // Request the opposite of the current state; the caller flips the prop.
     this._emitFavoriteToggle(planName, !this._isFavorite(planName), "click");
