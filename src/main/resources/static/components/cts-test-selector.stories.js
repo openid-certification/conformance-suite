@@ -33,7 +33,7 @@ export const Default = {
       expect(select.getAttribute("aria-label")).toBe("Filter test plans by specification family");
       // Rendered as an always-open listbox (size attribute) rather than a
       // dropdown, so every spec family is visible in the left rail at once.
-      expect(select.getAttribute("size")).toBe("14");
+      expect(select.getAttribute("size")).toBe("16");
       // A sized listbox does not auto-select its first option, so the "All
       // specifications" option (value="") is selected explicitly by default.
       expect(select.value).toBe("");
@@ -212,9 +212,9 @@ export const SelectPlan = {
       await userEvent.click(items[1]);
       expect(dispatched.length).toBe(1);
       expect(dispatched[0].plan.planName).toBe("oidcc-implicit-certification-test-plan");
-      // The page-level listener in schedule-test.html branches on `via` to
-      // decide whether to steal focus into #specCascade. Mouse clicks must
-      // stay polite (no focus shift), so the channel carries 'click'.
+      // The picker reports how the selection was made via the `via` channel
+      // so a consumer can distinguish a mouse click from keyboard activation;
+      // a mouse click carries 'click'.
       expect(dispatched[0].via).toBe("click");
     });
 
@@ -313,8 +313,8 @@ export const ArrowUpFromFirstRowReturnsToSearch = {
 
 /**
  * Pressing Enter on a focused row commits the selection and tags the
- * dispatched event with via:'keyboard'. The page-level listener uses
- * that channel to decide whether to advance focus into #specCascade.
+ * dispatched event with via:'keyboard'. The `via` channel lets a consumer
+ * distinguish keyboard activation from a mouse click.
  *
  * Asserts exactly one dispatch — guards against the keyup→synthetic-click
  * double-fire that <button> elements produce on keyboard activation.
@@ -389,12 +389,12 @@ export const ArrowDownOnEmptyListIsNoOp = {
 
 /**
  * The `selected` attribute is the externally-driven counterpart of the click
- * path: callers (e.g. schedule-test.html bridging cts-spec-cascade's
- * `cts-plan-selected` back to the search list) set `planSearch.selected = name`
+ * path: callers (e.g. schedule-test.html's cts-plan-selected listener syncing
+ * the chosen plan back to the search list) set `planSearch.selected = name`
  * to highlight the matching row without triggering a `cts-plan-select` event.
  * This story exercises that path independently of the click handler so the
- * highlight contract is locked even when the user picks via the cascade
- * dropdown.
+ * highlight contract is locked even when the selection is driven
+ * programmatically (deep-link, edit-plan, load-last-config).
  */
 export const WithSelection = {
   render: () => html`
