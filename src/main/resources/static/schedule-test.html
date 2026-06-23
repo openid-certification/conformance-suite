@@ -892,8 +892,8 @@
                 console.warn('[schedule-test] invalid configJson URL param', e);
                 return;
             }
-            const planSelectEl = document.getElementById('planSelect');
-            if (planSelectEl && planSelectEl.value && planSelectEl.value !== 'select') {
+            const selectedPlanName = getSelectedPlanName();
+            if (selectedPlanName && selectedPlanName !== 'select') {
                 applyConfigToForm(parsed);
                 return;
             }
@@ -1115,23 +1115,59 @@
         // saved/edited config" (keep the config we just put there).
         let isSystemSelectingPlan = 0;
 
-        async function selectPlanByName(planName) {
-            var cascade = document.getElementById('specCascade');
-            if (!cascade) return false;
-            if (!FAPI_UI.availablePlans || !FAPI_UI.availablePlans[planName]) {
+        // KTD2: the page-owned current-plan source of truth. Replaces the
+        // former `#planSelect.value` read — that <select> lived inside
+        // cts-spec-cascade's light DOM, which is now deleted. Every consumer
+        // that needs "which plan is selected" reads it via
+        // getSelectedPlanName() instead of poking at a component's light DOM.
+        let currentPlanName = '';
+
+        function getSelectedPlanName() {
+            return currentPlanName;
+        }
+
+        // Core plan selection (KTD1): resolve planName -> plan via
+        // FAPI_UI.availablePlans, set the current-plan source of truth, then
+        // dispatch `cts-plan-selected` ourselves (cts-spec-cascade used to own
+        // this dispatch). Deliberately does NOT touch isSystemSelectingPlan:
+        // the cts-plan-selected listener reads that counter to decide
+        // clear-vs-preserve, and the two entry points differ only in it. User
+        // picks (search-list click, guided accept-bridge) call this directly
+        // with the counter at 0 -> config cleared; programmatic restores wrap
+        // it in selectPlanByName() with the counter bumped -> config preserved.
+        //
+        // KTD4: currentPlanName is set BEFORE the dispatch so the synchronous
+        // listener (which runs updateVariants() / updateConfigFieldVisibility())
+        // reads the new plan. The updateComplete deferral the cascade needed
+        // (to sync #planSelect.value before listeners ran) is gone — a plain
+        // variable is in sync the instant we assign it.
+        //
+        // Returns true if the plan resolved and was dispatched, false for a
+        // falsy or unknown plan name (no dispatch, no crash).
+        function dispatchPlanSelection(planName) {
+            if (!planName || !FAPI_UI.availablePlans || !FAPI_UI.availablePlans[planName]) {
                 return false;
             }
+            currentPlanName = planName;
+            document.dispatchEvent(new CustomEvent('cts-plan-selected', {
+                bubbles: true,
+                detail: { plan: FAPI_UI.availablePlans[planName] },
+            }));
+            return true;
+        }
 
+        // Programmatic-select wrapper (KTD3): bumps the suppression counter
+        // around the dispatch so the cts-plan-selected listener preserves the
+        // config the caller is about to apply (?test_plan=, edit-plan,
+        // "Load last configuration"). Stays async so existing
+        // `await selectPlanByName(...)` callers keep their sequencing; the
+        // dispatch and the synchronous updateVariants() the listener runs both
+        // complete before this resolves, so callers that immediately overlay
+        // variant values see rendered <select>s.
+        async function selectPlanByName(planName) {
             isSystemSelectingPlan++;
             try {
-                var result = cascade.selectPlanByName(planName);
-                // cts-spec-cascade defers `cts-plan-selected` until after
-                // Lit propagates state to the DOM (so #planSelect.value is
-                // in sync when listeners read it). Wait for that here so
-                // the cts-plan-selected listener still sees
-                // isSystemSelectingPlan > 0 and skips clearConfigForNewPlan.
-                await cascade.updateComplete;
-                return result;
+                return dispatchPlanSelection(planName);
             } finally {
                 isSystemSelectingPlan--;
             }
@@ -1392,7 +1428,7 @@
 
         function createTestPlanParameterUrl() {
             let pageUrl = window.location.origin + window.location.pathname;
-            let testPlan = document.getElementById("planSelect").value;
+            let testPlan = getSelectedPlanName();
             let url = pageUrl + "?test_plan=" + testPlan;
             let dataVariantParameters = collectFormParametersToParameterObject("data-variant-parameter", "select");
 
@@ -1499,11 +1535,9 @@
 
             document.getElementById('createPlanBtn').onclick = function(evt) {
 
-                // `#planSelect` lives inside cts-spec-cascade's light DOM
-                // and is only present once a plan tier is reachable. Treat
-                // a missing element as "no plan picked" and bail.
-                const planSelectEl = document.getElementById('planSelect');
-                const planName = planSelectEl ? planSelectEl.value : '';
+                // The page owns the current-plan source of truth; an empty
+                // string means no plan has been picked yet.
+                const planName = getSelectedPlanName();
 
                 // if the user hasn't picked anything, just bail
                 if (!planName || planName == 'select') {
@@ -1617,20 +1651,20 @@
             });
 
             // cts-test-selector fires `cts-plan-select` when the user clicks
-            // a search result. Route through the cascade so its dispatched
+            // a search result. Drive the page's own selection so its dispatched
             // `cts-plan-selected` runs the same downstream listeners — no
-            // separate config-load codepath. With a long plan list the
-            // cascade auto-fills below the fold; revealPlanSelection()
+            // separate config-load codepath. dispatchPlanSelection() leaves
+            // isSystemSelectingPlan at 0, so this user pick clears any
+            // carried-over config (user-pick semantics). With a long plan list
+            // the variant region renders below the fold; revealPlanSelection()
             // scrolls it into view, flashes the selection group, and drops
             // focus into the first variant <select> — on every selection,
             // mouse or keyboard.
             var planSearch = document.getElementById('planSearch');
             if (planSearch) {
                 planSearch.addEventListener('cts-plan-select', function(evt) {
-                    var cascade = document.getElementById('specCascade');
-                    if (!cascade) return;
                     var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
-                    if (planName) cascade.selectPlanByName(planName);
+                    if (planName) dispatchPlanSelection(planName);
                     revealPlanSelection();
                 });
             }
@@ -1682,10 +1716,8 @@
          * may need to be hidden based on the current selection of other variant parameters.
          */
         function updateVariantOptionsVisibility() {
-            // `#planSelect` may not be rendered yet (cascade still loading or
-            // in error state) — treat missing element as "no plan picked".
-            var planSelectEl = document.getElementById('planSelect');
-            var planName = planSelectEl ? planSelectEl.value : '';
+            // Empty string until a plan is picked — treat that as "no plan".
+            var planName = getSelectedPlanName();
             if (!planName || planName === 'select' || !FAPI_UI.availablePlans[planName]) {
                 return;
             }
@@ -1819,8 +1851,7 @@
 
             configFormEl.style.display = 'none';
 
-            const planSelectEl = document.getElementById('planSelect');
-            const planName = planSelectEl ? planSelectEl.value : '';
+            const planName = getSelectedPlanName();
             const planInfo = FAPI_UI.availablePlans[planName];
 
             if (!planName || planName === 'select' || !planInfo) {
@@ -1911,11 +1942,8 @@
 
         function updateVariants() {
             var map = FAPI_UI.availablePlans;
-            // The cascade renders `#planSelect` in its light DOM only when a
-            // plan tier is reachable; in loading/error/empty states the
-            // element doesn't exist. Treat absent select as "no plan picked".
-            var planSelectEl = document.getElementById('planSelect');
-            var itemSelected = planSelectEl ? planSelectEl.value : '';
+            // Empty string until a plan is picked — treat that as "no plan".
+            var itemSelected = getSelectedPlanName();
 
             // Merge current selections into persistent store so they survive
             // intermediate states where no plan is selected (e.g. changing
