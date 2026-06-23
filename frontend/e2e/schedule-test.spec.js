@@ -521,6 +521,35 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
 
     await setupCommonRoutes(page);
+
+    // Stateful /api/favorite-plans mock: an in-memory set that survives the
+    // page reload (it lives in this test's closure, like the real server).
+    // Registered AFTER setupCommonRoutes so it wins (Playwright matches routes
+    // in reverse registration order).
+    /** @type {string[]} */
+    const serverFavorites = [];
+    await page.route("**/api/favorite-plans**", (route) => {
+      const req = route.request();
+      const respond = () =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ plans: serverFavorites }),
+        });
+      if (req.method() === "POST") {
+        const plan = JSON.parse(req.postData() || "{}").plan;
+        if (plan && !serverFavorites.includes(plan)) serverFavorites.push(plan);
+        return respond();
+      }
+      if (req.method() === "DELETE") {
+        const plan = decodeURIComponent(new URL(req.url()).pathname.split("/").pop() || "");
+        const i = serverFavorites.indexOf(plan);
+        if (i >= 0) serverFavorites.splice(i, 1);
+        return respond();
+      }
+      return respond(); // GET
+    });
+
     await page.goto("/schedule-test.html");
 
     // The favorite toggle is keyed on data-favorite-plan (NOT data-plan-name,
@@ -553,17 +582,49 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(fapiStar).toHaveAttribute("aria-pressed", "false");
     await fapiStar.click();
     await expect(fapiStar).toHaveAttribute("aria-pressed", "true");
+    // The POST reached the server mock.
+    await expect.poll(() => serverFavorites).toContain("fapi2-security-profile-final-test-plan");
 
     // The in-flight config is untouched and clearConfigForNewPlan never ran —
     // a hard regression gate on the suppression-counter / config-clear path.
     expect(await readConfigValue(page)).toContain("keep-me");
     expect(await page.evaluate(() => /** @type {any} */ (window).__clearConfigCalls)).toBe(0);
 
-    // The favorite survives a full reload (localStorage interim store).
+    // The favorite survives a full reload: the remounted picker re-fetches
+    // /api/favorite-plans and the server mock still has it.
     await page.reload();
     await expect(
       page.locator('#planSearch [data-favorite-plan="fapi2-security-profile-final-test-plan"]'),
     ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("R7: a 401 from /api/favorite-plans disables the stars (sign-in affordance)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await setupCommonRoutes(page);
+    // Favorites unavailable — no authenticated principal. The page seeds
+    // canFavorite=false, so the stars render as a disabled sign-in affordance.
+    await page.route("**/api/favorite-plans**", (route) =>
+      route.fulfill({ status: 401, body: "" }),
+    );
+    await page.goto("/schedule-test.html");
+
+    const disabledStars = page.locator(
+      '#planSearch .oidf-test-selector__fav[aria-disabled="true"]',
+    );
+    await expect(disabledStars).toHaveCount(ALL_PLANS.length);
+    await expect(disabledStars.first()).toHaveAttribute("aria-label", /Sign in to save favorites/);
   });
 
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {

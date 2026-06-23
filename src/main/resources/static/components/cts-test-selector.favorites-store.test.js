@@ -1,28 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { createFavoritesController, attachFavorites } from "./cts-test-selector.favorites-store.js";
-
-/**
- * Map-backed Storage stand-in so the controller is testable without a DOM.
- * @returns {{
- *   getItem: (k: string) => string | null,
- *   setItem: (k: string, v: string) => void,
- *   removeItem: (k: string) => void,
- *   _map: Map<string, string>,
- * }} A minimal Storage-shaped object.
- */
-function fakeStorage() {
-  const m = new Map();
-  return {
-    getItem: (k) => (m.has(k) ? m.get(k) : null),
-    setItem: (k, v) => m.set(k, String(v)),
-    removeItem: (k) => m.delete(k),
-    _map: m,
-  };
-}
+import { createFakeFavoritesController } from "./cts-test-selector.favorites-store.fake.js";
 
 /**
  * @typedef {{ detail: { plan: string, favorite: boolean } }} ToggleEvent - The
  *   shape attachFavorites destructures off a cts-favorite-toggle event.
+ * @typedef {import("./cts-test-selector.favorites-store.js").FavoritesFetch} FavoritesFetch
+ * @typedef {import("./cts-test-selector.favorites-store.js").FavoritesRequestInit} FavoritesRequestInit
  */
 
 /**
@@ -53,95 +37,106 @@ function fakeHost() {
   };
 }
 
-describe("createFavoritesController", () => {
-  /** @type {ReturnType<typeof fakeStorage>} */
-  let storage;
-  beforeEach(() => {
-    storage = fakeStorage();
+/**
+ * Build a fetch stub (a {@link FavoritesFetch}) that records calls and returns a
+ * `{ plans }` JSON body.
+ * @param {object} opts - Stub configuration.
+ * @param {string[]} [opts.plans] - The `plans` array to return.
+ * @param {boolean} [opts.ok] - Whether the response is 2xx.
+ * @param {number} [opts.status] - The HTTP status.
+ * @param {object} [opts.body] - Override the JSON body entirely.
+ * @returns {{
+ *   fetchImpl: FavoritesFetch,
+ *   calls: Array<{ url: string, init: FavoritesRequestInit }>,
+ * }} The stub.
+ */
+function fetchStub({ plans = [], ok = true, status = 200, body } = {}) {
+  /** @type {Array<{ url: string, init: FavoritesRequestInit }>} */
+  const calls = [];
+  /** @type {FavoritesFetch} */
+  const fetchImpl = (input, init) => {
+    calls.push({ url: input, init });
+    return Promise.resolve({ ok, status, json: () => Promise.resolve(body ?? { plans }) });
+  };
+  return { fetchImpl, calls };
+}
+
+describe("createFavoritesController (fetch)", () => {
+  it("GET issues GET /api/favorite-plans and returns { plans }", async () => {
+    const { fetchImpl, calls } = fetchStub({ plans: ["a"] });
+    const c = createFavoritesController({ fetchImpl });
+    expect(await c.get()).toEqual({ plans: ["a"] });
+    expect(calls[0]?.url).toBe("/api/favorite-plans");
+    expect(calls[0]?.init.method).toBe("GET");
   });
 
-  it("starts empty and mirrors the { plans } wire shape", async () => {
-    const c = createFavoritesController({ storage });
-    expect(c.snapshot()).toEqual([]);
+  it("POST sends { plan } as JSON and returns the updated set", async () => {
+    const { fetchImpl, calls } = fetchStub({ plans: ["a", "b"] });
+    const c = createFavoritesController({ fetchImpl });
+    expect(await c.add("b")).toEqual({ plans: ["a", "b"] });
+    expect(calls[0]?.url).toBe("/api/favorite-plans");
+    expect(calls[0]?.init.method).toBe("POST");
+    expect(calls[0]?.init.headers["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(/** @type {string} */ (calls[0]?.init.body))).toEqual({ plan: "b" });
+  });
+
+  it("DELETE targets the URL-encoded plan path", async () => {
+    const { fetchImpl, calls } = fetchStub({ plans: [] });
+    const c = createFavoritesController({ fetchImpl });
+    await c.remove("plan a/b");
+    expect(calls[0]?.url).toBe("/api/favorite-plans/plan%20a%2Fb");
+    expect(calls[0]?.init.method).toBe("DELETE");
+  });
+
+  it("rejects on a non-2xx (e.g. 401) so the page can disable favorites", async () => {
+    const { fetchImpl } = fetchStub({ ok: false, status: 401, body: {} });
+    const c = createFavoritesController({ fetchImpl });
+    await expect(c.get()).rejects.toThrow(/401/);
+  });
+
+  it("tolerates a response missing `plans` as an empty set", async () => {
+    const { fetchImpl } = fetchStub({ body: {} });
+    const c = createFavoritesController({ fetchImpl });
     expect(await c.get()).toEqual({ plans: [] });
   });
+});
 
-  it("add persists and re-get returns the new set (insertion order)", async () => {
-    const c = createFavoritesController({ storage });
-    expect(await c.add("a")).toEqual({ plans: ["a"] });
-    expect(await c.add("b")).toEqual({ plans: ["a", "b"] });
-    // A fresh controller over the same storage sees the persisted set —
-    // this is what makes "persist across reload" work in the stories.
-    const reloaded = createFavoritesController({ storage });
-    expect(await reloaded.get()).toEqual({ plans: ["a", "b"] });
+describe("createFakeFavoritesController (in-memory story double)", () => {
+  it("starts from `initial` and mirrors the { plans } wire shape", async () => {
+    const c = createFakeFavoritesController({ initial: ["a"] });
+    expect(c.snapshot()).toEqual(["a"]);
+    expect(await c.get()).toEqual({ plans: ["a"] });
   });
 
-  it("add is idempotent", async () => {
-    const c = createFavoritesController({ storage });
-    await c.add("a");
+  it("add persists, is idempotent, and appends in insertion order", async () => {
+    const c = createFakeFavoritesController();
     expect(await c.add("a")).toEqual({ plans: ["a"] });
+    expect(await c.add("b")).toEqual({ plans: ["a", "b"] });
+    expect(await c.add("a")).toEqual({ plans: ["a", "b"] });
   });
 
   it("remove reverses add", async () => {
-    const c = createFavoritesController({ storage });
-    await c.add("a");
-    await c.add("b");
+    const c = createFakeFavoritesController({ initial: ["a", "b"] });
     expect(await c.remove("a")).toEqual({ plans: ["b"] });
     expect(c.snapshot()).toEqual(["b"]);
   });
 
-  it("a failed add rejects and leaves storage unchanged (so the caller reverts)", async () => {
-    const c = createFavoritesController({ storage, failOn: "boom" });
-    await c.add("a");
+  it("failOn rejects and leaves state unchanged (so the caller reverts)", async () => {
+    const c = createFakeFavoritesController({ initial: ["a"], failOn: "boom" });
     await expect(c.add("boom")).rejects.toThrow(/save failed/);
     expect(c.snapshot()).toEqual(["a"]);
-  });
-
-  it("a failed remove rejects and leaves storage unchanged", async () => {
-    const c = createFavoritesController({ storage, failOn: (_name, op) => op === "remove" });
-    await c.add("a");
-    await expect(c.remove("a")).rejects.toThrow(/remove failed/);
-    expect(c.snapshot()).toEqual(["a"]);
-  });
-
-  it("reset clears persisted state between stories", async () => {
-    const c = createFavoritesController({ storage });
-    await c.add("a");
-    c.reset();
-    expect(c.snapshot()).toEqual([]);
-  });
-
-  it("tolerates corrupt storage as empty", async () => {
-    storage.setItem("cts:favorite-plans", "{not json");
-    const c = createFavoritesController({ storage });
-    expect(c.snapshot()).toEqual([]);
-  });
-
-  it("surfaces a real storage write error as a rejection (so the page can toast)", async () => {
-    // A quota / private-mode setItem throw is distinct from corrupt-read
-    // tolerance: the write must reject, not swallow, so attachFavorites reverts
-    // and toasts.
-    const throwing = {
-      getItem: () => null,
-      setItem: () => {
-        throw new Error("QuotaExceededError");
-      },
-      removeItem: () => {},
-    };
-    const c = createFavoritesController({ storage: throwing });
-    await expect(c.add("a")).rejects.toThrow();
+    const r = createFakeFavoritesController({
+      initial: ["a"],
+      failOn: (_n, op) => op === "remove",
+    });
+    await expect(r.remove("a")).rejects.toThrow(/remove failed/);
+    expect(r.snapshot()).toEqual(["a"]);
   });
 });
 
 describe("attachFavorites", () => {
-  /** @type {ReturnType<typeof fakeStorage>} */
-  let storage;
-  beforeEach(() => {
-    storage = fakeStorage();
-  });
-
   it("optimistically adds then reconciles with the persisted truth", async () => {
-    const c = createFavoritesController({ storage });
+    const c = createFakeFavoritesController();
     const host = fakeHost();
     attachFavorites(
       /** @type {HTMLElement & { favorites: string[] }} */ (/** @type {unknown} */ (host)),
@@ -150,15 +145,14 @@ describe("attachFavorites", () => {
     host.emit("cts-favorite-toggle", { plan: "a", favorite: true });
     expect(host.favorites).toEqual(["a"]); // optimistic, before persist resolves
     await new Promise((r) => setTimeout(r, 0));
-    expect(host.favorites).toEqual(["a"]); // reconciled with storage
+    expect(host.favorites).toEqual(["a"]); // reconciled
     expect(c.snapshot()).toEqual(["a"]);
   });
 
   it("a failed toggle reverts only that plan, preserving a concurrent toggle", async () => {
-    // Star A (will fail) then B (succeeds) before A's persist resolves. With a
-    // stale-snapshot revert, A's failure would wipe B; the per-plan revert
-    // leaves B starred.
-    const c = createFavoritesController({ storage, latency: 5, failOn: "A" });
+    // Star A (will fail) then B (succeeds) before A's persist resolves. A
+    // stale-snapshot revert would wipe B; the per-plan revert leaves B starred.
+    const c = createFakeFavoritesController({ latency: 5, failOn: "A" });
     const host = fakeHost();
     attachFavorites(
       /** @type {HTMLElement & { favorites: string[] }} */ (/** @type {unknown} */ (host)),
