@@ -32,7 +32,11 @@ import java.text.ParseException;
 public class PostToRequestUriAndExtractRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "server_encryption_keys"})
+	// server_encryption_keys is only consulted when the fetched request object is encrypted (see
+	// JWTUtil.jwtStringToJsonObjectForEnvironment); it is therefore not required here. Callers that
+	// never receive an encrypted request object (e.g. the OID4VP verifier, where the wallet has no
+	// way to publish an encryption key to the verifier) need not generate it.
+	@PreEnvironment(required = {"authorization_endpoint_http_request_params"})
 	@PostEnvironment(required = {"authorization_request_object", "request_uri_post_response"})
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("authorization_endpoint_http_request_params", "request_uri");
