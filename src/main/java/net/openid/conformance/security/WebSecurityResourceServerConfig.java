@@ -161,7 +161,9 @@ public class WebSecurityResourceServerConfig {
 			"/api/info/**", //
 			"/api/plan/**", //
 			"/api/token/**", //
-			"/api/lastconfig" //
+			"/api/lastconfig", //
+			"/api/favorite-plans", //
+			"/api/favorite-plans/**" //
 			).<RequestMatcher>map(pattern -> PathPatternRequestMatcher.withDefaults().matcher(pattern)).toList());
 	}
 
