@@ -2,8 +2,12 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddEssentialTxnClaimRequestToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.SetConnectIdBindingMessageToPurpose;
 import net.openid.conformance.condition.client.SetConnectIdCibaLoginHintFromConfiguration;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.TestExecutionUnit;
 import org.junit.jupiter.api.Test;
@@ -34,6 +38,33 @@ public class ConnectIdAuCibaServerProfileBehavior_UnitTest {
 			.doesNotContain(SetConnectIdCibaLoginHintFromConfiguration.class)
 			.contains(SetConnectIdBindingMessageToPurpose.class)
 			.contains(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class);
+	}
+
+	@Test
+	public void testResourceEndpointHeadersIncludeInteractionIdForFirstAndSecondClient() {
+		ConnectIdAuCibaServerProfileBehavior behavior = new ConnectIdAuCibaServerProfileBehavior();
+
+		List<Class<? extends Condition>> firstClientConditionClasses = getConditionClasses(
+			behavior.addResourceEndpointProfileHeaders(false));
+		List<Class<? extends Condition>> secondClientConditionClasses = getConditionClasses(
+			behavior.addResourceEndpointProfileHeaders(true));
+
+		assertThat(firstClientConditionClasses)
+			.containsExactly(
+				AddFAPIAuthDateToResourceEndpointRequest.class,
+				CreateRandomFAPIInteractionId.class,
+				AddFAPIInteractionIdToResourceEndpointRequest.class);
+		assertThat(secondClientConditionClasses)
+			.containsExactly(
+				CreateRandomFAPIInteractionId.class,
+				AddFAPIInteractionIdToResourceEndpointRequest.class);
+	}
+
+	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
+		sequence.evaluate();
+		return sequence.getTestExecutionUnits().stream()
+			.map(this::getConditionClass)
+			.toList();
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(

@@ -106,13 +106,12 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 
 	@Override
 	public ConditionSequence addResourceEndpointProfileHeaders(boolean isSecondClient) {
-		if (isSecondClient) {
-			return null;
-		}
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+				if (!isSecondClient) {
+					callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+				}
 				callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 				callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class,
 					"CID-SP-4.3-9");
