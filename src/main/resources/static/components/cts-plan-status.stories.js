@@ -16,9 +16,11 @@ const PALETTE_MODULES = [
     _statusResolved: true,
   },
   {
+    // A failed test is reported as INTERRUPTED+FAILED (never FINISHED+FAILED);
+    // the segment must still paint `fail` red — this fixture guards #1858.
     testModule: "test-failed",
     instances: ["i-fail"],
-    status: "FINISHED",
+    status: "INTERRUPTED",
     result: "FAILED",
     _statusResolved: true,
   },
@@ -138,6 +140,17 @@ export const VariantHelperContract = {
         _statusResolved: true,
       }),
     ).toBe("review");
+    // #1858/#1859: a failed test is reported as INTERRUPTED+FAILED (never
+    // FINISHED+FAILED), and the verdict must still win over the status — the
+    // segment resolves to `fail`, not the neutral `skip`.
+    expect(
+      segmentVariant({
+        instances: ["a"],
+        status: "INTERRUPTED",
+        result: "FAILED",
+        _statusResolved: true,
+      }),
+    ).toBe("fail");
   },
 };
 
@@ -405,7 +418,7 @@ const LOG_MODULES = [
   {
     testModule: "log-m2",
     instances: ["lb1", "lb2"],
-    status: "FINISHED",
+    status: "INTERRUPTED",
     result: "FAILED",
     _statusResolved: true,
     href: "/log-detail.html?log=lb2",
@@ -526,7 +539,7 @@ export const LogHrefDrivenNavigation = {
         {
           testModule: "log-m2",
           instances: ["lb1", "lb2"],
-          status: "FINISHED",
+          status: "INTERRUPTED",
           result: "FAILED",
           _statusResolved: true,
           href: "/log-detail.html?log=lb2&public=true",

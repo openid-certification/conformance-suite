@@ -365,7 +365,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     await setupCommonRoutes(page);
@@ -483,7 +483,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     // 404 sibling: its segment must settle to the static skip fill, not pulse
@@ -604,7 +604,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
@@ -1045,15 +1045,26 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     }),
   );
 
+  // GitLab #1859: a failed test is reported as status=INTERRUPTED, result=FAILED
+  // (the runner stops it on the first hard failure). The banner must read "Test
+  // failed", NOT "Test interrupted" — the result verdict wins over the status.
+  // The sticky-bar status pill still shows the true lifecycle status
+  // (INTERRUPTED) alongside the FAILED result badge.
   test(
-    "terminal-state refresh — INTERRUPTED: banner renders without reload",
+    "terminal-state refresh — INTERRUPTED+FAILED reads as 'Test failed' (#1859)",
     terminalRefreshTest({
       result: "FAILED",
       finalStatus: "INTERRUPTED",
-      bannerText: /Test interrupted/i,
+      bannerText: /Test failed/i,
       statusBadgeLabel: "INTERRUPTED",
     }),
   );
+
+  // R4 (a genuine interruption with NO concrete verdict still reads "Test
+  // interrupted") is covered at the component level by the cts-log-detail-header
+  // `TerminalBannerInterrupted` story — the polling helper here can't represent
+  // a verdict-less interruption (it derives the testId and the result-badge
+  // query from cfg.result, which assumes a distinct result verdict).
 
   test("renders cts-log-viewer with mocked log entries", async ({ page }) => {
     await setupFailFast(page);

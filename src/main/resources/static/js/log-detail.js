@@ -537,8 +537,8 @@ async function fetchUploadedImageCount(testInfo) {
  * polling loop's exit: a test in `{status: "FINISHED", result: null}`
  * is the transient state where the runner has flagged terminal but the
  * verdict hasn't been persisted yet, and polling should continue until
- * the verdict lands. Mirrors cts-log-detail-header's TERMINAL_RESULTS
- * set — REVIEW, WARNING, and SKIPPED all qualify as verdicts.
+ * the verdict lands. Any non-empty `result` qualifies as a verdict —
+ * PASSED, FAILED, WARNING, REVIEW, and SKIPPED all count.
  * @param {{status?: string, result?: string} | null | undefined} testInfo
  * @returns {boolean}
  */
