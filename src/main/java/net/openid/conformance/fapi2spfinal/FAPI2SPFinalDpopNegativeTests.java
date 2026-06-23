@@ -47,6 +47,11 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 			if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 				break; // no nonce error so
 			}
+			else {
+				// Remove any stored 'jti' previously stored in the environment by FixedJtiClaim to ensure the retry will use a new 'jti'.
+				env.removeNativeValue("jti");
+			}
+
 			// continue call with nonce
 			++i;
 		}
@@ -81,6 +86,9 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 				break; // no nonce error so
 			} else {
 				usedNonce = true;
+
+				// Remove any stored 'jti' previously stored in the environment by FixedJtiClaim to ensure the retry will use a new 'jti'.
+				env.removeNativeValue("jti");
 			}
 			// continue call with nonce
 			++i;
