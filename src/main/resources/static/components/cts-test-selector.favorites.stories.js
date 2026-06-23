@@ -513,17 +513,22 @@ export const EscapeHatchClearsFilterAndFocusesSearch = {
 /**
  * Separator spacing (U4): the 4px breathing room above/below the ★ Favorites
  * divider is a pure style; assert the rule is registered in the injected
- * stylesheet so a regression in the head-injection pipeline is caught.
+ * stylesheet so a regression in the head-injection pipeline is caught. The
+ * divider is drawn on the FOLLOWING option's border-top (not this option's
+ * border-bottom, which the orange :checked fill would cover), floating in the
+ * inter-option gap with 4px white above and below.
  */
 export const SeparatorSpacingStyleRegistered = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play() {
     const css = document.getElementById("cts-test-selector-styles")?.textContent || "";
     expect(css).toContain(".oidf-test-selector__family-view");
-    // The divider, with 4px above (padding) and 4px below (margin).
-    expect(css).toContain("border-bottom: 1px solid var(--divider)");
-    expect(css).toContain("padding-bottom: var(--space-3)");
+    // 4px white above the divider (this option's margin-bottom).
     expect(css).toContain("margin-bottom: var(--space-1)");
+    // The divider line + 4px below it, on the following option.
+    expect(css).toContain(".oidf-test-selector__family-view + option");
+    expect(css).toContain("border-top: 1px solid var(--divider)");
+    expect(css).toContain("padding-top: var(--space-1)");
   },
 };
 

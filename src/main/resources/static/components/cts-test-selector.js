@@ -157,18 +157,25 @@ const STYLE_TEXT = css`
     text-wrap: pretty;
     line-height: var(--lh-snug);
   }
-  /* Saved-view option: an orange accent + bottom divider sets the
-     "★ Favorites" entry apart from the real spec families below it. (Native
-     <option> styling is limited, but color and weight are honored in sized
-     listboxes across the supported modern browsers.) The extra padding-bottom
-     (4px over the base option's --space-2) plus a 4px margin-bottom give the
-     divider breathing room: 4px gap, divider, 4px gap. */
+  /* Saved-view option: an orange accent sets the "★ Favorites" entry apart
+     from the real spec families below it. (Native <option> styling is limited,
+     but color and weight are honored in sized listboxes across the supported
+     modern browsers.) The divider is NOT a border-bottom on this option —
+     once the row is selected the orange :checked fill covers its padding box,
+     leaving no breathing room above the line. Instead it is drawn on the
+     FOLLOWING option's border-top (rule below), so it floats in the
+     inter-option gap with 4px of white above it (this option's margin-bottom,
+     which sits outside the orange fill) and 4px below (the next option's
+     reduced padding-top): 4px gap, divider, 4px gap. Native <option>s do not
+     render ::after, so a pseudo-element divider is not available here. */
   .oidf-test-selector__family-view {
     color: var(--orange-700);
     font-weight: var(--fw-medium);
-    border-bottom: 1px solid var(--divider);
-    padding-bottom: var(--space-3);
     margin-bottom: var(--space-1);
+  }
+  .oidf-test-selector__family-view + option {
+    border-top: 1px solid var(--divider);
+    padding-top: var(--space-1);
   }
   .oidf-test-selector__family option:checked {
     /* Under appearance:none the OS still paints the selected row via
@@ -878,18 +885,6 @@ class CtsTestSelector extends LitElement {
             </option>
             ${this._renderFamilyOptions()}
           </select>
-          ${this._selectedFamily !== "" || this._favoritesView
-            ? html`<p class="oidf-test-selector__escape">
-                Can't find a spec here?
-                <button
-                  type="button"
-                  class="oidf-test-selector__escape-link"
-                  @click=${this._handleEscapeToAll}
-                >
-                  Search all specifications
-                </button>
-              </p>`
-            : nothing}
         </div>
         <div class="oidf-test-selector__main">
           <div class="oidf-test-selector__list" role="list">
@@ -902,6 +897,18 @@ class CtsTestSelector extends LitElement {
                 ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
                 : this._renderListEmpty()}
           </div>
+          ${this._selectedFamily !== "" || this._favoritesView
+            ? html`<p class="oidf-test-selector__escape">
+                Can't find a spec here?
+                <button
+                  type="button"
+                  class="oidf-test-selector__escape-link"
+                  @click=${this._handleEscapeToAll}
+                >
+                  Search all specifications
+                </button>
+              </p>`
+            : nothing}
         </div>
       </div>
     `;
