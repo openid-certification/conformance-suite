@@ -907,7 +907,7 @@ class CtsTestSelector extends LitElement {
           </div>
           <select
             class="oidf-test-selector__family"
-            size="14"
+            size="16"
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
