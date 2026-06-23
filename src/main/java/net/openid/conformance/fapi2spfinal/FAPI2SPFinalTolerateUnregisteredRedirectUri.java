@@ -15,15 +15,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-final-plain-fapi-ensure-registered-redirect-uri",
-	displayName = "FAPI2-Security-Profile-Final: ensure registered redirect URI",
+	testName = "fapi2-security-profile-final-plain-fapi-tolerate-unregistered-redirect-uri",
+	displayName = "FAPI2-Security-Profile-Final: tolerate unregistered redirect URI",
 	summary = "This test uses an unregistered redirect uri. The authorization server may allow this as per RFC 9126 Section 2.4 or may display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-// Allowing the OP to accept a 'redirect_uri' that has not been previously registered is for 'plain_fapi' only.
+// Allowing the OP to accept a 'redirect_uri' that has not been previously registered applies to
+// 'plain_fapi' and 'vci_haip' (the latter is exercised via VCIIssuerTestPlanHaip, which selects this
+// module instead of FAPI2SPFinalEnsureRegisteredRedirectUri since HAIP does not require pre-registration).
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant" })
 
-public class FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPFinalTolerateUnregisteredRedirectUri extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	protected boolean parError = false;
 
