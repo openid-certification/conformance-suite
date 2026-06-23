@@ -4,6 +4,7 @@ import {
   setupTestInfoRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
+import { selectedPlanRow } from "./helpers/pick-plan.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
 import { MOCK_USER } from "./fixtures/mock-users.js";
 import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
@@ -79,8 +80,11 @@ test.describe("schedule-test.html — Guided | Advanced mode toggle", () => {
     await expect(page.locator("#guidedIsland")).toBeHidden();
     await expect(page.locator("#modeAdvancedBtn")).toHaveAttribute("aria-pressed", "true");
 
-    // The advanced hydration ran: the cascade resolved the deep-linked plan.
-    await expect(page.locator("#planSelect")).toHaveValue("oidcc-basic-certification-test-plan");
+    // The advanced hydration ran: the deep-linked plan resolved and its row
+    // is highlighted in the picker (the page-owned current-plan signal).
+    await expect(
+      page.locator('#planSearch [data-plan-name="oidcc-basic-certification-test-plan"]'),
+    ).toHaveClass(/is-active/);
 
     // Deep-link forcing is transient — it must NOT overwrite the stored
     // preference. A plain reload returns the user to guided.
@@ -302,7 +306,10 @@ test.describe("schedule-test.html — guided journey", () => {
 
     await page.locator("#bridgeAcceptBtn").click();
     await expect(prompt).toBeHidden();
-    await expect(page.locator("#planSelect")).toHaveValue("fapi2-message-signing-final-test-plan");
+    // The bridge resolved the plan: its picker row is highlighted.
+    await expect(
+      page.locator('#planSearch [data-plan-name="fapi2-message-signing-final-test-plan"]'),
+    ).toHaveClass(/is-active/);
     // The journey's variant choices are overlaid onto the advanced selects.
     await expect(page.locator("#vp_sender_constrain")).toHaveValue("mtls");
     await expect(page.locator("#vp_client_auth_type")).toHaveValue("private_key_jwt");
@@ -311,8 +318,8 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#createPlanBtn")).toBeEnabled();
 
     // Accepting runs the same arrival cue as picking the plan from the
-    // search list (revealPlanSelection): the cascade scrolls into view and,
-    // once the scroll settles, the selection group flashes...
+    // search list (revealPlanSelection): the selection group scrolls into
+    // view and, once the scroll settles, it flashes...
     await expect
       .poll(
         async () =>
@@ -323,7 +330,9 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect
       .poll(
         async () =>
-          page.locator("#specCascade").evaluate((el) => Math.round(el.getBoundingClientRect().top)),
+          page
+            .locator("#selectionFlash")
+            .evaluate((el) => Math.round(el.getBoundingClientRect().top)),
         { timeout: 3000 },
       )
       .toBeLessThan(100);
@@ -351,9 +360,8 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#bridgePrompt")).toBeVisible();
     await page.locator("#bridgeDeclineBtn").click();
     await expect(page.locator("#bridgePrompt")).toBeHidden();
-    // Advanced untouched: the cascade's plan select stays unselected (the
-    // element exists at rest with an empty value).
-    await expect(page.locator("#planSelect")).toHaveValue("");
+    // Advanced untouched: no plan was selected, so no picker row is active.
+    await expect(selectedPlanRow(page)).toHaveCount(0);
 
     // The decline is remembered for this plan: round-trip the toggle and
     // the offer does not repeat.
@@ -838,7 +846,9 @@ test.describe("schedule-test.html — guided hardening (review followup)", () =>
     await expect(page.locator("#bridgePrompt")).toBeVisible();
     await page.locator("#bridgeAcceptBtn").click();
 
-    await expect(page.locator("#planSelect")).toHaveValue("fapi2-message-signing-final-test-plan");
+    await expect(
+      page.locator('#planSearch [data-plan-name="fapi2-message-signing-final-test-plan"]'),
+    ).toHaveClass(/is-active/);
     // Declared values overlaid; the undeclared one left on the placeholder.
     await expect(page.locator("#vp_client_auth_type")).toHaveValue("private_key_jwt");
     await expect(page.locator("#vp_sender_constrain")).toHaveValue("select");

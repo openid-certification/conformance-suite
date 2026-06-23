@@ -5,6 +5,7 @@ import {
   setupTestInfoRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
+import { selectPlanViaSearch } from "./helpers/pick-plan.js";
 import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
@@ -338,7 +339,7 @@ test.describe("log-detail.html — /api/info/:id 404", () => {
 
 test.describe("schedule-test.html — POST /api/plan 400", () => {
   test.beforeEach(async ({ page }) => {
-    // This test drives the advanced island's cascade + create button.
+    // This test drives the advanced island's picker + create button.
     // Guided is the page default, so force the stored mode preference.
     await page.addInitScript(() => {
       try {
@@ -393,11 +394,8 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Fill the cascade with client-basic (no variants so Create auto-enables).
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
+    // Pick the no-variants client-basic plan (Create auto-enables).
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     const createBtn = page.locator("#createPlanBtn");
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
@@ -415,12 +413,13 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
 
     // T-8 "realistic next action": after dismissing, the user is still on
     // schedule-test.html (not navigated away to a plan that doesn't exist)
-    // AND their cascade selections are preserved — they can retry without
-    // re-entering everything.
+    // AND their plan selection is preserved — they can retry without
+    // re-picking. The picker's row stays highlighted.
     await errorModal.locator(".oidf-modal-close").first().click();
     await expect(errorModal).toBeHidden();
     await expect(page).toHaveURL(/\/schedule-test\.html/);
-    await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
-    await expect(entitySelect).toHaveValue("client-basic");
+    await expect(
+      page.locator('#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]'),
+    ).toHaveClass(/is-active/);
   });
 });

@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { selectPlanViaSearch, selectedPlanRow } from "./helpers/pick-plan.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 
 /** All available plans including the no-variants plan */
@@ -24,7 +25,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     expectNoUnmockedCalls(page);
   });
 
-  test("cascade populates specification families (R7)", async ({ page }) => {
+  test("picker renders plan rows and the family filter (R7)", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -52,29 +53,20 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
     await expect(page.locator("cts-toast-host")).toHaveCount(1);
 
-    // Spec family dropdown populates with families from the mock data
-    const familySelect = page.locator("#specFamilySelect");
-    await expect(familySelect).toBeVisible();
+    // cts-test-selector is the sole plan-entry point (cts-spec-cascade was
+    // removed): it renders one clickable row per available plan.
+    const rows = page.locator("#planSearch .oidf-test-selector__row");
+    await expect(rows.first()).toBeVisible();
+    await expect(
+      page.locator('#planSearch [data-plan-name="oidcc-basic-certification-test-plan"]'),
+    ).toContainText("OpenID Connect Core: Basic Certification Profile");
 
-    // Should have FAPI and OIDCC as options (from MOCK_PLANS)
-    await expect(familySelect.locator("option")).toHaveCount(3); // blank + FAPI + OIDCC
-
-    // Select OIDCC → entity selector appears
-    await familySelect.selectOption("OIDCC");
-
-    // Entity select should become visible (OIDCC has multiple profiles)
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-
-    // Select "basic" profile → version and plan cascade
-    await entitySelect.selectOption("basic");
-
-    // Plan select should become visible
-    const planSelect = page.locator("#planSelect");
-    await expect(planSelect).toBeVisible();
-
-    // Should contain the basic OIDCC plan
-    await expect(planSelect).toContainText("OpenID Connect Core: Basic Certification Profile");
+    // The family filter lists the spec families from the mock data, so a user
+    // can narrow the list the way the cascade's family dropdown used to.
+    const familyFilter = page.locator("#planSearch .oidf-test-selector__family");
+    await expect(familyFilter).toBeVisible();
+    await expect(familyFilter).toContainText("OIDCC");
+    await expect(familyFilter).toContainText("FAPI");
   });
 
   test("submission POSTs to /api/plan and redirects (R9)", async ({ page }) => {
@@ -137,17 +129,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Navigate the cascade: OIDCC → client-basic (no variants) → Final → plan auto-selects
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-
-    // Entity select appears — choose client-basic (has no variants)
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
-
-    // Plan should auto-select (single plan for client-basic/Final)
-    const planSelect = page.locator("#planSelect");
-    await expect(planSelect).toBeVisible();
+    // Pick the no-variant OIDCC client-basic plan from the search picker.
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     // Wait for the Create button to become enabled (no variants = immediately enabled)
     const createBtn = page.locator("#createPlanBtn");
@@ -202,8 +185,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     // The action bar is always visible; the button is disabled (not hidden)
     // when no plan is selected. Drop disabled so the synthetic click lands,
-    // then invoke the onclick handler directly — it checks planSelect.value
-    // and shows an error modal.
+    // then invoke the onclick handler directly — it checks the selected plan
+    // name (getSelectedPlanName()) and shows an error modal.
     await page.evaluate(() => {
       const btn = document.getElementById("createPlanBtn");
       if (!btn) throw new Error("createPlanBtn not found");
@@ -244,11 +227,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Navigate cascade to OIDCC basic plan (has client_auth_type, response_type, server_metadata variants)
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("basic");
+    // Pick the OIDCC basic plan (has client_auth_type, response_type, server_metadata variants).
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
 
     // Variant selectors should appear
     const variantSelectors = page.locator("#variantSelectors");
@@ -328,9 +308,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Navigate cascade to OIDCC basic plan
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("basic");
+    // Pick the OIDCC basic plan.
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
 
     // Select variant values
     await page.locator("#vp_client_auth_type").selectOption("client_secret_basic");
@@ -388,9 +367,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Navigate to the no-variants plan (client-basic)
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("client-basic");
+    // Pick the no-variants plan (client-basic).
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     // Variant selectors should be hidden (display: none)
     await expect(page.locator("#variantSelectors")).toBeHidden();
@@ -419,17 +397,16 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // When /api/plan/available returns 5xx, cts-spec-cascade renders an
-    // explicit error banner instead of an empty cascade. The cascade selects
-    // are not rendered in this state — the user sees a clear message rather
-    // than a silently broken UI.
-    const errorBanner = page.locator('[data-testid="spec-cascade-error"]');
+    // When /api/plan/available returns 5xx, the page reveals an explicit
+    // load-failure banner (KTD5) instead of a silently empty picker — the
+    // user sees a clear message rather than a broken UI.
+    const errorBanner = page.locator('[data-testid="plans-load-error"]');
     await expect(errorBanner).toBeVisible();
-    await expect(errorBanner).toContainText("Unable to load plans");
+    await expect(errorBanner).toContainText("Unable to load test plans");
 
-    // The cascade selects are absent in the error state — there is no plan
-    // the user could pick, by design.
-    await expect(page.locator("#specFamilySelect")).toHaveCount(0);
+    // No plan rows render in the failure state — there is nothing the user
+    // could pick, by design.
+    await expect(page.locator("#planSearch .oidf-test-selector__row")).toHaveCount(0);
 
     // Create button should remain disabled (no plan can be selected).
     // Targets the inner native button — see note in the R10 test.
@@ -493,12 +470,13 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // Pick OIDCC basic, populate the config editor, then switch to FAPI.
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("basic");
+    // Pick OIDCC basic, populate the config editor, then switch to a
+    // different plan — a fresh user pick (suppression counter at 0) clears
+    // the carried-over config.
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
     await setConfigValue(page, '{"alias":"about-to-be-cleared","server.issuer":"https://x.test"}');
 
-    await page.locator("#specFamilySelect").selectOption("FAPI");
+    await selectPlanViaSearch(page, "fapi2-security-profile-final-test-plan");
 
     // After clear, currentConfig is an empty object — stringified shape is "{}".
     expect(await readConfigValue(page)).toBe("{}");
@@ -560,8 +538,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
 
     // Land on a plan with a config form and populate it.
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("basic");
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
     await setConfigValue(page, '{"alias":"keep-me","server.issuer":"https://x.test"}');
 
     // Spy on clearConfigForNewPlan: favoriting must NOT route through the
@@ -641,7 +618,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // The endpoint shape is { config, planName, variant } — only `config`
     // is required for this assertion. No planName means selectPlanByName
     // is a no-op (returns false on `!plan`), which keeps the test focused
-    // on "click → editor populated" without coupling to the cascade.
+    // on "click → editor populated" without coupling to a specific plan.
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
@@ -660,8 +637,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     // Land on a plan with a config form; the editor must start empty
     // (per R13's new behavior — no auto-load on init).
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("basic");
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
     // After clear, currentConfig is an empty object — stringified shape is "{}".
     expect(await readConfigValue(page)).toBe("{}");
 
@@ -701,8 +677,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("basic");
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
     // Form starts empty — the probe must not apply the persisted config.
     expect(await readConfigValue(page)).toBe("{}");
 
@@ -899,13 +874,10 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // Reveal the config form by selecting the no-variants plan through the
-    // cascade — its config form renders immediately, while plans with
-    // variants keep it hidden until every variant is picked.
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
+    // Reveal the config form by picking the no-variants plan — its config
+    // form renders immediately, while plans with variants keep it hidden
+    // until every variant is picked.
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     const validateHost = page.locator('#ctsConfigForm cts-button[type="submit"]');
     const validateBtn = validateHost.locator("button");
@@ -940,17 +912,16 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(verdict).toBeEmpty();
   });
 
-  // --- cts-test-selector search flow (search-mode shortcut over the cascade) ---
+  // --- cts-test-selector search flow (the sole plan-entry point) ---
   //
-  // The search selector mounts above cts-spec-cascade and shares the same
-  // /api/plan/available payload. Clicking a search result routes through
-  // cascade.selectPlanByName so the existing downstream listeners
-  // (clearConfigForNewPlan, updateVariants, updateConfigFieldVisibility) fire
-  // exactly as if the user used the cascade dropdown. Cascade selections
-  // bridge back to the search selector via the `selected` attribute, keeping
-  // both entry points in sync regardless of which one the user touched.
+  // Clicking a search result fires cts-plan-select; the page handler resolves
+  // the plan via FAPI_UI.availablePlans and dispatches cts-plan-selected, so
+  // the downstream listeners (clearConfigForNewPlan, updateVariants,
+  // updateConfigFieldVisibility) fire on every pick. The picked row stays
+  // highlighted via the `selected` attribute the listener mirrors back — that
+  // highlighted row is the page-owned current-plan signal.
 
-  test("search-then-click drives the cascade and reveals the config form", async ({ page }) => {
+  test("search-then-click selects a plan and reveals the config form", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -988,14 +959,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(targetRow).toBeVisible();
     await targetRow.click();
 
-    // The cascade should reflect the selection across all four tiers.
-    await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
-    await expect(page.locator("#entitySelect")).toHaveValue("client-basic");
-    await expect(page.locator("#planSelect")).toHaveValue(
-      "oidcc-client-basic-certification-test-plan",
-    );
-
-    // The selector row stays highlighted via the cascade -> search bridge.
+    // The picked row is marked active — the page-owned current-plan signal.
     await expect(targetRow).toHaveClass(/is-active/);
 
     // No variants, so the create button becomes enabled and the config form
@@ -1004,15 +968,15 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
   });
 
-  test("click on a plan row smooth-scrolls #specCascade into view AND focuses the first variant select", async ({
+  test("click on a plan row smooth-scrolls #selectionFlash into view AND focuses the first variant select", async ({
     page,
   }) => {
-    // The dead-click fix: with a long plan list, the cascade auto-fills
-    // below the fold. Selecting a plan must scroll the cascade into view
-    // so the user can see what just happened and continue. Once the scroll
-    // settles, focus moves to the first variant <select> — on every
-    // selection, including this mouse-click path — so the user can carry
-    // straight on to configuring the plan.
+    // The dead-click fix: with a long plan list, the variant region renders
+    // below the fold. Selecting a plan must scroll the selection group
+    // (#selectionFlash) into view so the user can see what just happened and
+    // continue. Once the scroll settles, focus moves to the first variant
+    // <select> — on every selection, including this mouse-click path — so the
+    // user can carry straight on to configuring the plan.
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -1032,9 +996,9 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
 
     await setupCommonRoutes(page);
-    // Shrink the viewport so #specCascade is reliably off-screen at the
+    // Shrink the viewport so #selectionFlash is reliably off-screen at the
     // moment of the click — otherwise the page is short enough that the
-    // cascade is already visible and scrolling is a no-op (the test
+    // selection group is already visible and scrolling is a no-op (the test
     // would tautologically pass).
     await page.setViewportSize({ width: 1024, height: 360 });
     await page.goto("/schedule-test.html");
@@ -1051,24 +1015,24 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
     await expect(targetRow).toBeVisible();
 
-    // Precondition: capture the cascade's top BEFORE the click so we can
-    // assert below that the click actually moved the page (vs the
-    // cascade happening to already be near viewport-top, which would
-    // make the post-click assertion tautological).
-    const cascadeTopBeforeClick = await page.locator("#specCascade").evaluate((el) => {
+    // Precondition: capture the selection group's top BEFORE the click so we
+    // can assert below that the click actually moved the page (vs the group
+    // happening to already be near viewport-top, which would make the
+    // post-click assertion tautological).
+    const flashTopBeforeClick = await page.locator("#selectionFlash").evaluate((el) => {
       return Math.round(el.getBoundingClientRect().top);
     });
-    expect(cascadeTopBeforeClick).toBeGreaterThan(200);
+    expect(flashTopBeforeClick).toBeGreaterThan(200);
 
     await targetRow.click();
 
-    // After the rAF-deferred scroll, #specCascade's top edge should sit
+    // After the rAF-deferred scroll, #selectionFlash's top edge should sit
     // near the viewport top. Give it a generous threshold — the scroll
     // is smooth and Playwright may sample mid-animation.
     await expect
       .poll(
         async () => {
-          const top = await page.locator("#specCascade").evaluate((el) => {
+          const top = await page.locator("#selectionFlash").evaluate((el) => {
             return Math.round(el.getBoundingClientRect().top);
           });
           return top;
@@ -1078,11 +1042,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       .toBeLessThan(100);
 
     // The scroll-in arrival is punctuated by a one-shot highlight over the
-    // cascade + variant selectors group (#selectionFlash). It fires once the
-    // smooth scroll settles (scrollend) and clears itself ~1.6s later, so poll
-    // for the attribute in-window (no timing assertion on the animation itself,
-    // which would be flaky). The keyboard path runs the identical
-    // flashHighlight() call, so asserting it here covers both.
+    // selection group (#selectionFlash). It fires once the smooth scroll
+    // settles (scrollend) and clears itself ~1.6s later, so poll for the
+    // attribute in-window (no timing assertion on the animation itself, which
+    // would be flaky). The keyboard path runs the identical flashHighlight()
+    // call, so asserting it here covers both.
     await expect
       .poll(
         async () =>
@@ -1091,11 +1055,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBe(true);
 
-    // The settled scroll honors #specCascade's scroll-margin-top: the
-    // cascade lands ~16px (--space-4) shy of the viewport top — breathing
+    // The settled scroll honors #selectionFlash's scroll-margin-top: the
+    // group lands ~16px (--space-4) shy of the viewport top — breathing
     // room for the flash wash — not flush against it. The flash above only
     // fires post-settle, so this read is stable, not mid-animation.
-    const settledTop = await page.locator("#specCascade").evaluate((el) => {
+    const settledTop = await page.locator("#selectionFlash").evaluate((el) => {
       return Math.round(el.getBoundingClientRect().top);
     });
     expect(settledTop).toBeGreaterThanOrEqual(8);
@@ -1118,16 +1082,15 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       .toBe(true);
   });
 
-  test("keyboard selection on a no-variant plan scrolls AND falls back to focusing the first cascade select", async ({
+  test("keyboard selection on a no-variant plan scrolls AND falls back to focusing the Create button", async ({
     page,
   }) => {
     // The keyboard path runs the identical post-scroll-settle focus as the
     // click test above. This case uses a plan with NO variants, so
-    // #variantSelectors is empty and focus falls back to the first <select>
-    // in the cascade — focus is never stranded, and the user can keep
-    // keyboarding forward into the config form without reaching for the
-    // mouse. (Plans WITH variants focus the first variant select instead —
-    // see the click test above.)
+    // #variantSelectors is empty and focus falls back to the Create button —
+    // focus is never stranded back in the search list, and the user can keep
+    // keyboarding forward. (Plans WITH variants focus the first variant select
+    // instead — see the click test above.)
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -1162,12 +1125,12 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
     await expect(targetRow).toBeVisible();
 
-    // Precondition: cascade starts well below viewport-top so the
+    // Precondition: the selection group starts well below viewport-top so the
     // post-selection scroll assertion is meaningful.
-    const cascadeTopBeforeEnter = await page.locator("#specCascade").evaluate((el) => {
+    const flashTopBeforeEnter = await page.locator("#selectionFlash").evaluate((el) => {
       return Math.round(el.getBoundingClientRect().top);
     });
-    expect(cascadeTopBeforeEnter).toBeGreaterThan(200);
+    expect(flashTopBeforeEnter).toBeGreaterThan(200);
 
     await searchInput.focus();
     await page.keyboard.press("ArrowDown");
@@ -1175,11 +1138,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // dispatches cts-plan-select with via:'keyboard'.
     await page.keyboard.press("Enter");
 
-    // Cascade scrolls into view (same assertion as the click test).
+    // The selection group scrolls into view (same assertion as the click test).
     await expect
       .poll(
         async () => {
-          const top = await page.locator("#specCascade").evaluate((el) => {
+          const top = await page.locator("#selectionFlash").evaluate((el) => {
             return Math.round(el.getBoundingClientRect().top);
           });
           return top;
@@ -1188,65 +1151,23 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBeLessThan(100);
 
-    // And focus falls back to the first <select> inside #specCascade — the
-    // spec-family select — because this plan has no variants, so Tab
-    // continues forward into the config form.
+    // And focus falls back to the Create button's inner native <button> —
+    // because this plan has no variants, #variantSelectors is empty, so Tab
+    // continues forward into the config form instead of stranding focus.
     await expect
       .poll(
         async () => {
           return page.evaluate(() => {
             const active = document.activeElement;
-            const firstCascadeSelect = document
-              .getElementById("specCascade")
-              ?.querySelector("select");
-            return active === firstCascadeSelect;
+            const createBtnInner = document
+              .getElementById("createPlanBtn")
+              ?.querySelector("button");
+            return !!createBtnInner && active === createBtnInner;
           });
         },
         { timeout: 3000 },
       )
       .toBe(true);
-  });
-
-  test("cascade selection highlights the matching row in the search selector", async ({ page }) => {
-    await setupFailFast(page);
-
-    await page.route("**/api/plan/available", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(ALL_PLANS),
-      }),
-    );
-
-    await page.route("**/api/lastconfig", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({}),
-      }),
-    );
-
-    await setupCommonRoutes(page);
-    await page.goto("/schedule-test.html");
-
-    // Drive the cascade — no variants means the plan auto-selects when the
-    // entity tier picks "client-basic".
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("client-basic");
-
-    // The corresponding search-row carries the is-active class via the
-    // document-level `cts-plan-selected` listener that writes
-    // `planSearch.selected = e.detail.plan.planName`.
-    const targetRow = page.locator(
-      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
-    );
-    await expect(targetRow).toHaveClass(/is-active/, { timeout: 5000 });
-
-    // The bridge sets one `selected` planName at a time. A regression that
-    // marked every family-matching row active (e.g. by reading the spec
-    // family instead of the plan name) would still pass the assertion
-    // above; pin the count to exactly one to catch that shape.
-    await expect(page.locator("#planSearch .oidf-test-selector__row.is-active")).toHaveCount(1);
   });
 
   test("?test_plan= deep-link resolves AND highlights the search row (regression)", async ({
@@ -1273,18 +1194,18 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html?test_plan=oidcc-client-basic-certification-test-plan");
 
-    // The cascade resolves the deep-link via selectPlanByName (the inline
-    // wrapper that bumps isSystemSelectingPlan around the cascade call).
-    await expect(page.locator("#planSelect")).toHaveValue(
-      "oidcc-client-basic-certification-test-plan",
-      { timeout: 5000 },
-    );
-
-    // Both entry points reflect the same selection.
+    // The deep-link resolves via selectPlanByName (the programmatic-select
+    // wrapper that bumps isSystemSelectingPlan around the dispatch). The
+    // page-owned current-plan signal is the highlighted search row.
     const targetRow = page.locator(
       '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
     );
-    await expect(targetRow).toHaveClass(/is-active/);
+    await expect(targetRow).toHaveClass(/is-active/, { timeout: 5000 });
+
+    // Exactly one row is active — a regression that marked every
+    // family-matching row active (e.g. by keying on spec family instead of
+    // plan name) would still pass the assertion above; pin the count to one.
+    await expect(selectedPlanRow(page)).toHaveCount(1);
   });
 
   test("R42: cts-form-field renders a label[for] / id pair for every visible field", async ({
@@ -1316,12 +1237,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // cts-form-field elements only render after the cascade reaches a plan
-    // AND every variant is selected (updateConfigFieldVisibility gates the
-    // schema bind on allVariantsSelected). Pick the no-variants OIDCC plan
-    // so the form renders immediately after the cascade resolves.
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await page.locator("#entitySelect").selectOption("client-basic");
+    // cts-form-field elements only render after a plan is selected AND every
+    // variant is selected (updateConfigFieldVisibility gates the schema bind
+    // on allVariantsSelected). Pick the no-variants OIDCC plan so the form
+    // renders immediately on selection.
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
     await expect(page.locator('cts-form-field[name="alias"]').first()).toBeAttached({
       timeout: 5000,
     });
@@ -1396,10 +1316,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       );
       await setupCommonRoutes(page);
       await page.goto("/schedule-test.html");
-      await page.locator("#specFamilySelect").selectOption("OIDCC");
-      const entitySelect = page.locator("#entitySelect");
-      await expect(entitySelect).toBeVisible();
-      await entitySelect.selectOption("client-basic");
+      await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
       await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
     }
 
@@ -1516,8 +1433,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       await setupCommonRoutes(page);
 
       await page.goto("/schedule-test.html");
-      await page.locator("#specFamilySelect").selectOption("OIDCC");
-      await page.locator("#entitySelect").selectOption("client-basic");
+      await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
       await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
 
       await armGuardDirty(page);

@@ -39,6 +39,14 @@ import { expect } from "@playwright/test";
  *    children of every `<cts-json-editor>` are replaced with a stable
  *    `<!--monaco-internals-->` placeholder.
  *
+ * 3. cts-flash-highlight's transient `data-flashing` attribute — selecting a
+ *    plan via the search picker fires revealPlanSelection(), which flashes
+ *    #selectionFlash for ~1.6s by toggling `data-flashing`. Whether that flash
+ *    is mid-animation at capture time is non-deterministic, so the attribute
+ *    is stripped — the baselines snapshot resting structure, and the flash
+ *    behavior itself is covered by the scroll/keyboard tests' data-flashing
+ *    polls.
+ *
  * @param {import('@playwright/test').Locator} locator
  * @returns {Promise<string>}
  */
@@ -46,6 +54,7 @@ export async function getNormalizedInnerHTML(locator) {
   const html = await locator.innerHTML();
   return html
     .replace(/<!--\?lit\$\d+\$-->/g, "<!--?lit$NNNN$-->")
+    .replace(/ data-flashing(="[^"]*")?/g, "")
     .replace(
       /(<cts-json-editor\b[^>]*>)[\s\S]*?(<\/cts-json-editor>)/g,
       "$1<!--monaco-internals-->$2",

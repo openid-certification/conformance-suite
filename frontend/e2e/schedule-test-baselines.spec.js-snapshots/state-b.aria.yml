@@ -3,20 +3,30 @@
   - link "OpenID Foundation Certification Instructions":
     - /url: https://openid.net/certification/instructions/
   - text: .
-- text: Specification
-- combobox "Specification":
-  - option "--- Select a Specification ---"
+- button "Load last configuration" [disabled]
+- searchbox "Search test plans"
+- listbox "Filter test plans by specification family":
+  - option "★ Favorites (0)"
+  - separator
+  - option "All specifications" [selected]
   - option "FAPI"
-  - option "OIDCC" [selected]
-- text: Entity Under Test
-- combobox "Entity Under Test":
-  - option "--- Select Entity ---"
-  - option "basic" [selected]
-  - option "client-basic"
-- text: Test Type
-- combobox "Test Type":
-  - option "--- Select A Test Type ----"
-  - 'option "OpenID Connect Core: Basic Certification Profile" [selected]'
+  - option "OIDCC"
+- list:
+  - listitem:
+    - 'button "OpenID Connect Core: Basic Certification Profile OIDCC 4 test modules Basic OP certification test plan for OpenID Connect Core 1.0"':
+      - strong: "OpenID Connect Core: Basic Certification Profile"
+      - text: OIDCC 4 Basic OP certification test plan for OpenID Connect Core 1.0
+    - 'button "Add favorite: OpenID Connect Core: Basic Certification Profile"'
+  - listitem:
+    - button "FAPI 2.0 Security Profile FAPI 2 test modules FAPI 2.0 Security Profile conformance test plan":
+      - strong: FAPI 2.0 Security Profile
+      - text: FAPI 2 FAPI 2.0 Security Profile conformance test plan
+    - 'button "Add favorite: FAPI 2.0 Security Profile"'
+  - listitem:
+    - 'button "OpenID Connect Client: Basic Certification OIDCC 1 test module Client-side certification test plan for OpenID Connect"':
+      - strong: "OpenID Connect Client: Basic Certification"
+      - text: OIDCC 1 Client-side certification test plan for OpenID Connect
+    - 'button "Add favorite: OpenID Connect Client: Basic Certification"'
 - text: Server Metadata
 - combobox "Server Metadata":
   - option "--- Select A Variant ----" [selected]
@@ -32,3 +42,6 @@
   - option "client_secret_basic"
   - option "client_secret_post"
   - option "private_key_jwt"
+- region "Test plan actions":
+  - button "Create Test Plan" [disabled]
+  - button "Share Test Plan Configuration" [disabled]

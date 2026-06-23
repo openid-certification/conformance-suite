@@ -116,6 +116,13 @@
                 </div>
             </div>
 
+            <!-- Plans-load-failure banner (KTD5). Hidden by default; revealed
+                 from loadAvailablePlans()'s catch when /api/plan/available
+                 fails. A successful-but-empty response is left to the picker's
+                 own empty state — only a fetch failure shows this. Replaces
+                 the deleted cts-spec-cascade's `spec-cascade-error` banner. -->
+            <cts-alert id="plansLoadError" variant="danger" data-testid="plans-load-error" hidden=""><div class="oidf-alert oidf-alert-danger" role="alert"><div class="oidf-alert-body">Unable to load test plans — please reload the page.</div></div></cts-alert>
+
             <cts-test-selector id="planSearch"><!---->
       <div class="oidf-test-selector">
         <div class="oidf-test-selector__rail">
@@ -318,58 +325,11 @@
         </div>
       </div>
     </cts-test-selector>
-            <!-- Wrap the cascade + variant selectors so the scroll-in flash
-                 wash (fired after a search-list plan pick) covers both as one
-                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <!-- Wrap the variant selectors so the scroll-in flash wash (fired
+                 after a search-list plan pick) covers the selection group. It
+                 is the scroll + flash target for revealPlanSelection(). See
+                 cts-flash-highlight + the cts-plan-select handler. -->
             <cts-flash-highlight id="selectionFlash">
-                <cts-spec-cascade id="specCascade"><!---->
-      <div class="oidf-spec-cascade">
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="specFamilySelect-field" style="">
-        <label class="oidf-spec-cascade__label" for="specFamilySelect"><!--?lit$NNNN$-->Specification</label>
-        <select class="oidf-spec-cascade__select" id="specFamilySelect">
-          <option value=""><!--?lit$NNNN$-->--- Select a Specification ---</option>
-          <!--?lit$NNNN$--><!---->
-        <option value="FAPI">
-          <!--?lit$NNNN$-->FAPI
-        </option>
-      <!----><!---->
-        <option value="OIDCC">
-          <!--?lit$NNNN$-->OIDCC
-        </option>
-      <!---->
-        </select>
-      </div>
-    
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="entitySelect-field" style="display:none">
-        <label class="oidf-spec-cascade__label" for="entitySelect"><!--?lit$NNNN$-->Entity Under Test</label>
-        <select class="oidf-spec-cascade__select" id="entitySelect">
-          <option value=""><!--?lit$NNNN$-->--- Select Entity ---</option>
-          <!--?lit$NNNN$-->
-        </select>
-      </div>
-    
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="specVersionSelect-field" style="display:none">
-        <label class="oidf-spec-cascade__label" for="specVersionSelect"><!--?lit$NNNN$-->Version</label>
-        <select class="oidf-spec-cascade__select" id="specVersionSelect">
-          <option value=""><!--?lit$NNNN$-->--- Select Version ---</option>
-          <!--?lit$NNNN$-->
-        </select>
-      </div>
-    
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="planSelect-field" style="display:none">
-        <label class="oidf-spec-cascade__label" for="planSelect"><!--?lit$NNNN$-->Test Type</label>
-        <select class="oidf-spec-cascade__select" id="planSelect">
-          <option value=""><!--?lit$NNNN$-->--- Select A Test Type ----</option>
-          <!--?lit$NNNN$-->
-        </select>
-      </div>
-    
-      </div>
-    </cts-spec-cascade>
                 <form id="variantSelectors" style="display: none;"></form>
             </cts-flash-highlight>
 
