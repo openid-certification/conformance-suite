@@ -68,8 +68,7 @@ const PAGE_SIZE = 25;
 const STYLE_ID = "cts-log-list-styles";
 
 // Inline SVG chevron used as the custom select indicator, matching
-// cts-form-field's `.oidf-select` and cts-spec-cascade's
-// `.oidf-spec-cascade__select`. Stroke colour is `--ink-500` (`#71695E`),
+// cts-form-field's `.oidf-select`. Stroke colour is `--ink-500` (`#71695E`),
 // encoded as `%2371695E` in the data: URL.
 const SELECT_CHEVRON =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
