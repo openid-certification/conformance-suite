@@ -40,7 +40,6 @@
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
-    <script type="module" src="/components/cts-spec-cascade.js"></script>
     <script type="module" src="/components/cts-flash-highlight.js"></script>
     <script type="module" src="/components/cts-test-selector.js"></script>
     <script type="module" src="/components/cts-form-field.js"></script>
@@ -654,11 +653,11 @@
             >Unable to load test plans — please reload the page.</cts-alert>
 
             <cts-test-selector id="planSearch" loading></cts-test-selector>
-            <!-- Wrap the cascade + variant selectors so the scroll-in flash
-                 wash (fired after a search-list plan pick) covers both as one
-                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <!-- Wrap the variant selectors so the scroll-in flash wash (fired
+                 after a search-list plan pick) covers the selection group. It
+                 is the scroll + flash target for revealPlanSelection(). See
+                 cts-flash-highlight + the cts-plan-select handler. -->
             <cts-flash-highlight id="selectionFlash">
-                <cts-spec-cascade id="specCascade"></cts-spec-cascade>
                 <form id="variantSelectors">
                     <!-- render variant selectors here -->
                 </form>
@@ -1061,12 +1060,10 @@
         function loadAvailablePlans() {
             return fetch('/api/plan/available')
                 .then((response) => {
-                    // Mirror the response.ok guard in cts-spec-cascade.js
-                    // _fetchPlans. On 5xx, calling .json() on a JSON error
-                    // body would coerce to [] later and silently route the
-                    // cascade to the empty-state banner instead of the
-                    // error banner. Reject here so the component's own
-                    // failed fetch can set _error.
+                    // On 5xx, calling .json() on a JSON error body would
+                    // coerce to [] later and silently route to the empty
+                    // state instead of the load-failure banner. Reject here
+                    // so the catch reveals #plansLoadError (KTD5).
                     if (!response.ok) {
                         throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                     }
@@ -1077,25 +1074,18 @@
                     // consumers: `applyConfigPreset`, `updateVariants`,
                     // `updateConfigFieldVisibility`, the create-plan submit
                     // path, and the variant-options renderer all key into it
-                    // by planName. The cts-spec-cascade component owns the
-                    // cascade rendering and its own internal plan index;
-                    // hand it the same dataset so it doesn't refetch.
-                    // Defensive: coerce non-array payloads to an empty
-                    // array so the keyBy doesn't choke on a malformed 200
-                    // body and the cascade routes to its empty-state UI.
+                    // by planName.
+                    // Defensive: coerce non-array payloads to an empty array
+                    // so the keyBy doesn't choke on a malformed 200 body and
+                    // the picker routes to its empty-state UI.
                     var planList = Array.isArray(data) ? data : [];
                     FAPI_UI.availablePlans = _.keyBy(planList, 'planName');
-                    var cascade = document.getElementById('specCascade');
-                    if (cascade) {
-                        cascade.plans = planList;
-                    }
-                    // Same dataset feeds the search-mode entry point. The
-                    // selector is a peer to the cascade: typing filters the
-                    // list; clicking a result routes through
-                    // cascade.selectPlanByName so downstream listeners
-                    // (clearConfigForNewPlan, updateVariants,
-                    // updateConfigFieldVisibility) fire exactly as if the
-                    // user had used the cascade dropdown.
+                    // The same dataset feeds the search picker (the sole
+                    // plan-entry point): typing filters the list; clicking a
+                    // result fires cts-plan-select, which the page handler
+                    // routes through dispatchPlanSelection so downstream
+                    // listeners (clearConfigForNewPlan, updateVariants,
+                    // updateConfigFieldVisibility) fire on every pick.
                     var planSearch = document.getElementById('planSearch');
                     if (planSearch) {
                         planSearch.plans = planList;
@@ -1257,7 +1247,7 @@
                 .then(async (data) => {
                     FAPI_UI.loadedPlanName = data.planName;
                     if (data.config) {
-                        // Order matters: await the cascade so the listener
+                        // Order matters: await the selection so the listener
                         // fires updateConfigFieldVisibility (which binds
                         // ctsConfigForm.schema/uiSchema/hiddenFields) BEFORE
                         // we hand the config to the component. Otherwise the
@@ -1283,7 +1273,7 @@
                 .then((response) => response.json())
                 .then(async (data) => {
                     if (data.config) {
-                        // See loadPlanConfig for the cascade-before-config
+                        // See loadPlanConfig for the select-before-config
                         // ordering rationale.
                         await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
@@ -1334,7 +1324,7 @@
                         error: "Could not restore your last submitted configuration — the stored data was invalid and has been cleared.",
                     });
                 }
-                // Same cascade-before-config ordering as loadPlanConfig:
+                // Same select-before-config ordering as loadPlanConfig:
                 // bind the schema first, then hand the data to the component.
                 await updateSelectedTestSelector(localSavedConfig.planName);
                 if (localSavedConfig.variant) {
@@ -1380,7 +1370,7 @@
 
         // R13: explicit "Load last configuration" action. Mirrors the prior
         // auto-fetch behavior but is now triggered only by the user clicking
-        // the toolbar button. updateSelectedTestSelector flips the cascade
+        // the toolbar button. updateSelectedTestSelector selects the plan
         // through selectPlanByName (which trips isSystemSelectingPlan), so
         // the cts-plan-selected listener skips clearing the config we are
         // about to apply.
@@ -1396,7 +1386,7 @@
                 .then((response) => response.json())
                 .then(async (data) => {
                     if (data.config) {
-                        // U12 (B4): after the cascade dispatches
+                        // U12 (B4): after selectPlanByName dispatches
                         // cts-plan-selected, the listener calls
                         // updateVariants() (which renders the variant
                         // <select>s) and updateConfigFieldVisibility()
@@ -1440,8 +1430,9 @@
         }
 
         function updateSelectedTestSelector(planName) {
-            // Returns the promise from the cascade's deferred selection so
-            // callers in async chains can await DOM-sync before continuing.
+            // Returns the selectPlanByName promise so callers in async chains
+            // can await the dispatch (and its synchronous variant render)
+            // before continuing.
             return selectPlanByName(planName);
         }
 
@@ -1662,21 +1653,20 @@
                 });
             }
 
-            // cts-spec-cascade dispatches `cts-plan-selected` whenever a
-            // plan is chosen (user click OR programmatic `selectPlanByName`).
-            // R13: clear the carried-over config when the user picks a new
-            // plan. The inline selectPlanByName wrapper bumps
-            // isSystemSelectingPlan around its delegated cascade call, so
-            // programmatic flows (edit-plan, edit-test, "Load last
-            // configuration") preserve the config they just applied.
+            // The page dispatches `cts-plan-selected` whenever a plan is
+            // chosen — user pick (dispatchPlanSelection) OR programmatic
+            // selectPlanByName. R13: clear the carried-over config when the
+            // user picks a new plan. The selectPlanByName wrapper bumps
+            // isSystemSelectingPlan around its dispatch, so programmatic flows
+            // (edit-plan, edit-test, "Load last configuration") preserve the
+            // config they just applied.
             document.addEventListener('cts-plan-selected', function(e) {
                 if (isSystemSelectingPlan === 0) {
                     clearConfigForNewPlan();
                 }
-                // Keep the search selector in sync with whatever the cascade
-                // settled on, regardless of the trigger source (user click,
-                // deep-link, edit-plan, load-last-config, or the test
-                // selector itself routing back through the cascade).
+                // Keep the search picker's selected-row marker in sync with
+                // the chosen plan, regardless of the trigger source (user
+                // pick, deep-link, edit-plan, load-last-config).
                 var planSearch = document.getElementById('planSearch');
                 if (planSearch && e.detail && e.detail.plan) {
                     planSearch.selected = e.detail.plan.planName;

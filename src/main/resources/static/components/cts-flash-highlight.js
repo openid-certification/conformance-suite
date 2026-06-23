@@ -11,7 +11,7 @@ import { css, unsafeCSS } from "lit";
  * convention (light DOM, scoped style injected once into <head>). Unlike
  * cts-action-bar it does NOT reparent its children — it leaves the light-DOM
  * subtree untouched so `document.getElementById(...)` lookups into wrapped
- * content (e.g. `#planSelect`, `#variantSelectors`) keep working — and just
+ * content (e.g. `#variantSelectors`) keep working — and just
  * decorates the host with a `position: relative` box plus an absolutely
  * positioned `::after` wash. The wash overhangs the host by `--space-4` (the
  * "padding around it") and sits at `z-index: -1` behind the host's content, so
