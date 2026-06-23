@@ -20,7 +20,7 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsAudienceFail
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARTokenEndpointAsAudienceFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRegisteredRedirectUri;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestClaimsParameterIdentityClaims;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestEssentialAcrScaClaim;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestPlan;
@@ -186,7 +186,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalPARTokenEndpointAsAudienceFails.class);
 
 		// Profile-specific tests (plain_fapi / connectid_au / openbanking_uk / openbanking_brazil)
-		fapiTestModules.remove(FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureRegisteredRedirectUri.class);
 		fapiTestModules.remove(FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails.class);
 		fapiTestModules.remove(FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class);
 		fapiTestModules.remove(FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId.class);
