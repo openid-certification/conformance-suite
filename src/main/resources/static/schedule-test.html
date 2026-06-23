@@ -873,10 +873,13 @@
                             // user-pick semantics: dispatchPlanSelection() leaves
                             // isSystemSelectingPlan at 0 so the bridge prefill
                             // clears the in-flight config (matching the old
-                            // cascade.selectPlanByName path). It is synchronous —
-                            // updateVariants() renders the variant <select>s
-                            // before it returns, so the variant overlay lands.
-                            selectPlanByName: dispatchPlanSelection,
+                            // cascade.selectPlanByName path). The dep key matches
+                            // the function name on purpose — it is the counter-0
+                            // core, NOT the counter-bumping page selectPlanByName
+                            // wrapper. It is synchronous — updateVariants()
+                            // renders the variant <select>s before it returns, so
+                            // the variant overlay lands.
+                            dispatchPlanSelection: dispatchPlanSelection,
                             // maybeOfferBridge reads the current-plan source of
                             // truth to dedup an already-applied prefill.
                             getSelectedPlanName: getSelectedPlanName,

@@ -599,10 +599,11 @@ export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE)
  *   cue: scroll the selection group into view, flash it once the scroll
  *   settles, focus the first variant select. Called after a bridge prefill
  *   so accepting reads exactly like picking the plan from the search list.
- * @property {(planName: string) => boolean} [selectPlanByName] - The page's
- *   user-pick plan selection (dispatchPlanSelection): sets the current-plan
- *   source of truth and dispatches cts-plan-selected with the suppression
- *   counter at 0, so the bridge prefill clears the in-flight config.
+ * @property {(planName: string) => boolean} [dispatchPlanSelection] - The
+ *   page's user-pick plan selection: sets the current-plan source of truth
+ *   and dispatches cts-plan-selected with the suppression counter at 0, so
+ *   the bridge prefill clears the in-flight config. This is the counter-0
+ *   core, NOT the page's counter-bumping selectPlanByName wrapper.
  *   Synchronous — the variant <select>s are rendered before it returns.
  * @property {() => string} [getSelectedPlanName] - Reads the page's
  *   current-plan source of truth; used to dedup an already-applied prefill.
@@ -1524,7 +1525,7 @@ export function startGuidedJourney(modeController, deps) {
   function acceptBridge() {
     const resolved = state.result;
     const plan = resolved ? planByName(resolved.plan_name) : null;
-    if (!resolved || !plan || !deps.selectPlanByName) {
+    if (!resolved || !plan || !deps.dispatchPlanSelection) {
       hideBridge();
       return;
     }
@@ -1533,9 +1534,9 @@ export function startGuidedJourney(modeController, deps) {
     // the in-flight config (the system-event-suppression counter is reserved
     // for restore flows). The selection is synchronous — the page's listener
     // renders the variant <select>s via updateVariants() before
-    // selectPlanByName returns — so the journey's variant values overlay onto
-    // already-rendered selects below.
-    deps.selectPlanByName(resolved.plan_name);
+    // dispatchPlanSelection returns — so the journey's variant values overlay
+    // onto already-rendered selects below.
+    deps.dispatchPlanSelection(resolved.plan_name);
     for (const [param, value] of Object.entries(resolved.variants || {})) {
       const el = /** @type {HTMLSelectElement|null} */ (
         document.querySelector(`.variant-selector[data-variant-parameter="${param}"]`)
@@ -1551,8 +1552,8 @@ export function startGuidedJourney(modeController, deps) {
     if (variantForm) variantForm.dispatchEvent(new Event("change"));
     hideBridge();
     // Same arrival cue as picking the plan from the search list: scroll the
-    // cascade into view, flash the selection group, focus the first variant.
-    // After hideBridge() so the rAF inside measures the post-hide layout.
+    // selection group into view, flash it, focus the first variant. After
+    // hideBridge() so the rAF inside measures the post-hide layout.
     if (deps.revealPlanSelection) deps.revealPlanSelection();
     announce(`Prefilled from your guided answers: ${plan.displayName || resolved.plan_name}.`);
   }

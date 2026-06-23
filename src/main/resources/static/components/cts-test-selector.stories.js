@@ -406,10 +406,10 @@ export const WithSelection = {
   async play({ canvasElement }) {
     // The externally-driven path must not fabricate a synthetic
     // `cts-plan-select` — that event signals "user picked this plan."
-    // schedule-test.html routes click events through cascade.selectPlanByName,
+    // schedule-test.html routes click events through dispatchPlanSelection,
     // which clears the in-flight config. If WithSelection re-fired the event
-    // every time a caller set `selected`, the bridge would wipe the config
-    // any time the cascade pushed a highlight back to the selector.
+    // every time a caller set `selected`, a programmatic highlight (deep-link,
+    // edit-plan, load-last-config) would wipe the config it just restored.
     let dispatched = 0;
     canvasElement.addEventListener("cts-plan-select", () => {
       dispatched += 1;

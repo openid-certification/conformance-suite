@@ -647,6 +647,71 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect.poll(() => readConfigValue(page)).toContain("from-last-config");
   });
 
+  test("R13: 'Load last configuration' with a saved plan preserves the config (suppression counter)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    // Unlike the test above, this payload carries a real planName, so
+    // loadLastConfigFromServer drives selectPlanByName (the programmatic-
+    // restore wrapper) — which bumps isSystemSelectingPlan around the
+    // cts-plan-selected dispatch. The suppression counter must keep the
+    // listener from running clearConfigForNewPlan, so the config we just
+    // restored survives (the plan's Risk #2 invariant). Use the no-variant
+    // plan so the config form binds immediately.
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          planName: "oidcc-client-basic-certification-test-plan",
+          variant: {},
+          config: {
+            alias: "restored-under-suppression",
+            "server.issuer": "https://restored.example.com",
+          },
+        }),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Spy on clearConfigForNewPlan once the init chain has wired the page
+    // (createPlanBtn.onclick is the end-of-init sentinel). The
+    // cts-plan-selected listener calls the global by name, so reassigning
+    // window.clearConfigForNewPlan intercepts it — same pattern as the
+    // favoriting test above.
+    await page.waitForFunction(() => document.getElementById("createPlanBtn")?.onclick !== null);
+    await page.evaluate(() => {
+      const w = /** @type {any} */ (window);
+      w.__clearConfigCalls = 0;
+      const orig = w.clearConfigForNewPlan;
+      w.clearConfigForNewPlan = function () {
+        w.__clearConfigCalls++;
+        return orig();
+      };
+    });
+
+    await page.getByTestId("load-last-config").click();
+
+    // The restored config lands...
+    await expect.poll(() => readConfigValue(page)).toContain("restored-under-suppression");
+    // ...AND the suppression counter prevented the config-clear: a regression
+    // where dispatchPlanSelection ignored isSystemSelectingPlan (or
+    // selectPlanByName stopped bumping it) would run clearConfigForNewPlan and
+    // trip this spy.
+    expect(await page.evaluate(() => /** @type {any} */ (window).__clearConfigCalls)).toBe(0);
+  });
+
   test("R13/U11: page load probes /api/lastconfig but does not apply it", async ({ page }) => {
     await setupFailFast(page);
 
