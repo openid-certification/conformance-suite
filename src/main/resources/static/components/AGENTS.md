@@ -370,7 +370,6 @@ sigil fails the lint step.
 | `cts-plan-modules`      | LitElement  | Yes       | Sub-component of cts-plan-detail; dispatches run/download events                                                               |
 | `cts-plan-status`       | LitElement  | Yes       | Per-module status segments (overview/detail/log modes); fires `cts-plan-status-activate`                                       |
 | `cts-running-test-card` | LitElement  | Yes       | Active-test panel; dispatches `cts-download-log`                                                                               |
-| `cts-spec-cascade`      | LitElement  | Yes       | Family → entity → version → plan dropdowns; dispatches `cts-plan-selected`                                                     |
 | `cts-tabs`              | HTMLElement | No        | Restructures `<cts-tab-panel>` children into WCAG tablist; dispatches `cts-tab-change`                                         |
 | `cts-test-nav-controls` | LitElement  | Yes       | Plan-nav cluster (Return/Repeat/Continue) + embedded `cts-plan-status` log bar; fires `cts-repeat`/`cts-continue`              |
 | `cts-test-selector`     | LitElement  | Yes       | Plan-selector UI; dispatches `cts-plan-select`                                                                                 |
