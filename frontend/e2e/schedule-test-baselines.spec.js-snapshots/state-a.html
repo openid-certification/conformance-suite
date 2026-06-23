@@ -155,19 +155,21 @@
             <input type="search" class="oidf-test-selector__search" placeholder="Search test plans..." aria-label="Search test plans" autocomplete="off" spellcheck="false">
             <!--?lit$NNNN$-->
           </div>
-          <!--?lit$NNNN$-->
           <select class="oidf-test-selector__family" size="14" aria-label="Filter test plans by specification family">
-            <!--?lit$NNNN$-->
+            <option class="oidf-test-selector__family-view" value="__cts_favorites_view__">
+              ★ Favorites (<!--?lit$NNNN$-->0)
+            </option>
             <option value="" selected="">
               All specifications
             </option>
             <!--?lit$NNNN$--><!----><option value="FAPI"> <!--?lit$NNNN$-->FAPI </option><!----><!----><option value="OIDCC"> <!--?lit$NNNN$-->OIDCC </option><!---->
           </select>
+          <!--?lit$NNNN$-->
         </div>
         <div class="oidf-test-selector__main">
-          <!--?lit$NNNN$-->
           <div class="oidf-test-selector__list" role="list">
-            <!--?lit$NNNN$--><!---->
+            <!--?lit$NNNN$-->
+                  <!--?lit$NNNN$--><!---->
       <div class="oidf-test-selector__item" role="listitem">
         <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
           <span class="oidf-test-selector__row-head">
@@ -179,7 +181,40 @@
           </span>
           <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
         </button>
-        <!--?lit$NNNN$-->
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: OpenID Connect Core: Basic Certification Profile" data-favorite-plan="oidcc-basic-certification-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
       </div>
     <!----><!---->
       <div class="oidf-test-selector__item" role="listitem">
@@ -193,7 +228,40 @@
           </span>
           <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
         </button>
-        <!--?lit$NNNN$-->
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: FAPI 2.0 Security Profile" data-favorite-plan="fapi2-security-profile-final-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
       </div>
     <!----><!---->
       <div class="oidf-test-selector__item" role="listitem">
@@ -207,9 +275,44 @@
           </span>
           <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
         </button>
-        <!--?lit$NNNN$-->
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: OpenID Connect Client: Basic Certification" data-favorite-plan="oidcc-client-basic-certification-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
       </div>
     <!---->
+                  <!--?lit$NNNN$-->
+                
           </div>
         </div>
       </div>

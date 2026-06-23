@@ -504,6 +504,68 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     expect(await readConfigValue(page)).toBe("{}");
   });
 
+  test("R7: favoriting a plan persists across reload and never clears the config", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // The favorite toggle is keyed on data-favorite-plan (NOT data-plan-name,
+    // which is the row's selection identity), so this resolves to exactly the
+    // star — not the row.
+    const fapiStar = page.locator(
+      '#planSearch [data-favorite-plan="fapi2-security-profile-final-test-plan"]',
+    );
+
+    // Land on a plan with a config form and populate it.
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    await page.locator("#entitySelect").selectOption("basic");
+    await setConfigValue(page, '{"alias":"keep-me","server.issuer":"https://x.test"}');
+
+    // Spy on clearConfigForNewPlan: favoriting must NOT route through the
+    // plan-selection / config-clear path (it changes no selected plan).
+    await page.evaluate(() => {
+      const w = /** @type {any} */ (window);
+      w.__clearConfigCalls = 0;
+      const orig = w.clearConfigForNewPlan;
+      // clearConfigForNewPlan takes no args and is called bare, so forwarding
+      // is a plain call.
+      w.clearConfigForNewPlan = function () {
+        w.__clearConfigCalls++;
+        return orig();
+      };
+    });
+
+    // Star a different plan than the one selected.
+    await expect(fapiStar).toHaveAttribute("aria-pressed", "false");
+    await fapiStar.click();
+    await expect(fapiStar).toHaveAttribute("aria-pressed", "true");
+
+    // The in-flight config is untouched and clearConfigForNewPlan never ran —
+    // a hard regression gate on the suppression-counter / config-clear path.
+    expect(await readConfigValue(page)).toContain("keep-me");
+    expect(await page.evaluate(() => /** @type {any} */ (window).__clearConfigCalls)).toBe(0);
+
+    // The favorite survives a full reload (localStorage interim store).
+    await page.reload();
+    await expect(
+      page.locator('#planSearch [data-favorite-plan="fapi2-security-profile-final-test-plan"]'),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
     await setupFailFast(page);
 
