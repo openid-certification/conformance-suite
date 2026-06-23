@@ -6,6 +6,8 @@
 - button "Load last configuration"
 - searchbox "Search test plans"
 - listbox "Filter test plans by specification family":
+  - option "★ Favorites (0)"
+  - separator
   - option "All specifications" [selected]
   - option "FAPI"
   - option "OIDCC"
@@ -14,28 +16,17 @@
     - 'button "OpenID Connect Core: Basic Certification Profile OIDCC 4 test modules Basic OP certification test plan for OpenID Connect Core 1.0"':
       - strong: "OpenID Connect Core: Basic Certification Profile"
       - text: OIDCC 4 Basic OP certification test plan for OpenID Connect Core 1.0
+    - 'button "Add favorite: OpenID Connect Core: Basic Certification Profile"'
   - listitem:
     - button "FAPI 2.0 Security Profile FAPI 2 test modules FAPI 2.0 Security Profile conformance test plan":
       - strong: FAPI 2.0 Security Profile
       - text: FAPI 2 FAPI 2.0 Security Profile conformance test plan
+    - 'button "Add favorite: FAPI 2.0 Security Profile"'
   - listitem:
     - 'button "OpenID Connect Client: Basic Certification OIDCC 1 test module Client-side certification test plan for OpenID Connect"':
       - strong: "OpenID Connect Client: Basic Certification"
       - text: OIDCC 1 Client-side certification test plan for OpenID Connect
-- text: Specification
-- combobox "Specification":
-  - option "--- Select a Specification ---"
-  - option "FAPI"
-  - option "OIDCC" [selected]
-- text: Entity Under Test
-- combobox "Entity Under Test":
-  - option "--- Select Entity ---"
-  - option "basic"
-  - option "client-basic" [selected]
-- text: Test Type
-- combobox "Test Type":
-  - option "--- Select A Test Type ----"
-  - 'option "OpenID Connect Client: Basic Certification" [selected]'
+    - 'button "Add favorite: OpenID Connect Client: Basic Certification"'
 - heading "Configure Test" [level=3]
 - tablist "Configure test input mode":
   - tab "Form" [selected]

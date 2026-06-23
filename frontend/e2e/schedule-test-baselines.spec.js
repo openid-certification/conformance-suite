@@ -24,6 +24,7 @@ import {
   assertLabelInputPairing,
   getNormalizedInnerHTML,
 } from "./helpers/assertions.js";
+import { selectPlanViaSearch } from "./helpers/pick-plan.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
@@ -36,10 +37,10 @@ const CTS_CUSTOM_ELEMENTS = [
   "cts-badge",
   "cts-button",
   "cts-alert",
-  // Wraps the cascade + variant selectors; upgrades on connect. Its flash
-  // state lives in a transient `data-flashing` attribute (absent at rest), so
-  // the resting snapshot is unaffected — we wait for upgrade only for parity
-  // with the other wrappers and to keep the structure deterministic.
+  // Wraps the variant selectors; upgrades on connect. Its flash state lives
+  // in a transient `data-flashing` attribute (absent at rest), so the resting
+  // snapshot is unaffected — we wait for upgrade only for parity with the
+  // other wrappers and to keep the structure deterministic.
   "cts-flash-highlight",
 ];
 
@@ -130,7 +131,7 @@ test.describe("schedule-test.html — baselines", () => {
     expect(html).toMatchSnapshot("state-a.html");
   });
 
-  test("State B — cascade mid-selection (OIDCC basic, variants visible)", async ({ page }) => {
+  test("State B — plan selected (OIDCC basic, variants visible)", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -155,12 +156,9 @@ test.describe("schedule-test.html — baselines", () => {
     await waitForCustomElementsUpgrade(page);
     await waitForPageInit(page);
 
-    // Cascade: select OIDCC family, then `basic` entity → variant selectors
-    // become visible (no variant chosen yet).
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("basic");
+    // Pick the OIDCC basic plan → variant selectors become visible (no
+    // variant chosen yet).
+    await selectPlanViaSearch(page, "oidcc-basic-certification-test-plan");
 
     await expect(page.locator("#variantSelectors")).toBeVisible();
     await expect(page.locator("select.variant-selector").first()).toBeVisible();
@@ -180,10 +178,9 @@ test.describe("schedule-test.html — baselines", () => {
   }) => {
     await setupFailFast(page);
 
-    // Use ALL_PLANS so entitySelect is visible (multiple OIDCC entities:
-    // `basic` and `client-basic`). With only one entity, the cascade
-    // auto-selects and hides the entity dropdown, which would defeat the
-    // "config form rendered" goal of this state.
+    // Serve the full catalog so the no-variants client-basic plan is in the
+    // picker list — selecting it renders the config form immediately, which
+    // is the "config form rendered" goal of this state.
     await page.route("**/api/plan/available", (route) =>
       route.fulfill({
         status: 200,
@@ -216,11 +213,8 @@ test.describe("schedule-test.html — baselines", () => {
     await waitForCustomElementsUpgrade(page);
     await waitForPageInit(page);
 
-    // Cascade through to the no-variants plan so the config form renders.
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
+    // Pick the no-variants plan so the config form renders.
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     // R13: explicitly load the saved config to populate cts-config-form.
     await page.getByTestId("load-last-config").click();

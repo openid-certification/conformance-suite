@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { setupScheduleTestRoutes, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { selectPlanViaSearch } from "./helpers/pick-plan.js";
 
 /**
  * R12 — Monaco JSON editor on the schedule-test.html JSON tab.
@@ -15,16 +16,15 @@ import { setupScheduleTestRoutes, expectNoUnmockedCalls } from "./helpers/routes
 
 /**
  * cts-config-form lazy-mounts its inner <cts-json-editor> only after the
- * JSON tab is activated at least once. The cascade also needs to reach a
- * plan + all variants so updateConfigFieldVisibility binds the schema and
- * shows the form. Use the no-variants plan so the form renders immediately
- * after the cascade resolves, then click the JSON tab to trigger the mount.
+ * JSON tab is activated at least once. A plan + all variants must also be
+ * selected so updateConfigFieldVisibility binds the schema and shows the
+ * form. Use the no-variants plan so the form renders immediately on
+ * selection, then click the JSON tab to trigger the mount.
  *
  * @param {import('@playwright/test').Page} page
  */
 async function showJsonTab(page) {
-  await page.locator("#specFamilySelect").selectOption("OIDCC");
-  await page.locator("#entitySelect").selectOption("client-basic");
+  await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
   // Wait for cts-config-form to actually render fields (schema bound).
   await expect(page.locator('cts-form-field[name="alias"]').first()).toBeAttached({
     timeout: 5000,
@@ -35,7 +35,7 @@ async function showJsonTab(page) {
 
 test.describe("schedule-test.html — R12 Monaco JSON editor inside <cts-config-form>", () => {
   test.beforeEach(async ({ page }) => {
-    // These tests drive the advanced island's cascade + config form. Guided
+    // These tests drive the advanced island's picker + config form. Guided
     // is the page default, so force the stored mode preference up front.
     await page.addInitScript(() => {
       try {
