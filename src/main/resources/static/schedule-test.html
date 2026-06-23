@@ -870,6 +870,17 @@
                             createPlan: postCreatePlan,
                             normalizeCreateError: normalizeCreateError,
                             revealPlanSelection: revealPlanSelection,
+                            // acceptBridge drives the page's plan selection with
+                            // user-pick semantics: dispatchPlanSelection() leaves
+                            // isSystemSelectingPlan at 0 so the bridge prefill
+                            // clears the in-flight config (matching the old
+                            // cascade.selectPlanByName path). It is synchronous —
+                            // updateVariants() renders the variant <select>s
+                            // before it returns, so the variant overlay lands.
+                            selectPlanByName: dispatchPlanSelection,
+                            // maybeOfferBridge reads the current-plan source of
+                            // truth to dedup an already-applied prefill.
+                            getSelectedPlanName: getSelectedPlanName,
                         });
                     }
                     if (guidedCtl && guidedCtl.initialMode === 'guided') {
