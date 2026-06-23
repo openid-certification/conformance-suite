@@ -261,7 +261,7 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(table).toContainText("Client Authentication Type");
     await expect(table).toContainText("Private Key JWT");
     await expect(table).toContainText("CIBA Mode");
-    await expect(table).toContainText("Ping");
+    await expect(table).toContainText("Poll");
     await expect(table).toContainText("FAPI-CIBA Profile");
     await expect(table).toContainText("ConnectID Australia");
   });
@@ -290,7 +290,7 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(table).toContainText("FAPI-CIBA Profile");
     await expect(table).toContainText("ConnectID Australia");
     await expect(table).toContainText("CIBA Mode");
-    await expect(table).toContainText("Ping");
+    await expect(table).toContainText("Poll");
     await expect(table).toContainText("Client Registration");
     await expect(table).toContainText("Static (pre-registered) client");
   });

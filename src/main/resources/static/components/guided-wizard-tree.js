@@ -395,7 +395,7 @@ export const GUIDED_WIZARD_TREE = {
                       plan_name: "fapi-ciba-id1-client-test-plan",
                       variants: {
                         client_auth_type: "private_key_jwt",
-                        ciba_mode: "ping",
+                        ciba_mode: "poll",
                         fapi_ciba_profile: "connectid_au",
                       },
                     },
@@ -436,7 +436,7 @@ export const GUIDED_WIZARD_TREE = {
                       variants: {
                         client_auth_type: "private_key_jwt",
                         fapi_ciba_profile: "connectid_au",
-                        ciba_mode: "ping",
+                        ciba_mode: "poll",
                         client_registration: "static_client",
                       },
                     },
