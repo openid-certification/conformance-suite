@@ -808,6 +808,28 @@ export const RunningHeroWithoutExportedValues = {
   },
 };
 
+export const ExportedValuesRenderInAlphabeticalOrder = {
+  // U2 (KTD4): exported values render in stable alphabetical key order
+  // (localeCompare), not the backend HashMap's arbitrary serialization order.
+  // Feed an intentionally unsorted map and assert the rendered <dt> order.
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${WAITING_TEST}
+      .exposed=${{ z_key: "z-val", a_key: "a-val", m_key: "m-val" }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const panel = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="exposed-values"]');
+      if (!el) throw new Error("exposed-values panel not yet rendered");
+      return el;
+    });
+    const keys = Array.from(panel.querySelectorAll("dt.ctsExposedKey"), (dt) =>
+      dt.textContent.trim(),
+    );
+    expect(keys).toEqual(["a_key", "m_key", "z_key"]);
+  },
+};
+
 // --- U1 parity: the four affordances + the two slots + nav-controls ---
 // Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
 // Edit-config / Share-link / Publish all moved into the kebab popover
