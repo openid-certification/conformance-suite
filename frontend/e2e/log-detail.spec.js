@@ -2833,10 +2833,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
  * `exposed` is GET /api/runner/{id}, and log-detail.js dropped data.exposed on
  * the floor. These tests drive the real two-endpoint poll loop — /api/info
  * never carries `exposed`, /api/runner does — and assert the grid renders and
- * survives info re-polls (KTD2), plus the security boundaries (404 / 401) that
- * keep exported tokens from leaking to flushed/shared viewers.
+ * survives info re-polls (the grid is fed by the header's dedicated `exposed`
+ * property, orthogonal to `testInfo`), plus the security boundaries (404 / 401)
+ * that keep exported tokens from leaking to flushed/shared viewers.
  *
- * Plan: docs/plans/2026-06-23-001-fix-exported-values-missing-new-ui-plan.md
+ * Plans:
+ *   docs/plans/2026-06-23-001-fix-exported-values-missing-new-ui-plan.md (fix)
+ *   docs/plans/2026-06-24-001-refactor-exported-values-wiring-plan.md (refactor)
  */
 test.describe("log-detail.html — exported values grid (#1861)", () => {
   test.afterEach(async ({ page }) => {
@@ -2856,7 +2859,9 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
   };
 
   /**
-   * WAITING test whose persisted /api/info doc carries no exposed values.
+   * WAITING test whose persisted /api/info doc carries no `exposed` field at
+   * all — exported values reach the header only via the /api/runner poll (the
+   * contract this whole describe block exercises), never through /api/info.
    * @param {string} testId
    */
   function waitingInfo(testId) {
@@ -2866,7 +2871,6 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
       testId,
       status: "WAITING",
       result: null,
-      exposed: {},
     };
   }
 
@@ -2906,7 +2910,7 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
     );
   });
 
-  test("grid survives an /api/info re-poll that lacks `exposed` (no flicker, KTD2)", async ({
+  test("grid survives an /api/info re-poll that lacks `exposed` (no clobber, KTD1)", async ({
     page,
   }) => {
     const testId = "test-exposed-002";
@@ -2919,9 +2923,10 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
     await setupFailFast(page);
     const info = waitingInfo(testId);
     await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
-    // Same `exposed` on every poll → U2's change-guard skips re-applying after
-    // cycle 1, so only applyTestInfo's merge-from-cache can keep the grid alive
-    // across the subsequent /api/info applies that carry no `exposed`.
+    // The runner carries `exposed` on every poll; /api/info never does. The
+    // grid is fed by the header's dedicated `exposed` property (set from the
+    // runner branch), which is orthogonal to `testInfo` (set from the
+    // /api/info branch) — so a fresh /api/info apply cannot clobber it.
     await page.route(`**/api/runner/${testId}`, (route) =>
       route.fulfill({
         status: 200,
@@ -2937,10 +2942,11 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
     await expect(panel).toBeVisible(); // appears after the first runner poll
     const baseline = infoCalls.length;
 
-    // Wait for the NEXT /api/info cycle to land after the grid appeared. In a
-    // naive impl that sets testInfo.exposed in the runner branch, this apply
-    // clobbers it (the change-guard then skips the runner re-apply), so the
-    // grid would disappear and never return — this is the regression guard.
+    // Wait for the NEXT /api/info cycle to land after the grid appeared. In the
+    // old design that merged `exposed` onto testInfo, this /api/info apply
+    // (carrying no `exposed`) could clear the grid; now that `exposed` is a
+    // separate property, the grid survives by construction — the regression
+    // guard that keeps a future change from re-coupling the two cadences.
     await expect.poll(() => infoCalls.length, { timeout: 10000 }).toBeGreaterThan(baseline);
 
     await expect(panel).toBeVisible();
@@ -3014,13 +3020,13 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
     await expect(page.locator('[data-testid="running-error-slot"] cts-alert')).toHaveCount(0);
   });
 
-  test("grid disappears when the runner flushes the test (404 resets the cache)", async ({
+  test("grid disappears when the runner flushes the test (404 clears the exposed property)", async ({
     page,
   }) => {
     // A test that exposed values, then gets flushed from runner memory (404)
     // while /api/info is briefly still WAITING, must not keep showing the
-    // now-stale grid: the 404 branch resets the cached `exposed` (live-only
-    // parity, KTD4). Guards the stale-grid regression.
+    // now-stale grid: the 404 branch clears the header's `exposed` property via
+    // applyExposed(null) (live-only, KTD2). Guards the stale-grid regression.
     const testId = "test-exposed-006";
     let runnerHits = 0;
     await setupFailFast(page);

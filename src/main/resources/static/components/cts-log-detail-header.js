@@ -737,7 +737,6 @@ function ensureStylesInjected() {
  * @property {string} planId - Parent plan ID, if the test belongs to one.
  * @property {object} owner - `{ sub, iss }` owner identity (admin only).
  * @property {object} config - Test configuration JSON.
- * @property {object} exposed - Values exported by a running test.
  * @property {string|boolean} publish - Publish mode ("summary", "everything") or falsy.
  * @property {string} summary - Test-level summary. May contain the
  *   `\n\n---\n\n` marker exposed by `./test-summary-split.js` to split
@@ -807,6 +806,13 @@ function ensureStylesInjected() {
  *   viewed (`?log=…`), forwarded to the nav row so the progress bar marks
  *   the matching segment and derives "Module N of M". Reflects the
  *   `current-instance-id` attribute.
+ * @property {{[key: string]: unknown}|null} exposed - Runtime values a running
+ *   test exports (generated URLs, issuer identifiers, access tokens). Sourced
+ *   from the `/api/runner` poll by `log-detail.js` — NOT from `/api/info`,
+ *   which never carries it — and set via JS only (`attribute: false`).
+ *   Rendered as the in-hero key/value grid during WAITING / RUNNING; a `null`
+ *   write clears the grid when the runner flushes the test (live-only). Kept
+ *   orthogonal to `testInfo` so an `/api/info` refresh can never clobber it.
  * @fires cts-scroll-to-entry - Bubbled up from the embedded
  *   `cts-failure-summary` child when a failure row is activated, with
  *   `{ detail: { entryId } }`. Bubbles AND is composed.
@@ -838,6 +844,7 @@ class CtsLogDetailHeader extends LitElement {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     planModules: { type: Array, attribute: false },
+    exposed: { type: Object, attribute: false },
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     _copyFeedback: { state: true },
   };
@@ -848,6 +855,7 @@ class CtsLogDetailHeader extends LitElement {
     this.isAdmin = false;
     this.isPublic = false;
     this.planModules = [];
+    this.exposed = null;
     this.currentInstanceId = "";
     this._configModalRef = createRef();
     this._copyFeedback = "";
@@ -1504,7 +1512,7 @@ class CtsLogDetailHeader extends LitElement {
     const phase = this._derivePhase(test);
 
     if (phase === "waiting") return this._renderWaitingHero(test);
-    if (phase === "running") return this._renderRunningHero(test);
+    if (phase === "running") return this._renderRunningHero();
     if (phase === "interrupted") return this._renderInterruptedHero();
 
     const result = (test.result || "").toUpperCase();
@@ -1628,7 +1636,8 @@ class CtsLogDetailHeader extends LitElement {
    * (its primary action for WAITING tests), so the hero does not
    * duplicate it. The slot remains so page-level JS can inject
    * browser-URL prompts during the WAITING window.
-   * @param {TestInfo} test - Test info sourcing `summary` and `exposed` values.
+   * @param {TestInfo} test - Test info sourcing `summary`. The exported-values
+   *   grid reads the separate `this.exposed` property, not `test`.
    * @returns {import('lit').TemplateResult} The WAITING hero template.
    */
   _renderWaitingHero(test) {
@@ -1652,18 +1661,19 @@ class CtsLogDetailHeader extends LitElement {
       >
         <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">${eyebrow}</div>
         <div class="ctsHeroBody">${formatDescription(instructions)}</div>
-        ${this._renderExposedValues(test)}
+        ${this._renderExposedValues()}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
     `;
   }
 
   /**
-   * RUNNING hero — info alert + exposed values + browser slot.
-   * @param {TestInfo} test - Test info sourcing `exposed` values for the running card.
+   * RUNNING hero — info alert + exposed values + browser slot. The exported-
+   * values grid reads the separate `this.exposed` property, so this hero takes
+   * no `test` argument.
    * @returns {import('lit').TemplateResult} The RUNNING hero template.
    */
-  _renderRunningHero(test) {
+  _renderRunningHero() {
     return html`
       <div class="ctsHero ctsHero--running" data-testid="hero-running">
         <div class="ctsHeroEyebrow">Test running</div>
@@ -1671,7 +1681,7 @@ class CtsLogDetailHeader extends LitElement {
           Live values from the running test are shown below, along with any URLs that need to be
           visited interactively.
         </cts-alert>
-        ${this._renderExposedValues(test)}
+        ${this._renderExposedValues()}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
     `;
@@ -1683,20 +1693,21 @@ class CtsLogDetailHeader extends LitElement {
    * as a key/value grid (restoring the legacy "Exported Values:" grid the
    * design refresh dropped) instead of a readonly JSON blob, so the typically
    * short technical values stay scannable and text-selectable for copying.
-   * Live-only: `exposed` arrives via the `/api/runner` poll and vanishes once
-   * the runner flushes a finished test from memory. Entry order follows the
+   * Reads the dedicated `this.exposed` reactive property (fed by the
+   * `/api/runner` poll in `log-detail.js`, never by `/api/info`), so an
+   * `/api/info` refresh can never clear it. Live-only: it vanishes once the
+   * runner flushes a finished test from memory. Entry order follows the
    * backend `HashMap` serialization (arbitrary), matching the legacy grid.
-   * @param {TestInfo} test - Test info sourcing the `exposed` map.
    * @returns {ReturnType<typeof html> | typeof nothing} A `<dl>` grid with one
    *   `<dt>`/`<dd>` per entry, or `nothing` when no values are exposed.
    */
-  _renderExposedValues(test) {
-    if (!test.exposed || Object.keys(test.exposed).length === 0) return nothing;
+  _renderExposedValues() {
+    if (!this.exposed || Object.keys(this.exposed).length === 0) return nothing;
     return html`
       <div class="ctsExposed" data-testid="exposed-values">
         <div class="ctsExposedLabel">Exported values:</div>
         <dl class="ctsExposedGrid" aria-label="Exported values">
-          ${Object.entries(test.exposed).map(
+          ${Object.entries(this.exposed).map(
             ([key, value]) => html`
               <dt class="ctsExposedKey">${key}</dt>
               <dd class="ctsExposedValue">${value}</dd>
