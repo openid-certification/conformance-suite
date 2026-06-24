@@ -788,10 +788,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
 		addClientAuthenticationToBackchannelRequest();
-		call(profileBehavior.addBackchannelAuthenticationEndpointProfileHeaders());
-
-		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
-		call(profileBehavior.validateBackchannelAuthenticationEndpointResponseHeaders());
+		callBackchannelAuthenticationEndpoint();
 	}
 
 	protected void performAuthorizationFlow() {
@@ -852,12 +849,24 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddAuthReqIdToTokenEndpointRequest.class);
 
 		addClientAuthenticationToTokenEndpointRequest();
+
+		callPreparedTokenEndpointForCibaGrant();
+	}
+
+	protected void callPreparedTokenEndpointForCibaGrant() {
 		call(profileBehavior.addTokenEndpointProfileHeaders());
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		call(profileBehavior.validateTokenEndpointResponseHeaders());
 		extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+	}
+
+	protected void callBackchannelAuthenticationEndpoint() {
+		call(profileBehavior.addBackchannelAuthenticationEndpointProfileHeaders());
+
+		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+		call(profileBehavior.validateBackchannelAuthenticationEndpointResponseHeaders());
 	}
 
 	/**
