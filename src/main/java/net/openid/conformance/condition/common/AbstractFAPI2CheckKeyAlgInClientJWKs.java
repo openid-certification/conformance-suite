@@ -45,14 +45,14 @@ public abstract class AbstractFAPI2CheckKeyAlgInClientJWKs extends AbstractCondi
 							"permitted", permitted));
 				}
 
-				if("EdDSA".equals(alg)){
+				if("EdDSA".equals(alg) || "Ed25519".equals(alg)){
 					if(!keyObj.has("crv")) {
-						throw error("client jwks contains EdDSA alg with a missing crv parameter",
+						throw error("client jwks contains " + alg + " alg with a missing crv parameter",
 							args("key", keyObj));
 					}
 					String curve = OIDFJSON.getString(keyObj.getAsJsonPrimitive("crv"));
 					if(!Curve.Ed25519.getName().equals(curve)) {
-						throw error("client jwks contains EdDSA alg with an unsupported curve",
+						throw error("client jwks contains " + alg + " alg with an unsupported curve",
 							args("key", keyObj));
 					}
 				}
