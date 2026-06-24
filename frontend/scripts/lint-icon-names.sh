@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Validate that every literal `cts-icon name="<name>"` in the static frontend
-# resolves to a real SVG under src/main/resources/static/vendor/coolicons/icons/.
+# Validate that vendored Coolicons SVGs are parseable XML, and that every
+# literal `cts-icon name="<name>"` in the static frontend resolves to a real SVG
+# under src/main/resources/static/vendor/coolicons/icons/.
 #
 # Why this exists:
 #   coolicons ships 442 per-icon SVG files. An invalid name (e.g. "x" when the
@@ -10,9 +11,11 @@
 #   catches literal typos at PR time.
 #
 # What's checked:
-#   1. Inline HTML attributes: `<cts-icon ... name="<literal>" ...>` in HTML,
+#   1. Vendored SVG files parse as XML. Malformed SVG files can render in
+#      Chromium/WebKit but fail as empty external <use> references in Firefox.
+#   2. Inline HTML attributes: `<cts-icon ... name="<literal>" ...>` in HTML,
 #      Lit `html`` `` templates, and lodash `<%- %>` templates.
-#   2. Imperative DOM construction: `setAttribute("name", "<literal>")` in
+#   3. Imperative DOM construction: `setAttribute("name", "<literal>")` in
 #      files that mention `cts-icon` (proxy for "this file deals with the
 #      icon component").
 #
@@ -45,6 +48,7 @@ if [[ ! -d "$STATIC_DIR" ]]; then
 fi
 
 bad_lines=()
+xml_lines=()
 
 is_dynamic() {
   case "$1" in
@@ -91,6 +95,18 @@ check_name() {
     bad_lines+=("$hint")
   fi
 }
+
+while IFS= read -r icon_file; do
+  [[ -z "$icon_file" ]] && continue
+  if ! xml_output=$(xmllint --noout "$icon_file" 2>&1); then
+    relpath="${icon_file#$REPO_ROOT/}"
+    xml_lines+=("$relpath: malformed SVG XML")
+    while IFS= read -r output_line; do
+      [[ -z "$output_line" ]] && continue
+      xml_lines+=("    $output_line")
+    done <<< "$xml_output"
+  fi
+done < <(find "$ICONS_DIR" -type f -name '*.svg' -print | sort)
 
 # 1. Inline HTML attribute pattern. We match the FULL element-opening token so
 #    the literal name="..." is anchored to a cts-icon element (avoids matching
@@ -156,6 +172,14 @@ if [[ -n "$icon_files" ]]; then
   done <<< "$icon_files"
 fi
 
+if (( ${#xml_lines[@]} > 0 )); then
+  echo "lint-icon-names: malformed vendored SVG file(s) detected:" >&2
+  for entry in "${xml_lines[@]}"; do
+    echo "  $entry" >&2
+  done
+  echo "" >&2
+fi
+
 if (( ${#bad_lines[@]} > 0 )); then
   echo "lint-icon-names: invalid cts-icon name(s) detected:" >&2
   for entry in "${bad_lines[@]}"; do
@@ -164,6 +188,9 @@ if (( ${#bad_lines[@]} > 0 )); then
   echo "" >&2
   echo "Find vendored icon names: ls src/main/resources/static/vendor/coolicons/icons/" >&2
   echo "Or browse Storybook → Components/cts-icon → AllIcons." >&2
+fi
+
+if (( ${#xml_lines[@]} > 0 || ${#bad_lines[@]} > 0 )); then
   exit 1
 fi
 
