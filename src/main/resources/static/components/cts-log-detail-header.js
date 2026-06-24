@@ -12,6 +12,7 @@ import "./cts-failure-summary.js";
 import "./cts-action-overflow.js";
 import "./cts-time.js";
 import { formatDescription } from "./format-description.js";
+import { selectFailureSummaryFindings } from "./log-findings.js";
 import { splitTestSummary } from "./test-summary-split.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
@@ -474,11 +475,7 @@ const STYLE_TEXT = css`
     padding-top: 0;
   }
   cts-log-detail-header .ctsHero--failures cts-failure-summary .failureItem {
-    font-size: var(--fs-14);
-    padding: var(--space-2) 0;
-  }
-  cts-log-detail-header .ctsHero--failures cts-failure-summary .failureText {
-    font-weight: var(--fw-medium);
+    padding: var(--space-1) 0;
   }
 
   /* Running / waiting hero — exposed values + browser slot rows.
@@ -746,12 +743,17 @@ function ensureStylesInjected() {
  *     FINAL_ERROR alert.
  *   - `[data-slot="action-overflow"]` remains inside the sticky bar
  *     for the kebab-popover host.
- *   - `cts-failure-summary` still renders inside the host so
- *     `applyReferences()` in `log-detail.js` can set `.references`
- *     and `.testId` on it for the R32 chip rendering.
+ *   - `cts-failure-summary` still renders inside the host and receives
+ *     references through this component's own `references` property
+ *     for the R32 chip rendering.
  *
  * @property {TestInfo} testInfo - The test info object fetched from
  *   `/api/info`. Reflects the `test-info` attribute when set as a string.
+ * @property {Array<object>|null} findings - Failure-summary entries sourced
+ *   from the log stream once `/api/log` has loaded. Falls back to
+ *   `testInfo.results` before the stream reports.
+ * @property {Object.<string, string>} references - Plain `entry._id` →
+ *   `LOG-NNNN` map forwarded to the in-header failure summary.
  * @property {boolean} isAdmin - Reveals admin-only rows and actions.
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
@@ -793,6 +795,8 @@ function ensureStylesInjected() {
 class CtsLogDetailHeader extends LitElement {
   static properties = {
     testInfo: { type: Object, attribute: "test-info" },
+    findings: { type: Array, attribute: false },
+    references: { type: Object, attribute: false },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     planModules: { type: Array, attribute: false },
@@ -803,6 +807,8 @@ class CtsLogDetailHeader extends LitElement {
   constructor() {
     super();
     this.testInfo = null;
+    this.findings = null;
+    this.references = Object.create(null);
     this.isAdmin = false;
     this.isPublic = false;
     this.planModules = [];
@@ -860,14 +866,12 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   _getFailures() {
-    if (!this.testInfo || !Array.isArray(this.testInfo.results)) return [];
-    return this.testInfo.results.filter(
-      (entry) =>
-        entry.result === "FAILURE" ||
-        entry.result === "WARNING" ||
-        entry.result === "SKIPPED" ||
-        entry.result === "INTERRUPTED",
-    );
+    const source = Array.isArray(this.findings)
+      ? this.findings
+      : this.testInfo && Array.isArray(this.testInfo.results)
+        ? this.testInfo.results
+        : [];
+    return selectFailureSummaryFindings(source);
   }
 
   _getUploadCount() {
@@ -1533,6 +1537,8 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-failure-summary
               data-testid="header-failure-summary"
               .failures=${failures}
+              .references=${this.references}
+              .testId=${this.testInfo && this.testInfo.testId ? this.testInfo.testId : ""}
             ></cts-failure-summary>`
           : html`<div class="ctsHeroPlaceholder"> No conditions ran before the test ended. </div>`}
       </div>
@@ -1565,6 +1571,8 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-failure-summary
               data-testid="header-failure-summary"
               .failures=${failures}
+              .references=${this.references}
+              .testId=${this.testInfo && this.testInfo.testId ? this.testInfo.testId : ""}
             ></cts-failure-summary>`
           : nothing}
       </div>

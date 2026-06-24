@@ -97,7 +97,7 @@ export const Default = {
     });
 
     await step("failure text combines `src: msg`", async () => {
-      expect(within(summary).getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
+      expect(summary.querySelector('[title="ValidateIdToken: Signature invalid"]')).toBeTruthy();
     });
   },
 };
@@ -257,7 +257,10 @@ export const EmitsScrollEvent = {
     document.addEventListener("cts-scroll-to-entry", handler);
 
     try {
-      const failureText = within(canvasElement).getByText("ValidateIdToken: Signature invalid");
+      const failureText = canvasElement.querySelector(
+        '[title="ValidateIdToken: Signature invalid"]',
+      );
+      expect(failureText).toBeTruthy();
       await userEvent.click(failureText);
 
       expect(handler).toHaveBeenCalledOnce();

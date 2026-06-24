@@ -12,6 +12,7 @@ import "./cts-log-entry-id.js";
 const RESULT_BADGE_VARIANTS = {
   FAILURE: "fail",
   WARNING: "warn",
+  REVIEW: "review",
   SKIPPED: "skip",
   INTERRUPTED: "fail",
 };
@@ -117,29 +118,42 @@ const STYLE_TEXT = css`
   cts-failure-summary .failureItem {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-2);
     font-size: var(--fs-13);
+    line-height: 1.5;
   }
   cts-failure-summary .failureText,
   cts-failure-summary .failureText:visited {
-    /* Native anchor: explicit color so the user-agent link palette
-       (typically blue) doesn't override the design-system tone. The
-       anchor reads as text-with-an-underline rather than a saturated
-       link, which matches the look used before the role swap. */
     color: var(--fg);
-    text-decoration-line: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
-    text-decoration-color: var(--link-decoration-color);
+    text-decoration: none;
     border-radius: var(--radius-2);
+    font-weight: var(--fw-regular);
+    min-width: 0;
+    flex: 1 1 18rem;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
   cts-failure-summary .failureText:hover {
     color: var(--fg-link);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--link-decoration-color);
   }
   cts-failure-summary .failureText:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
+  }
+  cts-failure-summary .failureSource {
+    font-family: var(--font-mono);
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+  }
+  cts-failure-summary .failureMessage {
+    color: var(--fg-soft);
   }
 
   /* Compact rendering for the wide-viewport rail (U8). Drop the title +
@@ -164,6 +178,7 @@ const STYLE_TEXT = css`
   }
   cts-failure-summary[compact] .failureText {
     white-space: nowrap;
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
@@ -189,7 +204,7 @@ function ensureStylesInjected() {
  * @property {string} _id - Server-side log entry ID; emitted in the
  *   `cts-scroll-to-entry` event so the page-level handler can locate
  *   the matching `<cts-log-entry>`.
- * @property {string} result - One of FAILURE / WARNING / SKIPPED / INTERRUPTED.
+ * @property {string} result - One of FAILURE / WARNING / REVIEW / SKIPPED / INTERRUPTED.
  * @property {string} src - The condition class name (e.g. `EnsureValidAud`).
  * @property {string} msg - Human-readable failure message.
  * @property {Array<string>} [requirements] - Optional requirement IDs (rendered as chips).
@@ -198,7 +213,7 @@ function ensureStylesInjected() {
 
 /**
  * Renders the failure summary block: heading + chevron + clickable list of
- * failure / warning / skipped / interrupted entries. Hoistable — the same
+ * failure / warning / review / skipped / interrupted entries. Hoistable — the same
  * component renders inside `cts-log-detail-header` (desktop), directly below
  * the sticky status bar (mobile / tablet), and inside the wide-viewport rail
  * (U8) with `compact=true`. Three positions, one component, one event seam.
@@ -212,8 +227,8 @@ function ensureStylesInjected() {
  * is mounted in — including future shadow-DOM hosts (e.g. if U8's rail
  * ever moves into a shadow root).
  *
- * @property {Array<FailureEntry>} failures - Failure / warning / skipped /
- *   interrupted entries. Filtered upstream from `testInfo.results`. Required.
+ * @property {Array<FailureEntry>} failures - Failure / warning / review /
+ *   skipped / interrupted entries. Filtered upstream from `testInfo.results`. Required.
  * @property {boolean} compact - Wide-viewport rail rendering: smaller
  *   typography, no chevron, single-line ellipsis truncation, no
  *   requirement chips. Reflects the `compact` attribute.
@@ -303,6 +318,7 @@ class CtsFailureSummary extends LitElement {
 
   _renderFailureRow(item) {
     const referenceId = (this.references && this.references[item._id]) || "";
+    const label = `${item.src}: ${item.msg}`;
     return html`
       <div class="failureItem">
         <cts-badge
@@ -320,8 +336,10 @@ class CtsFailureSummary extends LitElement {
           class="failureText"
           href="#entry-${item._id}"
           data-entry-id=${item._id}
+          title=${label}
           @click=${this._handleRowClick}
-          >${item.src}: ${item.msg}</a
+          ><span class="failureSource">${item.src}</span
+          ><span class="failureMessage">: ${item.msg}</span></a
         >
       </div>
     `;

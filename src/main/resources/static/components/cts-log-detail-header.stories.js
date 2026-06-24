@@ -222,8 +222,10 @@ export const FailedTest = {
     });
 
     await step("failure entries are rendered with src + msg", async () => {
-      expect(canvas.getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
-      expect(canvas.getByText("CheckClaims: Missing sub claim")).toBeInTheDocument();
+      expect(
+        canvasElement.querySelector('[title="ValidateIdToken: Signature invalid"]'),
+      ).toBeTruthy();
+      expect(canvasElement.querySelector('[title="CheckClaims: Missing sub claim"]')).toBeTruthy();
     });
 
     await step("clicking a failure entry bubbles the cts-scroll-to-entry event", async () => {
@@ -235,7 +237,10 @@ export const FailedTest = {
         scrollDetail = /** @type {CustomEvent} */ (e).detail;
       });
 
-      const failureText = canvas.getByText("ValidateIdToken: Signature invalid");
+      const failureText = canvasElement.querySelector(
+        '[title="ValidateIdToken: Signature invalid"]',
+      );
+      expect(failureText).toBeTruthy();
       await userEvent.click(failureText);
 
       expect(scrollEventFired).toBe(true);

@@ -30,6 +30,7 @@
 import { renderErrorIntoSlot } from "./log-detail-error-slot.js";
 import { scrollEntryIntoView } from "../components/cts-log-entry.js";
 import { tryGetStorage } from "../components/guided-wizard.js";
+import { selectFailureSummaryFindings } from "../components/log-findings.js";
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -64,6 +65,8 @@ const runnerPollState = { active: null };
  * @type {any}
  */
 let latestTestInfo = null;
+let latestFindings = null;
+let latestReferences = null;
 
 /**
  * Modules list from /api/plan/{planId}, cached at fetch time so
@@ -128,14 +131,11 @@ async function fetchCurrentUser() {
  * @returns {Array<any>}
  */
 function selectFailures(testInfo) {
-  if (!testInfo || !Array.isArray(testInfo.results)) return [];
-  return testInfo.results.filter(
-    (entry) =>
-      entry.result === "FAILURE" ||
-      entry.result === "WARNING" ||
-      entry.result === "SKIPPED" ||
-      entry.result === "INTERRUPTED",
-  );
+  return selectFailureSummaryFindings(testInfo && testInfo.results);
+}
+
+function currentFindingsFor(testInfo) {
+  return Array.isArray(latestFindings) ? latestFindings : selectFailures(testInfo);
 }
 
 /**
@@ -148,13 +148,17 @@ function selectFailures(testInfo) {
  */
 function applyTestInfo(testInfo) {
   latestTestInfo = testInfo;
+  const findings = currentFindingsFor(testInfo);
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
-  if (header) header.testInfo = testInfo;
+  if (header) {
+    header.testInfo = testInfo;
+    header.findings = findings;
+  }
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
   if (topFailureSummary) {
-    topFailureSummary.failures = selectFailures(testInfo);
+    topFailureSummary.failures = findings;
     topFailureSummary.testId = testId;
   }
   /** @type {any} */
@@ -176,12 +180,32 @@ function applyTestInfo(testInfo) {
     // U8 — keep the rail's compact failure summary in lockstep with the
     // page-level instance. The viewer-driven blocks list arrives via the
     // cts-blocks-updated event in setupLogToc().
-    rail.failures = selectFailures(testInfo);
+    rail.failures = findings;
     rail.testId = testId;
   }
   // Live-sync the current segment when a poll returns a fresh verdict (#1857);
   // safe no-op until fetchAndApplyPlanState seeds the bar. See the helper's JSDoc.
   syncCurrentSegmentStatus(testInfo);
+}
+
+function applyFindings(findings) {
+  latestFindings = Array.isArray(findings) ? findings : [];
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) header.findings = latestFindings;
+  /** @type {any} */
+  const topFailureSummary = document.getElementById("ctsTopFailureSummary");
+  if (topFailureSummary) {
+    topFailureSummary.failures = latestFindings;
+    topFailureSummary.testId = testId;
+  }
+  /** @type {any} */
+  const rail = document.getElementById("ctsLogToc");
+  if (rail) {
+    rail.failures = latestFindings;
+    rail.testId = testId;
+  }
+  if (latestReferences) applyReferences(latestReferences);
 }
 
 /**
@@ -195,6 +219,7 @@ function applyTestInfo(testInfo) {
  * @param {Object.<string, string>} references
  */
 function applyReferences(references) {
+  latestReferences = references;
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
   if (topFailureSummary) {
@@ -204,11 +229,7 @@ function applyReferences(references) {
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
   if (header) {
-    const inHeaderSummary = header.querySelector("cts-failure-summary");
-    if (inHeaderSummary) {
-      inHeaderSummary.references = references;
-      inHeaderSummary.testId = testId;
-    }
+    header.references = references;
   }
 }
 
@@ -1481,6 +1502,10 @@ async function bootstrap() {
   document.addEventListener("cts-references-updated", (evt) => {
     const refs = /** @type {CustomEvent} */ (evt).detail && evt.detail.references;
     if (refs) applyReferences(refs);
+  });
+  document.addEventListener("cts-findings-updated", (evt) => {
+    const findings = /** @type {CustomEvent} */ (evt).detail && evt.detail.findings;
+    applyFindings(findings);
   });
 
   await fetchCurrentUser();

@@ -1360,11 +1360,20 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         },
       ],
     };
+    const failedLogEntries = [
+      { ...MOCK_FAILED_LOG_ENTRIES[0], testId: failedTestInfo.testId },
+      {
+        ...MOCK_FAILED_LOG_ENTRIES[1],
+        _id: "fail-r1",
+        testId: failedTestInfo.testId,
+        msg: "Signature invalid",
+      },
+    ];
 
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: failedTestInfo,
-      logEntries: MOCK_FAILED_LOG_ENTRIES,
+      logEntries: failedLogEntries,
     });
     await setupCommonRoutes(page);
 
@@ -1394,6 +1403,98 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(eventDetail).toMatchObject({ entryId: expect.any(String) });
   });
 
+  test("failed test derives findings from loaded log entries when info has no result entries", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_FAILED,
+      logEntries: MOCK_FAILED_LOG_ENTRIES.slice(0, 2),
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_FAILED.testId)}`);
+
+    const failureHero = page.locator('cts-log-detail-header [data-testid="hero-failures"]');
+    await expect(failureHero).toContainText("1 failure");
+    await expect(failureHero).toContainText(
+      "ValidateIdToken: ID token signature validation failed: key not found in JWKS",
+    );
+    await expect(failureHero.locator('[data-testid="log-entry-id-chip"]')).toContainText(
+      "LOG-0002",
+    );
+    await expect(failureHero).not.toContainText("Issues found");
+    await expect(failureHero).not.toContainText("No conditions ran before the test ended.");
+  });
+
+  test("loaded log findings replace stale info results across summaries", async ({ page }) => {
+    await page.setViewportSize({ width: 1500, height: 900 });
+    const staleText = "Stale info result should not remain visible";
+    const logText = "ID token signature validation failed: key not found in JWKS";
+    const testInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        {
+          _id: "stale-info-r1",
+          result: "WARNING",
+          src: "StaleInfoResult",
+          msg: staleText,
+        },
+      ],
+    };
+    const logEntries = MOCK_FAILED_LOG_ENTRIES.slice(0, 2).map((entry) => ({
+      ...entry,
+      testId: testInfo.testId,
+    }));
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo,
+      logEntries,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testInfo.testId)}`);
+
+    const headerSummary = page.locator(
+      'cts-log-detail-header [data-testid="header-failure-summary"]',
+    );
+    const topSummary = page.locator("#ctsTopFailureSummary");
+    const rail = page.locator("#ctsLogToc");
+
+    await expect(headerSummary).toContainText(logText);
+    await expect(topSummary).toContainText(logText);
+    await expect(rail).toContainText(logText);
+    await expect(headerSummary).not.toContainText(staleText);
+    await expect(topSummary).not.toContainText(staleText);
+    await expect(rail).not.toContainText(staleText);
+  });
+
+  test("failed findings omit runner interruption when a concrete failure exists", async ({
+    page,
+  }) => {
+    const failedInfo = {
+      ...MOCK_TEST_FAILED,
+      testId: "test-interrupted-noblock-001",
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedInfo,
+      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(failedInfo.testId)}`);
+
+    const failureHero = page.locator('cts-log-detail-header [data-testid="hero-failures"]');
+    await expect(failureHero).toContainText("1 failure");
+    await expect(failureHero).not.toContainText("interrupted");
+    await expect(failureHero).toContainText(
+      "GetStaticServerConfiguration: Test set to use static server configuration",
+    );
+  });
+
   test("failure summary swaps between header and page-level positions at 1024px breakpoint", async ({
     page,
   }) => {
@@ -1415,11 +1516,20 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         },
       ],
     };
+    const swapLogEntries = [
+      { ...MOCK_FAILED_LOG_ENTRIES[0], testId: failedTestInfo.testId },
+      {
+        ...MOCK_FAILED_LOG_ENTRIES[1],
+        _id: "swap-r1",
+        testId: failedTestInfo.testId,
+        msg: "Signature invalid",
+      },
+    ];
 
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: failedTestInfo,
-      logEntries: MOCK_FAILED_LOG_ENTRIES,
+      logEntries: swapLogEntries,
     });
     await setupCommonRoutes(page);
 
@@ -1702,9 +1812,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       status: "INTERRUPTED",
       result: "FAILED",
     };
+    const noFindingLogEntries = MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES.filter(
+      (entry) => entry.result === "INFO",
+    );
     await setupV2Routes(page, {
       testInfo: interruptedInfo,
-      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+      logEntries: noFindingLogEntries,
     });
     await setupCommonRoutes(page);
 
@@ -2967,9 +3080,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       status: "INTERRUPTED",
       result: "FAILED",
     };
+    const noFindingLogEntries = MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES.filter(
+      (entry) => entry.result === "INFO",
+    );
     await setupV2Routes(page, {
       testInfo: interruptedInfo,
-      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+      logEntries: noFindingLogEntries,
     });
     await setupCommonRoutes(page);
 

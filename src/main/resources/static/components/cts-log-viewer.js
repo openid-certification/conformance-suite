@@ -2,6 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-alert.js";
 import { scrollEntryIntoView } from "./cts-log-entry.js";
+import { selectFailureSummaryFindings } from "./log-findings.js";
 
 const FAILURE_THRESHOLD = 3;
 const POLL_INTERVAL_MS = 3000;
@@ -362,6 +363,8 @@ function ensureStylesInjected() {
  *   `Object<entryId, referenceId>` plain object so consumers (e.g. the
  *   page-level cts-failure-summary instances) can render reference chips
  *   without a second walk over `_entries`. Bubbles.
+ * @fires cts-findings-updated - Fires after each successful poll that appends
+ *   rows, carrying failure-summary entries derived from the loaded log stream.
  */
 class CtsLogViewer extends LitElement {
   static properties = {
@@ -568,6 +571,10 @@ class CtsLogViewer extends LitElement {
     return this._references;
   }
 
+  _collectFindings() {
+    return selectFailureSummaryFindings(this._entries);
+  }
+
   /**
    * Walk `_entries` once and bucket each entry's `result` under its
    * `blockId`. Trusts the backend's chronological-with-`blockId`
@@ -747,6 +754,12 @@ class CtsLogViewer extends LitElement {
             new CustomEvent("cts-blocks-updated", {
               bubbles: true,
               detail: { testId: this.testId, blocks: this.getBlockSummaries() },
+            }),
+          );
+          this.dispatchEvent(
+            new CustomEvent("cts-findings-updated", {
+              bubbles: true,
+              detail: { testId: this.testId, findings: this._collectFindings() },
             }),
           );
         });
