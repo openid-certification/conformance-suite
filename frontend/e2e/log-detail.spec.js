@@ -2164,6 +2164,159 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(badges.nth(1)).toHaveAttribute("label", "✗1");
   });
 
+  test("exported values from /api/runner render below the Test details drawer (#1861)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    // Production contract: /api/info (TestInfo mongo doc) does NOT carry
+    // `exposed`. Exported values live only on the live /api/runner response.
+    // Stripping `exposed` here guards against the old bug where the fixture
+    // put it on /api/info and the component read it from the wrong source.
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, exposed: undefined, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "RUNNING",
+          browser: { urls: [], browserApiRequests: [] },
+          // Deliberately NOT in alphabetical order — the component sorts by key.
+          exposed: {
+            ssf_tx_access_token: "abc1234",
+            alias: "ssf-rx-test-ci",
+            ssf_issuer: "https://example.com/test/a/ssf-rx-test-ci",
+          },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    // The block appears once the first runner poll lands (setTimeout 0 +
+    // re-render); allow generous time for the poll cycle.
+    const exported = page.locator('[data-testid="exported-values"]');
+    await expect(exported).toBeVisible({ timeout: 8000 });
+    await expect(exported).toContainText("Exported values");
+    await expect(exported).toContainText("ssf_issuer");
+    await expect(exported).toContainText("https://example.com/test/a/ssf-rx-test-ci");
+    await expect(exported).toContainText("ssf_tx_access_token");
+    await expect(exported).toContainText("abc1234");
+
+    // Entries are sorted by key (alias < ssf_issuer < ssf_tx_access_token),
+    // independent of the runner payload's property order.
+    const renderedKeys = await exported.locator(".logMetaLabel").allInnerTexts();
+    expect(renderedKeys.map((k) => k.trim())).toEqual([
+      "alias",
+      "ssf_issuer",
+      "ssf_tx_access_token",
+    ]);
+
+    // Placement: it sits BELOW the "Test details" drawer (user directive in
+    // #1861). DOCUMENT_POSITION_FOLLOWING is set when `exported` comes after
+    // the drawer in document order.
+    const positionedAfterDrawer = await page.evaluate(() => {
+      const drawer = document.querySelector('[data-testid="drawer-test-details"]');
+      const exposed = document.querySelector('[data-testid="exported-values"]');
+      if (!drawer || !exposed) return false;
+      return !!(drawer.compareDocumentPosition(exposed) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(positionedAfterDrawer).toBe(true);
+  });
+
+  test("exported values offer a per-value copy-to-clipboard action (#1861)", async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__copiedText = null;
+      const original = navigator.clipboard?.writeText?.bind(navigator.clipboard);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText = (text) => {
+          window.__copiedText = text;
+          if (original) {
+            try {
+              return original(text);
+            } catch {
+              return Promise.resolve();
+            }
+          }
+          return Promise.resolve();
+        };
+      }
+    });
+
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, exposed: undefined, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "RUNNING",
+          browser: { urls: [], browserApiRequests: [] },
+          exposed: {
+            ssf_issuer: "https://example.com/test/a/ssf-rx-test-ci",
+            ssf_tx_access_token: "abc1234",
+          },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const exported = page.locator('[data-testid="exported-values"]');
+    await expect(exported).toBeVisible({ timeout: 8000 });
+
+    // One copy button per value. Clicking the access-token row copies that
+    // value (not the issuer), so the action is per-value, not whole-object.
+    const copyButtons = exported.locator('[data-testid="exported-value-copy"]');
+    await expect(copyButtons).toHaveCount(2);
+
+    // Sorted order → row 0 is ssf_issuer, row 1 is ssf_tx_access_token.
+    await copyButtons.nth(1).locator("button").click();
+    await expect.poll(() => page.evaluate(() => window.__copiedText)).toBe("abc1234");
+
+    await copyButtons.nth(0).locator("button").click();
+    await expect
+      .poll(() => page.evaluate(() => window.__copiedText))
+      .toBe("https://example.com/test/a/ssf-rx-test-ci");
+  });
+
   // ──────────── U1: DC API handler parity ────────────
   // Mirrors the legacy DC handler at log-detail.html:1491–1538. Wire
   // format is frozen — Java parses it structurally in

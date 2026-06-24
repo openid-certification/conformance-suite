@@ -688,6 +688,7 @@ function startRunnerPolling(testInfo) {
           const data = await response.json();
           renderBrowserSlot(data.browser);
           renderErrorSlot(data.error);
+          applyExposed(data.exposed);
         }
       } catch (err) {
         console.warn("[log-detail] /api/runner failed:", err);
@@ -936,6 +937,23 @@ async function handleVisitUrl(evt) {
  */
 function renderErrorSlot(error) {
   renderErrorIntoSlot(findSlot("error"), error);
+}
+
+/**
+ * Push the runner's `exposed` map to the header so it renders the "Exported
+ * values" block below the Test-details drawer (#1861). These generated values
+ * (issuer URLs, access tokens, aliases, …) live ONLY on the live
+ * `/api/runner/{id}` payload (`createTestStatusMap` → `"exposed"`); `/api/info`
+ * (the TestInfo mongo doc) has no such field, so this is the only place the
+ * data reaches the component. A long-finished test the runner has flushed
+ * returns 404 (handled by the caller), so the block simply never populates.
+ *
+ * @param {Record<string, string> | null | undefined} exposed
+ */
+function applyExposed(exposed) {
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) header.exposed = exposed || null;
 }
 
 /** ──────────── Header action event handlers ──────────── */

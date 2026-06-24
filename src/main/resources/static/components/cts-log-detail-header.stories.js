@@ -272,7 +272,15 @@ export const WarningOnlyTest = {
 };
 
 export const RunningTest = {
-  render: () => html`<cts-log-detail-header .testInfo=${RUNNING_TEST}></cts-log-detail-header>`,
+  // `exposed` is a separate property from `testInfo`: in the live page it is
+  // fed from the /api/runner poll (NOT /api/info), so the story sets it
+  // explicitly to exercise the "Exported values" block (#1861).
+  render: () => html`
+    <cts-log-detail-header
+      .testInfo=${RUNNING_TEST}
+      .exposed=${RUNNING_TEST.exposed}
+    ></cts-log-detail-header>
+  `,
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
@@ -288,7 +296,20 @@ export const RunningTest = {
       // (was the secondary card pre-redesign).
       const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
       expect(runningHero).toBeTruthy();
-      expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
+      expect(
+        canvas.getByText(/Any URLs that need to be visited interactively/),
+      ).toBeInTheDocument();
+    });
+
+    await step("exported values render below the Test details drawer", async () => {
+      const drawer = canvasElement.querySelector('[data-testid="drawer-test-details"]');
+      const exported = canvasElement.querySelector('[data-testid="exported-values"]');
+      expect(exported).toBeTruthy();
+      expect(exported.textContent).toContain("Exported values");
+      // DOCUMENT_POSITION_FOLLOWING is set when `exported` comes after the drawer.
+      expect(
+        drawer.compareDocumentPosition(exported) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
     });
 
     await step("stop action is surfaced exclusively in the sticky bar's primary slot", async () => {

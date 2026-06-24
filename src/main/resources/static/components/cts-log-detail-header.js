@@ -481,16 +481,36 @@ const STYLE_TEXT = css`
     font-weight: var(--fw-medium);
   }
 
-  /* Running / waiting hero — exposed values + browser slot rows.
-     Mirrors the legacy .runningTestRow stack but inside the hero
-     instead of a secondary card. */
+  /* Exported ("exposed") values — generated values a running/waiting test
+     surfaces (issuer URLs, tokens, aliases). Rendered as its own section
+     below the Test-details drawer (#1861), reusing the .logMetaTable
+     key/value grid so it visually rhymes with the metadata table above it.
+     Data is live-only (from /api/runner); the section self-hides when there
+     is none. */
+  cts-log-detail-header .ctsExposed {
+    display: block;
+    margin-top: var(--space-5);
+    /* Breathing room before the log viewer's "Filter by result:" row that
+       follows the header on the page. */
+    margin-bottom: var(--space-8);
+  }
   cts-log-detail-header .ctsExposedLabel {
     font-weight: var(--fw-bold);
     color: var(--fg);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
   }
-  cts-log-detail-header .ctsExposedJson {
-    display: block;
+  /* Each value sits inline with its copy button; the value text wraps on
+     long URLs/tokens while the button keeps its size. */
+  cts-log-detail-header .ctsExposedValueRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  cts-log-detail-header .ctsExposedValueRow .mono {
+    word-break: break-all;
+  }
+  cts-log-detail-header .ctsExposedCopyBtn {
+    flex: 0 0 auto;
   }
 
   /* Drawer (Region C) — two <details> disclosures. Native semantics +
@@ -695,7 +715,6 @@ function ensureStylesInjected() {
  * @property {string} planId - Parent plan ID, if the test belongs to one.
  * @property {object} owner - `{ sub, iss }` owner identity (admin only).
  * @property {object} config - Test configuration JSON.
- * @property {object} exposed - Values exported by a running test.
  * @property {string|boolean} publish - Publish mode ("summary", "everything") or falsy.
  * @property {string} summary - Test-level summary. May contain the
  *   `\n\n---\n\n` marker exposed by `./test-summary-split.js` to split
@@ -761,6 +780,11 @@ function ensureStylesInjected() {
  *   `log-detail.js` from `/api/plan`, forwarded to the nav row's
  *   `cts-test-nav-controls` → `cts-plan-status` so the progress bar renders
  *   one segment per module with the "you are here" marker. Set via JS only.
+ * @property {Record<string, string> | null} exposed - Generated values the
+ *   test surfaces (issuer URLs, access tokens, aliases, …), rendered as the
+ *   "Exported values" block below the Test-details drawer (#1861). Sourced by
+ *   `log-detail.js` from the live `/api/runner/{id}` payload (`"exposed"`),
+ *   NOT `/api/info`. Set via JS only; null/empty hides the block.
  * @property {string} currentInstanceId - The instance currently being
  *   viewed (`?log=…`), forwarded to the nav row so the progress bar marks
  *   the matching segment and derives "Module N of M". Reflects the
@@ -797,6 +821,7 @@ class CtsLogDetailHeader extends LitElement {
     isPublic: { type: Boolean, attribute: "is-public" },
     planModules: { type: Array, attribute: false },
     currentInstanceId: { type: String, attribute: "current-instance-id" },
+    exposed: { type: Object, attribute: false },
     _copyFeedback: { state: true },
   };
 
@@ -807,6 +832,7 @@ class CtsLogDetailHeader extends LitElement {
     this.isPublic = false;
     this.planModules = [];
     this.currentInstanceId = "";
+    this.exposed = null;
     this._configModalRef = createRef();
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
@@ -1472,7 +1498,7 @@ class CtsLogDetailHeader extends LitElement {
     const phase = this._derivePhase(test);
 
     if (phase === "waiting") return this._renderWaitingHero(test);
-    if (phase === "running") return this._renderRunningHero(test);
+    if (phase === "running") return this._renderRunningHero();
     if (phase === "interrupted") return this._renderInterruptedHero();
 
     const result = (test.result || "").toUpperCase();
@@ -1629,44 +1655,102 @@ class CtsLogDetailHeader extends LitElement {
       >
         <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">${eyebrow}</div>
         <div class="ctsHeroBody">${formatDescription(instructions)}</div>
-        ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
     `;
   }
 
   /**
-   * RUNNING hero — info alert + exposed values + browser slot.
-   * @param {TestInfo} test - Test info sourcing `exposed` values for the running card.
+   * RUNNING hero — info alert + browser slot. Exported (exposed) values are
+   * rendered in their own section below the Test-details drawer (#1861), not
+   * in the hero, so the alert points the user there.
    * @returns {import('lit').TemplateResult} The RUNNING hero template.
    */
-  _renderRunningHero(test) {
+  _renderRunningHero() {
     return html`
       <div class="ctsHero ctsHero--running" data-testid="hero-running">
         <div class="ctsHeroEyebrow">Test running</div>
         <cts-alert variant="info">
-          Live values from the running test are shown below, along with any URLs that need to be
-          visited interactively.
+          Any URLs that need to be visited interactively are shown below. Values exported by the
+          test appear under the Test details section.
         </cts-alert>
-        ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
     `;
   }
 
-  _renderExposedValues(test) {
-    if (!test.exposed || Object.keys(test.exposed).length === 0) return nothing;
+  /**
+   * Exported (a.k.a. "exposed") values block — the generated values a test
+   * surfaces for the user (issuer URLs, access tokens, aliases, …). The data
+   * lives ONLY on the live `/api/runner/{id}` payload (`createTestStatusMap`
+   * → `"exposed"`), NOT on `/api/info` (the `TestInfo` mongo doc has no such
+   * field), so `js/log-detail.js` feeds it in via the `exposed` property from
+   * the runner poll. Rendered as a key/value grid mirroring the Test-details
+   * metadata table directly above it, and placed below that drawer per #1861.
+   * Returns `nothing` when there is no live runner data (e.g. a long-finished
+   * test the runner has flushed from memory), so the block self-hides.
+   * @returns {ReturnType<typeof html> | typeof nothing} The exported-values
+   *   section, or `nothing` when there are no exposed values.
+   */
+  _renderExposedValues() {
+    const exposed = this.exposed;
+    if (!exposed || Object.keys(exposed).length === 0) return nothing;
+    // Sort by key so the listing is stable and scannable regardless of the
+    // order the runner happened to expose values in.
+    const entries = Object.entries(exposed).sort(([a], [b]) => a.localeCompare(b));
     return html`
-      <div>
-        <div class="ctsExposedLabel">Exported values:</div>
-        <cts-json-editor
-          class="ctsExposedJson"
-          readonly
-          aria-label="Exported test values"
-          .value=${JSON.stringify(test.exposed, null, 2)}
-        ></cts-json-editor>
-      </div>
+      <section class="ctsExposed" data-testid="exported-values">
+        <div class="ctsExposedLabel">Exported values</div>
+        <div class="logMetaTable">
+          ${entries.map(
+            ([key, value]) => html`
+              <div class="logMetaLabel">${key}</div>
+              <div class="logMetaValue ctsExposedValueRow">
+                <span class="mono">${value}</span>
+                <cts-button
+                  class="ctsExposedCopyBtn"
+                  variant="ghost"
+                  size="sm"
+                  icon="copy"
+                  aria-label="Copy ${key}"
+                  title="Copy value to clipboard"
+                  data-testid="exported-value-copy"
+                  data-value=${value}
+                  @cts-click=${this._handleCopyExposedValue}
+                ></cts-button>
+              </div>
+            `,
+          )}
+        </div>
+      </section>
     `;
+  }
+
+  /**
+   * Copy a single exported value to the clipboard, flashing the row's copy
+   * button to a checkmark on success (the canonical local affordance). Mirrors
+   * `_handleCopyConfig` but for one value rather than the whole config blob.
+   * The value rides on the button's `data-value` attribute so the handler can
+   * be passed by reference (Lit auto-binds it; inline arrows are disallowed by
+   * the `lit/no-template-arrow` lint rule).
+   * @param {Event} event - The cts-click event; its target is the flashed button.
+   * @returns {Promise<void>}
+   */
+  async _handleCopyExposedValue(event) {
+    const trigger = event && event.currentTarget;
+    const value = trigger instanceof HTMLElement ? (trigger.dataset.value ?? "") : "";
+    if (!navigator.clipboard) {
+      this._showCopyFeedback("Clipboard not available — please copy the value manually.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(String(value));
+    } catch (err) {
+      console.warn("[cts-log-detail-header] clipboard.writeText failed:", err);
+      this._showCopyFeedback("Copy failed — please copy the value manually.");
+      return;
+    }
+    flashCopyConfirmed(/** @type {Element} */ (trigger));
   }
 
   // ──────────────────────────── drawer (Region C) ────────────────────────────
@@ -1754,7 +1838,8 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       ${this._renderTestNavControlsRow(this.testInfo)} ${this._renderStatusBar(this.testInfo)}
       ${this._renderTerminalBanner(this.testInfo)} ${this._renderHero(this.testInfo)}
-      ${this._renderDrawer(this.testInfo)} ${this._renderConfigModal()}
+      ${this._renderDrawer(this.testInfo)} ${this._renderExposedValues()}
+      ${this._renderConfigModal()}
     `;
   }
 

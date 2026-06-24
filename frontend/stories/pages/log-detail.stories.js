@@ -176,7 +176,10 @@ export const RunningTestPage = {
   decorators: [withMockFetch("/api/log/", MOCK_EMPTY_LOG)],
   render: () => html`
     <div class="container-fluid p-3">
-      <cts-log-detail-header .testInfo=${TEST_RUNNING_WITH_RESULTS}></cts-log-detail-header>
+      <cts-log-detail-header
+        .testInfo=${TEST_RUNNING_WITH_RESULTS}
+        .exposed=${TEST_RUNNING_WITH_RESULTS.exposed}
+      ></cts-log-detail-header>
       <cts-log-viewer test-id="test-running-001"></cts-log-viewer>
     </div>
   `,
