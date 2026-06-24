@@ -742,11 +742,12 @@ export const WaitingHeroFallbackInstructions = {
 // Restores the legacy "Exported Values:" key/value grid the 2026 design
 // refresh dropped. The component already rendered exposed values (as a
 // readonly JSON blob); U1 swaps that for the scannable grid. The data wiring
-// (data.exposed from the /api/runner poll into the header's testInfo) lives in
-// log-detail.js and is covered by the e2e suite — these stories drive the
-// rendering half with a hardcoded `exposed` map using the SSF keys from the
-// issue screenshot, including one deliberately long no-space URL to exercise
-// value wrapping.
+// (data.exposed from the /api/runner poll into the header's dedicated
+// `exposed` property) lives in log-detail.js and is covered by the e2e suite —
+// these stories drive the rendering half by setting `.exposed` directly (the
+// same property the live page feeds, separate from `.testInfo`), using the SSF
+// keys from the issue screenshot, including one deliberately long no-space URL
+// to exercise value wrapping.
 const EXPOSED_VALUES = {
   ssf_poll_endpoint: "https://localhost.emobix.co.uk:8443/ssf/poll/abc123",
   ssf_tx_access_token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMyJ9.cGF5bG9hZA.c2lnbmF0dXJl",
@@ -759,7 +760,8 @@ const EXPOSED_VALUES = {
 export const WaitingHeroWithExportedValues = {
   render: () =>
     html`<cts-log-detail-header
-      .testInfo=${{ ...WAITING_TEST, exposed: EXPOSED_VALUES }}
+      .testInfo=${WAITING_TEST}
+      .exposed=${EXPOSED_VALUES}
     ></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
     const panel = await waitFor(() => {
@@ -793,7 +795,8 @@ export const WaitingHeroWithExportedValues = {
 export const RunningHeroWithExportedValues = {
   render: () =>
     html`<cts-log-detail-header
-      .testInfo=${{ ...RUNNING_TEST, exposed: EXPOSED_VALUES }}
+      .testInfo=${RUNNING_TEST}
+      .exposed=${EXPOSED_VALUES}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
     const hero = await waitFor(() => {
@@ -813,9 +816,7 @@ export const RunningHeroWithExportedValues = {
 
 export const RunningHeroWithoutExportedValues = {
   render: () =>
-    html`<cts-log-detail-header
-      .testInfo=${{ ...RUNNING_TEST, exposed: {} }}
-    ></cts-log-detail-header>`,
+    html`<cts-log-detail-header .testInfo=${RUNNING_TEST} .exposed=${{}}></cts-log-detail-header>`,
   async play({ canvasElement }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-running"]');
