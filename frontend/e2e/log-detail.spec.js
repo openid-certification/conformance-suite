@@ -3300,6 +3300,33 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
     );
   });
 
+  test("exported values render in alphabetical key order (KTD4)", async ({ page }) => {
+    // The backend serialises `exposed` in arbitrary HashMap order; the grid
+    // sorts by key (localeCompare) for a stable, scannable order. Feed an
+    // intentionally unsorted map and assert the rendered <dt> order.
+    const testId = "test-exposed-007";
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          exposed: { z_key: "z-val", a_key: "a-val", m_key: "m-val" },
+        }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible();
+    await expect(panel.locator("dt.ctsExposedKey")).toHaveText(["a_key", "m_key", "z_key"]);
+  });
+
   test("grid survives an /api/info re-poll that lacks `exposed` (no clobber, KTD1)", async ({
     page,
   }) => {

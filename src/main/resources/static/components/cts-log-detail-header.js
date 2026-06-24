@@ -1,5 +1,6 @@
 import { LitElement, html, nothing, css } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
@@ -856,9 +857,43 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
+   * Shared key/value definition-list grid. Both the variant list (Test
+   * details drawer) and the exported-values panel (running / waiting hero)
+   * render a `<dl>`/`<dt>`/`<dd>` grid; they differ only in CSS classes, the
+   * accessible name, and whether keys get the `.mono` pill — this helper holds
+   * the one structure both share, removing the duplicate render loop. Callers
+   * pass already-ordered entries (variant: insertion order; exposed:
+   * alphabetically sorted).
+   * @param {Array<[string, unknown]>} entries - Pre-ordered `[key, value]` pairs.
+   * @param {object} opts - Per-call-site presentation.
+   * @param {string} opts.dlClass - Class on the wrapping `<dl>`.
+   * @param {string} [opts.keyClass] - Class on each `<dt>` (omit for none).
+   * @param {string} [opts.valueClass] - Class on each `<dd>` (omit for none).
+   * @param {string} [opts.ariaLabel] - Accessible name for the `<dl>` (omit for none).
+   * @param {string} [opts.dataTestid] - `data-testid` on the `<dl>` (omit for none).
+   * @param {boolean} [opts.monoKey] - Wrap each key in a `.mono` pill (variant list).
+   * @returns {ReturnType<typeof html>} The `<dl>` grid template.
+   */
+  _renderKvList(entries, { dlClass, keyClass, valueClass, ariaLabel, dataTestid, monoKey }) {
+    return html`
+      <dl class=${dlClass} aria-label=${ifDefined(ariaLabel)} data-testid=${ifDefined(dataTestid)}>
+        ${entries.map(
+          ([key, value]) => html`
+            <dt class=${ifDefined(keyClass)}>
+              ${monoKey ? html`<span class="mono">${key}</span>` : key}
+            </dt>
+            <dd class=${ifDefined(valueClass)}>${value}</dd>
+          `,
+        )}
+      </dl>
+    `;
+  }
+
+  /**
    * Render the variant map as a nested definition list so each key/value
    * pair sits on its own row, replacing the legacy comma-joined string
-   * the MR 1998 review pass flagged as a "comma-soup" (finding C2).
+   * the MR 1998 review pass flagged as a "comma-soup" (finding C2). Keys
+   * render as `.mono` pills; entries keep their insertion order.
    * @param {Record<string, string> | null | undefined} variant - Variant
    *   selections from the runner payload, keyed by parameter name.
    * @returns {ReturnType<typeof html> | typeof nothing} A `<dl>` template
@@ -869,16 +904,11 @@ class CtsLogDetailHeader extends LitElement {
     if (!variant || typeof variant !== "object") return nothing;
     const entries = Object.entries(variant);
     if (entries.length === 0) return nothing;
-    return html`
-      <dl class="variantList" data-testid="variant-list">
-        ${entries.map(
-          ([key, value]) => html`
-            <dt><span class="mono">${key}</span></dt>
-            <dd>${value}</dd>
-          `,
-        )}
-      </dl>
-    `;
+    return this._renderKvList(entries, {
+      dlClass: "variantList",
+      dataTestid: "variant-list",
+      monoKey: true,
+    });
   }
 
   _getResultCounts() {
@@ -1704,24 +1734,24 @@ class CtsLogDetailHeader extends LitElement {
    * Reads the dedicated `this.exposed` reactive property (fed by the
    * `/api/runner` poll in `log-detail.js`, never by `/api/info`), so an
    * `/api/info` refresh can never clear it. Live-only: it vanishes once the
-   * runner flushes a finished test from memory. Entry order follows the
-   * backend `HashMap` serialization (arbitrary), matching the legacy grid.
+   * runner flushes a finished test from memory. Entries render in alphabetical
+   * key order (`localeCompare`) — a stable, scannable order in place of the
+   * backend `HashMap`'s arbitrary serialization order.
    * @returns {ReturnType<typeof html> | typeof nothing} A `<dl>` grid with one
    *   `<dt>`/`<dd>` per entry, or `nothing` when no values are exposed.
    */
   _renderExposedValues() {
     if (!this.exposed || Object.keys(this.exposed).length === 0) return nothing;
+    const entries = Object.entries(this.exposed).sort(([a], [b]) => a.localeCompare(b));
     return html`
       <div class="ctsExposed" data-testid="exposed-values">
         <div class="ctsExposedLabel">Exported values:</div>
-        <dl class="ctsExposedGrid" aria-label="Exported values">
-          ${Object.entries(this.exposed).map(
-            ([key, value]) => html`
-              <dt class="ctsExposedKey">${key}</dt>
-              <dd class="ctsExposedValue">${value}</dd>
-            `,
-          )}
-        </dl>
+        ${this._renderKvList(entries, {
+          dlClass: "ctsExposedGrid",
+          keyClass: "ctsExposedKey",
+          valueClass: "ctsExposedValue",
+          ariaLabel: "Exported values",
+        })}
       </div>
     `;
   }
