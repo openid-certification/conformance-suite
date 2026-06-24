@@ -18,10 +18,6 @@ import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
-import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
-import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
-import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -159,19 +155,6 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 			return module.brazilHandleGetConsentRequest(requestId, path, false);
 		}
 		throw new TestFailureException(module.getId(), "Got unexpected Open Banking Brazil mTLS call to " + path);
-	}
-
-	@Override
-	public ConditionSequence applyProfileSpecificTokenEndpointChecks() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
-				callAndStopOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, "BrazilOB-6.1-1");
-				callAndStopOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
-				callAndStopOnFailure(FAPIBrazilValidateExpiresIn.class, "BrazilOB-5.2.2-13");
-			}
-		};
 	}
 
 	@Override
