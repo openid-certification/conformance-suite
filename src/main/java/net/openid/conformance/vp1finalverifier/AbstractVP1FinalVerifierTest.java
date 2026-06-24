@@ -43,7 +43,6 @@ import net.openid.conformance.condition.as.ExtractVerifierInfoFromAuthorizationR
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
-import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
@@ -79,7 +78,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
-import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -190,10 +188,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		onServerConfigurationCompleted();
 
-		configureServerJWKS();
-
-		validateConfiguredServerJWKS();
-
 		configureClientConfiguration();
 
 		onBeforeFireSetupDone();
@@ -213,11 +207,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	}
 
-	protected void validateConfiguredServerJWKS() {
-		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-	}
-
 	/**
 	 * expected to add discoveryUrl and issuer to env
 	 */
@@ -235,13 +224,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
 				break;
 		}
-	}
-
-	/**
-	 * override to modify the generated jwks
-	 */
-	protected void configureServerJWKS() {
-		callAndStopOnFailure(OIDCCGenerateServerJWKs.class);
 	}
 
 	protected void configureClientConfiguration() {

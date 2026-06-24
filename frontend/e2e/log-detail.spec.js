@@ -365,7 +365,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     await setupCommonRoutes(page);
@@ -376,6 +376,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const segments = bar.locator('[data-testid="plan-status-segment"]');
     await expect(segments.nth(3)).toHaveClass(/is-current/);
     await expect(page.locator('[data-testid="progress-position"]')).toHaveText("Module 4 of 10");
+
+    // No-clobber (#1857 / R3): the segment's COLOUR tracks the module's
+    // most-recent instance (newer-rerun → FAILED), even though the viewed
+    // instance is the older PASSED re-run. The live segment sync matches on the
+    // module's last instance, so it must NOT repaint this segment to the viewed
+    // (older) instance's PASSED verdict.
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--fail/);
+    await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pass/);
   });
 
   test("U6/R15: clicking a sibling segment navigates to that instance's log", async ({ page }) => {
@@ -483,7 +491,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     // 404 sibling: its segment must settle to the static skip fill, not pulse
@@ -604,7 +612,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
     await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
@@ -632,6 +640,160 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(inert).toHaveCount(1);
     await expect(inert).toHaveAttribute("role", "img");
     await expect(bar.locator("a.cts-pst-seg[href]")).toHaveCount(3);
+  });
+
+  test("U6/#1857: a watched test that finishes turns its OWN segment green live (no reload)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // The viewed test is the most-recent (only) instance of module 0; it is
+    // RUNNING at first paint and finishes PASSED while the user watches. The
+    // bug: the bar's segment for the watched module never repainted when the
+    // poll loop received the terminal verdict (#1857) — only the banner did.
+    const planModules = makePlanModules(2, {
+      markedIndex: 0,
+      markedInstances: [MOCK_TEST_RUNNING.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    // The sibling (index 1) is already passed — it must stay green throughout,
+    // proving the live sync touches only the watched segment. The `s-*` glob
+    // matches makePlanModules' sibling naming (s-<i>) and never the watched id
+    // (test-running-001), so the two /api/info routes partition cleanly.
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    // Override the main test's /api/info (registered AFTER setupV2Routes so it
+    // wins on Playwright's reverse-order match) with a Node-side flag: RUNNING
+    // until the test flips `finished`, then the terminal verdict. Both the
+    // page-load colour fan-out AND every 3s poll cycle read this same handler,
+    // so the segment tracks the flag deterministically — no fake timers needed.
+    let finished = false;
+    await page.route(`**/api/info/${MOCK_TEST_RUNNING.testId}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          finished
+            ? { ...MOCK_TEST_RUNNING, status: "FINISHED", result: "PASSED" }
+            : MOCK_TEST_RUNNING,
+        ),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(2);
+
+    // BEFORE: while the test runs, the watched segment shows the running fill,
+    // not pass. (The poll keeps returning RUNNING, so this state is stable.)
+    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--running/);
+    await expect(segments.nth(0)).not.toHaveClass(/cts-pst-seg--pass/);
+
+    // The test reaches its verdict; the next /api/info poll returns the terminal
+    // FINISHED + PASSED payload.
+    finished = true;
+
+    // AFTER: the watched segment repaints green live, with no reload (#1857) —
+    // and the already-passed sibling is unaffected. The explicit timeout absorbs
+    // up to two 3s poll cycles so the assertion never flakes under slow CI (the
+    // default 5s window is marginal against the 3s cadence).
+    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/, { timeout: 8000 });
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
+  });
+
+  test("U6/#1857 race: a late page-load fan-out response must not revert a poll-settled segment", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // The watched module (index 0) is RUNNING at page load. The page-load colour
+    // fan-out (resolveOneSegment) and the live poll (syncCurrentSegmentStatus)
+    // both fetch /api/info/<testId> and write the same segment. If the fan-out's
+    // RUNNING response resolves AFTER the poll has settled the segment to a
+    // terminal verdict (and stopped), it must NOT downgrade the segment back to
+    // the running fill — nothing would re-correct it, re-creating #1857.
+    const planModules = makePlanModules(2, {
+      markedIndex: 0,
+      markedInstances: [MOCK_TEST_RUNNING.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    // Sequence the watched test's /api/info by call order to force the clobber
+    // window deterministically: call 1 (bootstrap) RUNNING; call 2 (the page-load
+    // fan-out's current-segment fetch) is HELD until the test releases it, then
+    // returns a now-stale RUNNING; call 3+ (the poll) FINISHED+PASSED. The poll
+    // settles + stops while call 2 is still in flight; releasing call 2 lands the
+    // stale response — which the terminal-slice guard must ignore.
+    /** @type {() => void} */
+    let releaseFanout = () => {};
+    const fanoutGate = new Promise((resolve) => {
+      releaseFanout = () => resolve(undefined);
+    });
+    let infoCalls = 0;
+    await page.route(`**/api/info/${MOCK_TEST_RUNNING.testId}*`, async (route) => {
+      infoCalls += 1;
+      if (infoCalls === 2) {
+        await fanoutGate; // hold the fan-out's current-segment fetch
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(MOCK_TEST_RUNNING), // stale RUNNING, lands after the poll
+        });
+      }
+      if (infoCalls >= 3) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ...MOCK_TEST_RUNNING, status: "FINISHED", result: "PASSED" }),
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_RUNNING), // call 1: bootstrap
+      });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(2);
+
+    // The poll settles the watched segment green and stops.
+    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/, { timeout: 8000 });
+
+    // Release the held fan-out response (stale RUNNING) and wait until it lands.
+    const staleLanded = page.waitForResponse((r) =>
+      r.url().includes(`/api/info/${MOCK_TEST_RUNNING.testId}`),
+    );
+    releaseFanout();
+    await staleLanded;
+
+    // Guard: the late stale response must NOT downgrade the settled segment.
+    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/);
+    await expect(segments.nth(0)).not.toHaveClass(/cts-pst-seg--running/);
   });
 
   test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({
@@ -1045,15 +1207,26 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     }),
   );
 
+  // GitLab #1859: a failed test is reported as status=INTERRUPTED, result=FAILED
+  // (the runner stops it on the first hard failure). The banner must read "Test
+  // failed", NOT "Test interrupted" — the result verdict wins over the status.
+  // The sticky-bar status pill still shows the true lifecycle status
+  // (INTERRUPTED) alongside the FAILED result badge.
   test(
-    "terminal-state refresh — INTERRUPTED: banner renders without reload",
+    "terminal-state refresh — INTERRUPTED+FAILED reads as 'Test failed' (#1859)",
     terminalRefreshTest({
       result: "FAILED",
       finalStatus: "INTERRUPTED",
-      bannerText: /Test interrupted/i,
+      bannerText: /Test failed/i,
       statusBadgeLabel: "INTERRUPTED",
     }),
   );
+
+  // R4 (a genuine interruption with NO concrete verdict still reads "Test
+  // interrupted") is covered at the component level by the cts-log-detail-header
+  // `TerminalBannerInterrupted` story — the polling helper here can't represent
+  // a verdict-less interruption (it derives the testId and the result-badge
+  // query from cfg.result, which assumes a distinct result verdict).
 
   test("renders cts-log-viewer with mocked log entries", async ({ page }) => {
     await setupFailFast(page);

@@ -162,11 +162,14 @@ export const MOCK_TEST_STATUS_WITH_DESCRIPTION_ONLY = {
     "This test calls the authorization endpoint and verifies the OP returns a normal login page.",
 };
 
-/** GET /api/info/:testId — FAILED */
+/** GET /api/info/:testId — FAILED. The runner stops a failing test on the
+ * first hard failure, so it is reported as INTERRUPTED+FAILED, never
+ * FINISHED+FAILED. Override the FINISHED inherited from MOCK_TEST_STATUS. */
 export const MOCK_TEST_FAILED = {
   ...MOCK_TEST_STATUS,
   _id: "test-fail-001",
   testId: "test-fail-001",
+  status: "INTERRUPTED",
   result: "FAILED",
 };
 

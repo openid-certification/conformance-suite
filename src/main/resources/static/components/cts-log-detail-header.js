@@ -99,25 +99,6 @@ const HERO_MODES = {
 };
 
 /**
- * Terminal `test.result` values that pin the lifecycle into a finished
- * phase regardless of what `test.status` reports. The runner sets
- * `result` as soon as a verdict is assigned, but the WAITING→FINISHED
- * status flip can lag (the front-end polling cadence isn't synchronized
- * with the verdict write). When `result` is one of these values, the
- * UI must surface the verdict immediately — leaving Start visible on a
- * test that already passed/failed is what MR 1998 finding A1 reported.
- * @type {ReadonlySet<string>}
- */
-const TERMINAL_RESULTS = new Set([
-  "PASSED",
-  "FAILED",
-  "WARNING",
-  "REVIEW",
-  "SKIPPED",
-  "INTERRUPTED",
-]);
-
-/**
  * Phase → terminal-banner palette + headline. Palette keys map 1:1 to
  * the `.ctsTerminalBanner--*` modifier classes defined in STYLE_TEXT;
  * headline strings are the "did my test pass?" answer in plain English
@@ -1191,6 +1172,13 @@ class CtsLogDetailHeader extends LitElement {
    * Closes MR 1998 finding A1: previously the bar branched on
    * `status` alone, so a test whose `result` had landed but whose
    * `status` still read WAITING kept showing the Start button.
+   *
+   * A settled verdict wins over the INTERRUPTED status (GitLab #1859):
+   * a failed test is reported as status=INTERRUPTED, result=FAILED and
+   * must read "Test failed" (phase `finished-fail`), not "Test
+   * interrupted". The `interrupted` phase is reserved for an
+   * interruption with no concrete verdict (e.g. an admin force-stop or
+   * an unexpected exception before any result was assigned).
    * @param {TestInfo} test - Test info with `status` and `result`.
    * @returns {string} One of: `waiting`, `running`, `interrupted`,
    *   `finished-pass`, `finished-fail`, `finished-warn`,
@@ -1199,14 +1187,17 @@ class CtsLogDetailHeader extends LitElement {
   _derivePhase(test) {
     const status = (test.status || "").toUpperCase();
     const result = (test.result || "").toUpperCase();
+    // A concrete result verdict wins over the INTERRUPTED status (#1859): a
+    // failed test is status=INTERRUPTED, result=FAILED and must read as
+    // "finished-fail", so dispatch on the verdict before the status below.
+    if (result === "PASSED") return "finished-pass";
+    if (result === "FAILED") return "finished-fail";
+    if (result === "WARNING") return "finished-warn";
+    if (result === "REVIEW") return "finished-review";
+    if (result === "SKIPPED") return "finished-skip";
+    // No concrete verdict: a genuine interruption — status INTERRUPTED, or the
+    // INTERRUPTED sentinel some paths write into `result` — reads as interrupted.
     if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
-    if (TERMINAL_RESULTS.has(result)) {
-      if (result === "PASSED") return "finished-pass";
-      if (result === "FAILED") return "finished-fail";
-      if (result === "WARNING") return "finished-warn";
-      if (result === "REVIEW") return "finished-review";
-      if (result === "SKIPPED") return "finished-skip";
-    }
     if (status === "WAITING") return "waiting";
     if (status === "RUNNING") return "running";
     return "unknown";
@@ -1588,6 +1579,15 @@ class CtsLogDetailHeader extends LitElement {
     const headline = this._formatFailureCountHeadline(counts);
     return html`
       <div class="ctsHero ctsHero--failures" data-testid="hero-failures">
+        <!-- A FAILED test reaches this hero (it is INTERRUPTED+FAILED, now phase
+             finished-fail — #1859). It may carry a FINAL_ERROR, so it needs the
+             same error slot the interrupted hero exposes; log-detail.js's
+             /api/runner poll injects into [data-slot="error"] (located by that
+             attribute, not by id — so this copy intentionally omits the
+             interrupted hero's id to avoid a duplicate-id across the two
+             mutually-exclusive heroes). WARNING/REVIEW also use this hero; the
+             slot is harmless there — renderErrorIntoSlot no-ops with no error. -->
+        <div data-slot="error" data-testid="running-error-slot"></div>
         <div class="ctsHeroEyebrow">Findings</div>
         <h2 class="ctsHeroHeadline">${headline}</h2>
         ${failures.length > 0

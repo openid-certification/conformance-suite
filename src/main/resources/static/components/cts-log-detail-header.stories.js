@@ -1135,7 +1135,7 @@ const NAV_PLAN_MODULES = [
   {
     testModule: "oidcc-server-3",
     instances: ["other-3"],
-    status: "FINISHED",
+    status: "INTERRUPTED",
     result: "FAILED",
     _statusResolved: true,
   },
@@ -1383,9 +1383,14 @@ export const StatusBarFinishedFailed = {
       return el;
     });
 
-    await step("FAILED + FINISHED badges render in the bar", async () => {
+    await step("FAILED result + INTERRUPTED status badges render in the bar", async () => {
       expect(bar.querySelector('cts-badge[variant="fail"][label="FAILED"]')).toBeTruthy();
-      expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
+      // A failed test is reported as INTERRUPTED+FAILED (it never reaches
+      // FINISHED), so the status pill reads INTERRUPTED on the fail palette
+      // alongside the FAILED result badge. Whether the bar should collapse the
+      // status pill once a terminal verdict exists is an open question (the
+      // plan's OQ1); for now it surfaces the true lifecycle status.
+      expect(bar.querySelector('cts-badge[variant="fail"][label="INTERRUPTED"]')).toBeTruthy();
     });
 
     await step("the result-pill cluster shows the failure count + pill", async () => {
