@@ -4,7 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddEssentialTxnClaimRequestToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
+import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.SetConnectIdBindingMessageToPurpose;
 import net.openid.conformance.condition.client.SetConnectIdCibaLoginHintFromConfiguration;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -58,6 +60,25 @@ public class ConnectIdAuCibaServerProfileBehavior_UnitTest {
 			.containsExactly(
 				CreateRandomFAPIInteractionId.class,
 				AddFAPIInteractionIdToResourceEndpointRequest.class);
+	}
+
+	@Test
+	public void testResourceEndpointResponseHeadersValidateMatchingInteractionIdForFirstAndSecondClient() {
+		ConnectIdAuCibaServerProfileBehavior behavior = new ConnectIdAuCibaServerProfileBehavior();
+
+		List<Class<? extends Condition>> firstClientConditionClasses = getConditionClasses(
+			behavior.validateResourceEndpointResponseHeaders(false));
+		List<Class<? extends Condition>> secondClientConditionClasses = getConditionClasses(
+			behavior.validateResourceEndpointResponseHeaders(true));
+
+		assertThat(firstClientConditionClasses)
+			.containsExactly(
+				CheckForFAPIInteractionIdInResourceResponse.class,
+				EnsureMatchingFAPIInteractionId.class);
+		assertThat(secondClientConditionClasses)
+			.containsExactly(
+				CheckForFAPIInteractionIdInResourceResponse.class,
+				EnsureMatchingFAPIInteractionId.class);
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {

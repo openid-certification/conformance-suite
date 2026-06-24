@@ -126,10 +126,8 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 			public void evaluate() {
 				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class,
 					Condition.ConditionResult.FAILURE, "CID-SP-4.4-1");
-				if (!isSecondClient) {
-					callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class,
-						Condition.ConditionResult.FAILURE, "CID-SP-4.4-1");
-				}
+				callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class,
+					Condition.ConditionResult.FAILURE, "CID-SP-4.4-1");
 			}
 		};
 	}
