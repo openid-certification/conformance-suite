@@ -65,6 +65,16 @@ const runnerPollState = { active: null };
  */
 let latestTestInfo = null;
 
+// Exported values (#1861). `exposed` is carried ONLY by the /api/runner poll,
+// never by /api/info. The two endpoints poll on independent cadences, so cache
+// the latest `exposed` map here and re-merge it onto every testInfo applyTestInfo
+// pushes — otherwise an /api/info refresh (which has no `exposed`) would clear
+// the panel each cycle (KTD2). `latestExposedJson` skips redundant re-applies.
+/** @type {Object<string, unknown> | null} */
+let latestExposed = null;
+/** @type {string | null} */
+let latestExposedJson = null;
+
 /**
  * Modules list from /api/plan/{planId}, cached at fetch time so
  * handleContinue can find the *next* module without a second roundtrip.
@@ -148,9 +158,16 @@ function selectFailures(testInfo) {
  */
 function applyTestInfo(testInfo) {
   latestTestInfo = testInfo;
+  // Merge the cached `exposed` map (from the /api/runner poll) onto the
+  // testInfo pushed to the header, so the exported-values grid survives
+  // /api/info refreshes that carry no `exposed` (KTD2). The page-level
+  // summary instances below read `results` / `summary`, which the merge
+  // does not touch.
+  const headerTestInfo =
+    testInfo && latestExposed ? { ...testInfo, exposed: latestExposed } : testInfo;
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
-  if (header) header.testInfo = testInfo;
+  if (header) header.testInfo = headerTestInfo;
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
   if (topFailureSummary) {
@@ -670,11 +687,31 @@ function startRunnerPolling(testInfo) {
     if (!isPublic) {
       try {
         const response = await fetch("/api/runner/" + encodeURIComponent(testId));
-        if (response.status !== 404) {
+        if (response.status === 404) {
+          // Runner flushed the test from memory. Drop any cached `exposed`
+          // so a stale grid doesn't linger if /api/info is briefly still
+          // non-terminal (live-only parity, KTD4). Skip the re-apply once the
+          // cache is already empty so an always-404 poll stays a no-op.
+          if (latestExposed !== null) {
+            latestExposed = null;
+            latestExposedJson = JSON.stringify(null);
+            applyTestInfo(latestTestInfo);
+          }
+        } else {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
           renderBrowserSlot(data.browser);
           renderErrorSlot(data.error);
+          // Exported values (#1861): cache the latest `exposed` and re-apply
+          // so the grid renders promptly. Guard on change (mirrors the old
+          // UI's currentExposedDataJson) so an unchanged map does not trigger
+          // a redundant re-apply every cycle. applyTestInfo merges the cache.
+          const exposedJson = JSON.stringify(data.exposed ?? null);
+          if (exposedJson !== latestExposedJson) {
+            latestExposedJson = exposedJson;
+            latestExposed = data.exposed ?? null;
+            applyTestInfo(latestTestInfo);
+          }
         }
       } catch (err) {
         console.warn("[log-detail] /api/runner failed:", err);
