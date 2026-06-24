@@ -715,6 +715,98 @@ export const WaitingHeroFallbackInstructions = {
   },
 };
 
+// --- Exported values grid (issue #1861) ---
+//
+// Restores the legacy "Exported Values:" key/value grid the 2026 design
+// refresh dropped. The component already rendered exposed values (as a
+// readonly JSON blob); U1 swaps that for the scannable grid. The data wiring
+// (data.exposed from the /api/runner poll into the header's testInfo) lives in
+// log-detail.js and is covered by the e2e suite — these stories drive the
+// rendering half with a hardcoded `exposed` map using the SSF keys from the
+// issue screenshot, including one deliberately long no-space URL to exercise
+// value wrapping.
+const EXPOSED_VALUES = {
+  ssf_poll_endpoint: "https://localhost.emobix.co.uk:8443/ssf/poll/abc123",
+  ssf_tx_access_token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMyJ9.cGF5bG9hZA.c2lnbmF0dXJl",
+  ssf_issuer: "https://localhost.emobix.co.uk:8443/ssf/issuer/abc123",
+  alias: "ssf-transmitter-1",
+  ssf_configuration_url:
+    "https://localhost.emobix.co.uk:8443/.well-known/ssf-configuration/abc123-with-a-deliberately-long-no-space-path-to-exercise-value-wrapping",
+};
+
+export const WaitingHeroWithExportedValues = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...WAITING_TEST, exposed: EXPOSED_VALUES }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const panel = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="exposed-values"]');
+      if (!el) throw new Error("exposed-values panel not yet rendered");
+      return el;
+    });
+
+    await step("renders the 'Exported values:' label and grid", async () => {
+      expect(panel.textContent).toContain("Exported values:");
+      expect(panel.querySelector("dl.ctsExposedGrid")).toBeTruthy();
+    });
+
+    await step("renders one dt/dd pair per entry, with key + value text", async () => {
+      const entries = Object.entries(EXPOSED_VALUES);
+      expect(panel.querySelectorAll("dt.ctsExposedKey").length).toBe(entries.length);
+      expect(panel.querySelectorAll("dd.ctsExposedValue").length).toBe(entries.length);
+      for (const [key, value] of entries) {
+        expect(panel.textContent).toContain(key);
+        expect(panel.textContent).toContain(value);
+      }
+    });
+
+    await step("the grid carries an accessible name (no IDREF dependency)", async () => {
+      const grid = panel.querySelector("dl.ctsExposedGrid");
+      expect(grid.getAttribute("aria-label")).toBe("Exported values");
+    });
+  },
+};
+
+export const RunningHeroWithExportedValues = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...RUNNING_TEST, exposed: EXPOSED_VALUES }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const hero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-running"]');
+      if (!el) throw new Error("hero-running not yet rendered");
+      return el;
+    });
+    const panel = hero.querySelector('[data-testid="exposed-values"]');
+    expect(panel).toBeTruthy();
+    expect(panel.textContent).toContain("Exported values:");
+    expect(panel.querySelectorAll("dt.ctsExposedKey").length).toBe(
+      Object.keys(EXPOSED_VALUES).length,
+    );
+    expect(panel.querySelector("dl.ctsExposedGrid")).toBeTruthy();
+  },
+};
+
+export const RunningHeroWithoutExportedValues = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...RUNNING_TEST, exposed: {} }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-running"]');
+      if (!el) throw new Error("hero-running not yet rendered");
+      return el;
+    });
+    // Empty `exposed` → the early-return guard fires: no panel, no label.
+    // The absent-`exposed` case takes the same branch (covered by e2e).
+    expect(canvasElement.querySelector('[data-testid="exposed-values"]')).toBeNull();
+    expect(canvasElement.textContent).not.toContain("Exported values:");
+  },
+};
+
 // --- U1 parity: the four affordances + the two slots + nav-controls ---
 // Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
 // Edit-config / Share-link / Publish all moved into the kebab popover
