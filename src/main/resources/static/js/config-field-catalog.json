@@ -408,7 +408,7 @@
           "key": "client.dpop_signing_alg",
           "label": "DPoP Signing Alg",
           "type": "string",
-          "enum": ["PS256", "ES256", "EdDSA"],
+          "enum": ["PS256", "ES256", "EdDSA", "Ed25519"],
           "tooltip": "JWS algorithm for signing DPoP proofs"
         }
       ]
@@ -577,7 +577,7 @@
           "key": "client2.dpop_signing_alg",
           "label": "DPoP Signing Alg",
           "type": "string",
-          "enum": ["PS256", "ES256", "EdDSA"],
+          "enum": ["PS256", "ES256", "EdDSA", "Ed25519"],
           "tooltip": "JWS algorithm for signing DPoP proofs"
         }
       ]
