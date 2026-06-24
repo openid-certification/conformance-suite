@@ -412,9 +412,9 @@ const STYLE_TEXT = css`
     margin-bottom: var(--space-3);
   }
   /* Once the browser slot is populated by log-detail.js, separate the
-     injected browser-URL prompt from the exposed-values JSON editor
+     injected browser-URL prompt from the exposed-values grid
      (or hero body) above it. Without this the prompt sits flush
-     against the editor, since the hero carries no blanket 'gap'. */
+     against the grid, since the hero carries no blanket 'gap'. */
   cts-log-detail-header .ctsHero > [data-slot="browser"]:has(*) {
     margin-top: var(--space-4);
   }
@@ -491,8 +491,31 @@ const STYLE_TEXT = css`
     color: var(--fg);
     margin-bottom: var(--space-2);
   }
-  cts-log-detail-header .ctsExposedJson {
-    display: block;
+  /* Exported runtime values (ssf_*, redirect_uri, client_id, tokens) as a
+     scannable key/value grid — restores the legacy "Exported Values:" grid
+     (templates/exported.html) the design refresh dropped. Key column hugs
+     its content; value column fills and wraps long URLs the way the old
+     wrapLongStrings did. Values MUST stay text-selectable so operators can
+     select-to-copy tokens/URLs — set user-select explicitly because the
+     light-DOM render root could otherwise inherit user-select: none. */
+  cts-log-detail-header .ctsExposedGrid {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+  }
+  cts-log-detail-header .ctsExposedKey {
+    margin: 0;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--fg-muted);
+  }
+  cts-log-detail-header .ctsExposedValue {
+    margin: 0;
+    font-size: var(--fs-13);
+    overflow-wrap: anywhere;
+    user-select: text;
   }
 
   /* Drawer (Region C) — two <details> disclosures. Native semantics +
@@ -1662,17 +1685,32 @@ class CtsLogDetailHeader extends LitElement {
     `;
   }
 
+  /**
+   * Exported runtime values (`exposeEnvString` / `expose`) a test publishes
+   * while live — generated URLs, issuer identifiers, access tokens. Rendered
+   * as a key/value grid (restoring the legacy "Exported Values:" grid the
+   * design refresh dropped) instead of a readonly JSON blob, so the typically
+   * short technical values stay scannable and text-selectable for copying.
+   * Live-only: `exposed` arrives via the `/api/runner` poll and vanishes once
+   * the runner flushes a finished test from memory. Entry order follows the
+   * backend `HashMap` serialization (arbitrary), matching the legacy grid.
+   * @param {TestInfo} test - Test info sourcing the `exposed` map.
+   * @returns {ReturnType<typeof html> | typeof nothing} A `<dl>` grid with one
+   *   `<dt>`/`<dd>` per entry, or `nothing` when no values are exposed.
+   */
   _renderExposedValues(test) {
     if (!test.exposed || Object.keys(test.exposed).length === 0) return nothing;
     return html`
-      <div>
+      <div class="ctsExposed" data-testid="exposed-values">
         <div class="ctsExposedLabel">Exported values:</div>
-        <cts-json-editor
-          class="ctsExposedJson"
-          readonly
-          aria-label="Exported test values"
-          .value=${JSON.stringify(test.exposed, null, 2)}
-        ></cts-json-editor>
+        <dl class="ctsExposedGrid" aria-label="Exported values">
+          ${Object.entries(test.exposed).map(
+            ([key, value]) => html`
+              <dt class="ctsExposedKey">${key}</dt>
+              <dd class="ctsExposedValue">${value}</dd>
+            `,
+          )}
+        </dl>
       </div>
     `;
   }
