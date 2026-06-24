@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -47,7 +48,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			}
 			if(jwk.getKeyType().equals(KeyType.OKP)) {
 				if(!Curve.Ed25519.equals(((OctetKeyPair)jwk).getCurve())) {
-					throw error("Unsupported curve for EdDSA alg", args("JWK", jsonJwk.toString(), "curve", ((OctetKeyPair)jwk).getCurve().getName()));
+					throw error("Unsupported curve for OKP key", args("JWK", jsonJwk.toString(), "curve", ((OctetKeyPair)jwk).getCurve().getName()));
 				}
 			}
 			// compute and save jkt to avoid parsing JWK again when needed
@@ -65,9 +66,9 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		}
 
 		JsonArray supportedAlgs = new JsonArray();
-		supportedAlgs.add("PS256");
-		supportedAlgs.add("ES256");
-		supportedAlgs.add("EdDSA");
+		for (String supportedAlg : FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.FAPI2_ALLOWED_ALGS) {
+			supportedAlgs.add(supportedAlg);
+		}
 		if(!supportedAlgs.contains(alg)) {
 			throw error("Unsupported 'alg' claim in DPoP Proof header ", args("expected one of ", supportedAlgs.toString(), "actual", OIDFJSON.getString(alg)));
 		}

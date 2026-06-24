@@ -117,6 +117,8 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 				keysWithDecoys.add(keyGenerator.createJwkForAlg("PS256")); // decoy jwk
 				break;
 			case "EdDSA":
+			case "Ed25519":
+				// EdDSA and Ed25519 are the same curve/kty, so they're treated as the same "family" here
 				keysWithDecoys.add(keyGenerator.createJwkForAlg("ES256"));
 				keysWithDecoys.add(publicKey); // real jwk
 				keysWithDecoys.add(keyGenerator.createJwkForAlg("PS256"));
@@ -143,7 +145,12 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 	private static Map<String, Set<String>> findKeyIdsWithMissingFapiAlgorithms(List<JWK> publicKeysForSigning) {
 		Map<String, Set<String>> idToAlgs = new HashMap<>();
 		for (var key : publicKeysForSigning) {
-			idToAlgs.compute(key.getKeyID(), (k, v) -> Objects.requireNonNullElseGet(v, HashSet::new)).add(key.getAlgorithm().getName());
+			// EdDSA and Ed25519 are the same curve/kty, so treat them as the same "family" for this check
+			String algName = key.getAlgorithm().getName();
+			if ("Ed25519".equals(algName)) {
+				algName = "EdDSA";
+			}
+			idToAlgs.compute(key.getKeyID(), (k, v) -> Objects.requireNonNullElseGet(v, HashSet::new)).add(algName);
 		}
 		Map<String, Set<String>> kidsWithMissingFapiAlgorithms = new HashMap<>();
 		for (var entry : idToAlgs.entrySet()) {
