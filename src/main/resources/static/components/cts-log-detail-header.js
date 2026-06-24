@@ -482,22 +482,15 @@ const STYLE_TEXT = css`
   }
 
   /* Exported ("exposed") values — generated values a running/waiting test
-     surfaces (issuer URLs, tokens, aliases). Rendered as its own section
-     below the Test-details drawer (#1861), reusing the .logMetaTable
-     key/value grid so it visually rhymes with the metadata table above it.
-     Data is live-only (from /api/runner); the section self-hides when there
-     is none. */
+     surfaces (issuer URLs, tokens, aliases). Rendered below the Test-details
+     drawer (#1861) as a collapsible disclosure reusing the .ctsDrawer styling
+     and the .logMetaTable key/value grid, so it looks and behaves like "Test
+     details". Open by default while running (see willUpdate). Data is live-only
+     (from /api/runner); the whole block self-hides when there is none. This
+     modifier only adds breathing room before the log viewer that follows on
+     the page. */
   cts-log-detail-header .ctsExposed {
-    display: block;
-    margin-top: var(--space-5);
-    /* Breathing room before the log viewer's "Filter by result:" row that
-       follows the header on the page. */
     margin-bottom: var(--space-8);
-  }
-  cts-log-detail-header .ctsExposedLabel {
-    font-weight: var(--fw-bold);
-    color: var(--fg);
-    margin-bottom: var(--space-3);
   }
   /* Each value sits inline with its copy button; the value text wraps on
      long URLs/tokens while the button keeps its size. */
@@ -823,6 +816,7 @@ class CtsLogDetailHeader extends LitElement {
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     exposed: { type: Object, attribute: false },
     _copyFeedback: { state: true },
+    _exposedOpen: { state: true },
   };
 
   constructor() {
@@ -833,9 +827,32 @@ class CtsLogDetailHeader extends LitElement {
     this.planModules = [];
     this.currentInstanceId = "";
     this.exposed = null;
+    // null = not yet initialized; set once (in willUpdate) when exposed
+    // values first arrive, then only changed by the user toggling the drawer.
+    this._exposedOpen = null;
     this._configModalRef = createRef();
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
+  }
+
+  willUpdate(changed) {
+    super.willUpdate?.(changed);
+    // Initialize the Exported-values drawer's open state exactly once, when the
+    // values first appear: open by default for any non-terminal test (a
+    // just-started CREATED test, or one RUNNING/WAITING) — the user needs the
+    // live values then — and collapsed once the test has finished or been
+    // interrupted. After this, the state only changes via _onExposedToggle, so
+    // a manual collapse/expand sticks across the 3s runner-poll re-renders.
+    if (
+      this._exposedOpen === null &&
+      this.exposed &&
+      Object.keys(this.exposed).length > 0 &&
+      this.testInfo
+    ) {
+      const phase = this._derivePhase(this.testInfo);
+      const terminal = phase.startsWith("finished") || phase === "interrupted";
+      this._exposedOpen = !terminal;
+    }
   }
 
   createRenderRoot() {
@@ -1698,32 +1715,57 @@ class CtsLogDetailHeader extends LitElement {
     // Sort by key so the listing is stable and scannable regardless of the
     // order the runner happened to expose values in.
     const entries = Object.entries(exposed).sort(([a], [b]) => a.localeCompare(b));
+    // Collapsible drawer mirroring "Test details"; open state is seeded once in
+    // willUpdate (open while running/waiting) and tracked thereafter via toggle.
     return html`
-      <section class="ctsExposed" data-testid="exported-values">
-        <div class="ctsExposedLabel">Exported values</div>
-        <div class="logMetaTable">
-          ${entries.map(
-            ([key, value]) => html`
-              <div class="logMetaLabel">${key}</div>
-              <div class="logMetaValue ctsExposedValueRow">
-                <span class="mono">${value}</span>
-                <cts-button
-                  class="ctsExposedCopyBtn"
-                  variant="ghost"
-                  size="sm"
-                  icon="copy"
-                  aria-label="Copy ${key}"
-                  title="Copy value to clipboard"
-                  data-testid="exported-value-copy"
-                  data-value=${value}
-                  @cts-click=${this._handleCopyExposedValue}
-                ></cts-button>
-              </div>
-            `,
-          )}
-        </div>
-      </section>
+      <div class="ctsDrawer ctsExposed">
+        <details
+          data-testid="exported-values"
+          ?open=${this._exposedOpen === true}
+          @toggle=${this._onExposedToggle}
+        >
+          <summary>
+            <cts-icon name="chevron-right" size="16"></cts-icon>
+            Exported values
+          </summary>
+          <div class="ctsDrawerBody">
+            <div class="logMetaTable">
+              ${entries.map(
+                ([key, value]) => html`
+                  <div class="logMetaLabel">${key}</div>
+                  <div class="logMetaValue ctsExposedValueRow">
+                    <span class="mono">${value}</span>
+                    <cts-button
+                      class="ctsExposedCopyBtn"
+                      variant="ghost"
+                      size="sm"
+                      icon="copy"
+                      aria-label="Copy ${key}"
+                      title="Copy value to clipboard"
+                      data-testid="exported-value-copy"
+                      data-value=${value}
+                      @cts-click=${this._handleCopyExposedValue}
+                    ></cts-button>
+                  </div>
+                `,
+              )}
+            </div>
+          </div>
+        </details>
+      </div>
     `;
+  }
+
+  /**
+   * Track the user's manual collapse/expand of the Exported-values drawer so it
+   * sticks across the runner-poll re-renders (the `?open` binding then reflects
+   * the user's choice rather than the willUpdate default).
+   * @param {Event} event - The native `<details>` toggle event.
+   * @returns {void}
+   */
+  _onExposedToggle(event) {
+    const target = event && event.currentTarget;
+    if (target instanceof HTMLDetailsElement) this._exposedOpen = target.open;
   }
 
   /**

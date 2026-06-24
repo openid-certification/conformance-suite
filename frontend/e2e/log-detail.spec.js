@@ -2317,6 +2317,109 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       .toBe("https://example.com/test/a/ssf-rx-test-ci");
   });
 
+  test("exported values are a collapsible drawer, open by default while running (#1861)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, exposed: undefined, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "RUNNING",
+          browser: { urls: [], browserApiRequests: [] },
+          exposed: { ssf_issuer: "https://example.com/test/a/ssf-rx-test-ci" },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    // The block is a <details> drawer like "Test details" …
+    const details = page.locator('[data-testid="exported-values"]');
+    await expect(details).toBeVisible({ timeout: 8000 });
+    await expect(details).toHaveJSProperty("nodeName", "DETAILS");
+    const summary = details.locator("summary");
+    await expect(summary).toContainText("Exported values");
+
+    // … open by default while the test is running.
+    await expect(details).toHaveJSProperty("open", true);
+
+    // … and it collapses when the summary is clicked.
+    await summary.click();
+    await expect(details).toHaveJSProperty("open", false);
+  });
+
+  test("exported values drawer is open by default for a just-started (CREATED) test (#1861)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    // A freshly started test reports status CREATED before it flips to RUNNING.
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_TEST_RUNNING,
+          status: "CREATED",
+          result: null,
+          exposed: undefined,
+          planId: undefined,
+        }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "CREATED",
+          browser: { urls: [], browserApiRequests: [] },
+          exposed: { ssf_issuer: "https://example.com/test/a/ssf-rx-test-ci" },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const details = page.locator('[data-testid="exported-values"]');
+    await expect(details).toBeVisible({ timeout: 8000 });
+    await expect(details).toHaveJSProperty("open", true);
+  });
+
   // ──────────── U1: DC API handler parity ────────────
   // Mirrors the legacy DC handler at log-detail.html:1491–1538. Wire
   // format is frozen — Java parses it structurally in
