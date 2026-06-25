@@ -10,8 +10,6 @@ public class FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported ex
 
 	private static final String environmentVariable = "token_endpoint_auth_signing_alg_values_supported";
 
-	private static final String[] SET_VALUES = { "PS256", "ES256", "EdDSA" };
-
 	private static final String errorMessageNotEnough = "No matching value from server";
 
 	@Override
@@ -24,7 +22,8 @@ public class FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported ex
 		if ( serverValues != null && serverValues.isJsonArray() ) {
 
 			if ( countMatchingElements(Arrays.asList(valuesRequired), serverValues.getAsJsonArray()) > 0 ) {
-				return validate(env, environmentVariable, Arrays.asList(SET_VALUES), 1,
+				return validate(env, environmentVariable,
+						Arrays.asList(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.FAPI2_ALLOWED_ALGS), 1,
 						errorMessageNotEnough);
 			}
 		}

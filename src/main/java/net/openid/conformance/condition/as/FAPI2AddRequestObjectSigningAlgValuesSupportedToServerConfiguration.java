@@ -18,6 +18,7 @@ public class FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration
 		algs.add("PS256");
 		algs.add("ES256");
 		algs.add("EdDSA");
+		algs.add("Ed25519");
 
 		JsonObject server = env.getObject("server");
 		server.add("request_object_signing_alg_values_supported", algs);

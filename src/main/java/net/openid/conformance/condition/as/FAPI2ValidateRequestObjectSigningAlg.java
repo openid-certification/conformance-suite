@@ -23,6 +23,6 @@ public class FAPI2ValidateRequestObjectSigningAlg extends AbstractCondition {
 			return env;
 		}
 
-		throw error("Request object must be signed with PS256, ES256, or EdDSA", args("alg", alg));
+		throw error("Request object must be signed with PS256, ES256, EdDSA, or Ed25519", args("alg", alg));
 	}
 }
