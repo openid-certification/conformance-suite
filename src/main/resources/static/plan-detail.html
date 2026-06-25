@@ -472,16 +472,20 @@
                         }
 
                         fetchPromise.then((shareLink) => {
-                            // Write the link into cts-plan-actions's internal
-                            // result-display state. Reaching into the private
-                            // `_privateLinkResult` is how the page signals
-                            // "show the result"; the property is a Lit `state`
-                            // so assigning it triggers a re-render.
-                            actionsEl._privateLinkResult = shareLink.link;
+                            // Render the link + server message in the modal.
+                            actionsEl.showPrivateLinkResult(shareLink.link, shareLink.message);
 
+                            // Reflect the auto-copy outcome honestly: only show
+                            // "Copied to clipboard" once the write resolves; on
+                            // failure (or no Clipboard API) point the user at the
+                            // Copy button. Matches the log-detail private-link UX.
                             if (clipboardWritePromise) {
-                                clipboardWritePromise
-                                    .then(() => null, () => null);
+                                clipboardWritePromise.then(
+                                    () => actionsEl.setPrivateLinkCopied(true),
+                                    () => actionsEl.setPrivateLinkCopied(false),
+                                );
+                            } else {
+                                actionsEl.setPrivateLinkCopied(false);
                             }
                         }).catch((error) => {
                             console.warn('[plan-detail] private link generation failed:', error);

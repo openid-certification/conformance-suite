@@ -117,6 +117,26 @@ const STYLE_TEXT = css`
     border-radius: var(--radius-2);
     word-break: break-all;
   }
+  cts-plan-actions .planLinkMessage {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    word-break: normal;
+  }
+  cts-plan-actions .planLinkUrl {
+    display: block;
+  }
+  cts-plan-actions .planLinkActions {
+    margin-top: var(--space-2);
+  }
+  cts-plan-actions .planLinkCopyStatus {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    word-break: normal;
+  }
   cts-plan-actions .planDeleteWarning {
     color: var(--ink-900);
     font-size: var(--fs-13);
@@ -190,6 +210,8 @@ class CtsPlanActions extends LitElement {
     _showDeleteConfirm: { state: true },
     _privateLinkDays: { state: true },
     _privateLinkResult: { state: true },
+    _privateLinkMessage: { state: true },
+    _privateLinkCopyStatus: { state: true },
     _copyFeedback: { state: true },
   };
 
@@ -204,6 +226,8 @@ class CtsPlanActions extends LitElement {
     this._showDeleteConfirm = false;
     this._privateLinkDays = 30;
     this._privateLinkResult = "";
+    this._privateLinkMessage = "";
+    this._privateLinkCopyStatus = "";
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
   }
@@ -288,6 +312,8 @@ class CtsPlanActions extends LitElement {
 
   _handleTogglePrivateLink() {
     this._privateLinkResult = "";
+    this._privateLinkMessage = "";
+    this._privateLinkCopyStatus = "";
     /** @type {any} */ (this._privateLinkModalRef.value)?.show();
   }
 
@@ -300,6 +326,11 @@ class CtsPlanActions extends LitElement {
   }
 
   _handleGeneratePrivateLink() {
+    // Clear any stale result/status from a previous generation while the
+    // modal stays open.
+    this._privateLinkResult = "";
+    this._privateLinkMessage = "";
+    this._privateLinkCopyStatus = "";
     this.dispatchEvent(
       new CustomEvent("cts-generate-private-link", {
         bubbles: true,
@@ -309,6 +340,53 @@ class CtsPlanActions extends LitElement {
         },
       }),
     );
+  }
+
+  /**
+   * Populate the private-link result after the host page's /share POST
+   * resolves. The host owns the fetch + the Safari-safe ClipboardItem
+   * auto-copy (which must start synchronously in the click), then calls this
+   * to render the link, then {@link setPrivateLinkCopied} once the auto-copy
+   * promise settles.
+   * @param {string} link - The generated private link.
+   * @param {string} [message] - Optional supplemental server message.
+   */
+  showPrivateLinkResult(link, message) {
+    this._privateLinkResult = link || "";
+    this._privateLinkMessage = message || "";
+    this._privateLinkCopyStatus = "";
+  }
+
+  /**
+   * Reflect the auto-copy outcome honestly: only say "copied" once the host's
+   * clipboard write actually resolved; otherwise point the user at the Copy
+   * button (which is always available as a manual fallback).
+   * @param {boolean} copied - Whether the auto-copy succeeded.
+   */
+  setPrivateLinkCopied(copied) {
+    this._privateLinkCopyStatus = copied
+      ? "Copied to clipboard."
+      : "Press “Copy to clipboard” to copy the link.";
+  }
+
+  async _handleCopyPrivateLink(event) {
+    // Capture currentTarget synchronously — the await below clears it.
+    const trigger = event && event.currentTarget;
+    const text = this._privateLinkResult;
+    if (!text) return;
+    if (!navigator.clipboard) {
+      this._privateLinkCopyStatus = "Clipboard not available — select the link and copy manually.";
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn("[cts-plan-actions] clipboard.writeText failed:", err);
+      this._privateLinkCopyStatus = "Copy failed — select the link and copy manually.";
+      return;
+    }
+    this._privateLinkCopyStatus = "Copied to clipboard.";
+    flashCopyConfirmed(trigger);
   }
 
   _handleCertify() {
@@ -426,7 +504,29 @@ class CtsPlanActions extends LitElement {
         </div>
         ${this._privateLinkResult
           ? html`<div class="planLinkResult" data-testid="private-link-result">
-              <code>${this._privateLinkResult}</code>
+              ${this._privateLinkMessage
+                ? html`<p class="planLinkMessage">${this._privateLinkMessage}</p>`
+                : nothing}
+              <code class="planLinkUrl">${this._privateLinkResult}</code>
+              <div class="planLinkActions">
+                <cts-button
+                  class="copy-private-link-btn"
+                  variant="secondary"
+                  size="sm"
+                  icon="copy"
+                  label="Copy to clipboard"
+                  @cts-click=${this._handleCopyPrivateLink}
+                ></cts-button>
+              </div>
+              ${this._privateLinkCopyStatus
+                ? html`<p
+                    class="planLinkCopyStatus"
+                    aria-live="polite"
+                    data-testid="private-link-copy-status"
+                  >
+                    ${this._privateLinkCopyStatus}
+                  </p>`
+                : nothing}
             </div>`
           : nothing}
       </cts-modal>
