@@ -170,6 +170,16 @@ const STATUS = [
   "--status-review-bg",
 ];
 
+// JWT/JWE token-segment colors (log-detail More panel's colored JWT split,
+// cts-log-entry). AA-darkened takes on jwt.io's canonical debugger hues.
+const JWT_SEGMENTS = [
+  "--jwt-header",
+  "--jwt-payload",
+  "--jwt-signature",
+  "--jwe-cypher",
+  "--jwe-tag",
+];
+
 const BADGE_RINGS = ["--badge-ring", "--badge-ring-clickable", "--badge-ring-pressed"];
 
 /** @type {[string, string[]][]} */
@@ -184,6 +194,7 @@ const COLOR_GROUPS = [
   ["Borders & dividers", SEMANTIC_BORDER],
   ["Link decoration", SEMANTIC_MISC],
   ["Status palette", STATUS],
+  ["JWT segments", JWT_SEGMENTS],
   ["Badge affordance rings", BADGE_RINGS],
 ];
 
@@ -303,6 +314,7 @@ const ALL_DOCUMENTED_PROPS = [
   ...SEMANTIC_BORDER,
   ...SEMANTIC_MISC,
   ...STATUS,
+  ...JWT_SEGMENTS,
   ...BADGE_RINGS,
   ...FONT_FAMILIES,
   ...FONT_SIZES,

@@ -31,6 +31,10 @@
      review box, and the cts-badge Review chip (which now reads teal to match
      the segment, replacing the earlier neutral --bg-muted chip). See KTD4 of
      docs/plans/2026-06-08-003-feat-plan-status-component-plan.md.
+   - JWT segment palette: --jwt-header / --jwt-payload / --jwt-signature /
+     --jwe-cypher / --jwe-tag added for the log-detail More panel's colored
+     JWT split (cts-log-entry). AA-darkened takes on jwt.io's debugger hues;
+     values documented at the definition site below.
    ================================================================ */
 
 /* Inter v4.1 — variable woff2, upright, weight axis 100..900.
@@ -173,6 +177,18 @@
   --status-info:        #1E5A8C;
   --status-info-bg:     #E5EEF5;
   --status-info-border: #B6CCDF;
+
+  /* JWT/JWE token-segment colors (log-detail More panel, cts-log-entry).
+     Darkened riffs on jwt.io's canonical debugger hues — same hue families
+     (pink header / purple payload / blue signature / orange cypher / green
+     tag) so the mapping stays recognizable next to jwt.io, deepened until
+     each clears WCAG AA 4.5:1 as 12px text on --bg-muted (#F8F7F5):
+     4.60 / 4.61 / 4.64 / 4.62 / 4.60. */
+  --jwt-header:    #DF0151;
+  --jwt-payload:   #B900EA;
+  --jwt-signature: #00799E;
+  --jwe-cypher:    #A75E0D;
+  --jwe-tag:       #2C811A;
 
   /* ---- Badge affordance ring (Radix-style alpha border) ----
      One warm-tinted-grey overlay, drawn as an inset box-shadow on top of

@@ -1128,6 +1128,134 @@ export const ClickMoreHttpRequest = {
   },
 };
 
+/**
+ * Compute the WCAG 2.x contrast ratio between two computed CSS colors.
+ * @param {string} fg Computed foreground, e.g. `"rgb(223, 1, 81)"`.
+ * @param {string} bg Computed background, e.g. `"rgb(248, 247, 245)"`.
+ * @returns {number} The contrast ratio (1..21).
+ */
+function contrastRatio(fg, bg) {
+  const luminance = (cssColor) => {
+    const [r, g, b] = cssColor
+      .match(/\d+/g)
+      .slice(0, 3)
+      .map((ch) => {
+        const c = Number(ch) / 255;
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const [hi, lo] = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Rich More-panel renderings restored from the legacy `more.html` template
+ * (the Lit migration had flattened every value to plain `<pre>`):
+ *
+ * - `schema_link` → a clickable link to the validated JSON schema.
+ * - a `{ verifiable_jws, public_jwk }` object → a colored JWT segment split
+ *   plus the jwt.io debugger badge link and the public JWK (for manual
+ *   pasting — jwt.io v2 dropped the publicKey URL param).
+ * - a bare JWE string → the same split with cypher/tag segments.
+ *
+ * Mirrors the live wire shape: `/api/log` serializes payload at the entry's
+ * top level (no `more` envelope), and an uploaded screenshot arrives as a
+ * top-level `img`. `img` must render ONCE — the always-visible footer
+ * preview — and never duplicate into the More panel (MR 2118 review).
+ */
+const RICH_MORE_ENTRY = {
+  _id: "entry-rich",
+  testId: "test-abc",
+  src: "ValidateIdToken",
+  time: NOW - 1000,
+  msg: "Validated ID token against schema",
+  result: "SUCCESS",
+  img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGN43W0KAAQQAaxJgSsDAAAAAElFTkSuQmCC",
+  schema_link: "/json-schemas/oid4vp/dcql_request.json",
+  id_token: {
+    verifiable_jws: "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl",
+    public_jwk: { kty: "RSA", n: "abc", e: "AQAB" },
+  },
+  encrypted_id_token:
+    "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.encKey123.ivivivIV.cipherText456.authTag789",
+};
+
+export const RichMoreValues = {
+  render: () => html`<cts-log-entry .entry=${RICH_MORE_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".logDisclosure")).toBeTruthy();
+    });
+
+    await step("top-level img renders one footer preview before expansion", async () => {
+      const previews = canvasElement.querySelectorAll("img.logUploadedImage");
+      expect(previews.length).toBe(1);
+      expect(previews[0].getAttribute("src")).toContain("data:image/png;base64,");
+    });
+
+    await step("expand the row", async () => {
+      canvasElement.querySelector(".logDisclosure").click();
+      await waitFor(() => expect(canvasElement.querySelector(".moreInfo")).toBeTruthy());
+    });
+
+    await step("img stays out of the More panel (single preview)", async () => {
+      expect(canvasElement.querySelectorAll("img.logUploadedImage").length).toBe(1);
+      expect(canvasElement.querySelector('.moreInfo img[src^="data:"]')).toBeNull();
+    });
+
+    await step("schema_link renders as a clickable link", async () => {
+      const link = canvasElement.querySelector("a.moreInfo-schemaLink");
+      expect(link).toBeTruthy();
+      expect(link.getAttribute("href")).toBe("/json-schemas/oid4vp/dcql_request.json");
+      expect(link.textContent).toContain("dcql_request.json");
+    });
+
+    await step("verifiable_jws renders colored segments + jwt.io badge + JWK", async () => {
+      const segs = canvasElement.querySelector(".jwtSegments");
+      expect(segs).toBeTruthy();
+      expect(segs.querySelector(".jwtHeader")).toBeTruthy();
+      expect(segs.querySelector(".jwtPayload")).toBeTruthy();
+      expect(segs.querySelector(".jwtSignature")).toBeTruthy();
+
+      // jwt.io fragment contract (jsonwebtoken.github.io#943): token in
+      // #token=, verification key in &publicKey= as URL-encoded JWK JSON.
+      // Deployments without #943 ignore publicKey but still load the token,
+      // so the public JWK also renders alongside for manual verification.
+      const jwkJson = '{"kty":"RSA","n":"abc","e":"AQAB"}';
+      const badgeLink = canvasElement.querySelector(".moreInfo-jwtio a");
+      expect(badgeLink).toBeTruthy();
+      expect(badgeLink.getAttribute("href")).toBe(
+        `https://jwt.io/#token=${RICH_MORE_ENTRY.id_token.verifiable_jws}` +
+          `&publicKey=${encodeURIComponent(jwkJson)}`,
+      );
+      expect(canvasElement.querySelector(".moreInfo-jwtioBadge")).toBeTruthy();
+
+      const jwk = canvasElement.querySelector(".moreInfo-jwk");
+      expect(jwk).toBeTruthy();
+      expect(jwk.textContent).toBe(jwkJson);
+    });
+
+    await step("bare JWE renders cypher and tag segments", async () => {
+      expect(canvasElement.querySelector(".jweCypher")).toBeTruthy();
+      expect(canvasElement.querySelector(".jweTag")).toBeTruthy();
+    });
+
+    await step("all five segment colors meet WCAG AA on the panel background", async () => {
+      const panelBg = getComputedStyle(canvasElement.querySelector(".moreInfo")).backgroundColor;
+      const colors = [".jwtHeader", ".jwtPayload", ".jwtSignature", ".jweCypher", ".jweTag"].map(
+        (sel) => getComputedStyle(canvasElement.querySelector(sel)).color,
+      );
+      // Distinctness guards against an unresolved token collapsing every
+      // segment to the inherited text color (which would still pass AA).
+      expect(new Set(colors).size).toBe(colors.length);
+      for (const color of colors) {
+        expect(contrastRatio(color, panelBg)).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+  },
+};
+
 export const ClickMoreHttpResponse = {
   render: () => html`<cts-log-entry .entry=${HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
   async play({ canvasElement, step }) {
