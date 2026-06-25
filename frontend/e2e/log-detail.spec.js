@@ -248,6 +248,72 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
+  test("log entry More panel renders schema_link and JWT with rich affordances; img renders once", async ({
+    page,
+  }) => {
+    // Regression guard for the legacy more.html affordances the Lit migration
+    // had flattened to plain <pre> (restored in renderMoreValue). Uses the
+    // live wire shape: /api/log serializes payload at the entry's TOP level
+    // (no `more` envelope), and an uploaded screenshot is a top-level `img`
+    // — which must render exactly once (the footer preview), not duplicate
+    // into the More panel (MR 2118 review).
+    const richEntry = {
+      _id: "entry-rich",
+      testId: MOCK_TEST_STATUS.testId,
+      src: "ValidateIdToken",
+      time: Date.now() - 5000,
+      msg: "Validated ID token against schema",
+      result: "SUCCESS",
+      img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGN43W0KAAQQAaxJgSsDAAAAAElFTkSuQmCC",
+      schema_link: "/json-schemas/oid4vp/dcql_request.json",
+      id_token: {
+        verifiable_jws: "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl",
+        public_jwk: { kty: "RSA", n: "abc", e: "AQAB" },
+      },
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, { testInfo: MOCK_TEST_STATUS, logEntries: [richEntry] });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const entry = page.locator('cts-log-entry[data-entry-id="entry-rich"]');
+    await expect(entry).toBeAttached();
+
+    // Top-level img → the always-visible footer preview, present before
+    // the row is ever expanded.
+    await expect(entry.locator("img.logUploadedImage")).toHaveCount(1);
+    await expect(entry.locator("img.logUploadedImage")).toBeVisible();
+
+    // Expand the More panel.
+    await entry.locator(".logDisclosure").click();
+    await expect(entry.locator(".moreInfo")).toBeVisible();
+
+    // Still exactly one image preview: `img` is an envelope field, so the
+    // More panel must not render a second copy (the jwt.io badge is the
+    // only non-data: <img> allowed inside the panel).
+    await expect(entry.locator("img.logUploadedImage")).toHaveCount(1);
+    await expect(entry.locator('.moreInfo img[src^="data:"]')).toHaveCount(0);
+
+    // schema_link → clickable link to the validated schema.
+    await expect(entry.locator("a.moreInfo-schemaLink")).toHaveAttribute(
+      "href",
+      "/json-schemas/oid4vp/dcql_request.json",
+    );
+
+    // verifiable_jws → colored token segments + jwt.io debugger badge link
+    // carrying token and publicKey fragment params (jwt.io PR #943 contract;
+    // older deployments ignore publicKey) + the public JWK for manual
+    // signature verification on those older deployments.
+    await expect(entry.locator(".jwtSegments .jwtHeader")).toBeAttached();
+    await expect(entry.locator(".moreInfo-jwtio a")).toHaveAttribute(
+      "href",
+      /^https:\/\/jwt\.io\/#token=eyJ[\w.-]+&publicKey=%7B%22kty%22/,
+    );
+    await expect(entry.locator(".moreInfo-jwk")).toContainText('"kty":"RSA"');
+  });
+
   test("keeps About this test visible once across desktop and mobile for passed tests", async ({
     page,
   }) => {
