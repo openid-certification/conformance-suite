@@ -30,6 +30,7 @@
 import { renderErrorIntoSlot } from "./log-detail-error-slot.js";
 import { scrollEntryIntoView } from "../components/cts-log-entry.js";
 import { tryGetStorage } from "../components/guided-wizard.js";
+import { flashCopyConfirmed } from "./cts-copy-flash.js";
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -963,7 +964,7 @@ function handleEditConfig(evt) {
   }
 }
 
-async function handleShareLink(evt) {
+function handleShareLink(evt) {
   const eventTestId = (evt.detail && evt.detail.testId) || testId;
   const expirationModal = document.getElementById("privateLinkExpirationModal");
   const resultModal = document.getElementById("privateLinkResultModal");
@@ -972,32 +973,112 @@ async function handleShareLink(evt) {
   const createBtn = document.getElementById("privateLinkCreateBtn");
   const expirationInput = document.getElementById("privateLinkExpirationDays");
 
-  const onCreate = async () => {
-    if (createBtn) createBtn.removeEventListener("click", onCreate);
+  const onCreate = () => {
+    // Clear our own handler so a second click within the same open can't
+    // fire a duplicate POST + clipboard write.
+    if (createBtn) createBtn.onclick = null;
     const days = expirationInput ? Number(expirationInput.value) || 30 : 30;
     expirationModal.hide();
     showBusy("Creating private link…");
-    try {
-      const response = await fetch(
-        `/api/info/${encodeURIComponent(eventTestId)}/share?exp=${encodeURIComponent(days)}`,
-        { method: "POST" },
-      );
+
+    const fetchPromise = fetch(
+      `/api/info/${encodeURIComponent(eventTestId)}/share?exp=${encodeURIComponent(days)}`,
+      { method: "POST" },
+    ).then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      hideBusy();
-      const messageEl = document.getElementById("privateLinkMessage");
-      const urlEl = document.getElementById("privateLinkUrl");
-      if (messageEl) messageEl.textContent = data.message || "";
-      if (urlEl) urlEl.value = data.link || "";
-      resultModal.show();
-    } catch (err) {
-      hideBusy();
-      showError(`Failed to create private link: ${err.message}`);
+      return response.json();
+    });
+
+    // Auto-copy the link to the clipboard. The clipboard write MUST start
+    // synchronously inside this user-activated click handler or Safari
+    // rejects it — so hand navigator.clipboard.write() a ClipboardItem whose
+    // blob is a *promise* resolving from the in-flight fetch, rather than
+    // awaiting the fetch first (which loses the transient user activation).
+    // Mirrors plan-detail.html's private-link flow.
+    let clipboardWritePromise = null;
+    try {
+      clipboardWritePromise = navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": fetchPromise.then(
+            (data) => new Blob([data.link || ""], { type: "text/plain" }),
+          ),
+        }),
+      ]);
+    } catch (e) {
+      console.warn("[log-detail] async clipboard write unavailable:", e);
     }
+
+    fetchPromise
+      .then((data) => {
+        hideBusy();
+        const messageEl = document.getElementById("privateLinkMessage");
+        const urlEl = document.getElementById("privateLinkUrl");
+        const statusEl = document.getElementById("privateLinkCopyStatus");
+        if (messageEl) messageEl.textContent = data.message || "";
+        if (urlEl) urlEl.value = data.link || "";
+        if (statusEl) statusEl.textContent = "";
+        resultModal.show();
+        // Reflect the auto-copy outcome honestly: only claim "copied" once
+        // the clipboard write actually resolves; on failure (or no Clipboard
+        // API) point the user at the Copy button.
+        if (clipboardWritePromise) {
+          clipboardWritePromise.then(
+            () => {
+              if (statusEl) statusEl.textContent = "Copied to clipboard.";
+              const copyBtn = document.getElementById("privateLinkCopyBtn");
+              if (copyBtn) flashCopyConfirmed(copyBtn);
+            },
+            () => {
+              if (statusEl)
+                statusEl.textContent = "Press “Copy to clipboard” to copy the link.";
+            },
+          );
+        } else if (statusEl) {
+          statusEl.textContent = "Press “Copy to clipboard” to copy the link.";
+        }
+      })
+      .catch((err) => {
+        hideBusy();
+        showError(`Failed to create private link: ${err.message}`);
+      });
   };
 
-  if (createBtn) createBtn.addEventListener("click", onCreate);
+  // Assign .onclick (not addEventListener) so re-opening the expiration modal
+  // — including after a Cancel that never ran onCreate — replaces the prior
+  // handler instead of stacking another. Stacked listeners would each fire a
+  // POST + clipboard write when the user finally clicks "Create link".
+  if (createBtn) createBtn.onclick = onCreate;
   expirationModal.show();
+}
+
+/**
+ * Wire the result-modal "Copy to clipboard" button once at page init. The
+ * button is part of cts-modal's footer (built from the footer-buttons
+ * attribute in connectedCallback), so it exists from page load — bind here
+ * rather than re-binding on every share. The click happens under user
+ * activation so a plain writeText() is honoured (including on Safari);
+ * reads the link from #privateLinkUrl, which handleShareLink populates
+ * before showing the modal.
+ */
+function wirePrivateLinkCopyButton() {
+  const copyBtn = document.getElementById("privateLinkCopyBtn");
+  if (!copyBtn) return;
+  copyBtn.addEventListener("click", async () => {
+    const urlEl = document.getElementById("privateLinkUrl");
+    const statusEl = document.getElementById("privateLinkCopyStatus");
+    const text = urlEl ? urlEl.value : "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn("[log-detail] clipboard.writeText failed:", err);
+      if (statusEl)
+        statusEl.textContent = "Copy failed — select the link above and copy it manually.";
+      return;
+    }
+    if (statusEl) statusEl.textContent = "Copied to clipboard.";
+    flashCopyConfirmed(copyBtn);
+  });
 }
 
 async function handlePublish(evt) {
@@ -1511,6 +1592,7 @@ async function bootstrap() {
     header.currentInstanceId = testId;
     header.addEventListener("cts-edit-config", handleEditConfig);
     header.addEventListener("cts-share-link", handleShareLink);
+    wirePrivateLinkCopyButton();
     header.addEventListener("cts-publish", handlePublish);
     header.addEventListener("cts-upload-images", handleUploadImages);
     header.addEventListener("cts-download-log", handleDownloadLog);

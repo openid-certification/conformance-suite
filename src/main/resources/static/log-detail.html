@@ -373,7 +373,11 @@
     </label>
   </cts-modal>
 
-  <cts-modal id="privateLinkResultModal" heading="Private link">
+  <cts-modal
+    id="privateLinkResultModal"
+    heading="Private link"
+    footer-buttons='[{"label": "Copy to clipboard", "icon": "copy", "dismiss": false, "id": "privateLinkCopyBtn"}, {"label": "Close", "class": "btn-primary"}]'
+  >
     <p id="privateLinkMessage"></p>
     <textarea
       id="privateLinkUrl"
@@ -382,6 +386,11 @@
       aria-label="Private link URL"
       style="width: 100%; font-family: var(--font-mono); font-size: var(--fs-13);"
     ></textarea>
+    <p
+      id="privateLinkCopyStatus"
+      aria-live="polite"
+      style="margin-top: var(--space-2); min-height: 1.25em; color: var(--fg-soft);"
+    ></p>
   </cts-modal>
 
   <!-- Resident DOM — the Lit triad mounts here. Bootstrap fetches
