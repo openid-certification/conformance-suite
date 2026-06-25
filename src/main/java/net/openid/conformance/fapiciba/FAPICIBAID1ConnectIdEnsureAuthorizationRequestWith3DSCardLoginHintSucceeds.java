@@ -20,8 +20,8 @@ public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWith3DSCardLoginHintS
 
 	@Override
 	protected void performProfileAuthorizationEndpointSetup() {
-		super.performProfileAuthorizationEndpointSetup();
 		callAndStopOnFailure(SetConnectIdCibaLoginHintToCardPrimaryAccountNumber.class,
 			"CID-CIBA-4.1.2.1", "CID-CIBA-4.3-1");
+		call(new ConnectIdAuCibaServerProfileBehavior.CommonAuthorizationEndpointSetupSteps());
 	}
 }
