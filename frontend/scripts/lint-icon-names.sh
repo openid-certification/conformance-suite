@@ -46,6 +46,10 @@ if [[ ! -d "$STATIC_DIR" ]]; then
   echo "lint-icon-names: static frontend directory not found: $STATIC_DIR" >&2
   exit 2
 fi
+if ! command -v xmllint >/dev/null 2>&1; then
+  echo "lint-icon-names: xmllint not found; install libxml2-utils on Alpine or libxml2 locally" >&2
+  exit 2
+fi
 
 bad_lines=()
 xml_lines=()
