@@ -220,7 +220,7 @@ frontend_lint:
     # Override to a path inside $CI_PROJECT_DIR so the cache block above is effective.
     NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/frontend/.npm"
   before_script:
-    - apk add --no-cache bash   # lint-jsdoc-properties.sh uses #!/usr/bin/env bash; Alpine ships ash only
+    - apk add --no-cache bash libxml2-utils   # lint scripts use bash and xmllint; Alpine ships neither by default
     - corepack enable npm       # activate packageManager pin (npm 11.12.1 instead of Alpine's bundled 10.9.7)
   script:
     - cd frontend
