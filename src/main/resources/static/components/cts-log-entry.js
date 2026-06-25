@@ -212,6 +212,102 @@ function classifyMoreEntries(more) {
   return [...expectedRows, ...actualRows, ...otherRows];
 }
 
+/**
+ * JWT / JWE structural matcher: `header.payload.signature` with an optional
+ * JWE `.cypher.tag` tail. Mirrors the regex the legacy `more.html` template
+ * used to colour token segments. The `e[yw]` anchor keeps false positives
+ * low — compact JWTs start with `eyJ` (base64url of `{"`).
+ * @type {RegExp}
+ */
+const JWT_RE =
+  /^(e[yw][a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(?:\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
+
+/**
+ * Render the dotted segments of a JWT/JWE in jwt.io's canonical colours so a
+ * token is visually parseable at a glance (header / payload / signature, plus
+ * cypher / tag for a JWE).
+ * @param {string[]} m Match produced by {@link JWT_RE} (groups 1-3 always
+ *   present; 4-5 present only for a JWE).
+ * @returns {import("lit").TemplateResult} The coloured token-segment markup.
+ */
+function renderJwtSegments(m) {
+  return html`<span class="jwtSegments"
+    ><span class="jwtHeader">${m[1]}</span><b>.</b><span class="jwtPayload">${m[2]}</span><b>.</b
+    ><span class="jwtSignature">${m[3]}</span>${m[4]
+      ? html`<b>.</b><span class="jweCypher">${m[4]}</span><b>.</b
+          ><span class="jweTag">${m[5]}</span>`
+      : nothing}</span
+  >`;
+}
+
+/**
+ * Build the jwt.io debugger deep-link for a verifiable JWS, optionally
+ * pre-loading the public JWK so the signature verifies on arrival.
+ * @param {string} jws The serialized JWS.
+ * @param {unknown} publicJwk The public JWK (object or string), if known.
+ * @returns {string} The jwt.io debugger URL.
+ */
+function jwtIoDebuggerUrl(jws, publicJwk) {
+  const params = new URLSearchParams({ token: jws });
+  if (publicJwk !== undefined && publicJwk !== null) {
+    params.set("publicKey", typeof publicJwk === "string" ? publicJwk : JSON.stringify(publicJwk));
+  }
+  return `https://jwt.io/#debugger-io?${params.toString()}`;
+}
+
+/**
+ * Render a single More-panel value, restoring the rich affordances the legacy
+ * `more.html` template had and the Lit migration flattened to plain `<pre>`:
+ *
+ * - `schema_link` → a clickable link to the JSON schema we validated against.
+ * - `img` → an inline image preview.
+ * - a `{ verifiable_jws, public_jwk? }` object → a coloured token split plus
+ *   the jwt.io debugger badge (when a key is present).
+ * - any bare JWT string → a coloured token split.
+ * - everything else → the existing `<pre>` text / pretty-printed JSON.
+ *
+ * Lit auto-escapes text and attribute bindings, so untrusted values (`img`
+ * src, token contents) cannot inject markup — matching the escaped `<%- %>`
+ * output the old template relied on.
+ * @param {string} key The More-entry key.
+ * @param {unknown} value The More-entry value.
+ * @returns {import("lit").TemplateResult} The rendered value markup.
+ */
+function renderMoreValue(key, value) {
+  if (key === "schema_link" && typeof value === "string") {
+    return html`<a class="moreInfo-schemaLink" href=${value} target="_blank" rel="noopener"
+      >${value}</a
+    >`;
+  }
+  if (key === "img" && typeof value === "string") {
+    return html`<img class="moreInfo-img" src=${value} alt="Log image" />`;
+  }
+  if (value && typeof value === "object") {
+    const jws = /** @type {Record<string, unknown>} */ (value).verifiable_jws;
+    if (typeof jws === "string") {
+      const publicJwk = /** @type {Record<string, unknown>} */ (value).public_jwk;
+      const m = JWT_RE.exec(jws);
+      return html`${m ? renderJwtSegments(m) : html`<pre>${jws}</pre>`}${publicJwk !== undefined
+        ? html`<div class="moreInfo-jwtio">
+            <a
+              href=${jwtIoDebuggerUrl(jws, publicJwk)}
+              target="_blank"
+              rel="noopener"
+              title="Open in the jwt.io debugger"
+              ><img class="moreInfo-jwtioBadge" src="/images/jwt_io_badge.png" alt="View on jwt.io"
+            /></a>
+          </div>`
+        : nothing}`;
+    }
+  }
+  if (typeof value === "string") {
+    const m = JWT_RE.exec(value);
+    if (m) return renderJwtSegments(m);
+    return html`<pre>${value}</pre>`;
+  }
+  return html`<pre>${JSON.stringify(value, null, 2)}</pre>`;
+}
+
 const STYLE_ID = "cts-log-entry-styles";
 
 // Scoped CSS for the OIDF token-styled log row. Mirrors the design archive's
@@ -618,6 +714,48 @@ const STYLE_TEXT = css`
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
+  /* Restored rich More-panel renderings (legacy more.html parity). */
+  cts-log-entry .moreInfo-schemaLink {
+    color: var(--fg-link);
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+  }
+  cts-log-entry .moreInfo-img {
+    display: block;
+    max-width: 100%;
+    max-height: 50vh;
+    height: auto;
+  }
+  /* Coloured JWT/JWE token split. The five hues are jwt.io's canonical
+     segment colours, kept as literals (not theme tokens) so the mapping
+     matches the wider ecosystem users already recognise. */
+  cts-log-entry .jwtSegments {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    overflow-wrap: anywhere;
+  }
+  cts-log-entry .jwtHeader {
+    color: #fb015b;
+  }
+  cts-log-entry .jwtPayload {
+    color: #d63aff;
+  }
+  cts-log-entry .jwtSignature {
+    color: #00b9f1;
+  }
+  cts-log-entry .jweCypher {
+    color: #f1a551;
+  }
+  cts-log-entry .jweTag {
+    color: #38a321;
+  }
+  cts-log-entry .moreInfo-jwtio {
+    margin-top: var(--space-2);
+  }
+  cts-log-entry .moreInfo-jwtioBadge {
+    max-width: 100%;
+    height: auto;
+  }
 
   /* Wide layout. Restores the original five-column track (timestamp /
      severity / http / body / actions). The .logMetaRow flex wrapper
@@ -984,7 +1122,7 @@ class CtsLogEntry extends LitElement {
                 ${displayLabel}
               </dt>
               <dd class="moreInfo-value ${MORE_KIND_VALUE_CLASSES[kind]}">
-                <pre>${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre>
+                ${renderMoreValue(key, value)}
               </dd>
             `,
           )}

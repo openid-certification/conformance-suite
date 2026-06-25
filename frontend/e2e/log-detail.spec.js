@@ -248,6 +248,58 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
+  test("log entry More panel renders schema_link, img, and JWT with rich affordances", async ({
+    page,
+  }) => {
+    // Regression guard for the legacy more.html affordances the Lit migration
+    // had flattened to plain <pre> (restored in renderMoreValue).
+    const richEntry = {
+      _id: "entry-rich",
+      testId: MOCK_TEST_STATUS.testId,
+      src: "ValidateIdToken",
+      time: Date.now() - 5000,
+      msg: "Validated ID token against schema",
+      result: "SUCCESS",
+      more: {
+        schema_link: "/json-schemas/oid4vp/dcql_request.json",
+        img: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+        id_token: {
+          verifiable_jws: "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl",
+          public_jwk: { kty: "RSA", n: "abc", e: "AQAB" },
+        },
+      },
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, { testInfo: MOCK_TEST_STATUS, logEntries: [richEntry] });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const entry = page.locator('cts-log-entry[data-entry-id="entry-rich"]');
+    await expect(entry).toBeAttached();
+
+    // Expand the More panel.
+    await entry.locator(".logDisclosure").click();
+    await expect(entry.locator(".moreInfo")).toBeVisible();
+
+    // schema_link → clickable link to the validated schema.
+    await expect(entry.locator("a.moreInfo-schemaLink")).toHaveAttribute(
+      "href",
+      "/json-schemas/oid4vp/dcql_request.json",
+    );
+
+    // img → inline image preview.
+    await expect(entry.locator("img.moreInfo-img")).toBeVisible();
+
+    // verifiable_jws → coloured token segments + jwt.io debugger badge link.
+    await expect(entry.locator(".jwtSegments .jwtHeader")).toBeAttached();
+    await expect(entry.locator(".moreInfo-jwtio a")).toHaveAttribute(
+      "href",
+      /jwt\.io\/#debugger-io\?.*token=/,
+    );
+  });
+
   test("keeps About this test visible once across desktop and mobile for passed tests", async ({
     page,
   }) => {

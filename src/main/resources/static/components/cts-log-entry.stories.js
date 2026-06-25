@@ -965,6 +965,74 @@ export const ClickMoreHttpRequest = {
   },
 };
 
+/**
+ * Rich More-panel renderings restored from the legacy `more.html` template
+ * (the Lit migration had flattened every value to plain `<pre>`):
+ *
+ * - `schema_link` → a clickable link to the validated JSON schema.
+ * - `img` → an inline image preview.
+ * - a `{ verifiable_jws, public_jwk }` object → a coloured JWT segment split
+ *   plus the jwt.io debugger badge link.
+ */
+const RICH_MORE_ENTRY = {
+  _id: "entry-rich",
+  testId: "test-abc",
+  src: "ValidateIdToken",
+  time: NOW - 1000,
+  msg: "Validated ID token against schema",
+  result: "SUCCESS",
+  more: {
+    schema_link: "/json-schemas/oid4vp/dcql_request.json",
+    img: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+    id_token: {
+      verifiable_jws: "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl",
+      public_jwk: { kty: "RSA", n: "abc", e: "AQAB" },
+    },
+  },
+};
+
+export const RichMoreValues = {
+  render: () => html`<cts-log-entry .entry=${RICH_MORE_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".logDisclosure")).toBeTruthy();
+    });
+
+    await step("expand the row", async () => {
+      canvasElement.querySelector(".logDisclosure").click();
+      await waitFor(() => expect(canvasElement.querySelector(".moreInfo")).toBeTruthy());
+    });
+
+    await step("schema_link renders as a clickable link", async () => {
+      const link = canvasElement.querySelector("a.moreInfo-schemaLink");
+      expect(link).toBeTruthy();
+      expect(link.getAttribute("href")).toBe("/json-schemas/oid4vp/dcql_request.json");
+      expect(link.textContent).toContain("dcql_request.json");
+    });
+
+    await step("img renders as an inline image preview", async () => {
+      const img = canvasElement.querySelector("img.moreInfo-img");
+      expect(img).toBeTruthy();
+      expect(img.getAttribute("src")).toContain("data:image/gif;base64,");
+    });
+
+    await step("verifiable_jws renders coloured segments + jwt.io badge", async () => {
+      const segs = canvasElement.querySelector(".jwtSegments");
+      expect(segs).toBeTruthy();
+      expect(segs.querySelector(".jwtHeader")).toBeTruthy();
+      expect(segs.querySelector(".jwtPayload")).toBeTruthy();
+      expect(segs.querySelector(".jwtSignature")).toBeTruthy();
+
+      const badgeLink = canvasElement.querySelector(".moreInfo-jwtio a");
+      expect(badgeLink).toBeTruthy();
+      expect(badgeLink.getAttribute("href")).toContain("https://jwt.io/#debugger-io?");
+      expect(badgeLink.getAttribute("href")).toContain("token=");
+      expect(badgeLink.getAttribute("href")).toContain("publicKey=");
+      expect(canvasElement.querySelector(".moreInfo-jwtioBadge")).toBeTruthy();
+    });
+  },
+};
+
 export const ClickMoreHttpResponse = {
   render: () => html`<cts-log-entry .entry=${HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
   async play({ canvasElement, step }) {
