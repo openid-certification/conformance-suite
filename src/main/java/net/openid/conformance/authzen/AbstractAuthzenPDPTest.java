@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,20 +19,23 @@ import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestF
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataParamsNotEmpty;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseValid;
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
+import net.openid.conformance.authzen.condition.EnsurePDPJwksConfigured;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
-import net.openid.conformance.authzen.condition.VerifyAuthzenSignedMetadataSignature;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateAsymmetricKeyMaterial;
+import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateOrSymmetricKeyMaterial;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
@@ -154,11 +158,17 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 				// signed_metadata is OPTIONAL (§9.1.3): only when the PDP metadata carries
 				// it do we validate it, verify its signature against the configured PDP JWK
 				// Set, and apply its precedence over the plain JSON metadata so the
-				// downstream checks validate the signed (authoritative) values. When it is
-				// absent these steps are skipped (INFO) rather than run as no-ops.
-				skipIfElementMissing("pdp", "signed_metadata", ConditionResult.INFO, ValidateDiscoverySignedMetadata.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
-				skipIfElementMissing("pdp", "signed_metadata", ConditionResult.INFO, VerifyAuthzenSignedMetadataSignature.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
-				skipIfElementMissing("pdp", "signed_metadata", ConditionResult.INFO, ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+				// downstream checks validate the signed (authoritative) values.
+				if(!Strings.isNullOrEmpty(env.getString("pdp", "signed_metadata"))) {
+					eventLog.startBlock("Verify signed metadata");
+					callAndStopOnFailure(EnsurePDPJwksConfigured.class, "RFC7517-4");
+					// Validate PDP keys and disallow asymmetrical private key, symmetrical key signatures are allowed by spec but will get warning
+					call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
+						.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2")));
+					call(sequence(ValidateDiscoverySignedMetadata.class));
+					callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+					eventLog.endBlock();
+				}
 				break;
 			case STATIC:
 				callAndStopOnFailure(GetPDPStaticServerConfiguration.class);
