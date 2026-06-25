@@ -41,11 +41,14 @@ import java.util.Set;
  * regardless of distance from now (this is what catches an issuer that rounds {@code iat} but sets
  * {@code exp = precise_now + ttl}).
  *
- * <p>Values exactly on an hour boundary are treated as rounded even when near "now" — a genuinely
- * precise timestamp lands there with probability 1/3600, whereas flagging them would make an
- * hour-rounding issuer fail only when issuance happens to straddle the boundary (an intermittent
- * verdict). Sub-hour rounding (e.g. to the minute) is still treated as precise, as is a precise
- * batch whose per-credential timestamps differ by only a few seconds (a tight cluster, not cover).
+ * <p>Values on (or one second before) an hour boundary are treated as rounded even when near "now" —
+ * a genuinely precise timestamp lands there with probability ~2/3600, whereas flagging them would
+ * make an hour-rounding issuer fail only when issuance happens to straddle the boundary (an
+ * intermittent verdict). The one-second-before case covers the common <em>inclusive end of period</em>
+ * convention for expiry claims, where {@code exp} is set to the last second of the validity window
+ * (e.g. {@code 23:59:59}, equivalent for linkability to {@code 00:00:00} of the next day). Sub-hour
+ * rounding (e.g. to the minute) is still treated as precise, as is a precise batch whose
+ * per-credential timestamps differ by only a few seconds (a tight cluster, not cover).
  */
 public class VCIEnsureBatchTimeClaimsNotLinkable extends AbstractVCICredentialTimeClaimsCheck {
 
@@ -149,7 +152,7 @@ public class VCIEnsureBatchTimeClaimsNotLinkable extends AbstractVCICredentialTi
 		details.put(name + "_distinct_values", distinct.toString());
 
 		// Rounded to the hour or coarser (day boundaries are also hour boundaries) -> not distinctive.
-		if (distinct.stream().allMatch(v -> v % HOUR_SECONDS == 0)) {
+		if (distinct.stream().allMatch(this::isHourAligned)) {
 			return Assessment.OK;
 		}
 		long min = Collections.min(distinct);
@@ -165,5 +168,15 @@ public class VCIEnsureBatchTimeClaimsNotLinkable extends AbstractVCICredentialTi
 			return Assessment.PRECISE;
 		}
 		return Assessment.OK;
+	}
+
+	/**
+	 * Treats a value as rounded to an hour (or coarser) boundary. Accepts both the exact boundary
+	 * ({@code 00:00:00}, the result of rounding an issuance time down) and the inclusive end of a
+	 * period ({@code 23:59:59}, one second earlier — the common convention for expiry claims, where
+	 * {@code exp} is the last second of the validity window). The two are equivalent for linkability.
+	 */
+	private boolean isHourAligned(long v) {
+		return v % HOUR_SECONDS == 0 || (v + 1) % HOUR_SECONDS == 0;
 	}
 }

@@ -142,6 +142,18 @@ public class VCIEnsureBatchTimeClaimsNotLinkable_UnitTest {
 	}
 
 	@Test
+	public void expRoundedToInclusiveEndOfDay_passes() {
+		// An issuer that rounds exp to the LAST SECOND of the validity day (23:59:59 local) — equivalent
+		// for linkability to the start of the next day, but one second before a UTC hour boundary, so
+		// v % 3600 == 3599. This must still be treated as rounded (regression for the Finnish PID issuer
+		// report: exp = 1790110799 = 2026-09-22 23:59:59 EEST, shared across the batch).
+		long endOfDay = 1_790_110_799L; // (endOfDay + 1) % 3600 == 0
+		long hourBoundary = (NOW / 3600) * 3600;
+		put(capWithExp(hourBoundary, endOfDay, NOW), capWithExp(hourBoundary, endOfDay, NOW));
+		cond.execute(env);
+	}
+
+	@Test
 	public void iatRoundedAndExpRounded_passes() {
 		// Both iat and exp on hour boundaries (the emulated issuer's iat + whole-hour ttl shape).
 		long hourBoundary = (NOW / 3600) * 3600;
