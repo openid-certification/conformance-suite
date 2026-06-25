@@ -30,6 +30,12 @@ interface Window {
   __ctsLogViewerFetchState?: any;
   __ctsFirstFetchResolved?: any;
   __copiedText?: string | null;
+  // Set by the clipboard spies in the private-link copy test: the
+  // ClipboardItem auto-copy path (write) and the manual button path
+  // (writeText).
+  __clipboardWriteCalled?: boolean;
+  __clipboardWriteValue?: string | null;
+  __clipboardWriteText?: string | null;
 }
 
 // R24 split-summary helper exposed for the lodash Mustache template
