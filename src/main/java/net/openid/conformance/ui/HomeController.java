@@ -2,6 +2,7 @@ package net.openid.conformance.ui;
 
 import net.openid.conformance.security.AuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -42,7 +43,11 @@ import java.net.URI;
  * open an open-redirect vector on the site root.</li>
  * </ul>
  */
+// Absent under the `legacy-ui` profile: with no @GetMapping("/") in the context, Spring Boot's
+// WelcomePageHandlerMapping serves static-legacy/index.html at `/`, restoring the pre-redesign
+// root behaviour (the old UI had no `/` redirect — it relied on the static welcome page).
 @Controller
+@Profile("!legacy-ui")
 public class HomeController {
 
 	@Autowired

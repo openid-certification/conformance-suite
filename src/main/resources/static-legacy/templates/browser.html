@@ -1,0 +1,68 @@
+            <fieldset>
+                <legend>Browser Interaction:</legend>
+                <dl class="row">
+                    <% _.each(browser.urlsWithMethod, function(val) { %>
+                        <form class="redirect" method="<%- val.method %>" target="_blank" action="<%- val.url %>">
+                            <% _.each(val.params, function(param) { %>
+                            <input type="hidden" name="<%- param.name %>" value="<%- param.value %>" />
+                            <% }); %>
+                        </form>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary visitBtn" data-method="<%- val.method %>" data-url="<%- val.originalUrl %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="bi bi-send-fill"></span></button></dt>
+                        <% if (val.method === 'POST') { %>
+                            <dd class="col-sm-9 wrapLongStrings">
+                                    <pre style="border: 1px solid #ddd; padding: 10px;"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1
+Content-Type: application/x-www-form-urlencoded
+
+<%- val.queryParams %></code></pre></dd>
+                        <% }
+                        else { %>
+                            <% if (browser.show_qr_code) { %>
+                                <dd class="col-sm-6 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                                <dd class="col-sm-3 wrapLongStrings qr" data-url="<%- val.originalUrl %>"></dd>
+                            <% } else { %>
+                                <dd class="col-sm-9 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                            <% } %>
+                        <% } %>
+                    <% }); %>
+                    <% _.each(browser.browserApiRequests, function(val) { %>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary visitBrowserApiBtn" data-browserapirequest="<%- JSON.stringify(val.request) %>" data-browserapisubmiturl="<%- val.submitUrl %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test via browser API (preview) <span class="bi bi-send-fill"></span></button></dt>
+                        <dd class="col-sm-9 wrapLongStrings"><i><%- JSON.stringify(val.request) %></i></dd>
+                    <% }); %>
+                    <% _.each(browser.visitedUrlsWithMethod, function(val) { %>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-light bg-gradient border border-secondary" disabled >Visited <span class="bi bi-send-fill"></span></button></dt>
+                        <% if (val.method === 'POST') { %>
+                        <dd class="col-sm-9 wrapLongStrings">
+                            <pre style="border: 1px solid #ddd; padding: 10px;"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1
+Content-Type: application/x-www-form-urlencoded
+
+<%- val.queryParams %></code></pre></dd>
+                        <% }
+                        else { %>
+                        <dd class="col-sm-9 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                        <% } %>
+                    <% }); %>
+                    <% _.each(browser.runners, function(val) { %>
+                        <dt class="col-sm-3">Selenium Instance</dt>
+                        <dd class="col-sm-9">
+                            <div class="card">
+                                <div class="card-body">
+                                    <dl class="dl-horizontal">
+                                        <dt class="col-sm-3">Starting Url</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.url %></i></dd>
+                                        <dt class="col-sm-3">Current Url</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentUrl %></i></dd>
+                                        <dt class="col-sm-3">Current Task</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentTask %></i></dd>
+                                        <dt class="col-sm-3">Current Command</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentCommand %></i></dd>
+                                        <dt class="col-sm-3">Last Response Code</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.lastResponseCode %></i></dd>
+                                        <dt class="col-sm-3">Last Exception</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.lastException %></i></dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </dd>
+                    <% }); %>
+                </dl>
+            </fieldset>
