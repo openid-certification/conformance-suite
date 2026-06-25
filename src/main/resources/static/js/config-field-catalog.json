@@ -981,21 +981,21 @@
       "title": "Client Attestation",
       "fields": [
         {
-          "key": "vci.client_attester_keys_jwks",
+          "key": "client_attestation.attester_jwks",
           "label": "Client Attester Keys JWKS",
           "type": "string",
           "placeholder": "REQUIRED",
           "tooltip": "Pre-configured keys of the client attester in JWKS format. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate"
         },
         {
-          "key": "vci.client_attestation_issuer",
+          "key": "client_attestation.issuer",
           "label": "Client Attestation Issuer",
           "type": "string",
           "placeholder": "REQUIRED",
           "tooltip": "URI used as the client attestation issuer"
         },
         {
-          "key": "vci.client_attestation_trust_anchor",
+          "key": "client_attestation.trust_anchor",
           "label": "Client Attestation Trust Anchor",
           "type": "string",
           "placeholder": "REQUIRED",
@@ -1008,14 +1008,14 @@
       "title": "Key Attestation",
       "fields": [
         {
-          "key": "vci.key_attestation_jwks",
+          "key": "client_attestation.key_attestation_jwks",
           "label": "Key Attestation JWKS",
           "type": "string",
           "placeholder": "REQUIRED if Key Attestation is used",
           "tooltip": "Pre-configured keys of the key attestation JWKS format. Leave empty if Key attestation is not used. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate."
         },
         {
-          "key": "vci.key_attestation_trust_anchor_pem",
+          "key": "client_attestation.key_attestation_trust_anchor_pem",
           "label": "Key Attestation Trust Anchor",
           "type": "string",
           "placeholder": "REQUIRED if Key Attestation is used",

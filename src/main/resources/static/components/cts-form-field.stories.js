@@ -365,7 +365,7 @@ export const MtlsKeyMultilineTextarea = {
 export const TrustAnchorPemMultilineTextarea = {
   render: () => html`
     <cts-form-field
-      name="vci.client_attestation_trust_anchor_pem"
+      name="client_attestation.key_attestation_trust_anchor_pem"
       .schema=${{ type: "string", title: "Trust anchor PEM" }}
       value=""
     ></cts-form-field>
