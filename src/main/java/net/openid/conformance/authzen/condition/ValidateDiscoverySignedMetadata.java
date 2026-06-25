@@ -1,15 +1,7 @@
 package net.openid.conformance.authzen.condition;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jwt.SignedJWT;
-import java.text.ParseException;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 
 /**
  * Structurally validate the optional {@code signed_metadata} JWT in the PDP
@@ -20,51 +12,25 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * JWT carrying an {@code iss} claim. This condition checks that it parses as a
  * compact JWS, that the algorithm is a real signing algorithm (not {@code none}),
  * and that the {@code iss} claim is present, and stores the decoded claims in
- * {@code authzen_signed_metadata_claims} for {@link ApplySignedMetadataPrecedence}.
+ * {@code pdp_signed_metadata.claims} for {@link ApplySignedMetadataPrecedence}.
  *
  * <p>The cryptographic signature is verified separately by
  * {@link VerifyAuthzenSignedMetadataSignature} against the PDP key(s) supplied in
  * the test configuration (the AuthZEN metadata defines no {@code jwks_uri}, so the
  * trusted verification key is provided out of band).
  */
-public class ValidateDiscoverySignedMetadata extends AbstractCondition {
+public class ValidateDiscoverySignedMetadata extends AbstractConditionSequence {
 
 	@Override
-	@PreEnvironment(required = "pdp")
-	@PostEnvironment(required = "pdp")
-	public Environment evaluate(Environment env) {
-		JsonElement signedMetadataElem = env.getElementFromObject("pdp", "signed_metadata");
-		if (signedMetadataElem == null || signedMetadataElem.isJsonNull()) {
-			logSuccess("Discovery metadata does not contain `signed_metadata`; nothing to validate");
-			return env;
-		}
-		if (!signedMetadataElem.isJsonPrimitive() || !signedMetadataElem.getAsJsonPrimitive().isString()) {
-			throw error("`signed_metadata` must be a JWT string", args("signed_metadata", signedMetadataElem));
-		}
-		String signedMetadata = OIDFJSON.getString(signedMetadataElem);
-
-		SignedJWT jwt;
-		try {
-			jwt = SignedJWT.parse(signedMetadata);
-		} catch (ParseException e) {
-			throw error("`signed_metadata` is not a valid JWS-signed JWT", e, args("signed_metadata", signedMetadata));
-		}
-
-		if (jwt.getHeader().getAlgorithm() == null || "none".equalsIgnoreCase(jwt.getHeader().getAlgorithm().getName())) {
-			throw error("`signed_metadata` MUST be signed or MACed using JWS; the `none` algorithm is not permitted",
-				args("alg", jwt.getHeader().getAlgorithm() == null ? null : jwt.getHeader().getAlgorithm().getName()));
-		}
-
-		JsonObject claims = JsonParser.parseString(jwt.getPayload().toString()).getAsJsonObject();
-		JsonElement issElem = claims.get("iss");
-		if (issElem == null || !issElem.isJsonPrimitive() || !issElem.getAsJsonPrimitive().isString()
-				|| OIDFJSON.getString(issElem).isEmpty()) {
-			throw error("`signed_metadata` MUST contain an `iss` (issuer) claim", args("claims", claims));
-		}
-
-		env.putObject("authzen_signed_metadata_claims", claims);
-		logSuccess("`signed_metadata` is a valid JWS JWT containing an `iss` claim",
-			args("alg", jwt.getHeader().getAlgorithm().getName(), "iss", OIDFJSON.getString(issElem)));
-		return env;
+	public void evaluate() {
+		callAndStopOnFailure(ExtractPDPSignedMetadata.class, "AUTHZEN-9.1.3");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataAlg.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndStopOnFailure(VerifyAuthzenSignedMetadataSignature.class, "AUTHZEN-9.1.3");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataIss.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataIat.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataExp.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataNbf.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndContinueOnFailure(EnsurePDPSignedMetadataDoesNotContainSignedMetadata.class, Condition.ConditionResult.WARNING, "AUTHZEN-9.1.3");
 	}
+
 }
