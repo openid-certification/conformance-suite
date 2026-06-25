@@ -36,13 +36,20 @@ class ApplySignedMetadataPrecedence_UnitTest {
 		env.putObject("pdp", JsonParser.parseString(json).getAsJsonObject());
 	}
 
+	/**
+	 * Mirror what {@link ExtractPDPSignedMetadata} stores: a {@code pdp_signed_metadata}
+	 * object whose decoded JWT claims live under the {@code claims} member.
+	 */
 	private void putClaims(String json) {
-		env.putObject("authzen_signed_metadata_claims", JsonParser.parseString(json).getAsJsonObject());
+		JsonObject signedMetadata = new JsonObject();
+		signedMetadata.add("claims", JsonParser.parseString(json).getAsJsonObject());
+		env.putObject("pdp_signed_metadata", signedMetadata);
 	}
 
 	@Test
-	public void noSignedClaims_isNoOp() {
+	public void emptyClaims_isNoOp() {
 		putPdp("{ \"access_evaluation_endpoint\": \"https://pdp.example.com/access/v1/evaluation\" }");
+		putClaims("{ }");
 		cond.execute(env);
 		assertEquals("https://pdp.example.com/access/v1/evaluation",
 			OIDFJSON.getString(env.getElementFromObject("pdp", "access_evaluation_endpoint")));
