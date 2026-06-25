@@ -1,0 +1,4 @@
+<% _.each(modules, function(module) { %>
+<% var lastInstance = module.instances.pop(); %>
+<span class="testStatusResultBox testResult-unknown" data-bs-toggle="tooltip" title="<%- module.testModule %>" data-instance="<%- lastInstance || '' %>"> </span>
+<% }); %>
