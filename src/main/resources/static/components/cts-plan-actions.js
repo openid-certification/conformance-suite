@@ -4,6 +4,7 @@ import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-json-editor.js";
 import "./cts-modal.js";
+import "./cts-private-link-dialog.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
@@ -83,60 +84,6 @@ const STYLE_TEXT = css`
     max-height: 60vh;
     min-height: calc(var(--space-6) * 14);
   }
-  cts-plan-actions .planLinkInput {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    height: 32px;
-    padding: 0 var(--space-2);
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    color: var(--fg);
-    background: var(--bg-elev);
-    border: 1px solid var(--ink-300);
-    border-radius: var(--radius-2);
-  }
-  cts-plan-actions .planLinkInput:focus {
-    outline: none;
-    border-color: var(--orange-400);
-    box-shadow: var(--focus-ring);
-  }
-  cts-plan-actions .planLinkLabel {
-    display: block;
-    font-size: var(--fs-12);
-    color: var(--fg-soft);
-    margin-bottom: var(--space-1);
-  }
-  cts-plan-actions .planLinkResult {
-    margin-top: var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    color: var(--ink-900);
-    background: var(--ink-50);
-    padding: var(--space-2);
-    border-radius: var(--radius-2);
-    word-break: break-all;
-  }
-  cts-plan-actions .planLinkMessage {
-    margin: 0 0 var(--space-2);
-    font-family: var(--font-sans);
-    font-size: var(--fs-12);
-    color: var(--fg-soft);
-    word-break: normal;
-  }
-  cts-plan-actions .planLinkUrl {
-    display: block;
-  }
-  cts-plan-actions .planLinkActions {
-    margin-top: var(--space-2);
-  }
-  cts-plan-actions .planLinkCopyStatus {
-    margin: var(--space-2) 0 0;
-    font-family: var(--font-sans);
-    font-size: var(--fs-12);
-    color: var(--fg-soft);
-    word-break: normal;
-  }
   cts-plan-actions .planDeleteWarning {
     color: var(--ink-900);
     font-size: var(--fs-13);
@@ -208,10 +155,6 @@ class CtsPlanActions extends LitElement {
     isReadonly: { type: Boolean, attribute: "is-readonly" },
     canCertify: { type: Boolean, attribute: "can-certify" },
     _showDeleteConfirm: { state: true },
-    _privateLinkDays: { state: true },
-    _privateLinkResult: { state: true },
-    _privateLinkMessage: { state: true },
-    _privateLinkCopyStatus: { state: true },
     _copyFeedback: { state: true },
   };
 
@@ -222,12 +165,8 @@ class CtsPlanActions extends LitElement {
     this.isReadonly = false;
     this.canCertify = false;
     this._configModalRef = createRef();
-    this._privateLinkModalRef = createRef();
+    this._privateLinkDialogRef = createRef();
     this._showDeleteConfirm = false;
-    this._privateLinkDays = 30;
-    this._privateLinkResult = "";
-    this._privateLinkMessage = "";
-    this._privateLinkCopyStatus = "";
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
   }
@@ -311,82 +250,13 @@ class CtsPlanActions extends LitElement {
   }
 
   _handleTogglePrivateLink() {
-    this._privateLinkResult = "";
-    this._privateLinkMessage = "";
-    this._privateLinkCopyStatus = "";
-    /** @type {any} */ (this._privateLinkModalRef.value)?.show();
-  }
-
-  _handlePrivateLinkDaysInput(e) {
-    this._privateLinkDays = Number(e.target.value);
-  }
-
-  _isPrivateLinkDaysValid() {
-    return this._privateLinkDays >= 1 && this._privateLinkDays <= 1000;
-  }
-
-  _handleGeneratePrivateLink() {
-    // Clear any stale result/status from a previous generation while the
-    // modal stays open.
-    this._privateLinkResult = "";
-    this._privateLinkMessage = "";
-    this._privateLinkCopyStatus = "";
-    this.dispatchEvent(
-      new CustomEvent("cts-generate-private-link", {
-        bubbles: true,
-        detail: {
-          planId: this.plan._id,
-          days: this._privateLinkDays,
-        },
-      }),
-    );
-  }
-
-  /**
-   * Populate the private-link result after the host page's /share POST
-   * resolves. The host owns the fetch + the Safari-safe ClipboardItem
-   * auto-copy (which must start synchronously in the click), then calls this
-   * to render the link, then {@link setPrivateLinkCopied} once the auto-copy
-   * promise settles.
-   * @param {string} link - The generated private link.
-   * @param {string} [message] - Optional supplemental server message.
-   */
-  showPrivateLinkResult(link, message) {
-    this._privateLinkResult = link || "";
-    this._privateLinkMessage = message || "";
-    this._privateLinkCopyStatus = "";
-  }
-
-  /**
-   * Reflect the auto-copy outcome honestly: only say "copied" once the host's
-   * clipboard write actually resolved; otherwise point the user at the Copy
-   * button (which is always available as a manual fallback).
-   * @param {boolean} copied - Whether the auto-copy succeeded.
-   */
-  setPrivateLinkCopied(copied) {
-    this._privateLinkCopyStatus = copied
-      ? "Copied to clipboard."
-      : "Press “Copy to clipboard” to copy the link.";
-  }
-
-  async _handleCopyPrivateLink(event) {
-    // Capture currentTarget synchronously — the await below clears it.
-    const trigger = event && event.currentTarget;
-    const text = this._privateLinkResult;
-    if (!text) return;
-    if (!navigator.clipboard) {
-      this._privateLinkCopyStatus = "Clipboard not available — select the link and copy manually.";
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.warn("[cts-plan-actions] clipboard.writeText failed:", err);
-      this._privateLinkCopyStatus = "Copy failed — select the link and copy manually.";
-      return;
-    }
-    this._privateLinkCopyStatus = "Copied to clipboard.";
-    flashCopyConfirmed(trigger);
+    // Point the shared dialog at this plan's share endpoint, then open it.
+    // The dialog owns the whole flow (expiry, generate, Safari-safe auto-copy,
+    // Copy button) — identical to log-detail.
+    const dlg = /** @type {any} */ (this._privateLinkDialogRef.value);
+    if (!dlg) return;
+    dlg.shareUrl = `/api/plan/${encodeURIComponent(this.plan._id)}/share`;
+    dlg.show();
   }
 
   _handleCertify() {
@@ -472,65 +342,10 @@ class CtsPlanActions extends LitElement {
   }
 
   _renderPrivateLinkModal() {
-    const isValid = this._isPrivateLinkDaysValid();
-
-    return html`
-      <cts-modal
-        ${ref(this._privateLinkModalRef)}
-        heading="Private Link"
-        data-testid="private-link-panel"
-      >
-        <label for="privateLinkDays" class="planLinkLabel">
-          Number of days the link will be valid (1-1000):
-        </label>
-        <input
-          type="number"
-          id="privateLinkDays"
-          class="planLinkInput"
-          min="1"
-          max="1000"
-          .value=${String(this._privateLinkDays)}
-          @input=${this._handlePrivateLinkDaysInput}
-        />
-        <div style="margin-top: var(--space-2);">
-          <cts-button
-            class="generate-link-btn"
-            variant="primary"
-            size="sm"
-            label="Generate"
-            ?disabled=${!isValid}
-            @cts-click=${this._handleGeneratePrivateLink}
-          ></cts-button>
-        </div>
-        ${this._privateLinkResult
-          ? html`<div class="planLinkResult" data-testid="private-link-result">
-              ${this._privateLinkMessage
-                ? html`<p class="planLinkMessage">${this._privateLinkMessage}</p>`
-                : nothing}
-              <code class="planLinkUrl">${this._privateLinkResult}</code>
-              <div class="planLinkActions">
-                <cts-button
-                  class="copy-private-link-btn"
-                  variant="secondary"
-                  size="sm"
-                  icon="copy"
-                  label="Copy to clipboard"
-                  @cts-click=${this._handleCopyPrivateLink}
-                ></cts-button>
-              </div>
-              ${this._privateLinkCopyStatus
-                ? html`<p
-                    class="planLinkCopyStatus"
-                    aria-live="polite"
-                    data-testid="private-link-copy-status"
-                  >
-                    ${this._privateLinkCopyStatus}
-                  </p>`
-                : nothing}
-            </div>`
-          : nothing}
-      </cts-modal>
-    `;
+    // Shared dialog — opened by _handleTogglePrivateLink after it sets shareUrl.
+    return html`<cts-private-link-dialog
+      ${ref(this._privateLinkDialogRef)}
+    ></cts-private-link-dialog>`;
   }
 
   _renderDeleteConfirm() {
