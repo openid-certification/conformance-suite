@@ -75,6 +75,10 @@ public class FAPICIBAServerProfileBehavior {
 		return authType == ClientAuthType.MTLS;
 	}
 
+	public boolean shouldCallTokenEndpointBeforePingNotification() {
+		return true;
+	}
+
 	// --- Action methods returning ConditionSequence (null = no-op) ---
 
 	/**

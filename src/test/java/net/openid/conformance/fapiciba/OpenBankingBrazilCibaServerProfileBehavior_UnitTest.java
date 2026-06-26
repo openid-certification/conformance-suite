@@ -38,6 +38,16 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 		assertThat(conditionClasses).containsExactly(FAPIBrazilValidateIdTokenSigningAlg.class);
 	}
 
+	@Test
+	public void usesPingModeAsPrimaryMode() {
+		assertThat(behavior.shouldCallTokenEndpointBeforePingNotification()).isFalse();
+	}
+
+	@Test
+	public void plainFapiCanCallTokenEndpointBeforePingNotification() {
+		assertThat(new FAPICIBAServerProfileBehavior().shouldCallTokenEndpointBeforePingNotification()).isTrue();
+	}
+
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
 		sequence.evaluate();
 		return sequence.getTestExecutionUnits().stream()
