@@ -23,6 +23,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
@@ -79,6 +80,10 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 		return MediaType.APPLICATION_FORM_URLENCODED;
 	}
 
+	protected List<MediaType> getAcceptContentType(Environment env) {
+		return Collections.singletonList(MediaType.APPLICATION_JSON);
+	}
+
 	protected Object getBody(Environment env) {
 		String requestEntity = env.getString("resource_request_entity");
 		return requestEntity;
@@ -105,7 +110,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			HttpHeaders headers = getHeaders(env);
 
 			if (headers.getAccept().isEmpty()) {
-				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+				headers.setAccept(getAcceptContentType(env));
 			}
 
 			if ((HttpMethod.POST.equals(method)

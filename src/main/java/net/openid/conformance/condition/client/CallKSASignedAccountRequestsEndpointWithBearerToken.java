@@ -7,6 +7,8 @@ import net.openid.conformance.util.JWTUtil;
 import org.springframework.http.MediaType;
 
 import java.text.ParseException;
+import java.util.Collections;
+import java.util.List;
 
 public class CallKSASignedAccountRequestsEndpointWithBearerToken extends CallKSAAccountRequestsEndpointWithBearerToken {
 
@@ -22,6 +24,11 @@ public class CallKSASignedAccountRequestsEndpointWithBearerToken extends CallKSA
 	@Override
 	protected MediaType getContentType(Environment env) {
 		return MediaType.valueOf("application/jwt");
+	}
+
+	@Override
+	protected List<MediaType> getAcceptContentType(Environment env) {
+		return Collections.singletonList(MediaType.valueOf("application/jwt"));
 	}
 
 	@Override
