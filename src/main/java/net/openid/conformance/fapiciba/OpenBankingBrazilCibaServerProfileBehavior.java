@@ -52,6 +52,11 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
+	public boolean shouldCallTokenEndpointBeforePingNotification() {
+		return false;
+	}
+
+	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
 		return () -> {
 			boolean isSecondClient = module.isSecondClient();
