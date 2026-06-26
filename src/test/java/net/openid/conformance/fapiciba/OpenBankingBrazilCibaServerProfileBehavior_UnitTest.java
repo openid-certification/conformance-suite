@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
+import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
@@ -24,6 +25,17 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 		assertThat(conditionClasses).containsExactly(
 			ValidateIdTokenEncrypted.class,
 			FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM.class);
+	}
+
+	@Test
+	public void usesStandardBrazilIdTokenValidationWithoutSpecialExpiry() throws ReflectiveOperationException {
+		ConditionSequence sequence = behavior.getProfileIdTokenValidationSteps()
+			.getDeclaredConstructor()
+			.newInstance();
+
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(sequence);
+
+		assertThat(conditionClasses).containsExactly(FAPIBrazilValidateIdTokenSigningAlg.class);
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
