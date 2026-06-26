@@ -297,6 +297,7 @@ const ECOSYSTEM_DESC = {
   connectid_au: "ConnectID Australia — FAPI2 Message Signing and CIBA.",
   cbuae: "Central Bank of the UAE — FAPI2 Message Signing.",
   ksa: "Saudi Central Bank (SAMA) — FAPI1 (v1) or FAPI2 (v2).",
+	open_finance_chile: "Finanzas Abiertas Chile — CMF APIs (FAPI2 + DCR).",
 };
 
 // ════════════════════════════════════════════════════════════════════

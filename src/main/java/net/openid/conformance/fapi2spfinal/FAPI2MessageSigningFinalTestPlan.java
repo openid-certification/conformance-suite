@@ -70,7 +70,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 		// Negative tests for authorization request
 		FAPI2SPFinalEnsureRegisteredRedirectUri.class,
-		FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri.class,
+		FAPI2SPFinalTolerateUnregisteredRedirectUri.class,
 		FAPI2SPFinalEnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
 		FAPI2SPFinalEnsureRedirectUriInAuthorizationRequest.class,
 		FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails.class,

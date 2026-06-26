@@ -23,7 +23,8 @@ in
     if ! ${pkgs.ngrok}/bin/ngrok config check &>/dev/null; then
       echo "In order to run CIBA ping, Federation, etc tests please make sure to setup a ngrok account"
     fi
-
+	cat ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk.pem > ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk-chain.pem;
+	cat ${config.env.DEVENV_STATE}/mkcert/rootCA.pem >> ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk-chain.pem;
   '';
 
   dotenv.enable = true;
@@ -45,7 +46,7 @@ in
 
   services.mongodb = {
     enable = true;
-    # package = pkgs-mongo6.mongodb-6_0;
+    package = pkgs-mongo6.mongodb-6_0;
   };
   # production uses nginx/nginx-ingress:4.0.0 which bundles nginx 1.27.3
   services.nginx = {
@@ -55,7 +56,7 @@ in
             ssl_protocols       TLSv1.2 TLSv1.3;
             ssl_prefer_server_ciphers on;
 
-            ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk.pem;
+            ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk-chain.pem;
             ssl_certificate_key ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk-key.pem;
 
             server {
@@ -113,6 +114,7 @@ in
                     proxy_set_header X-Ssl-Cert $ssl_client_cert;
                     proxy_set_header Forwarded 'by=127.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
                     proxy_pass_request_headers on;
+                    proxy_hide_header Strict-Transport-Security;
                 }
             }
 
