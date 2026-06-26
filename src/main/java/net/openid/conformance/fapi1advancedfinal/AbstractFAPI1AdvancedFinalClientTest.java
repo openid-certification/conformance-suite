@@ -680,9 +680,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		checkResourceEndpointRequest(true);
 
-		if (!isOpenInsurance()) {
-			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
-		}
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 
 		if(isPayments) {
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
@@ -745,9 +743,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		if (!isOpenInsurance()) {
-			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
-		}
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 
 		checkResourceEndpointRequest(true);
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
@@ -1454,9 +1450,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		if (!isOpenInsurance()) {
-			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
-		}
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 
 		call(exec().mapKey("incoming_request", requestId));
 		checkResourceEndpointRequest(false);
