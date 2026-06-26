@@ -1674,7 +1674,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(detail.config).toEqual(MOCK_TEST_STATUS.config);
   });
 
-  test("Private link button opens the expiration modal", async ({ page }) => {
+  test("Private link button opens the shared private-link dialog", async ({ page }) => {
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: MOCK_TEST_STATUS,
@@ -1688,26 +1688,25 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const header = page.locator("cts-log-detail-header");
     await expect(header).toContainText(MOCK_TEST_STATUS.testName);
 
-    const expirationModal = page.locator("#privateLinkExpirationModal");
-    await expect(expirationModal).toBeHidden();
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    await expect(dialog).toBeHidden();
 
-    // Private link now lives inside the action-overflow menu, not as a
-    // top-level cts-button. Open the menu, then click the menuitem.
+    // Private link lives inside the action-overflow menu. Open the menu, then
+    // click the menuitem — it opens the shared cts-private-link-dialog.
     const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
     await overflow.locator('[data-testid="overflow-trigger"]').click();
     await overflow.locator('[data-action-id="share-link"]').click();
 
-    // cts-modal is built on native <dialog>; show() sets the host's
-    // `open` state and the host becomes visible via :host([open]) CSS.
-    await expect(expirationModal).toBeVisible();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator(".plinkGenerateBtn")).toBeVisible();
   });
 
-  test("Private link is auto-copied and the result modal has a Copy button", async ({ page }) => {
+  test("Private link: Generate auto-copies and the dialog has a Copy button", async ({ page }) => {
     const SHARE_LINK = "https://example.test/login.html?token=abc123";
 
     // Spy on both clipboard paths: navigator.clipboard.write (the Safari-safe
-    // ClipboardItem auto-copy started synchronously in the create handler) and
-    // navigator.clipboard.writeText (the manual Copy-to-clipboard button).
+    // ClipboardItem auto-copy started synchronously in the Generate handler)
+    // and navigator.clipboard.writeText (the manual Copy-to-clipboard button).
     await page.addInitScript(() => {
       window.__clipboardWriteValue = null;
       window.__clipboardWriteCalled = false;
@@ -1754,37 +1753,35 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const header = page.locator("cts-log-detail-header");
     await expect(header).toContainText(MOCK_TEST_STATUS.testName);
 
-    // Open the expiration modal via the action-overflow menu, then create.
+    // Open the dialog via the action-overflow menu, then Generate.
     const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
     await overflow.locator('[data-testid="overflow-trigger"]').click();
     await overflow.locator('[data-action-id="share-link"]').click();
 
-    const expirationModal = page.locator("#privateLinkExpirationModal");
-    await expect(expirationModal).toBeVisible();
-    await page.locator("#privateLinkCreateBtn").click();
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    await expect(dialog).toBeVisible();
+    await dialog.locator(".plinkGenerateBtn").click();
 
-    // Result modal shows the returned link.
-    const resultModal = page.locator("#privateLinkResultModal");
-    await expect(resultModal).toBeVisible();
-    await expect(page.locator("#privateLinkUrl")).toHaveValue(SHARE_LINK);
+    // Result shows the returned link.
+    const result = dialog.locator('[data-testid="private-link-result"]');
+    await expect(result).toBeVisible();
+    await expect(result.locator(".plinkUrl")).toContainText(SHARE_LINK);
 
     // Auto-copy fired with the link (the Safari fix — write() called
     // synchronously, blob resolved from the fetch).
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteCalled)).toBe(true);
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteValue)).toBe(SHARE_LINK);
-    await expect(page.locator("#privateLinkCopyStatus")).toHaveText("Copied to clipboard.");
+    await expect(dialog.locator('[data-testid="private-link-copy-status"]')).toHaveText(
+      "Copied to clipboard.",
+    );
 
     // The Copy-to-clipboard button re-copies on click via writeText.
-    const copyBtn = page.locator("#privateLinkCopyBtn");
-    await expect(copyBtn).toBeVisible();
-    await copyBtn.click();
+    await result.locator(".plinkCopyBtn").click();
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteText)).toBe(SHARE_LINK);
   });
 
-  test("Private link: re-opening the expiration modal after Cancel does not double-submit", async ({
-    page,
-  }) => {
-    let sharePostCount = 0;
+  test("Private link: re-opening the dialog clears the previous result", async ({ page }) => {
+    const SHARE_LINK = "https://example.test/login.html?token=reopen";
 
     await setupFailFast(page);
     await setupV2Routes(page, {
@@ -1792,42 +1789,37 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
     });
     await setupCommonRoutes(page);
-    await page.route(`**/api/info/${MOCK_TEST_STATUS.testId}/share*`, (route) => {
-      sharePostCount += 1;
-      return route.fulfill({
+    await page.route(`**/api/info/${MOCK_TEST_STATUS.testId}/share*`, (route) =>
+      route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ link: "https://example.test/login.html?token=x", message: "" }),
-      });
-    });
+        body: JSON.stringify({ link: SHARE_LINK, message: "" }),
+      }),
+    );
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
     await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
 
     const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
-    const expirationModal = page.locator("#privateLinkExpirationModal");
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    const result = dialog.locator('[data-testid="private-link-result"]');
 
-    const openExpirationModal = async () => {
+    const openDialog = async () => {
       await overflow.locator('[data-testid="overflow-trigger"]').click();
       await overflow.locator('[data-action-id="share-link"]').click();
-      await expect(expirationModal).toBeVisible();
+      await expect(dialog).toBeVisible();
     };
 
-    // Open then Cancel twice — the old addEventListener wiring would stack a
-    // fresh onCreate handler on the stable #privateLinkCreateBtn each time.
-    for (let i = 0; i < 2; i++) {
-      await openExpirationModal();
-      await expirationModal.locator('button:has-text("Cancel")').click();
-      await expect(expirationModal).toBeHidden();
-    }
+    // Generate once → result appears.
+    await openDialog();
+    await dialog.locator(".plinkGenerateBtn").click();
+    await expect(result).toBeVisible();
 
-    // Now open and click Create once.
-    await openExpirationModal();
-    await page.locator("#privateLinkCreateBtn").click();
-    await expect(page.locator("#privateLinkResultModal")).toBeVisible();
-
-    // Exactly one POST — stacked handlers would have fired three.
-    expect(sharePostCount).toBe(1);
+    // Close (Escape), then reopen — show() resets state, so no stale result.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await openDialog();
+    await expect(result).toHaveCount(0);
   });
 
   test("failure summary jump-link bubbles cts-scroll-to-entry to the page", async ({ page }) => {

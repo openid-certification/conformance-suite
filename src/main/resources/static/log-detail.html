@@ -87,6 +87,7 @@
      for the rail's compact instance. -->
 <script type="module" src="/components/cts-navbar.js"></script>
 <script type="module" src="/components/cts-modal.js"></script>
+<script type="module" src="/components/cts-private-link-dialog.js"></script>
 <script type="module" src="/components/cts-spinner.js"></script>
 <script type="module" src="/components/cts-crumb.js"></script>
 <script type="module" src="/components/cts-tooltip.js"></script>
@@ -351,47 +352,11 @@
     <div aria-live="polite"><span id="loadingMessage"></span></div>
   </cts-modal>
 
-  <!-- Private-link flow modals. The bootstrap wires their show/hide
-       around the cts-share-link event. The expiration modal collects
-       the day count; the result modal renders the returned URL. -->
-  <cts-modal
-    id="privateLinkExpirationModal"
-    heading="Create private link"
-    footer-buttons='[{"label": "Create link", "id": "privateLinkCreateBtn", "data": {"action": "create"}}, {"label": "Cancel"}]'
-  >
-    <p>How many days should this link remain active?</p>
-    <label for="privateLinkExpirationDays" style="display: block; margin-top: var(--space-2);">
-      Expiration in days (1–3650)
-      <input
-        id="privateLinkExpirationDays"
-        type="number"
-        min="1"
-        max="3650"
-        value="30"
-        style="display: block; width: 6em; height: var(--control-height); box-sizing: border-box; margin-top: var(--space-1);"
-      />
-    </label>
-  </cts-modal>
-
-  <cts-modal
-    id="privateLinkResultModal"
-    heading="Private link"
-    footer-buttons='[{"label": "Copy to clipboard", "icon": "copy", "dismiss": false, "id": "privateLinkCopyBtn"}, {"label": "Close", "class": "btn-primary"}]'
-  >
-    <p id="privateLinkMessage"></p>
-    <textarea
-      id="privateLinkUrl"
-      readonly
-      rows="3"
-      aria-label="Private link URL"
-      style="width: 100%; font-family: var(--font-mono); font-size: var(--fs-13);"
-    ></textarea>
-    <p
-      id="privateLinkCopyStatus"
-      aria-live="polite"
-      style="margin-top: var(--space-2); min-height: 1.25em; color: var(--fg-soft);"
-    ></p>
-  </cts-modal>
+  <!-- Private-link flow. The shared cts-private-link-dialog owns the whole
+       flow (expiry input, generate, Safari-safe auto-copy, Copy button). The
+       bootstrap sets its shareUrl and calls show() on the cts-share-link
+       event. Same component is used by plan-detail for an identical UX. -->
+  <cts-private-link-dialog id="privateLinkDialog"></cts-private-link-dialog>
 
   <!-- Resident DOM — the Lit triad mounts here. Bootstrap fetches
        /api/info, populates header.testInfo, sets viewer.testId, and

@@ -83,15 +83,6 @@
         /* Certification submission package form styles live in
            /css/cert-package.css (linked above) so the modal can be shown in
            Storybook without duplicating CSS. */
-        .oidf-private-link-result {
-            margin-top: var(--space-3);
-            padding: var(--space-3);
-            background: var(--ink-50);
-            border-radius: var(--radius-2);
-            font-family: var(--font-mono);
-            font-size: var(--fs-12);
-            word-break: break-all;
-        }
         /* The "Filter by result" control is no longer a page-level popover —
            cts-plan-status renders it (R9) as a row of interactive count badges
            below the bar, merged with the count summary (mirrors log-detail's
@@ -442,56 +433,10 @@
                         deletePlan(planId);
                     });
 
-                    actionsEl.addEventListener('cts-generate-private-link', function (evt) {
-                        var days = evt.detail.days;
-                        var uri = '/api/plan/' + encodeURIComponent(planId) + '/share?exp='
-                            + encodeURIComponent(days);
-                        var fetchPromise = fetch(uri, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                        }).then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-                            return response.json();
-                        });
-
-                        // Start clipboard.write() synchronously inside the
-                        // event handler so Safari permits it; the ClipboardItem
-                        // resolves later from the fetch promise.
-                        var clipboardWritePromise = null;
-                        try {
-                            clipboardWritePromise = navigator.clipboard.write([
-                                new ClipboardItem({
-                                    'text/plain': fetchPromise.then(shareLink =>
-                                        new Blob([shareLink.link], { type: 'text/plain' })),
-                                }),
-                            ]);
-                        } catch (e) {
-                            console.warn('[plan-detail] async clipboard write unavailable:', e);
-                        }
-
-                        fetchPromise.then((shareLink) => {
-                            // Render the link + server message in the modal.
-                            actionsEl.showPrivateLinkResult(shareLink.link, shareLink.message);
-
-                            // Reflect the auto-copy outcome honestly: only show
-                            // "Copied to clipboard" once the write resolves; on
-                            // failure (or no Clipboard API) point the user at the
-                            // Copy button. Matches the log-detail private-link UX.
-                            if (clipboardWritePromise) {
-                                clipboardWritePromise.then(
-                                    () => actionsEl.setPrivateLinkCopied(true),
-                                    () => actionsEl.setPrivateLinkCopied(false),
-                                );
-                            } else {
-                                actionsEl.setPrivateLinkCopied(false);
-                            }
-                        }).catch((error) => {
-                            console.warn('[plan-detail] private link generation failed:', error);
-                            handleApiError(error);
-                        });
-                    });
+                    // Private-link generation is fully owned by the shared
+                    // cts-private-link-dialog inside cts-plan-actions (expiry,
+                    // generate, Safari-safe auto-copy, Copy button). The page no
+                    // longer wires the fetch/clipboard here.
 
                     // Wire up module events -------------------------------
 
