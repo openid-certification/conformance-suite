@@ -38,7 +38,7 @@ public class CreateKSAConsentRequest_UnitTest {
 		JsonObject req = env.getObject("account_requests_endpoint_request");
 		assertThat(req, notNullValue());
 		assertThat(OIDFJSON.getString(req.get("iss")), is("client-1234"));
-		assertThat(OIDFJSON.getString(req.get("aud")), is("https://op.example/"));
+		assertThat(OIDFJSON.getString(req.get("aud").getAsJsonArray().get(0)), is("https://op.example/"));
 		assertThat(req.has("iat"), is(true));
 		assertThat(req.has("nbf"), is(true));
 		assertThat(req.has("exp"), is(true));
