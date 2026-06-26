@@ -1225,12 +1225,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(apiRequests.filter((u) => u.includes("/api/runner/"))).toHaveLength(0);
   });
 
-  test("public mode: Download Logs requests /api/log/export/<id> with public=true", async ({
+  test("public mode: Download Logs requests /api/log/exporthtml/<id> with public=true", async ({
     page,
   }) => {
-    // The export route is /api/log/export/{id} — the swapped
-    // /api/log/{id}/export form has no server-side route and 404s. The
-    // download item only shows in public (readonly) mode when the test
+    // Download Logs always calls /api/log/exporthtml/{id}, appending ?public=true
+    // in public mode so the server filters to publicly-visible entries only.
+    // The download item only shows in public (readonly) mode when the test
     // is published with publish === "everything".
     /** @type {string[]} */
     const apiRequests = [];
@@ -1244,7 +1244,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       testInfo: publishedInfo,
       logEntries: MOCK_LOG_ENTRIES,
     });
-    await page.route("**/api/log/export/**", (route) =>
+    await page.route("**/api/log/exporthtml/**", (route) =>
       route.fulfill({ status: 200, contentType: "application/zip", body: "PK" }),
     );
     await setupCommonRoutes(page, { user: null });
@@ -1255,11 +1255,45 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await page.locator('button[data-action-id="download-log"]').click();
 
     await expect
-      .poll(() => apiRequests.filter((u) => u.includes("/api/log/export/")).length)
+      .poll(() => apiRequests.filter((u) => u.includes("/api/log/exporthtml/")).length)
       .toBeGreaterThan(0);
-    const exportUrl = new URL(apiRequests.find((u) => u.includes("/api/log/export/")) || "");
-    expect(exportUrl.pathname).toBe(`/api/log/export/${publishedInfo.testId}`);
+    const exportUrl = new URL(apiRequests.find((u) => u.includes("/api/log/exporthtml/")) || "");
+    expect(exportUrl.pathname).toBe(`/api/log/exporthtml/${publishedInfo.testId}`);
     expect(exportUrl.searchParams.get("public")).toBe("true");
+  });
+
+  test("authenticated mode: Download Logs requests /api/log/exporthtml/<id>", async ({ page }) => {
+    // Authenticated users get the HTML+JSON archive from /api/log/exporthtml/{id},
+    // which includes the rendered HTML log and its signature in addition to the
+    // JSON export. This differs from plan-detail's per-module download which uses
+    // the JSON-only /api/log/export/{id}.
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await page.route("**/api/log/exporthtml/**", (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: "PK" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await page.locator('button[data-action-id="download-log"]').click();
+
+    await expect
+      .poll(() => apiRequests.filter((u) => u.includes("/api/log/exporthtml/")).length)
+      .toBeGreaterThan(0);
+    const exportUrl = new URL(apiRequests.find((u) => u.includes("/api/log/exporthtml/")) || "");
+    expect(exportUrl.pathname).toBe(`/api/log/exporthtml/${MOCK_TEST_STATUS.testId}`);
+    expect(exportUrl.searchParams.get("public")).toBeNull();
   });
 
   /**
