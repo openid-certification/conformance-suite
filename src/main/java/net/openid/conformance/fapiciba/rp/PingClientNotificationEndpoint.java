@@ -44,10 +44,10 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 			try {
 				String clientNotificationEndpoint = env.getString("client","backchannel_client_notification_endpoint");
+				env.putBoolean("client_was_pinged", true);
 				ResponseEntity<String> response = restTemplate.exchange(clientNotificationEndpoint, HttpMethod.POST, request, String.class);
 
 				env.putInteger("client_notification_endpoint_response_http_status", response.getStatusCode().value());
-				env.putBoolean("client_was_pinged", true);
 
 				logSuccess("Received client notification endpoint response:" + response.getBody());
 				return env;

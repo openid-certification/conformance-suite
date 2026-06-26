@@ -722,21 +722,31 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performPostAuthorizationResponse() {
-
-		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
-		// As there's no way the user could have authenticated this request, we assume we will get a
-		// authorization_pending error back
-		eventLog.startBlock(currentClientString() + "Call token endpoint expecting pending");
-		callTokenEndpointForCibaGrant();
-		verifyTokenEndpointResponseIsPendingOrSlowDown();
-		eventLog.endBlock();
-
 		long delaySeconds = 5;
 		Integer interval = env.getInteger("backchannel_authentication_endpoint_response", "interval");
 		if (interval != null && interval > 5) {
 			// ignore intervals lower than 5; we don't want to fill the log or exhaust our retries too quickly
 			delaySeconds = interval;
 		}
+
+		if (profileBehavior.shouldCallTokenEndpointBeforePingNotification()) {
+			delaySeconds = callTokenEndpointBeforeAuthenticationAndReturnDelay(delaySeconds);
+		}
+
+		callAutomatedEndpoint();
+
+		waitForAuthenticationToComplete(delaySeconds);
+
+	}
+
+	protected long callTokenEndpointBeforeAuthenticationAndReturnDelay(long delaySeconds) {
+		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
+		// As there's no way the user could have authenticated this request, we assume we will get a
+		// authorization_pending error back.
+		eventLog.startBlock(currentClientString() + "Call token endpoint expecting pending");
+		callTokenEndpointForCibaGrant();
+		verifyTokenEndpointResponseIsPendingOrSlowDown();
+		eventLog.endBlock();
 
 		try {
 			Thread.sleep(delaySeconds * 1000);
@@ -764,10 +774,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			}
 		}
 
-		callAutomatedEndpoint();
-
-		waitForAuthenticationToComplete(delaySeconds);
-
+		return delaySeconds;
 	}
 
 	protected void performAuthorizationRequest() {
