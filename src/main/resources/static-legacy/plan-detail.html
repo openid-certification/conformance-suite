@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Test Plan</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Boostrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+
+    <!-- Popper (necessary for Bootstrap's tooltips) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+</head>
+
+<body>
+
+    <div class="pageHeader container-fluid">
+        <div class="row">
+            <div class="col-md-7">
+                <a id="openIdImage" href="index.html"><img src="/images/openid.png"></a>
+            </div>
+            <div id="userInfoHolder" class="col-md-5"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+
+    <!-- error modal -->
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- loading modal -->
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config modal popup -->
+    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
+                        Configuration for <code id="configTestId" class="text-muted"></code>
+                    </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="wrapLongStrings row-bg-light p-1">
+                        <pre id="config"></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Publish modal -->
+    <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Publish</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure? This will make all keys, secrets, and all other test information publicly visible.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal" data-publish="everything">Publish</button>
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certification submission modal -->
+    <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content pad28">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
+                    <div id="certificationPackageFormModalBody" class="modal-body">
+                    <div id="certificationPackageFormErrors"></div>
+                    <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
+                    <ol class="top15">
+                        <li>
+                            <strong>The test plan will be published.</strong>
+                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
+                        </li>
+                        <li>
+                            <strong>The test plan will be marked as immutable.</strong>
+                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                        </li>
+                        <li>
+                            <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
+                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                            to complete the certification process.</p>
+                        </li>
+                    </ol>
+
+                    <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
+                    <div>
+                        <div class="mb-3 row">
+                            <fieldset>
+                                <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
+                                <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
+                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+
+                    <div id="certificationPackageDownloaded" class="modal-body" hidden>
+                        <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
+                            is complete then you will find the zip file in your browser download directory.</p>
+                        <p>Please proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                            to submit it.</p>
+                        <p><b>Warning: don't change the zip file, as it will not be accepted during certification publishing process.</b></p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">Create Certification Package</button>
+                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Rerun test confirmation modal -->
+    <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Run test confirmation</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to rerun this test? It is owned by a different user.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete plan modal -->
+    <div class="modal" id="deletePlanModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content pad28">
+                <div class="modal-header">
+                    <h4 class="modal-title" >Delete plan</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="deleteMutablePlanModalBody" class="modal-body">
+
+                    <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
+                        <ul>
+                            <li>Delete the test plan.</li>
+                            <li>Delete the test plan configuration.</li>
+                            <li>Delete the individual tests and logs belonging to the plan.</li>
+                        </ul>
+                    </p>
+                    <p class="top10"><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
+                    <p class="top10">After deletion, this page will be reloaded and you will see an <strong>HTTP 404 Not Found</strong>
+                    error, confirming that the deletion was successful.</p>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button id="confirmDeletePlanBtn" type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary">Delete plan</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- resident DOM -->
+    <div class="container-fluid">
+        <div id="planDetail">
+            <div class="header"></div>
+            <div class="content container-fluid">
+                <!-- main page is rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        function getPlan(planId, public) {
+            return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+
+                return response.json();
+            })
+            .then((data) => {
+                var readonly = public || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
+                document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
+                document.querySelectorAll('.content')?.forEach(function(element) {
+                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, readonly: readonly, variant: FAPI_UI.formatVariant(data.variant)}));
+                });
+
+                if (document.getElementById('downloadAllBtn') != null) {
+                    document.getElementById('downloadAllBtn').onclick = function(evt) {
+                        evt.preventDefault();
+                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
+                    };
+                }
+
+                // wire up configuration button
+                if (document.getElementById('showConfigBtn') != null) {
+                    document.getElementById('showConfigBtn').onclick = function(evt) {
+                        evt.preventDefault();
+                        document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
+                        document.getElementById('configTestId').innerHTML = _.escape(planId);
+
+                        var myModalEl = document.getElementById('configModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
+
+                // wire up publish button
+                if (document.getElementById('publishBtn') != null) {
+                    document.getElementById('publishBtn').onclick = function(evt) {
+                        evt.preventDefault();
+
+                        var myModalEl = document.getElementById('publishModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
+
+                if (document.getElementById('certificationPackageBtn') != null) {
+                    document.getElementById('certificationPackageBtn').onclick = function(evt) {
+                        evt.preventDefault();
+
+                        var myModalEl = document.getElementById('certificationPackageModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
+
+                if(document.querySelector('#deleteMutablePlanBtn')) {
+                    document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
+                        var myModalEl = document.getElementById('deletePlanModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    });
+                }
+
+                FAPI_UI.setupPrivateLinkSharing('/api/plan/' + encodeURIComponent(planId) + '/share');
+
+                if (readonly) {
+                    document.getElementById('openIdImage').href = "javascript:void(0)";
+                }
+
+                document.querySelectorAll('[data-module]')?.forEach(function(element) {
+                    element.onclick = function(evt) {
+                        evt.preventDefault();
+                        var testName = this.dataset.module;
+                        var variant = this.dataset.variant;
+                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
+                            document.getElementById('reRunTestModalBtn').dataset.testName = testName;
+                            document.getElementById('reRunTestModalBtn').dataset.variant = variant;
+
+                            var myModalEl = document.getElementById('reRunTestModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                            modal.show();
+                        } else {
+                            runTest(testName, (variant !== "null") ? variant : null, planId);
+                        }
+                    };
+                });
+
+                document.querySelectorAll('[data-instance-id]')?.forEach(function(element) {
+                    var testId = element.dataset.instanceId;
+
+                    if (testId) {
+                        // wire up the download button
+                        element.querySelectorAll('.downloadBtn')?.forEach(function(element1) {
+                            element1.onclick = function(evt) {
+                                evt.preventDefault();
+                                window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
+                            };
+
+                            element1.classList.add('show');
+                        });
+
+                        // show the view button
+                        element.querySelectorAll('.viewBtn')?.forEach(function(element1) {
+                            element1.style.display = 'inline-block';
+                        });
+
+                        // fetch the test status
+                        console.log('Fetching |' + testId + '|');
+                        fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
+                        .then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+
+                            return response.json();
+                        })
+                        .then((data) => {
+                            element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
+                                element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
+                            });
+
+                            element.querySelectorAll('.testVersion')?.forEach(function(element1) {
+                                element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version});
+                            });
+
+                            FAPI_UI.activeTooltip();
+                            if(data.status === 'FINISHED'
+                                && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
+                                && document.querySelector('#certificationPackageBtn')) {
+                                    document.querySelector('#certificationPackageBtn').disabled = false;
+                            }
+                        })
+                        .catch((error) => {
+                            if (error instanceof Response) {
+                                // We have a 'Respose' object.
+                                if (error.status == 404) {
+                                    // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
+                                    // we won't be able to fetch the status (error 404).
+                                    // Just ignore it.
+                                }
+                                else {
+                                    var message = error.statusText;
+                                    var responseClone = error.clone();
+
+                                    error.text()
+                                    .then(textError => {
+                                        // Text error thrown by the app
+                                        messageParsed = true;
+
+                                        try {
+                                            const errorObj = JSON.parse(textError);
+
+                                            if (errorObj.error.length != 0) {
+                                                message = errorObj.error;
+                                            }
+                                        }
+                                        catch (e) {
+                                        }
+
+                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                    })
+                                    .catch(error1 => {
+                                        // JSON error thrown by the app
+                                        responseClone.json()
+                                        .then(jsonError => {
+                                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                                message = jsonError;
+                                            }
+
+                                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                                        })
+                                        .catch(genericError => {
+                                            // Error thrown by the server
+                                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                        });
+                                    });
+                                }
+                            } else {
+                                // Network error automatically detected by fetch.
+                                FAPI_UI.showError({code: "", error: error});
+                            }
+                        });
+                    } else {
+                        // render an "UNKNOWN" field
+                        element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
+                            element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: {}});
+                        });
+                        element.querySelectorAll('.testVersion')?.forEach(function(element1) {
+                            element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''});
+                        });
+                        FAPI_UI.activeTooltip();
+                    }
+                });
+
+                document.querySelectorAll('[data-publish]')?.forEach(function(element) {
+
+                    element.onclick = function(evt) {
+                        evt.preventDefault();
+
+                        var publish = this.dataset.publish;
+
+                        fetch('/api/plan/' + encodeURIComponent(planId) + '/publish', {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ publish: publish }),
+                        })
+                        .then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+
+                            return response.json();
+                        })
+                        .then((data) => {
+                            // redirect to the published version or reload
+                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
+                        })
+                        .catch((error) => {
+                            if (error instanceof Response) {
+                                // We have a 'Respose' object.
+                                var message = error.statusText;
+                                var responseClone = error.clone();
+
+                                error.text()
+                                .then(textError => {
+                                    // Text error thrown by the app
+                                    messageParsed = true;
+
+                                    try {
+                                        const errorObj = JSON.parse(textError);
+
+                                        if (errorObj.error.length != 0) {
+                                            message = errorObj.error;
+                                        }
+                                    }
+                                    catch (e) {
+                                    }
+
+                                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                                })
+                                .catch(error1 => {
+                                    // JSON error thrown by the app
+                                    responseClone.json()
+                                    .then(jsonError => {
+                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                            message = jsonError;
+                                        }
+
+                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                    })
+                                    .catch(genericError => {
+                                        // Error thrown by the server
+                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                    });
+                                });
+                            } else {
+                                // Network error automatically detected by fetch.
+                                FAPI_UI.showError({code: "", error: error});
+                            }
+                        });
+                    };
+                });
+
+                //only for making an immutable plan mutable again
+                document.querySelectorAll('[data-immutable]')?.forEach(function(element) {
+                    element.onclick = function(evt) {
+                        evt.preventDefault();
+
+                        fetch('/api/plan/' + encodeURIComponent(planId) + '/makemutable', {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                        })
+                        .then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+
+                            // redirect to the published version or reload
+                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
+                        })
+                        .catch((error) => {
+                            if (error instanceof Response) {
+                                // We have a 'Respose' object.
+                                var message = error.statusText;
+                                var responseClone = error.clone();
+
+                                error.text()
+                                .then(textError => {
+                                    // Text error thrown by the app
+                                    messageParsed = true;
+
+                                    try {
+                                        const errorObj = JSON.parse(textError);
+
+                                        if (errorObj.error.length != 0) {
+                                            message = errorObj.error;
+                                        }
+                                    }
+                                    catch (e) {
+                                    }
+
+                                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                                })
+                                .catch(error1 => {
+                                    // JSON error thrown by the app
+                                    responseClone.json()
+                                    .then(jsonError => {
+                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                            message = jsonError;
+                                        }
+
+                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                    })
+                                    .catch(genericError => {
+                                        // Error thrown by the server
+                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                    });
+                                });
+                            } else {
+                                // Network error automatically detected by fetch.
+                                FAPI_UI.showError({code: "", error: error});
+                            }
+                        });
+                    };
+                });
+
+                document.getElementById('reRunTestModalBtn').onclick = function(evt) {
+                    evt.preventDefault();
+                    var testName = this.dataset.testName;
+                    var variant = this.dataset.variant;
+                    runTest(testName, (variant !== "null") ? variant : null, planId);
+                };
+            })
+            .catch((error) => {
+                if (error instanceof Response) {
+                    // We have a 'Respose' object.
+                    var message = error.statusText;
+                    var responseClone = error.clone();
+
+                    error.text()
+                    .then(textError => {
+                        // Text error thrown by the app
+                        messageParsed = true;
+
+                        try {
+                            const errorObj = JSON.parse(textError);
+
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+                        }
+                        catch (e) {
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(error1 => {
+                        // JSON error thrown by the app
+                        responseClone.json()
+                        .then(jsonError => {
+                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                message = jsonError;
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(genericError => {
+                            // Error thrown by the server
+                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                        });
+                    });
+                } else {
+                    // Network error automatically detected by fetch.
+                    FAPI_UI.showError({code: "", error: error});
+                }
+
+                // Percolate the error up.
+                return Promise.reject(error);
+            });
+        }
+
+        function runTest(testName, testVariant, planId) {
+            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
+
+            if (testVariant !== null && testVariant !== undefined) {
+                runTestUrl += '&variant=' + encodeURIComponent(testVariant);
+            }
+
+            FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+
+            fetch(runTestUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+
+                return response.json();
+            })
+            .then((data) => {
+                // we need to switch to the new window now
+                window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
+            })
+            .catch((error) => {
+                if (error instanceof Response) {
+                    // We have a 'Respose' object.
+                    var message = error.statusText;
+                    var responseClone = error.clone();
+
+                    error.text()
+                    .then(textError => {
+                        // Text error thrown by the app
+                        messageParsed = true;
+
+                        try {
+                            const errorObj = JSON.parse(textError);
+
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+                        }
+                        catch (e) {
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(error1 => {
+                        // JSON error thrown by the app
+                        responseClone.json()
+                        .then(jsonError => {
+                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                message = jsonError;
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(genericError => {
+                            // Error thrown by the server
+                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                        });
+                    });
+                } else {
+                    // Network error automatically detected by fetch.
+                    FAPI_UI.showError({code: "", error: error});
+                }
+            });
+        }
+
+        function showDialogError(containerId, error) {
+            document.getElementById(containerId).insertAdjacentHTML('beforeend',
+                '<div class="alert alert-danger">' +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
+                '</button>' + error + '</div>');
+        }
+
+        /**
+         * Checks file inputs to make sure they're within max file size limits
+         * @param filesToCheck array of file 'input' element IDs to check
+         * @param maxFileSize max file size
+         * @return {number} -1 if all files are less than maxFileSize
+         *                   else the return value is the nth element
+         *                   in the list
+         */
+        function validateFileSizes(filesToCheck, maxFileSize) {
+            for(var i = 0; i < filesToCheck.length; i++) {
+                var file = document.getElementById(filesToCheck[i]);
+                if(file.files && file.files.length > 0) {
+                    if(file.files[0].size > maxFileSize) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
+
+            const filesToCheck = [ "clientSideDataBtn" ];
+            const maxFileSize = 1024000;
+            const fileNum = validateFileSizes(filesToCheck, maxFileSize);
+            if (fileNum >= 0) {
+                evt.preventDefault();
+                showDialogError('certificationPackageFormErrors', document.getElementById(filesToCheck[fileNum]).files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
+                return false;
+            } else {
+                // Hide previous modal content and the cancel and certification package buttons
+                document.querySelector('#certificationPackageFormModalBody').hidden = true;
+                document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
+                document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
+
+                // Show the file download info content in the modal and the close button
+                document.querySelector('#certificationPackageDownloaded').hidden = false;
+                document.querySelector('#closeCertificationPackageFormModal').hidden = false;
+
+                return true;
+            }
+        });
+
+        document.getElementById('closeCertificationPackageFormModal').onclick = function(evt) {
+            var myModalEl = document.getElementById('certificationPackageModal');
+            var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+            if (modal != null) {
+                modal.hide();
+            }
+            window.location.reload();
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            var urlParams = new URLSearchParams(window.location.search);
+            var planId = urlParams.get('plan');
+            var public = Boolean(urlParams.get('public'));
+
+            FAPI_UI.showBusy();
+
+            FAPI_UI.loadPlanTemplates() // Load the templates
+            .then(function() {
+                return FAPI_UI.getUserInfo() // Then get the current user info
+            }).then(function() {
+                return getPlan(planId, public); // Only once the user is loaded, then render the plan info
+            }).finally(function() {
+                FAPI_UI.activeTooltip();
+                FAPI_UI.hideBusy();
+            });
+
+            var clipboard = new ClipboardJS('.btn-clipboard');
+            clipboard.on('success', function(e) {
+                console.log(e);
+            });
+            clipboard.on('error', function(e) {
+                console.log(e);
+            });
+
+
+            document.querySelector('#confirmDeletePlanBtn').addEventListener('click', evt => {
+                fetch('/api/plan/' + encodeURIComponent(planId), {
+                    method:'DELETE'
+                }).then(response => {
+                    var myModalEl = document.getElementById('deletePlanModal');
+                    var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+                    if (modal != null) {
+                        modal.hide();
+                    }
+                    window.location.reload();
+                    return;
+                }).catch(error => {
+                    var myModalEl = document.getElementById('deletePlanModal');
+                    var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+                    if (modal != null) {
+                        modal.hide();
+                    }
+                    FAPI_UI.showError(error);
+                });
+            });
+
+        });
+    </script>
+
+
+    <footer class="pageFooter">
+        <span class="muted">OpenID Foundation conformance suite</span>
+    </footer>
+
+</body>
+
+</html>
