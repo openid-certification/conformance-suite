@@ -20,10 +20,10 @@
       "ReadStandingOrdersDetail"
     ],
     "AuthorizationExpirationTimeWindow": "720:00:00",
-    "ExpirationDateTime": "2027-01-28T15:27:13+0300",
+    "ExpirationDateTime": "2027-01-28T15:27:13+00:00",
     "NationalIdentificationNumber": "1111111111",
-    "TransactionFromDateTime": "2027-01-25T12:19:24+0300",
-    "TransactionToDateTime": "2027-01-27T12:19:24+0300",
+    "TransactionFromDateTime": "2027-01-25T12:19:24+03:00",
+    "TransactionToDateTime": "2027-01-27T12:19:24+03:00",
     "AccountType": [
       "KSAOB.Retail"
     ],
@@ -31,10 +31,10 @@
       "CurrentAccount"
     ],
     "FourthParty": {
-      "TradingName": "Rand's Company",
-      "LegalName": "Rand's Ltd",
-      "IdentifierType": "KSAOB.UnifiedCommercialNumber",
-      "Identifier": "123456"
+      "TradingName": "Acme Accounting Trading Name",
+      "LegalName": "Acme Accounting Legal Name",
+      "IdentifierType": "KSAOB.Other",
+      "Identifier": "abcd1234"
     },
     "SponsoredTPP": {
       "TradingName": "Khalid Company",
@@ -56,8 +56,8 @@
       "IsCustomerRegistered": true,
       "IsCustomerVerified": true,
       "FailedLoginAttempts": 2,
-      "PasswordChangedDateTime": "2027-01-27T15:27:13+0300",
-      "PSUOnboardingDateTime": "2027-01-27T15:27:13+0300"
+      "PasswordChangedDateTime": "2027-01-27T15:27:13+03:00",
+      "PSUOnboardingDateTime": "2027-01-27T15:27:13+03:00"
     },
     "DeviceIndicators": {
       "GeoLocation": {
@@ -70,7 +70,7 @@
       "Screensharing": false,
       "DeviceSoftwareRestricted": true,
       "TrustedDeviceFlag": true,
-      "TrustedDeviceDateAndtime": "2027-01-27T15:27:13+0300",
+      "TrustedDeviceDateAndtime": "2027-01-27T15:27:13+03:00",
       "MechanismOfTrustingDevice": "KSAOB.IVR",
       "IPAddressVerison": "KSAOB.IPv4",
       "DeviceType": "KSAOB.Smartphone",
