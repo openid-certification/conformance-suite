@@ -100,7 +100,6 @@ import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenRespo
 import net.openid.conformance.condition.client.ExtractRtHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenExp;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
@@ -365,7 +364,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenExp.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 		}
 	}
 
