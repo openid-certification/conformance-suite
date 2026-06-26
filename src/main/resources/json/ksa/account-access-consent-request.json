@@ -72,7 +72,7 @@
       "TrustedDeviceFlag": true,
       "TrustedDeviceDateAndtime": "2027-01-27T15:27:13+03:00",
       "MechanismOfTrustingDevice": "KSAOB.IVR",
-      "IPAddressVerison": "KSAOB.IPv4",
+      "IPAddressVersion": "KSAOB.IPv4",
       "DeviceType": "KSAOB.Smartphone",
       "DeviceName": "My phone",
       "ConnectionType": "KSAOB.WiFi",
