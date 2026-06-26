@@ -1217,29 +1217,27 @@ test.describe("plan-detail.html — also-required banner (R12)", () => {
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
-    // Open the private-link modal and generate.
+    // Open the shared private-link dialog and generate.
     await page.locator('[data-testid="private-link-btn"]').click();
-    const panel = page.locator('[data-testid="private-link-panel"]');
-    await expect(panel).toBeVisible();
-    await panel.locator(".generate-link-btn button").click();
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    await expect(dialog).toBeVisible();
+    await dialog.locator(".plinkGenerateBtn").click();
 
     // Result shows the link + server message.
-    const result = page.locator('[data-testid="private-link-result"]');
+    const result = dialog.locator('[data-testid="private-link-result"]');
     await expect(result).toBeVisible();
-    await expect(result).toContainText(SHARE_LINK);
-    await expect(result.locator(".planLinkMessage")).toContainText(
-      "invalidated on a server restart",
-    );
+    await expect(result.locator(".plinkUrl")).toContainText(SHARE_LINK);
+    await expect(result.locator(".plinkMessage")).toContainText("invalidated on a server restart");
 
     // Auto-copy fired with the link; copied status reflects the real outcome.
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteCalled)).toBe(true);
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteValue)).toBe(SHARE_LINK);
-    await expect(page.locator('[data-testid="private-link-copy-status"]')).toHaveText(
+    await expect(dialog.locator('[data-testid="private-link-copy-status"]')).toHaveText(
       "Copied to clipboard.",
     );
 
     // The manual Copy button re-copies via writeText.
-    await result.locator(".copy-private-link-btn button").click();
+    await result.locator(".plinkCopyBtn").click();
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteText)).toBe(SHARE_LINK);
   });
 });

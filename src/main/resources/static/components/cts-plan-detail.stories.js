@@ -714,79 +714,30 @@ export const ActionsViewConfig = {
 export const ActionsPrivateLink = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement, step }) {
-    await step("private link modal is not open initially", async () => {
-      const modal = canvasElement.querySelector('[data-testid="private-link-panel"]');
-      expect(modal?.hasAttribute("open")).toBe(false);
+    await step("private link dialog is not open initially", async () => {
+      const dialog = canvasElement.querySelector('[data-testid="private-link-dialog"]');
+      expect(dialog?.hasAttribute("open")).toBe(false);
     });
 
-    await step("clicking Private link opens the modal", async () => {
+    await step("clicking Private link opens the shared dialog", async () => {
+      // Generation, validation, and copy now live in cts-private-link-dialog
+      // (see cts-private-link-dialog.stories.js). cts-plan-actions only wires
+      // the button to open it with the plan's share endpoint.
       await userEvent.click(innerButton(canvasElement, "private-link-btn"));
       await waitFor(() => {
         expect(
-          canvasElement.querySelector('[data-testid="private-link-panel"]')?.hasAttribute("open"),
+          canvasElement.querySelector('[data-testid="private-link-dialog"]')?.hasAttribute("open"),
         ).toBe(true);
       });
     });
 
     await step("days input defaults to 30 and Generate is enabled", async () => {
-      // Days input present with default value of 30.
-      const daysInput = canvasElement.querySelector("#privateLinkDays");
+      const daysInput = canvasElement.querySelector(".plinkDays");
       expect(daysInput).toBeTruthy();
       expect(daysInput.value).toBe("30");
-
-      // Generate button should be enabled (30 is valid). The disabled state
-      // is reflected onto the inner <button> rendered by cts-button.
-      const generateHost = canvasElement.querySelector(".generate-link-btn");
-      expect(generateHost).toBeTruthy();
-      const generateBtnInner = generateHost?.querySelector("button");
-      expect(generateBtnInner).toBeTruthy();
-      expect(generateBtnInner?.disabled).toBe(false);
-    });
-  },
-};
-
-export const ActionsPrivateLinkValidation = {
-  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement, step }) {
-    await step("open the private link modal", async () => {
-      // Target the inner <button>.
-      await userEvent.click(innerButton(canvasElement, "private-link-btn"));
-      await waitFor(() => {
-        expect(
-          canvasElement.querySelector('[data-testid="private-link-panel"]')?.hasAttribute("open"),
-        ).toBe(true);
-      });
-    });
-
-    const daysInput = canvasElement.querySelector("#privateLinkDays");
-
-    await step("0 days is invalid → Generate disabled", async () => {
-      // The disabled state is reflected onto the inner <button> rendered by
-      // cts-button — the host doesn't carry it.
-      await userEvent.clear(daysInput);
-      await userEvent.type(daysInput, "0");
-      await waitFor(() => {
-        const inner = canvasElement.querySelector(".generate-link-btn button");
-        expect(inner?.disabled).toBe(true);
-      });
-    });
-
-    await step("1001 days is invalid → Generate disabled", async () => {
-      await userEvent.clear(daysInput);
-      await userEvent.type(daysInput, "1001");
-      await waitFor(() => {
-        const inner = canvasElement.querySelector(".generate-link-btn button");
-        expect(inner?.disabled).toBe(true);
-      });
-    });
-
-    await step("500 days is valid → Generate enabled", async () => {
-      await userEvent.clear(daysInput);
-      await userEvent.type(daysInput, "500");
-      await waitFor(() => {
-        const inner = canvasElement.querySelector(".generate-link-btn button");
-        expect(inner?.disabled).toBe(false);
-      });
+      const generateInner = canvasElement.querySelector(".plinkGenerateBtn button");
+      expect(generateInner).toBeTruthy();
+      expect(generateInner?.disabled).toBe(false);
     });
   },
 };
@@ -924,57 +875,9 @@ export const ActionsPublishedPlan = {
   },
 };
 
-export const ActionsGenerateLinkResult = {
-  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement, step }) {
-    await step("open the panel and set days to 7", async () => {
-      await userEvent.click(innerButton(canvasElement, "private-link-btn"));
-      await waitFor(() => {
-        const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-        expect(panel).toBeTruthy();
-      });
-
-      const daysInput = canvasElement.querySelector("#privateLinkDays");
-      await userEvent.clear(daysInput);
-      await userEvent.type(daysInput, "7");
-    });
-
-    await step("clicking Generate fires cts-generate-private-link", async () => {
-      // Listen for the generate event before clicking.
-      const spy = fn();
-      canvasElement.addEventListener("cts-generate-private-link", spy);
-
-      // Click Generate (target the inner <button>; cts-button host carries
-      // the .generate-link-btn class).
-      const generateInner = canvasElement.querySelector(".generate-link-btn button");
-      await waitFor(() => expect(generateInner?.disabled).toBe(false));
-      if (!generateInner) throw new Error("generate-link-btn inner <button> missing");
-      await userEvent.click(generateInner);
-
-      expect(spy).toHaveBeenCalledTimes(1);
-      const detail = spy.mock.calls[0][0].detail;
-      expect(detail.planId).toBe("plan-abc-123");
-      expect(detail.days).toBe(7);
-    });
-
-    await step("parent wires the generated URL back into the component", async () => {
-      // The component never sets _privateLinkResult itself; the parent receives
-      // the cts-generate-private-link event, calls the server, and sets the URL
-      // on the element. This story exercises the full display path.
-      const el = canvasElement.querySelector("cts-plan-actions");
-      const generatedUrl =
-        "https://localhost.emobix.co.uk:8443/plan-detail.html?plan=plan-abc-123&token=mock-token-7d";
-      el._privateLinkResult = generatedUrl;
-      await el.requestUpdate();
-
-      await waitFor(() => {
-        const result = canvasElement.querySelector('[data-testid="private-link-result"]');
-        expect(result).toBeTruthy();
-        expect(result.textContent).toContain(generatedUrl);
-      });
-    });
-  },
-};
+// The generate → fetch → result → copy flow now lives entirely in
+// cts-private-link-dialog — see cts-private-link-dialog.stories.js (component
+// level) and the end-to-end coverage in plan-detail.spec.js / log-detail.spec.js.
 
 export const ActionsDeletePlanCancel = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
