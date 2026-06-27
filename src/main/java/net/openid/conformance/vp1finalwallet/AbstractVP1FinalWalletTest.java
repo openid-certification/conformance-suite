@@ -86,7 +86,6 @@ import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
-import net.openid.conformance.condition.client.RequestUriFetchedMoreThanOnce;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
@@ -1143,7 +1142,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				testState = TestState.REQUEST_SENT;
 				break;
 			case REQUEST_SENT:
-				callAndContinueOnFailure(RequestUriFetchedMoreThanOnce.class, ConditionResult.FAILURE);
+				// Nothing in OID4VP 1.0 Final requires request_uri to be single-use; a wallet may
+				// re-fetch the Request Object (e.g. after a retry, UI reload or background
+				// re-validation) and is still conformant, so just record it (issue #1826).
+				eventLog.log(getName(), "Wallet has retrieved request_uri another time");
 				break;
 			case RESPONSE_RECEIVED:
 				throw new TestFailureException(getId(), "Wallet called request_uri after already sending a response");
