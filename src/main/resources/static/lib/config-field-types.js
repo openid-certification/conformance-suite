@@ -16,10 +16,10 @@
  *
  *   - `certificate` (covers `client.certificate`, `client2.certificate`)
  *   - `cert`        (covers `mtls.cert`, `mtls2.cert`)
- *   - `jwks`        (covers `client.org_jwks`, `vci.client_attester_keys_jwks`)
+ *   - `jwks`        (covers `client.org_jwks`, `client_attestation.attester_jwks`)
  *   - `key`         (covers `mtls.key`, `private_key`, `public_key`,
  *                    `vci.cwt_signing_key_jwk`)
- *   - `pem`         (covers `vci.*_trust_anchor_pem`)
+ *   - `pem`         (covers `client_attestation.key_attestation_trust_anchor_pem`)
  *
  * An optional trailing `_chain` is accepted (`certificate_chain` etc.).
  * `_uri` is excluded by the trailing `$` anchor — `server.jwks_uri` is a

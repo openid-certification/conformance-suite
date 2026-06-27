@@ -1,0 +1,38 @@
+        <div class="runningTest row" data-instance-id="<%- test.id %>">
+            <div class="col-md-2 testStatusAndResult"> <!-- result/status -->
+
+            </div>
+            <div class="col-md-8"> <!-- test name / date -->
+                <div class="row">
+                    <div class="col-md-1">Test Name:</div>
+                    <div class="col-md-11"><%- test.name %></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">Test ID:</div>
+                    <div class="col-md-11"><%- test.id %></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">Created:</div>
+                    <div class="col-md-11"><%- new Date(test.created) %></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">Updated:</div>
+                    <div class="col-md-11"><%- new Date(test.updated) %></div>
+                </div>
+                <% if (FAPI_UI.currentUser.isAdmin) { %>
+                <div class="row">
+                    <div class="col-md-1">Test Owner:</div>
+                    <div class="col-md-11">
+                        <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+            <div class="col-md-2"> <!-- controls -->
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-light bg-gradient border border-secondary downloadBtn"><span class="bi bi-save2"></span> Download Logs</button>
+                    <a class="btn btn-sm btn-light bg-gradient border border-secondary viewBtn" href="log-detail.html?log=<%- encodeURIComponent(test.id) %>"><span class="bi bi-card-list"></span> View Test Details</a>
+                </div>
+            </div>
+
+        </div>

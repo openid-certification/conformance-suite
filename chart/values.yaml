@@ -11,6 +11,12 @@ application:
   tier: web
   env_slug: ""
   path_slug: ""
+# Serve the frozen pre-redesign UI (the `legacy-ui` Spring profile). Off by default.
+# The deploy script in .gitlab-ci.yml enables it for the demo + production environments
+# (via `--set legacyUi.enabled=true`) while the new UI stabilises. Requires the deployed
+# image to include the legacy-ui code (static-legacy/ etc.); otherwise the profile is a no-op.
+legacyUi:
+  enabled: false
 nodeSelector: {}
 tolerations: {}
 service:

@@ -1,0 +1,10 @@
+
+<fieldset>
+    <legend>Exported Values:</legend>
+    <div class="row">
+        <% _.each(exported, function(val, key) { %>
+        <span class="col-sm-3 text-end"><%- key %></span>
+        <span class="col-sm-9 wrapLongStrings"><%- val %></span>
+        <% }); %>
+    </div>
+</fieldset>
