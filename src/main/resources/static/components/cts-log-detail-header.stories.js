@@ -288,7 +288,9 @@ export const RunningTest = {
       // (was the secondary card pre-redesign).
       const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
       expect(runningHero).toBeTruthy();
-      expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
+      expect(
+        canvas.getByText(/Any URLs that need to be visited interactively/),
+      ).toBeInTheDocument();
     });
 
     await step("stop action is surfaced exclusively in the sticky bar's primary slot", async () => {
@@ -715,11 +717,12 @@ export const WaitingHeroFallbackInstructions = {
   },
 };
 
-// --- Exported values grid (issue #1861) ---
+// --- Exported values disclosure (issue #1861) ---
 //
 // Restores the legacy "Exported Values:" key/value grid the 2026 design
-// refresh dropped. The component already rendered exposed values (as a
-// readonly JSON blob); U1 swaps that for the scannable grid. The data wiring
+// refresh dropped, now rendered as a collapsible "Exported values" disclosure
+// in the drawer (beside "Test details"): keys read as normal label text,
+// values render monospace with a per-row copy button. The data wiring
 // (data.exposed from the /api/runner poll into the header's dedicated
 // `exposed` property) lives in log-detail.js and is covered by the e2e suite —
 // these stories drive the rendering half by setting `.exposed` directly (the
@@ -748,8 +751,9 @@ export const WaitingHeroWithExportedValues = {
       return el;
     });
 
-    await step("renders the 'Exported values:' label and grid", async () => {
-      expect(panel.textContent).toContain("Exported values:");
+    await step("renders the 'Exported values' disclosure summary and grid", async () => {
+      expect(panel.tagName).toBe("DETAILS");
+      expect(panel.textContent).toContain("Exported values");
       expect(panel.querySelector("dl.ctsExposedGrid")).toBeTruthy();
     });
 
@@ -760,6 +764,19 @@ export const WaitingHeroWithExportedValues = {
       for (const [key, value] of entries) {
         expect(panel.textContent).toContain(key);
         expect(panel.textContent).toContain(value);
+      }
+    });
+
+    await step("each value row carries an extra-small copy button", async () => {
+      const rows = panel.querySelectorAll("dd.ctsExposedValue");
+      expect(rows.length).toBe(Object.keys(EXPOSED_VALUES).length);
+      for (const row of rows) {
+        const btn = row.querySelector("cts-button.ctsExposedCopy");
+        expect(btn).toBeTruthy();
+        expect(btn.getAttribute("size")).toBe("xxs");
+        expect(btn.getAttribute("icon")).toBe("copy");
+        // Icon-only button keeps an accessible name via aria-label.
+        expect(btn.getAttribute("aria-label")).toMatch(/^Copy /);
       }
     });
 
@@ -777,14 +794,16 @@ export const RunningHeroWithExportedValues = {
       .exposed=${EXPOSED_VALUES}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const hero = await waitFor(() => {
+    // RUNNING test, exported values present. The grid now lives in the drawer's
+    // "Exported values" disclosure (not the hero), driven by `.exposed`.
+    await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-running"]');
       if (!el) throw new Error("hero-running not yet rendered");
       return el;
     });
-    const panel = hero.querySelector('[data-testid="exposed-values"]');
+    const panel = canvasElement.querySelector('[data-testid="exposed-values"]');
     expect(panel).toBeTruthy();
-    expect(panel.textContent).toContain("Exported values:");
+    expect(panel.textContent).toContain("Exported values");
     expect(panel.querySelectorAll("dt.ctsExposedKey").length).toBe(
       Object.keys(EXPOSED_VALUES).length,
     );
@@ -801,10 +820,10 @@ export const RunningHeroWithoutExportedValues = {
       if (!el) throw new Error("hero-running not yet rendered");
       return el;
     });
-    // Empty `exposed` → the early-return guard fires: no panel, no label.
+    // Empty `exposed` → the early-return guard fires: no disclosure at all.
     // The absent-`exposed` case takes the same branch (covered by e2e).
     expect(canvasElement.querySelector('[data-testid="exposed-values"]')).toBeNull();
-    expect(canvasElement.textContent).not.toContain("Exported values:");
+    expect(canvasElement.textContent).not.toContain("Exported values");
   },
 };
 
