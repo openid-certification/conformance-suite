@@ -139,11 +139,11 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   PASSED/SKIPPED              → no separate hero           │
 //   │   WAITING                     → R24 instructions (Start in│
 //   │                                 sticky bar, not duplicated)│
-//   │   RUNNING                     → exposed values            │
+//   │   RUNNING                     → info alert + browser slot │
 //   ├───────────────────────────────────────────────────────────┤
-//   │ Drawer (Region C — two <details> disclosures)             │
+//   │ Drawer (Region C — <details> disclosures)                 │
 //   │   ▸ Test details (metadata table; closed by default)      │
-//   │   ▸ Configuration (JSON viewer; closed by default)        │
+//   │   ▸ Exported values (live tests only; closed by default)  │
 //   └───────────────────────────────────────────────────────────┘
 //
 // The nav row leads so plan-level orientation sits immediately under
@@ -413,9 +413,9 @@ const STYLE_TEXT = css`
     margin-bottom: var(--space-3);
   }
   /* Once the browser slot is populated by log-detail.js, separate the
-     injected browser-URL prompt from the exposed-values grid
-     (or hero body) above it. Without this the prompt sits flush
-     against the grid, since the hero carries no blanket 'gap'. */
+     injected browser-URL prompt from the hero body (instructions / info
+     alert) above it. Without this the prompt sits flush against the body,
+     since the hero carries no blanket 'gap'. */
   cts-log-detail-header .ctsHero > [data-slot="browser"]:has(*) {
     margin-top: var(--space-4);
   }
@@ -484,39 +484,42 @@ const STYLE_TEXT = css`
     font-weight: var(--fw-medium);
   }
 
-  /* Running / waiting hero — exposed values + browser slot rows.
-     Mirrors the legacy .runningTestRow stack but inside the hero
-     instead of a secondary card. */
-  cts-log-detail-header .ctsExposedLabel {
-    font-weight: var(--fw-bold);
-    color: var(--fg);
-    margin-bottom: var(--space-2);
-  }
   /* Exported runtime values (ssf_*, redirect_uri, client_id, tokens) as a
-     scannable key/value grid — restores the legacy "Exported Values:" grid
-     (templates/exported.html) the design refresh dropped. Key column hugs
-     its content; value column fills and wraps long URLs the way the old
-     wrapLongStrings did. Values MUST stay text-selectable so operators can
-     select-to-copy tokens/URLs — set user-select explicitly because the
-     light-DOM render root could otherwise inherit user-select: none. */
+     scannable key/value grid inside the drawer's "Exported values"
+     disclosure (restores the legacy templates/exported.html grid the design
+     refresh dropped). Key column hugs its content and reads as normal label
+     text; value column fills and wraps long URLs, rendered monospace with a
+     per-row copy button pinned to its right. Values stay text-selectable as a
+     copy fallback — set user-select explicitly because the light-DOM render
+     root could otherwise inherit user-select: none. */
   cts-log-detail-header .ctsExposedGrid {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: var(--space-1) var(--space-3);
+    gap: var(--space-2) var(--space-3);
+    align-items: start;
     margin: 0;
   }
   cts-log-detail-header .ctsExposedKey {
     margin: 0;
-    text-align: right;
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    color: var(--fg-muted);
+    font-size: var(--fs-13);
+    color: var(--fg);
   }
   cts-log-detail-header .ctsExposedValue {
     margin: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
     font-size: var(--fs-13);
+  }
+  cts-log-detail-header .ctsExposedValueText {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-mono);
     overflow-wrap: anywhere;
     user-select: text;
+  }
+  cts-log-detail-header .ctsExposedCopy {
+    flex: 0 0 auto;
   }
 
   /* Drawer (Region C) — two <details> disclosures. Native semantics +
@@ -753,11 +756,12 @@ function ensureStylesInjected() {
  *      PASSED / SKIPPED use the persistent objective summary and do not
  *      need a separate hero; WAITING renders R24 instructions (Start lives in the sticky
  *      status bar, not duplicated in the hero); RUNNING renders the
- *      running-test card content (info alert + exposed values +
- *      browser slot); INTERRUPTED renders the failure list with
- *      the FINAL_ERROR alert pinned at the top of the hero.
- *   6. Region C drawer — two `<details>` disclosures stacked
- *      (Test details, Configuration), both closed by default.
+ *      running-test info alert + browser slot; INTERRUPTED renders the
+ *      failure list with the FINAL_ERROR alert pinned at the top of the
+ *      hero.
+ *   6. Region C drawer — `<details>` disclosures: "Test details"
+ *      (metadata, closed by default) and, for a live test that has
+ *      exported runtime values, "Exported values" (closed by default).
  *
  * Light DOM. Scoped CSS is injected once on first render. All visual
  * styling routes through the OIDF tokens vendored in `oidf-tokens.css`;
@@ -857,13 +861,12 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
-   * Shared key/value definition-list grid. Both the variant list (Test
-   * details drawer) and the exported-values panel (running / waiting hero)
-   * render a `<dl>`/`<dt>`/`<dd>` grid; they differ only in CSS classes, the
-   * accessible name, and whether keys get the `.mono` pill — this helper holds
-   * the one structure both share, removing the duplicate render loop. Callers
-   * pass already-ordered entries (variant: insertion order; exposed:
-   * alphabetically sorted).
+   * Key/value definition-list grid renderer for the variant list (Test details
+   * drawer). Emits a `<dl>`/`<dt>`/`<dd>` grid with one row per entry, with the
+   * CSS classes, accessible name, and `.mono` key pill parameterized.
+   * (The exported-values grid was once a second caller, but it diverged — its
+   * keys are plain text and its values carry a copy button — so it now renders
+   * bespoke in `_renderExposedDisclosure`.)
    * @param {Array<[string, unknown]>} entries - Pre-ordered `[key, value]` pairs.
    * @param {object} opts - Per-call-site presentation.
    * @param {string} opts.dlClass - Class on the wrapping `<dl>`.
@@ -1674,8 +1677,8 @@ class CtsLogDetailHeader extends LitElement {
    * (its primary action for WAITING tests), so the hero does not
    * duplicate it. The slot remains so page-level JS can inject
    * browser-URL prompts during the WAITING window.
-   * @param {TestInfo} test - Test info sourcing `summary`. The exported-values
-   *   grid reads the separate `this.exposed` property, not `test`.
+   * @param {TestInfo} test - Test info sourcing `summary`. Exported values
+   *   render in the drawer's "Exported values" disclosure, not in this hero.
    * @returns {import('lit').TemplateResult} The WAITING hero template.
    */
   _renderWaitingHero(test) {
@@ -1699,16 +1702,15 @@ class CtsLogDetailHeader extends LitElement {
       >
         <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">${eyebrow}</div>
         <div class="ctsHeroBody">${formatDescription(instructions)}</div>
-        ${this._renderExposedValues()}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
     `;
   }
 
   /**
-   * RUNNING hero — info alert + exposed values + browser slot. The exported-
-   * values grid reads the separate `this.exposed` property, so this hero takes
-   * no `test` argument.
+   * RUNNING hero — info alert + browser slot. Exported values now render in the
+   * drawer's "Exported values" disclosure (see `_renderExposedDisclosure`), not
+   * in the hero, so this hero takes no `test` argument.
    * @returns {import('lit').TemplateResult} The RUNNING hero template.
    */
   _renderRunningHero() {
@@ -1716,10 +1718,8 @@ class CtsLogDetailHeader extends LitElement {
       <div class="ctsHero ctsHero--running" data-testid="hero-running">
         <div class="ctsHeroEyebrow">Test running</div>
         <cts-alert variant="info">
-          Live values from the running test are shown below, along with any URLs that need to be
-          visited interactively.
+          This test is running. Any URLs that need to be visited interactively are shown below.
         </cts-alert>
-        ${this._renderExposedValues()}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
     `;
@@ -1727,33 +1727,78 @@ class CtsLogDetailHeader extends LitElement {
 
   /**
    * Exported runtime values (`exposeEnvString` / `expose`) a test publishes
-   * while live — generated URLs, issuer identifiers, access tokens. Rendered
-   * as a key/value grid (restoring the legacy "Exported Values:" grid the
-   * design refresh dropped) instead of a readonly JSON blob, so the typically
-   * short technical values stay scannable and text-selectable for copying.
-   * Reads the dedicated `this.exposed` reactive property (fed by the
-   * `/api/runner` poll in `log-detail.js`, never by `/api/info`), so an
-   * `/api/info` refresh can never clear it. Live-only: it vanishes once the
-   * runner flushes a finished test from memory. Entries render in alphabetical
-   * key order (`localeCompare`) — a stable, scannable order in place of the
-   * backend `HashMap`'s arbitrary serialization order.
-   * @returns {ReturnType<typeof html> | typeof nothing} A `<dl>` grid with one
-   *   `<dt>`/`<dd>` per entry, or `nothing` when no values are exposed.
+   * while live — generated URLs, issuer identifiers, access tokens. Rendered as
+   * a collapsible drawer disclosure (beside "Test details") containing a
+   * key/value grid: keys read as normal label text, values render monospace
+   * with a per-row copy button to their right (values also stay text-selectable
+   * as a copy fallback). Reads the dedicated `this.exposed` reactive property
+   * (fed by the `/api/runner` poll in `log-detail.js`, never by `/api/info`),
+   * so an `/api/info` refresh can never clear it. Live-only: the disclosure
+   * vanishes once the runner flushes a finished test from memory. Entries
+   * render in alphabetical key order (`localeCompare`) — a stable, scannable
+   * order in place of the backend `HashMap`'s arbitrary serialization order.
+   * @returns {ReturnType<typeof html> | typeof nothing} A `<details>`
+   *   disclosure, or `nothing` when no values are exposed.
    */
-  _renderExposedValues() {
+  _renderExposedDisclosure() {
     if (!this.exposed || Object.keys(this.exposed).length === 0) return nothing;
     const entries = Object.entries(this.exposed).sort(([a], [b]) => a.localeCompare(b));
     return html`
-      <div class="ctsExposed" data-testid="exposed-values">
-        <div class="ctsExposedLabel">Exported values:</div>
-        ${this._renderKvList(entries, {
-          dlClass: "ctsExposedGrid",
-          keyClass: "ctsExposedKey",
-          valueClass: "ctsExposedValue",
-          ariaLabel: "Exported values",
-        })}
-      </div>
+      <details data-testid="exposed-values">
+        <summary>
+          <cts-icon name="chevron-right" size="16"></cts-icon>
+          Exported values
+        </summary>
+        <div class="ctsDrawerBody">
+          <dl class="ctsExposedGrid" aria-label="Exported values">
+            ${entries.map(
+              ([key, value]) => html`
+                <dt class="ctsExposedKey">${key}</dt>
+                <dd class="ctsExposedValue">
+                  <span class="ctsExposedValueText">${value}</span>
+                  <cts-button
+                    class="ctsExposedCopy"
+                    variant="ghost"
+                    size="xxs"
+                    icon="copy"
+                    aria-label="Copy ${key}"
+                    title="Copy ${key}"
+                    data-copy-value=${value == null ? "" : String(value)}
+                    @cts-click=${this._handleCopyExposedValue}
+                  ></cts-button>
+                </dd>
+              `,
+            )}
+          </dl>
+        </div>
+      </details>
     `;
+  }
+
+  /**
+   * Copy one exported value to the clipboard and flash the originating copy
+   * button. Mirrors `_handleCopyConfig`'s clipboard + `flashCopyConfirmed`
+   * pattern. The value is read from the button's `data-copy-value` (so the
+   * handler can be passed directly, per `lit/no-template-arrow`); the value
+   * text also stays `user-select: text` as a manual fallback when the
+   * Clipboard API is unavailable.
+   * @param {Event} event - The `cts-click` from the per-row copy button; its
+   *   `currentTarget` carries `data-copy-value` and is flashed on success.
+   */
+  async _handleCopyExposedValue(event) {
+    const trigger = /** @type {HTMLElement | null} */ (event && event.currentTarget);
+    const value = (trigger && trigger.dataset && trigger.dataset.copyValue) || "";
+    if (!navigator.clipboard) {
+      console.warn("[cts-log-detail-header] clipboard unavailable; the value is text-selectable.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch (err) {
+      console.warn("[cts-log-detail-header] copy exported value failed:", err);
+      return;
+    }
+    if (trigger) flashCopyConfirmed(trigger);
   }
 
   // ──────────────────────────── drawer (Region C) ────────────────────────────
@@ -1768,6 +1813,7 @@ class CtsLogDetailHeader extends LitElement {
           </summary>
           <div class="ctsDrawerBody"> ${this._renderMetadataTable(test)} </div>
         </details>
+        ${this._renderExposedDisclosure()}
       </div>
     `;
   }

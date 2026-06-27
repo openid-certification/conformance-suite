@@ -3286,7 +3286,7 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
 
     const panel = page.locator(EXPOSED_PANEL);
     await expect(panel).toBeVisible();
-    await expect(panel).toContainText("Exported values:");
+    await expect(panel).toContainText("Exported values");
     const entries = Object.entries(SSF_EXPOSED);
     await expect(panel.locator("dt.ctsExposedKey")).toHaveCount(entries.length);
     await expect(panel.locator("dd.ctsExposedValue")).toHaveCount(entries.length);
@@ -3298,6 +3298,45 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
       "aria-label",
       "Exported values",
     );
+    // Each value has its own copy button to the right.
+    await expect(panel.locator("cts-button.ctsExposedCopy")).toHaveCount(entries.length);
+  });
+
+  test("each exported value has a copy button that writes the value to the clipboard", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const testId = "test-exposed-008";
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", exposed: SSF_EXPOSED }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible();
+    // The disclosure is collapsed by default — expand it so the copy buttons
+    // are interactable.
+    await panel.locator("summary").click();
+    // Rows are sorted alphabetically, so the first is `alias`. Clicking its
+    // copy button writes that value (not the key) to the clipboard.
+    await panel
+      .locator("dd.ctsExposedValue")
+      .first()
+      .locator("cts-button.ctsExposedCopy button")
+      .click();
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe(SSF_EXPOSED.alias);
   });
 
   test("exported values render in alphabetical key order (KTD4)", async ({ page }) => {
