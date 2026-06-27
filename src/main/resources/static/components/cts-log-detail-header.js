@@ -131,10 +131,12 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │ Terminal-state banner (PASSED/FAILED/WARN/REVIEW/SKIP/    │  status palette
 //   │ INTERRUPTED only; absent during RUNNING / WAITING)        │
 //   ├───────────────────────────────────────────────────────────┤
+//   │ Objective summary ("About this test")                     │  fs-15 body
+//   ├───────────────────────────────────────────────────────────┤
 //   │ Hero (lifecycle-driven dominant zone)                     │  no chrome
 //   │   FAILED/WARNING/REVIEW       → count headline + failure  │  fs-20 head
 //   │   INTERRUPTED                 → error slot + failure list │
-//   │   PASSED/SKIPPED              → R24 description prose     │  fs-15 body
+//   │   PASSED/SKIPPED              → no separate hero           │
 //   │   WAITING                     → R24 instructions (Start in│
 //   │                                 sticky bar, not duplicated)│
 //   │   RUNNING                     → info alert + browser slot │
@@ -725,7 +727,8 @@ function ensureStylesInjected() {
  * @property {string|boolean} publish - Publish mode ("summary", "everything") or falsy.
  * @property {string} summary - Test-level summary. May contain the
  *   `\n\n---\n\n` marker exposed by `./test-summary-split.js` to split
- *   into a description (PASSED hero) and instructions (WAITING hero).
+ *   into a description (persistent objective summary) and instructions
+ *   (WAITING hero).
  *   R24 origin: `docs/brainstorms/2026-04-13-cts-ux-improvement-plan-requirements.md`.
  */
 
@@ -743,16 +746,20 @@ function ensureStylesInjected() {
  *      "Test interrupted") on the matching status palette. Rendered
  *      only when the test has reached a terminal phase (PASSED /
  *      FAILED / WARNING / REVIEW / SKIPPED / INTERRUPTED).
- *   4. Hero — the lifecycle-driven dominant zone. Per
+ *   4. Objective summary — the module-level "About this test" copy.
+ *      Rendered independently of the lifecycle hero so it survives
+ *      failures, waiting states, running states, and successful terminal
+ *      states.
+ *   5. Hero — the lifecycle-driven dominant zone. Per
  *      `docs/brainstorms/2026-04-26-cts-log-detail-header-hierarchy-requirements.md`:
  *      FAILED / WARNING / REVIEW render the failure list as the hero;
- *      PASSED / SKIPPED render the R24 "About this test" description;
- *      WAITING renders R24 instructions (Start lives in the sticky
+ *      PASSED / SKIPPED use the persistent objective summary and do not
+ *      need a separate hero; WAITING renders R24 instructions (Start lives in the sticky
  *      status bar, not duplicated in the hero); RUNNING renders the
  *      running-test info alert + browser slot; INTERRUPTED renders the
  *      failure list with the FINAL_ERROR alert pinned at the top of the
  *      hero.
- *   5. Region C drawer — `<details>` disclosures: "Test details"
+ *   6. Region C drawer — `<details>` disclosures: "Test details"
  *      (metadata, closed by default) and, for a live test that has
  *      exported runtime values, "Exported values" (closed by default).
  *
@@ -1530,7 +1537,8 @@ class CtsLogDetailHeader extends LitElement {
    * the log entries below. The hero is the verdict; the warning is
    * annotation.
    * @param {TestInfo} test - Test info that drives phase routing.
-   * @returns {import('lit').TemplateResult} The hero template for the current lifecycle state.
+   * @returns {import('lit').TemplateResult|typeof nothing} The hero template for the current lifecycle state,
+   *   or `nothing` when the persistent objective summary is enough.
    */
   _renderHero(test) {
     const phase = this._derivePhase(test);
@@ -1544,7 +1552,7 @@ class CtsLogDetailHeader extends LitElement {
     if (mode === "failures") {
       return this._renderFailureHero(this._getFailures());
     }
-    return this._renderSummaryHero(test);
+    return nothing;
   }
 
   /**
@@ -1636,27 +1644,27 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
-   * PASSED / SKIPPED hero — R24 description ("About this test"). When
-   * `summary` is empty falls back to `testInfo.description`; when that
-   * is also empty renders a quiet "No description available"
-   * placeholder so the hero zone never appears empty.
+   * Persistent objective summary. Rendered independently of the lifecycle
+   * hero so the module description remains visible for failures, waiting
+   * states, running states, and successful terminal states alike.
    * @param {TestInfo} test - Test info sourcing `summary` and `description`.
-   * @returns {import('lit').TemplateResult} The summary hero template.
+   * @returns {import('lit').TemplateResult}
    */
-  _renderSummaryHero(test) {
+  _renderObjectiveSummary(test) {
     const summarySplit = splitTestSummary(test.summary || "");
     const description = summarySplit.description || test.description || "";
 
     if (!description) {
       return html`
-        <div class="ctsHero ctsHero--summary" data-testid="hero-summary">
+        <div class="ctsHero ctsHero--summary ctsObjectiveSummary" data-testid="hero-summary">
           <div class="ctsHeroEyebrow">About this test</div>
           <div class="ctsHeroPlaceholder"> No description available for this test. </div>
         </div>
       `;
     }
+
     return html`
-      <div class="ctsHero ctsHero--summary" data-testid="hero-summary">
+      <div class="ctsHero ctsHero--summary ctsObjectiveSummary" data-testid="hero-summary">
         <div class="ctsHeroEyebrow" data-testid="about-test-zone"> About this test </div>
         <div class="ctsHeroBody">${formatDescription(description)}</div>
       </div>
@@ -1869,7 +1877,7 @@ class CtsLogDetailHeader extends LitElement {
   render() {
     if (!this.testInfo) return nothing;
     // Order: nav row (plan progress / Continue Plan) → sticky status
-    // bar → verdict banner → hero → drawer. The nav row carries
+    // bar → verdict banner → objective summary → hero → drawer. The nav row carries
     // plan-level orientation ("Plan progress: Module N of M"), which
     // sits one level UP the IA hierarchy from the sticky bar's
     // per-test verdict + actions; reading the page top-to-bottom
@@ -1878,8 +1886,9 @@ class CtsLogDetailHeader extends LitElement {
     // breadcrumb and plan-progress orientation.
     return html`
       ${this._renderTestNavControlsRow(this.testInfo)} ${this._renderStatusBar(this.testInfo)}
-      ${this._renderTerminalBanner(this.testInfo)} ${this._renderHero(this.testInfo)}
-      ${this._renderDrawer(this.testInfo)} ${this._renderConfigModal()}
+      ${this._renderTerminalBanner(this.testInfo)} ${this._renderObjectiveSummary(this.testInfo)}
+      ${this._renderHero(this.testInfo)} ${this._renderDrawer(this.testInfo)}
+      ${this._renderConfigModal()}
     `;
   }
 

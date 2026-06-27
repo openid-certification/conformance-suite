@@ -5,6 +5,7 @@ import {
   MOCK_TEST_STATUS_LONG_VARIANT,
   MOCK_TEST_FAILED,
   MOCK_TEST_RUNNING,
+  MOCK_TEST_RUNNING_2,
 } from "./fixtures/mock-test-data.js";
 import {
   MOCK_LOG_ENTRIES,
@@ -193,6 +194,29 @@ async function setupV2Routes(page, { testInfo, logEntries, planModules }) {
   );
 }
 
+/**
+ * Count objective-summary zones that are visible to the user.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<number>}
+ */
+async function visibleAboutTestZoneCount(page) {
+  return page.locator('[data-testid="about-test-zone"]').evaluateAll(
+    (nodes) =>
+      nodes.filter((node) => {
+        const el = /** @type {HTMLElement} */ (node);
+        const style = getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        return (
+          style.display !== "none" &&
+          style.visibility !== "hidden" &&
+          rect.width > 0 &&
+          rect.height > 0
+        );
+      }).length,
+  );
+}
+
 test.describe("log-detail.html — new Lit-triad page", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
@@ -223,13 +247,172 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
+  test("keeps About this test visible once across desktop and mobile for passed tests", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const headerSummary = page.locator("cts-log-detail-header .ctsObjectiveSummary");
+    const headerAbout = headerSummary.locator('[data-testid="about-test-zone"]');
+    await expect(headerAbout).toBeVisible();
+    await expect(headerSummary).toContainText(MOCK_TEST_STATUS.description);
+    await expect(page.locator('cts-log-detail-header [data-testid="hero-summary"]')).toHaveCount(1);
+    await expect.poll(() => visibleAboutTestZoneCount(page)).toBe(1);
+
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await expect(headerAbout).toBeVisible();
+    await expect(headerSummary).toContainText(MOCK_TEST_STATUS.description);
+    await expect.poll(() => visibleAboutTestZoneCount(page)).toBe(1);
+  });
+
+  test("keeps About this test visible when the test fails", async ({ page }) => {
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        {
+          _id: "objective-fail-r1",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature invalid",
+        },
+      ],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
+      logEntries: MOCK_FAILED_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(failedTestInfo.testId)}`);
+
+    await expect(page.locator('[data-testid="hero-failures"]')).toBeVisible();
+    const summary = page.locator("cts-log-detail-header .ctsObjectiveSummary");
+    const about = summary.locator('[data-testid="about-test-zone"]');
+    await expect(about).toBeVisible();
+    await expect(summary).toContainText(failedTestInfo.description);
+  });
+
+  test("keeps About this test visible while waiting for user input", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}`);
+
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
+    await expect(page.locator('[data-testid="status-bar"]')).toContainText(
+      "Waiting for user input",
+    );
+    const summary = page.locator("cts-log-detail-header .ctsObjectiveSummary");
+    const about = summary.locator('[data-testid="about-test-zone"]');
+    await expect(about).toBeVisible();
+    await expect(summary).toContainText(MOCK_TEST_RUNNING_2.description);
+    await expect(page.locator("cts-log-detail-header .ctsObjectiveSummary cts-alert")).toHaveCount(
+      0,
+    );
+    await expect
+      .poll(async () => {
+        const headingBox = await about.boundingBox();
+        const bodyBox = await page
+          .locator("cts-log-detail-header .ctsObjectiveSummary .ctsHeroBody")
+          .boundingBox();
+        const actionHeadingBox = await page
+          .locator('[data-testid="user-instructions-zone"]')
+          .boundingBox();
+        const actionBodyBox = await page
+          .locator("cts-log-detail-header .ctsHero--waiting .ctsHeroBody")
+          .boundingBox();
+        if (!headingBox || !bodyBox || !actionHeadingBox || !actionBodyBox) {
+          return Number.POSITIVE_INFINITY;
+        }
+        const aboutGap = Math.round(bodyBox.y - (headingBox.y + headingBox.height));
+        const actionGap = Math.round(
+          actionBodyBox.y - (actionHeadingBox.y + actionHeadingBox.height),
+        );
+        return Math.abs(aboutGap - actionGap);
+      })
+      .toBeLessThanOrEqual(1);
+  });
+
+  test("keeps About this test visible once while the test is running", async ({ page }) => {
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}`);
+
+    await expect(page.locator('[data-testid="hero-running"]')).toBeVisible();
+    await expect(page.locator("cts-log-detail-header")).toContainText(
+      MOCK_TEST_RUNNING.description,
+    );
+    await expect.poll(() => visibleAboutTestZoneCount(page)).toBe(1);
+
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const summary = page.locator("cts-log-detail-header .ctsObjectiveSummary");
+    const about = summary.locator('[data-testid="about-test-zone"]');
+    await expect(about).toBeVisible();
+    await expect(summary).toContainText(MOCK_TEST_RUNNING.description);
+    await expect.poll(() => visibleAboutTestZoneCount(page)).toBe(1);
+  });
+
+  test("keeps About this test visible once when the test is interrupted", async ({ page }) => {
+    const interruptedTestInfo = {
+      ...MOCK_TEST_RUNNING,
+      _id: "objective-interrupted-001",
+      testId: "objective-interrupted-001",
+      status: "INTERRUPTED",
+      result: "INTERRUPTED",
+      results: [],
+    };
+
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupV2Routes(page, {
+      testInfo: interruptedTestInfo,
+      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(interruptedTestInfo.testId)}`);
+
+    await expect(page.locator('[data-testid="hero-interrupted"]')).toBeVisible();
+    await expect(page.locator("cts-log-detail-header")).toContainText(
+      interruptedTestInfo.description,
+    );
+    await expect.poll(() => visibleAboutTestZoneCount(page)).toBe(1);
+
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const summary = page.locator("cts-log-detail-header .ctsObjectiveSummary");
+    const about = summary.locator('[data-testid="about-test-zone"]');
+    await expect(about).toBeVisible();
+    await expect(summary).toContainText(interruptedTestInfo.description);
+    await expect.poll(() => visibleAboutTestZoneCount(page)).toBe(1);
+  });
+
   test("nav row renders above the sticky status bar (IA hierarchy)", async ({ page }) => {
     // The nav row carries plan-level orientation ("Plan progress:
     // Module N of M" + Continue Plan). It sits one level UP the IA
     // hierarchy from the sticky bar's per-test verdict + actions, so
     // reading the page top-to-bottom must be:
     //   breadcrumb (plan link) → nav row (plan progress) → sticky bar
-    //   (this test's verdict) → terminal banner → hero → drawer
+    //   (this test's verdict) → terminal banner → objective summary → hero → drawer
     // This regression locks in the order so a future render-template
     // refactor of cts-log-detail-header can't silently invert it.
     await setupFailFast(page);

@@ -128,6 +128,20 @@ function innerButton(canvasElement, testId) {
 }
 
 /**
+ * Wait for the persistent module-objective summary to render.
+ *
+ * @param {HTMLElement} canvasElement
+ * @returns {Promise<HTMLElement>}
+ */
+async function waitForObjectiveSummary(canvasElement) {
+  return waitFor(() => {
+    const el = canvasElement.querySelector(".ctsObjectiveSummary");
+    if (!el) throw new Error("objective summary not yet rendered");
+    return /** @type {HTMLElement} */ (el);
+  });
+}
+
+/**
  * Open the kebab popover and click the action item with the given id.
  * Most "secondary" actions (Edit configuration, Share link, Publish, etc.)
  * now live exclusively in the status bar's overflow popover after the
@@ -171,11 +185,15 @@ export const CompletedTest = {
       expect(resultBadge).toBeTruthy();
     });
 
-    await step('PASSED hero renders the R24 "About this test" section', async () => {
-      const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
-      expect(summaryHero).toBeTruthy();
-      expect(summaryHero.textContent).toContain("About this test");
-    });
+    await step(
+      'persistent objective summary renders the R24 "About this test" section',
+      async () => {
+        const aboutZone = await waitForObjectiveSummary(canvasElement);
+        expect(aboutZone.textContent).toContain("About this test");
+        expect(aboutZone.textContent).toContain(COMPLETED_TEST.description);
+        expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
+      },
+    );
 
     await step("drawer renders one disclosure (test details), closed by default", async () => {
       const drawer = canvasElement.querySelector('[data-testid="drawer"]');
@@ -219,6 +237,11 @@ export const FailedTest = {
 
       const failureSummary = failureHero.querySelector('[data-testid="failure-summary"]');
       expect(failureSummary).toBeTruthy();
+    });
+
+    await step("FAILED view still renders the module objective", async () => {
+      const aboutZone = await waitForObjectiveSummary(canvasElement);
+      expect(aboutZone.textContent).toContain(FAILED_TEST.description);
     });
 
     await step("failure entries are rendered with src + msg", async () => {
@@ -291,6 +314,11 @@ export const RunningTest = {
       expect(
         canvas.getByText(/Any URLs that need to be visited interactively/),
       ).toBeInTheDocument();
+    });
+
+    await step("RUNNING view still renders the module objective", async () => {
+      const aboutZone = await waitForObjectiveSummary(canvasElement);
+      expect(aboutZone.textContent).toContain(RUNNING_TEST.description);
     });
 
     await step("stop action is surfaced exclusively in the sticky bar's primary slot", async () => {
@@ -455,21 +483,21 @@ export const ConfigDrawerHeightLockedAtFixedValue = {
 export const AllPassed = {
   render: () => html`<cts-log-detail-header .testInfo=${ALL_PASSED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
-      if (!el) throw new Error("hero-summary not yet rendered");
-      return el;
-    });
+    await waitForObjectiveSummary(canvasElement);
 
     await step("PASSED result badge is shown", async () => {
       const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
       expect(resultBadge).toBeTruthy();
     });
 
-    await step("PASSED + no failures renders the summary hero, not the failure hero", async () => {
-      expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeNull();
-      expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
-    });
+    await step(
+      "PASSED + no failures renders the objective summary, not a failure hero",
+      async () => {
+        expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeNull();
+        expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
+        expect(canvasElement.querySelector(".ctsObjectiveSummary")).toBeTruthy();
+      },
+    );
   },
 };
 
@@ -538,12 +566,12 @@ export const PublicView = {
   },
 };
 
-// --- R24: summary zone splitting (PASSED hero context) ---
+// --- R24: summary zone splitting (persistent objective-summary context) ---
 // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
-// In the new hierarchy, the description half of the summary ("About this
-// test") is the dominant element of the PASSED hero. The instructions
-// half ("What you need to do") only renders in the WAITING hero — see
-// the WaitingHeroWithInstructions story below for that path.
+// The description half of the summary ("About this test") now lives in the
+// persistent objective summary. The instructions half ("What you need to do")
+// stays out of that summary on log-detail and renders in the WAITING hero
+// instead — see the WaitingHeroWithInstructions story below for that path.
 
 const SUMMARY_DESCRIPTION_ONLY = "This is a plain test summary, no marker present.";
 
@@ -559,18 +587,15 @@ export const PassedHeroDescriptionOnly = {
       }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
-      if (!el) throw new Error("hero-summary not yet rendered");
-      return el;
-    });
+    const aboutZone = await waitForObjectiveSummary(canvasElement);
 
-    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
-    expect(summaryHero.textContent).toContain("About this test");
-    expect(summaryHero.textContent).toContain("This is a plain test summary");
+    expect(aboutZone.textContent).toContain("About this test");
+    expect(aboutZone.textContent).toContain("This is a plain test summary");
 
-    // Instructions zone is intentionally NOT rendered in PASSED state.
+    // Instructions zone is intentionally NOT rendered in the persistent
+    // objective summary.
     expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
   },
 };
 
@@ -583,18 +608,14 @@ export const PassedHeroDescriptionAndMarkerSplit = {
       }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
-      if (!el) throw new Error("hero-summary not yet rendered");
-      return el;
-    });
+    const aboutZone = await waitForObjectiveSummary(canvasElement);
 
-    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
-    expect(summaryHero.textContent).toContain("Descriptive part of the summary.");
+    expect(aboutZone.textContent).toContain("Descriptive part of the summary.");
 
     // The instructions half of the marker-split summary stays out of the
-    // PASSED hero. It only renders during the WAITING lifecycle.
-    expect(summaryHero.textContent).not.toContain("Imperative part of the summary.");
+    // persistent objective summary. It only renders during the WAITING lifecycle.
+    expect(aboutZone.textContent).not.toContain("Imperative part of the summary.");
+    expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
   },
 };
 
@@ -604,18 +625,15 @@ export const PassedHeroFallbackPlaceholder = {
       .testInfo=${{ ...COMPLETED_TEST, summary: undefined, description: undefined }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
-      if (!el) throw new Error("hero-summary not yet rendered");
-      return el;
-    });
+    await Promise.resolve();
 
-    // When neither summary nor description are available, the hero shows
-    // a quiet placeholder rather than collapsing — the hero's structural
-    // weight in the page stays consistent across tests.
-    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
-    expect(summaryHero.textContent).toContain("About this test");
-    expect(summaryHero.textContent).toContain("No description available");
+    const aboutZone = await waitForObjectiveSummary(canvasElement);
+    // When neither summary nor description are available, the header keeps
+    // the old quiet placeholder so Chromatic still exercises the fallback
+    // visual state.
+    expect(aboutZone.textContent).toContain("About this test");
+    expect(aboutZone.textContent).toContain("No description available");
+    expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
   },
 };
 
@@ -630,19 +648,17 @@ export const PassedHeroWithAutolinkedUrl = {
       .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_WITH_BARE_URL }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
-      if (!el) throw new Error("hero-summary not yet rendered");
-      return el;
-    });
+    const aboutZone = await waitForObjectiveSummary(canvasElement);
 
-    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
-    const link = summaryHero.querySelector(".ctsHeroBody a");
+    const link = /** @type {HTMLAnchorElement | null} */ (
+      aboutZone.querySelector(".ctsHeroBody a")
+    );
     expect(link).toBeTruthy();
+    if (!link) throw new Error("autolink was not rendered");
     expect(link.getAttribute("href")).toBe("https://datatracker.ietf.org/doc/html/rfc9126");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(summaryHero.textContent).toContain("request_uri");
+    expect(aboutZone.textContent).toContain("request_uri");
   },
 };
 
@@ -676,9 +692,9 @@ export const WaitingHeroWithInstructions = {
       expect(waitingHero.textContent).toContain("Action required");
       expect(waitingHero.textContent).toContain("Imperative part of the summary.");
 
-      // Description half intentionally NOT rendered here — that's the PASSED
-      // hero's job. WAITING focuses the operator on what to do, not what
-      // the test is about.
+      // Description half intentionally NOT rendered here — that's the
+      // persistent objective summary's job. WAITING focuses the hero on
+      // what to do, not what the test is about.
       expect(waitingHero.textContent).not.toContain("Descriptive part of the summary.");
 
       // The hero must NOT carry its own Start button — Start is the
@@ -693,6 +709,12 @@ export const WaitingHeroWithInstructions = {
       canvasElement.addEventListener("cts-start-test", startHandler);
       await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
       expect(startHandler).toHaveBeenCalledOnce();
+    });
+
+    await step("objective summary carries the description half while waiting", async () => {
+      const aboutZone = await waitForObjectiveSummary(canvasElement);
+      expect(aboutZone.textContent).toContain("Descriptive part of the summary.");
+      expect(aboutZone.textContent).not.toContain("Imperative part of the summary.");
     });
   },
 };
@@ -1028,6 +1050,8 @@ export const WithFinalErrorSlot = {
     expect(slotById).toBeTruthy();
     expect(slotByAttr).toBeTruthy();
     expect(slotById).toBe(slotByAttr);
+    const aboutZone = await waitForObjectiveSummary(canvasElement);
+    expect(aboutZone.textContent).toContain(RUNNING_TEST.description);
     // With no FINAL_ERROR injected, the slot is empty — the redundant
     // "This test was interrupted. See the error details above." cts-alert
     // that used to sit here was removed once the U3 terminal banner
@@ -1996,6 +2020,11 @@ export const WaitingHeroKeepsStartWhenFreshTest = {
     await step("fresh WAITING hero stays in the user-action form", async () => {
       expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
       expect(waitingHero.textContent).toContain("Action required");
+    });
+
+    await step("fresh WAITING still shows the module objective", async () => {
+      const aboutZone = await waitForObjectiveSummary(canvasElement);
+      expect(aboutZone.textContent).toContain(MOCK_TEST_RUNNING.description);
     });
 
     await step("the bar shows the user-input copy", async () => {

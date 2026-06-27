@@ -366,33 +366,82 @@ export const GUIDED_WIZARD_TREE = {
             {
               id: "rp",
               label: "RP (Client)",
-              result: {
-                plan_name: "fapi2-message-signing-final-client-test-plan",
-                variants: {
-                  client_auth_type: "private_key_jwt",
-                  fapi_profile: "connectid_au",
-                  fapi_request_method: "signed_non_repudiation",
-                  authorization_request_type: "simple",
-                  sender_constrain: "mtls",
-                  fapi_response_mode: "plain_response",
-                  fapi_client_type: "oidc",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi2_connectid_rp",
+                    label: "FAPI2 Message Signing client",
+                    description: "Client-side FAPI2 Message Signing tests for ConnectID.",
+                    result: {
+                      plan_name: "fapi2-message-signing-final-client-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_profile: "connectid_au",
+                        fapi_request_method: "signed_non_repudiation",
+                        authorization_request_type: "simple",
+                        sender_constrain: "mtls",
+                        fapi_response_mode: "plain_response",
+                        fapi_client_type: "oidc",
+                      },
+                    },
+                  },
+                  {
+                    id: "ciba",
+                    label: "CIBA client",
+                    description: "Client-side CIBA tests for ConnectID.",
+                    result: {
+                      plan_name: "fapi-ciba-id1-client-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        ciba_mode: "poll",
+                        fapi_ciba_profile: "connectid_au",
+                      },
+                    },
+                  },
+                ],
               },
             },
             {
               id: "op",
               label: "OP (Authorization Server)",
-              result: {
-                plan_name: "fapi2-message-signing-final-test-plan",
-                variants: {
-                  client_auth_type: "private_key_jwt",
-                  fapi_profile: "connectid_au",
-                  fapi_request_method: "signed_non_repudiation",
-                  authorization_request_type: "simple",
-                  sender_constrain: "mtls",
-                  fapi_response_mode: "plain_response",
-                  openid: "openid_connect",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi2_connectid_op",
+                    label: "FAPI2 Message Signing",
+                    description: "Authorization-server FAPI2 Message Signing tests for ConnectID.",
+                    result: {
+                      plan_name: "fapi2-message-signing-final-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_profile: "connectid_au",
+                        fapi_request_method: "signed_non_repudiation",
+                        authorization_request_type: "simple",
+                        sender_constrain: "mtls",
+                        fapi_response_mode: "plain_response",
+                        openid: "openid_connect",
+                      },
+                    },
+                  },
+                  {
+                    id: "ciba",
+                    label: "CIBA",
+                    description: "CIBA tests for ConnectID.",
+                    result: {
+                      plan_name: "fapi-ciba-id1-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_ciba_profile: "connectid_au",
+                        ciba_mode: "poll",
+                        client_registration: "static_client",
+                      },
+                    },
+                  },
+                ],
               },
             },
           ],
@@ -411,7 +460,7 @@ export const GUIDED_WIZARD_TREE = {
               id: "rp",
               label: "RP (Client)",
               result: {
-                plan_name: "fapi2-message-signing-final-client-test-plan",
+                plan_name: "fapi2-message-signing-id1-client-test-plan",
                 variants: {
                   client_auth_type: "private_key_jwt",
                   fapi_profile: "cbuae",
@@ -427,7 +476,7 @@ export const GUIDED_WIZARD_TREE = {
               id: "op",
               label: "OP (Authorization Server)",
               result: {
-                plan_name: "fapi2-message-signing-final-test-plan",
+                plan_name: "fapi2-message-signing-id1-test-plan",
                 variants: {
                   client_auth_type: "private_key_jwt",
                   fapi_profile: "cbuae",

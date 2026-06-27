@@ -56,8 +56,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const familySelect = page.locator("#specFamilySelect");
     await expect(familySelect).toBeVisible();
 
-    // Should have FAPI and OIDCC as options (from MOCK_PLANS)
-    await expect(familySelect.locator("option")).toHaveCount(3); // blank + FAPI + OIDCC
+    // Should have FAPI, FAPI-CIBA and OIDCC as options (from MOCK_PLANS)
+    await expect(familySelect.locator("option")).toHaveCount(4); // blank + three families
 
     // Select OIDCC → entity selector appears
     await familySelect.selectOption("OIDCC");
@@ -394,6 +394,44 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     // Variant selectors should be hidden (display: none)
     await expect(page.locator("#variantSelectors")).toBeHidden();
+  });
+
+  test("ConnectID shows profile-specific login hint fields", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+
+    await page.locator("#specFamilySelect").selectOption("FAPI-CIBA");
+    await page.locator("#vp_fapi_ciba_profile").selectOption("connectid_au");
+
+    const configField = (target) => page.locator(`cts-form-field[name="${target}"]`);
+
+    await expect(configField("client.login_hint")).toBeVisible();
+    await expect(configField("client.card_primary_account_number")).toBeVisible();
+    await expect(configField("client.hint_type")).toBeHidden();
+    await expect(configField("client.hint_value")).toBeHidden();
+    await expect(configField("client.login_hint").locator("input")).toHaveAttribute(
+      "placeholder",
+      "user@example.com",
+    );
   });
 
   test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({ page }) => {

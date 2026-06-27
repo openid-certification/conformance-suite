@@ -1,0 +1,19 @@
+        <div class="row">
+            <div class="col-md-12 logItem">
+                <div class="row">
+                    <div class="col-md-1"><div class="bg-success testStatusResultBlock"><span class="bi bi-check-circle-fill"></span></div></div>
+                    <div class="col-md-3">
+                        <!-- image view -->
+                        <img src="<%- item.img %>" alt="" class="img-fluid mx-auto imagePreview" />
+                    </div>
+                    <div class="col-md-8">
+                        <% if (item.src) { %>
+                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                        <% } %>
+                        <% if (item.msg) { %>
+                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>

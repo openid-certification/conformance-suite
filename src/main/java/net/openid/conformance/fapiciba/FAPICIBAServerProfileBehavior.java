@@ -67,6 +67,10 @@ public class FAPICIBAServerProfileBehavior {
 		return AbstractFAPICIBAID1.PlainFapiProfileIdTokenValidationSteps.class;
 	}
 
+	public boolean shouldValidateIdTokenAcrClaims() {
+		return true;
+	}
+
 	public boolean shouldKeepBackchannelAuthenticationEndpointAlias(ClientAuthType authType) {
 		return authType == ClientAuthType.MTLS;
 	}
@@ -78,6 +82,20 @@ public class FAPICIBAServerProfileBehavior {
 	 * Default does nothing.
 	 */
 	public ConditionSequence onConfigure() {
+		return null;
+	}
+
+	/**
+	 * Add profile-specific headers to the backchannel authentication endpoint request.
+	 */
+	public ConditionSequence addBackchannelAuthenticationEndpointProfileHeaders() {
+		return null;
+	}
+
+	/**
+	 * Validate profile-specific backchannel authentication endpoint response headers.
+	 */
+	public ConditionSequence validateBackchannelAuthenticationEndpointResponseHeaders() {
 		return null;
 	}
 
@@ -103,6 +121,20 @@ public class FAPICIBAServerProfileBehavior {
 	 * Set up the resource endpoint request body. Default does nothing.
 	 */
 	public ConditionSequence setupResourceEndpointRequestBody() {
+		return null;
+	}
+
+	/**
+	 * Add profile-specific headers to the token endpoint request.
+	 */
+	public ConditionSequence addTokenEndpointProfileHeaders() {
+		return null;
+	}
+
+	/**
+	 * Validate profile-specific token endpoint response headers.
+	 */
+	public ConditionSequence validateTokenEndpointResponseHeaders() {
 		return null;
 	}
 

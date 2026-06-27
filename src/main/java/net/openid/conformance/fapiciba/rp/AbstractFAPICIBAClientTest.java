@@ -227,6 +227,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 	}
 
+	protected void customizeTokenEndpointResponseHeaders() { }
+
+	protected void customizeUserInfoEndpointResponseHeaders() { }
+
 	protected void sendPingRequestAndVerifyResponse() {
 		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
 		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
@@ -490,6 +494,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
+		customizeTokenEndpointResponseHeaders();
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
@@ -509,6 +514,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
+		customizeTokenEndpointResponseHeaders();
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
@@ -534,6 +540,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		}
 
 		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
+		customizeTokenEndpointResponseHeaders();
 		tokenEndpointCallComplete();
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
@@ -652,6 +659,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 		call(profileBehavior.addFapiInteractionIdToUserInfoEndpointResponse());
+		customizeUserInfoEndpointResponseHeaders();
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		JsonObject headerJson = env.getObject("user_info_endpoint_response_headers");
