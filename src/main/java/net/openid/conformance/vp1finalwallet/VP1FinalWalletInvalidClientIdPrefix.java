@@ -24,6 +24,20 @@ public class VP1FinalWalletInvalidClientIdPrefix extends AbstractVP1FinalWalletT
 	}
 
 	@Override
+	protected void performRedirect() {
+		super.performRedirect();
+		// an invalid client_id prefix is detectable from the authorization request
+		// parameters alone, so a conformant wallet may reject the request without ever dereferencing
+		// request_uri (url_query mode has no request_uri fetch at all). Expose the failure-photo
+		// upload as soon as the request has been sent to the wallet, rather than gating it on the
+		// request_uri fetch, and mark the authorization endpoint visited since that fetch may never
+		// happen.
+		markAuthorizationEndpointVisited();
+		createPlaceholder();
+		waitForPlaceholders();
+	}
+
+	@Override
 	protected void createPlaceholder() {
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-1FINAL-5.9");
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
@@ -31,9 +45,9 @@ public class VP1FinalWalletInvalidClientIdPrefix extends AbstractVP1FinalWalletT
 
 	@Override
 	protected void continueAfterRequestUriCalled() {
+		// The placeholder and waitForPlaceholders() are already established in performRedirect(), so
+		// here we only record that the wallet chose to fetch the request object before rejecting.
 		eventLog.log(getName(), "Wallet has retrieved request_uri - the client_id has an invalid prefix scheme, so the wallet should display an error.");
-		createPlaceholder();
-		waitForPlaceholders();
 	}
 
 	@Override
