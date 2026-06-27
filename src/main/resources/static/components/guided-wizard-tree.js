@@ -460,7 +460,7 @@ export const GUIDED_WIZARD_TREE = {
               id: "rp",
               label: "RP (Client)",
               result: {
-                plan_name: "fapi2-message-signing-final-client-test-plan",
+                plan_name: "fapi2-message-signing-id1-client-test-plan",
                 variants: {
                   client_auth_type: "private_key_jwt",
                   fapi_profile: "cbuae",
@@ -476,7 +476,7 @@ export const GUIDED_WIZARD_TREE = {
               id: "op",
               label: "OP (Authorization Server)",
               result: {
-                plan_name: "fapi2-message-signing-final-test-plan",
+                plan_name: "fapi2-message-signing-id1-test-plan",
                 variants: {
                   client_auth_type: "private_key_jwt",
                   fapi_profile: "cbuae",
