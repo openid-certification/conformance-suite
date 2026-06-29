@@ -49,6 +49,9 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 		if (sub == null) {
 			throw error("Missing sub");
 		}
+		if (!clientId.equals(env.getString("client_assertion", "claims.sub"))) {
+			throw error("Subject mismatch", args("expected", clientId, "actual", env.getString("client_assertion", "claims.sub")));
+		}
 
 		JsonElement jti = env.getElementFromObject("client_assertion", "claims.jti");
 		if (jti == null) {
