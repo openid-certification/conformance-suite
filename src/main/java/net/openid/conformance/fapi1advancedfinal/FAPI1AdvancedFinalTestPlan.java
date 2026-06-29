@@ -65,6 +65,8 @@ import java.util.Map;
 		FAPI1AdvancedFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPI1AdvancedFinalEnsureClientAssertionWithWrongAudFails.class,
 		FAPI1AdvancedFinalEnsureClientAssertionWithNoSubFails.class,
+		FAPI1AdvancedFinalEnsureClientAssertionWithWrongIssFails.class,
+		FAPI1AdvancedFinalEnsureClientAssertionWithWrongSubFails.class,
 		FAPI1AdvancedFinalEnsureClientAssertionWithIssAudSucceeds.class,
 
 		//Refresh token tests
@@ -84,6 +86,9 @@ import java.util.Map;
 		FAPI1AdvancedFinalPARAttemptToUseExpiredRequestUri.class,
 		FAPI1AdvancedFinalPARCheckAudienceForJWTClientAssertion.class,
 		FAPI1AdvancedFinalPARArrayAsAudienceForJWTClientAssertion.class,
+		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongAudFails.class,
+		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongIssFails.class,
+		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongSubFails.class,
 		FAPI1AdvancedFinalPAREnsureRequestUriIsBoundToClient.class,
 		FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI1AdvancedFinalPARRejectInvalidHttpVerb.class,
