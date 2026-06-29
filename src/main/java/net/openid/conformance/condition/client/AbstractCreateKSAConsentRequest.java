@@ -19,11 +19,11 @@ public abstract class AbstractCreateKSAConsentRequest extends AbstractCondition 
 	private static final String SAMPLE_MESSAGE_RESOURCE = "/json/ksa/account-access-consent-request.json";
 
 	@Override
-	@PreEnvironment(strings = "client_id", required = "server")
+	@PreEnvironment(required = { "server", "client" })
 	@PostEnvironment(required = "account_requests_endpoint_request")
 	public Environment evaluate(Environment env) {
 
-		String clientId = env.getString("client_id");
+		String clientId = env.getString("client", "client_id");
 
 		JsonObject message = loadSampleMessage();
 		customizeMessageData(message.getAsJsonObject("Data"));
