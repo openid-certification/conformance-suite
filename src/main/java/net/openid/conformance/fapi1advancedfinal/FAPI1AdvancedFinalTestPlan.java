@@ -85,6 +85,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalPARAttemptReuseRequestUri.class,
 		FAPI1AdvancedFinalPARAttemptToUseExpiredRequestUri.class,
 		FAPI1AdvancedFinalPARCheckAudienceForJWTClientAssertion.class,
+		FAPI1AdvancedFinalPARTokenEndpointAsAudienceForJWTClientAssertion.class,
 		FAPI1AdvancedFinalPARArrayAsAudienceForJWTClientAssertion.class,
 		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongAudFails.class,
 		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongIssFails.class,
