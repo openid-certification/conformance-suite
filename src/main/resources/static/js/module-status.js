@@ -10,49 +10,70 @@
  */
 
 /**
+ * The five settled result verdicts mapped to their canonical cts-badge variant.
+ * Module-scoped (allocated once, not per call — these functions run once per
+ * module in a `repeat()` over the whole plan) and shared by both helpers:
+ * `statusBadgeVariant` returns the variant; `statusLabel` uses it as the
+ * membership test for "is this a settled verdict?" (a settled verdict labels
+ * itself). A result absent from this map (UNKNOWN/null) is not settled.
+ * @type {{ [result: string]: string }}
+ */
+const RESULT_VARIANTS = {
+  PASSED: "pass",
+  FAILED: "fail",
+  WARNING: "warn",
+  REVIEW: "review",
+  SKIPPED: "skip",
+};
+
+/**
  * Maps module status/result to a canonical cts-badge variant.
  *
- * - null status        -> "skip" (PENDING — neutral until run)
- * - RUNNING            -> "running"
- * - FINISHED + PASSED  -> "pass"
- * - FINISHED + FAILED  -> "fail"
- * - FINISHED + WARNING -> "warn"
- * - FINISHED + REVIEW  -> "review"
- * - FINISHED + SKIPPED -> "skip"
+ * A settled result verdict wins over the lifecycle status, because a failed
+ * test is reported by the runner as status=INTERRUPTED (it stops on the first
+ * hard failure and never reaches FINISHED) with result=FAILED. Gating the
+ * colour on FINISHED alone painted such a test the neutral `skip` grey instead
+ * of `fail` red (GitLab #1858/#1859). `status` is consulted only when there is
+ * no settled result.
+ *
+ * - null/empty status                 -> "skip" (PENDING — neutral until run)
+ * - any settled result (regardless of FINISHED vs INTERRUPTED status):
+ *     PASSED -> "pass", FAILED -> "fail", WARNING -> "warn",
+ *     REVIEW -> "review", SKIPPED -> "skip"
+ * - else RUNNING                      -> "running"
+ * - else (WAITING, bare INTERRUPTED, UNKNOWN) -> "skip"
  * @param {string|null|undefined} status - Module status: null/undefined,
- *   "RUNNING", or "FINISHED".
- * @param {string|null|undefined} result - Module result when status is
- *   "FINISHED": "PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", or null.
+ *   "RUNNING", "WAITING", "INTERRUPTED", or "FINISHED".
+ * @param {string|null|undefined} result - Module result: "PASSED", "FAILED",
+ *   "WARNING", "REVIEW", "SKIPPED", "UNKNOWN", or null.
  * @returns {string} Canonical cts-badge variant.
  */
 export function statusBadgeVariant(status, result) {
   if (!status) return "skip";
+  if (result && RESULT_VARIANTS[result]) return RESULT_VARIANTS[result];
   if (status === "RUNNING") return "running";
-  if (status === "FINISHED") {
-    const map = {
-      PASSED: "pass",
-      FAILED: "fail",
-      WARNING: "warn",
-      REVIEW: "review",
-      SKIPPED: "skip",
-    };
-    return map[result] || "skip";
-  }
   return "skip";
 }
 
 /**
  * Maps module status/result to a human-readable badge label.
+ *
+ * A settled result verdict wins over the lifecycle status: a failed test is
+ * reported as status=INTERRUPTED, result=FAILED and must read "FAILED", not
+ * "INTERRUPTED" (GitLab #1859). `status` is the label only when there is no
+ * settled verdict — an in-flight test (RUNNING/WAITING), a verdict-less
+ * interruption (bare INTERRUPTED), or a never-run module (PENDING).
  * @param {string|null|undefined} status - Module status: null/undefined,
- *   "RUNNING", or "FINISHED".
- * @param {string|null|undefined} result - Module result when status is
- *   "FINISHED".
- * @returns {string} Display label (e.g. "PENDING", "RUNNING", "PASSED").
+ *   "RUNNING", "WAITING", "INTERRUPTED", or "FINISHED".
+ * @param {string|null|undefined} result - Module result: "PASSED", "FAILED",
+ *   "WARNING", "REVIEW", "SKIPPED", "UNKNOWN", or null.
+ * @returns {string} Display label (e.g. "PENDING", "RUNNING", "PASSED",
+ *   "FAILED").
  */
 export function statusLabel(status, result) {
   if (!status) return "PENDING";
+  if (result && RESULT_VARIANTS[result]) return result;
   if (status === "RUNNING") return "RUNNING";
-  if (status === "FINISHED" && result) return result;
   return status;
 }
 

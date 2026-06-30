@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddJtiToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
-import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
@@ -41,6 +40,6 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsBadFails extends 
 
 		addClientAuthenticationToBackchannelRequest();
 
-		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+		callBackchannelAuthenticationEndpoint();
 	}
 }

@@ -158,19 +158,6 @@ function applyTestInfo(testInfo) {
     topFailureSummary.testId = testId;
   }
   /** @type {any} */
-  const topTestSummary = document.getElementById("ctsTopTestSummary");
-  if (topTestSummary) {
-    // U7 / Region B1: the page-level instance shows the WAITING-state
-    // instructions banner above the failure summary. The header card's
-    // instance keeps showing the full split (description + instructions)
-    // at desktop. Pass the raw summary; the cts-test-summary component's
-    // splitter renders the instructions zone whenever it exists, and the
-    // cts-test-summary returns `nothing` when neither half is present
-    // (e.g. a FINISHED test with no summary), so the empty instance
-    // takes zero vertical room.
-    topTestSummary.summary = (testInfo && testInfo.summary) || "";
-  }
-  /** @type {any} */
   const rail = document.getElementById("ctsLogToc");
   if (rail) {
     // U8 — keep the rail's compact failure summary in lockstep with the
@@ -179,6 +166,9 @@ function applyTestInfo(testInfo) {
     rail.failures = selectFailures(testInfo);
     rail.testId = testId;
   }
+  // Live-sync the current segment when a poll returns a fresh verdict (#1857);
+  // safe no-op until fetchAndApplyPlanState seeds the bar. See the helper's JSDoc.
+  syncCurrentSegmentStatus(testInfo);
 }
 
 /**
@@ -387,6 +377,20 @@ const segmentStatusMemo = new Map();
 const SEGMENT_FANOUT_CONCURRENCY = 6;
 
 /**
+ * Whether a memoized `/api/info` slice is a settled terminal verdict — the
+ * runner has stopped the test (`FINISHED` for a completed run, `INTERRUPTED`
+ * for a failed/aborted one). Used to stop a late page-load fan-out response from
+ * downgrading a segment the live poll (`syncCurrentSegmentStatus`) already
+ * settled to terminal while that fetch was in flight (#1857 race): once the poll
+ * has stopped, nothing would re-correct the stale running fill.
+ * @param {{status?: string} | null | undefined} slice
+ * @returns {boolean}
+ */
+function isTerminalSlice(slice) {
+  return !!slice && (slice.status === "FINISHED" || slice.status === "INTERRUPTED");
+}
+
+/**
  * Fetch one sibling module's most-recent-instance status and merge it into
  * the working module entry, setting `_statusResolved` in BOTH the success
  * and the error/404 branches so the segment settles (colours, or falls back
@@ -431,7 +435,16 @@ async function resolveOneSegment(mod) {
       return;
     }
     const info = await response.json();
-    const slice = { status: info.status, result: info.result };
+    // While this fetch was in flight, the live poll (syncCurrentSegmentStatus)
+    // may have settled this instance to a terminal verdict — the viewed test is
+    // a module's last instance, so the fan-out and the poll race for the same
+    // memo key. Never let a now-stale fan-out response downgrade a settled
+    // terminal slice back to its running fill: the poll stops on the verdict, so
+    // nothing would re-correct it, re-creating the #1857 stuck-segment symptom.
+    const settled = segmentStatusMemo.get(lastInstance);
+    const slice = isTerminalSlice(settled)
+      ? settled
+      : { status: info.status, result: info.result };
     segmentStatusMemo.set(lastInstance, slice);
     mod.status = slice.status;
     mod.result = slice.result;
@@ -503,6 +516,58 @@ function buildSiblingHref(instanceId) {
   );
 }
 
+/**
+ * Live-sync the *current* module's plan-status segment from a fresh `/api/info`
+ * payload. The post-paint fan-out (`resolveSegmentStatuses`) colours every
+ * segment exactly once, at page load; while the user watches a running test the
+ * poll loop (`startRunnerPolling`) keeps re-fetching the current test's
+ * `/api/info` but only fed the header banner — never the bar. So a test that
+ * finished live left its own segment frozen at the running/pending fill it had
+ * at first paint, even as the banner flipped to "Test passed" (#1857). Pushing
+ * the poll's payload into the segment here keeps the bar in lockstep with the
+ * terminal banner. Reusing the payload the poll already holds also sidesteps the
+ * `segmentStatusMemo`, which still caches the stale (e.g. RUNNING) slice from
+ * page load and would short-circuit a naive fan-out re-run.
+ *
+ * Matches on the module's MOST-RECENT instance (`instances[last] === testId`),
+ * NOT `currentModuleIndex` (which matches the full instance list for the "you
+ * are here" marker): a segment's colour is driven by its module's latest
+ * instance, so when the viewer is reading an *older* re-run that segment must
+ * keep showing the newest run's status rather than be clobbered by the old
+ * instance's poll. The last-instance match restricts the repaint to the normal
+ * live case (watching the most recent run).
+ *
+ * No-ops safely before the bar is seeded (the first `applyTestInfo` at bootstrap
+ * runs before `fetchAndApplyPlanState`), when the payload carries no status, or
+ * when the viewed instance is not any module's most-recent instance.
+ *
+ * @param {{status?: string, result?: string} | null | undefined} testInfo - The
+ *   latest `/api/info` payload for the viewed test.
+ * @returns {void}
+ */
+function syncCurrentSegmentStatus(testInfo) {
+  if (!testInfo || !testInfo.status) return;
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  const modules = header && header.planModules;
+  if (!Array.isArray(modules)) return; // pre-seed (bar not yet seeded) → no-op
+  const mod = modules.find((m) => {
+    const instances = Array.isArray(m.instances) ? m.instances : [];
+    return instances.length > 0 && instances[instances.length - 1] === testId;
+  });
+  if (!mod) return; // older re-run, or current test not in this plan → leave the segment
+  if (mod.status === testInfo.status && mod.result === testInfo.result) return; // unchanged
+  mod.status = testInfo.status;
+  mod.result = testInfo.result;
+  mod._statusResolved = true;
+  // Keep the fan-out memo consistent so any later read of the current instance
+  // never reintroduces the stale slice it cached at page load (KTD1).
+  segmentStatusMemo.set(testId, { status: testInfo.status, result: testInfo.result });
+  // Fresh array so cts-plan-status observes the change (Lit's default hasChanged
+  // is reference equality) and repaints the segment — mirrors resolveSegmentStatuses.
+  header.planModules = modules.slice();
+}
+
 /** ──────────── /api/uploaded-images ──────────── */
 
 async function fetchUploadedImageCount(testInfo) {
@@ -537,8 +602,8 @@ async function fetchUploadedImageCount(testInfo) {
  * polling loop's exit: a test in `{status: "FINISHED", result: null}`
  * is the transient state where the runner has flagged terminal but the
  * verdict hasn't been persisted yet, and polling should continue until
- * the verdict lands. Mirrors cts-log-detail-header's TERMINAL_RESULTS
- * set — REVIEW, WARNING, and SKIPPED all qualify as verdicts.
+ * the verdict lands. Any non-empty `result` qualifies as a verdict —
+ * PASSED, FAILED, WARNING, REVIEW, and SKIPPED all count.
  * @param {{status?: string, result?: string} | null | undefined} testInfo
  * @returns {boolean}
  */

@@ -30,6 +30,9 @@ public abstract class AbstractGenerateKey extends AbstractCondition {
 			case "EdDSA":
 				generator = new OctetKeyPairGenerator(Curve.Ed25519).algorithm(JWSAlgorithm.EdDSA);
 				break;
+			case "Ed25519":
+				generator = new OctetKeyPairGenerator(Curve.Ed25519).algorithm(JWSAlgorithm.Ed25519);
+				break;
 			case "PS256":
 				generator = new RSAKeyGenerator(RSA_KEY_SIZE).algorithm(JWSAlgorithm.PS256);
 				break;

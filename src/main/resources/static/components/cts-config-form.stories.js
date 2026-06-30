@@ -1,7 +1,10 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
+import { MOCK_PLANS } from "@fixtures/mock-plans.js";
 import { MOCK_SCHEMA } from "@fixtures/mock-schema.js";
 import { VALIDATE_FEEDBACK_DELAY_MS } from "./cts-config-form.js";
+import { buildConfigFormSchema, computeHiddenFields } from "./config-form-adapter.js";
+import FIELD_CATALOG from "../js/config-field-catalog.json";
 
 /**
  * `waitFor` options for assertions gated on the validate feedback window.
@@ -278,6 +281,62 @@ export const WithValidationErrors = {
     await step("inputs in error state pick up the rust border via .is-error", async () => {
       const issuerInput = canvasElement.querySelector('input[type="url"]');
       expect(issuerInput.classList.contains("is-error")).toBe(true);
+    });
+  },
+};
+
+export const ConnectIdCibaVariantFields = {
+  render: () => {
+    const plan = MOCK_PLANS.find((p) => p.planName === "fapi-ciba-id1-test-plan");
+    if (!plan) {
+      throw new Error("fapi-ciba-id1-test-plan missing from Storybook fixtures");
+    }
+    const planInfo = /** @type {any} */ ({
+      configurationFields: plan.configurationFields,
+      hidesConfigurationFields: plan.hidesConfigurationFields,
+      variants: plan.variants,
+    });
+    const selectedVariant = { fapi_ciba_profile: "connectid_au" };
+    const { schema, uiSchema } = buildConfigFormSchema(planInfo, FIELD_CATALOG, selectedVariant);
+
+    return html`
+      <cts-config-form
+        .schema=${schema}
+        .uiSchema=${uiSchema}
+        .config=${{}}
+        .errors=${{}}
+        .hiddenFields=${computeHiddenFields(planInfo, selectedVariant, FIELD_CATALOG)}
+      ></cts-config-form>
+    `;
+  },
+  async play({ canvasElement, step }) {
+    const field = (name) => canvasElement.querySelector(`cts-form-field[name="${name}"]`);
+
+    await step("ConnectID-specific login hint fields render from the catalog", async () => {
+      await waitFor(() => {
+        expect(field("client.login_hint")).toBeTruthy();
+        expect(field("client.card_primary_account_number")).toBeTruthy();
+      });
+      expect(field("client.login_hint").querySelector("input").getAttribute("placeholder")).toBe(
+        "user@example.com",
+      );
+      expect(
+        field("client.card_primary_account_number")
+          .querySelector("input")
+          .getAttribute("placeholder"),
+      ).toBe("6372069742108725");
+    });
+
+    await step("payment authorization detail fields render alongside the card PAN", async () => {
+      expect(field("client.payment_amount")).toBeTruthy();
+      expect(field("client.payment_currency")).toBeTruthy();
+      expect(field("client.payment_beneficiary_name")).toBeTruthy();
+      expect(field("client.payment_desc")).toBeTruthy();
+    });
+
+    await step("the ConnectID profile hides the generic CIBA hint fields", async () => {
+      expect(field("client.hint_type")).toBeNull();
+      expect(field("client.hint_value")).toBeNull();
     });
   },
 };

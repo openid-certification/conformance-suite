@@ -1,0 +1,47 @@
+<%
+
+var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
+var textColor = chroma(bgColor).luminance() > 0.6 ? 'black' : 'white';
+
+%>
+<div class="row">
+    <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem startBlock"
+        style="background: <%- bgColor %>; color: <%- textColor %>;">
+
+        <div class="row"><!-- time / block title / owner -->
+
+            <div class="col-md-1">
+                <% if (item.time) { %>
+                    <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                <% } %>
+
+                <div class="col-md-1 moreButtonContainer">
+
+                </div>
+            </div>
+
+             <div class="col-md-10">
+                 <% if (item.msg) { %>
+                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                 <% } %>
+             </div>
+
+             <div class="col-md-1">
+                 <% if (item.testOwner
+                         && FAPI_UI.currentUser
+                         && (item.testOwner.iss != FAPI_UI.currentUser.iss
+                             || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
+                     <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
+                 <% } %>
+             </div>
+
+        </div>
+
+        <div class="row"><!-- more info panel -->
+            <div class="moreInfoContainer">
+
+            </div>
+        </div>
+
+    </div>
+</div>

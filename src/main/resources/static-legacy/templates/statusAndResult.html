@@ -1,0 +1,10 @@
+        <div class="testStatusResultBlock testStatus-<%- test.status ? test.status.toLowerCase() : 'unknown' %>">
+            <%- (test.status && test.status != 'UNKNOWN') ? test.status : 'NOT RUN' %>
+            <sup><span class="bi bi-question-circle-fill" data-bs-toggle="tooltip" title="<%- FAPI_UI.getStatusHelp(test.status) %>" data-bs-placement="right"></span></sup>
+        </div>
+        <% if (test.status && test.status != 'UNKNOWN') { %>
+            <div class="testStatusResultBlock testResult-<%- test.result ? test.result.toLowerCase() : 'unknown' %>">
+                <%- test.result ? test.result : 'UNKNOWN' %>
+                <sup><span class="bi bi-question-circle-fill" data-bs-toggle="tooltip" title="<%- FAPI_UI.getResultHelp(test.result) %>" data-bs-placement="right"></span></sup>
+            </div>
+        <% } %>

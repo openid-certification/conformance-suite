@@ -294,7 +294,7 @@ const ECOSYSTEM_DESC = {
   open_insurance_brazil: "Open Insurance Brazil — insurance APIs on FAPI1.",
   open_banking_uk: "UK Open Banking — FAPI1 Advanced.",
   cdr_au: "Australian Consumer Data Right — FAPI1 Advanced.",
-  connectid_au: "ConnectID Australia — FAPI2 Message Signing.",
+  connectid_au: "ConnectID Australia — FAPI2 Message Signing and CIBA.",
   cbuae: "Central Bank of the UAE — FAPI2 Message Signing.",
   ksa: "Saudi Central Bank (SAMA) — FAPI1 (v1) or FAPI2 (v2).",
 };

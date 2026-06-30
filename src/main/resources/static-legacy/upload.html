@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+
+<title>OIDF Conformance: Image Uploader</title>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+<!-- Boostrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+<link rel="stylesheet" type="text/css" href="css/layout.css">
+
+<!-- Popper (necessary for Bootstrap's tooltips) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous" type="text/javascript"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script type="text/javascript" src="js/fapi.ui.js"></script>
+
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", () => {
+
+        var urlParams = new URLSearchParams(window.location.search);
+        var testId = urlParams.get('log');
+
+        FAPI_UI.showBusy();
+
+        FAPI_UI.loadImageUploadTemplates() // load the templates
+        .then(function() {
+            return FAPI_UI.getUserInfo(); // then get the current user
+        }).then(function() {
+            return loadImagesForLog(testId); // load the existing and placeholder images and render the page
+        }).then(function() {
+            return getHeader(testId); // render the header, which includes test info
+        }).finally(function() {
+            FAPI_UI.hideBusy();
+        });
+
+    });
+
+    function getUploadedImageCount() {
+        /*
+         * Attempt to determine the number of uploaded images by counting the
+         * number of log items currently shown.
+         */
+        return document.querySelectorAll('#imageBlocks .logItem').length;
+    }
+
+    function validateSelectedImageFile(file) {
+        // Impose as 550KB file size limit.
+        const UPLOAD_SIZE_LIMIT = 500 * 1024;
+
+        if (file.size > UPLOAD_SIZE_LIMIT) {
+            FAPI_UI.showError({"error":"Invalid File Size", "message":"File size exceeds the 500KB limit"});
+            return false;
+        }
+
+        // Limit the accepted file types.
+        let typeMatched = ["image/jpeg", "image/png"].includes(file.type);
+
+        if (! typeMatched) {
+            FAPI_UI.showError({"error":"Invalid File Type", "message":"Only jpeg/png files accepted"});
+            return false;
+        }
+
+        return true;
+    }
+
+    function formReset() {
+        // reset the form
+        document.querySelector('#additionalUploader .uploadBtn').disabled = true;
+        document.querySelector('#additionalUploader .uploadBtn').classList.remove('btn-success');
+        document.querySelector('#additionalUploader .uploadBtn').classList.add('btn-light');
+
+        document.querySelector('#additionalUploader .imagePreview').src = '/images/placeholder.png';
+
+        document.querySelector('#additionalUploader [type="file"]').value = '';
+    }
+
+    function loadImagesForLog(testId) {
+        return fetch('/api/log/' + encodeURIComponent(testId) + '/images')
+        .then((response) => {
+            if (!response.ok) {
+                return Promise.reject(response);
+            }
+
+            return response.json();
+        })
+        .then((data) => {
+            _.each(data, function(item) {
+                // check to see if it's an "upload required" or an existing image
+                if (item.upload) {
+                    //console.log('Upload required: ' + item._id);
+                    document.getElementById('imageBlocks').insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PENDING({item: item}));
+                } else if (item.img) {
+                    //console.log('Existing image: ' + item._id);
+                    document.getElementById('imageBlocks').insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.EXISTING({item: item}));
+                } else {
+                    FAPI_UI.showError({
+                        error: 'Unhandled image entry from logs: ' + item._id
+                    });
+                }
+            });
+
+            // wire up the buttons on all the image uploaders
+            document.querySelectorAll('[data-upload-id]')?.forEach(function(el) {
+                el.querySelector('[type="file"]').addEventListener("change", function(evt){
+                    // Validate the selected file before upload.
+                    if (validateSelectedImageFile(this.files[0])) {
+                        var reader = new FileReader();
+
+                        reader.onload = function(evt) {
+                            // once it's loaded from the file, preview it and enable the upload button
+
+                            var content = evt.target.result;
+                            el.querySelector('.imagePreview').src = content;
+
+                            el.querySelector('.uploadBtn').disabled = false;
+                            el.querySelector('.uploadBtn').classList.remove('btn-light');
+                            el.querySelector('.uploadBtn').classList.add('btn-success');
+                        };
+
+                        // this reads the file data and triggers the 'onload' function above
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+
+                el.querySelector('.uploadBtn').onclick = function(evt) {
+                    evt.preventDefault();
+
+                    var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.dataset.uploadId);
+
+                    fetch(url, {
+                        method: "POST",
+                        body: el.querySelector('.imagePreview').src,
+                    })
+                    .then((response) => {
+                        if (!response.ok) {
+                            return Promise.reject(response);
+                        }
+
+                        return response.json();
+                    })
+                    .then((data) => {
+                        // on a successful upload, replace the old element with a new one
+                        el.innerHTML = FAPI_UI.logTemplates.EXISTING({item: data});
+                    })
+                    .catch((error) => {
+                        // reset the form
+                        if (error instanceof Response) {
+                            // We have a 'Respose' object.
+                            var message = error.statusText;
+                            var responseClone = error.clone();
+
+                            error.text()
+                            .then(textError => {
+                                // Text error thrown by the app
+                                messageParsed = true;
+
+                                try {
+                                    const errorObj = JSON.parse(textError);
+
+                                    if (errorObj.error.length != 0) {
+                                        message = errorObj.error;
+                                    }
+                                }
+                                catch (e) {
+                                }
+
+                                FAPI_UI.showError({code: error.status.toString(), error: message});
+                            })
+                            .catch(error1 => {
+                                // JSON error thrown by the app
+                                responseClone.json()
+                                .then(jsonError => {
+                                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                        message = jsonError;
+                                    }
+
+                                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                                })
+                                .catch(genericError => {
+                                    // Error thrown by the server
+                                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                });
+                            });
+                        } else {
+                            // Network error automatically detected by fetch.
+                            FAPI_UI.showError({code: "", error: error});
+                        }
+
+                        // reset the form
+                        el.querySelector('.uploadBtn').disabled = true;
+                        el.querySelector('.uploadBtn').classList.remove('btn-success');
+                        el.querySelector('.uploadBtn').classList.add('btn-light');
+
+                        el.querySelector('.imagePreview').src = '/images/placeholder.png';
+
+                        el.querySelector('[type="file"]').value = '';
+                    });
+                };
+            });
+
+            // wire up the buttons on the "add a new image" panel
+            document.querySelector('#additionalUploader [type="file"]').addEventListener("change", function(evt){
+                // Validate the selected file before upload.
+                if (! validateSelectedImageFile(this.files[0])) {
+                    // reset the form
+                    formReset();
+
+                    return;
+                }
+
+                var reader = new FileReader();
+
+                reader.onload = function(evt) {
+                    // once it's loaded from the file, preview it and enable the upload button
+
+                    var content = evt.target.result;
+                    document.querySelector('#additionalUploader .imagePreview').src = content;
+
+                    document.querySelector('#additionalUploader .uploadBtn').disabled = false;
+                    document.querySelector('#additionalUploader .uploadBtn').classList.remove('btn-light');
+                    document.querySelector('#additionalUploader .uploadBtn').classList.add('btn-success');
+                };
+
+                // this reads the file data and triggers the 'onload' function above
+                reader.readAsDataURL(this.files[0]);
+            });
+
+            document.querySelector('#additionalUploader .uploadBtn').onclick = function(evt) {
+                evt.preventDefault();
+
+                var desc = document.querySelector('#additionalUploader #uploadDescription').value;
+
+                var url = "/api/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
+
+                fetch(url, {
+                    method: "POST",
+                    body: document.querySelector('#additionalUploader .imagePreview').src
+                })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+
+                    return response.json();
+                })
+                .then((data) => {
+                    // on a successful upload, append the new log entry to the display
+                    document.getElementById('imageBlocks').insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.EXISTING({item: data}));
+
+                    // impose an upload limit of 2
+                    if (getUploadedImageCount() >= 2) {
+                        // hide the uploader when the limit is reached
+                        document.getElementById('additionalUploader').style.display = 'none';
+                    }
+
+                    // reset the form
+                    formReset();
+                })
+                .catch((error) => {
+                    formReset();
+
+                    if (error instanceof Response) {
+                        // We have a 'Respose' object.
+                        var message = error.statusText;
+                        var responseClone = error.clone();
+
+                        error.text()
+                        .then(textError => {
+                            // Text error thrown by the app
+                            messageParsed = true;
+
+                            try {
+                                const errorObj = JSON.parse(textError);
+
+                                if (errorObj.error.length != 0) {
+                                    message = errorObj.error;
+                                }
+                            }
+                            catch (e) {
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(error1 => {
+                            // JSON error thrown by the app
+                            responseClone.json()
+                            .then(jsonError => {
+                                if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                    message = jsonError;
+                                }
+
+                                FAPI_UI.showError({code: error.status.toString(), error: message});
+                            })
+                            .catch(genericError => {
+                                // Error thrown by the server
+                                FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                            });
+                        });
+                    } else {
+                        // Network error automatically detected by fetch.
+                        FAPI_UI.showError({code: "", error: error});
+                    }
+                });
+            };
+
+            // wire up paste support
+            document.body.addEventListener("paste", function(e){
+
+                var reader = new FileReader();
+
+                reader.onload = function(evt) {
+                    var content = evt.target.result;
+
+                    // find the first image preview in the document -- this will either be the top placeholder or the "add an additional image" block if there are no placeholders
+                    // note that "existing image" viewers don't have the "imagePasteTarget" class on them and therefore don't show up in this query
+
+                    var target = document.querySelector('.imagePasteTarget');
+
+                    target.src  = content;
+
+                    var parent = target.parentNode;
+                    while (parent != null) {
+                        parent.querySelectorAll('.logItem')?.forEach(function(element) {
+                            element.querySelectorAll('.uploadBtn')?.forEach(function(element1) {
+                                element1.disabled = false;
+                                element1.classList.remove('btn-light');
+                                element1.classList.add('btn-success');
+                            });
+                        });
+
+                        parent = parent.parentNode;
+                    }
+                };
+
+                // loop through the clipboard to see if there's an image; when found, send to the reader which triggers the 'onload' function above
+                _.each(e.clipboardData.items, function(item) {
+                    if (item.type.startsWith('image/')) {
+                        // Validate the paste buffer file before upload.
+                        if (! validateSelectedImageFile(item.getAsFile())) {
+                            // reset the form
+                            var target = document.querySelector('.imagePasteTarget');
+
+                            var parent = target.parentNode;
+                            while (parent != null) {
+                                parent.querySelector('.logItem')?.forEach(function(element) {
+                                    element.querySelectorAll('.uploadBtn')?.forEach(function(element1) {
+                                        element1.disabled = true;
+                                        element1.classList.remove('btn-success');
+                                        element1.classList.add('btn-light');
+                                    });
+                                });
+
+                                parent = parent.parentNode;
+                            }
+
+                            target.src = '/images/placeholder.png';
+                            target.querySelector('[type="file"]').value = '';
+
+                            return;
+                        }
+
+                        reader.readAsDataURL(item.getAsFile());
+                    }
+                });
+
+            });
+        })
+        .catch((error) => {
+            if (error instanceof Response) {
+                // We have a 'Respose' object.
+                var message = error.statusText;
+                var responseClone = error.clone();
+
+                error.text()
+                .then(textError => {
+                    // Text error thrown by the app
+                    messageParsed = true;
+
+                    try {
+                        const errorObj = JSON.parse(textError);
+
+                        if (errorObj.error.length != 0) {
+                            message = errorObj.error;
+                        }
+                    }
+                    catch (e) {
+                    }
+
+                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                })
+                .catch(error1 => {
+                    // JSON error thrown by the app
+                    responseClone.json()
+                    .then(jsonError => {
+                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                            message = jsonError;
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(genericError => {
+                        // Error thrown by the server
+                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                    });
+                });
+            } else {
+                // Network error automatically detected by fetch.
+                FAPI_UI.showError({code: "", error: error});
+            }
+        });
+    }
+
+    function getHeader(testId) {
+        return fetch('/api/info/' + encodeURIComponent(testId))
+        .then((response) => {
+            if (!response.ok) {
+                return Promise.reject(response);
+            }
+
+            return response.json();
+        })
+        .then((data) => {
+            document.getElementById('testInfo').innerHTML = FAPI_UI.logTemplates.UPLOAD_HEADER({test: data});
+        })
+        .catch((error) => {
+            if (error instanceof Response) {
+                // We have a 'Respose' object.
+                var message = error.statusText;
+                var responseClone = error.clone();
+
+                error.text()
+                .then(textError => {
+                    // Text error thrown by the app
+                    messageParsed = true;
+
+                    try {
+                        const errorObj = JSON.parse(textError);
+
+                        if (errorObj.error.length != 0) {
+                            message = errorObj.error;
+                        }
+                    }
+                    catch (e) {
+                    }
+
+                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                })
+                .catch(error1 => {
+                    // JSON error thrown by the app
+                    responseClone.json()
+                    .then(jsonError => {
+                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                            message = jsonError;
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(genericError => {
+                        // Error thrown by the server
+                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                    });
+                });
+            } else {
+                // Network error automatically detected by fetch.
+                FAPI_UI.showError({code: "", error: error});
+            }
+        });
+    }
+</script>
+</head>
+<body>
+
+    <div class="pageHeader container-fluid">
+        <div class="row">
+            <div class="col-md-7">
+                <a href="index.html"><img src="/images/openid.png" alt=""></a>
+            </div>
+            <div id="userInfoHolder" class="col-md-5"></div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+
+    <!-- error modal -->
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- loading modal -->
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="card p-3">
+            <div id="testInfo" class="card-body">
+            </div>
+        </div>
+
+        <div class="logContent container-fluid">
+            <div id="imageBlocks">
+
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 logItem" id="additionalUploader">
+                    <div class="row">
+                        <div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="bi bi-cloud-upload"></span></div></div>
+                        <div class="col-md-3">
+                            <!-- image preview -->
+                            <img src="images/placeholder.png" alt="" class="img-fluid mx-auto d-block imagePreview imagePasteTarget" />
+                        </div>
+                        <div class="col-md-8">
+                            <p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+
+                            <input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
+                            <label class="btn btn-sm btn-light bg-gradient border border-secondary">
+                                <span class="bi bi-camera-fill"></span> Select File</input>
+                                    <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
+                            </label>
+                            <button class="btn btn-sm btn-light bg-gradient border border-secondary uploadBtn" disabled>Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer class="pageFooter">
+        <span class="muted">OpenID Foundation conformance suite</span>
+    </footer>
+
+</body>
+
+</html>

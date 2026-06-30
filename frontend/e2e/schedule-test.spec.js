@@ -374,6 +374,48 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#variantSelectors")).toBeHidden();
   });
 
+  test("ConnectID shows profile-specific login hint fields", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+
+    // Pick the FAPI-CIBA AS plan through the single picker (cts-spec-cascade and
+    // its #specFamilySelect were removed), then choose the ConnectID profile so
+    // the profile-conditional config fields resolve. fapi-ciba-id1-test-plan is
+    // the only FAPI-CIBA plan in MOCK_PLANS and carries the login-hint fields.
+    await selectPlanViaSearch(page, "fapi-ciba-id1-test-plan");
+    await page.locator("#vp_fapi_ciba_profile").selectOption("connectid_au");
+
+    const configField = (target) => page.locator(`cts-form-field[name="${target}"]`);
+
+    await expect(configField("client.login_hint")).toBeVisible();
+    await expect(configField("client.card_primary_account_number")).toBeVisible();
+    await expect(configField("client.hint_type")).toBeHidden();
+    await expect(configField("client.hint_value")).toBeHidden();
+    await expect(configField("client.login_hint").locator("input")).toHaveAttribute(
+      "placeholder",
+      "user@example.com",
+    );
+  });
+
   test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({ page }) => {
     await setupFailFast(page);
 

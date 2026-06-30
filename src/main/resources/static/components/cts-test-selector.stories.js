@@ -16,6 +16,9 @@ export default {
   },
 };
 
+const SEARCH_FILTER_QUERY = "Security Profile";
+const SEARCH_FILTER_EXPECTED_ROWS = 1;
+
 export const Default = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement, step }) {
@@ -92,10 +95,10 @@ export const SearchFilter = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
     const searchInput = canvasElement.querySelector(".oidf-test-selector__search");
-    await userEvent.type(searchInput, "FAPI");
+    await userEvent.type(searchInput, SEARCH_FILTER_QUERY);
     await waitFor(() => {
       const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
-      expect(items.length).toBe(2);
+      expect(items.length).toBe(SEARCH_FILTER_EXPECTED_ROWS);
     });
   },
 };
@@ -118,10 +121,10 @@ export const SearchClearButton = {
     });
 
     await step("typing filters the rows and reveals the clear button", async () => {
-      await userEvent.type(searchInput, "FAPI");
+      await userEvent.type(searchInput, SEARCH_FILTER_QUERY);
       await waitFor(() => {
         const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
-        expect(items.length).toBe(2);
+        expect(items.length).toBe(SEARCH_FILTER_EXPECTED_ROWS);
       });
 
       const clearBtn = /** @type {HTMLButtonElement} */ (
@@ -166,10 +169,10 @@ export const SearchEscapeClears = {
     );
 
     await step("typing filters the rows", async () => {
-      await userEvent.type(searchInput, "FAPI");
+      await userEvent.type(searchInput, SEARCH_FILTER_QUERY);
       await waitFor(() => {
         const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
-        expect(items.length).toBe(2);
+        expect(items.length).toBe(SEARCH_FILTER_EXPECTED_ROWS);
       });
     });
 

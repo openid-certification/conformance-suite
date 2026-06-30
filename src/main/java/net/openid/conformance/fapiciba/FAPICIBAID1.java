@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.AddClientNotificationTokenToAutho
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
@@ -27,9 +26,7 @@ import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
@@ -46,14 +43,12 @@ import net.openid.conformance.variant.VariantSetup;
 )
 
 public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
-	private Class<? extends ConditionSequence> generateNewClientAssertionSteps = null;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
-		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
 	@Override
@@ -154,13 +149,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 			eventLog.startBlock("Attempting reuse of client2's auth_req_id (which should fail)");
 			switchToSecondClient();
 
-			if (generateNewClientAssertionSteps != null) {
-				mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-				call(sequence(generateNewClientAssertionSteps));
-				unmapClientAuthKeys();
-			}
-
-			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class,  "CIBA-11");
+			callTokenEndpointForCibaGrant();
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 			callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
@@ -181,7 +170,7 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 	protected void performProfileIdTokenValidation() {
 		super.performProfileIdTokenValidation();
 
-		if (isSecondClient()) {
+		if (isSecondClient() && profileBehavior.shouldValidateIdTokenAcrClaims()) {
 			skipIfElementMissing("server", "acr_values_supported",
 				Condition.ConditionResult.INFO, FAPICIBAValidateIdTokenACRClaims.class,
 				Condition.ConditionResult.FAILURE, "CIBA-7.1", "FAPI-CIBA-5.2.2-8");

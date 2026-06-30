@@ -1,0 +1,19 @@
+            <div class="labelCollection">
+            <% _.each(item.requirements, function(requirement) {
+                var sectionIndex = '';
+                var spec = _.find(_.keys(FAPI_UI.specLinks), function(prefix) {
+                    if (requirement.indexOf(prefix) == 0) {
+                        var suffix = requirement.substring(prefix.length);
+                        sectionIndex = _.split(suffix, '-', 2)[0];
+                        return true;
+                    }
+                    return false;
+                });
+                if (spec) {
+                    // link to the spec if we have it %>
+                    <span class="log-requirement badge bg-secondary"><a href="<%- (FAPI_UI.specLinks[spec] + sectionIndex)%>" target="_blank"><%- requirement %> <span class="bi bi-link-45deg"></span></a></span>
+                <% } else { %>
+                    <span class="log-requirement badge bg-secondary"><%- requirement %></span>
+                <% }
+            }); %>
+            </div>

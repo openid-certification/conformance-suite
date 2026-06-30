@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 public class JWAUtil
 {
 	public static String getDigestAlgorithmForSigAlg(String signatureAlgorithm) throws InvalidAlgorithmException {
-		if("EdDSA".equals(signatureAlgorithm)) {
+		if("EdDSA".equals(signatureAlgorithm) || "Ed25519".equals(signatureAlgorithm)) {
 			return "SHA-512";
 		} else if(signatureAlgorithm.startsWith("ES") && signatureAlgorithm.endsWith("K")) {
 			Matcher matcher = Pattern.compile("^(ES)(256|384|512)K$").matcher(signatureAlgorithm);

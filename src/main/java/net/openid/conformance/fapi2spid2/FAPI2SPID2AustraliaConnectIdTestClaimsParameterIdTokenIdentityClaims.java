@@ -52,7 +52,7 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 
 		return super.makeCreateAuthorizationRequestSteps()
 			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "CID-SP-5"))
-			.then(condition(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class).requirements("CID-IDA-5.2-2.7"));
+			.then(condition(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class).requirements("CID-IDA-5.2-7"));
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 
 		callAndContinueOnFailure(EnsureIdTokenContainsRequestedClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5");
 
-		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsMandatoryClaims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.6");
+		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsMandatoryClaims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-6");
 
 		// We don't include this check in the more general PerformStandardIdTokenChecks as it could be pretty noisy
 		callAndContinueOnFailure(CheckForUnexpectedClaimsInIdToken.class, Condition.ConditionResult.WARNING, "OIDCC-5.1");

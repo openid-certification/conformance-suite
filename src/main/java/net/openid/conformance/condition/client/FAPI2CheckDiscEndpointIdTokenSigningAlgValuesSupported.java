@@ -10,7 +10,7 @@ public class FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported extends Abst
 
 	private static final String environmentVariable = "id_token_signing_alg_values_supported";
 
-	public static final String[] FAPI2_ALLOWED_ALGS = { "PS256", "ES256", "EdDSA" };
+	public static final String[] FAPI2_ALLOWED_ALGS = { "PS256", "ES256", "EdDSA", "Ed25519" };
 
 	private static final String errorMessageNotEnough = "No matching value from server";
 

@@ -361,7 +361,7 @@ export const ModulesDefault = {
 // highlightModule + the cts-plan-status bar stay in sync.
 const FILTER_MODULES = [
   { testModule: "m-pass", instances: ["i1"], status: "FINISHED", result: "PASSED" },
-  { testModule: "m-fail", instances: ["i2"], status: "FINISHED", result: "FAILED" },
+  { testModule: "m-fail", instances: ["i2"], status: "INTERRUPTED", result: "FAILED" },
   { testModule: "m-skipped", instances: ["i3"], status: "FINISHED", result: "SKIPPED" },
   { testModule: "m-never-run" },
 ];

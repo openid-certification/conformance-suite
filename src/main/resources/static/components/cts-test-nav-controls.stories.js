@@ -55,7 +55,7 @@ const PUBLIC_MIXED_MODULES = [
   {
     testModule: "m6",
     instances: ["i-6"],
-    status: "FINISHED",
+    status: "INTERRUPTED",
     result: "FAILED",
     _statusResolved: true,
     href: "/log-detail.html?log=i-6&public=true",

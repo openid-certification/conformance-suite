@@ -4,10 +4,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequest;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -31,8 +29,7 @@ public class FAPICIBAID1EnsureWithoutClientAssertionInTokenEndpointFails extends
 		callAndStopOnFailure(AddClientIdToRequest.class);
 		unmapClientAuthKeys();
 
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+		callPreparedTokenEndpointForCibaGrant();
 
 		/* If we get an error back from the token endpoint server:
 		 * - It must be a 'invalid_client' error

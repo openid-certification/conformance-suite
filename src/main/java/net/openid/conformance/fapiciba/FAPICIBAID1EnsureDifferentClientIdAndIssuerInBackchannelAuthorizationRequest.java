@@ -3,7 +3,6 @@ package net.openid.conformance.fapiciba;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
-import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus401;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidClient;
@@ -49,7 +48,7 @@ public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizati
 		unmapClientAuthKeys();
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
-		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+		callBackchannelAuthenticationEndpoint();
 
 		env.unmapKey("client");
 		eventLog.endBlock();

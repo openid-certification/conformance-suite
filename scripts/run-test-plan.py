@@ -1424,8 +1424,16 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        # We're not requiring FAPI-CIBA RP testing for the negative tests for now, just the happy one
-        if re.match(r'fapi-ciba-id1-client-.+-test',m):
+        # For CIBA RP tests, we will test the main happy path fapi-ciba-id1-client-test,
+        # as well as the following modules:
+        ciba_additional_rp_modules_promoted_to_ci = {
+            "fapi-ciba-id1-client-no-scope-in-token-endpoint-response-test",
+            "fapi-ciba-id1-client-respects-interval-test",
+            "fapi-ciba-id1-client-slow-down-test",
+            "fapi-ciba-id1-client-valid-aud-as-array-test"
+        }
+        # This first regex does not match "fapi-ciba-id1-client-test", so it's still included
+        if re.match(r'fapi-ciba-id1-client-.+-test',m) and m not in ciba_additional_rp_modules_promoted_to_ci:
             untested_test_modules.remove(m)
             continue
 
@@ -1541,8 +1549,13 @@ async def main():
             if not ciba_op_test:
                 untested_test_modules.remove(m)
                 continue
-            # We do not yet run ConnectID CIBA-specific OP modules in CI.
-            if re.match(r'fapi-ciba-id1-connectid-', m):
+            ciba_connectid_op_modules_promoted_to_ci = {
+                "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-card-login-hint-succeeds",
+                "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-payment-authorization-details-succeeds",
+                "fapi-ciba-id1-connectid-ensure-authorization-request-with-purpose-succeeds"
+            }
+            # We do not yet run the ConnectID CIBA-specific negative OP modules in CI.
+            if re.match(r'fapi-ciba-id1-connectid-', m) and m not in ciba_connectid_op_modules_promoted_to_ci:
                 untested_test_modules.remove(m)
                 continue
 

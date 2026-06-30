@@ -170,7 +170,7 @@
             <option value="" selected="">
               All specifications
             </option>
-            <!--?lit$NNNN$--><!----><option value="FAPI"> <!--?lit$NNNN$-->FAPI </option><!----><!----><option value="OIDCC"> <!--?lit$NNNN$-->OIDCC </option><!---->
+            <!--?lit$NNNN$--><!----><option value="FAPI"> <!--?lit$NNNN$-->FAPI </option><!----><!----><option value="FAPI-CIBA"> <!--?lit$NNNN$-->FAPI-CIBA </option><!----><!----><option value="OIDCC"> <!--?lit$NNNN$-->OIDCC </option><!---->
           </select>
         </div>
         <div class="oidf-test-selector__main">
@@ -272,7 +272,54 @@
       </div>
     <!----><!---->
       <div class="oidf-test-selector__item" role="listitem">
-        <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="2" tabindex="-1">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="fapi-ciba-id1-test-plan" data-index="2" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI-CIBA-ID1: Authorization server test</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI-CIBA</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI-CIBA authorization server test plan</span>
+        </button>
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: FAPI-CIBA-ID1: Authorization server test" data-favorite-plan="fapi-ciba-id1-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
+      </div>
+    <!----><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="3" tabindex="-1">
           <span class="oidf-test-selector__row-head">
             <span class="oidf-test-selector__row-title">
               <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>

@@ -15,7 +15,7 @@ import net.openid.conformance.util.JWKUtil;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-signed-request-object-with-RS256-fails",
 	displayName = "FAPI1-Advanced-Final: ensure signed request object with RS256 fails",
-	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI-RW specification. The test must end with the authorization server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
+	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 does not satisfy the FAPI 1.0 Advanced Final specification requirement to use PS256 or ES256. The test must end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

@@ -9,6 +9,12 @@
         "scope": "openid accounts",
         "hint_type": "login_hint",
         "hint_value": "123",
+        "login_hint": "123",
+        "card_primary_account_number": "4111111111111111",
+        "payment_amount": "10.50",
+        "payment_currency": "AUD",
+        "payment_beneficiary_name": "OpenID Test Merchant",
+        "payment_desc": "OpenID Connect conformance test payment",
         "jwks": {
             "keys": [
                 {

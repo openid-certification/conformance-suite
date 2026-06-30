@@ -187,6 +187,12 @@ import java.util.function.Supplier;
 	"client.jwks",
 	"client.hint_type",
 	"client.hint_value",
+	"client.login_hint",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc",
 	"mtls.key",
 	"mtls.cert",
 	"mtls.ca",
@@ -223,7 +229,32 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
 	"client.hint_value",
-	"client.card_primary_account_number"
+	"client.login_hint",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc"
+})
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "plain_fapi", configurationFields = {
+	"client.login_hint",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc"
+})
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_uk", configurationFields = {
+	"client.login_hint",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc"
+})
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "connectid_au", configurationFields = {
+	"client.hint_type",
+	"client.hint_value"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",
@@ -757,8 +788,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
 		addClientAuthenticationToBackchannelRequest();
-
-		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+		callBackchannelAuthenticationEndpoint();
 	}
 
 	protected void performAuthorizationFlow() {
@@ -820,9 +850,23 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		addClientAuthenticationToTokenEndpointRequest();
 
+		callPreparedTokenEndpointForCibaGrant();
+	}
+
+	protected void callPreparedTokenEndpointForCibaGrant() {
+		call(profileBehavior.addTokenEndpointProfileHeaders());
+
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		call(profileBehavior.validateTokenEndpointResponseHeaders());
 		extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+	}
+
+	protected void callBackchannelAuthenticationEndpoint() {
+		call(profileBehavior.addBackchannelAuthenticationEndpointProfileHeaders());
+
+		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);
+		call(profileBehavior.validateBackchannelAuthenticationEndpointResponseHeaders());
 	}
 
 	/**
