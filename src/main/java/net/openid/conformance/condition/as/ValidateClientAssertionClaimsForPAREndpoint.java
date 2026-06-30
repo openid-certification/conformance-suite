@@ -41,7 +41,7 @@ public class ValidateClientAssertionClaimsForPAREndpoint extends ValidateClientA
 					aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint)) ||
 					aud.getAsJsonArray().contains(new JsonPrimitive(issuer)) ||
 					aud.getAsJsonArray().contains(new JsonPrimitive(parEndpoint)) ||
-					aud.getAsJsonArray().contains(new JsonPrimitive(parMTLSEndpoint))
+					(parMTLSEndpoint != null && aud.getAsJsonArray().contains(new JsonPrimitive(parMTLSEndpoint)))
 				)) {
 				throw error("aud values do not contain any of the expected values", args("expected", expectedValues, "actual", aud));
 			}
@@ -50,7 +50,7 @@ public class ValidateClientAssertionClaimsForPAREndpoint extends ValidateClientA
 					tokenEndpoint.equals(OIDFJSON.getString(aud)) ||
 					issuer.equals(OIDFJSON.getString(aud)) ||
 					parEndpoint.equals(OIDFJSON.getString(aud)) ||
-					parMTLSEndpoint.equals(OIDFJSON.getString(aud))
+					(parMTLSEndpoint != null && parMTLSEndpoint.equals(OIDFJSON.getString(aud)))
 				)) {
 				throw error("aud claim is not one of the expected values", args("expected", expectedValues, "actual", aud));
 			}

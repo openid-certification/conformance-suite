@@ -424,4 +424,37 @@ public class ValidateClientAssertionClaims_UnitTest {
 		});
 
 	}
+
+	@Test
+	public void testEvaluate_missingSub() {
+		assertThrows(ConditionError.class, () -> {
+
+			claims.remove("sub");
+
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
+
+			cond.execute(env);
+
+		});
+
+	}
+
+	@Test
+	public void testEvaluate_wrongSub() {
+		assertThrows(ConditionError.class, () -> {
+
+			claims.remove("sub");
+			claims.addProperty("sub", "invalid");
+
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
+
+			cond.execute(env);
+
+		});
+
+	}
 }

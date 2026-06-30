@@ -776,7 +776,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		if (jarm.isTrue()) {
 			processCallbackForJARM();
 		} else {
-			// FAPI-RW otherwise always requires the hybrid flow, use the hash as the response
+			// FAPI 1.0 Advanced Final otherwise always requires the hybrid flow, use the hash as the response
 			env.mapKey("authorization_endpoint_response", "callback_params");
 
 			callAndContinueOnFailure(RejectErrorInUrlQuery.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
@@ -799,7 +799,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			//plain error response, no jarm
 			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
 		} else {
-			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
+			// FAPI 1.0 Advanced Final only allows jarm with the code flow and hence we extract the response from the url query
 			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
 				ValidateJARMFromURLQueryEncryption.class, Condition.ConditionResult.WARNING, "JARM-2.2");
 			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-2.3.4", "JARM-2.3.1");
@@ -865,15 +865,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			}
 		}
 
-		if (!isSecondClient() || profile != FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
-			// Brazil payments APIs and other OpenFinance APIs always require x-fapi-interaction id; see
-			// https://gitlab.com/openid/conformance-suite/-/issues/1220 , https://gitlab.com/openid/conformance-suite/-/issues/1224
-			// and https://gitlab.com/openid/conformance-suite/-/issues/1364
-			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-
-			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
-
-		}
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
