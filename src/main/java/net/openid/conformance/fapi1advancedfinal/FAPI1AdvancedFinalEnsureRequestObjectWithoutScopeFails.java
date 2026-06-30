@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-request-object-without-scope-fails",
 	displayName = "FAPI1-Advanced-Final: ensure request object without scope fails",
-	summary = "This test passes 'scope' only outside the request object. As FAPI-RW requires that all parameters are inside the signed request object, this test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response (invalid_request, invalid_request_object or access_denied). When using PAR, invalid_request_uri may also be returned, and the PAR endpoint call may return failure.",
+	summary = "This test passes 'scope' only outside the request object. As FAPI 1.0 Advanced Final requires that all parameters are inside the signed request object, this test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response (invalid_request, invalid_request_object or access_denied). When using PAR, invalid_request_uri may also be returned, and the PAR endpoint call may return failure.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
