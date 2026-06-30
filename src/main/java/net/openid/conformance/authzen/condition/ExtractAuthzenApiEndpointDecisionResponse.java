@@ -15,10 +15,10 @@ public class ExtractAuthzenApiEndpointDecisionResponse extends AbstractCondition
 	public Environment evaluate(Environment env) {
 		JsonElement bodyElem = env.getElementFromObject("authzen_api_endpoint_response", "body_json");
 		if (bodyElem == null) {
-			throw error("No json response from Authzen API endpoint");
+			throw error("No json response from AuthZEN API endpoint");
 		}
 		if (!bodyElem.isJsonObject()) {
-			throw error("Authzen API decision response is not a JSON object",
+			throw error("AuthZEN API decision response is not a JSON object",
 				args("body_json", bodyElem));
 		}
 		JsonObject decision = bodyElem.getAsJsonObject();

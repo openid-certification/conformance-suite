@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.UUID;
 
 /**
- * Adds an `X-Request-ID` header to the Authzen API request and records the
+ * Adds an `X-Request-ID` header to the AuthZEN API request and records the
  * value sent under the env key `authzen_api_endpoint_request_x_request_id`
  * for later assertion against the response.
  */
@@ -27,7 +27,7 @@ public class AddXRequestIdHeaderToAuthzenApiRequest extends AbstractCondition {
 		headers.addProperty("X-Request-ID", requestId);
 		env.putString("authzen_api_endpoint_request_x_request_id", requestId);
 
-		logSuccess("Added X-Request-ID header to Authzen API request",
+		logSuccess("Added X-Request-ID header to AuthZEN API request",
 			args("X-Request-ID", requestId));
 		return env;
 	}

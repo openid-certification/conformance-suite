@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * Captures the boolean decision from the current Authzen API response under the
+ * Captures the boolean decision from the current AuthZEN API response under the
  * env key `authzen_idempotency_first_decision` if not already set. Subsequent
  * iterations should call {@link EnsureDecisionMatchesIdempotencyCheck} to assert
  * that the decision did not change.

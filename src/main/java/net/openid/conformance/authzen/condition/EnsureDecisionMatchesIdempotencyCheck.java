@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * Asserts that the decision returned by the current Authzen API response equals
+ * Asserts that the decision returned by the current AuthZEN API response equals
  * the decision captured by {@link CaptureDecisionForIdempotencyCheck} on the
  * first iteration of an idempotency test loop.
  */

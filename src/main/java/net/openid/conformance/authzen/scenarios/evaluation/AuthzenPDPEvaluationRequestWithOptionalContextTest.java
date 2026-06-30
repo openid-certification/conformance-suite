@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-request-with-optional-context",
-	displayName = "Authzen Evaluation API - Section 6.1: Request with optional context",
+	displayName = "AuthZEN Evaluation API - Section 6.1: Request with optional context",
 	summary = "Section 6.1 request with optional context. The fixture decision MUST NOT change when context is supplied; expects {\"decision\": true}.\n" + AuthzenPDPEvaluationRequestWithOptionalContextTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationRequestWithOptionalContextTest extends AbstractAuthzenPDPEvaluationTest {
 

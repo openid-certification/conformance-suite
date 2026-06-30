@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-unknown-resource-fields-ignored",
-	displayName = "Authzen Evaluation API - Section 10.1.1: Unknown resource fields ignored",
+	displayName = "AuthZEN Evaluation API - Section 10.1.1: Unknown resource fields ignored",
 	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields. `resource` carries an unknown `customAttr`; PDP MUST return HTTP 200 with the correct decision.\n" + AuthzenPDPEvaluationUnknownResourceFieldsTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationUnknownResourceFieldsTest extends AbstractAuthzenPDPEvaluationTest {
 

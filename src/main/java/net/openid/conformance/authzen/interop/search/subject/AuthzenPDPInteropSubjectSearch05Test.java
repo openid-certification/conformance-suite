@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-interop-subject-search-05",
-	displayName = "Authzen Subject Search API Test 05",
+	displayName = "AuthZEN Subject Search API Test 05",
 	summary = "Subject Search API test 05 with payload\n" + AuthzenPDPInteropSubjectSearch05Test.payload,
-	profile = "Authzen",
+	profile = "AuthZEN",
 	configurationFields = {
 	}
 )

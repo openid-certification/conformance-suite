@@ -23,11 +23,11 @@ public interface TestPlan {
 		String wallettest = "Test a OpenID4VP wallet";
 		String verifierTest = "Test a OpenID4VP Verifier";
 		String federationTest = "Test an OpenID Federation entity";
-		String authzenTest = "Test an Authzen PDP server";
+		String authzenTest = "Test an AuthZEN PDP server";
 	}
 
 	interface SpecFamilyNames {
-		String authzen = "AuthZen";
+		String authzen = "AuthZEN";
 		String ekyc = "eKYC & Identity Assurance";
 		String fapi1Advanced = "FAPI1 Advanced";
 		String fapi2SecurityProfile = "FAPI2 Security Profile";

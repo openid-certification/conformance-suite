@@ -45,7 +45,7 @@ const PROFILE_DISPLAY_LABELS = {
   "Test a OpenID4VP wallet": "OpenID4VP Wallet",
   "Test a OpenID4VP Verifier": "OpenID4VP Verifier",
   "Test an OpenID Federation entity": "OpenID Federation Entity",
-  "Test an Authzen PDP server": "AuthZen PDP Server",
+  "Test an AuthZEN PDP server": "AuthZEN PDP Server",
 };
 
 /**

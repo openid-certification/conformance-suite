@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-valid-action-search-request-with-non-empty-results",
-	displayName = "Authzen Action Search API - Section 8.6.1: Valid action search request with non-empty results",
+	displayName = "AuthZEN Action Search API - Section 8.6.1: Valid action search request with non-empty results",
 	summary = "Section 8.6.1 valid action search. The action field is omitted entirely from the request. Actions alice can perform on record-1 MUST include at least read and write.\n" + AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest extends AbstractAuthzenPDPActionSearchTest {
 

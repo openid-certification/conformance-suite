@@ -40,7 +40,7 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 
 		String authzenApiEndpoint = env.getString("authzen_api_endpoint");
 		if (authzenApiEndpoint == null) {
-			throw error("Couldn't find Authzen API endpoint");
+			throw error("Couldn't find AuthZEN API endpoint");
 		}
 
 		JsonObject requestObj = env.getObject("authzen_api_endpoint_request");
@@ -97,17 +97,17 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 			try {
 				ResponseEntity<String> response = restTemplate.exchange(authzenApiEndpoint, method, request, String.class);
 
-				JsonObject responseInfo = convertJsonResponseForEnvironment("Authzen API endpoint", response, allowJsonParseFailure());
+				JsonObject responseInfo = convertJsonResponseForEnvironment("AuthZEN API endpoint", response, allowJsonParseFailure());
 
 				env.putObject("authzen_api_endpoint_response", responseInfo);
 
-				log("Parsed Authzen API endpoint response", responseInfo);
+				log("Parsed AuthZEN API endpoint response", responseInfo);
 
 				return env;
 
 
 			} catch (RestClientResponseException e) {
-				throw error("RestClientResponseException occurred whilst calling Authzen API endpoint",
+				throw error("RestClientResponseException occurred whilst calling AuthZEN API endpoint",
 					args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleClientException(env, e);
@@ -119,7 +119,7 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 	}
 
 	Environment handleClientException(Environment env, RestClientException e) {
-		String msg = "Call to Authzen API endpoint failed";
+		String msg = "Call to AuthZEN API endpoint failed";
 		if (e.getCause() != null) {
 			msg += " - " +e.getCause().getMessage();
 		}
