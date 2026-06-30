@@ -1,0 +1,17 @@
+
+<div class="alert alert-danger">
+    <strong>There was an error while running the test:</strong> <em><%- error.error %> (<%- error.error_class %>)</em>.
+    <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="stacktraceBtn">Show Stacktrace</button>
+    <ul id="stacktrace" class="collapse">
+        <% _.each(error.stacktrace, function(v) { %>
+        <li><%- v %></li> <% }); %>
+    </ul>
+
+    <div id="causeStacktrace" class="collapse">
+        <h1>Cause:</h1>
+        <ul>
+            <% _.each(error.cause_stacktrace, function(v) { %>
+            <li><%- v %></li> <% }); %>
+        </ul>
+    </div>
+</div>

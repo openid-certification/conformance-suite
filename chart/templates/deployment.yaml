@@ -41,6 +41,14 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
+        {{- if .Values.legacyUi.enabled }}
+        # Serve the frozen pre-redesign UI (the `legacy-ui` Spring profile; see LegacyUiConfig
+        # and src/main/resources/static-legacy/). Toggled per-environment via legacyUi.enabled
+        # (set by the deploy script for demo + production). Spring Boot reads
+        # SPRING_PROFILES_ACTIVE automatically and the container entrypoint sets no profile.
+        - name: SPRING_PROFILES_ACTIVE
+          value: "legacy-ui"
+        {{- end }}
         - name: BASE_URL
           value: {{ .Values.service.url | quote }}
         - name: BASE_MTLS_URL

@@ -879,6 +879,16 @@ security_test:
         --set mongodb.persistence.size=600Gi"
     fi
 
+    legacy_ui_settings=""
+    # Keep demo + production on the frozen pre-redesign UI while the new UI stabilises.
+    # `feat/legacy-ui-review-app` is a content-identical mirror of this merge branch that
+    # exists only to host an old-UI review app — it is triggered here by name (rather than by
+    # a chart-value diff) so the two branches differ only in their ref name. Remove that branch
+    # name from this list once the legacy-ui review-app demo is retired.
+    if [[ "$CI_COMMIT_BRANCH" == "production" || "$CI_COMMIT_BRANCH" == "demo" || "$CI_COMMIT_BRANCH" == "feat/legacy-ui-review-app" ]]; then
+      legacy_ui_settings="--set legacyUi.enabled=true"
+    fi
+
     # Create OIDC credentials secrets
     kubectl delete secret oidc-gitlab-credentials \
       --namespace="$KUBE_NAMESPACE" \
@@ -930,6 +940,7 @@ security_test:
       --set service.mtls="$CI_ENVIRONMENT_MTLS_URL" \
       --set replicaCount="$replicas" \
       $mongo_settings \
+      $legacy_ui_settings \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       "$name" \

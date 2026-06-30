@@ -25,6 +25,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
 import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -115,6 +117,8 @@ class WebSecurityOidcLoginConfig {
 	private AuthenticationFacade authenticationFacade;
 	@Autowired
 	private TestPlanService planService;
+	@Autowired
+	private Environment environment;
 
 	@Bean
 	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
@@ -238,11 +242,20 @@ class WebSecurityOidcLoginConfig {
 			// for post-login replay. Anonymous public browsing remains available
 			// only via the explicit `?public=true` links permitted by the
 			// publicRequestMatcher block below.
-			httpRequests.requestMatchers( //
-					"/", //
-					"/index.html" //
-				) //
-				.permitAll();
+			//
+			// Under the `legacy-ui` profile this permit is deliberately skipped:
+			// HomeController is disabled, so `/` falls back to the static welcome
+			// page (static-legacy/index.html). The pre-redesign UI required login
+			// for `/` (release-v5.1.45 did not permit it), so we let `/` and
+			// `/index.html` fall through to anyRequest().authenticated(), restoring
+			// the old forced-login front door (anonymous `/` -> 302 /login.html).
+			if (!environment.acceptsProfiles(Profiles.of("legacy-ui"))) {
+				httpRequests.requestMatchers( //
+						"/", //
+						"/index.html" //
+					) //
+					.permitAll();
+			}
 
 			// Listing and detail pages are public ONLY with `?public=true` (the
 			// PublicRequestMatcher gate), never unconditionally. The login page and

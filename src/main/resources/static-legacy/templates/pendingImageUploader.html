@@ -1,0 +1,28 @@
+        <div class="row">
+            <div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
+                <div class="row">
+                    <div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="bi bi-cloud-upload"></span></div></div>
+                    <div class="col-md-3">
+                        <!-- image preview -->
+                        <img src="images/placeholder.png" alt="" class="img-fluid mx-auto d-block imagePreview imagePasteTarget" />
+                    </div>
+                    <div class="col-md-8">
+                        <!-- test details and form controls -->
+                        <% if (item.src) { %>
+                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                        <% } %>
+                        <% if (item.msg) { %>
+                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                        <% } %>
+
+                        <p class="log-message wrapLongStrings">Please upload a screenshot showing just your web browser. Please resize your web browser to an appropriate (i.e. small) size before taking the screenshot. Images must not be larger than 500 kilobytes; if larger please trying converting to jpg format before uploading.</p>
+
+                        <label class="btn btn-sm btn-light bg-gradient border border-secondary">
+                            <span class="bi bi-camera-fill"></span> Select File</input>
+                                <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
+                        </label>
+                        <button class="btn btn-sm btn-light bg-gradient border border-secondary uploadBtn" disabled>Upload</button>
+                    </div>
+                </div>
+            </div>
+        </div>

@@ -54,6 +54,26 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
+### Running the legacy (pre-redesign) UI
+
+The `legacy-ui` Spring profile serves a frozen snapshot of the pre-redesign jQuery/Handlebars
+UI (vendored from tag `release-v5.1.45` under `src/main/resources/static-legacy/` +
+`templates-legacy/`) from the **same** JAR — a temporary escape hatch if the new Lit UI causes
+problems. It is opt-in and does not affect the default build:
+
+```bash
+java -jar target/fapi-test-suite.jar --spring.profiles.active=legacy-ui
+# compose with other profiles by appending, e.g. ...=prod,legacy-ui
+```
+
+How it works: `application-legacy-ui.properties` repoints `spring.web.resources.static-locations`
+at the snapshot, `HomeController` is `@Profile("!legacy-ui")` so `/` falls back to the old
+welcome page, and `LegacyUiConfig` reverts the three redesign-restyled Thymeleaf pages. It is a
+frozen snapshot: it does **not** track new-UI features or surface config fields added after the
+snapshot (those remain settable via the old JSON config tab). To remove it, delete
+`static-legacy/`, `templates-legacy/`, `application-legacy-ui.properties`, `LegacyUiConfig`, and
+the `@Profile` on `HomeController`.
+
 ### Dev loop (save-and-see)
 
 The `dev` profile activates `spring-boot-devtools` plus a source-tree static handler so edits under `src/main/resources/static/` reflect on the next browser load (LiveReload reloads the tab automatically; plain F5 also works), and Java edits trigger a fast classloader restart in ~5 seconds.
