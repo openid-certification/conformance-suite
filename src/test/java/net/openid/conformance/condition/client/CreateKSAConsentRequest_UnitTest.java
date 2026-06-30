@@ -25,7 +25,10 @@ public class CreateKSAConsentRequest_UnitTest {
 		cond = new CreateKSAConsentRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
-		env.putString("client_id", "client-1234");
+
+		JsonObject client = new JsonObject();
+		client.addProperty("client_id", "client-1234");
+		env.putObject("client", client);
 		JsonObject server = new JsonObject();
 		server.addProperty("issuer", "https://op.example/");
 		env.putObject("server", server);
