@@ -13,7 +13,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

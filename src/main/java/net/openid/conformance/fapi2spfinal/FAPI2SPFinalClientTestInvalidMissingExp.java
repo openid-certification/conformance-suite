@@ -9,7 +9,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test should end with the client displaying an error message that the exp value in the id_token from the token_endpoint is missing",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",
