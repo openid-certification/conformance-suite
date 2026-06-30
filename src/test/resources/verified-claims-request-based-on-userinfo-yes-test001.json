@@ -15,12 +15,8 @@
                     "trust_framework": {
                         "value": "de_aml"
                     },
-                    "verification_process": {
-                        "value": "7df98de2-8834-48fb-b817-ee087cad8497"
-                    },
-                    "time": {
-                        "value": "2012-04-23T18:25:43.511+01"
-                    },
+                    "verification_process": null,
+                    "time": null,
                     "evidence": [
                         {
                             "type": {

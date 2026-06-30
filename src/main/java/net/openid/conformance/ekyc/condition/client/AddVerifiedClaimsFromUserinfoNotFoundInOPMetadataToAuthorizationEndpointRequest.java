@@ -121,7 +121,9 @@ public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEnd
 
 
 		if(verificationInUserinfo.has("verification_process")) {
-			verification.add("verification_process", getConstrainableElementWithValue(verificationInUserinfo.get("verification_process")));
+			// verification_process is a simple_element; it does not permit a value constraint, so it
+			// is requested as null rather than {"value": ...}.
+			verification.add("verification_process", JsonNull.INSTANCE);
 		}
 
 		JsonArray evidenceSupported = null;
