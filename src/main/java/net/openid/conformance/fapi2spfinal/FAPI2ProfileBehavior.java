@@ -2,6 +2,8 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -88,6 +90,23 @@ public class FAPI2ProfileBehavior {
 
 	public Class<? extends ConditionSequence> getProfileIdTokenValidationSteps() {
 		return null;
+	}
+
+	/**
+	 * The condition used to build the redirect to the authorization endpoint after PAR, i.e. the
+	 * request that carries the {@code request_uri}. By default the duplicated OAuth parameters
+	 * ({@code response_type}, {@code scope}, {@code redirect_uri}) are also included in the query
+	 * as permitted by RFC6749/OIDC. Profiles where the authorization request must carry only
+	 * {@code client_id} + {@code request_uri} (e.g. KSA) override this to return the
+	 * {@code ...WithoutDuplicates} variants.
+	 *
+	 * @param reorderParameters whether to use the reversed-parameter-order variant (used for the
+	 *                          second client in the happy flow to exercise parameter ordering).
+	 */
+	public Class<? extends Condition> getBuildRequestObjectByReferenceRedirectCondition(boolean reorderParameters) {
+		return reorderParameters
+			? BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams.class
+			: BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class;
 	}
 
 	public boolean shouldEncryptRequestObject(boolean isPar) {
