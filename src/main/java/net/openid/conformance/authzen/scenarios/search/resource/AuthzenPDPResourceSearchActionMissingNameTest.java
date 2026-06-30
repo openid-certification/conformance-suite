@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-action-missing-name",
-	displayName = "Authzen Resource Search API - Section 10.1.1: Action missing name -- expect HTTP 400",
+	displayName = "AuthZEN Resource Search API - Section 10.1.1: Action missing name -- expect HTTP 400",
 	summary = "Section 10.1.1 missing required sub-field. Resource Search action omits `name`; PDP MUST return HTTP 400.\n" + AuthzenPDPResourceSearchActionMissingNameTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchActionMissingNameTest extends AbstractAuthzenPDPResourceSearchTest {
 

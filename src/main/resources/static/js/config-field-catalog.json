@@ -215,7 +215,7 @@
     },
     {
       "key": "pdp",
-      "title": "AuthZen",
+      "title": "AuthZEN",
       "fields": [
         {
           "key": "pdp.policy_decision_point",

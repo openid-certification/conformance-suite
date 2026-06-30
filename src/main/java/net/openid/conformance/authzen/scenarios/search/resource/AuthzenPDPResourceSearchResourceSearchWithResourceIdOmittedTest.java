@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-resource-search-with-resource-id-omitted",
-	displayName = "Authzen Resource Search API - Section 8.5.1: Resource search with resource.id omitted",
+	displayName = "AuthZEN Resource Search API - Section 8.5.1: Resource search with resource.id omitted",
 	summary = "Section 8.5.1 the harness does not send resource.id in Resource Search requests. The PDP MUST accept the request and return records including at least record-1.\n" + AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest extends AbstractAuthzenPDPResourceSearchTest {
 

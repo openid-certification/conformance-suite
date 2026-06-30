@@ -9,9 +9,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-missing-credentials-returns-401",
-	displayName = "Authzen Evaluation API - Section 11.3: Missing credentials returns 401",
+	displayName = "AuthZEN Evaluation API - Section 11.3: Missing credentials returns 401",
 	summary = "Per Section 11.3, when client authentication is required and credentials are missing, the PDP MUST return HTTP 401. The response SHOULD include a WWW-Authenticate header (surfaced as a warning).",
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 @VariantNotApplicable(parameter = PDPAuthType.class, values = {"none"})
 public class AuthzenPDPEvaluationMissingCredentialsReturns401Test extends AbstractAuthzenPDPEvaluationTest {

@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-interop-action-search-26",
-	displayName = "Authzen Action Search API Test 26",
-	summary = "Authzen Action Search API test 26 with payload\n" + AuthzenPDPInteropActionSearch26Test.payload,
-	profile = "Authzen"
+	displayName = "AuthZEN Action Search API Test 26",
+	summary = "AuthZEN Action Search API test 26 with payload\n" + AuthzenPDPInteropActionSearch26Test.payload,
+	profile = "AuthZEN"
 )
 public class AuthzenPDPInteropActionSearch26Test extends AbstractAuthzenPDPActionSearchTest {
 

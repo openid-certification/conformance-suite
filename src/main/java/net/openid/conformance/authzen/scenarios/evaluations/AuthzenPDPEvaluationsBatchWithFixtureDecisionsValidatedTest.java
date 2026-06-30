@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-batch-with-fixture-decisions-validated",
-	displayName = "Authzen Evaluations API - Section 7.1: Batch with fixture decisions validated",
+	displayName = "AuthZEN Evaluations API - Section 7.1: Batch with fixture decisions validated",
 	summary = "Section 7.1 batch with fixture decisions validated. Bob reads record-1 (rule 3 = true) then writes record-1 (rule 4 = false). Validates structure, decision values, and ordering.\n" + AuthzenPDPEvaluationsBatchWithFixtureDecisionsValidatedTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsBatchWithFixtureDecisionsValidatedTest extends AbstractAuthzenPDPEvaluationsTest {
 

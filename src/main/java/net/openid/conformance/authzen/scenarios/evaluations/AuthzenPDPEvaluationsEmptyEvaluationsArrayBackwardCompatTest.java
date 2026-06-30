@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-empty-evaluations-array-backward-compat",
-	displayName = "Authzen Evaluations API - Section 7.1: Backward compat with empty `evaluations` array",
+	displayName = "AuthZEN Evaluations API - Section 7.1: Backward compat with empty `evaluations` array",
 	summary = "Per Section 7.1, a request to the Evaluations endpoint with an empty `evaluations: []` array MUST be handled like the single Access Evaluation API: the PDP returns a single-decision response (`{decision: <bool>}`) and MUST NOT return an `evaluations` array. Sends a single-evaluation-shaped request with an empty evaluations array (alice/read/record-1, fixture rule 1) and validates the response shape and that the decision is `true`.\n" + AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest extends AbstractAuthzenPDPEvaluationsBackwardCompatTest {
 

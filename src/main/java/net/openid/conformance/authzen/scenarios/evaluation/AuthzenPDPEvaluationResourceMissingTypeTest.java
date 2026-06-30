@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-resource-missing-type",
-	displayName = "Authzen Evaluation API - Section 10.1: Resource missing type -- expect HTTP 400",
+	displayName = "AuthZEN Evaluation API - Section 10.1: Resource missing type -- expect HTTP 400",
 	summary = "Section 10.1 missing required sub-field. `resource` omits `type`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationResourceMissingTypeTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationResourceMissingTypeTest extends AbstractAuthzenPDPEvaluationTest {
 

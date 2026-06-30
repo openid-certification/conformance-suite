@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-fixture-request-deny-decision",
-	displayName = "Authzen Evaluation API - Section 6.1: Fixture request -- deny decision",
+	displayName = "AuthZEN Evaluation API - Section 6.1: Fixture request -- deny decision",
 	summary = "Section 6.1 fixture request -- deny decision. Sends bob/write/record-1 and expects {\"decision\": false}.\n" + AuthzenPDPEvaluationFixtureRequestDenyDecisionTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationFixtureRequestDenyDecisionTest extends AbstractAuthzenPDPEvaluationTest {
 

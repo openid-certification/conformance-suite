@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-idempotency",
-	displayName = "Authzen Subject Search API - Idempotency",
+	displayName = "AuthZEN Subject Search API - Idempotency",
 	summary = "Idempotency. The harness sends the same Subject Search fixture request multiple times consecutively; the PDP MUST return the same response body each time.\n" + AuthzenPDPSubjectSearchIdempotencyTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPSubjectSearchIdempotencyTest extends AbstractAuthzenPDPSubjectSearchIdempotencyTest {
 

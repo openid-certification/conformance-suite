@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-unknown-entity-type",
-	displayName = "Authzen Subject Search API - Section 8.3: Unknown entity type",
+	displayName = "AuthZEN Subject Search API - Section 8.3: Unknown entity type",
 	summary = "Section 8.3 unknown entity type. The PDP MUST return an empty results array (not HTTP 400) when the subject type is unrecognized.\n" + AuthzenPDPSubjectSearchUnknownEntityTypeTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPSubjectSearchUnknownEntityTypeTest extends AbstractAuthzenPDPSubjectSearchTest {
 

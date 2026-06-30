@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-extra-action-ignored",
-	displayName = "Authzen Action Search API - Section 10.1.1: Extra action parameter ignored",
+	displayName = "AuthZEN Action Search API - Section 10.1.1: Extra action parameter ignored",
 	summary = "Section 10.1.1 forward compatibility: receivers MUST ignore unknown fields in request bodies. Section 8.6.1 does not list `action` in the Action Search request schema, so an `action` field sent alongside the required `subject` and `resource` MUST be treated as an unknown field and ignored; the PDP MUST return the same list of actions it would return without it.\n" + AuthzenPDPActionSearchExtraActionIgnoredTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchExtraActionIgnoredTest extends AbstractAuthzenPDPActionSearchTest {
 
