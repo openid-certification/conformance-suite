@@ -623,7 +623,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		if (clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+		if (usesClientJwks()) {
 			validateClientJwks(false);
 		}
 		validateClientConfiguration();
@@ -647,7 +647,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		if (clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+		if (usesClientJwks()) {
 			validateClientJwks(true);
 		}
 		validateClientConfiguration();
