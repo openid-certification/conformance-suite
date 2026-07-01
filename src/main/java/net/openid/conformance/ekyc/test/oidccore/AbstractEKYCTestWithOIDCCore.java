@@ -21,9 +21,11 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRespon
 import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.EKYCProfile;
 import net.openid.conformance.variant.EKYCVerifiedClaimsResponseSupport;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 
 
 @ConfigurationFields({
@@ -33,7 +35,8 @@ import net.openid.conformance.variant.VariantParameters;
 	"ekyc.response_schemas",
 })
 @VariantParameters({
-	EKYCVerifiedClaimsResponseSupport.class
+	EKYCVerifiedClaimsResponseSupport.class,
+	EKYCProfile.class,
 })
 
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
