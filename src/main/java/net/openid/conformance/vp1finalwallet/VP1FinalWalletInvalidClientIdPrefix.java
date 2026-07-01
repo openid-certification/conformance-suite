@@ -30,9 +30,7 @@ public class VP1FinalWalletInvalidClientIdPrefix extends AbstractVP1FinalWalletT
 		// parameters alone, so a conformant wallet may reject the request without ever dereferencing
 		// request_uri (url_query mode has no request_uri fetch at all). Expose the failure-photo
 		// upload as soon as the request has been sent to the wallet, rather than gating it on the
-		// request_uri fetch, and mark the authorization endpoint visited since that fetch may never
-		// happen.
-		markAuthorizationEndpointVisited();
+		// request_uri fetch
 		createPlaceholder();
 		waitForPlaceholders();
 	}
