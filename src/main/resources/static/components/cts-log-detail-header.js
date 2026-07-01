@@ -6,7 +6,7 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
-import "./cts-json-editor.js";
+import "./cts-json-view.js";
 import "./cts-modal.js";
 import "./cts-test-nav-controls.js";
 import "./cts-failure-summary.js";
@@ -536,10 +536,7 @@ const STYLE_TEXT = css`
      under the ≥1440px TOC rail and in Storybook isolation, where
      viewport width and component width diverge). Named to avoid
      colliding with the ctsLogViewer container that cts-log-entry keys
-     on. Note: inline-size containment also makes .ctsDrawer the
-     containing block for absolutely-positioned descendants — Monaco's
-     overlay widgets inside cts-json-editor land here; the height-lock
-     story (ConfigDrawerHeightLockedAtFixedValue) guards that contract. */
+     on. */
   cts-log-detail-header .ctsDrawer {
     padding: 0;
     margin-bottom: 20px;
@@ -673,9 +670,8 @@ const STYLE_TEXT = css`
 
   /* Configuration JSON inside the View Configuration modal. min-height
      guarantees a sensible floor for tiny configs; max-height caps the
-     editor at 60 vh so the modal does not overflow on large configs —
-     Monaco scrolls within those bounds. Both bounds must be set so
-     cts-json-editor's resolveBounds() can clamp the inner Monaco surface. */
+     view at 60 vh so the modal does not overflow on large configs —
+     cts-json-view scrolls within those bounds (overflow:auto on the host). */
   cts-log-detail-header .ctsConfigJson {
     display: block;
     min-height: calc(var(--space-6) * 14);
@@ -1169,13 +1165,12 @@ class CtsLogDetailHeader extends LitElement {
             ></cts-button>
           </div>
         </div>
-        <cts-json-editor
+        <cts-json-view
           class="ctsConfigJson"
           data-testid="config-json"
-          readonly
           aria-label="Test configuration JSON"
           .value=${configJson}
-        ></cts-json-editor>
+        ></cts-json-view>
       </cts-modal>
     `;
   }

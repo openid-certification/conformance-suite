@@ -684,22 +684,17 @@ export const ActionsViewConfig = {
       });
     });
 
-    await step("editor renders the plan config as read-only JSON", async () => {
-      // JSON content displayed in the Monaco-backed read-only editor.
-      // The editor is the only way the plan reaches the user — assert via
-      // its `.value` property; Monaco's text content is virtualised so
-      // `textContent` may not contain the full JSON until the user scrolls.
-      // `whenReady()` resolves regardless of whether Monaco mounted or the
-      // fallback textarea took over; both expose `.value` identically.
+    await step("view renders the plan config as read-only JSON", async () => {
+      // JSON content displayed in the read-only cts-json-view. Assert via its
+      // `.value` property (mirrors the JSON string passed in).
       const configJson = /** @type {any} */ (
         await waitFor(() => {
-          const el = canvasElement.querySelector("cts-json-editor.config-json");
-          if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+          const el = canvasElement.querySelector("cts-json-view.config-json");
+          if (!el) throw new Error("cts-json-view.config-json not yet attached");
           return el;
         })
       );
       await configJson.whenReady();
-      expect(configJson.getAttribute("readonly")).not.toBeNull();
       expect(configJson.value).toContain("server.issuer");
       expect(configJson.value).toContain("https://op.example.com");
       expect(configJson.value).toContain("client.client_id");
@@ -735,7 +730,7 @@ export const ActionsPrivateLink = {
       const daysInput = canvasElement.querySelector(".plinkDays");
       expect(daysInput).toBeTruthy();
       expect(daysInput.value).toBe("30");
-      const generateInner = canvasElement.querySelector(".plinkGenerateBtn button");
+      const generateInner = canvasElement.querySelector(".plinkGenerateBtn");
       expect(generateInner).toBeTruthy();
       expect(generateInner?.disabled).toBe(false);
     });

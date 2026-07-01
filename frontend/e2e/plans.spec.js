@@ -261,8 +261,8 @@ test.describe("plans.html — Plans List", () => {
     // Plan ID surfaces in the modal toolbar.
     await expect(modal.locator(".cts-plan-list-config-toolbar code")).toHaveText("plan-001");
 
-    // The JSON editor renders inside the modal, populated with the row config.
-    const editor = page.locator("cts-json-editor.config-json");
+    // The JSON view renders inside the modal, populated with the row config.
+    const editor = page.locator("cts-json-view.config-json");
     await expect(editor).toBeAttached();
     const editorValue = await editor.evaluate((el) => /** @type {any} */ (el).value);
     expect(editorValue).toContain("server.issuer");

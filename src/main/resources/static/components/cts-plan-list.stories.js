@@ -294,8 +294,8 @@ export const ViewConfig = {
   async play({ canvasElement, step }) {
     await waitForPlansToLoad(canvasElement);
 
-    // The config JSON renders inside a read-only <cts-json-editor>; the editor
-    // handle is shared across the assertion phases below.
+    // The config JSON renders inside a read-only <cts-json-view>; the handle
+    // is shared across the assertion phases below.
     let editor;
 
     await step("clicking the Config button opens the modal", async () => {
@@ -310,8 +310,8 @@ export const ViewConfig = {
       editor = /** @type {any} */ (
         await waitFor(
           () => {
-            const el = document.querySelector("cts-json-editor.config-json");
-            if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+            const el = document.querySelector("cts-json-view.config-json");
+            if (!el) throw new Error("cts-json-view.config-json not yet attached");
             return el;
           },
           { timeout: 10000 },
@@ -326,11 +326,11 @@ export const ViewConfig = {
       expect(editor.value).toContain("https://op.example.com");
     });
 
-    await step("exactly one Monaco editor is mounted", async () => {
-      // cts-modal relocates slotted children; the reentrancy guard in
-      // _bootMonaco prevents a duplicate.
-      const monacoInstances = editor.querySelectorAll(".monaco-editor");
-      expect(monacoInstances.length).toBe(1);
+    await step("exactly one JSON view is rendered", async () => {
+      // cts-modal relocates slotted children; assert the swap did not leave a
+      // duplicate view behind.
+      const views = editor.querySelectorAll(".oidf-json-view");
+      expect(views.length).toBe(1);
     });
 
     await step("plan id shows in the modal toolbar", async () => {
