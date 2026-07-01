@@ -630,11 +630,6 @@ textarea {
 	border-bottom-right-radius: 6px;
 }
 
-/* pretty-printed JSON blocks */
-pre.prettyprint {
-	border: none !important;
-}
-
 /* spacers for page elements */
 .top5 { margin-top:5px; }
 .top7 { margin-top:7px; }
