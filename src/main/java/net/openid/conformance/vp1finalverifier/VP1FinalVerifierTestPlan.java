@@ -22,6 +22,7 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 		VP1FinalVerifierHappyFlow.class,
 		VP1FinalVerifierMinimalCnfJwk.class,
 		VP1FinalVerifierRequestUriMethodPost.class,
+		VP1FinalVerifierRequestUriFetchedTwice.class,
 		// negative tests
 		VP1FinalVerifierInvalidSessionTranscript.class,
 		VP1FinalVerifierInvalidKbJwtSignature.class,
