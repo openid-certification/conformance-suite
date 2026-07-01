@@ -10,7 +10,7 @@ import "./cts-tooltip.js";
 import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-loading-state.js";
-import "./cts-json-editor.js";
+import "./cts-json-view.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 const RESULT_BADGE_VARIANTS = {
@@ -1376,13 +1376,12 @@ class CtsLogList extends LitElement {
             ></cts-button>
           </cts-tooltip>
         </div>
-        <cts-json-editor
+        <cts-json-view
           id="cts-log-list-config-editor"
           class="config-json"
-          readonly
           aria-label="Test configuration JSON"
           .value=${configJson}
-        ></cts-json-editor>
+        ></cts-json-view>
       </cts-modal>
     `;
   }

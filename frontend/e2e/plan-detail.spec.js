@@ -208,8 +208,8 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await configBtn.locator("button").click();
 
     // Modal appears with the plan ID and the config JSON inside the
-    // read-only Monaco editor. Monaco virtualises rendered content, so we
-    // assert on the editor's `.value` rather than the modal's textContent.
+    // read-only JSON view. Assert on the view's `.value` rather than the
+    // modal's textContent.
     const configPanel = page.locator('[data-testid="config-modal"]');
     await expect(configPanel).toBeVisible();
     await expect(configPanel).toContainText("plan-abc-123");
@@ -217,7 +217,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
       .poll(
         () =>
           page.evaluate(() => {
-            const el = /** @type {any} */ (document.querySelector("cts-json-editor.config-json"));
+            const el = /** @type {any} */ (document.querySelector("cts-json-view.config-json"));
             return el ? el.value : "";
           }),
         { timeout: 10000 },
@@ -227,7 +227,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // preserving the pre-swap assertion (testing-reviewer T4) keeps the
     // JSON content check honest rather than relying on key existence alone.
     const configValue = await page.evaluate(() => {
-      const el = /** @type {any} */ (document.querySelector("cts-json-editor.config-json"));
+      const el = /** @type {any} */ (document.querySelector("cts-json-view.config-json"));
       return el ? el.value : "";
     });
     expect(configValue).toContain("op.example.com");
