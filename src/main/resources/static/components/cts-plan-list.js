@@ -9,7 +9,7 @@ import "./cts-tooltip.js";
 import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-loading-state.js";
-import "./cts-json-editor.js";
+import "./cts-json-view.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import "./cts-plan-status.js";
 
@@ -308,7 +308,7 @@ const STYLE_TEXT = css`
   }
   /* '.planConfigJson' / '.config-json' are pre-existing class names the
      cts-plan-list.stories.js ViewConfig play function queries to read the
-     editor value. Do not rename without updating that story. */
+     view value. Do not rename without updating that story. */
   cts-plan-list .planConfigJson {
     display: block;
     margin: 0;
@@ -853,12 +853,11 @@ class CtsPlanList extends LitElement {
           ></cts-button>
           <span>Configuration for <code>${this._selectedPlanId}</code></span>
         </div>
-        <cts-json-editor
+        <cts-json-view
           class="planConfigJson config-json"
-          readonly
           aria-label="Plan configuration JSON"
           .value=${configJson}
-        ></cts-json-editor>
+        ></cts-json-view>
       </cts-modal>
     `;
   }

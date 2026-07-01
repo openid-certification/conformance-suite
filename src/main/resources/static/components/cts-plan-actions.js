@@ -2,7 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
-import "./cts-json-editor.js";
+import "./cts-json-view.js";
 import "./cts-modal.js";
 import "./cts-private-link-dialog.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
@@ -73,7 +73,7 @@ const STYLE_TEXT = css`
   }
   /* '.planConfigJson' (and the '.config-json' sibling on the same element)
      are pre-existing class names from when this slot rendered a <pre>;
-     the slot is now a <cts-json-editor>. Do not rename without updating
+     the slot is now a <cts-json-view> (a highlighted <pre>). Do not rename without updating
      all three call sites at once: this CSS rule, the '.config-json'
      selector that frontend/e2e/clipboard.spec.js + plan-detail.spec.js
      match on, and the data-clipboard-target=".config-json" attribute
@@ -330,12 +330,11 @@ class CtsPlanActions extends LitElement {
             ></cts-button>
           </div>
         </div>
-        <cts-json-editor
+        <cts-json-view
           class="planConfigJson config-json"
-          readonly
           aria-label="Plan configuration JSON"
           .value=${configJson}
-        ></cts-json-editor>
+        ></cts-json-view>
       </cts-modal>
     `;
   }
