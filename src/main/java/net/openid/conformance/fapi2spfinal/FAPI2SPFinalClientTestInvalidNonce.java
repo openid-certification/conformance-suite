@@ -12,7 +12,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test should end with the client displaying an error message that the nonce value in the id_token does not match the authorization request's nonce value",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

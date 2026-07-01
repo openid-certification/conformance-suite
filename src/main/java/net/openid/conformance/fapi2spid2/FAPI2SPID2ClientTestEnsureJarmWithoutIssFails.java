@@ -13,7 +13,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test should end with the client displaying an error message that the JARM response is missing the iss claim",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",
