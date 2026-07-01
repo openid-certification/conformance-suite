@@ -497,12 +497,33 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 	}
 
+	/**
+	 * Whether the client's static JWKS (client.jwks) is used by this test, and so needs to be
+	 * loaded and validated into client_public_jwks.
+	 *
+	 * It is used when the client authenticates with private_key_jwt (client.jwks holds the
+	 * client authentication key) or when the request object is signed (client.jwks holds the
+	 * request object signing key, read by ValidateRequestObjectSignature).
+	 *
+	 * NOTE: this is incorrect for client_attestation with a signed request object. In that case
+	 * the request object is signed by the key bound in the client attestation (cnf.jwk), not by a
+	 * statically configured client.jwks, so the verification key should come from the attestation
+	 * rather than from client.jwks. That bridge is not yet implemented, so signed +
+	 * client_attestation is not currently handled here.
+	 */
+	protected boolean usesClientJwks() {
+		return clientAuthType == ClientAuthType.PRIVATE_KEY_JWT
+			|| fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+	}
+
 	protected void configureClients()
 	{
 		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		validateClientJwks(false);
+		if (usesClientJwks()) {
+			validateClientJwks(false);
+		}
 		validateClientConfiguration();
 
 	}
@@ -516,7 +537,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		validateClientJwks(true);
+		if (usesClientJwks()) {
+			validateClientJwks(true);
+		}
 		validateClientConfiguration();
 
 		//switch back to the first client
