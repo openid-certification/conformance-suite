@@ -636,7 +636,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	// This is called for both the browser API response and the regular direct post response
 	// The received response has been stored in original_authorization_endpoint_response,
 	// and is unpacked (decrypted etc. if necessary) into authorization_endpoint_response
-	private void processReceivedResponse() {
+	protected void processReceivedResponse() {
 		switch (responseMode) {
 			case DIRECT_POST:
 				callAndStopOnFailure(ExtractAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
@@ -1072,6 +1072,24 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	 * </ul>
 	 */
 	protected void handleBrowserApiResponseAsNegativeTest(String successFailureMessage) {
+		JsonObject result = parseBrowserApiResponseBody();
+
+		if (result.has("exception")) {
+			browserApiRejectionReceived(result.get("exception"));
+			return;
+		}
+		if (result.has("bad_response_type")) {
+			throw new TestFailureException(getId(),
+				"Browser API returned an object of unknown type: " + result.get("bad_response_type"));
+		}
+		throw new TestFailureException(getId(), successFailureMessage);
+	}
+
+	/**
+	 * Parses the incoming Browser API submission body (same shape as produced by our frontend in
+	 * log-detail.html, see navigator.credentials.get() handling) into a JSON object.
+	 */
+	protected JsonObject parseBrowserApiResponseBody() {
 		JsonElement body = env.getElementFromObject("incoming_request", "body");
 		if (body == null) {
 			throw new TestFailureException(getId(), "No body received in Browser API submission");
@@ -1080,27 +1098,24 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			throw new TestFailureException(getId(), "Body received in Browser API submission is not a string: " + body);
 		}
 
-		JsonObject result;
 		try {
-			result = JsonParser.parseString(OIDFJSON.getString(body)).getAsJsonObject();
+			return JsonParser.parseString(OIDFJSON.getString(body)).getAsJsonObject();
 		} catch (JsonParseException e) {
 			throw new TestFailureException(getId(), "Parsing JSON in Browser API submission failed: " + e.getMessage());
 		}
+	}
 
-		if (result.has("exception")) {
-			eventLog.log(getName(), args(
-				"msg", "Wallet rejected the request via the Browser API (navigator.credentials.get() promise rejected). This is the expected behavior for this negative test. The tester must upload a screenshot of the wallet's error screen for the test to transition to FINISHED.",
-				"exception", result.get("exception")));
-			createPlaceholder();
-			waitForPlaceholders();
-			setStatus(Status.WAITING);
-			return;
-		}
-		if (result.has("bad_response_type")) {
-			throw new TestFailureException(getId(),
-				"Browser API returned an object of unknown type: " + result.get("bad_response_type"));
-		}
-		throw new TestFailureException(getId(), successFailureMessage);
+	/**
+	 * Handles a wallet rejecting the Browser API request via a promise rejection when that is the
+	 * expected behavior: show the error-screen screenshot placeholder and wait for upload.
+	 */
+	protected void browserApiRejectionReceived(JsonElement exception) {
+		eventLog.log(getName(), args(
+			"msg", "Wallet rejected the request via the Browser API (navigator.credentials.get() promise rejected). This is the expected behavior for this negative test. The tester must upload a screenshot of the wallet's error screen for the test to transition to FINISHED.",
+			"exception", exception));
+		createPlaceholder();
+		waitForPlaceholders();
+		setStatus(Status.WAITING);
 	}
 
 	private static String getHeader(JsonObject requestParts, String headerName) {

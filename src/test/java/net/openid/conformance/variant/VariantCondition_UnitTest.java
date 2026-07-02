@@ -50,6 +50,7 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+			"oid4vp-1final-wallet-negative-test-required-non-matching-credential",
 			"oid4vp-1final-wallet-ignores-unusable-encryption-key"
 		), moduleNames);
 
@@ -103,6 +104,7 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+			"oid4vp-1final-wallet-negative-test-required-non-matching-credential",
 			"oid4vp-1final-wallet-ignores-unusable-encryption-key"
 		), unsignedModules);
 
@@ -122,6 +124,7 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-wrong-expected-origins",
 			"oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+			"oid4vp-1final-wallet-negative-test-required-non-matching-credential",
 			"oid4vp-1final-wallet-ignores-unusable-encryption-key"
 		), signedModules);
 	}
