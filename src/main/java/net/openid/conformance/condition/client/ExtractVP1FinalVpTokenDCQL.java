@@ -25,6 +25,10 @@ public class ExtractVP1FinalVpTokenDCQL extends AbstractCondition {
 		}
 
 		JsonObject vpTokenObj = vpToken.getAsJsonObject();
+		if (vpTokenObj.size() == 0) {
+			throw error("vp_token is an empty JSON object. A wallet that cannot return any presentations must return an authorization error response (e.g. 'access_denied') - an empty vp_token cannot be used to indicate an error.",
+				args("vp_token", vpToken));
+		}
 		if (vpTokenObj.size() != 1) {
 			throw error("vp_token seems to contain more than one credential", args("vp_token", vpToken));
 		}
