@@ -118,6 +118,7 @@ import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.client.ValidateVpTokenCredentialIdMatchesDcqlQuery;
+import net.openid.conformance.condition.client.ValidateVpTokenPresentationCountMatchesDcqlQuery;
 import net.openid.conformance.condition.client.WarnMockWalletResponse;
 import net.openid.conformance.condition.common.CheckAuthorizationEndpointIsValidUri;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -669,6 +670,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			throw new TestFailureException(getId(), "Could not extract a credential from the response");
 		}
 		callAndContinueOnFailure(ValidateVpTokenCredentialIdMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
+		callAndContinueOnFailure(ValidateVpTokenPresentationCountMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8");
