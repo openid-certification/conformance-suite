@@ -20,7 +20,7 @@ mongo
 
 # Scratch directory for unversioned dev artifacts: screenshots, traces, logs,
 # anything an agent or contributor wants to drop without polluting the repo.
-# Convention: save screenshots to tmp/screenshots/. See CLAUDE.md "Scratch
+# Convention: save screenshots to tmp/screenshots/. See AGENTS.md "Scratch
 # artifacts" for the full convention.
 /tmp/
 # Legacy location — keep ignored so stray writes do not accidentally land in

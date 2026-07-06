@@ -41,7 +41,7 @@ const STYLE_TEXT = css`
   }
   /* The cts-badge carries the affordance ring (interactive), so the link
  * itself stays underline-free — the pill silhouette is what reads as
- * clickable (CLAUDE.md Badges affordance rule). Keyboard focus still needs a
+ * clickable (the Badges affordance rule in src/main/resources/static/AGENTS.md). Keyboard focus still needs a
  * visible ring, so surface the standard focus token on focus-visible. */
   .runStrip-link:focus-visible {
     outline: none;

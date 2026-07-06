@@ -254,7 +254,7 @@ const STYLE_TEXT = css`
   /* Clear-filters is a reset action, not a toggle. It is a borderless,
      underlined TEXT button — deliberately not a bordered pill, so it neither
      reads as another filter chip nor fakes an affordance ring with a
-     hand-rolled border (per the Badges rule in CLAUDE.md). The underline is
+     hand-rolled border (per the Badges rule in src/main/resources/static/AGENTS.md). The underline is
      the affordance; it sits inline in the badge row as a text action. */
   cts-log-viewer .logFilterClear {
     align-self: center;

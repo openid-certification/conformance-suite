@@ -28,7 +28,7 @@ Both are merged into a single `api-types.d.ts` so consumers import one shape.
 
 ## Regeneration
 
-A dev Spring server must be running (see [`CLAUDE.md`](../../../CLAUDE.md)
+A dev Spring server must be running (see [`src/main/resources/static/AGENTS.md`](../../../src/main/resources/static/AGENTS.md)
 "Dev loop"). The dev profile activates `DummyUserFilter` so codegen passes
 auth without any token plumbing.
 

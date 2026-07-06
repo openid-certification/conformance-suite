@@ -83,7 +83,7 @@ if [ "${OFFLINE}" -eq 0 ]; then
         echo "ERROR: could not reach ${BASE_URL}/v3/api-docs." >&2
         echo "  Start the dev Spring server first:" >&2
         echo "    mvn spring-boot:run -Dspring-boot.run.profiles=dev" >&2
-        echo "  See CLAUDE.md 'Dev loop'." >&2
+        echo "  See src/main/resources/static/AGENTS.md 'Dev loop'." >&2
         rm -f "${OPENAPI_FILE}.tmp"
         exit 1
     fi

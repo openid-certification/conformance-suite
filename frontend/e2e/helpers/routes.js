@@ -188,7 +188,7 @@ export function expectNoUnmockedCalls(page) {
  * /api/plan/<id> name-resolution stub cts-log-list fires. Returns the recorded
  * URL array so a test can assert WHICH dataset (My vs Published) was fetched
  * across My/Published tab switches. Shared by logs.spec.js and
- * logs-url-compat.spec.js (the route-helper convention — CLAUDE.md).
+ * logs-url-compat.spec.js (the route-helper convention — src/main/resources/static/AGENTS.md).
  *
  * @param {import('@playwright/test').Page} page
  * @param {ReadonlyArray<{planId?: string, testId?: string, status?: string, result?: string}>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)

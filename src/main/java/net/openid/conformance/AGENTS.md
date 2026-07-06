@@ -1,0 +1,256 @@
+# Conformance Test Framework — Agent Guide
+
+Conventions for the Java test framework. This guidance also applies to unit
+tests under `src/test/java/net/openid/conformance/` — read it before test
+work even though it does not auto-load on that path.
+
+## Architecture
+
+### Test Module System
+
+Tests are organized as **Test Modules** that extend `AbstractTestModule`. Each module:
+
+- Is annotated with `@PublishTestModule` for discovery
+- Composes reusable **Conditions** (single validation units)
+- Uses an **Environment** object for state management
+- Can be parameterized via **Variants** to generate multiple test configurations
+
+```
+AbstractTestModule
+└── Protocol-specific base class (e.g., AbstractFAPI2SPFinalClientTest)
+    └── Concrete test class
+```
+
+### Key Base Classes
+
+- `AbstractTestModule` (`testmodule/`) - Core test lifecycle, condition calling, threading
+- `AbstractCondition` (`condition/`) - Base for validation units with environment access and logging
+- `ConditionSequence` (`sequence/`) - Composes conditions into reusable sequences
+- `Environment` (`testmodule/`) - JSON object storage with path navigation
+
+### Condition Calling Patterns
+
+```java
+// Fail test immediately on condition failure
+callAndStopOnFailure(MyCondition.class);
+
+// Log failure but continue execution
+callAndContinueOnFailure(MyCondition.class, Condition.ConditionResult.WARNING);
+
+// Skip if required environment values are missing
+skipIfMissing(new String[]{"required_key"}, null, Condition.ConditionResult.INFO,
+              MyCondition.class, Condition.ConditionResult.FAILURE);
+
+// Call a sequence of conditions
+call(sequence(MySequence.class));
+```
+
+### Environment Usage
+
+```java
+// Store objects
+env.putObject("key", jsonObject);
+env.putString("key", "value");
+
+// Retrieve with path navigation
+String value = env.getString("object", "nested.path");
+JsonObject obj = getJsonObjectFromEnvironment(env, "object", "path");
+```
+
+### Package Organization
+
+- `condition/` - Reusable validation conditions (subdivided by `as/` for server-side, `client/` for client-side)
+- `testmodule/` - Core framework classes (TestModule, Environment, AbstractTestModule)
+- `sequence/` - Reusable condition sequences
+- `variant/` - Variant parameter enums and service
+- `fapi1advancedfinal/`, `fapi2spfinal/`, `fapi2spid2/`, `fapiciba/` - FAPI protocol tests
+- `openid/` - OpenID Connect tests
+- `vci10issuer/`, `vci10wallet/` - Verifiable Credentials tests
+- `vp1finalverifier/`, `vp1finalwallet/`, `vpid2*/`, `vpid3*/` - Verifiable Presentations tests
+- `runner/` - Test execution and HTTP routing
+- `plan/` - Test plan organization
+
+### Kotlin Sources
+
+The project is primarily Java but contains Kotlin source files for multipaz library integration:
+
+- `src/main/java/com/android/identity/testapp/` - VP test credential provisioning (TestAppUtils.kt)
+- `src/main/java/org/multipaz/testapp/` - VCI mdoc credential creation (VciMdocUtils.kt)
+
+These use the [multipaz](https://github.com/openwallet-foundation/multipaz) library for mdoc/SD-JWT credential operations.
+
+### JSON Schema Validation
+
+Spec compliance checks can be implemented using JSON Schema validation. Schemas live in `src/main/resources/json-schemas/` and conditions extend `AbstractJsonSchemaBasedValidation`:
+
+```java
+public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
+    @Override
+    protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
+        JsonObject dcql = (JsonObject) env.getElementFromObject("client", "dcql");
+        return new JsonSchemaValidationInput("DCQL query",
+            "json-schemas/oid4vp/dcql_request.json", dcql);
+    }
+}
+```
+
+- Keep validation strict where the specification defines fixed fields.
+- Unknown properties should raise warnings (not errors)
+- A condition's own `log()` / `logSuccess()` calls are INFO-level — they do **not** produce warnings in the test log. The only way to surface a WARNING is for the **caller** to invoke the condition with `ConditionResult.WARNING` via `onFail(ConditionResult.WARNING)` or `callAndContinueOnFailure(..., ConditionResult.WARNING, ...)`. Therefore, if a check must appear as a warning, put it in a **separate condition** that `throw error(...)` on the finding, and have the caller set the severity to WARNING. Do not try to "warn" from inside a condition with `log()` — it will be invisible as a warning.
+
+### Variants
+
+Tests use `@VariantParameters` to generate multiple configurations from one class:
+
+```java
+@VariantParameters({ClientAuthType.class, FAPIResponseMode.class, ...})
+public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
+    // getVariant(ClientAuthType.class) returns the selected variant
+}
+```
+
+Use `@VariantNotApplicable` to exclude invalid combinations.
+
+### Configuration Fields
+
+Test config fields the user fills in on `schedule-test.html` (e.g., `client.dcql`, `client.verifier_info`) are only shown in the form if they appear in the aggregated `configurationFields` for the selected plan and modules. The aggregator unions, in this order:
+
+- `@PublishTestPlan(configurationFields = {...})` on the plan class
+- `@PublishTestModule(configurationFields = {...})` on each test module
+- `@ConfigurationFields({...})` on the module class **and any of its superclasses** (walked via reflection)
+- `@VariantConfigurationFields(parameter = X.class, value = "y", configurationFields = {...})` matched against the selected variants
+
+Place each field declaration where the field is actually consumed:
+
+- **`@ConfigurationFields` on the abstract base class** for fields that every module in the family consumes (e.g., `client.jwks`, `client.dcql` on `AbstractVP1FinalWalletTest` because the wallet auth-request sequence reads them on every concrete subclass). Don't repeat them on every leaf module.
+- **`@PublishTestModule(configurationFields = ...)` on a single concrete module** only when the field is module-specific.
+- **`@VariantConfigurationFields`** for fields that only apply under specific variant values (e.g., `client.client_id` only when `client_id_prefix=x509_san_dns`).
+
+When you add a new condition that reads a config field via `env.getElementFromObject("client", "new_field")`, locate the corresponding `@ConfigurationFields` (typically on the abstract base for that test family) and add `"client.new_field"` there — otherwise the field stays hidden in the UI even though the code reads it.
+
+### Test Plans
+
+Test plans group related tests for certification via `@PublishTestPlan`:
+
+```java
+@PublishTestPlan(testPlanName = "fapi2-security-profile-final", testModules = {...})
+public class FAPI2SPFinalTestPlan implements TestPlan {}
+```
+
+## Creating New Tests
+
+1. Create a condition class extending `AbstractCondition` with `@PreEnvironment`/`@PostEnvironment` annotations
+2. Create a test module extending the appropriate abstract base class
+3. Annotate with `@PublishTestModule`
+4. Add to a test plan
+
+## Test Naming Convention
+
+Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTest.java`).
+
+## Code Quality
+
+- **Checkstyle**: Google Java Style (configured in `.checkstyle.xml`)
+- **PMD**: Rules in `.pmd.ruleset.xml`
+- **Error Prone**: Enabled at compile time with specific exclusions
+- **ArchUnit**: Architecture tests in `src/test/java/net/openid/conformance/archunit/`
+- **JSON access in Java**: Avoid `JsonElement.getAsString/getAsInt/getAsLong/...`; use `OIDFJSON` helpers instead (e.g., `OIDFJSON.getString(...)`) to satisfy ArchUnit and avoid implicit conversions.
+
+Tests compile with `-Werror` so all warnings must be resolved.
+
+## Test-Suite Behavior Expectations
+
+- This repository is a conformance test suite; explicit failures for invalid protocol behavior are expected.
+- Ignored catches can be acceptable if they still lead to a clear and meaningful test failure.
+- Generic `error(...)` text is acceptable when `args(...)` includes actionable detail.
+
+### Sender vs Receiver Validation
+
+When specs say "MUST ignore unknown properties", that applies to **receivers** (e.g., wallets processing DCQL queries). The conformance suite validates **senders** (e.g., verifiers constructing DCQL queries), so JSON schemas SHOULD use `additionalProperties: false` to flag unknown or misspelled fields as warnings (not errors) — senders should not include undefined properties.
+
+### HTTP Endpoint Validation Checklist
+
+When the test suite **calls an external endpoint** (e.g., a credential issuer's challenge endpoint), validate everything in the response:
+
+- HTTP status code (e.g., `EnsureHttpStatusCodeIs200`)
+- Response headers: `Content-Type` (e.g., `EnsureContentTypeJson`), `Cache-Control` where the spec requires it
+- Response body: required fields present and valid, unknown fields flagged as a WARNING via a separate condition
+
+When an external client **calls a test-suite endpoint** (e.g., a wallet calling the emulated challenge endpoint), validate everything in the request:
+
+- HTTP method (e.g., `EnsureIncomingRequestMethodIsPost`)
+- URL query parameters — if the spec defines none, check they are empty (`EnsureIncomingUrlQueryIsEmpty`)
+- Request body — if the spec defines none, check it is empty (`EnsureIncomingRequestBodyIsEmpty`)
+- Request headers where the spec defines requirements (e.g., `Content-Type`, `Accept`)
+
+Each check should be a separate condition so the caller controls the severity (FAILURE vs WARNING).
+
+## Error Messages for Configuration Issues
+
+When a condition fails because of missing or invalid test configuration (fields the user fills in on schedule-test.html), error messages should reference the UI labels the user sees, not internal JSON key names. Include "in the test configuration" so the user knows where to look. For example:
+
+- Good: `"'Payment consent request JSON' field is missing from the 'Resource' section in the test configuration"`
+- Bad: `"brazilPaymentConsent not found in resource configuration"`
+
+Check `src/main/resources/static/schedule-test.html` for the field labels displayed to users.
+
+## Technical Standards & RFCs
+
+When interpreting RFCs or technical specifications, present multiple defensible interpretations with trade-offs rather than committing to a single answer. Flag areas of ambiguity explicitly.
+
+Key specifications for VP/VCI work:
+
+- **OID4VP 1.0 Final**: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html
+- **OID4VCI 1.0 Final**: https://openid.net/specs/openid-4-verifiable-credentials-issuance-1_0.html
+- **HAIP 1.0 Final**: https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html
+- **OID4VP WG Draft**: https://openid.github.io/OpenID4VP/openid-4-verifiable-presentations-wg-draft.html
+- **OID4VP GitHub**: https://github.com/openid/OpenID4VP
+
+Identity Assurance spec locations used in this codebase:
+
+- https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html
+- https://openid.net/specs/openid-connect-4-ida-attachments-1_0.html
+- https://openid.net/specs/openid-connect-4-ida-claims-1_0.html
+- https://openid.net/specs/openid-ida-verified-claims-1_0.html
+
+OpenID Federation spec locations:
+
+- **OpenID Federation 1.0**: https://openid.net/specs/openid-federation-1_0.html
+
+## Running integration tests
+
+Use `scripts/run-integration-tests.sh`, which handles building, server lifecycle, readiness checks, and test execution in one command. Output is captured to `/tmp/integration-test-<timestamp>.log` — the script prints the log path before redirecting.
+
+Available options (passed through to `.gitlab-ci/run-tests.sh`):
+`--client-tests`, `--oidcc-tests`, `--fapi-tests`, `--ciba-tests`, `--local-provider-tests`, `--panva-tests`, `--ekyc-tests`, `--authzen-tests`, `--federation-tests`, `--ssf-tests`, `--vc-tests`
+
+```bash
+# List numbered plans to find the right --rerun number (no build/server needed)
+.gitlab-ci/run-tests.sh --vc-tests --list
+
+# Rerun a specific plan by its number from the last run
+./scripts/run-integration-tests.sh --ekyc-tests --rerun 3
+
+# Rerun a specific module within a plan / multiple plans
+./scripts/run-integration-tests.sh --ekyc-tests --rerun 3:2
+./scripts/run-integration-tests.sh --ekyc-tests --rerun 1,3
+```
+
+The tests take a long time — always start by identifying a relevant happy
+flow test module using `--list`, run it via `--rerun`, and only then run a
+fuller set. Items tagged as "expected" errors, warnings or skips are not a
+problem. There is no dedicated `--vp-tests` option: run VP plans from
+`--vc-tests` via `--rerun`.
+
+Prerequisites: MongoDB on `127.0.0.1:27017`, the Nginx HTTPS proxy
+(8443/8444 → 8080), a `../conformance-suite-private` checkout (test
+configs), and Python 3 with `pyparsing >= 3` (macOS:
+`PATH=/opt/homebrew/bin:$PATH`).
+
+## Key dependencies (Java)
+
+- **multipaz** (CBOR/COSE/mdoc): source at
+  https://github.com/openwallet-foundation/multipaz — look up API details
+  there rather than unpacking JARs.
+- **Nimbus JOSE+JWT** (JWT/JWK/JWS/JWE): source at
+  https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/ — same rule.

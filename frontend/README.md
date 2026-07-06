@@ -15,9 +15,10 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 LiveReload (port 35729) auto-refreshes the tab; plain F5 also works. Java edits
-trigger a fast classloader restart (~5s). See the "Dev loop" section in the
-top-level [`CLAUDE.md`](../CLAUDE.md) for the full launch path, the
-production-parity invariant, and the `SPRING_PROFILES_ACTIVE=dev` warning.
+trigger a fast classloader restart (~5s). See the "Dev loop" section in
+[`src/main/resources/static/AGENTS.md`](../src/main/resources/static/AGENTS.md)
+for the full launch path, the production-parity invariant, and the
+`SPRING_PROFILES_ACTIVE=dev` warning.
 
 For Java↔JS API type parity, the codegen pipeline at `src/api/` snapshots
 `/v3/api-docs` and runtime sample responses into committed `.d.ts` types — see
@@ -25,27 +26,27 @@ For Java↔JS API type parity, the codegen pipeline at `src/api/` snapshots
 
 ## Local commands
 
-| Script                      | What it does                                                                                               | When to run                                           |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `npm run format`            | Prettier `--write` across `frontend/` and `../src/main/resources/static/components/`.                      | Before committing style-only changes.                 |
-| `npm run format:check`      | Prettier `--check` (no writes).                                                                            | Part of `test:ci`.                                    |
-| `npm run lint`              | ESLint flat config over frontend + components.                                                             | Before committing.                                    |
-| `npm run lint:fix`          | ESLint `--fix` for auto-fixable findings.                                                                  | After initial lint failures.                          |
-| `npm run type-check`        | `tsc --noEmit` for root + `e2e/` tsconfigs.                                                                | After touching JS/JSDoc types.                        |
-| `npm run lint:jsdoc`        | Shell presence check that every `cts-*` class has a JSDoc block with `@property` tags.                     | Before committing component changes.                  |
-| `npm run lint:lit-analyzer` | `lit-analyzer` CLI over `cts-*.js`. Lit-aware template checks (unknown tags, bad bindings, unclosed tags). | Before committing component changes.                  |
-| `npm run test:ci`           | `format:check && lint && type-check && lint:jsdoc && lint:lit-analyzer`. Exactly what CI runs.             | Before pushing.                                       |
-| `npm run test`              | `test:ci && test-storybook`. Local full run; requires a browser.                                           | Before opening an MR.                                 |
-| `npm run test:e2e`          | Playwright against legacy static HTML.                                                                     | After editing `../src/main/resources/static/*.html`.  |
-| `npm run storybook`         | Launch Storybook dev server on port 6006.                                                                  | While authoring components.                           |
-| `npm run build-storybook`   | Static Storybook build.                                                                                    | Rarely; CI handles this.                              |
-| `npm run test-storybook`    | Vitest runner for Storybook play functions **and** axe-core a11y checks (see "Accessibility testing").     | After adding/editing interaction tests or components. |
-| `npm run chromatic`         | Publish Storybook to Chromatic for visual regression review (see "Visual regression testing").             | Rarely; CI publishes on every frontend push.          |
+| Script                      | What it does                                                                                                                        | When to run                                           |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `npm run format`            | Prettier `--write` across `frontend/` and `../src/main/resources/static/components/`.                                               | Before committing style-only changes.                 |
+| `npm run format:check`      | Prettier `--check` (no writes).                                                                                                     | Part of `test:ci`.                                    |
+| `npm run lint`              | ESLint flat config over frontend + components.                                                                                      | Before committing.                                    |
+| `npm run lint:fix`          | ESLint `--fix` for auto-fixable findings.                                                                                           | After initial lint failures.                          |
+| `npm run type-check`        | `tsc --noEmit` for root + `e2e/` tsconfigs.                                                                                         | After touching JS/JSDoc types.                        |
+| `npm run lint:jsdoc`        | Shell presence check that every `cts-*` class has a JSDoc block with `@property` tags.                                              | Before committing component changes.                  |
+| `npm run lint:lit-analyzer` | `lit-analyzer` CLI over `cts-*.js`. Lit-aware template checks (unknown tags, bad bindings, unclosed tags).                          | Before committing component changes.                  |
+| `npm run test:ci`           | format:check → lint → type-check → lint:jsdoc → lint:icons → lint:agents → lint:lit-analyzer → codegen:check. Exactly what CI runs. | Before pushing.                                       |
+| `npm run test`              | `test:ci && test-storybook`. Local full run; requires a browser.                                                                    | Before opening an MR.                                 |
+| `npm run test:e2e`          | Playwright against legacy static HTML.                                                                                              | After editing `../src/main/resources/static/*.html`.  |
+| `npm run storybook`         | Launch Storybook dev server on port 6006.                                                                                           | While authoring components.                           |
+| `npm run build-storybook`   | Static Storybook build.                                                                                                             | Rarely; CI handles this.                              |
+| `npm run test-storybook`    | Vitest runner for Storybook play functions **and** axe-core a11y checks (see "Accessibility testing").                              | After adding/editing interaction tests or components. |
+| `npm run chromatic`         | Publish Storybook to Chromatic for visual regression review (see "Visual regression testing").                                      | Rarely; CI publishes on every frontend push.          |
 
 ## Getting started
 
 Run this once per machine so `npm` inside `frontend/` matches the
-`packageManager` pin in `package.json` (currently `npm@11.12.1`). Corepack
+`packageManager` pin in `package.json` (currently `npm@11.13.0`). Corepack
 ships with Node 16.13+ and is on by default in Node 22+, but the shim for
 `npm` itself needs one explicit opt-in:
 
@@ -359,3 +360,44 @@ Then point git at it:
 ```bash
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
+
+## Component quick reference
+
+Per-component index for the `cts-*` web components in
+`../src/main/resources/static/components/`. Authoring rules live in that
+directory's `AGENTS.md`; this table moved here from there to keep the
+agent-instruction path inside the 32 KiB budget (`npm run lint:agents`).
+
+| Component               | Base class  | Reactive? | Notes                                                                                                                          |
+| ----------------------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `cts-alert`             | HTMLElement | No        | Optional dismiss; fires `cts-alert-dismissed`                                                                                  |
+| `cts-badge`             | HTMLElement | Partial   | Uses `observedAttributes` for attribute-driven re-render                                                                       |
+| `cts-batch-runner`      | LitElement  | Yes       | Dispatches `cts-run-all` / `cts-run-remaining`                                                                                 |
+| `cts-button`            | LitElement  | Yes       | Variant, size, loading, disabled                                                                                               |
+| `cts-card`              | HTMLElement | No        | One-shot `connectedCallback` — wraps children in Bootstrap card markup                                                         |
+| `cts-config-form`       | LitElement  | Yes       | JSON-schema-driven form; schema/uiSchema/config/errors as Object props                                                         |
+| `cts-form-field`        | LitElement  | Yes       | Schema-driven input field                                                                                                      |
+| `cts-icon`              | LitElement  | Yes       | Renders a vendored coolicons SVG from a name and size                                                                          |
+| `cts-image-upload`      | LitElement  | Yes       | Multi-image upload widget; fires `cts-image-uploaded`                                                                          |
+| `cts-json-editor`       | LitElement  | Yes       | Drop-in `<textarea>` replacement wrapping the vendored Monaco AMD bundle; falls back to `<textarea>` when Monaco fails to load |
+| `cts-link-button`       | LitElement  | Yes       | Same shape as cts-button but renders `<a>`                                                                                     |
+| `cts-log-detail-header` | LitElement  | Yes       | Header for log-detail page; dispatches several action events                                                                   |
+| `cts-log-entry`         | LitElement  | Yes       | Single log line; supports block start/end formatting                                                                           |
+| `cts-log-viewer`        | LitElement  | Yes       | Polls `/api/log/:id`; surfaces persistent failures as a banner                                                                 |
+| `cts-login-page`        | LitElement  | Yes       | Login form with OAuth2 buttons and logout-message slot                                                                         |
+| `cts-modal`             | HTMLElement | No        | Wraps Bootstrap 5 Modal; exposes `show()`/`hide()`                                                                             |
+| `cts-navbar`            | LitElement  | Yes       | Fetches user via `/api/currentuser` on connect                                                                                 |
+| `cts-plan-actions`      | LitElement  | Yes       | Plan-detail action bar; dispatches publish/delete/certify/etc. events                                                          |
+| `cts-plan-detail`       | LitElement  | Yes       | Composite: header + modules + actions. See `cts-plan-detail.stories.js` for the sub-component stories                          |
+| `cts-plan-header`       | LitElement  | Yes       | Sub-component of cts-plan-detail                                                                                               |
+| `cts-plan-list`         | LitElement  | Yes       | Plans table; dispatches `cts-plan-navigate`                                                                                    |
+| `cts-plan-modules`      | LitElement  | Yes       | Sub-component of cts-plan-detail; dispatches run/download events                                                               |
+| `cts-plan-status`       | LitElement  | Yes       | Per-module status segments (overview/detail/log modes); fires `cts-plan-status-activate`                                       |
+| `cts-running-test-card` | LitElement  | Yes       | Active-test panel; dispatches `cts-download-log`                                                                               |
+| `cts-spec-cascade`      | LitElement  | Yes       | Family → entity → version → plan dropdowns; dispatches `cts-plan-selected`                                                     |
+| `cts-tabs`              | HTMLElement | No        | Restructures `<cts-tab-panel>` children into WCAG tablist; dispatches `cts-tab-change`                                         |
+| `cts-test-nav-controls` | LitElement  | Yes       | Plan-nav cluster (Return/Repeat/Continue) + embedded `cts-plan-status` log bar; fires `cts-repeat`/`cts-continue`              |
+| `cts-test-selector`     | LitElement  | Yes       | Plan-selector UI; dispatches `cts-plan-select`                                                                                 |
+| `cts-time`              | LitElement  | Yes       | Layout-neutral timestamp primitive (`display:contents`); native `<time>` with hover-absolute `title`                           |
+| `cts-token-manager`     | LitElement  | Yes       | Token CRUD; fetches `/api/token`                                                                                               |
+| `cts-tooltip`           | HTMLElement | No        | Wraps Bootstrap 5 Tooltip on first child                                                                                       |
