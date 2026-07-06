@@ -3216,3 +3216,297 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator("#ctsLogTocToggle")).not.toBeVisible();
   });
 });
+
+/**
+ * Exported-values grid (#1861). The redesign dropped the legacy "Exported
+ * Values:" panel: the header renders exposed values, but the only carrier of
+ * `exposed` is GET /api/runner/{id}, and log-detail.js dropped data.exposed on
+ * the floor. These tests drive the real two-endpoint poll loop — /api/info
+ * never carries `exposed`, /api/runner does — and assert the grid renders and
+ * survives info re-polls (the grid is fed by the header's dedicated `exposed`
+ * property, orthogonal to `testInfo`), plus the security boundaries (404 / 401)
+ * that keep exported tokens from leaking to flushed/shared viewers.
+ *
+ * Plans:
+ *   docs/plans/2026-06-23-001-fix-exported-values-missing-new-ui-plan.md (fix)
+ *   docs/plans/2026-06-24-001-refactor-exported-values-wiring-plan.md (refactor)
+ */
+test.describe("log-detail.html — exported values grid (#1861)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  // SSF transmitter keys from the issue screenshot, incl. one long no-space
+  // URL to exercise value wrapping. The /api/info body NEVER carries these —
+  // proving the grid is fed by the /api/runner poll, not the persisted doc.
+  const SSF_EXPOSED = {
+    ssf_poll_endpoint: "https://localhost.emobix.co.uk:8443/ssf/poll/abc123",
+    ssf_tx_access_token: "ssf-tx-access-token-abc123",
+    ssf_issuer: "https://localhost.emobix.co.uk:8443/ssf/issuer/abc123",
+    alias: "ssf-transmitter-1",
+    ssf_configuration_url:
+      "https://localhost.emobix.co.uk:8443/.well-known/ssf-configuration/abc123-with-a-deliberately-long-no-space-path",
+  };
+
+  /**
+   * WAITING test whose persisted /api/info doc carries no `exposed` field at
+   * all — exported values reach the header only via the /api/runner poll (the
+   * contract this whole describe block exercises), never through /api/info.
+   * @param {string} testId
+   */
+  function waitingInfo(testId) {
+    return {
+      ...MOCK_TEST_STATUS,
+      _id: testId,
+      testId,
+      status: "WAITING",
+      result: null,
+    };
+  }
+
+  const EXPOSED_PANEL = 'cts-log-detail-header [data-testid="exposed-values"]';
+
+  test("WAITING test renders the exported-values grid fed by the /api/runner poll", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const info = waitingInfo("test-exposed-001");
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    // Override the helper's runner→404 with a WAITING body carrying `exposed`.
+    await page.route(`**/api/runner/${info.testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", exposed: SSF_EXPOSED, browser: null }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(info.testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText("Exported values");
+    const entries = Object.entries(SSF_EXPOSED);
+    await expect(panel.locator("dt.ctsExposedKey")).toHaveCount(entries.length);
+    await expect(panel.locator("dd.ctsExposedValue")).toHaveCount(entries.length);
+    for (const [key, value] of entries) {
+      await expect(panel).toContainText(key);
+      await expect(panel).toContainText(value);
+    }
+    await expect(panel.locator("dl.ctsExposedGrid")).toHaveAttribute(
+      "aria-label",
+      "Exported values",
+    );
+    // Each value has its own copy button to the right.
+    await expect(panel.locator("cts-button.ctsExposedCopy")).toHaveCount(entries.length);
+  });
+
+  test("each exported value has a copy button that writes the value to the clipboard", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const testId = "test-exposed-008";
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", exposed: SSF_EXPOSED }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible();
+    // The disclosure is collapsed by default — expand it so the copy buttons
+    // are interactable.
+    await panel.locator("summary").click();
+    // Rows are sorted alphabetically, so the first is `alias`. Clicking its
+    // copy button writes that value (not the key) to the clipboard.
+    await panel
+      .locator("dd.ctsExposedValue")
+      .first()
+      .locator("cts-button.ctsExposedCopy button")
+      .click();
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe(SSF_EXPOSED.alias);
+  });
+
+  test("exported values render in alphabetical key order (KTD4)", async ({ page }) => {
+    // The backend serialises `exposed` in arbitrary HashMap order; the grid
+    // sorts by key (localeCompare) for a stable, scannable order. Feed an
+    // intentionally unsorted map and assert the rendered <dt> order.
+    const testId = "test-exposed-007";
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          exposed: { z_key: "z-val", a_key: "a-val", m_key: "m-val" },
+        }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible();
+    await expect(panel.locator("dt.ctsExposedKey")).toHaveText(["a_key", "m_key", "z_key"]);
+  });
+
+  test("grid survives an /api/info re-poll that lacks `exposed` (no clobber, KTD1)", async ({
+    page,
+  }) => {
+    const testId = "test-exposed-002";
+    /** @type {string[]} */
+    const infoCalls = [];
+    page.on("request", (req) => {
+      if (req.url().includes(`/api/info/${testId}`)) infoCalls.push(req.url());
+    });
+
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    // The runner carries `exposed` on every poll; /api/info never does. The
+    // grid is fed by the header's dedicated `exposed` property (set from the
+    // runner branch), which is orthogonal to `testInfo` (set from the
+    // /api/info branch) — so a fresh /api/info apply cannot clobber it.
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", exposed: SSF_EXPOSED }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible(); // appears after the first runner poll
+    const baseline = infoCalls.length;
+
+    // Wait for the NEXT /api/info cycle to land after the grid appeared. In the
+    // old design that merged `exposed` onto testInfo, this /api/info apply
+    // (carrying no `exposed`) could clear the grid; now that `exposed` is a
+    // separate property, the grid survives by construction — the regression
+    // guard that keeps a future change from re-coupling the two cadences.
+    await expect.poll(() => infoCalls.length, { timeout: 10000 }).toBeGreaterThan(baseline);
+
+    await expect(panel).toBeVisible();
+    await expect(panel.locator("dt.ctsExposedKey")).toHaveCount(Object.keys(SSF_EXPOSED).length);
+  });
+
+  test("empty `exposed` from the runner renders no grid", async ({ page }) => {
+    const testId = "test-exposed-003";
+    /** @type {string[]} */
+    const runnerCalls = [];
+    page.on("request", (req) => {
+      if (req.url().includes(`/api/runner/${testId}`)) runnerCalls.push(req.url());
+    });
+
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", exposed: {} }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
+    // Ensure at least one runner poll resolved before asserting the negative.
+    await expect.poll(() => runnerCalls.length).toBeGreaterThan(0);
+    await expect(page.locator(EXPOSED_PANEL)).toHaveCount(0);
+  });
+
+  test("runner 404 (flushed test) renders no grid; the log still renders", async ({ page }) => {
+    const testId = "test-exposed-004";
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    // setupV2Routes already serves /api/runner → 404; no override needed.
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    await expect(page.locator(".logItem").first()).toBeVisible();
+    await expect(page.locator(EXPOSED_PANEL)).toHaveCount(0);
+  });
+
+  test("runner 401 (share-JWT / private-link viewer) renders no grid and no error", async ({
+    page,
+  }) => {
+    // Security boundary: /api/runner is denied to share-JWT viewers (the
+    // denyAll allowlist in WebSecurityResourceServerConfig), so exported
+    // tokens never leak through a share link. The page must degrade cleanly.
+    const testId = "test-exposed-005";
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({ status: 401, body: "" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    await expect(page.locator(".logItem").first()).toBeVisible();
+    await expect(page.locator(EXPOSED_PANEL)).toHaveCount(0);
+    // The "no error" half: a non-404 runner failure (401) is swallowed by the
+    // poll loop's catch — it must NOT render an error banner, or a share-JWT
+    // viewer would get a leaked error surface (the boundary this test guards).
+    await expect(page.locator('[data-testid="running-error-slot"] cts-alert')).toHaveCount(0);
+  });
+
+  test("grid disappears when the runner flushes the test (404 clears the exposed property)", async ({
+    page,
+  }) => {
+    // A test that exposed values, then gets flushed from runner memory (404)
+    // while /api/info is briefly still WAITING, must not keep showing the
+    // now-stale grid: the 404 branch clears the header's `exposed` property via
+    // applyExposed(null) (live-only, KTD2). Guards the stale-grid regression.
+    const testId = "test-exposed-006";
+    let runnerHits = 0;
+    await setupFailFast(page);
+    const info = waitingInfo(testId);
+    await setupV2Routes(page, { testInfo: info, logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) => {
+      runnerHits += 1;
+      if (runnerHits === 1) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ status: "WAITING", exposed: SSF_EXPOSED }),
+        });
+      }
+      return route.fulfill({ status: 404, body: "" });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const panel = page.locator(EXPOSED_PANEL);
+    await expect(panel).toBeVisible(); // cycle 1: runner carries `exposed`
+    // cycle 2+: runner 404 (flushed) → cache reset → grid clears even though
+    // /api/info still reports WAITING (the WAITING hero keeps rendering).
+    await expect(panel).toHaveCount(0, { timeout: 10000 });
+  });
+});

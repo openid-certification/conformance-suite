@@ -172,6 +172,22 @@ function applyTestInfo(testInfo) {
 }
 
 /**
+ * Push the runner-sourced `exposed` map to the header's dedicated reactive
+ * property. Exported values (#1861) are carried ONLY by the /api/runner poll,
+ * never by /api/info, so they live on `header.exposed` — orthogonal to
+ * `header.testInfo` — which means an /api/info refresh can never clobber the
+ * grid (the cache/merge/change-guard the first cut needed are gone). A `null`
+ * write clears the grid when the runner flushes the test (live-only, KTD2).
+ *
+ * @param {Object<string, unknown> | null | undefined} exposed
+ */
+function applyExposed(exposed) {
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) header.exposed = exposed || null;
+}
+
+/**
  * Apply the latest `entry._id` → `LOG-NNNN` map (U6) to every failure
  * summary instance on the page so reference chips render alongside each
  * failure row. Two instances: the page-level `#ctsTopFailureSummary`
@@ -670,11 +686,22 @@ function startRunnerPolling(testInfo) {
     if (!isPublic) {
       try {
         const response = await fetch("/api/runner/" + encodeURIComponent(testId));
-        if (response.status !== 404) {
+        if (response.status === 404) {
+          // Runner flushed the test from memory. Clear the exported-values grid
+          // so a stale grid doesn't linger if /api/info is briefly still
+          // non-terminal (live-only, KTD2). applyExposed(null) is idempotent,
+          // so an always-404 poll stays a no-op on the header.
+          applyExposed(null);
+        } else {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
           renderBrowserSlot(data.browser);
           renderErrorSlot(data.error);
+          // Exported values (#1861): feed the runner's `exposed` map straight
+          // to the header's dedicated property. No cache or change-guard needed
+          // — `header.exposed` is orthogonal to `header.testInfo`, so the
+          // /api/info refresh above can't clobber the grid.
+          applyExposed(data.exposed);
         }
       } catch (err) {
         console.warn("[log-detail] /api/runner failed:", err);
