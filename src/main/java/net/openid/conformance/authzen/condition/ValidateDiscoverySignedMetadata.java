@@ -24,12 +24,12 @@ public class ValidateDiscoverySignedMetadata extends AbstractConditionSequence {
 	@Override
 	public void evaluate() {
 		callAndStopOnFailure(ExtractPDPSignedMetadata.class, "AUTHZEN-9.1.3");
-		callAndContinueOnFailure(ValidatePDPSignedMetadataAlg.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndStopOnFailure(ValidatePDPSignedMetadataAlg.class, "AUTHZEN-9.1.3");
 		callAndStopOnFailure(VerifyAuthzenSignedMetadataSignature.class, "AUTHZEN-9.1.3");
-		callAndContinueOnFailure(ValidatePDPSignedMetadataIss.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
-		callAndContinueOnFailure(ValidatePDPSignedMetadataIat.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
-		callAndContinueOnFailure(ValidatePDPSignedMetadataExp.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
-		callAndContinueOnFailure(ValidatePDPSignedMetadataNbf.class, Condition.ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+		callAndStopOnFailure(ValidatePDPSignedMetadataIss.class, "AUTHZEN-9.1.3", "AUTHZEN-9.2.3", "RFC7519-4.1.1");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataIat.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.6");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
+		callAndContinueOnFailure(ValidatePDPSignedMetadataNbf.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.5");
 		callAndContinueOnFailure(EnsurePDPSignedMetadataDoesNotContainSignedMetadata.class, Condition.ConditionResult.WARNING, "AUTHZEN-9.1.3");
 	}
 

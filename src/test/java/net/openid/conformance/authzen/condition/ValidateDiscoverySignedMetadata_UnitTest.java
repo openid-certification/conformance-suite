@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -91,15 +92,15 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		// ValidatePDPSignedMetadataIss is called continue-on-failure with explicit FAILURE, so the test result is
 		// FAILED but no exception is thrown.
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().subject("not-an-issuer").build()));
-		module.runSequence();
-		assertEquals(Result.FAILED, module.getResult());
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("MUST contain an `iss` (issuer) claim"));
 	}
 
 	@Test
 	public void issuerMismatch_failsResult() throws Exception {
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer("https://other.example.com").build()));
-		module.runSequence();
-		assertEquals(Result.FAILED, module.getResult());
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("issuer mismatch"));
 	}
 
 	@Test
@@ -124,8 +125,8 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		String header = Base64URL.encode("{\"alg\":\"none\"}").toString();
 		String payload = Base64URL.encode("{\"iss\":\"" + PDP_ISSUER + "\"}").toString();
 		putSignedMetadata(header + "." + payload + ".");
-		module.runSequence();
-		assertEquals(Result.FAILED, module.getResult());
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("Invalid PDP signed_metadata alg"));
 	}
 
 	@Test
