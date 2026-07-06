@@ -106,6 +106,7 @@ import net.openid.conformance.condition.as.GenerateOauthServerConfigurationMTLS;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
+import net.openid.conformance.condition.as.FAPI2GenerateServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
@@ -210,6 +211,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -221,6 +223,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+@ConfigurationFields({"server.jwks"})
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI2ID2OPProfile.class,
@@ -537,8 +540,12 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	protected void configureServerJWKS() {
-		callAndStopOnFailure(LoadServerJWKs.class);
-		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
+		if (env.getElementFromObject("config", "server.jwks") != null) {
+			callAndStopOnFailure(LoadServerJWKs.class);
+			call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
+		} else {
+			callAndStopOnFailure(FAPI2GenerateServerJWKs.class);
+		}
 		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-ID2-5.6.4-2.3.1");
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 	}

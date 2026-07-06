@@ -13,7 +13,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "Tests whether the client has case sensitiveness when an all inverted case token_type is returned in the token endpoint response",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

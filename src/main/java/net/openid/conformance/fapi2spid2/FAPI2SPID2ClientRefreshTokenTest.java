@@ -24,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 		"token obtained using the refresh_token.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",
