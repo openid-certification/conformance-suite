@@ -12,8 +12,8 @@ FAPI1, FAPI2, FAPI-CIBA, eKYC, OpenID Federation, Verifiable Credentials
 
 ## Workflow rules
 
-After making code changes, always run the project build and tests before
-committing. If tests fail, fix them before presenting the result as complete.
+After code changes, run the build and tests before committing. If tests
+fail, fix them before presenting the result as complete.
 
 ## Build commands
 
@@ -83,6 +83,7 @@ via deliberate maintainer-reviewed edits.
   never edit values in place).
 - `frontend/README.md` — human cross-reference (not canonical).
 - `docs/solutions/` — dated learnings.
+- `docs/maintenance-matrix.md` — cross-cutting change cascades (index).
 
 ## Review-sensitive files
 
@@ -93,10 +94,10 @@ machines outside the harness trust gates — flag for named maintainer review.
 
 ## Code review
 
-When asked to review a commit or branch, structure the review by file and
-call out correctness issues (especially dead code or unreachable paths), API
-misuse, and behavioral changes. Don't just summarize — actively look for
-bugs. The `openid-review` skill carries the full checklist.
+For commit or branch reviews use the `openid-review` skill (it carries the
+full checklist): structure by file; call out correctness issues, dead code,
+API misuse, and behavioral changes — actively look for bugs, don't
+summarize.
 
 ## Git
 
