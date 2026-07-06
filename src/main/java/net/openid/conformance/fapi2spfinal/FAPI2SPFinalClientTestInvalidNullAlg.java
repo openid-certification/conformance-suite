@@ -9,7 +9,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test should end with the client displaying an error message that the id_token was signed with alg: none",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

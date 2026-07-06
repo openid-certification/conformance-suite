@@ -74,7 +74,6 @@ import jakarta.servlet.http.HttpSession;
 		""",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
-		"server.jwks",
 		"waitTimeoutSeconds"
 	}
 )
