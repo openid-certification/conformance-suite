@@ -1,6 +1,6 @@
 ---
 name: cts-design-eye
-description: Design-eye review for CTS UI changes — conventions critique, desktop and mobile screenshots, component and a11y checks via Storybook, before presenting any UI work
+description: Use when a change alters rendered CTS UI (anything under src/main/resources/static/) and is about to be presented, committed, or put in an MR — including small styling tweaks — or when asked whether UI work looks right, matches the design conventions, or is accessible
 ---
 
 # CTS Design-Eye Review

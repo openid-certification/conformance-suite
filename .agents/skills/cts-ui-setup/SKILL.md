@@ -1,6 +1,6 @@
 ---
 name: cts-ui-setup
-description: Bootstrap a machine for local UI development on the conformance suite — running app + Storybook, pinned per-user tools, harness trust verified
+description: Use when setting up or checking a machine for conformance-suite UI work — clean checkout, app or Storybook not running, scripts/ui-preflight.sh failures, missing JDK 21 / pinned npm / Docker, per-user agent tooling not installed, or harness hooks and repo trust unverified
 ---
 
 # Conformance Suite UI Development Setup

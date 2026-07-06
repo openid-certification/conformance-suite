@@ -1,6 +1,6 @@
 ---
 name: openid-review
-description: Review code changes for correctness, spec compliance, and conformance suite conventions
+description: Use when reviewing a conformance-suite branch, MR, or diff — before requesting maintainer review, when asked to review changes, or when checking spec citations, condition severity mapping, or configuration-field wiring
 ---
 
 # OpenID Conformance Suite Code Review
