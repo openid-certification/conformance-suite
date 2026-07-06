@@ -1,0 +1,12 @@
+# Project-scoped Codex CLI config (loaded only after you trust this repo).
+# Mirrors .mcp.json so Codex sessions get the same Storybook MCP server as
+# Claude Code: story lookups, preview URLs, and component/a11y test runs via
+# the storybook-mcp addon (requires the local Storybook dev server:
+# cd frontend && npm run storybook).
+#
+# Trust notes (see AGENTS.md "Agent harness notes"): untrusted repos skip
+# this file and .codex/hooks.json entirely; hooks are additionally trusted
+# per config hash, so re-run the /hooks trust review after hooks.json changes.
+
+[mcp_servers.storybook-mcp]
+url = "http://localhost:6006/mcp"

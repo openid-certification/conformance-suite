@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/frontend/scripts/agent-edit-check.sh\" --stdin-json",
+            "timeout": 60,
+            "statusMessage": "Running CTS frontend edit checks"
+          }
+        ]
+      }
+    ]
+  }
+}

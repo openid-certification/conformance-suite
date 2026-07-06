@@ -10,6 +10,14 @@
 # Usage:  agent-edit-check.sh <file>
 #   <file> may be absolute or repo-relative.
 #
+#         agent-edit-check.sh --stdin-json
+#   Hook mode: reads a PostToolUse JSON payload from stdin (Claude Code
+#   provides tool_input.file_path for Edit/Write; Codex provides the
+#   apply_patch envelope whose patch body names files on "*** Update File:" /
+#   "*** Add File:" lines), extracts every edited path, and runs the check
+#   once per path, aggregating the worst exit code. Malformed or empty
+#   payloads exit 0 — a hook must never strand a session on payload drift.
+#
 # Exit codes:  0 = clean / not applicable   1 = findings   2 = usage error
 #
 # Kill switch:  set CTS_SKIP_EDIT_CHECKS=1 to bypass entirely (prints a notice
@@ -43,10 +51,58 @@ if [ "${CTS_SKIP_EDIT_CHECKS:-}" = "1" ]; then
   exit 0
 fi
 
+# --- Hook mode (--stdin-json) -------------------------------------------------
+if [ "${1:-}" = "--stdin-json" ]; then
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "agent-edit-check: python3 not found; skipping hook-mode checks" >&2
+    exit 0
+  fi
+  paths=$(python3 -c '
+import json, re, sys
+try:
+    payload = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+out = []
+ti = payload.get("tool_input")
+if isinstance(ti, dict):
+    fp = ti.get("file_path")
+    if isinstance(fp, str) and fp:
+        out.append(fp)
+def walk(v):
+    if isinstance(v, str):
+        for m in re.finditer(r"^\*\*\* (?:Update|Add) File: (.+)$", v, re.M):
+            out.append(m.group(1).strip())
+    elif isinstance(v, list):
+        for i in v:
+            walk(i)
+    elif isinstance(v, dict):
+        for i in v.values():
+            walk(i)
+walk(ti)
+seen = set()
+for p in out:
+    if p and p not in seen:
+        seen.add(p)
+        print(p)
+') || exit 0
+  rc=0
+  while IFS= read -r p; do
+    [ -z "$p" ] && continue
+    bash "${BASH_SOURCE[0]}" "$p"
+    prc=$?
+    if [ "$prc" -gt "$rc" ]; then rc=$prc; fi
+  done <<HOOKPATHS
+$paths
+HOOKPATHS
+  exit "$rc"
+fi
+
 # --- Usage -------------------------------------------------------------------
 if [ "$#" -ne 1 ]; then
   echo "usage: agent-edit-check.sh <file>" >&2
   echo "       (exactly one path argument; absolute or repo-relative)" >&2
+  echo "       or: agent-edit-check.sh --stdin-json  (hook mode; payload on stdin)" >&2
   exit 2
 fi
 
