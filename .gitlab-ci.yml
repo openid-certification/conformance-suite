@@ -288,8 +288,20 @@ chromatic:
     - corepack enable npm      # activate packageManager pin (see frontend_lint)
   script:
     - cd frontend
-    - npm ci --ignore-scripts
-    - npx chromatic
+    # --prefer-offline uses the npm cache and falls back to the network only on a miss;
+    # --no-audit/--no-fund skip network/log noise. Safe with the committed lockfile.
+    - npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+    # --diagnostics-file dumps build/timing/baseline context to chromatic-diagnostics.json
+    # (uploaded as an artifact below) — the first place to look when a run misbehaves.
+    - npx chromatic --diagnostics-file=chromatic-diagnostics.json
+  # chromatic-diagnostics.json is written under frontend/ (the script's cwd); artifacts:paths
+  # resolve from $CI_PROJECT_DIR, so the path is frontend/-prefixed. when:always captures it
+  # even when chromatic exits non-zero.
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - frontend/chromatic-diagnostics.json
   allow_failure: true
   only:
     refs:
