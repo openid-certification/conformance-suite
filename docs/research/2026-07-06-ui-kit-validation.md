@@ -309,3 +309,7 @@ skill's trust step is where a fresh teammate learns this.
 - `DISABLE_TELEMETRY=1` verified against modern-web-guidance 0.0.174
   package source (README §Telemetry and `modern-web.mjs` read exactly that
   variable).
+- **Windows assumption resolved (2026-07-06):** the team confirmed no
+  member develops on Windows, so the git-symlink skills layout stands as
+  shipped; the plan's duplicated-copies-with-drift-check fallback is not
+  needed.
