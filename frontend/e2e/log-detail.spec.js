@@ -1296,6 +1296,62 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(exportUrl.searchParams.get("public")).toBeNull();
   });
 
+  test("WAITING test with results still exposes Upload Images in the overflow menu", async ({
+    page,
+  }) => {
+    // gitlab#1868: a WAITING test that has already produced condition
+    // results is paused mid-run for external input (e.g. a manual
+    // screenshot/error-page upload when no browser automation is
+    // configured), not a fresh pre-run test. The overflow menu must stay
+    // populated so Upload Images remains reachable.
+    const waitingWithResults = {
+      ...MOCK_TEST_RUNNING_2,
+      results: [
+        {
+          _id: "waiting-r1",
+          result: "REVIEW",
+          src: "SomeBrowserCondition",
+          msg: "Waiting for manual browser interaction",
+        },
+      ],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: waitingWithResults,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(waitingWithResults.testId)}`);
+
+    await expect(page.locator('[data-testid="status-bar-overflow"]')).toBeVisible();
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await expect(page.locator('button[data-action-id="upload-images"]')).toBeVisible();
+  });
+
+  test("fresh WAITING test (no results yet) hides the overflow menu", async ({ page }) => {
+    // Complements the test above: a WAITING test with no results yet is
+    // pre-run and genuinely has nothing actionable in the overflow menu
+    // besides Start, which is already the primary button.
+    const freshWaiting = {
+      ...MOCK_TEST_RUNNING_2,
+      results: [],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: freshWaiting,
+      logEntries: [],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(freshWaiting.testId)}`);
+
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="status-bar-overflow"]')).toHaveCount(0);
+  });
+
   /**
    * Run the post-terminal verdict refresh against a parametrized verdict
    * (PASSED / FAILED / REVIEW / WARNING / SKIPPED / INTERRUPTED). The

@@ -1306,7 +1306,13 @@ class CtsLogDetailHeader extends LitElement {
     if (!test) return [];
     const readonly = this._isReadonly();
     const status = (test.status || "").toUpperCase();
-    if (status === "WAITING") return [];
+    // A fresh WAITING test (no results yet) genuinely has nothing to act on
+    // besides clicking Start. But a test that already has results and is
+    // WAITING is paused mid-run for external input — e.g. a manual
+    // screenshot/error-page upload when no browser automation is configured
+    // (gitlab#1868) — so the overflow actions (notably Upload Images) must
+    // stay available.
+    if (status === "WAITING" && !this._hasStartedRunning(test)) return [];
 
     const uploadCount = this._getUploadCount();
     /** @type {Array<{ id: string, label: string, icon?: string, hidden?: boolean, variant?: string }>} */
