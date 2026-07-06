@@ -141,11 +141,16 @@ guessing:
 Load the agent-browser workflow first: `agent-browser skills get core`. Then
 follow this discipline exactly.
 
-- Open a **new dedicated session used only for**
-  `https://localhost.emobix.co.uk:8443`, with the HTTPS-error bypass scoped to
-  that session (`--ignore-https-errors`). The bypass exists solely because the
-  local dev proxy serves a self-signed cert for this one origin — **never** set
-  it for any other browsing session, and navigate only within this origin.
+- The HTTPS-error bypass is **daemon-global**, not per-session: agent-browser
+  ignores `--ignore-https-errors` when a daemon is already running. So fence
+  the critique with a daemon restart: run `agent-browser close --all`, then
+  open a **new dedicated session used only for**
+  `https://localhost.emobix.co.uk:8443` with `--ignore-https-errors
+  --allowed-domains localhost.emobix.co.uk` (the first command starts the
+  daemon with both flags). The bypass exists solely because the local dev
+  proxy serves a self-signed cert for this one origin — navigate only within
+  it, and finish with `agent-browser close --all` so no bypass-enabled daemon
+  lingers for unrelated browsing.
 - Capture at both widths, into the gitignored `tmp/screenshots/`:
   - Desktop: `set viewport 1440 900`, screenshot →
     `tmp/screenshots/<change-name>-desktop.png`
@@ -155,7 +160,7 @@ follow this discipline exactly.
   horizontal overflow, focus rings, hover states, and the empty / error /
   loading states where the change has them. Note anything the static pass
   could not see.
-- Close the session at the end.
+- Close the session, then `agent-browser close --all`, at the end.
 - **agent-browser quirks to encode in the run:** use `set viewport <w> <h>`
   (not bare `viewport`); a viewport change **renumbers element refs**, so
   re-snapshot before acting on `@eN` refs; a link click can silently fail to
