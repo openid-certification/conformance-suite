@@ -9,7 +9,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

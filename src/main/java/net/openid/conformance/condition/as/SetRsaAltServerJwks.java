@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -38,19 +37,15 @@ public class SetRsaAltServerJwks extends AbstractCondition {
 	""";
 
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(required = "server_jwks")
 	@PostEnvironment(required = { "server_public_jwks", "server_jwks", "server_alt_jwks" })
 	public Environment evaluate(Environment env) {
 
-		JsonElement configured = env.getElementFromObject("config", "server.jwks");
-
-		if (configured == null) {
-			throw error("Couldn't find a JWK set in configuration");
-		}
+		JsonObject serverJwksJsonObject = env.getObject("server_jwks");
 
 		// parse the JWKS to make sure it's valid
 		try {
-			JWKSet jwks = JWKUtil.parseJWKSet(configured.toString());
+			JWKSet jwks = JWKUtil.parseJWKSet(serverJwksJsonObject.toString());
 
 			JsonObject privateJwks = JWKUtil.getPrivateJwksAsJsonObject(jwks);
 
@@ -73,7 +68,7 @@ public class SetRsaAltServerJwks extends AbstractCondition {
 			return env;
 
 		} catch (ParseException e) {
-			throw error("Failure parsing JWK Set", e, args("jwk_string", configured));
+			throw error("Failure parsing server_jwks JWK Set", e, args("jwk_string", serverJwksJsonObject));
 		}
 	}
 

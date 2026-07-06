@@ -15,7 +15,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test does not send an issuer in the authorization response. The client should display a message that the authorization response does not contain an issuer and must not call any other endpoints.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",
