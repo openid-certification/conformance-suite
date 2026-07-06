@@ -126,3 +126,18 @@ frontend/playwright-report/
 frontend/build-storybook.log
 frontend/chromatic.log
 frontend/chromatic-diagnostics.json
+
+# Committed agent skills. Canonical skill bodies live in .agents/skills/
+# (the cross-harness home); .claude/skills/ holds per-skill relative
+# symlinks so Claude Code discovers the same bodies. Everything else in
+# these two directories is a personal, per-machine skill farm and must
+# stay untracked. Allowlist each kit skill explicitly; diffs touching this
+# block are review-sensitive (see AGENTS.md "Review-sensitive files").
+.agents/skills/*
+.claude/skills/*
+!.agents/skills/openid-review
+!.agents/skills/cts-ui-setup
+!.agents/skills/cts-design-eye
+!.claude/skills/openid-review
+!.claude/skills/cts-ui-setup
+!.claude/skills/cts-design-eye
