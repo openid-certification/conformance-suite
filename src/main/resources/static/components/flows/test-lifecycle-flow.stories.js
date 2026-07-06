@@ -69,6 +69,12 @@ const FAILED_TEST_INFO = {
  */
 export const PlanToLogDetail = {
   parameters: {
+    // Embeds a live cts-log-viewer that polls /api/log; the polled DOM never
+    // settles for Chromatic capture (the frozen clock leaves timers running),
+    // so the snapshot is non-deterministic. Behavior test only — see
+    // pollingStoryParameters in cts-log-viewer.stories.js. test-storybook
+    // still runs the play function below.
+    chromatic: { disableSnapshot: true },
     msw: {
       handlers: [
         http.get("/api/plan/:planId", () => HttpResponse.json(PLAN_WITH_RESULTS)),
