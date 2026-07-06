@@ -1,5 +1,6 @@
 {
   "$schema": "https://www.chromatic.com/config-file.schema.json",
+  "autoAcceptChanges": "master",
   "exitZeroOnChanges": true,
   "onlyChanged": true,
   "storybookBaseDir": "frontend"
