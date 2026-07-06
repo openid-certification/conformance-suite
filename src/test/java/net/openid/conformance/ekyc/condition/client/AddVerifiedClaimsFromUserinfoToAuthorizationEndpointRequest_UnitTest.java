@@ -141,9 +141,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			                    "trust_framework": {
 			                        "value": "de_aml"
 			                    },
-			                    "verification_process": {
-			                        "value": "vp1"
-			                    },
+			                    "verification_process": null,
 			                    "assurance_process": {
 			                        "policy": {
 			                            "value": "policy1"
@@ -222,9 +220,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			            "trust_framework": {
 			              "value": "de_aml"
 			            },
-			            "verification_process": {
-			              "value": "vp1"
-			            },
+			            "verification_process": null,
 			            "assurance_process": {
 			              "policy": {
 			                "value": "policy1"
@@ -336,9 +332,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 				                    "trust_framework": {
 				                        "value": "de_aml"
 				                    },
-				                    "verification_process": {
-				                        "value": "vp1"
-				                    },
+				                    "verification_process": null,
 				                    "assurance_process": {
 				                        "policy": {
 				                            "value": "policy1"
@@ -465,9 +459,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 				                    "trust_framework": {
 				                        "value": "de_aml"
 				                    },
-				                    "verification_process": {
-				                        "value": "vp1"
-				                    },
+				                    "verification_process": null,
 				                    "assurance_process": {
 				                        "policy": {
 				                            "value": "policy1"
@@ -514,49 +506,25 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 				                                    "check_id": {
 				                                        "value": "mycheckid1"
 				                                    },
-				                                    "time": {
-				                                        "value": "2022-12-12T00:30Z"
-				                                    }
+				                                    "time": null
 				                                }
 				                            ],
 				                            "document_details": {
 				                                "type": {
 				                                    "value": "idcard"
 				                                },
-				                                "document_number": {
-				                                    "value": "docnum1234"
-				                                },
-				                                "serial_number": {
-				                                    "value": "serial123"
-				                                },
-				                                "date_of_issuance": {
-				                                    "value": "2020-01-01"
-				                                },
-				                                "date_of_expiry": {
-				                                    "value": "2030-01-01"
-				                                },
+				                                "document_number": null,
+				                                "serial_number": null,
+				                                "date_of_issuance": null,
+				                                "date_of_expiry": null,
 				                                "issuer": {
-				                                    "name": {
-				                                        "value": "issuername"
-				                                    },
-				                                    "country_code": {
-				                                        "value": "US"
-				                                    },
-				                                    "jurisdiction": {
-				                                        "value": "CA"
-				                                    },
-				                                    "street_address": {
-				                                        "value": "123 Example St."
-				                                    },
-				                                    "locality": {
-				                                        "value": "Hollywood"
-				                                    },
-				                                    "region": {
-				                                        "value": "CA"
-				                                    },
-				                                    "postal_code": {
-				                                        "value": "90210"
-				                                    }
+				                                    "name": null,
+				                                    "country_code": null,
+				                                    "jurisdiction": null,
+				                                    "street_address": null,
+				                                    "locality": null,
+				                                    "region": null,
+				                                    "postal_code": null
 				                                }
 				                            }
 				                        }
@@ -645,9 +613,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			            "trust_framework": {
 			              "value": "de_aml"
 			            },
-			            "verification_process": {
-			              "value": "vp1"
-			            },
+			            "verification_process": null,
 			            "assurance_process": {
 			              "policy": {
 			                "value": "policy1"
@@ -694,43 +660,23 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			                    "check_id": {
 			                      "value": "mycheckid1"
 			                    },
-			                    "time": {
-			                      "value": "2022-12-12T00:30Z"
-			                    }
+			                    "time": null
 			                  }
 			                ],
 			                "record": {
 			                  "type": {
 			                    "value": "idcard"
 			                  },
-			                  "created_at": {
-			                    "value": "2020-01-01T00:00Z"
-			                  },
-			                  "date_of_expiry": {
-			                    "value": "2030-01-01"
-			                  },
+			                  "created_at": null,
+			                  "date_of_expiry": null,
 			                  "source": {
-			                    "name": {
-			                      "value": "sourcename"
-			                    },
-			                    "country_code": {
-			                      "value": "US"
-			                    },
-			                    "jurisdiction": {
-			                      "value": "CA"
-			                    },
-			                    "street_address": {
-			                      "value": "123 Example St."
-			                    },
-			                    "locality": {
-			                      "value": "Hollywood"
-			                    },
-			                    "region": {
-			                      "value": "CA"
-			                    },
-			                    "postal_code": {
-			                      "value": "90210"
-			                    }
+			                    "name": null,
+			                    "country_code": null,
+			                    "jurisdiction": null,
+			                    "street_address": null,
+			                    "locality": null,
+			                    "region": null,
+			                    "postal_code": null
 			                  }
 			                }
 			              }
@@ -820,9 +766,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			            "trust_framework": {
 			              "value": "de_aml"
 			            },
-			            "verification_process": {
-			              "value": "vp1"
-			            },
+			            "verification_process": null,
 			            "assurance_process": {
 			              "policy": {
 			                "value": "policy1"
@@ -869,49 +813,25 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			                    "check_id": {
 			                      "value": "mycheckid1"
 			                    },
-			                    "time": {
-			                      "value": "2022-12-12T00:30Z"
-			                    }
+			                    "time": null
 			                  }
 			                ],
 			                "attestation": {
 			                  "type": {
 			                    "value": "written_attestation"
 			                  },
-			                  "reference_number": {
-			                    "value": "ref12345"
-			                  },
-			                  "date_of_issuance": {
-			                    "value": "2020-01-01"
-			                  },
-			                  "date_of_expiry": {
-			                    "value": "2030-01-01"
-			                  },
+			                  "reference_number": null,
+			                  "date_of_issuance": null,
+			                  "date_of_expiry": null,
 			                  "voucher": {
-			                    "name": {
-			                      "value": "vouchname"
-			                    },
-			                    "birthdate": {
-			                      "value": "2010-01-01"
-			                    },
-			                    "country_code": {
-			                      "value": "US"
-			                    },
-			                    "occupation": {
-			                      "value": "worker"
-			                    },
-			                    "street_address": {
-			                      "value": "123 Example St."
-			                    },
-			                    "locality": {
-			                      "value": "Hollywood"
-			                    },
-			                    "region": {
-			                      "value": "CA"
-			                    },
-			                    "postal_code": {
-			                      "value": "90210"
-			                    }
+			                    "name": null,
+			                    "birthdate": null,
+			                    "country_code": null,
+			                    "occupation": null,
+			                    "street_address": null,
+			                    "locality": null,
+			                    "region": null,
+			                    "postal_code": null
 			                  }
 			                }
 			              }
@@ -980,9 +900,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			            "trust_framework": {
 			              "value": "de_aml"
 			            },
-			            "verification_process": {
-			              "value": "vp1"
-			            },
+			            "verification_process": null,
 			            "assurance_process": {
 			              "policy": {
 			                "value": "policy1"
@@ -1018,18 +936,10 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 			                "type": {
 			                  "value": "electronic_signature"
 			                },
-			                "signature_type": {
-			                  "value": "sigType1"
-			                },
-			                "issuer": {
-			                  "value": "ESIssuer"
-			                },
-			                "serial_number": {
-			                  "value": "Serial12345"
-			                },
-			                "created_at": {
-			                  "value": "2023-01-01T00:00Z"
-			                }
+			                "signature_type": null,
+			                "issuer": null,
+			                "serial_number": null,
+			                "created_at": null
 			              }
 			            ]
 			          }

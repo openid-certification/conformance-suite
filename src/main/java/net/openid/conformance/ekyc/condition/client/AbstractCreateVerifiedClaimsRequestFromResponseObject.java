@@ -2,6 +2,7 @@ package net.openid.conformance.ekyc.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -12,7 +13,11 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 		if(!verificationObject.has("trust_framework")) {
 			throw error("verification requires trust_framework", args("verification", verificationObject));
 		}
-		JsonObject verificationClaims = getJsonObjectSubElementsWithConstrainableElementValue(verificationObject, "trust_framework", "assurance_level", "verification_process", "time");
+		// trust_framework and assurance_level are constrainable_element (value permitted);
+		// verification_process is a simple_element and time is a datetime_element, neither of
+		// which permits a value constraint, so they are requested as null.
+		JsonObject verificationClaims = getJsonObjectSubElementsWithConstrainableElementValue(verificationObject, "trust_framework", "assurance_level");
+		addNonConstrainableElements(verificationClaims, verificationObject, "verification_process", "time");
 
 		// TODO TODO add time? e.g calulate max_age from time in userinfo and request values that satisfy or does not satisfy the max_age
 
@@ -148,7 +153,12 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 			if(!refCheckDetailsElement.getAsJsonObject().has("check_method")) {
 				throw error("check_details must contain check_method", args("check_details", refCheckDetailsElement));
 			}
-			checkDetailsArray.add(getJsonObjectSubElementsWithConstrainableElementValue(refCheckDetailsElement.getAsJsonObject(), "check_method", "organization", "check_id", "time"));
+			JsonObject refCheckDetails = refCheckDetailsElement.getAsJsonObject();
+			// check_method, organization and check_id are constrainable_element (value permitted);
+			// time is a datetime_element and is requested as null.
+			JsonObject checkDetails = getJsonObjectSubElementsWithConstrainableElementValue(refCheckDetails, "check_method", "organization", "check_id");
+			addNonConstrainableElements(checkDetails, refCheckDetails, "time");
+			checkDetailsArray.add(checkDetails);
 		}
 		return checkDetailsArray;
 	}
@@ -157,7 +167,11 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 		if(!refDocumentDetailsObject.has("type")) {
 			throw error("document_details must contain type", args("document_details", refDocumentDetailsObject));
 		}
-		JsonObject documentDetailsClaims = getJsonObjectSubElementsWithConstrainableElementValue(refDocumentDetailsObject, "type", "document_number", "serial_number", "date_of_issuance", "date_of_expiry");
+		// type is a constrainable_element (value permitted); document_number and serial_number are
+		// simple_element and date_of_issuance/date_of_expiry are datetime_element, none of which
+		// permit a value constraint, so they are requested as null.
+		JsonObject documentDetailsClaims = getJsonObjectSubElementsWithConstrainableElementValue(refDocumentDetailsObject, "type");
+		addNonConstrainableElements(documentDetailsClaims, refDocumentDetailsObject, "document_number", "serial_number", "date_of_issuance", "date_of_expiry");
 		if(refDocumentDetailsObject.has("issuer")) {
 			JsonObject issuerObject = createIssuerClaimsObject(refDocumentDetailsObject.getAsJsonObject("issuer"));
 			documentDetailsClaims.add("issuer", issuerObject);
@@ -172,7 +186,10 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 			// address claims
 			"formatted", "street_address", "locality", "region", "postal_code", "country"
 		};
-		return getJsonObjectSubElementsWithConstrainableElementValue(refIssuerObject, issuerClaimsList);
+		// All issuer sub-elements are simple_element; they do not permit a value constraint.
+		JsonObject issuerClaims = new JsonObject();
+		addNonConstrainableElements(issuerClaims, refIssuerObject, issuerClaimsList);
+		return issuerClaims;
 	}
 
 	protected JsonObject createElectronicRecordEvidenceClaimsObject(JsonObject refEvidenceObject) {
@@ -190,8 +207,10 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 		if(!refRecordObject.has("type")) {
 			throw error("record object must contain type", args("record", refRecordObject));
 		}
-		JsonObject electronicRecordClaims = getJsonObjectSubElementsWithConstrainableElementValue(refRecordObject,
-			"type", "created_at", "date_of_expiry");
+		// type is a constrainable_element (value permitted); created_at and date_of_expiry are
+		// datetime_element and are requested as null.
+		JsonObject electronicRecordClaims = getJsonObjectSubElementsWithConstrainableElementValue(refRecordObject, "type");
+		addNonConstrainableElements(electronicRecordClaims, refRecordObject, "created_at", "date_of_expiry");
 		if(refRecordObject.has("source")) {
 			electronicRecordClaims.add("source", createElectronicRecordSourceClaimsObject(refRecordObject.getAsJsonObject("source")));
 		}
@@ -206,7 +225,10 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 			// address claims
 			"formatted", "street_address", "locality", "region", "postal_code", "country"
 		};
-		return getJsonObjectSubElementsWithConstrainableElementValue(refSourceObject, sourceClaimsList);
+		// All source sub-elements are simple_element; they do not permit a value constraint.
+		JsonObject sourceClaims = new JsonObject();
+		addNonConstrainableElements(sourceClaims, refSourceObject, sourceClaimsList);
+		return sourceClaims;
 	}
 
 	protected JsonObject createVouchEvidenceClaimsObject(JsonObject refEvidenceObject) {
@@ -225,8 +247,11 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 		if(!refVouchAttestationObject.has("type")) {
 			throw error("vouch attestation must contain type", args("vouch attestation", refVouchAttestationObject));
 		}
-		JsonObject attestationClaims = getJsonObjectSubElementsWithConstrainableElementValue(refVouchAttestationObject,
-			"type", "reference_number", "date_of_issuance", "date_of_expiry");
+		// type is a constrainable_element (value permitted); reference_number is a simple_element and
+		// date_of_issuance/date_of_expiry are datetime_element, none of which permit a value
+		// constraint, so they are requested as null.
+		JsonObject attestationClaims = getJsonObjectSubElementsWithConstrainableElementValue(refVouchAttestationObject, "type");
+		addNonConstrainableElements(attestationClaims, refVouchAttestationObject, "reference_number", "date_of_issuance", "date_of_expiry");
 		if(refVouchAttestationObject.has("voucher")) {
 			attestationClaims.add("voucher", createVouchAttestationVoucherClaimsObject(refVouchAttestationObject.getAsJsonObject("voucher")));
 		}
@@ -241,7 +266,11 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 			// address claims
 			"formatted", "street_address", "locality", "region", "postal_code", "country"
 		};
-		return getJsonObjectSubElementsWithConstrainableElementValue(refVoucherObject, voucherClaimsList);
+		// All voucher sub-elements are simple_element (birthdate is a datetime_element); none permit
+		// a value constraint.
+		JsonObject voucherClaims = new JsonObject();
+		addNonConstrainableElements(voucherClaims, refVoucherObject, voucherClaimsList);
+		return voucherClaims;
 	}
 
 	private JsonObject createElectronicSignatureEvdenceClaimsObject(JsonObject refEvidenceObject) {
@@ -251,10 +280,11 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 				throw error("electronic_signature requires " + claim, args("electronic_signature", refEvidenceObject));
 			}
 		}
-		JsonObject electronicSignatureClaims = getJsonObjectSubElementsWithConstrainableElementValue(refEvidenceObject, requireClaims);
-		if(refEvidenceObject.has("created_at")) {
-			electronicSignatureClaims.add("created_at", getConstrainableElementWithValue(refEvidenceObject.get("created_at")));
-		}
+		// type is the evidence discriminator (an object carrying value); signature_type, issuer and
+		// serial_number are simple_element and created_at is a datetime_element, none of which permit
+		// a value constraint, so they are requested as null.
+		JsonObject electronicSignatureClaims = getJsonObjectSubElementsWithConstrainableElementValue(refEvidenceObject, "type");
+		addNonConstrainableElements(electronicSignatureClaims, refEvidenceObject, "signature_type", "issuer", "serial_number", "created_at");
 
 		// TODO add derived_claims???
 
@@ -279,5 +309,23 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 		JsonObject rv = new JsonObject();
 		rv.addProperty("value", OIDFJSON.getString(valueInUserinfo));
 		return rv;
+	}
+
+	/**
+	 * Adds each present element from {@code refJsonObject} to {@code target} as a non-value
+	 * request element. The IDA verified_claims request schema models these as {@code simple_element}
+	 * or {@code datetime_element}, which permit only {@code null} or an object with
+	 * {@code essential} ({@code datetime_element} additionally allows {@code max_age}) — they MUST NOT
+	 * carry {@code value}/{@code values}. They are requested as {@code null} (unconstrained),
+	 * consistent with how the individual user claims are requested.
+	 */
+	protected void addNonConstrainableElements(JsonObject target, JsonObject refJsonObject, String ... elementsList) {
+		if(refJsonObject != null) {
+			for(String element : elementsList) {
+				if(refJsonObject.has(element)) {
+					target.add(element, JsonNull.INSTANCE);
+				}
+			}
+		}
 	}
 }

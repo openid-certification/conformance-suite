@@ -2,6 +2,8 @@ package net.openid.conformance.ekyc.test.oidccore;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.CreateTransactionId;
+import net.openid.conformance.condition.client.AddTransactionIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull;
@@ -19,11 +21,14 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsReques
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstCustomSchemas;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.EKYCProfile;
 import net.openid.conformance.variant.EKYCVerifiedClaimsResponseSupport;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 
 
 @ConfigurationFields({
@@ -33,7 +38,8 @@ import net.openid.conformance.variant.VariantParameters;
 	"ekyc.response_schemas",
 })
 @VariantParameters({
-	EKYCVerifiedClaimsResponseSupport.class
+	EKYCVerifiedClaimsResponseSupport.class,
+	EKYCProfile.class,
 })
 
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
@@ -67,6 +73,11 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 		addUnverifiedClaimsToAuthorizationRequest();
 		addVerifiedClaimsToAuthorizationRequest();
 		validateVerifiedClaimsRequestSchema();
+	}
+
+	@VariantSetup(parameter = EKYCProfile.class, value = "select_id")
+	public void setupProfileAuthorizationEndpointSetupSteps() {
+		profileAuthorizationEndpointSetupSteps = SelectIdAuthorizationEndpointSetupSteps.class;
 	}
 
 	protected void addUnverifiedClaimsToAuthorizationRequest() {
@@ -137,6 +148,15 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 
 	protected void validateUserinfoVerifiedClaimsAgainstRequested() {
 		callAndContinueOnFailure(new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-5.7", "IA-7");
+	}
+
+	public static class SelectIdAuthorizationEndpointSetupSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(CreateTransactionId.class);
+			callAndStopOnFailure(AddTransactionIdToAuthorizationEndpointRequest.class);
+			call(exec().exposeEnvironmentString("transaction_id"));
+		}
 	}
 
 }
