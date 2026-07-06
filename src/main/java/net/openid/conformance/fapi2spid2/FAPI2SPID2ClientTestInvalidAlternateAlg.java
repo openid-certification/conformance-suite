@@ -9,7 +9,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

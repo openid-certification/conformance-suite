@@ -12,7 +12,6 @@ import net.openid.conformance.testmodule.TestFailureException;
 	summary = "This test should end with the client displaying an error message that the state value in the authorization endpoint response is invalid",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",

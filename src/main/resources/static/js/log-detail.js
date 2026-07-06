@@ -1007,11 +1007,8 @@ function handleUploadImages(evt) {
 
 function handleDownloadLog(evt) {
   const eventTestId = (evt.detail && evt.detail.testId) || testId;
-  // The export route is /api/log/export/{id} (LogApi.java) — same order
-  // plan-detail.html uses. The swapped /api/log/{id}/export form has no
-  // server-side route and 404s.
   window.location.assign(
-    "/api/log/export/" + encodeURIComponent(eventTestId) + (isPublic ? "?public=true" : ""),
+    "/api/log/exporthtml/" + encodeURIComponent(eventTestId) + (isPublic ? "?public=true" : ""),
   );
 }
 

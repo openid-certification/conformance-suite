@@ -15,7 +15,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends an invalid iss in the authorization response. The client should display an invalid issuer message and must not call any other endpoints.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
-		"server.jwks",
 		"client.client_id",
 		"client.scope",
 		"client.redirect_uri",
