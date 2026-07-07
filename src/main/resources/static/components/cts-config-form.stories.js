@@ -1229,9 +1229,6 @@ function buildLargeConfig() {
  * `lineDecorationsWidth` Monaco options (bisected by temporarily
  * reverting both; bug persisted identically either way).
  *
- * This test is expected to FAIL until the underlying cts-json-editor.js
- * defect is fixed — it exists to pin the regression down before any fix
- * lands, per the investigation's TDD requirement.
  */
 export const LargeDocumentKeystrokeDoesNotCorruptContent = {
   render: () => html`
