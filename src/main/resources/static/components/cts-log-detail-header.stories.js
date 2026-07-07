@@ -1562,15 +1562,24 @@ export const StatusBarOverflowAdminWithPublish = {
   },
 };
 
-export const StatusBarOverflowSkippedForWaiting = {
+export const StatusBarOverflowShownForWaiting = {
+  // gitlab#1868: this used to assert the overflow was null for any WAITING
+  // test, on the assumption that WAITING always means a fresh, pre-run test
+  // with nothing actionable. But a WAITING test can also be paused mid-run
+  // for external input (e.g. a manual screenshot/error-page upload when no
+  // browser automation is configured) — and testInfo.results (the signal a
+  // first attempt at this fix tried to key off) is never populated by
+  // /api/info in production, so any such distinction silently degrades to
+  // "always hidden". The overflow must show unconditionally for WAITING;
+  // every individual action already gates itself on readonly/isAdmin.
   render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
     await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="status-bar"]');
-      if (!el) throw new Error("status bar not yet rendered");
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
       return el;
     });
-    expect(canvasElement.querySelector('[data-testid="status-bar-overflow"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="status-bar-overflow"]')).not.toBeNull();
   },
 };
 
