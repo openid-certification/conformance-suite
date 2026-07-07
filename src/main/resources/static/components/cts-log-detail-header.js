@@ -35,10 +35,13 @@ const RESULT_BADGE_VARIANTS = {
 /**
  * Test running-state -> canonical cts-badge variant. FINISHED is neutral
  * (`skip`) because the sibling result badge carries the outcome; WAITING
- * uses `warn` to signal user action; INTERRUPTED matches RESULT_BADGE_VARIANTS.
+ * uses `warn` because the run is paused on an external event or user
+ * action; CONFIGURED uses `warn` because the runner is waiting for the
+ * user to press Start (#1862); INTERRUPTED matches RESULT_BADGE_VARIANTS.
  * @type {Object.<string, string>}
  */
 const STATUS_BADGE_VARIANTS = {
+  CONFIGURED: "warn",
   RUNNING: "running",
   WAITING: "warn",
   FINISHED: "skip",
@@ -137,8 +140,10 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   FAILED/WARNING/REVIEW       → count headline + failure  │  fs-20 head
 //   │   INTERRUPTED                 → error slot + failure list │
 //   │   PASSED/SKIPPED              → no separate hero           │
-//   │   WAITING                     → R24 instructions (Start in│
-//   │                                 sticky bar, not duplicated)│
+//   │   CONFIGURED                  → "Click Start Test" prompt │
+//   │                                 (Start in sticky bar)     │
+//   │   WAITING                     → R24 instructions + browser│
+//   │                                 slot (never a Start CTA)  │
 //   │   RUNNING                     → info alert + browser slot │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Drawer (Region C — <details> disclosures)                 │
@@ -714,7 +719,11 @@ function ensureStylesInjected() {
  * @typedef {object} TestInfo
  * @property {string} testId - Test instance ID.
  * @property {string} testName - Module class name.
- * @property {string} status - One of: RUNNING, WAITING, FINISHED, INTERRUPTED.
+ * @property {string} status - One of: CREATED, CONFIGURED, RUNNING, WAITING,
+ *   FINISHED, INTERRUPTED. CONFIGURED means the runner is waiting for the
+ *   user to start the test (only oidcc-server-rotate-keys does not
+ *   auto-start); WAITING means the test is mid-run, waiting on an incoming
+ *   request or a user action such as visiting a URL (#1862).
  * @property {string} result - Final result (PASSED/FAILED/WARNING/REVIEW/SKIPPED).
  * @property {Array} results - Log entries used for the result/failure summary.
  * @property {string} created - ISO timestamp of test creation.
@@ -754,11 +763,12 @@ function ensureStylesInjected() {
  *      `docs/brainstorms/2026-04-26-cts-log-detail-header-hierarchy-requirements.md`:
  *      FAILED / WARNING / REVIEW render the failure list as the hero;
  *      PASSED / SKIPPED use the persistent objective summary and do not
- *      need a separate hero; WAITING renders R24 instructions (Start lives in the sticky
- *      status bar, not duplicated in the hero); RUNNING renders the
- *      running-test info alert + browser slot; INTERRUPTED renders the
- *      failure list with the FINAL_ERROR alert pinned at the top of the
- *      hero.
+ *      need a separate hero; CONFIGURED renders the "Click Start Test"
+ *      prompt (the Start CTA itself lives in the sticky status bar);
+ *      WAITING renders R24 instructions + the browser slot and never
+ *      offers Start (#1862); RUNNING renders the running-test info
+ *      alert + browser slot; INTERRUPTED renders the failure list with
+ *      the FINAL_ERROR alert pinned at the top of the hero.
  *   6. Region C drawer — `<details>` disclosures: "Test details"
  *      (metadata, closed by default) and, for a live test that has
  *      exported runtime values, "Exported values" (closed by default).
@@ -826,10 +836,10 @@ function ensureStylesInjected() {
  *   button is clicked, with `{ detail: { testId, action, mode? } }` where
  *   `action` is `publish` or `unpublish` and `mode` is `summary` or
  *   `everything` (omitted for unpublish); bubbles.
- * @fires cts-start-test - When the Start button is clicked on a running /
- *   waiting test, with `{ detail: { testId } }`; bubbles.
- * @fires cts-stop-test - When the Stop button is clicked on a running /
- *   waiting test, with `{ detail: { testId } }`; bubbles.
+ * @fires cts-start-test - When the Start Test button is clicked on a
+ *   CONFIGURED (not-yet-started) test, with `{ detail: { testId } }`; bubbles.
+ * @fires cts-stop-test - When the Stop button is clicked on a running
+ *   test, with `{ detail: { testId } }`; bubbles.
  */
 class CtsLogDetailHeader extends LitElement {
   static properties = {
@@ -1189,9 +1199,17 @@ class CtsLogDetailHeader extends LitElement {
    * interrupted". The `interrupted` phase is reserved for an
    * interruption with no concrete verdict (e.g. an admin force-stop or
    * an unexpected exception before any result was assigned).
+   * The runner auto-starts every test module on creation except the
+   * rare `autoStart() == false` modules (currently only
+   * oidcc-server-rotate-keys — see TestRunner.createTest). So status
+   * CONFIGURED means "the runner is waiting for the user to press
+   * Start" (phase `needs-start`), while WAITING always means "the test
+   * is mid-run and paused on something else" — an incoming request
+   * from the system under test, the user visiting a URL, or an image
+   * upload — and must never offer a Start button (#1862).
    * @param {TestInfo} test - Test info with `status` and `result`.
-   * @returns {string} One of: `waiting`, `running`, `interrupted`,
-   *   `finished-pass`, `finished-fail`, `finished-warn`,
+   * @returns {string} One of: `needs-start`, `waiting`, `running`,
+   *   `interrupted`, `finished-pass`, `finished-fail`, `finished-warn`,
    *   `finished-review`, `finished-skip`, `unknown`.
    */
   _derivePhase(test) {
@@ -1208,30 +1226,20 @@ class CtsLogDetailHeader extends LitElement {
     // No concrete verdict: a genuine interruption — status INTERRUPTED, or the
     // INTERRUPTED sentinel some paths write into `result` — reads as interrupted.
     if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
+    if (status === "CONFIGURED") return "needs-start";
     if (status === "WAITING") return "waiting";
-    if (status === "RUNNING") return "running";
+    // CREATED is a transient mid-setup blip between creation and the runner's
+    // auto-start/auto-configure; render it like RUNNING rather than flashing a
+    // Start prompt or a bogus finished header for a sub-second state.
+    if (status === "RUNNING" || status === "CREATED") return "running";
     return "unknown";
-  }
-
-  /**
-   * "Has this test already executed at least one condition?" Used to
-   * choose WAITING-state copy (MR 1998 finding A6): a fresh test with
-   * no entries genuinely needs the user to click Start; a test that
-   * already has results is waiting on an external callback, so the
-   * "Click Start" copy is misleading. The runner writes condition
-   * results as it goes, so a non-empty `results` array is the simplest
-   * signal that the test has started.
-   * @param {TestInfo} test - Test info to probe.
-   * @returns {boolean} True when the test has at least one result entry.
-   */
-  _hasStartedRunning(test) {
-    return Boolean(test && Array.isArray(test.results) && test.results.length > 0);
   }
 
   // ──────────────────────────── status bar (Region A) ────────────────────────────
 
   _renderStatusBar(test) {
     const phase = this._derivePhase(test);
+    if (phase === "needs-start") return this._renderNeedsStartBar(test);
     if (phase === "waiting") return this._renderWaitingBar(test);
     if (phase === "running") return this._renderRunningBar(test);
     return this._renderFinishedBar(test);
@@ -1405,38 +1413,64 @@ class CtsLogDetailHeader extends LitElement {
     }
   }
 
+  /**
+   * WAITING bar — the test is mid-run and paused on something else: an
+   * incoming request from the system under test, the user visiting a
+   * URL, or an image upload. It has already been started (the runner
+   * auto-starts everything except CONFIGURED `autoStart() == false`
+   * modules), so offering a Start button here is always wrong (#1862) —
+   * clicking it would just reload or 404. The hero below the bar
+   * carries any concrete action (visit-URL prompt, instructions).
+   * @param {TestInfo} test - Test info driving the bar.
+   * @returns {import('lit').TemplateResult} The WAITING bar template.
+   */
   _renderWaitingBar(test) {
-    // Support-text + primary-button copy switches on whether the test
-    // has already executed any conditions. A fresh WAITING test needs
-    // a user click on Start; a test that already has results is
-    // waiting on an external party (HTTP callback, browser-driven
-    // flow), so a "Start" prompt is misleading. The backend status
-    // enum (RUNNING / WAITING / INTERRUPTED / FINISHED — see
-    // src/main/java/net/openid/conformance/testmodule/TestModule.java)
-    // is too coarse to distinguish those two cases on its own.
-    // MR 1998 finding A6.
-    const started = this._hasStartedRunning(test);
-    const supportText = started
-      ? "Waiting for external input — no action required"
-      : "Waiting for user input";
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">
           ${this._renderStatusBarTestNameText(test)} ${this._renderStatusPill("WAITING")}
-          <span class="ctsStatusBarSupport" data-testid="status-bar-support">${supportText}</span>
+          <span class="ctsStatusBarSupport" data-testid="status-bar-support"
+            >Waiting — see below for any action required</span
+          >
+        </div>
+        <div class="ctsStatusBarMiddle"></div>
+        <div class="ctsStatusBarPrimary"> ${this._renderStatusBarOverflowSlot()} </div>
+        ${this._renderStatusBarCreated(test)}
+      </div>
+    `;
+  }
+
+  /**
+   * CONFIGURED ("needs-start") bar — the runner created the test but is
+   * waiting for the user to press Start. Only reachable for the rare
+   * `autoStart() == false` modules (currently oidcc-server-rotate-keys);
+   * every other module leaves CONFIGURED automatically on creation.
+   * This is the only phase whose primary action is Start Test (#1862).
+   * @param {TestInfo} test - Test info driving the bar.
+   * @returns {import('lit').TemplateResult} The needs-start bar template.
+   */
+  _renderNeedsStartBar(test) {
+    const readonly = this._isReadonly();
+    return html`
+      <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
+        <div class="ctsStatusBarLeft">
+          ${this._renderStatusBarTestNameText(test)} ${this._renderStatusPill("CONFIGURED")}
+          <span class="ctsStatusBarSupport" data-testid="status-bar-support"
+            >Waiting for you to start the test</span
+          >
         </div>
         <div class="ctsStatusBarMiddle"></div>
         <div class="ctsStatusBarPrimary">
-          ${started
-            ? nothing
-            : html`<cts-button
+          ${!readonly
+            ? html`<cts-button
                 variant="primary"
                 size="sm"
                 icon="play"
                 label="Start Test"
                 data-testid="status-bar-primary"
                 @cts-click=${this._handleStartTest}
-              ></cts-button>`}
+              ></cts-button>`
+            : nothing}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}
@@ -1552,6 +1586,7 @@ class CtsLogDetailHeader extends LitElement {
   _renderHero(test) {
     const phase = this._derivePhase(test);
 
+    if (phase === "needs-start") return this._renderNeedsStartHero(test);
     if (phase === "waiting") return this._renderWaitingHero(test);
     if (phase === "running") return this._renderRunningHero();
     if (phase === "interrupted") return this._renderInterruptedHero();
@@ -1682,36 +1717,51 @@ class CtsLogDetailHeader extends LitElement {
 
   /**
    * WAITING hero — R24 instructions ("What you need to do") + the
-   * browser-URL slot. The Start CTA lives in the sticky status bar
-   * (its primary action for WAITING tests), so the hero does not
-   * duplicate it. The slot remains so page-level JS can inject
+   * browser-URL slot. A WAITING test is mid-run and paused on something
+   * external — an incoming request from the system under test, the user
+   * visiting a URL, or an image upload — never on a Start click, so the
+   * fallback copy is a neutral "waiting for something to happen"
+   * explanation (#1862; wording modeled on the legacy UI's WAITING
+   * explanation). The slot remains so page-level JS can inject
    * browser-URL prompts during the WAITING window.
    * @param {TestInfo} test - Test info sourcing `summary`. Exported values
    *   render in the drawer's "Exported values" disclosure, not in this hero.
    * @returns {import('lit').TemplateResult} The WAITING hero template.
    */
   _renderWaitingHero(test) {
-    // Mirror the bar's branch on _hasStartedRunning: a test that has
-    // already executed conditions is waiting on an external party,
-    // not on a user click. The "Click Start" prompt and the "Action
-    // required" eyebrow would both be wrong in that case
-    // (MR 1998 finding A6).
-    const started = this._hasStartedRunning(test);
     const summarySplit = splitTestSummary(test.summary || "");
-    const eyebrow = started ? "Test running" : "Action required";
-    const fallbackInstructions = started
-      ? "Waiting for an external request — no action required from you."
-      : "Click Start Test when you're ready.";
+    const fallbackInstructions =
+      "The test is waiting for something to happen — for example an incoming request " +
+      "from the system under test, for you to visit a link shown below, or for you to " +
+      "upload an image (see the test description for details).";
     const instructions = summarySplit.instructions || fallbackInstructions;
     return html`
-      <div
-        class="ctsHero ctsHero--waiting"
-        data-testid="hero-waiting"
-        data-waiting-mode="${started ? "external" : "user-action"}"
-      >
-        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">${eyebrow}</div>
-        <div class="ctsHeroBody">${formatDescription(instructions)}</div>
+      <div class="ctsHero ctsHero--waiting" data-testid="hero-waiting">
+        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone"> Test waiting </div>
+        <div class="ctsHeroBody"> ${formatDescription(instructions)} </div>
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
+      </div>
+    `;
+  }
+
+  /**
+   * CONFIGURED ("needs-start") hero — the one lifecycle state where
+   * "Action required / Click Start Test" is the correct advice (#1862):
+   * the runner has created the test and is waiting for the user to
+   * press the bar's Start Test primary. Marker-split summary
+   * instructions take precedence over the generic prompt, mirroring
+   * the WAITING hero (pre-start steps like "trigger a key rotation
+   * first" belong here).
+   * @param {TestInfo} test - Test info sourcing `summary`.
+   * @returns {import('lit').TemplateResult} The needs-start hero template.
+   */
+  _renderNeedsStartHero(test) {
+    const summarySplit = splitTestSummary(test.summary || "");
+    const instructions = summarySplit.instructions || "Click Start Test when you're ready.";
+    return html`
+      <div class="ctsHero ctsHero--waiting" data-testid="hero-needs-start">
+        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone"> Action required </div>
+        <div class="ctsHeroBody"> ${formatDescription(instructions)} </div>
       </div>
     `;
   }

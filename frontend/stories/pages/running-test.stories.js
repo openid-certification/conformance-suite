@@ -75,10 +75,11 @@ export const Default = {
     const cards = canvasElement.querySelectorAll("cts-running-test-card");
     expect(cards.length).toBe(2);
 
-    // R19 lives here: WAITING card surfaces the friendly label.
+    // R19 lives here: WAITING card surfaces the friendly label (#1862: no
+    // "user input" claim — the test may be waiting on the system under test).
     const waitingCard = cards[1];
     const waitingBadge = waitingCard.querySelector("cts-badge");
-    expect(waitingBadge.getAttribute("label")).toBe("Waiting for user input");
+    expect(waitingBadge.getAttribute("label")).toBe("Waiting");
     expect(waitingBadge.getAttribute("variant")).toBe("warn");
 
     // RUNNING card keeps the enum literal — mapping is targeted, not blanket.
@@ -172,6 +173,6 @@ export const AdminView = {
     // independent of the admin flag.
     const cards = canvasElement.querySelectorAll("cts-running-test-card");
     const waitingBadge = cards[1].querySelector("cts-badge");
-    expect(waitingBadge.getAttribute("label")).toBe("Waiting for user input");
+    expect(waitingBadge.getAttribute("label")).toBe("Waiting");
   },
 };

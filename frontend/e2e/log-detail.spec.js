@@ -6,6 +6,7 @@ import {
   MOCK_TEST_FAILED,
   MOCK_TEST_RUNNING,
   MOCK_TEST_RUNNING_2,
+  MOCK_TEST_CONFIGURED,
 } from "./fixtures/mock-test-data.js";
 import {
   MOCK_LOG_ENTRIES,
@@ -302,7 +303,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(summary).toContainText(failedTestInfo.description);
   });
 
-  test("keeps About this test visible while waiting for user input", async ({ page }) => {
+  test("keeps About this test visible while the test is waiting", async ({ page }) => {
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: MOCK_TEST_RUNNING_2,
@@ -314,7 +315,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
     await expect(page.locator('[data-testid="status-bar"]')).toContainText(
-      "Waiting for user input",
+      "Waiting — see below for any action required",
     );
     const summary = page.locator("cts-log-detail-header .ctsObjectiveSummary");
     const about = summary.locator('[data-testid="about-test-zone"]');
@@ -345,6 +346,89 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         return Math.abs(aboutGap - actionGap);
       })
       .toBeLessThanOrEqual(1);
+  });
+
+  test("#1862 — WAITING test offers no Start button and no Click-Start advice", async ({
+    page,
+  }) => {
+    // A WAITING test is mid-run, paused on an incoming request or on a
+    // user action described in the hero (visit URL, upload image). The
+    // old header showed a Start Test primary that just reloaded the page
+    // (or 404'd on visit-URL tests) plus "Action required / Click Start
+    // Test when you're ready." advice.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}`);
+
+    const header = page.locator("cts-log-detail-header");
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    await expect(header).not.toContainText("Start Test");
+    await expect(header).not.toContainText("Click Start");
+    await expect(header).not.toContainText("Action required");
+    await expect(page.locator('[data-testid="hero-waiting"]')).toContainText(
+      "The test is waiting for something to happen",
+    );
+  });
+
+  test("#1862 — CONFIGURED test shows Start Test and clicking it POSTs the start", async ({
+    page,
+  }) => {
+    // CONFIGURED = the runner created the test but autoStart() is false
+    // (only oidcc-server-rotate-keys), so it genuinely waits for the user
+    // to press Start. Previously CONFIGURED fell through to the
+    // finished-style header with no Start button at all.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_CONFIGURED,
+      logEntries: [],
+    });
+    await setupCommonRoutes(page);
+
+    // handleStartTest POSTs /api/runner/{id} then reloads. Registered
+    // after setupV2Routes so it wins route matching (reverse order):
+    // capture the POST, keep serving 404 to the runner-poll GETs.
+    /** @type {{ method: string, url: string }[]} */
+    const startCalls = [];
+    await page.route(`**/api/runner/${MOCK_TEST_CONFIGURED.testId}`, (route) => {
+      const req = route.request();
+      if (req.method() === "POST") {
+        startCalls.push({ method: req.method(), url: req.url() });
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ name: MOCK_TEST_CONFIGURED.testName }),
+        });
+      }
+      return route.fulfill({ status: 404, body: "" });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_CONFIGURED.testId)}`);
+
+    // The needs-start hero carries the (correct-here) Action required /
+    // Click Start advice, and the bar carries the CONFIGURED pill + the
+    // Start Test primary.
+    await expect(page.locator('[data-testid="hero-needs-start"]')).toBeVisible();
+    await expect(page.locator('[data-testid="hero-needs-start"]')).toContainText("Action required");
+    await expect(page.locator('[data-testid="hero-needs-start"]')).toContainText(
+      "Click Start Test when you're ready.",
+    );
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar.locator('cts-badge[label="CONFIGURED"]')).toHaveCount(1);
+    await expect(bar).toContainText("Waiting for you to start the test");
+
+    const primary = page.locator('[data-testid="status-bar-primary"]');
+    await expect(primary).toContainText("Start Test");
+    await primary.locator("button").first().click();
+
+    await expect.poll(() => startCalls.length, { timeout: 5000 }).toBeGreaterThan(0);
+    expect(startCalls[0].method).toBe("POST");
+    expect(startCalls[0].url).toContain(`/api/runner/${MOCK_TEST_CONFIGURED.testId}`);
   });
 
   test("keeps About this test visible once while the test is running", async ({ page }) => {

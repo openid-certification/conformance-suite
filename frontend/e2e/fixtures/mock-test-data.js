@@ -205,3 +205,19 @@ export const MOCK_TEST_RUNNING_2 = {
   result: null,
   exposed: {},
 };
+
+/**
+ * GET /api/info/:testId — CONFIGURED: created but not yet started. Only
+ * `autoStart() == false` modules (currently oidcc-server-rotate-keys)
+ * ever rest in this status — the runner is waiting for the user to press
+ * Start Test (#1862).
+ */
+export const MOCK_TEST_CONFIGURED = {
+  ...MOCK_TEST_STATUS,
+  _id: "test-configured-001",
+  testId: "test-configured-001",
+  testName: "oidcc-server-rotate-keys",
+  status: "CONFIGURED",
+  result: null,
+  exposed: {},
+};
