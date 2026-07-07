@@ -50,6 +50,13 @@ class EnsurePDPJwksConfigured_UnitTest {
 	}
 
 	@Test
+	public void jwksEmptyObject_fails() {
+		putConfig("{ \"pdp\": { \"jwks\": { } } }");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("PDP JWK Set"));
+	}
+
+	@Test
 	public void noPdpSection_fails() {
 		putConfig("{ }");
 		assertThrows(ConditionError.class, () -> cond.execute(env));

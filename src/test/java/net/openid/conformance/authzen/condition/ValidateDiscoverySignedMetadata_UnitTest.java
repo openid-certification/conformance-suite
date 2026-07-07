@@ -32,9 +32,10 @@ import static org.mockito.Mockito.mock;
  *
  * <p>Two failure shapes are possible:
  * <ul>
- *   <li>stop-on-failure sub-conditions ({@link ExtractPDPSignedMetadata}, {@link VerifyAuthzenSignedMetadataSignature})
- *       throw a {@link TestFailureException};</li>
- *   <li>continue-on-failure sub-conditions (alg / iss / iat / exp / nbf / nested signed_metadata) leave the module
+ *   <li>stop-on-failure sub-conditions ({@link ExtractPDPSignedMetadata}, {@link ValidatePDPSignedMetadataAlg},
+ *       {@link VerifyAuthzenSignedMetadataSignature}, {@link ValidatePDPSignedMetadataIss}) throw a
+ *       {@link TestFailureException};</li>
+ *   <li>continue-on-failure sub-conditions (iat / exp / nbf / nested signed_metadata) leave the module
  *       {@link Result} at {@code FAILED} or {@code WARNING} without throwing.</li>
  * </ul>
  *
