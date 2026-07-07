@@ -19,8 +19,7 @@ public class ExtractPDPSignedMetadata extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonElement signedMetadataElem = env.getElementFromObject("pdp", "signed_metadata");
 		if (signedMetadataElem == null || signedMetadataElem.isJsonNull()) {
-			logSuccess("Discovery metadata does not contain `signed_metadata`; nothing to validate");
-			return env;
+			throw error("Discovery metadata does not contain `signed_metadata`; nothing to extract.");
 		}
 		if (!signedMetadataElem.isJsonPrimitive() || !signedMetadataElem.getAsJsonPrimitive().isString()) {
 			throw error("`signed_metadata` must be a JWT string", args("signed_metadata", signedMetadataElem));
