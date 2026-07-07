@@ -2,6 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
+import "./cts-link-button.js";
 import "./cts-tooltip.js";
 import "./cts-time.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
@@ -390,7 +391,8 @@ const STYLE_TEXT = css`
      a click on them may toggle the row like any other non-interactive area. */
   cts-log-entry .logTimeLink,
   cts-log-entry .curlBtn,
-  cts-log-entry a.logRequirement {
+  cts-log-entry a.logRequirement,
+  cts-log-entry .logUploadCta {
     position: relative;
     z-index: 1;
   }
@@ -491,6 +493,24 @@ const STYLE_TEXT = css`
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
+  }
+  cts-log-entry .logUploadCta {
+    /* .logFooter is a column flex container with default align-items:
+       stretch — without this the link-button would stretch to the
+       footer's full width instead of sizing to its label. */
+    align-self: flex-start;
+  }
+  cts-log-entry .logUploadedImage {
+    /* Sized to match cts-image-upload's __thumb so the same screenshot
+       reads at a consistent size whether shown mid-upload or here, once
+       committed to the log entry. */
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: var(--radius-2);
+    border: 1px solid var(--border);
+    background: var(--bg-muted);
+    align-self: flex-start;
   }
   cts-log-entry .logRequirement {
     display: inline-block;
@@ -743,6 +763,7 @@ class CtsLogEntry extends LitElement {
     entry: { type: Object },
     referenceId: { type: String, attribute: "reference-id" },
     testId: { type: String, attribute: "test-id" },
+    isPublic: { type: Boolean, attribute: "is-public" },
     _expanded: { state: true },
     _specLinks: { state: true },
   };
@@ -757,6 +778,7 @@ class CtsLogEntry extends LitElement {
     this.entry = {};
     this.referenceId = "";
     this.testId = "";
+    this.isPublic = false;
     this._expanded = false;
     this._specLinks = null;
   }
@@ -850,6 +872,9 @@ class CtsLogEntry extends LitElement {
         : nothing}
       ${entry.upload
         ? html`<cts-badge variant="warn" icon="camera" label="IMAGE"></cts-badge>`
+        : nothing}
+      ${entry.img
+        ? html`<cts-badge variant="pass" icon="camera" label="IMAGE"></cts-badge>`
         : nothing}
     `;
   }
@@ -971,7 +996,52 @@ class CtsLogEntry extends LitElement {
   _hasFooter(hasMore) {
     const { requirements } = this.entry;
     const hasReqs = Array.isArray(requirements) && requirements.length > 0;
-    return hasReqs || (this._expanded && hasMore);
+    return (
+      hasReqs || (this._expanded && hasMore) || this._showsUploadCta() || Boolean(this.entry.img)
+    );
+  }
+
+  /**
+   * Whether this row should offer the inline "Upload screenshot" call to
+   * action. `entry.upload` is a placeholder id set by
+   * `AbstractCondition.createBrowserInteractionPlaceholder` when a
+   * condition needs a manual screenshot (e.g. an error page, with no
+   * browser automation configured) — the legacy UI rendered a direct
+   * "Attach image to log file..." link right on the row; the redesign
+   * dropped it down to a passive IMAGE badge with no way to act on it
+   * from here (gitlab#1868). Public/anonymous viewers never get upload
+   * affordances, mirroring the legacy `!public && item.upload` gate.
+   */
+  _showsUploadCta() {
+    return Boolean(this.entry.upload) && !this.isPublic;
+  }
+
+  _renderUploadCta() {
+    if (!this._showsUploadCta()) return nothing;
+    const uploadTestId = this.entry.testId || this.testId;
+    return html`<cts-link-button
+      class="logUploadCta"
+      href="/upload.html?log=${encodeURIComponent(uploadTestId)}"
+      icon="camera"
+      size="xs"
+      label="Upload screenshot…"
+    ></cts-link-button>`;
+  }
+
+  /**
+   * Once a placeholder is filled, `DBImageService.fillPlaceholder` unsets
+   * `upload` and sets `img` on the SAME log entry document (a data URI) —
+   * so a re-fetched entry flips straight from the upload CTA to carrying
+   * its own image. Render it inline rather than making the reviewer open
+   * the separate uploader page to see what was submitted.
+   */
+  _renderUploadedImage() {
+    if (!this.entry.img) return nothing;
+    return html`<img
+      class="logUploadedImage"
+      src="${this.entry.img}"
+      alt="Uploaded screenshot for ${this.entry.src || "this check"}"
+    />`;
   }
 
   render() {
@@ -1029,7 +1099,8 @@ class CtsLogEntry extends LitElement {
         <div class="logActions">${this._renderDisclosure(hasMore)}</div>
         ${this._hasFooter(hasMore)
           ? html`<div class="logFooter">
-              ${this._renderRequirements()} ${this._renderMorePanel(more)}
+              ${this._renderRequirements()} ${this._renderUploadCta()}
+              ${this._renderUploadedImage()} ${this._renderMorePanel(more)}
             </div>`
           : nothing}
       </div>

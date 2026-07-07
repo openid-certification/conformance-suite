@@ -1305,14 +1305,17 @@ class CtsLogDetailHeader extends LitElement {
     const test = this.testInfo;
     if (!test) return [];
     const readonly = this._isReadonly();
-    const status = (test.status || "").toUpperCase();
-    // A fresh WAITING test (no results yet) genuinely has nothing to act on
-    // besides clicking Start. But a test that already has results and is
-    // WAITING is paused mid-run for external input — e.g. a manual
-    // screenshot/error-page upload when no browser automation is configured
-    // (gitlab#1868) — so the overflow actions (notably Upload Images) must
-    // stay available.
-    if (status === "WAITING" && !this._hasStartedRunning(test)) return [];
+    // Previously this suppressed the whole overflow menu for any WAITING
+    // test on the assumption that a fresh, pre-run test has nothing
+    // actionable — but a WAITING test can also be paused mid-run for
+    // external input (e.g. a manual screenshot/error-page upload when no
+    // browser automation is configured, gitlab#1868), and every action
+    // below already gates itself on `readonly`/`isAdmin` independently, so
+    // there is no status for which the menu should be unconditionally
+    // empty. Do not reintroduce a WAITING-status special case here without
+    // a real signal — `testInfo.results` (used by a former "has this test
+    // already produced results" check) is never populated by /api/info in
+    // production, so any such check silently degrades to "always false".
 
     const uploadCount = this._getUploadCount();
     /** @type {Array<{ id: string, label: string, icon?: string, hidden?: boolean, variant?: string }>} */
