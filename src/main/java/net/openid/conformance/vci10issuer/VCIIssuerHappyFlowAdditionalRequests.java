@@ -16,6 +16,7 @@ import net.openid.conformance.condition.common.EnsureTLS13OrLater;
 import net.openid.conformance.condition.common.EnsureTLS13PreferredOverTLS12;
 import net.openid.conformance.condition.common.RequireOnlyBCP195RecommendedCiphersForTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-happy-flow-additional-requests",
@@ -53,7 +54,13 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 			.onFail(Condition.ConditionResult.FAILURE)
 			.requirement("RFC9325-3.1.1")
 			.dontStopOnFailure());
-		callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2", "FAPI-ISSUES-847");
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP) {
+			callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2", "FAPI-ISSUES-847");
+		} else {
+			// Plain OID4VCI does not inherit FAPI2's "shall only use" cipher list; RFC 9325 (BCP 195)
+			// has the TLS 1.2 cipher suite restrictions at SHOULD level, so warn rather than fail.
+			callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.WARNING, "RFC9325-4.2");
+		}
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.2", "RFC9325A-A", "RFC9325-4.2");
 	}
 
