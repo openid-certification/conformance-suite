@@ -429,7 +429,7 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 
 	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		return new CreateAuthorizationSecurityProfileRequestSteps(isOpenId, isJarm, usePkce, formPost, null);
+		return new CreateAuthorizationSecurityProfileRequestSteps(isOpenId, isJarm, usePkce, formPost, profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {

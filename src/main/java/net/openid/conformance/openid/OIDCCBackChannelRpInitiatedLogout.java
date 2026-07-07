@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.ValidateLogoutTokenClaims;
 import net.openid.conformance.condition.client.ValidateLogoutTokenFromBackchannelLogoutRequestEncryption;
 import net.openid.conformance.condition.client.ValidateLogoutTokenSignature;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,7 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 		env.mapKey("client_request", bcLogoutEnvKey);
 		// This is a mixture of must & recommended in BCP195, but BCP195 is not a normative reference of OIDCC so only raise a warning
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "BCP195-3.1.1");
+		callAndContinueOnFailure(EnsureIncomingTls13.class, Condition.ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
 			ValidateLogoutTokenFromBackchannelLogoutRequestEncryption.class, Condition.ConditionResult.WARNING, "OIDCBCL-2.4");

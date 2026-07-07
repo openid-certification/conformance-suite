@@ -311,7 +311,9 @@ export const RunningTest = {
       // (was the secondary card pre-redesign).
       const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
       expect(runningHero).toBeTruthy();
-      expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
+      expect(
+        canvas.getByText(/Any URLs that need to be visited interactively/),
+      ).toBeInTheDocument();
     });
 
     await step("RUNNING view still renders the module objective", async () => {
@@ -734,6 +736,138 @@ export const WaitingHeroFallbackInstructions = {
     const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
     expect(waitingHero.textContent).toContain("Click Start Test when you're ready.");
     expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
+  },
+};
+
+// --- Exported values disclosure (issue #1861) ---
+//
+// Restores the legacy "Exported Values:" key/value grid the 2026 design
+// refresh dropped, now rendered as a collapsible "Exported values" disclosure
+// in the drawer (beside "Test details"): keys read as normal label text,
+// values render monospace with a per-row copy button. The data wiring
+// (data.exposed from the /api/runner poll into the header's dedicated
+// `exposed` property) lives in log-detail.js and is covered by the e2e suite —
+// these stories drive the rendering half by setting `.exposed` directly (the
+// same property the live page feeds, separate from `.testInfo`), using the SSF
+// keys from the issue screenshot, including one deliberately long no-space URL
+// to exercise value wrapping.
+const EXPOSED_VALUES = {
+  ssf_poll_endpoint: "https://localhost.emobix.co.uk:8443/ssf/poll/abc123",
+  ssf_tx_access_token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMyJ9.cGF5bG9hZA.c2lnbmF0dXJl",
+  ssf_issuer: "https://localhost.emobix.co.uk:8443/ssf/issuer/abc123",
+  alias: "ssf-transmitter-1",
+  ssf_configuration_url:
+    "https://localhost.emobix.co.uk:8443/.well-known/ssf-configuration/abc123-with-a-deliberately-long-no-space-path-to-exercise-value-wrapping",
+};
+
+export const WaitingHeroWithExportedValues = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${WAITING_TEST}
+      .exposed=${EXPOSED_VALUES}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const panel = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="exposed-values"]');
+      if (!el) throw new Error("exposed-values panel not yet rendered");
+      return el;
+    });
+
+    await step("renders the 'Exported values' disclosure summary and grid", async () => {
+      expect(panel.tagName).toBe("DETAILS");
+      expect(panel.textContent).toContain("Exported values");
+      expect(panel.querySelector("dl.ctsExposedGrid")).toBeTruthy();
+    });
+
+    await step("renders one dt/dd pair per entry, with key + value text", async () => {
+      const entries = Object.entries(EXPOSED_VALUES);
+      expect(panel.querySelectorAll("dt.ctsExposedKey").length).toBe(entries.length);
+      expect(panel.querySelectorAll("dd.ctsExposedValue").length).toBe(entries.length);
+      for (const [key, value] of entries) {
+        expect(panel.textContent).toContain(key);
+        expect(panel.textContent).toContain(value);
+      }
+    });
+
+    await step("each value row carries an extra-small copy button", async () => {
+      const rows = panel.querySelectorAll("dd.ctsExposedValue");
+      expect(rows.length).toBe(Object.keys(EXPOSED_VALUES).length);
+      for (const row of rows) {
+        const btn = row.querySelector("cts-button.ctsExposedCopy");
+        expect(btn).toBeTruthy();
+        expect(btn.getAttribute("size")).toBe("xxs");
+        expect(btn.getAttribute("icon")).toBe("copy");
+        // Icon-only button keeps an accessible name via aria-label.
+        expect(btn.getAttribute("aria-label")).toMatch(/^Copy /);
+      }
+    });
+
+    await step("the grid carries an accessible name (no IDREF dependency)", async () => {
+      const grid = panel.querySelector("dl.ctsExposedGrid");
+      expect(grid.getAttribute("aria-label")).toBe("Exported values");
+    });
+  },
+};
+
+export const RunningHeroWithExportedValues = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${RUNNING_TEST}
+      .exposed=${EXPOSED_VALUES}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // RUNNING test, exported values present. The grid now lives in the drawer's
+    // "Exported values" disclosure (not the hero), driven by `.exposed`.
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-running"]');
+      if (!el) throw new Error("hero-running not yet rendered");
+      return el;
+    });
+    const panel = canvasElement.querySelector('[data-testid="exposed-values"]');
+    expect(panel).toBeTruthy();
+    expect(panel.textContent).toContain("Exported values");
+    expect(panel.querySelectorAll("dt.ctsExposedKey").length).toBe(
+      Object.keys(EXPOSED_VALUES).length,
+    );
+    expect(panel.querySelector("dl.ctsExposedGrid")).toBeTruthy();
+  },
+};
+
+export const RunningHeroWithoutExportedValues = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${RUNNING_TEST} .exposed=${{}}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-running"]');
+      if (!el) throw new Error("hero-running not yet rendered");
+      return el;
+    });
+    // Empty `exposed` → the early-return guard fires: no disclosure at all.
+    // The absent-`exposed` case takes the same branch (covered by e2e).
+    expect(canvasElement.querySelector('[data-testid="exposed-values"]')).toBeNull();
+    expect(canvasElement.textContent).not.toContain("Exported values");
+  },
+};
+
+export const ExportedValuesRenderInAlphabeticalOrder = {
+  // U2 (KTD4): exported values render in stable alphabetical key order
+  // (localeCompare), not the backend HashMap's arbitrary serialization order.
+  // Feed an intentionally unsorted map and assert the rendered <dt> order.
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${WAITING_TEST}
+      .exposed=${{ z_key: "z-val", a_key: "a-val", m_key: "m-val" }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const panel = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="exposed-values"]');
+      if (!el) throw new Error("exposed-values panel not yet rendered");
+      return el;
+    });
+    const keys = Array.from(panel.querySelectorAll("dt.ctsExposedKey"), (dt) =>
+      dt.textContent.trim(),
+    );
+    expect(keys).toEqual(["a_key", "m_key", "z_key"]);
   },
 };
 
