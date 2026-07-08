@@ -1029,7 +1029,7 @@ async function handlePublish(evt) {
 
 function handleUploadImages(evt) {
   const eventTestId = (evt.detail && evt.detail.testId) || testId;
-  window.location.assign("/upload.html?test=" + encodeURIComponent(eventTestId));
+  window.location.assign("/upload.html?log=" + encodeURIComponent(eventTestId));
 }
 
 function handleDownloadLog(evt) {

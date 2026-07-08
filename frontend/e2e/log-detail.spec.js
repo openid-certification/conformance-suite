@@ -1296,6 +1296,63 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(exportUrl.searchParams.get("public")).toBeNull();
   });
 
+  test("WAITING test exposes Upload Images in the overflow menu", async ({ page }) => {
+    // gitlab#1868: a WAITING test — e.g. paused mid-run for a manual
+    // screenshot/error-page upload when no browser automation is configured
+    // — must keep its overflow menu so Upload Images stays reachable.
+    //
+    // MOCK_TEST_RUNNING_2 intentionally carries no `results` field: the
+    // real /api/info endpoint never returns one (confirmed against a live
+    // WAITING test), so a fix that only shows the overflow when
+    // `testInfo.results` is non-empty would silently regress to "always
+    // hidden" in production. The overflow must show for WAITING
+    // unconditionally — every individual action already gates itself on
+    // readonly/isAdmin.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}`);
+
+    await expect(page.locator('[data-testid="status-bar-overflow"]')).toBeVisible();
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await expect(page.locator('button[data-action-id="upload-images"]')).toBeVisible();
+  });
+
+  test("clicking Upload Images navigates to upload.html with the ?log= param upload.html expects", async ({
+    page,
+  }) => {
+    // Regression for the sibling bug found alongside gitlab#1868: even once
+    // the overflow menu correctly exposes Upload Images, log-detail.js's
+    // handleUploadImages() built the target URL with `?test=`, but
+    // upload.html only ever reads `?log=` (see upload.spec.js). The
+    // mismatch meant the resulting testId was undefined and the upload page
+    // always failed to load images for the right test.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    // upload.html's own API calls, so the navigation below can complete.
+    await page.route(`**/api/log/${MOCK_TEST_RUNNING_2.testId}/images*`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await page.locator('button[data-action-id="upload-images"]').click();
+
+    await page.waitForURL("**/upload.html**");
+    const navUrl = new URL(page.url());
+    expect(navUrl.searchParams.get("log")).toBe(MOCK_TEST_RUNNING_2.testId);
+    expect(navUrl.searchParams.get("test")).toBeNull();
+  });
+
   /**
    * Run the post-terminal verdict refresh against a parametrized verdict
    * (PASSED / FAILED / REVIEW / WARNING / SKIPPED / INTERRUPTED). The

@@ -1186,3 +1186,95 @@ export const InternalJsonEditPreservesUserText = {
     expect(editor.classList.contains("is-error")).toBe(false);
   },
 };
+
+/**
+ * Fixture matching the shape/scale of a real large config (e.g. a
+ * SAMA-UAT-style plan with a full JWKS) that reproduces the bug below —
+ * ~40 nested fields renders to 500+ pretty-printed lines. A 2-5 line
+ * fixture (every other JSON-tab story in this file) never exercises this
+ * path.
+ */
+function buildLargeConfig() {
+  /** @type {Record<string, unknown>} */
+  const client = {};
+  for (let i = 0; i < 40; i++) {
+    client[`field_${i}`] = { nested: { a: i, b: `value-${i}`, c: [1, 2, 3, 4, 5] } };
+  }
+  return { server: { issuer: "https://example.com" }, client };
+}
+
+/**
+ * Real-keystroke regression test for a severe, size-dependent Monaco bug
+ * (traced 2026-07-07, not yet fixed): on a large document (~500+ lines),
+ * the very first keystroke past roughly line 260 corrupts the document to
+ * a small garbled fragment and resets the cursor to (1, 1) — every
+ * subsequent keystroke then lands at the wrong place. This is the "JSON
+ * editor breaks on any keystroke" symptom reported against
+ * schedule-test.html's config editor.
+ *
+ * Traced mechanism: inside cts-json-editor.js's `onDidChangeModelContent`
+ * listener, `this._editor.getValue()` returns a TRUNCATED fragment
+ * instead of the full document immediately after the edit on a large
+ * model. That wrong value dispatches as the `input` event's
+ * `e.target.value`; cts-config-form's `_handleJsonInput` stores it as
+ * `_jsonText` and writes it back via `.value = ...`, which calls
+ * Monaco's `editor.setValue(fragment)` — replacing the whole document
+ * with the fragment and, as `setValue()` always does, resetting the
+ * cursor to the start.
+ *
+ * Does NOT reproduce on small documents (see
+ * InternalJsonEditPreservesUserText above, which types into a ~2-line
+ * config without issue) — confirmed by direct comparison during
+ * investigation. Also confirmed unrelated to the `lineNumbers` /
+ * `lineDecorationsWidth` Monaco options (bisected by temporarily
+ * reverting both; bug persisted identically either way).
+ *
+ */
+export const LargeDocumentKeystrokeDoesNotCorruptContent = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${buildLargeConfig()}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
+    const editor = /** @type {any} */ (await waitForJsonEditor(canvasElement));
+    const monacoEditor = editor._editor;
+
+    const beforeLength = editor.value.length;
+    const lineCount = monacoEditor.getModel().getLineCount();
+    // Guards the fixture itself: if buildLargeConfig() ever shrinks below
+    // the ~260-line threshold traced during investigation, this fails
+    // loudly instead of silently losing coverage of the bug.
+    expect(lineCount).toBeGreaterThan(260);
+
+    // Position and reveal a line well past the traced threshold, then
+    // type ONE real keystroke — the reported symptom is that even the
+    // very first keystroke corrupts the document.
+    const targetLine = Math.floor(lineCount / 2);
+    monacoEditor.revealLineInCenter(targetLine);
+    monacoEditor.setPosition({ lineNumber: targetLine, column: 5 });
+    monacoEditor.focus();
+
+    await userEvent.keyboard("x");
+
+    await waitFor(() => {
+      expect(editor.value.length).not.toBe(beforeLength);
+    });
+
+    // The corrupted state is a small fragment (~144 chars observed against
+    // a ~7300-char document) — asserting the new length stays close to the
+    // original (rather than collapsing to a tiny fraction of it) catches
+    // the exact failure mode without hard-coding a byte count.
+    expect(editor.value.length).toBeGreaterThan(beforeLength * 0.9);
+
+    // A content-reset via setValue() always collapses the cursor to
+    // (1, 1) — the precise "breaks on any keystroke" symptom reported.
+    const position = monacoEditor.getPosition();
+    expect(position.lineNumber).not.toBe(1);
+  },
+};

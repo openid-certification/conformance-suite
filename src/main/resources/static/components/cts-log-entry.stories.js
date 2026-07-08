@@ -131,6 +131,19 @@ const UPLOAD_ENTRY = {
   upload: "screenshot_consent",
 };
 
+// Same placeholder, but filled: DBImageService.fillPlaceholder unsets
+// `upload` and sets `img` (a data URI) on the SAME log entry document, so a
+// re-fetched entry flips straight from "needs upload" to "carries its own
+// image" — no separate "fulfilled" entry shape exists server-side.
+const TINY_PNG_DATA_URI =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+const UPLOAD_FULFILLED_ENTRY = {
+  ...UPLOAD_ENTRY,
+  _id: "entry-upload-fulfilled",
+  upload: undefined,
+  img: TINY_PNG_DATA_URI,
+};
+
 // U7 fixtures. These match the shape `/api/log/{testId}` actually serializes:
 // application payload sits at the entry's *top level* (request_uri,
 // response_body, …) rather than under a `more: {}` envelope. The legacy
@@ -861,6 +874,52 @@ export const UploadRequired = {
     });
 
     expect(canvas.getByText("REVIEW")).toBeInTheDocument();
+
+    // gitlab#1868: a passive badge alone gives no way to act on the
+    // placeholder from the row — the legacy UI rendered a direct
+    // "Attach image to log file..." link here, which the redesign
+    // dropped. Re-added as an inline "Upload screenshot…" link-button
+    // pointing at upload.html?log=<testId>.
+    const cta = canvasElement.querySelector(".logUploadCta");
+    expect(cta).toBeTruthy();
+    const anchor = cta.querySelector("a");
+    expect(anchor.getAttribute("href")).toBe(
+      `/upload.html?log=${encodeURIComponent(UPLOAD_ENTRY.testId)}`,
+    );
+  },
+};
+
+export const UploadFulfilled = {
+  render: () => html`<cts-log-entry .entry=${UPLOAD_FULFILLED_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("IMAGE")).toBeInTheDocument();
+    });
+
+    // Once filled, the row shows the uploaded screenshot inline instead of
+    // the upload CTA — DBImageService.fillPlaceholder unsets `upload` and
+    // sets `img` on the same log entry, so there's no separate follow-up
+    // fetch needed to see what was submitted.
+    expect(canvasElement.querySelector(".logUploadCta")).toBeNull();
+    const img = canvasElement.querySelector(".logUploadedImage");
+    expect(img).toBeTruthy();
+    expect(img.getAttribute("src")).toBe(UPLOAD_FULFILLED_ENTRY.img);
+  },
+};
+
+export const UploadRequiredPublicViewer = {
+  render: () => html`<cts-log-entry .entry=${UPLOAD_ENTRY} .isPublic=${true}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("IMAGE")).toBeInTheDocument();
+    });
+
+    // Mirrors the legacy `!public && item.upload` gate: public/anonymous
+    // viewers of a published log never get the upload affordance, even
+    // though the badge still signals a screenshot is pending.
+    expect(canvasElement.querySelector(".logUploadCta")).toBeNull();
   },
 };
 

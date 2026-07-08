@@ -496,6 +496,28 @@ class CtsJsonEditor extends LitElement {
       wordWrap: "off",
     });
 
+    // Monaco creates its own hidden native <textarea class="inputarea">
+    // inside `host` to capture keyboard/IME input. Because this component
+    // renders in light DOM (createRenderRoot() returns `this` — no Shadow
+    // DOM boundary), that textarea's OWN native "input"/"change" events
+    // bubble straight out past `host`, past this element, to any ancestor
+    // listening for "input" — racing the canonical event this component
+    // dispatches itself via `_dispatchChange()` below. The native
+    // textarea's `.value` is Monaco's internal cursor-local composition
+    // mirror, NOT the full document (a standard technique shared by
+    // Monaco/CodeMirror-style editors for native IME support) — so a
+    // consumer that reads a bubbled native event's `e.target.value`
+    // instead of ours gets a small, wrong, cursor-local fragment. On a
+    // multi-hundred-line document this fragment can parse as JSON-ish
+    // text; round-tripped back through `.value = ...` it overwrites the
+    // whole document via `editor.setValue()`, which also resets the
+    // cursor to (1, 1) — the exact "breaks on any keystroke" defect
+    // traced 2026-07-07. The fallback <textarea> path (_onFallbackInput)
+    // already guards against this same hazard with e.stopPropagation();
+    // Monaco's real path needs the identical guard.
+    host.addEventListener("input", (e) => e.stopPropagation());
+    host.addEventListener("change", (e) => e.stopPropagation());
+
     const updateHeight = () => {
       if (!this._editor) return;
       const { min, max } = resolveBounds(this);

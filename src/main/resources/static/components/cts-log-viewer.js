@@ -1085,6 +1085,7 @@ class CtsLogViewer extends LitElement {
           .entry=${entry}
           .referenceId=${referenceId}
           .testId=${this.testId}
+          .isPublic=${this.isPublic}
           data-entry-id=${entry._id}
           id=${referenceId || nothing}
         ></cts-log-entry>`,
