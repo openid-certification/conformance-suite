@@ -16,7 +16,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = """
 		Tests that the verifier correctly handles a wallet that uses HTTP POST to fetch the request_uri \
 		as specified in OID4VP section 5.10. If the verifier's authorization request does not include \
-		request_uri_method=post, this test will be skipped.""",
+		request_uri_method=post, this test will be skipped.
+
+		A screenshot showing the successful verification must be uploaded; the test finishes as REVIEW.""",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
 		"credential.signing_jwk"
