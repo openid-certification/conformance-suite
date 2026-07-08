@@ -2736,6 +2736,211 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(post).toEqual({ bad_response_type: "PasswordCredential" });
   });
 
+  // ──────────── URI input (VP verifier paste box) ────────────
+  // Port of the legacy uriInputRequests block (static-legacy/templates/
+  // browser.html + log-detail.html submitUriBtn/scanQrBtn handlers). The
+  // runner's browser.uriInputRequests entries render a textarea + Submit
+  // button (+ feature-detected Scan QR); submit GETs the pasted URI's
+  // query string to the entry's submitUrl.
+
+  /**
+   * Register the /api/info, /api/log, /api/runner and /api/uploaded-images
+   * routes shared by every URI-input test. The runner payload advertises a
+   * single uriInputRequests entry pointing at `submitUrl`.
+   *
+   * @param {import("@playwright/test").Page} page
+   * @param {string} testIdLocal
+   * @param {string} submitUrl
+   * @param {{ onRunnerCall?: () => void }} [opts]
+   */
+  async function setupUriInputRoutes(page, testIdLocal, submitUrl, opts = {}) {
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) => {
+      if (opts.onRunnerCall) opts.onRunnerCall();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: {
+            uriInputRequests: [
+              {
+                submitUrl,
+                description: "Paste the verifier's authorization request (openid4vp://...) below.",
+              },
+            ],
+          },
+        }),
+      });
+    });
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+  }
+
+  test("URI input: pasted URI's query string is GET to submitUrl", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl);
+
+    /** @type {string[]} */
+    const captured = [];
+    await page.route(
+      (url) => url.href.startsWith(submitUrl),
+      async (route) => {
+        captured.push(route.request().url());
+        await route.fulfill({ status: 200, body: "" });
+      },
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    const textarea = slot.locator("textarea.uriInput");
+    await expect(textarea).toBeVisible();
+    await expect(slot).toContainText("Paste the verifier's authorization request");
+
+    await textarea.fill("openid4vp://?client_id=foo&request_uri=https%3A%2F%2Fexample.org%2Freq");
+    await page.locator(".submitUriBtn button").click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    expect(captured[0]).toBe(
+      `${submitUrl}?client_id=foo&request_uri=https%3A%2F%2Fexample.org%2Freq`,
+    );
+  });
+
+  test("URI input: pasted value without a query string shows the error modal", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl);
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const textarea = page.locator('[data-slot="browser"] textarea.uriInput');
+    await expect(textarea).toBeVisible();
+    await textarea.fill("openid4vp://no-query-here");
+    await page.locator(".submitUriBtn button").click();
+
+    await expect(page.locator("#errorModal")).toBeVisible();
+    await expect(page.locator("#errorMessage")).toContainText("query string");
+  });
+
+  test("URI input: pasted text survives runner poll re-renders", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    let runnerCalls = 0;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl, {
+      onRunnerCall: () => {
+        runnerCalls += 1;
+      },
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const textarea = page.locator('[data-slot="browser"] textarea.uriInput');
+    await expect(textarea).toBeVisible();
+    await textarea.fill("openid4vp://?client_id=persisted");
+
+    // Wait for at least two further poll cycles (default interval 3s), then
+    // confirm the re-renders did not wipe the pasted text.
+    const callsAtFill = runnerCalls;
+    await expect.poll(() => runnerCalls, { timeout: 15000 }).toBeGreaterThan(callsAtFill + 1);
+    await expect(textarea).toHaveValue("openid4vp://?client_id=persisted");
+  });
+
+  test("URI input: Scan QR button is hidden without BarcodeDetector support", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl);
+
+    // Make the feature-detect deterministically negative regardless of the
+    // platform the Chromium build runs on.
+    await page.addInitScript(() => {
+      delete (/** @type {any} */ (window).BarcodeDetector);
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    await expect(page.locator(".submitUriBtn button")).toBeVisible();
+    await expect(page.locator(".scanQrBtn")).toHaveCount(0);
+  });
+
+  test("URI input: Scan QR decodes a QR code into the textarea and closes the modal", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl);
+
+    // Stub BarcodeDetector to decode a fixed value and getUserMedia to hand
+    // back a canvas capture stream (headless Chromium has no camera). The
+    // canvas is redrawn on an interval so the stream produces frames and
+    // video.play() resolves.
+    await page.addInitScript(() => {
+      /** @type {any} */ (window).BarcodeDetector = class {
+        async detect() {
+          return [{ rawValue: "openid4vp://?client_id=scanned&request_uri=abc" }];
+        }
+      };
+      Object.defineProperty(navigator, "mediaDevices", {
+        configurable: true,
+        value: {
+          getUserMedia: async () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext("2d");
+            setInterval(() => {
+              if (ctx) {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, 64, 64);
+              }
+            }, 50);
+            return canvas.captureStream(10);
+          },
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const scanBtn = page.locator(".scanQrBtn button");
+    await expect(scanBtn).toBeVisible();
+    await scanBtn.click();
+
+    // No intermediate modal-visible assertion: the stubbed detector decodes
+    // on the first frame, so the modal can already be closed by the time an
+    // assertion polls. The end state is what matters.
+    const textarea = page.locator('[data-slot="browser"] textarea.uriInput');
+    await expect(textarea).toHaveValue("openid4vp://?client_id=scanned&request_uri=abc", {
+      timeout: 10000,
+    });
+    await expect(page.locator("#scanQrModal")).toBeHidden();
+  });
+
   test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({ page }) => {
     await setupFailFast(page);
     const testIdLocal = MOCK_TEST_RUNNING.testId;

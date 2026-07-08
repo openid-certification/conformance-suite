@@ -384,6 +384,19 @@
     ></textarea>
   </cts-modal>
 
+  <!-- Scan-QR modal for the paste-URI (VP verifier) flow. The bootstrap
+       owns the camera lifecycle: handleScanQr starts the stream on show
+       and stops it again on cts-modal-close. -->
+  <cts-modal id="scanQrModal" heading="Scan QR code" footer-buttons='[{"label": "Cancel"}]'>
+    <p>Point your camera at the QR code shown by the verifier under test.</p>
+    <video id="scanQrVideo" muted playsinline style="width: 100%; background: #000"></video>
+    <div
+      id="scanQrStatus"
+      aria-live="polite"
+      style="margin-top: var(--space-2); color: var(--fg-muted)"
+    ></div>
+  </cts-modal>
+
   <!-- Resident DOM — the Lit triad mounts here. Bootstrap fetches
        /api/info, populates header.testInfo, sets viewer.testId, and
        wires the action events. The .log-page-main wrapper holds the
