@@ -78,6 +78,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
+import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -88,8 +89,11 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.HtmlUtils;
 
 
 @VariantParameters({
@@ -130,6 +134,13 @@ import org.springframework.web.servlet.view.RedirectView;
 	hasValues = {"x509_hash", "x509_san_dns"}
 )
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
+
+	/**
+	 * Path (under this test instance's base url) of the page served by
+	 * {@link #handleVerificationEvidenceRequest()}.
+	 */
+	protected static final String VERIFICATION_EVIDENCE_PATH = "verification-evidence";
+
 	protected VP1FinalVerifierClientIdPrefix clientIdPrefix;
 	protected VP1FinalVerifierResponseMode responseMode;
 	protected VP1FinalVerifierRequestMethod clientRequestType;
@@ -276,6 +287,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		if (path.equals("authorize")) {
 			receivedAuthorizationRequest = true;
 			return handleAuthorizationEndpointRequest(requestId);
+		} else if (path.equals(VERIFICATION_EVIDENCE_PATH)) {
+			return handleVerificationEvidenceRequest();
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 		}
@@ -543,7 +556,21 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				));
 		}
 
-		testFinished = true;
+		if (directPostResponseWas2xx()) {
+			// The verifier accepted the response at the response_uri. Whether it actually
+			// verified the VP Token is not observable over HTTP (deferred verification is
+			// permitted), so require a screenshot of the verification result. Leaving
+			// testFinished false makes handleHttp() move the test to WAITING once this
+			// handler returns; waitForPlaceholders() finishes the test (result REVIEW)
+			// when the screenshot has been uploaded.
+			createScreenshotPlaceholder();
+			fillScreenshotPlaceholderViaBrowserAutomationIfConfigured();
+			waitForPlaceholders();
+		} else {
+			// The direct post did not succeed: for negative tests a 4xx is the immediate
+			// pass; for positive tests a condition failure has already been recorded.
+			testFinished = true;
+		}
 
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
@@ -588,6 +615,56 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(VP1FinalEnsureDirectPostResponseHasRedirectUriForHaip.class, ConditionResult.FAILURE, "HAIP-5.1");
 		}
+	}
+
+	protected boolean directPostResponseWas2xx() {
+		Integer status = env.getInteger("direct_post_response", "status");
+		return status != null && status >= 200 && status <= 299;
+	}
+
+	/**
+	 * Creates the browser-interaction placeholder the tester fills with a screenshot of the
+	 * verifier's verification result. OID4VP 1.0 Final does not require VP Token verification
+	 * to complete before the response_uri response, so the screenshot (plus verifier logs in
+	 * the certification package) is the evidence that verification actually happened.
+	 * Negative tests override this to expect a rejection page instead.
+	 */
+	protected void createScreenshotPlaceholder() {
+		callAndStopOnFailure(ExpectVerifierSuccessfulVerificationPage.class, "OID4VP-1FINAL-8.2");
+	}
+
+	/**
+	 * If the test configuration contains a 'browser' automation entry matching this test's
+	 * verification-evidence page (the CI configs do), send the scripted browser there with the
+	 * screenshot placeholder attached, so an 'update-image-placeholder' task can fill the
+	 * placeholder without human interaction. Without matching automation (normal certification
+	 * runs) this does nothing and the tester uploads the screenshot manually.
+	 */
+	protected void fillScreenshotPlaceholderViaBrowserAutomationIfConfigured() {
+		String evidenceUrl = env.getString("base_url") + "/" + VERIFICATION_EVIDENCE_PATH;
+		if (browser.urlMatchesBrowserAutomation(evidenceUrl)) {
+			browser.goToUrl(evidenceUrl, env.getString("verifier_verification_result_screenshot"));
+		}
+	}
+
+	/**
+	 * Serves a plain HTML snapshot of the response_uri exchange for the scripted browser to
+	 * capture into the screenshot placeholder; in automated runs there is no verifier UI a
+	 * human could take a real screenshot of.
+	 */
+	protected Object handleVerificationEvidenceRequest() {
+		Integer status = env.getInteger("direct_post_response", "status");
+		JsonElement bodyJson = env.getElementFromObject("direct_post_response", "body_json");
+		String html = "<!DOCTYPE html><html><head><title>Verification evidence</title></head><body>"
+			+ "<h1>Deferred verification evidence</h1>"
+			+ "<p>Automated stand-in for the verifier's verification-result screenshot: the verifier "
+			+ "accepted the authorization response at the response_uri with HTTP status "
+			+ HtmlUtils.htmlEscape(String.valueOf(status)) + ".</p>"
+			+ (bodyJson == null ? "" : "<pre>" + HtmlUtils.htmlEscape(bodyJson.toString()) + "</pre>")
+			+ "</body></html>";
+		return ResponseEntity.ok()
+			.contentType(MediaType.TEXT_HTML)
+			.body(html);
 	}
 
 	/**

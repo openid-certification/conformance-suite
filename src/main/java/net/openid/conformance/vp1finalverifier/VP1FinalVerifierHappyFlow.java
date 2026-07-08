@@ -23,6 +23,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		The DCQL query must request only a single credential.
 
 		The conformance suite acts as a mock web wallet. You must configure your verifier to use the authorization endpoint url below instead of 'openid4vp://' and then start the flow in your verifier as normal.
+
+		A screenshot showing the successful verification must be uploaded; the test finishes as REVIEW.
 		""",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {

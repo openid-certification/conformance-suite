@@ -182,6 +182,27 @@ public class BrowserControl implements DataUtils {
 		goToUrl(url, placeholder, method, 0);
 	}
 
+	/**
+	 * Returns true if the test configuration contains a 'browser' automation entry matching the
+	 * given url, i.e. goToUrl() would run the scripted browser for it instead of leaving the url
+	 * for manual user interaction.
+	 *
+	 * @param url the url to check
+	 */
+	public boolean urlMatchesBrowserAutomation(String url) {
+		for (JsonElement commandsEl : browserCommands) {
+			JsonObject commands = commandsEl.getAsJsonObject();
+			String urlMatcher = OIDFJSON.getString(commands.get("match"));
+			if (PatternMatchUtils.simpleMatch(urlMatcher, url)) {
+				if (commands.has("match-limit") && OIDFJSON.getInt(commands.get("match-limit")) <= 0) {
+					continue;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void goToUrl(String url, String placeholder, String method, int delaySeconds){
 
 			// find the first matching command set based on the url pattern in 'match'
