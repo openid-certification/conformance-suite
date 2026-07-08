@@ -92,7 +92,6 @@ import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpoi
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
-import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
@@ -414,11 +413,20 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialOffer.class, ConditionResult.WARNING, "OID4VCI-1FINAL-4.1");
+		checkForUnexpectedParametersInCredentialOffer();
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 		}
+	}
+
+	/**
+	 * Checks the credential offer for unknown properties. Deliberately a no-op here: issuers
+	 * commonly include extension fields in their offers, so running the check in every test
+	 * produced the same warning across nearly the whole plan (issue #1885). VCIIssuerHappyFlow
+	 * overrides this so the warning is raised in one place only.
+	 */
+	protected void checkForUnexpectedParametersInCredentialOffer() {
 	}
 
 	protected void performPreAuthorizationCodeFlow() {
