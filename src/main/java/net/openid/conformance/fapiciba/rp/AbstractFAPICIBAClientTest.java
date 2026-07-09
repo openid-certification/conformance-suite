@@ -142,6 +142,8 @@ import org.springframework.http.ResponseEntity;
 public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+	private static final String CLIENT_PING_RESPONSE_VALIDATED = "client_ping_response_validated";
+	private static final String RESOURCE_ENDPOINT_COMPLETION_PENDING_AFTER_PING_RESPONSE_VALIDATION = "resource_endpoint_completion_pending_after_ping_response_validation";
 
 	protected FAPICIBAProfile profile;
 	protected ClientAuthType clientAuthType;
@@ -666,6 +668,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
 	}
 
+	private boolean clientPingResponseValidated() {
+		return Boolean.TRUE.equals(env.getBoolean(CLIENT_PING_RESPONSE_VALIDATED));
+	}
+
 	protected Object userinfoEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
@@ -754,11 +760,39 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 			sendPingRequestAndVerifyResponse();
 
+			ensurePingCompletionCanRun();
 			call(exec().endBlock());
-			setStatus(Status.WAITING);
+			pingRequestComplete();
 
 			return "done";
 		});
+	}
+
+	private void ensurePingCompletionCanRun() {
+		if (!env.getLock().isHeldByCurrentThread()) {
+			setStatus(Status.RUNNING);
+		}
+	}
+
+	protected void pingRequestComplete() {
+		markPingResponseValidatedAndFinishPendingResourceEndpoint();
+	}
+
+	protected void markPingResponseValidatedAndFinishPendingResourceEndpoint() {
+		markPingResponseValidated();
+		if (resourceEndpointCompletionPendingAfterPingResponseValidation()) {
+			fireTestFinished();
+			return;
+		}
+		setStatus(Status.WAITING);
+	}
+
+	protected void markPingResponseValidated() {
+		env.putBoolean(CLIENT_PING_RESPONSE_VALIDATED, true);
+	}
+
+	private boolean resourceEndpointCompletionPendingAfterPingResponseValidation() {
+		return Boolean.TRUE.equals(env.getBoolean(RESOURCE_ENDPOINT_COMPLETION_PENDING_AFTER_PING_RESPONSE_VALIDATION));
 	}
 
 	// This method is for the most part a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest.
@@ -892,7 +926,16 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void resourceEndpointCallComplete() {
+		if (shouldDeferResourceEndpointCompletionUntilPingResponseValidated()) {
+			env.putBoolean(RESOURCE_ENDPOINT_COMPLETION_PENDING_AFTER_PING_RESPONSE_VALIDATION, true);
+			setStatus(Status.WAITING);
+			return;
+		}
 		fireTestFinished();
+	}
+
+	protected boolean shouldDeferResourceEndpointCompletionUntilPingResponseValidated() {
+		return clientWasPinged() && !clientPingResponseValidated();
 	}
 
 	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
