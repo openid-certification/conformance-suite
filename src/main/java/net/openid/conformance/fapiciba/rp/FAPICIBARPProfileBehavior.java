@@ -80,6 +80,10 @@ public class FAPICIBARPProfileBehavior {
 		return false;
 	}
 
+	public boolean acceptsGenericAccountsEndpoint() {
+		return true;
+	}
+
 	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
 		throw new UnsupportedOperationException("No profile-specific mTLS path handler is configured");
 	}
