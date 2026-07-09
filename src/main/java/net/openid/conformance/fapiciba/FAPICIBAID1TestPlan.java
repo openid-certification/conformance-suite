@@ -53,6 +53,8 @@ import java.util.Map;
 
 		// Negative tests for hints
 		FAPICIBAID1EnsureAuthorizationRequestWithMultipleHintsFails.class,
+		FAPICIBAID1EnsureAuthorizationRequestWithUserCodeFailsForBrazil.class,
+		FAPICIBAID1EnsureAuthorizationRequestWithInvalidLoginHintFailsForBrazil.class,
 
 		// Negative tests for token endpoint
 		FAPICIBAID1EnsureWrongAuthenticationRequestIdInTokenEndpointRequest.class,
