@@ -384,6 +384,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "userinfo":
 				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
+				if (!profileBehavior.acceptsGenericAccountsEndpoint()) {
+					throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+				}
 				return accountsEndpoint(requestId);
 			default:
 				if (profileBehavior.claimsProfileSpecificMtlsPath(path)) {

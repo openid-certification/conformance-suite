@@ -1,10 +1,15 @@
 package net.openid.conformance.fapiciba.rp;
 
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.testmodule.Command;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AbstractFAPICIBAClientTest_UnitTest {
 
@@ -69,13 +74,30 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 		assertThat(test.lastStatus).isNull();
 	}
 
+	@Test
+	public void rejectsGenericAccountsEndpointWhenProfileDisablesIt() {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+		test.setProfileBehavior(new OpenBankingBrazilCibaRPProfileBehavior());
+
+		assertThatThrownBy(() -> test.handleHttpMtls(AbstractFAPICIBAClientTest.ACCOUNTS_PATH, null, null, null, new JsonObject()))
+			.isInstanceOf(TestFailureException.class)
+			.hasMessageContaining("Got unexpected HTTP (using mtls) call to " + AbstractFAPICIBAClientTest.ACCOUNTS_PATH);
+		assertThat(test.accountsEndpointCalled).isFalse();
+	}
+
 	private static class TestableFAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 
 		private boolean fireTestFinishedCalled;
 		private Status lastStatus;
+		private boolean accountsEndpointCalled;
 
 		private void setCibaMode(CIBAMode cibaMode) {
 			this.cibaMode = cibaMode;
+		}
+
+		private void setProfileBehavior(FAPICIBARPProfileBehavior profileBehavior) {
+			this.profileBehavior = profileBehavior;
+			profileBehavior.setModule(this);
 		}
 
 		@Override
@@ -86,6 +108,22 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 		@Override
 		protected void setStatus(Status newStatus) {
 			lastStatus = newStatus;
+		}
+
+		@Override
+		protected void call(Command builder) {
+			builder.getEnvCommands().forEach(command -> command.accept(getEnv()));
+		}
+
+		@Override
+		protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
+			// Not relevant to endpoint dispatch behavior in these unit tests.
+		}
+
+		@Override
+		protected Object accountsEndpoint(String requestId) {
+			accountsEndpointCalled = true;
+			return "accounts";
 		}
 	}
 }

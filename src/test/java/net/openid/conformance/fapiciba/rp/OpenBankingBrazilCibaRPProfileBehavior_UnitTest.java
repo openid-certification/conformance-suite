@@ -36,6 +36,8 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH)).isTrue();
 		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/consent-id")).isTrue();
 		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH)).isTrue();
+		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)).isFalse();
+		assertThat(behavior.acceptsGenericAccountsEndpoint()).isFalse();
 	}
 
 	@Test
@@ -59,6 +61,8 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 		assertThat(behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH))
 			.isEqualTo("resources");
 
+		assertThatThrownBy(() -> behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH))
+			.isInstanceOf(TestFailureException.class);
 		assertThatThrownBy(() -> behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH))
 			.isInstanceOf(TestFailureException.class);
 	}
