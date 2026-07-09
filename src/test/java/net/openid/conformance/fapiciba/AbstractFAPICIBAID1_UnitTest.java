@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddBindingMessageToAuthorizationEndpointRequest;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
@@ -22,14 +23,39 @@ public class AbstractFAPICIBAID1_UnitTest {
 		assertThat(module.events).containsExactly("resource", "finished");
 	}
 
+	@Test
+	public void createAuthorizationRequestAddsBindingMessageForDefaultProfile() {
+		TestableFAPICIBAID1 module = new TestableFAPICIBAID1();
+
+		module.createAuthorizationRequest();
+
+		assertThat(module.conditionClasses)
+			.contains(AddBindingMessageToAuthorizationEndpointRequest.class);
+	}
+
+	@Test
+	public void createAuthorizationRequestCanSkipBindingMessageForProfile() {
+		TestableFAPICIBAID1 module = new TestableFAPICIBAID1(new NoBindingMessageProfileBehavior());
+
+		module.createAuthorizationRequest();
+
+		assertThat(module.conditionClasses)
+			.doesNotContain(AddBindingMessageToAuthorizationEndpointRequest.class);
+	}
+
 	private static class TestableFAPICIBAID1 extends AbstractFAPICIBAID1 {
 
 		private final List<String> events = new ArrayList<>();
+		private final List<Class<? extends Condition>> conditionClasses = new ArrayList<>();
 
 		TestableFAPICIBAID1() {
+			this(new FAPICIBAServerProfileBehavior());
+		}
+
+		TestableFAPICIBAID1(FAPICIBAServerProfileBehavior profileBehavior) {
 			eventLog = BsonEncoding.testInstanceEventLog();
-			profileBehavior = new FAPICIBAServerProfileBehavior();
-			profileBehavior.setModule(this);
+			this.profileBehavior = profileBehavior;
+			this.profileBehavior.setModule(this);
 		}
 
 		@Override
@@ -39,7 +65,7 @@ public class AbstractFAPICIBAID1_UnitTest {
 
 		@Override
 		protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
-			// No condition execution needed; this test verifies the control-flow handoff.
+			conditionClasses.add(conditionClass);
 		}
 
 		@Override
@@ -95,6 +121,11 @@ public class AbstractFAPICIBAID1_UnitTest {
 		}
 
 		@Override
+		protected void modeSpecificAuthorizationEndpointRequest() {
+			// No mode-specific conditions needed for the request-construction tests.
+		}
+
+		@Override
 		protected void requestProtectedResource() {
 			events.add("resource");
 		}
@@ -102,6 +133,13 @@ public class AbstractFAPICIBAID1_UnitTest {
 		@Override
 		public void fireTestFinished() {
 			events.add("finished");
+		}
+	}
+
+	private static class NoBindingMessageProfileBehavior extends FAPICIBAServerProfileBehavior {
+		@Override
+		public boolean shouldAddBindingMessageToAuthorizationEndpointRequest() {
+			return false;
 		}
 	}
 }
