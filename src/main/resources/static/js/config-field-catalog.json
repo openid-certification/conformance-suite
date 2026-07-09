@@ -452,6 +452,12 @@
           "type": "string",
           "enum": ["PS256", "ES256", "EdDSA", "Ed25519"],
           "tooltip": "JWS algorithm for signing DPoP proofs"
+        },
+        {
+          "key": "client.use_mtls_endpoint_aliases",
+          "label": "Use mTLS Endpoint Aliases",
+          "type": "boolean",
+          "tooltip": "When true, the client is expected to use the mTLS endpoint aliases (mtls_endpoint_aliases) for all requests, even when not using mTLS client authentication (e.g. private_key_jwt). Corresponds to the use_mtls_endpoint_aliases client metadata defined in FAPI2-Security-Profile-Final Section 5.2.2.1.1, which extends the mutual-TLS endpoint aliasing mechanism from RFC 8705 to client metadata."
         }
       ]
     },

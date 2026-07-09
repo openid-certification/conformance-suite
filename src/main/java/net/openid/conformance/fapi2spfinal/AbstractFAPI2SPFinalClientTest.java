@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2spfinal;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -167,7 +168,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@ConfigurationFields({"server.jwks"})
+@ConfigurationFields({"server.jwks", "client.use_mtls_endpoint_aliases"})
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI2FinalOPProfile.class,
@@ -373,6 +374,22 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected Boolean isMTLSConstrain() {
 		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
+	}
+
+	/**
+	 * Per FAPI2-SP-FINAL-5.2.2.1 ("MTLS ecosystems"), "client implementations shall use client
+	 * metadata use_mtls_endpoint_aliases. Check if this metadata parameter is present and set.
+	 */
+	private boolean clientRequestsMtlsEndpointAliases() {
+		JsonElement el = env.getElementFromObject("client", "use_mtls_endpoint_aliases");
+		if (el == null || el.isJsonNull()) {
+			return false;
+		}
+		if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isBoolean()) {
+			throw new TestFailureException(getId(),
+				"'use_mtls_endpoint_aliases' in the client configuration must be a boolean");
+		}
+		return OIDFJSON.getBoolean(el);
 	}
 
 	@Override
@@ -656,9 +673,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			if (profileRequiresMtlsEverywhere) {
 				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
-			} else {
-				return tokenEndpoint(requestId);
 			}
+			if (clientRequestsMtlsEndpointAliases()) {
+				throw new TestFailureException(getId(), "invalid_client",
+					"The token endpoint must be called over an mTLS secured connection because use_mtls_endpoint_aliases is set in the client configuration.");
+			}
+			return tokenEndpoint(requestId);
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
@@ -681,6 +701,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			}
 			if (clientAuthType == ClientAuthType.MTLS) {
 				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
+			}
+			if (clientRequestsMtlsEndpointAliases()) {
+				throw new TestFailureException(getId(), "invalid_client",
+					"The PAR endpoint must be called over an mTLS secured connection because use_mtls_endpoint_aliases is set in the client configuration.");
 			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH)) {
@@ -732,6 +756,14 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		setStatus(Status.WAITING);
 
 		if (path.equals("token")) {
+			if (clientAuthType != ClientAuthType.MTLS && !isMTLSConstrain() && !profileRequiresMtlsEverywhere
+					&& !clientRequestsMtlsEndpointAliases()) {
+				throw new TestFailureException(getId(), "invalid_client",
+					"The token endpoint was called over an mTLS secured connection, but this is not " +
+					"expected when using " + clientAuthType + " client authentication with " +
+					fapi2SenderConstrainMethod + " sender-constraining and without " +
+					"use_mtls_endpoint_aliases. The regular (non-mTLS) token_endpoint must be used.");
+			}
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			if (!isMTLSConstrain()) {
@@ -745,6 +777,17 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals("par")) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
+			if (clientAuthType != ClientAuthType.MTLS && !profileRequiresMtlsEverywhere
+					&& !clientRequestsMtlsEndpointAliases()) {
+				throw new TestFailureException(getId(), "invalid_client",
+					"The PAR endpoint was called over an mTLS secured connection, but this is not " +
+					"expected when using " + clientAuthType + " client authentication without " +
+					"use_mtls_endpoint_aliases. The regular (non-mTLS) " +
+					"pushed_authorization_request_endpoint must be used.");
+			}
 			return parEndpoint(requestId);
 		}
 		if (profileBehavior.claimsHttpMtlsPath(path)) {
@@ -886,6 +929,35 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	}
 
 	/**
+	 * Per FAPI2-SP-FINAL-5.2.2.1.1, a client that has declared use_mtls_endpoint_aliases=true is
+	 * expected to present its certificate at the TLS layer for every aliased endpoint call it
+	 * makes, even when a different mechanism (private_key_jwt/client_attestation) is used for
+	 * client authentication. The certificate isn't used as the OAuth client-authentication
+	 * mechanism here, but client.certificate is still a registered value (it's an unconditional
+	 * {@code configurationFields} entry on every FAPI2SPFinal client-test module, not gated to
+	 * ClientAuthType.MTLS), so this checks it the same way checkMtlsCertificate() does for the
+	 * mTLS-client-auth case - the only difference is the FAPI2-SP-FINAL-5.2.2.1.1 citation, since
+	 * this is testing alias usage rather than mTLS client authentication itself.
+	 *
+	 * Note on spec strictness: neither 5.2.2.1.1 (which only defines the use_mtls_endpoint_aliases
+	 * parameter) nor its parent 5.2.2.1 (the "shall use ... for endpoint communications" MUST
+	 * clause) explicitly says a client must present a certificate at the TLS layer when it isn't
+	 * using MTLS client authentication - RFC8705's mtls_endpoint_aliases mechanism is normally
+	 * associated with MTLS client auth / certificate-bound tokens, and use_mtls_endpoint_aliases is
+	 * defined precisely to extend alias usage "even beyond" those cases, without spelling out what
+	 * a non-MTLS-authenticating client should present at that listener instead. Enforcing
+	 * certificate presentation here at FAILURE severity is this suite's interpretation of what
+	 * "using the alias" should mean in practice (the whole point of an MTLS-designated listener),
+	 * not a verbatim requirement - flagged per this project's convention of surfacing spec
+	 * ambiguity rather than silently picking one reading.
+	 */
+	protected void checkMtlsCertificateForAliasUse() {
+		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2.1.1");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2.1.1");
+		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2.1.1");
+	}
+
+	/**
 	 * Per-sender-constrain helper used to validate incoming PAR / token / resource
 	 * requests. Subclasses are wired in via {@code @VariantSetup} based on
 	 * {@link FAPI2SenderConstrainMethod}. Visible to subclasses (incl.
@@ -975,6 +1047,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
 			checkMtlsCertificate();
+		} else if (clientRequestsMtlsEndpointAliases()) {
+			checkMtlsCertificateForAliasUse();
 		}
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
@@ -1111,6 +1185,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
+		} else if (clientRequestsMtlsEndpointAliases()) {
+			checkMtlsCertificateForAliasUse();
 		}
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
