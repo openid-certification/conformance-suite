@@ -20,6 +20,11 @@ public class FAPICIBAClientPingWithInvalidBearerTokenTest extends AbstractFAPICI
 	protected void sendPingRequestAndVerifyResponse() {
 		callAndStopOnFailure(PingClientNotificationEndpointWithBadBearerToken.class, Condition.ConditionResult.FAILURE, "CIBA");
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs401.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
+	}
+
+	@Override
+	protected void pingRequestComplete() {
+		markPingResponseValidated();
 		fireTestFinished();
 	}
 
