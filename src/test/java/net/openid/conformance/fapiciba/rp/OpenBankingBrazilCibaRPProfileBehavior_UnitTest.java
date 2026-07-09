@@ -1,9 +1,15 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
+import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
+import net.openid.conformance.condition.as.EnsureScopeContainsResources;
 import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
+import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
 import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
+import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
@@ -12,12 +18,14 @@ import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestExecutionUnit;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 
@@ -35,6 +43,58 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH)).isFalse();
 		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/consent-id")).isFalse();
 		assertThat(behavior.claimsProfileSpecificMtlsPath(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH)).isFalse();
+	}
+
+	@Test
+	public void dispatchesOnlyCustomerDataMtlsPaths() {
+		TestableFAPICIBAClientTest module = new TestableFAPICIBAClientTest();
+		behavior.setModule(module);
+
+		assertThat(behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH))
+			.isEqualTo("new-consent");
+		assertThat(module.newConsentWasPayments).isFalse();
+		assertThat(behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/consent-id"))
+			.isEqualTo("get-consent");
+		assertThat(module.getConsentWasPayments).isFalse();
+		assertThat(behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH))
+			.isEqualTo("resources");
+
+		assertThatThrownBy(() -> behavior.handleProfileSpecificMtlsPath("request-id", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH))
+			.isInstanceOf(TestFailureException.class);
+	}
+
+	@Test
+	public void exposesPingOnlyServerConfiguration() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificServerConfigurationSetup());
+
+		assertThat(conditionClasses).contains(CheckCIBAModeIsPing.class);
+	}
+
+	@Test
+	public void validatesLoginHintMatchesConsentIdAndAuthorizesConsent() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificBackchannelRequestChecks());
+
+		assertThat(conditionClasses).containsExactly(
+			BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class,
+			EnsureLoginHintEqualsConsentId.class,
+			FAPIBrazilChangeConsentStatusToAuthorized.class);
+	}
+
+	@Test
+	public void requiresConsentAndResourcesScopesForBackchannelRequest() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificBackchannelScopeChecks());
+
+		assertThat(conditionClasses).containsExactly(
+			FAPIBrazilValidateConsentScope.class,
+			EnsureScopeContainsConsents.class,
+			EnsureScopeContainsResources.class);
+	}
+
+	@Test
+	public void extractsClientCredentialsScopeForConsentCreation() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.getClientCredentialsGrantTypeSteps());
+
+		assertThat(conditionClasses).containsExactly(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
 	}
 
 	@Test
@@ -78,5 +138,28 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 
 	private Class<? extends Condition> getConditionClass(TestExecutionUnit unit) {
 		return ((ConditionCallBuilder) unit).getConditionClass();
+	}
+
+	private static class TestableFAPICIBAClientTest extends AbstractFAPICIBAClientTest {
+
+		private boolean newConsentWasPayments;
+		private boolean getConsentWasPayments;
+
+		@Override
+		protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
+			newConsentWasPayments = isPayments;
+			return "new-consent";
+		}
+
+		@Override
+		protected Object brazilHandleGetConsentRequest(String requestId, String path, boolean isPayments) {
+			getConsentWasPayments = isPayments;
+			return "get-consent";
+		}
+
+		@Override
+		protected Object resourcesEndpoint(String requestId) {
+			return "resources";
+		}
 	}
 }
