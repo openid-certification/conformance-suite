@@ -32,6 +32,7 @@ import java.util.Map;
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
+		FAPICIBAID1EnsureAuthorizationRequestWithUrlBindingMessageWarnsForBrazil.class,
 
 		// Negative tests for request objects
 		FAPICIBAID1EnsureRequestObjectMissingAudFails.class,

@@ -2,6 +2,8 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.client.AddBindingMessageToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-authorization-request-with-binding-message-succeeds",
@@ -9,6 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test tries sending a binding message of '1234' to authorization endpoint request, the server must authenticate successfully.",
 	profile = "FAPI-CIBA-ID1"
 )
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"openbanking_brazil"})
 public class FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAID1 {
 
 	@Override

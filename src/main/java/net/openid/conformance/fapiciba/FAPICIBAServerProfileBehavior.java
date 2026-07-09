@@ -79,6 +79,10 @@ public class FAPICIBAServerProfileBehavior {
 		return true;
 	}
 
+	public boolean shouldAddBindingMessageToAuthorizationEndpointRequest() {
+		return true;
+	}
+
 	// --- Action methods returning ConditionSequence (null = no-op) ---
 
 	/**

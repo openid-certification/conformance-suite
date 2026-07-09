@@ -656,13 +656,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
 
 
-		// The spec also defines these parameters that we don't currently set:
-		// binding_message
-		// user_code
-
-		// FIXME: this will need tweaking for OB tests; we don't need a binding message there as the
-		// intent id contains sufficient context
-		callAndStopOnFailure(AddBindingMessageToAuthorizationEndpointRequest.class, "FAPI-CIBA-5.2.2-2");
+		// user_code is not set by the base happy path.
+		if (profileBehavior.shouldAddBindingMessageToAuthorizationEndpointRequest()) {
+			callAndStopOnFailure(AddBindingMessageToAuthorizationEndpointRequest.class, "FAPI-CIBA-5.2.2-2");
+		}
 
 		modeSpecificAuthorizationEndpointRequest();
 	}

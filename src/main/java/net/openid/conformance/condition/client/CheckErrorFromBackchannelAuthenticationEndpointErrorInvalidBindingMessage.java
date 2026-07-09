@@ -6,5 +6,4 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 	protected String getExpectedError() {
 		return "invalid_binding_message";
 	}
-
 }

@@ -81,6 +81,7 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 		assertThat(conditionClasses).containsExactly(
 			BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class,
 			EnsureBackchannelRequestObjectDoesNotContainUserCode.class,
+			EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl.class,
 			EnsureLoginHintEqualsConsentId.class,
 			FAPIBrazilChangeConsentStatusToAuthorized.class);
 	}

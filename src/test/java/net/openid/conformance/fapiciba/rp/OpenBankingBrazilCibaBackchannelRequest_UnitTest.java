@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -16,12 +17,15 @@ public class OpenBankingBrazilCibaBackchannelRequest_UnitTest {
 
 	private Environment env;
 	private EnsureBackchannelRequestObjectDoesNotContainUserCode condition;
+	private EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl bindingMessageCondition;
 
 	@BeforeEach
 	public void setup() {
 		env = mock(Environment.class);
 		condition = new EnsureBackchannelRequestObjectDoesNotContainUserCode();
 		condition.setProperties("testId", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
+		bindingMessageCondition = new EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl();
+		bindingMessageCondition.setProperties("testId", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 	}
 
 	@Test
@@ -37,6 +41,69 @@ public class OpenBankingBrazilCibaBackchannelRequest_UnitTest {
 		assertThatThrownBy(() -> condition.evaluate(env))
 			.isInstanceOf(ConditionError.class)
 			.hasMessageContaining("not permitted for Open Finance Brasil CIBA");
+	}
+
+	@Test
+	public void bindingMessageCheckSucceedsWhenMissing() {
+		bindingMessageCondition.evaluate(env);
+	}
+
+	@Test
+	public void bindingMessageCheckSucceedsWhenNoUrlIsPresent() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonPrimitive("Review consent details"));
+
+		bindingMessageCondition.evaluate(env);
+	}
+
+	@Test
+	public void bindingMessageCheckFailsWhenUrlIsPresent() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonPrimitive("Review https://example.test/consent"));
+
+		assertThatThrownBy(() -> bindingMessageCondition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("must not contain URLs");
+	}
+
+	@Test
+	public void bindingMessageCheckFailsWhenWwwUrlIsPresent() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonPrimitive("Review www.example.test/consent"));
+
+		assertThatThrownBy(() -> bindingMessageCondition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("must not contain URLs");
+	}
+
+	@Test
+	public void bindingMessageCheckFailsWhenBareHostPathIsPresent() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonPrimitive("Review example.test/consent"));
+
+		assertThatThrownBy(() -> bindingMessageCondition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("must not contain URLs");
+	}
+
+	@Test
+	public void bindingMessageCheckFailsWhenMailtoUrlIsPresent() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonPrimitive("Contact mailto:support@example.test"));
+
+		assertThatThrownBy(() -> bindingMessageCondition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("must not contain URLs");
+	}
+
+	@Test
+	public void bindingMessageCheckFailsWhenBindingMessageIsNotAString() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonObject());
+
+		assertThatThrownBy(() -> bindingMessageCondition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("binding_message must be a string when present");
 	}
 
 }

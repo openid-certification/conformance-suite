@@ -61,6 +61,11 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	}
 
 	@Test
+	public void doesNotAddDefaultBindingMessageToBrazilHappyPath() {
+		assertThat(behavior.shouldAddBindingMessageToAuthorizationEndpointRequest()).isFalse();
+	}
+
+	@Test
 	public void createsDataConsentBeforeBrazilCibaRequest() {
 		TestableFAPICIBAID1 module = new TestableFAPICIBAID1();
 		module.addTokenEndpointClientAuthentication = NoOpClientAuthentication.class;
