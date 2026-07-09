@@ -57,6 +57,11 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
+	public boolean shouldAddBindingMessageToAuthorizationEndpointRequest() {
+		return false;
+	}
+
+	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
 		return () -> {
 			boolean isSecondClient = module.isSecondClient();

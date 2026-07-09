@@ -6,6 +6,8 @@ import net.openid.conformance.condition.client.AddPotentiallyBadBindingMessageTo
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage;
 import net.openid.conformance.condition.client.ExpectBindingMessageCorrectDisplay;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
@@ -13,6 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test tries sending a potentially bad binding message to authorization endpoint request - i.e. a message that the Authentication Device may not be able to display, as it is quite long and contains various non-ASCII characters. The server should either:\n\n * showing the correct binding message (a screenshot/photo of which should be uploaded) and the users successfully authenticates\n\n * or, if it is unable to display the message, return the invalid_binding_message error.\n\nThe binding message used is:\n\n" + AddPotentiallyBadBindingMessageToAuthorizationEndpointRequest.POTENTIALLY_BAD_BINDING_MESSAGE,
 	profile = "FAPI-CIBA-ID1"
 )
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"openbanking_brazil"})
 public class FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage extends AbstractFAPICIBAID1 {
 
 	@Override
