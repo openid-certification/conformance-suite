@@ -18,11 +18,9 @@ import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.testmodule.TestFailureException;
 
 public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBehavior {
@@ -65,21 +63,6 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	public void exposeProfileSpecificEndpoints() {
 		module.exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 		module.exposeMtlsPath("resource_endpoint", FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH);
-	}
-
-	@Override
-	public ConditionSequence applyProfileSpecificAccountsEndpointChecks() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
-			}
-		};
-	}
-
-	@Override
-	public Class<? extends ConditionSequence> getAccountsEndpointResponseSteps() {
-		return GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
 	@Override
@@ -134,17 +117,18 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 
 	@Override
 	public boolean claimsProfileSpecificMtlsPath(String path) {
-		return FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH.equals(path)
-			|| FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)
+		return FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)
 			|| FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH.equals(path)
 			|| path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/");
 	}
 
 	@Override
+	public boolean acceptsGenericAccountsEndpoint() {
+		return false;
+	}
+
+	@Override
 	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
-		if (FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH.equals(path)) {
-			return module.accountsEndpoint(requestId);
-		}
 		if (FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 			return module.brazilHandleNewConsentRequest(requestId, false);
 		}
