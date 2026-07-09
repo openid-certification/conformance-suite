@@ -6,6 +6,14 @@ This file provides guidance to coding agents when working with code in this repo
 
 This is the OpenID Foundation conformance suite - a Spring Boot application that validates implementations of OpenID Connect, FAPI1, FAPI2, FAPI-CIBA, OpenID for Identity Assurance (eKYC), Verifiable Credentials (VCI), and Verifiable Presentations (VP).
 
+### Concepts
+
+### Test Module
+A runnable conformance scenario that drives one implementation role through a protocol behavior and records pass, warning, failure, or skip outcomes.
+
+### Test Plan
+A published grouping of test modules for a protocol profile, implementation role, and variant set that real implementers can schedule and use for certification evidence.
+
 ## Workflow Rules
 
 After making code changes, always run the project build and tests before committing. If tests fail, fix them before presenting the result as complete.
@@ -125,6 +133,11 @@ Prerequisites:
 - Nginx HTTPS proxy running (ports 8443/8444 -> 8080)
 - `../conformance-suite-private` checkout (for test configs)
 - Python 3 with `pyparsing >= 3` (on macOS: `PATH=/opt/homebrew/bin:$PATH`)
+
+### OP-vs-RP Pairing
+In many cases, the integration tests are suite-vs-suite pairings where an OP test plan and an RP/client test module run against each other to validate the suite's own behavior.
+An OP-vs-RP test is an internal validation technique, not a reason to change the public certification contract of either side.
+The paired modules should still be valid tests for real implementations unless the harness is explicitly internal-only.
 
 ### Running VP-only tests
 
