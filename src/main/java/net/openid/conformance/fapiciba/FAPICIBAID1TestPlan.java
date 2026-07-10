@@ -78,6 +78,7 @@ import java.util.Map;
 		FAPICIBAID1PingNotificationEndpointReturns403.class,
 		FAPICIBAID1PingNotificationEndpointReturns401AndRequireServerDoesNotRetry.class,
 		FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest.class,
+		FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBrazil.class,
 
 		// FAPI specific
 		FAPICIBAID1EnsureBackchannelAuthorizationRequestWithoutRequestFails.class,
