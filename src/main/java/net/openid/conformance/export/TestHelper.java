@@ -11,7 +11,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Template rendering helper for a test
@@ -58,7 +61,11 @@ public class TestHelper {
 			throw new RuntimeException("Unexpected testInfo object type: " + export.getTestInfo().getClass());
 		}
 		this.testResults = (List<Document>)export.getResults();
+		String blockName = null;
 		for(Document resultDoc : this.testResults) {
+			if(isBlockStart(resultDoc)) {
+				blockName = resultDoc.getString("msg");
+			}
 			String resultStr = resultDoc.getString("result");
 			if("INFO".equals(resultStr)) {
 				infoCount++;
@@ -66,13 +73,27 @@ public class TestHelper {
 				successCount++;
 			} else if("FAILURE".equals(resultStr)) {
 				failureCount++;
-				this.failures.add(resultDoc.getString("msg"));
+				this.failures.add(failureDescription(blockName, resultDoc));
 			} else if("WARNING".equals(resultStr)) {
 				warningCount++;
 			} else if("REVIEW".equals(resultStr)) {
 				reviewCount++;
 			}
 		}
+	}
+
+	// mirrors the interactive UI's "block name: condition name: message" format
+	private static String failureDescription(String blockName, Document resultDoc) {
+		return Stream.of(
+				resultDoc.containsKey("blockId") ? blockName : null,
+				resultDoc.getString("src"),
+				resultDoc.getString("msg"))
+			.filter(Objects::nonNull)
+			.collect(Collectors.joining(": "));
+	}
+
+	private static boolean isBlockStart(Document logEntry) {
+		return logEntry.containsKey("blockId") && logEntry.containsKey("startBlock") && logEntry.getBoolean("startBlock");
 	}
 
 	public Date getExportedAt()
