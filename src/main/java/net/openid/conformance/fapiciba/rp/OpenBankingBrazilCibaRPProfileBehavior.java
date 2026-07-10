@@ -91,10 +91,10 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class, "BrazilCIBA-6.2.6");
-				callAndStopOnFailure(EnsureBackchannelRequestObjectDoesNotContainUserCode.class, "BrazilCIBA-6.2.4");
+				callAndStopOnFailure(EnsureBackchannelRequestDoesNotContainRequestedExpiryForBrazil.class, "BrazilCIBA-6.3.7");
+				callAndStopOnFailure(EnsureBackchannelRequestObjectDoesNotContainUserCode.class, "BrazilCIBA-6.3.5");
 				callAndStopOnFailure(EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl.class, "BrazilCIBA-6.3.6");
-				callAndStopOnFailure(EnsureLoginHintEqualsConsentId.class);
+				callAndStopOnFailure(EnsureLoginHintEqualsConsentId.class, "BrazilCIBA-6.3.2");
 				callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 			}
 		};
