@@ -1,7 +1,8 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -37,6 +38,26 @@ public class OpenBankingBrazilCibaBackchannelRequest_UnitTest {
 	public void failsWhenUserCodeIsPresent() {
 		when(env.getElementFromObject("backchannel_request_object", "claims.user_code"))
 			.thenReturn(new JsonPrimitive("123456"));
+
+		assertThatThrownBy(() -> condition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("not permitted for Open Finance Brasil CIBA");
+	}
+
+	@Test
+	public void failsWhenUserCodeIsJsonNull() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.user_code"))
+			.thenReturn(JsonNull.INSTANCE);
+
+		assertThatThrownBy(() -> condition.evaluate(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("not permitted for Open Finance Brasil CIBA");
+	}
+
+	@Test
+	public void failsWhenUserCodeIsAnObject() {
+		when(env.getElementFromObject("backchannel_request_object", "claims.user_code"))
+			.thenReturn(new JsonObject());
 
 		assertThatThrownBy(() -> condition.evaluate(env))
 			.isInstanceOf(ConditionError.class)
