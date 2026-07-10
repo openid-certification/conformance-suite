@@ -49,6 +49,17 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	}
 
 	@Override
+	public ConditionSequence getPingNotificationEndpointCallSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(PingClientNotificationEndpointWithRetriesForBrazil.class,
+					Condition.ConditionResult.FAILURE, "CIBA", "BrazilCIBA-6.2.8");
+			}
+		};
+	}
+
+	@Override
 	public ConditionSequence applyProfileSpecificServerAuthAlgSetup() {
 		return new AbstractConditionSequence() {
 			@Override
