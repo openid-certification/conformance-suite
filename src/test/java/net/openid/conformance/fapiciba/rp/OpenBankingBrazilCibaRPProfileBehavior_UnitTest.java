@@ -75,15 +75,29 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 	}
 
 	@Test
-	public void validatesLoginHintMatchesConsentIdAndAuthorizesConsent() {
+	public void validatesBrazilBackchannelRequestBoundariesAndAuthorizesConsent() {
 		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificBackchannelRequestChecks());
 
 		assertThat(conditionClasses).containsExactly(
-			BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class,
+			EnsureBackchannelRequestDoesNotContainRequestedExpiryForBrazil.class,
 			EnsureBackchannelRequestObjectDoesNotContainUserCode.class,
 			EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl.class,
 			EnsureLoginHintEqualsConsentId.class,
 			FAPIBrazilChangeConsentStatusToAuthorized.class);
+	}
+
+	@Test
+	public void keepsGenericBackchannelRequestChecksUnchanged() {
+		FAPICIBARPProfileBehavior genericBehavior = new FAPICIBARPProfileBehavior();
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(
+			genericBehavior.applyProfileSpecificBackchannelRequestChecks());
+
+		assertThat(conditionClasses)
+			.containsExactly(BackchannelRequestRequestedExpiryIsAnInteger.class)
+			.doesNotContain(
+				EnsureBackchannelRequestDoesNotContainRequestedExpiryForBrazil.class,
+				EnsureBackchannelRequestObjectDoesNotContainUserCode.class,
+				EnsureLoginHintEqualsConsentId.class);
 	}
 
 	@Test
