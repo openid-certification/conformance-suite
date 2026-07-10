@@ -42,28 +42,52 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 			HttpEntity<String> request = new HttpEntity<>(pingRequestObject.toString(), headers);
 
-			try {
-				String clientNotificationEndpoint = env.getString("client","backchannel_client_notification_endpoint");
-				env.putBoolean("client_was_pinged", true);
-				ResponseEntity<String> response = restTemplate.exchange(clientNotificationEndpoint, HttpMethod.POST, request, String.class);
+			String clientNotificationEndpoint = env.getString("client","backchannel_client_notification_endpoint");
+			env.putBoolean("client_was_pinged", true);
+			int attempt = 1;
 
-				env.putInteger("client_notification_endpoint_response_http_status", response.getStatusCode().value());
+			while (true) {
+				try {
+					ResponseEntity<String> response = restTemplate.exchange(clientNotificationEndpoint, HttpMethod.POST, request, String.class);
 
-				logSuccess("Received client notification endpoint response:" + response.getBody());
-				return env;
+					env.putInteger("client_notification_endpoint_response_http_status", response.getStatusCode().value());
 
-			} catch (RestClientResponseException e) {
-				return handleClientResponseException(env, e);
-			} catch (RestClientException e) {
-				return handleClientException(env, e);
+					logSuccess("Received client notification endpoint response:" + response.getBody());
+					return env;
+
+				} catch (RestClientResponseException e) {
+					if (attempt < getMaximumAttempts() && shouldRetry(e)) {
+						log("Retrying the client notification endpoint after a transient HTTP response",
+							args("attempt", attempt, "http_status", e.getStatusCode().value()));
+						attempt++;
+						continue;
+					}
+					return handleClientResponseException(env, e);
+				} catch (RestClientException e) {
+					if (attempt < getMaximumAttempts() && shouldRetry(e)) {
+						log("Retrying the client notification endpoint after a temporary communication failure",
+							args("attempt", attempt, "error", e.getMessage()));
+						attempt++;
+						continue;
+					}
+					return handleClientException(env, e);
+				}
 			}
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
 	}
 
+	protected int getMaximumAttempts() {
+		return 1;
+	}
+
+	protected boolean shouldRetry(RestClientException e) {
+		return false;
+	}
+
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
-		throw error("RestClientResponseException occurred whilst calling token endpoint",
+		throw error("RestClientResponseException occurred whilst calling client notification endpoint",
 			args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 	}
 
