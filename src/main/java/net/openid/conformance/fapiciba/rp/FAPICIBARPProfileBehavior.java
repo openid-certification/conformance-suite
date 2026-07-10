@@ -33,6 +33,15 @@ public class FAPICIBARPProfileBehavior {
 		};
 	}
 
+	public ConditionSequence getPingNotificationEndpointCallSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+			}
+		};
+	}
+
 	public ConditionSequence applyProfileSpecificServerAuthAlgSetup() {
 		return new AbstractConditionSequence() {
 			@Override

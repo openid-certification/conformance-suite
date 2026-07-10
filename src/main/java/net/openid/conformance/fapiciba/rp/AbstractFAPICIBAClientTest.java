@@ -245,7 +245,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected void customizeUserInfoEndpointResponseHeaders() { }
 
 	protected void sendPingRequestAndVerifyResponse() {
-		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+		call(profileBehavior.getPingNotificationEndpointCallSteps());
 		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
 	}

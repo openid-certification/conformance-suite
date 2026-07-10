@@ -78,6 +78,19 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 	}
 
 	@Test
+	public void retriesTransientPingDeliveryFailuresOnlyForBrazil() {
+		ConditionCallBuilder brazilPingCall = getConditionCalls(behavior.getPingNotificationEndpointCallSteps()).getFirst();
+		ConditionCallBuilder genericPingCall = getConditionCalls(
+			new FAPICIBARPProfileBehavior().getPingNotificationEndpointCallSteps()).getFirst();
+
+		assertThat(brazilPingCall.getConditionClass())
+			.isEqualTo(PingClientNotificationEndpointWithRetriesForBrazil.class);
+		assertThat(brazilPingCall.getRequirements()).containsExactly("CIBA", "BrazilCIBA-6.2.8");
+		assertThat(genericPingCall.getConditionClass()).isEqualTo(PingClientNotificationEndpoint.class);
+		assertThat(genericPingCall.getRequirements()).containsExactly("CIBA");
+	}
+
+	@Test
 	public void validatesBrazilBackchannelRequestBoundariesAndAuthorizesConsent() {
 		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificBackchannelRequestChecks());
 
