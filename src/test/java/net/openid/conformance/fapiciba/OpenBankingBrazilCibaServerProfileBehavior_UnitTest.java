@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
@@ -15,6 +16,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningA
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
+import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
 import net.openid.conformance.condition.client.SetLoginHintToConsentId;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -23,7 +25,6 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
-import net.openid.conformance.testmodule.TestExecutionUnit;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -63,6 +64,17 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	@Test
 	public void doesNotAddDefaultBindingMessageToBrazilHappyPath() {
 		assertThat(behavior.shouldAddBindingMessageToAuthorizationEndpointRequest()).isFalse();
+	}
+
+	@Test
+	public void citesCurrentBeta1SectionsForPingModeAndLoginHint() {
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(behavior.onConfigure());
+
+		assertThat(conditionCalls).hasSize(2);
+		assertThat(conditionCalls.get(0).getConditionClass()).isEqualTo(CheckCIBAModeIsPing.class);
+		assertThat(conditionCalls.get(0).getRequirements()).containsExactly("BrazilCIBA-6.2.2");
+		assertThat(conditionCalls.get(1).getConditionClass()).isEqualTo(SetHintTypeToLoginHint.class);
+		assertThat(conditionCalls.get(1).getRequirements()).containsExactly("BrazilCIBA-6.2.3");
 	}
 
 	@Test
@@ -129,15 +141,17 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
-		sequence.evaluate();
-		return sequence.getTestExecutionUnits().stream()
-			.filter(ConditionCallBuilder.class::isInstance)
-			.map(this::getConditionClass)
+		return getConditionCalls(sequence).stream()
+			.map(ConditionCallBuilder::getConditionClass)
 			.toList();
 	}
 
-	private Class<? extends Condition> getConditionClass(TestExecutionUnit unit) {
-		return ((ConditionCallBuilder) unit).getConditionClass();
+	private List<ConditionCallBuilder> getConditionCalls(ConditionSequence sequence) {
+		sequence.evaluate();
+		return sequence.getTestExecutionUnits().stream()
+			.filter(ConditionCallBuilder.class::isInstance)
+			.map(ConditionCallBuilder.class::cast)
+			.toList();
 	}
 
 	public static class NoOpClientAuthentication extends AbstractConditionSequence {
