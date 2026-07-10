@@ -19,7 +19,6 @@ import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.testmodule.TestExecutionUnit;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -69,9 +68,13 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 
 	@Test
 	public void exposesPingOnlyServerConfiguration() {
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificServerConfigurationSetup());
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(behavior.applyProfileSpecificServerConfigurationSetup());
 
-		assertThat(conditionClasses).contains(CheckCIBAModeIsPing.class);
+		ConditionCallBuilder pingModeCall = conditionCalls.stream()
+			.filter(call -> call.getConditionClass().equals(CheckCIBAModeIsPing.class))
+			.findFirst()
+			.orElseThrow();
+		assertThat(pingModeCall.getRequirements()).containsExactly("BrazilCIBA-6.3.4");
 	}
 
 	@Test
@@ -150,14 +153,16 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
-		sequence.evaluate();
-		return sequence.getTestExecutionUnits().stream()
-			.map(this::getConditionClass)
+		return getConditionCalls(sequence).stream()
+			.map(ConditionCallBuilder::getConditionClass)
 			.toList();
 	}
 
-	private Class<? extends Condition> getConditionClass(TestExecutionUnit unit) {
-		return ((ConditionCallBuilder) unit).getConditionClass();
+	private List<ConditionCallBuilder> getConditionCalls(ConditionSequence sequence) {
+		sequence.evaluate();
+		return sequence.getTestExecutionUnits().stream()
+			.map(ConditionCallBuilder.class::cast)
+			.toList();
 	}
 
 	private static class TestableFAPICIBAClientTest extends AbstractFAPICIBAClientTest {

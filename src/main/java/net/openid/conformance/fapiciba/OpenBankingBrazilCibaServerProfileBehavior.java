@@ -88,8 +88,8 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(CheckCIBAModeIsPing.class, "BrazilCIBA-5.2.2");
-				callAndStopOnFailure(SetHintTypeToLoginHint.class, "BrazilCIBA-5.2.2");
+				callAndStopOnFailure(CheckCIBAModeIsPing.class, "BrazilCIBA-6.2.2");
+				callAndStopOnFailure(SetHintTypeToLoginHint.class, "BrazilCIBA-6.2.3");
 			}
 		};
 	}
