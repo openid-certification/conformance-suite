@@ -10,6 +10,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.SerializeVCICredentialRequestObject;
 import net.openid.conformance.vci10issuer.condition.VCIAddCompressionToCredentialRequestEncryption;
@@ -37,6 +38,15 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerTestModule {
 		}
 
 		super.onPostAuthorizationFlowComplete();
+	}
+
+	/**
+	 * The unknown-properties check on the credential offer only runs in this module — see the
+	 * no-op override point in AbstractVCIIssuerTestModule (issue #1885).
+	 */
+	@Override
+	protected void checkForUnexpectedParametersInCredentialOffer() {
+		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialOffer.class, ConditionResult.WARNING, "OID4VCI-1FINAL-4.1");
 	}
 
 	@Override
