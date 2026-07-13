@@ -84,10 +84,12 @@ export const Waiting = {
 
     await step("status badge shows the R19 friendly label with the `warn` variant", async () => {
       // The underlying status enum stays "WAITING" — only the rendered label
-      // is mapped at render time.
+      // is mapped at render time. #1862: the label must not claim "user
+      // input" — a WAITING test may be waiting on an incoming request from
+      // the system under test with no user action needed.
       const badge = canvasElement.querySelector("cts-badge");
       expect(badge).toBeTruthy();
-      expect(badge.getAttribute("label")).toBe("Waiting for user input");
+      expect(badge.getAttribute("label")).toBe("Waiting");
       expect(badge.getAttribute("variant")).toBe("warn");
     });
 

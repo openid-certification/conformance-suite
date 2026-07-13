@@ -399,13 +399,14 @@ class CtsRunningTestCard extends LitElement {
     if (!test || !test._id) return nothing;
 
     const badgeVariant = STATUS_BADGE_VARIANTS[test.status] || "skip";
-    // R19: WAITING surfaces an action prompt as the visible label so the
-    // user can tell at a glance that the system is waiting on them, not
-    // working. The variant lookup above and any data-status hooks keep
-    // reading the canonical enum literal (`test.status`) — only the
-    // rendered text node carries the friendly label.
-    const badgeLabel =
-      test.status === "WAITING" ? "Waiting for user input" : test.status || "UNKNOWN";
+    // R19 (amended by #1862): WAITING gets a friendly label so the user can
+    // tell at a glance the test is paused, not working — but NOT "Waiting
+    // for user input": a WAITING test is often waiting on an incoming
+    // request from the system under test, with no user action needed. The
+    // variant lookup above and any data-status hooks keep reading the
+    // canonical enum literal (`test.status`) — only the rendered text node
+    // carries the friendly label.
+    const badgeLabel = test.status === "WAITING" ? "Waiting" : test.status || "UNKNOWN";
 
     return html`
       <div class="cts-rtc-card" data-instance-id="${test._id}">

@@ -687,28 +687,26 @@ export const WaitingHeroWithInstructions = {
       return el;
     });
 
-    await step("WAITING hero shows the imperative half and hides its own Start", async () => {
+    await step("WAITING hero shows the imperative half with neutral waiting copy", async () => {
       const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
-      expect(waitingHero.textContent).toContain("Action required");
+      // #1862: a WAITING test is mid-run, so the eyebrow is a neutral
+      // "Test waiting" — never the Start-centric "Action required".
+      expect(waitingHero.textContent).toContain("Test waiting");
+      expect(waitingHero.textContent).not.toContain("Action required");
       expect(waitingHero.textContent).toContain("Imperative part of the summary.");
 
       // Description half intentionally NOT rendered here — that's the
       // persistent objective summary's job. WAITING focuses the hero on
       // what to do, not what the test is about.
       expect(waitingHero.textContent).not.toContain("Descriptive part of the summary.");
-
-      // The hero must NOT carry its own Start button — Start is the
-      // sticky status bar's primary action for WAITING tests, and a
-      // duplicate inside the hero would split the operator's attention
-      // between two identical CTAs in the same viewport.
-      expect(waitingHero.querySelector('[data-testid="start-btn"]')).toBeNull();
     });
 
-    await step("Start is exercised through the status-bar primary instead", async () => {
-      const startHandler = fn();
-      canvasElement.addEventListener("cts-start-test", startHandler);
-      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-      expect(startHandler).toHaveBeenCalledOnce();
+    await step("no Start affordance anywhere on a WAITING test", async () => {
+      // #1862: WAITING means the test is already running and paused on an
+      // external event or a user action described in the hero — a Start
+      // button here would reload the page (or 404) and mislead the user.
+      expect(canvasElement.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+      expect(canvasElement.textContent).not.toContain("Start Test");
     });
 
     await step("objective summary carries the description half while waiting", async () => {
@@ -728,14 +726,14 @@ export const WaitingHeroFallbackInstructions = {
       return el;
     });
 
-    // No summary marker, no results yet — fall back to the generic
-    // "Click Start Test when you're ready." copy. C1 (MR 1998): the
-    // button label and the fallback prompt both name the action the
-    // same way ("Start Test") for consistency with Repeat Test /
-    // Continue Plan.
+    // No summary marker — fall back to the generic waiting explanation
+    // (#1862, modeled on the legacy UI): the test may be waiting on an
+    // incoming request from the system under test OR on a user action,
+    // so the copy names both and never tells the user to click Start.
     const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
-    expect(waitingHero.textContent).toContain("Click Start Test when you're ready.");
-    expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
+    expect(waitingHero.textContent).toContain("The test is waiting for something to happen");
+    expect(waitingHero.textContent).toContain("incoming request");
+    expect(waitingHero.textContent).not.toContain("Click Start");
   },
 };
 
@@ -1291,23 +1289,18 @@ export const StatusBarWaiting = {
       const pill = bar.querySelector('cts-badge[label="WAITING"]');
       expect(pill).toBeTruthy();
       expect(pill.getAttribute("variant")).toBe("warn");
-      expect(bar.textContent).toContain("Waiting for user input");
+      // #1862: the support copy points at the hero/summary for any action —
+      // it must not claim the user needs to press Start.
+      expect(bar.textContent).toContain("Waiting — see below for any action required");
+      expect(bar.textContent).not.toContain("Waiting for user input");
     });
 
-    await step("the bar primary slot carries Start", async () => {
-      const primaryHost = bar.querySelector('[data-testid="status-bar-primary"]');
-      expect(primaryHost).toBeTruthy();
-      expect(within(primaryHost).getByText(/Start/)).toBeInTheDocument();
-    });
-
-    await step("clicking the bar primary fires cts-start-test", async () => {
-      // Both the bar primary AND the hero footer carry Start during WAITING.
-      // Asserting the bar fires the event keeps the U2 contract.
-      const startHandler = fn();
-      canvasElement.addEventListener("cts-start-test", startHandler);
-      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-      expect(startHandler).toHaveBeenCalledOnce();
-      expect(startHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST.testId);
+    await step("the bar carries NO primary action while WAITING", async () => {
+      // #1862: a WAITING test is already running — the old Start button
+      // here just reloaded the page (or 404'd on visit-URL tests). Start
+      // belongs exclusively to the CONFIGURED (needs-start) phase.
+      expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+      expect(within(bar).queryByText(/Start Test/)).toBeNull();
     });
 
     await step("test name leads .ctsStatusBarLeft", async () => {
@@ -1978,74 +1971,91 @@ export const StaleStatusRoutesHeroToFailureWhenResultFailed = {
   },
 };
 
-export const WaitingHeroDistinguishesExternalVsUserAction = {
+export const WaitingNeverOffersStart = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${WAITING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
-    // A6 (MR 1998): a WAITING test that has already executed
-    // conditions is waiting on an external party (HTTP callback,
-    // browser-driven step), not on a user click. The previous copy
-    // ("ACTION REQUIRED — Click Start when you're ready") was wrong
-    // for that case. Switch to the "external request" branch and
-    // hide the Start CTA the user does not need to act on.
+    // #1862 (supersedes MR 1998 finding A6): WAITING always means the
+    // test is mid-run and paused on something else — an incoming
+    // request from the system under test, a visit-URL step, or an
+    // image upload. The runner auto-starts every module except the
+    // CONFIGURED `autoStart() == false` ones, so Start is never a
+    // valid action for WAITING — with or without result entries (the
+    // old `results`-based branch was dead anyway: /api/info never
+    // populates a `results` field).
     const waitingHero = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
       if (!el) throw new Error("hero-waiting not yet rendered");
       return el;
     });
 
-    await step("hero uses the external-wait branch and hides Click Start", async () => {
-      expect(waitingHero.getAttribute("data-waiting-mode")).toBe("external");
-      expect(waitingHero.textContent).toContain("Test running");
-      expect(waitingHero.textContent).toContain(
-        "Waiting for an external request — no action required from you.",
-      );
+    await step("hero shows neutral waiting copy, never Click Start", async () => {
+      expect(waitingHero.textContent).toContain("Test waiting");
+      expect(waitingHero.textContent).toContain("The test is waiting for something to happen");
       expect(waitingHero.textContent).not.toContain("Click Start");
+      expect(waitingHero.textContent).not.toContain("Action required");
     });
 
-    await step("the bar mirrors the external-wait copy and suppresses Start", async () => {
+    await step("hero keeps the browser slot for visit-URL prompts", async () => {
+      // log-detail.js's /api/runner poll injects the "Visit one of the
+      // following URLs" prompt here — the real call to action for
+      // browser-driven WAITING tests.
+      expect(waitingHero.querySelector('[data-slot="browser"]')).toBeTruthy();
+    });
+
+    await step("the bar suppresses the primary action entirely", async () => {
       const bar = canvasElement.querySelector('[data-testid="status-bar"]');
-      expect(bar.textContent).toContain("Waiting for external input — no action required");
-      // Start button is suppressed in the external-wait branch — the
-      // user does not need it.
+      expect(bar.textContent).toContain("Waiting — see below for any action required");
       expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+      expect(within(bar).queryByText(/Start Test/)).toBeNull();
     });
   },
 };
 
-export const WaitingHeroKeepsStartWhenFreshTest = {
-  render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
+const CONFIGURED_TEST = {
+  ...MOCK_TEST_RUNNING,
+  status: "CONFIGURED",
+  result: null,
+  results: [],
+};
+
+export const ConfiguredNeedsStart = {
+  render: () => html`<cts-log-detail-header .testInfo=${CONFIGURED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
-    // A6 inverse: a fresh WAITING test (no conditions yet) genuinely
-    // needs the user to click Start to kick off the run. Eyebrow,
-    // copy, and the primary button all stay in their "needs user
-    // action" form.
-    const waitingHero = await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
-      if (!el) throw new Error("hero-waiting not yet rendered");
+    // #1862: CONFIGURED is the one status where the runner really is
+    // waiting for the user to press Start (only `autoStart() == false`
+    // modules — currently oidcc-server-rotate-keys — ever rest here).
+    // Previously CONFIGURED fell through _derivePhase to "unknown" and
+    // rendered a bogus finished-style header with no Start button.
+    const hero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-needs-start"]');
+      if (!el) throw new Error("hero-needs-start not yet rendered");
       return el;
     });
 
-    await step("fresh WAITING hero stays in the user-action form", async () => {
-      expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
-      expect(waitingHero.textContent).toContain("Action required");
+    await step("hero carries the Action required / Click Start copy", async () => {
+      expect(hero.textContent).toContain("Action required");
+      expect(hero.textContent).toContain("Click Start Test when you're ready.");
     });
 
-    await step("fresh WAITING still shows the module objective", async () => {
-      const aboutZone = await waitForObjectiveSummary(canvasElement);
-      expect(aboutZone.textContent).toContain(MOCK_TEST_RUNNING.description);
-    });
-
-    await step("the bar shows the user-input copy", async () => {
+    await step("the bar shows the CONFIGURED pill and needs-start support copy", async () => {
       const bar = canvasElement.querySelector('[data-testid="status-bar"]');
-      expect(bar.textContent).toContain("Waiting for user input");
+      const pill = bar.querySelector('cts-badge[label="CONFIGURED"]');
+      expect(pill).toBeTruthy();
+      expect(pill.getAttribute("variant")).toBe("warn");
+      expect(bar.textContent).toContain("Waiting for you to start the test");
     });
 
-    await step("Start Test (C1 label) dispatches cts-start-test", async () => {
+    await step("no terminal banner renders for the needs-start phase", async () => {
+      expect(canvasElement.querySelector('[data-testid="terminal-banner"]')).toBeNull();
+    });
+
+    await step("Start Test in the bar primary dispatches cts-start-test", async () => {
       const startHandler = fn();
       canvasElement.addEventListener("cts-start-test", startHandler);
       await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
       expect(startHandler).toHaveBeenCalledOnce();
+      expect(startHandler.mock.calls[0][0].detail.testId).toBe(CONFIGURED_TEST.testId);
     });
   },
 };

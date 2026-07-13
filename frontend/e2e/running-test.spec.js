@@ -91,12 +91,11 @@ test.describe("running-test.html — Running Tests", () => {
 
     // Second test shows name and the R19 friendly label. The underlying
     // `test.status` enum stays "WAITING" (variant lookup, data hooks);
-    // only the rendered badge label is mapped at render time.
+    // only the rendered badge label is mapped at render time. #1862: the
+    // label must not claim "user input" — a WAITING test may be waiting
+    // on an incoming request from the system under test.
     await expect(cards.nth(1)).toContainText("oidcc-server-rotate-keys");
-    await expect(cards.nth(1).locator("cts-badge")).toHaveAttribute(
-      "label",
-      "Waiting for user input",
-    );
+    await expect(cards.nth(1).locator("cts-badge")).toHaveAttribute("label", "Waiting");
   });
 
   test("manual refresh re-fetches and updates statuses (R13)", async ({ page }) => {
