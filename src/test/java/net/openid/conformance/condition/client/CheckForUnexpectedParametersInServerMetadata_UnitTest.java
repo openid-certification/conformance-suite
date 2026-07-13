@@ -76,7 +76,8 @@ public class CheckForUnexpectedParametersInServerMetadata_UnitTest extends Abstr
 			  "id_token_signing_alg_values_supported": ["ES256"],
 			  "mtls_endpoint_aliases": {},
 			  "tls_client_certificate_bound_access_tokens": true,
-			  "signed_metadata": "eyJ..."
+			  "signed_metadata": "eyJ...",
+			  "authorization_challenge_endpoint": "https://auth.example.com/authorize-challenge"
 			}
 			""";
 		putAuthServerMetadata(json);
