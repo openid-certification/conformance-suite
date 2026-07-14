@@ -94,9 +94,17 @@ metadata:
       RequestHeader set X-Ssl-Protocol "%{SSL_PROTOCOL}s"
       RequestHeader set X-Forwarded-Proto https
       RequestHeader set X-Forwarded-Port 443
+      # SSLVerifyClient must be at VirtualHost scope, NOT inside <If>: <If> is
+      # per-directory context, where mod_ssl defers the certificate request
+      # until after the request is read - that needs renegotiation (TLS <= 1.2)
+      # or Post-Handshake Authentication (TLS 1.3), which most clients do not
+      # enable, yielding 403 "Cannot perform Post-Handshake Authentication".
+      # At VirtualHost scope the certificate is requested during the initial
+      # handshake, which works on every TLS version. mod_ssl ignores these on
+      # the plain-HTTP vhost this snippet is also injected into.
+      SSLVerifyClient optional_no_ca
+      SSLVerifyDepth 5
       <If "%{HTTPS} == 'on'">
-        SSLVerifyClient optional_no_ca
-        SSLVerifyDepth 5
         RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
         RequestHeader set X-Ssl-Cert-Chain-0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
         RequestHeader set X-Ssl-Cert-Chain-1 "%{SSL_CLIENT_CERT_CHAIN_1}s"
