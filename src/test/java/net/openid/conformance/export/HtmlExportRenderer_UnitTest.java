@@ -892,6 +892,14 @@ public class HtmlExportRenderer_UnitTest
 				            "testId": "ZZ1234567890",
 				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
 				            "time": 1590130872125
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry4",
+				            "msg": "Failure entry without a condition name",
+				            "result": "FAILURE",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872130
 				        }
 				    ]
 				}
@@ -902,8 +910,9 @@ public class HtmlExportRenderer_UnitTest
 			(List)exportDoc.get("results"));
 		String html = renderer.createHtmlForTestLogs(exportInfo);
 		assertNotNull(html);
-		assertTrue(html.contains("<li>SetupCondition: Failure before any block</li>"));
-		assertTrue(html.contains("<li>Validate response: CheckCondition: Missing required field</li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry1\">SetupCondition: Failure before any block</a></li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry3\">Validate response: CheckCondition: Missing required field</a></li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry4\">Failure entry without a condition name</a></li>"));
 	}
 
 	@Test

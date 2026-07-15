@@ -33,7 +33,7 @@ public class TestHelper {
 	private List<Document> testResults;
 	private List<LogEntryHelper> logEntryHelpers = new ArrayList<>();
 
-	private List<String> failures = new ArrayList<>();
+	private List<Failure> failures = new ArrayList<>();
 	private int successCount;
 	private int failureCount;
 	private int warningCount;
@@ -73,7 +73,7 @@ public class TestHelper {
 				successCount++;
 			} else if("FAILURE".equals(resultStr)) {
 				failureCount++;
-				this.failures.add(failureDescription(blockName, resultDoc));
+				this.failures.add(new Failure(resultDoc.getString("_id"), failureDescription(blockName, resultDoc)));
 			} else if("WARNING".equals(resultStr)) {
 				warningCount++;
 			} else if("REVIEW".equals(resultStr)) {
@@ -95,6 +95,8 @@ public class TestHelper {
 	private static boolean isBlockStart(Document logEntry) {
 		return logEntry.containsKey("blockId") && logEntry.containsKey("startBlock") && logEntry.getBoolean("startBlock");
 	}
+
+	public record Failure(String entryId, String description) {}
 
 	public Date getExportedAt()
 	{
@@ -379,7 +381,7 @@ public class TestHelper {
 	public boolean hasAnyFailures() {
 		return (failureCount>0);
 	}
-	public List<String> getFailures() {
+	public List<Failure> getFailures() {
 		return failures;
 	}
 
