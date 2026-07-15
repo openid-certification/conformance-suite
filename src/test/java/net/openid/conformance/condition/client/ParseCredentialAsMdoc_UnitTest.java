@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -13,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
@@ -64,6 +67,7 @@ public class ParseCredentialAsMdoc_UnitTest {
 		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("credential");
+		assertDeviceSignedElementsEmpty();
 	}
 
 	@Test
@@ -79,6 +83,15 @@ public class ParseCredentialAsMdoc_UnitTest {
 		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("credential");
+		assertDeviceSignedElementsEmpty();
+	}
+
+	private void assertDeviceSignedElementsEmpty() {
+		JsonElement deviceSignedElements = env.getElementFromObject("mdoc", "device_signed_elements");
+		assertNotNull(deviceSignedElements, "mdoc.device_signed_elements should be set");
+		assertTrue(deviceSignedElements.isJsonObject(), "mdoc.device_signed_elements should be an object");
+		assertTrue(deviceSignedElements.getAsJsonObject().isEmpty(),
+			"fixture mdocs contain no device-signed elements so the object should be empty");
 	}
 
 	/*
