@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
@@ -9,6 +8,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
@@ -101,21 +101,23 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 		DeviceResponseParser.Document doc = docs.get(0);
 		JsonObject disclosedElements = new JsonObject();
 		for (String namespace : doc.getIssuerNamespaces()) {
-			JsonArray elementNames = new JsonArray();
-			for (String elementName : doc.getIssuerEntryNames(namespace)) {
-				elementNames.add(elementName);
-			}
-			disclosedElements.add(namespace, elementNames);
+			disclosedElements.add(namespace, OIDFJSON.convertListToJsonArray(doc.getIssuerEntryNames(namespace)));
+		}
+		JsonObject deviceSignedElements = new JsonObject();
+		for (String namespace : doc.getDeviceNamespaces()) {
+			deviceSignedElements.add(namespace, OIDFJSON.convertListToJsonArray(doc.getDeviceEntryNames(namespace)));
 		}
 		JsonObject mdoc = new JsonObject();
 		mdoc.addProperty("docType", doc.getDocType());
 		mdoc.add("disclosed_elements", disclosedElements);
+		mdoc.add("device_signed_elements", deviceSignedElements);
 		env.putObject("mdoc", mdoc);
 
 		logSuccess("Parsed mdoc & validated issuer-signed and device-signed data",
 			args("cbor_diagnostic", diagnostics,
 				"docType", doc.getDocType(),
-				"disclosed_elements", disclosedElements));
+				"disclosed_elements", disclosedElements,
+				"device_signed_elements", deviceSignedElements));
 
 		return env;
 	}
