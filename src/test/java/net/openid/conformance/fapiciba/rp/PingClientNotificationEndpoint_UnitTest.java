@@ -73,6 +73,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 	public void recordsPingBeforeCallingClientNotificationEndpoint() {
 		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
 			.thenAnswer(invocation -> {
+				assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isTrue();
 				assertThat(env.getBoolean("client_was_pinged")).isTrue();
 				return new ResponseEntity<>("{}", HttpStatus.NO_CONTENT);
 			});
@@ -80,6 +81,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 		cond.execute(env);
 
 		assertThat(env.getInteger("client_notification_endpoint_response_http_status")).isEqualTo(HttpStatus.NO_CONTENT.value());
+		assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isTrue();
 		assertThat(env.getBoolean("client_was_pinged")).isTrue();
 	}
 
