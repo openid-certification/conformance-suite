@@ -19,9 +19,9 @@ public class VerifyThatPollingIntervalIsRespected extends AbstractCondition {
 
 		Instant now = Instant.now();
 
-		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
-		if (clientWasPinged != null && clientWasPinged) {
-			logSuccess("Disregarding interval since client was pinged");
+		Boolean clientPingAttempted = env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED);
+		if (clientPingAttempted != null && clientPingAttempted) {
+			logSuccess("Disregarding interval since the ping notification attempt has started");
 			return env;
 		}
 

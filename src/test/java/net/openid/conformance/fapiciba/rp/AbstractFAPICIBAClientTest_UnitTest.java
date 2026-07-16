@@ -17,7 +17,7 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 	public void defersResourceEndpointCompletionUntilPingResponseIsValidated() {
 		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
 		test.setCibaMode(CIBAMode.PING);
-		test.getEnv().putBoolean("client_was_pinged", true);
+		test.getEnv().putBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED, true);
 
 		test.resourceEndpointCallComplete();
 
@@ -30,7 +30,7 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 	public void finishesResourceEndpointCompletionWhenPingResponseWasAlreadyValidated() {
 		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
 		test.setCibaMode(CIBAMode.PING);
-		test.getEnv().putBoolean("client_was_pinged", true);
+		test.getEnv().putBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED, true);
 		test.getEnv().putBoolean("client_ping_response_validated", true);
 
 		test.resourceEndpointCallComplete();
@@ -75,6 +75,13 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 	}
 
 	@Test
+	public void sendsPingNotificationByDefault() {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+
+		assertThat(test.pingNotificationShouldBeSent()).isTrue();
+	}
+
+	@Test
 	public void rejectsGenericAccountsEndpointWhenProfileDisablesIt() {
 		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
 		test.setProfileBehavior(new OpenBankingBrazilCibaRPProfileBehavior());
@@ -98,6 +105,10 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 		private void setProfileBehavior(FAPICIBARPProfileBehavior profileBehavior) {
 			this.profileBehavior = profileBehavior;
 			profileBehavior.setModule(this);
+		}
+
+		private boolean pingNotificationShouldBeSent() {
+			return shouldSendPingNotification();
 		}
 
 		@Override
