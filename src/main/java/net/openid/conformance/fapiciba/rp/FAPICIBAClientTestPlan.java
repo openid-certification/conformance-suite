@@ -18,6 +18,7 @@ import java.util.Map;
 	testModules = {
 		// Happy path test
 		FAPICIBAClientTest.class,
+		FAPICIBAClientBrazilDCRHappyPathTest.class,
 
 		// Happy refresh token test
 		FAPICIBAClientRefreshTokenTest.class,
