@@ -409,7 +409,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void startWaitingForTimeout() {
-		this.startingShutdown = true;
+		rejectFurtherClientInteractions();
 		getTestExecutionManager().runInBackground(() -> {
 			Thread.sleep(5 * 1000);
 			if (getStatus().equals(Status.WAITING)) {
@@ -419,6 +419,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			}
 			return "done";
 		});
+	}
+
+	protected void rejectFurtherClientInteractions() {
+		this.startingShutdown = true;
 	}
 
 	protected void configureClient() {
@@ -671,7 +675,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
 	}
 
-	private boolean clientPingResponseValidated() {
+	protected boolean clientPingResponseValidated() {
 		return Boolean.TRUE.equals(env.getBoolean(CLIENT_PING_RESPONSE_VALIDATED));
 	}
 
