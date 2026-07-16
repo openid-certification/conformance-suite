@@ -2,10 +2,14 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
+import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
+import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
+import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -52,6 +56,34 @@ public class FAPICIBAServerProfileBehavior {
 	}
 
 	public Class<? extends ConditionSequence> getAdditionalClientRegistrationSteps() {
+		return null;
+	}
+
+	public ConditionSequence getClientRegistrationCredentialSetupSteps(boolean secondClient) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
+				callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
+				callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
+			}
+		};
+	}
+
+	public ConditionSequence getClientRegistrationKeyPublicationSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
+			}
+		};
+	}
+
+	public boolean shouldUseInitialAccessTokenForRegistration() {
+		return true;
+	}
+
+	public ConditionSequence getClientRegistrationResponseValidationSteps() {
 		return null;
 	}
 

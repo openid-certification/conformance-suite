@@ -2,9 +2,13 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
+import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
+import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
+import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
+import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
@@ -16,8 +20,11 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjec
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
+import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaDynamicRegistrationResponse;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.OpenBankingBrazilDynamicClientRegistrationCredentialSetup;
+import net.openid.conformance.sequence.client.OpenBankingBrazilDynamicClientRegistrationKeyPublication;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.variant.ClientAuthType;
@@ -25,6 +32,39 @@ import net.openid.conformance.variant.ClientAuthType;
 import java.util.function.Supplier;
 
 public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerProfileBehavior {
+
+	@Override
+	public ConditionSequence getClientRegistrationCredentialSetupSteps(boolean secondClient) {
+		return new OpenBankingBrazilDynamicClientRegistrationCredentialSetup(secondClient);
+	}
+
+	@Override
+	public ConditionSequence getClientRegistrationKeyPublicationSteps() {
+		return new OpenBankingBrazilDynamicClientRegistrationKeyPublication();
+	}
+
+	@Override
+	public boolean shouldUseInitialAccessTokenForRegistration() {
+		return false;
+	}
+
+	@Override
+	public ConditionSequence getClientRegistrationResponseValidationSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class,
+					Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
+				callAndContinueOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
+					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.4", "BrazilOBDCR-7.1");
+				callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
+				callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
+					"BrazilOB-5.1.1-1");
+				callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class,
+					"FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
+			}
+		};
+	}
 
 	@Override
 	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
