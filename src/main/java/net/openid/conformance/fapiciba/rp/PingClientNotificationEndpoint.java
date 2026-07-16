@@ -29,7 +29,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject pingRequestObject = new JsonObject();
-		pingRequestObject.addProperty("auth_req_id", env.getString("auth_req_id"));
+		pingRequestObject.addProperty("auth_req_id", getAuthReqId(env));
 
 		RestTemplate restTemplate = null;
 		try {
@@ -38,7 +38,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(getBearerToken(env));
+			addAuthorizationHeader(headers, env);
 
 			HttpEntity<String> request = new HttpEntity<>(pingRequestObject.toString(), headers);
 
@@ -101,5 +101,13 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 	protected String getBearerToken(Environment env) {
 		return env.getString("client_notification_token");
+	}
+
+	protected String getAuthReqId(Environment env) {
+		return env.getString("auth_req_id");
+	}
+
+	protected void addAuthorizationHeader(HttpHeaders headers, Environment env) {
+		headers.setBearerAuth(getBearerToken(env));
 	}
 }
