@@ -23,6 +23,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
 public class PingClientNotificationEndpoint extends AbstractCondition {
+	public static final String CLIENT_PING_ATTEMPTED = "client_ping_attempted";
 
 	@Override
 	@PreEnvironment(required = "client", strings = { "auth_req_id", "client_notification_token" })
@@ -43,6 +44,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 			HttpEntity<String> request = new HttpEntity<>(pingRequestObject.toString(), headers);
 
 			String clientNotificationEndpoint = env.getString("client","backchannel_client_notification_endpoint");
+			env.putBoolean(CLIENT_PING_ATTEMPTED, true);
 			env.putBoolean("client_was_pinged", true);
 			int attempt = 1;
 

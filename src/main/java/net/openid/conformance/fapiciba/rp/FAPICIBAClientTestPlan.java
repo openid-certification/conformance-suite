@@ -62,7 +62,8 @@ import java.util.Map;
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class,
 		FAPICIBAClientPingWithoutBearerTokenTest.class,
 		FAPICIBAClientPingWithWrongAuthReqIdTest.class,
-		FAPICIBAClientPingDuplicateNotificationTest.class
+		FAPICIBAClientPingDuplicateNotificationTest.class,
+		FAPICIBAClientPingModePollFallbackTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {

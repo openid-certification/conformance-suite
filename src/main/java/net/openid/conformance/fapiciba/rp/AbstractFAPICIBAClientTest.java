@@ -250,6 +250,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
 	}
 
+	protected boolean shouldSendPingNotification() {
+		return true;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -664,15 +668,15 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected boolean shouldIssueFinalCibaTokenResponse(int tokenPollCount) {
 		if (CIBAMode.PING.equals(cibaMode)) {
-			return clientWasPinged();
+			return clientPingAttempted();
 		}
 
 		return clientHasPolledEnough(tokenPollCount);
 	}
 
-	private boolean clientWasPinged() {
-		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
-		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
+	private boolean clientPingAttempted() {
+		Boolean clientPingAttempted = env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED);
+		return CIBAMode.PING.equals(cibaMode) && clientPingAttempted != null && clientPingAttempted;
 	}
 
 	protected boolean clientPingResponseValidated() {
@@ -746,7 +750,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
-			spawnThreadForPing();
+			if (shouldSendPingNotification()) {
+				spawnThreadForPing();
+			}
 		}
 
 		JsonObject headerJson = env.getObject("backchannel_endpoint_response_headers");
@@ -942,7 +948,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected boolean shouldDeferResourceEndpointCompletionUntilPingResponseValidated() {
-		return clientWasPinged() && !clientPingResponseValidated();
+		return clientPingAttempted() && !clientPingResponseValidated();
 	}
 
 	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
