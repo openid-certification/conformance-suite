@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -79,6 +81,66 @@ public class PingClientNotificationEndpoint_UnitTest {
 
 		assertThat(env.getInteger("client_notification_endpoint_response_http_status")).isEqualTo(HttpStatus.NO_CONTENT.value());
 		assertThat(env.getBoolean("client_was_pinged")).isTrue();
+	}
+
+	@Test
+	public void omitsAuthorizationHeaderWhenSendingUnauthenticatedNotification() {
+		TestablePingClientNotificationEndpointWithoutBearerToken condition =
+			new TestablePingClientNotificationEndpointWithoutBearerToken(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenReturn(new ResponseEntity<>("", HttpStatus.NO_CONTENT));
+
+		condition.execute(env);
+
+		verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), argThat(request -> {
+			assertThat(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)).isFalse();
+			assertThat(request.getBody()).isEqualTo("{\"auth_req_id\":\"auth-req-id\"}");
+			return true;
+		}), eq(String.class));
+	}
+
+	@Test
+	public void sendsValidBearerTokenWithWrongAuthReqId() {
+		TestablePingClientNotificationEndpointWithWrongAuthReqId condition =
+			new TestablePingClientNotificationEndpointWithWrongAuthReqId(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenReturn(new ResponseEntity<>("", HttpStatus.NO_CONTENT));
+
+		condition.execute(env);
+
+		verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), argThat(request -> {
+			assertThat(request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+				.isEqualTo("Bearer notification-token");
+			assertThat(request.getBody()).isEqualTo("{\"auth_req_id\":\"auth-req-id-invalid\"}");
+			return true;
+		}), eq(String.class));
+	}
+
+	@Test
+	public void recordsExpectedClientErrorForInvalidNotification() {
+		TestablePingClientNotificationEndpointWithoutBearerToken condition =
+			new TestablePingClientNotificationEndpointWithoutBearerToken(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+		condition.execute(env);
+
+		assertThat(env.getInteger("client_notification_endpoint_response_http_status"))
+			.isEqualTo(HttpStatus.UNAUTHORIZED.value());
+	}
+
+	@Test
+	public void rejectsUnexpectedServerErrorForInvalidNotification() {
+		TestablePingClientNotificationEndpointWithoutBearerToken condition =
+			new TestablePingClientNotificationEndpointWithoutBearerToken(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+
+		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
 	}
 
 	@Test
@@ -174,6 +236,38 @@ public class PingClientNotificationEndpoint_UnitTest {
 		private final RestTemplate restTemplate;
 
 		private TestablePingClientNotificationEndpointWithRetriesForBrazil(RestTemplate restTemplate) {
+			this.restTemplate = restTemplate;
+		}
+
+		@Override
+		protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions)
+			throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException,
+			NoSuchAlgorithmException, KeyStoreException, IOException {
+			return restTemplate;
+		}
+	}
+
+	private static class TestablePingClientNotificationEndpointWithoutBearerToken
+		extends PingClientNotificationEndpointWithoutBearerToken {
+		private final RestTemplate restTemplate;
+
+		private TestablePingClientNotificationEndpointWithoutBearerToken(RestTemplate restTemplate) {
+			this.restTemplate = restTemplate;
+		}
+
+		@Override
+		protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions)
+			throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException,
+			NoSuchAlgorithmException, KeyStoreException, IOException {
+			return restTemplate;
+		}
+	}
+
+	private static class TestablePingClientNotificationEndpointWithWrongAuthReqId
+		extends PingClientNotificationEndpointWithWrongAuthReqId {
+		private final RestTemplate restTemplate;
+
+		private TestablePingClientNotificationEndpointWithWrongAuthReqId(RestTemplate restTemplate) {
 			this.restTemplate = restTemplate;
 		}
 

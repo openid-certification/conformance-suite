@@ -59,7 +59,10 @@ import java.util.Map;
 		FAPICIBAClientConnectIdInvalidWrongTrustFrameworkTest.class,
 
 		// Negative test for ping mode
-		FAPICIBAClientPingWithInvalidBearerTokenTest.class
+		FAPICIBAClientPingWithInvalidBearerTokenTest.class,
+		FAPICIBAClientPingWithoutBearerTokenTest.class,
+		FAPICIBAClientPingWithWrongAuthReqIdTest.class,
+		FAPICIBAClientPingDuplicateNotificationTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {
