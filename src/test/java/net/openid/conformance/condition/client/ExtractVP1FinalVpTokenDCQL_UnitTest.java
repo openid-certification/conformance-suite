@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ExtractVP1FinalVpTokenDCQL_UnitTest {
@@ -64,17 +65,23 @@ public class ExtractVP1FinalVpTokenDCQL_UnitTest {
 		});
 	}
 
+	/**
+	 * An empty vp_token object is not permitted — a wallet that cannot return any presentations
+	 * must send an authorization error response instead. The failure message must say the object
+	 * was empty, not (misleadingly) that it contained more than one credential.
+	 */
 	@Test
 	public void testEvaluate_noCreds() {
-		assertThrows(ConditionError.class, () -> {
-			String json = """
+		String json = """
 			{
 			}
 			""";
-			env.putObjectFromJsonString("authorization_endpoint_response", "vp_token", json);
+		env.putObjectFromJsonString("authorization_endpoint_response", "vp_token", json);
 
-			cond.execute(env);
-		});
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+
+		assertTrue(e.getMessage().contains("empty"),
+			"failure message should say the vp_token object is empty, was: " + e.getMessage());
 	}
 
 	@Test
