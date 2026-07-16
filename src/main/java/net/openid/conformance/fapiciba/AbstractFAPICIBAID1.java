@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.AddCibaUserCodeFalseToDynamicRegi
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddHintToAuthorizationEndpointRequest;
@@ -32,7 +31,6 @@ import net.openid.conformance.condition.client.AddIdTokenSigningAlgPS256ToDynami
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddJtiToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
-import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.AddScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
@@ -106,8 +104,6 @@ import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
-import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -254,16 +250,6 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "connectid_au", configurationFields = {
 	"client.hint_type",
 	"client.hint_value"
-})
-@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.jwks",
-	"mtls.cert",
-	"mtls.key",
-	"mtls.ca",
-	"client2.jwks",
-	"mtls2.cert",
-	"mtls2.key",
-	"mtls2.ca"
 })
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
@@ -474,7 +460,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			eventLog.startBlock("First client: registering client using dynamic client registration");
 			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
-			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			if (profileBehavior.shouldUseInitialAccessTokenForRegistration()) {
+				callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			} else {
+				env.removeNativeValue("initial_access_token");
+			}
 			registerClient();
 			break;
 		}
@@ -509,7 +499,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
 			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
-			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			if (profileBehavior.shouldUseInitialAccessTokenForRegistration()) {
+				callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			} else {
+				env.removeNativeValue("initial_access_token");
+			}
 			registerClient();
 			break;
 		}
@@ -538,12 +532,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 		env.putString("client_name", env.getString("dynamic_registration_request", "client_name"));
 
-		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
-		callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
-		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
+		call(profileBehavior.getClientRegistrationCredentialSetupSteps(isSecondClient()));
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
-		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
+		call(profileBehavior.getClientRegistrationKeyPublicationSteps());
 		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
 
 		switch (testType) {
@@ -573,8 +565,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
-
-		// TODO: we currently do little verification of the dynamic registration response
+		call(profileBehavior.getClientRegistrationResponseValidationSteps());
 
 		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
 		// copy it across.

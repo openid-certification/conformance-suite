@@ -254,6 +254,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		return true;
 	}
 
+	protected boolean shouldValidateConfiguredNotificationEndpoint() {
+		return true;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -290,7 +294,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		profileBehavior.exposeProfileSpecificEndpoints();
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
+		if (shouldValidateConfiguredNotificationEndpoint()) {
+			callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
+		}
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
