@@ -20,6 +20,12 @@ public class AddScopeToTokenEndpointRequest extends AbstractCondition {
 			throw error("scope missing/empty in client object");
 		}
 
+		String grantedScope = env.getString("token_endpoint_granted_scope");
+
+		if (!Strings.isNullOrEmpty(grantedScope)) {
+			scope = grantedScope;
+		}
+
 		tokenEndpointRequest.addProperty("scope", scope);
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);

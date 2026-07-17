@@ -108,7 +108,9 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
+
 		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop());
+
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-15").dontStopOnFailure());

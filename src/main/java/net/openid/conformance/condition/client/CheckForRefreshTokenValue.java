@@ -13,6 +13,12 @@ public class CheckForRefreshTokenValue extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "refresh_token"))) {
 			logSuccess("Found a refresh token",
 				args("refresh_token", env.getString("token_endpoint_response", "refresh_token")));
+
+
+			if (!Strings.isNullOrEmpty(env.getString("token_endpoint_response", "scope"))) {
+				env.putString("token_endpoint_granted_scope", env.getString("token_endpoint_response", "scope"));
+			}
+
 			return env;
 		} else {
 			throw error("Couldn't find refresh token");

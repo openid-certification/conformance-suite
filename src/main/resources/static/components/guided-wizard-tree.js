@@ -703,7 +703,7 @@ export const GUIDED_WIZARD_TREE = {
 								  sender_constrain: "mtls",
 								  fapi_response_mode: "plain_response",
 								  fapi_client_type: "oidc",
-								  grant_management: "enable"
+								  grant_management: "enabled"
 							  },
 						  },
 					  },
@@ -720,7 +720,7 @@ export const GUIDED_WIZARD_TREE = {
 								  sender_constrain: "mtls",
 								  fapi_response_mode: "plain_response",
 								  openid: "openid_connect",
-								  grant_management: "enable"
+								  grant_management: "enabled"
 							  },
 						  },
 					  },
