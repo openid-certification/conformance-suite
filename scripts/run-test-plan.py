@@ -1549,6 +1549,17 @@ async def main():
             if not ciba_op_test:
                 untested_test_modules.remove(m)
                 continue
+            ciba_ofbr_op_modules_incompatible_with_rp_ci = {
+                "fapi-ciba-id1-ensure-authorization-request-with-invalid-login-hint-fails-for-brazil",
+                "fapi-ciba-id1-ensure-authorization-request-with-url-binding-message-warns-for-brazil",
+                "fapi-ciba-id1-ensure-authorization-request-with-user-code-fails-for-brazil",
+                "fapi-ciba-id1-ensure-requested-expiry-is-ignored-for-brazil"
+            }
+            # These modules deliberately send requests that the OFBR RP test correctly rejects,
+            # so they cannot be exercised by pairing the OP and RP test suites in CI.
+            if m in ciba_ofbr_op_modules_incompatible_with_rp_ci:
+                untested_test_modules.remove(m)
+                continue
             ciba_connectid_op_modules_promoted_to_ci = {
                 "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-card-login-hint-succeeds",
                 "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-payment-authorization-details-succeeds",
