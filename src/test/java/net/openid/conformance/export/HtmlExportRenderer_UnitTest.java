@@ -884,11 +884,31 @@ public class HtmlExportRenderer_UnitTest
 				            "time": 1590130872120
 				        },
 				        {
+				            "_id": "ZZ1234567890-entry5",
+				            "msg": "Validate token response",
+				            "result": "INFO",
+				            "startBlock": true,
+				            "blockId": "def456",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872120
+				        },
+				        {
 				            "_id": "ZZ1234567890-entry3",
 				            "msg": "Missing required field",
 				            "result": "FAILURE",
 				            "src": "CheckCondition",
 				            "blockId": "abc123",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872125
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry6",
+				            "msg": "Invalid token response",
+				            "result": "FAILURE",
+				            "src": "CheckTokenCondition",
+				            "blockId": "def456",
 				            "testId": "ZZ1234567890",
 				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
 				            "time": 1590130872125
@@ -912,6 +932,7 @@ public class HtmlExportRenderer_UnitTest
 		assertNotNull(html);
 		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry1\">SetupCondition: Failure before any block</a></li>"));
 		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry3\">Validate response: CheckCondition: Missing required field</a></li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry6\">Validate token response: CheckTokenCondition: Invalid token response</a></li>"));
 		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry4\">Failure entry without a condition name</a></li>"));
 	}
 

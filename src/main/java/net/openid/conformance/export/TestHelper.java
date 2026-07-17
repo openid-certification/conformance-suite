@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -61,11 +62,13 @@ public class TestHelper {
 			throw new RuntimeException("Unexpected testInfo object type: " + export.getTestInfo().getClass());
 		}
 		this.testResults = (List<Document>)export.getResults();
-		String blockName = null;
+		Map<String, String> blockNames = new HashMap<>();
 		for(Document resultDoc : this.testResults) {
 			if(isBlockStart(resultDoc)) {
-				blockName = resultDoc.getString("msg");
+				blockNames.put(resultDoc.getString("blockId"), resultDoc.getString("msg"));
 			}
+		}
+		for(Document resultDoc : this.testResults) {
 			String resultStr = resultDoc.getString("result");
 			if("INFO".equals(resultStr)) {
 				infoCount++;
@@ -73,6 +76,7 @@ public class TestHelper {
 				successCount++;
 			} else if("FAILURE".equals(resultStr)) {
 				failureCount++;
+				String blockName = blockNames.get(resultDoc.getString("blockId"));
 				this.failures.add(new Failure(resultDoc.getString("_id"), failureDescription(blockName, resultDoc)));
 			} else if("WARNING".equals(resultStr)) {
 				warningCount++;
