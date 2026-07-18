@@ -3,8 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.GrantManagement;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Creates a grant, revokes it, then attempts to query it — expecting HTTP 404.
@@ -22,8 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
-public class FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails extends AbstractFAPI2SPFinalServerTestModule {
+public class FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails extends AbstractFAPI2SPFinalGrantManagementTestModule {
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {

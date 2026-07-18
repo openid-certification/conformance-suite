@@ -3,8 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.GrantManagement;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Fabricates an unknown grant_id and attempts to query it at the grant management endpoint.
@@ -23,8 +21,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
-public class FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails extends AbstractFAPI2SPFinalServerTestModule {
+public class FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails extends AbstractFAPI2SPFinalGrantManagementTestModule {
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {

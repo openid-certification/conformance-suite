@@ -3,8 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.GrantManagement;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-grant-management-happy-flow",
@@ -19,8 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
-public class FAPI2SPFinalGrantManagementHappyFlow extends AbstractFAPI2SPFinalServerTestModule {
+public class FAPI2SPFinalGrantManagementHappyFlow extends AbstractFAPI2SPFinalGrantManagementTestModule {
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {

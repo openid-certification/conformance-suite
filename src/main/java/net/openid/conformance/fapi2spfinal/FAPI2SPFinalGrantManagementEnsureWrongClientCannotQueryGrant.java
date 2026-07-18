@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -27,6 +28,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
+// Grant management does not apply to profiles without an authorization flow; this module cannot
+// extend AbstractFAPI2SPFinalGrantManagementTestModule because it needs the multiple-client base
+// class, so the profile exclusion is declared inline here. See AbstractFAPI2SPFinalGrantManagementTestModule.
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"fapi_client_credentials_grant", "vci", "vci_haip"})
 public class FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant extends AbstractFAPI2SPFinalMultipleClient {
 
 	private String client1GrantId;

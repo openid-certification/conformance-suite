@@ -4,8 +4,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.GrantManagement;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Tests grant_management_action=merge: first auth flow creates a grant, second reuses it with merge action.
@@ -24,8 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
-public class FAPI2SPFinalGrantManagementMerge extends AbstractFAPI2SPFinalServerTestModule {
+public class FAPI2SPFinalGrantManagementMerge extends AbstractFAPI2SPFinalGrantManagementTestModule {
 
 	private boolean secondAuthFlowDone = false;
 

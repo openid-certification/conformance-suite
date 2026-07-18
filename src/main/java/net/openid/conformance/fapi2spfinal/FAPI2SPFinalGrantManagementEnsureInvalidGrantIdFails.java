@@ -8,6 +8,7 @@ import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -29,6 +30,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
+// Grant management does not apply to profiles without an authorization flow; this module cannot
+// extend AbstractFAPI2SPFinalGrantManagementTestModule because it needs the PAR base class, so the
+// profile exclusion is declared inline here. See AbstractFAPI2SPFinalGrantManagementTestModule.
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"fapi_client_credentials_grant", "vci", "vci_haip"})
 public class FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
