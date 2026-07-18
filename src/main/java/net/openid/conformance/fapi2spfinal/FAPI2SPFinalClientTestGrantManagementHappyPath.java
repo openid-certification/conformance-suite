@@ -1,8 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.GrantManagement;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Happy path client test with Grant Management enabled.
@@ -24,8 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
-public class FAPI2SPFinalClientTestGrantManagementHappyPath extends AbstractFAPI2SPFinalClientTest {
+public class FAPI2SPFinalClientTestGrantManagementHappyPath extends AbstractFAPI2SPFinalClientTestGrantManagement {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

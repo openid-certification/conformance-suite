@@ -3,8 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.GrantManagement;
-import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -29,8 +27,7 @@ import org.springframework.http.ResponseEntity;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
-public class FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails extends AbstractFAPI2SPFinalClientTest {
+public class FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails extends AbstractFAPI2SPFinalClientTestGrantManagement {
 
 	@Override
 	protected ResponseEntity<Object> createPAREndpointCustomErrorResponse() {
