@@ -8,10 +8,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Template rendering helper for a test
@@ -30,7 +34,7 @@ public class TestHelper {
 	private List<Document> testResults;
 	private List<LogEntryHelper> logEntryHelpers = new ArrayList<>();
 
-	private List<String> failures = new ArrayList<>();
+	private List<Failure> failures = new ArrayList<>();
 	private int successCount;
 	private int failureCount;
 	private int warningCount;
@@ -58,6 +62,12 @@ public class TestHelper {
 			throw new RuntimeException("Unexpected testInfo object type: " + export.getTestInfo().getClass());
 		}
 		this.testResults = (List<Document>)export.getResults();
+		Map<String, String> blockNames = new HashMap<>();
+		for(Document resultDoc : this.testResults) {
+			if(isBlockStart(resultDoc)) {
+				blockNames.put(resultDoc.getString("blockId"), resultDoc.getString("msg"));
+			}
+		}
 		for(Document resultDoc : this.testResults) {
 			String resultStr = resultDoc.getString("result");
 			if("INFO".equals(resultStr)) {
@@ -66,7 +76,8 @@ public class TestHelper {
 				successCount++;
 			} else if("FAILURE".equals(resultStr)) {
 				failureCount++;
-				this.failures.add(resultDoc.getString("msg"));
+				String blockName = blockNames.get(resultDoc.getString("blockId"));
+				this.failures.add(new Failure(resultDoc.getString("_id"), failureDescription(blockName, resultDoc)));
 			} else if("WARNING".equals(resultStr)) {
 				warningCount++;
 			} else if("REVIEW".equals(resultStr)) {
@@ -74,6 +85,22 @@ public class TestHelper {
 			}
 		}
 	}
+
+	// mirrors the interactive UI's "block name: condition name: message" format
+	private static String failureDescription(String blockName, Document resultDoc) {
+		return Stream.of(
+				resultDoc.containsKey("blockId") ? blockName : null,
+				resultDoc.getString("src"),
+				resultDoc.getString("msg"))
+			.filter(Objects::nonNull)
+			.collect(Collectors.joining(": "));
+	}
+
+	private static boolean isBlockStart(Document logEntry) {
+		return logEntry.containsKey("blockId") && logEntry.containsKey("startBlock") && logEntry.getBoolean("startBlock");
+	}
+
+	public record Failure(String entryId, String description) {}
 
 	public Date getExportedAt()
 	{
@@ -358,7 +385,7 @@ public class TestHelper {
 	public boolean hasAnyFailures() {
 		return (failureCount>0);
 	}
-	public List<String> getFailures() {
+	public List<Failure> getFailures() {
 		return failures;
 	}
 

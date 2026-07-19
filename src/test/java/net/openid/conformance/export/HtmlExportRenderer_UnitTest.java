@@ -844,6 +844,99 @@ public class HtmlExportRenderer_UnitTest
 	}
 
 	@Test
+	public void createHtmlForTestLogsWithFailures()
+	{
+		String failingExport = """
+				{
+				    "testInfo": {
+				        "_id": "ZZ1234567890",
+				        "testId": "ZZ1234567890",
+				        "testName": "oidcc-client-test",
+				        "variant": {"client_auth_type": "tls_client_auth", "response_type": "code"},
+				        "started": "2020-05-22T07:01:12.101422Z",
+				        "description": "test",
+				        "alias": "openid-client",
+				        "owner": {"sub": "developer", "iss": "https://developer.com"},
+				        "planId": "eZuylVqrBocdR",
+				        "status": "FINISHED",
+				        "version": "4.0.0",
+				        "summary": "summary",
+				        "result": "FAILED"
+				    },
+				    "results": [
+				        {
+				            "_id": "ZZ1234567890-entry1",
+				            "msg": "Failure before any block",
+				            "result": "FAILURE",
+				            "src": "SetupCondition",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872116
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry2",
+				            "msg": "Validate response",
+				            "result": "INFO",
+				            "startBlock": true,
+				            "blockId": "abc123",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872120
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry5",
+				            "msg": "Validate token response",
+				            "result": "INFO",
+				            "startBlock": true,
+				            "blockId": "def456",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872120
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry3",
+				            "msg": "Missing required field",
+				            "result": "FAILURE",
+				            "src": "CheckCondition",
+				            "blockId": "abc123",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872125
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry6",
+				            "msg": "Invalid token response",
+				            "result": "FAILURE",
+				            "src": "CheckTokenCondition",
+				            "blockId": "def456",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872125
+				        },
+				        {
+				            "_id": "ZZ1234567890-entry4",
+				            "msg": "Failure entry without a condition name",
+				            "result": "FAILURE",
+				            "testId": "ZZ1234567890",
+				            "testOwner": {"sub": "developer", "iss": "https://developer.com"},
+				            "time": 1590130872130
+				        }
+				    ]
+				}
+				""";
+		Document exportDoc = Document.parse(failingExport);
+		TestExportInfo exportInfo = new TestExportInfo("https://localhost:8443",
+			Map.of("sub", "unit-test-sub", "iss", "unit-test-iss"), "unit-test 1.2.3", exportDoc,
+			(List)exportDoc.get("results"));
+		String html = renderer.createHtmlForTestLogs(exportInfo);
+		assertNotNull(html);
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry1\">SetupCondition: Failure before any block</a></li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry3\">Validate response: CheckCondition: Missing required field</a></li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry6\">Validate token response: CheckTokenCondition: Invalid token response</a></li>"));
+		assertTrue(html.contains("<li><a class=\"failure-link\" href=\"#ZZ1234567890-entry4\">Failure entry without a condition name</a></li>"));
+	}
+
+	@Test
 	public void createHtmlForLogEntry()
 	{
 		String logJson = """

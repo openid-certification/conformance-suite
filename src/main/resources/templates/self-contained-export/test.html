@@ -104,6 +104,17 @@
         .label-info{
             background-color: #5bc0de;
         }
+        /* text-with-an-underline look for failure summary links, matching the interactive UI */
+        a.failure-link, a.failure-link:visited{
+            color: inherit;
+            text-decoration-line: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+            text-decoration-color: #999;
+        }
+        a.failure-link:hover{
+            color: #0b5ed7;
+        }
         .testStatus-created {
             background-color: #fcd9f6;
             color: black;
@@ -472,7 +483,7 @@ Test Summary
             <td>
                 <b>Failure summary:</b>
                 <ul>
-                    <li th:each="failure : ${helper.getFailures()}" th:text="${failure}"></li>
+                    <li th:each="failure : ${helper.getFailures()}"><a class="failure-link" th:attr="href='#'+${failure.entryId()}" th:text="${failure.description()}"></a></li>
                 </ul>
             </td>
         </tr>
