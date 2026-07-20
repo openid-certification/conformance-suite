@@ -91,7 +91,9 @@ class VariantCondition_UnitTest {
 		// unsigned entry uses request_uri_unsigned and therefore excludes
 		// InvalidRequestObjectSignature and WrongExpectedOrigins (both @VariantNotApplicable
 		// for request_uri_unsigned). MismatchedClientIdInRequestObject is also excluded
-		// via @VariantNotApplicable for dc_api.jwt.
+		// via @VariantNotApplicable for dc_api.jwt. InvalidClientIdPrefix is excluded via
+		// @VariantNotApplicableWhen because unsigned DC API requests contain no client_id
+		// (OID4VP Appendix A.2).
 		Set<String> unsignedModules = byRequestMethod.get("request_uri_unsigned").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
@@ -102,7 +104,6 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-optional-credential-set",
 			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
-			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
 			"oid4vp-1final-wallet-negative-test-required-non-matching-credential",
 			"oid4vp-1final-wallet-ignores-unusable-encryption-key"
