@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.ClientManagementEndpointAndAccess
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
+import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
+import net.openid.conformance.condition.client.FAPIBrazilCibaCheckUserCodeParameterNotSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsCiba;
@@ -74,6 +76,10 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	public static class OpenBankingBrazilDiscoveryEndpointChecks extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
+			callAndContinueOnFailure(FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing.class,
+				Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.2");
+			callAndContinueOnFailure(FAPIBrazilCibaCheckUserCodeParameterNotSupported.class,
+				Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.4");
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "BrazilOB-5.2.2-3");
 			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6");
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsCiba.class, Condition.ConditionResult.FAILURE);

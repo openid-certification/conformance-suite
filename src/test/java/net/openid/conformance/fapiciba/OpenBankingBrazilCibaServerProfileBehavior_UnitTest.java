@@ -23,6 +23,8 @@ import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientSco
 import net.openid.conformance.condition.client.FAPIBrazilAddSoftwareStatementRedirectUrisToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
+import net.openid.conformance.condition.client.FAPIBrazilCibaCheckUserCodeParameterNotSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
@@ -78,6 +80,16 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	@Test
 	public void usesPingModeAsPrimaryMode() {
 		assertThat(behavior.shouldCallTokenEndpointBeforePingNotification()).isFalse();
+	}
+
+	@Test
+	public void validatesBrazilCibaDiscoveryRestrictions() {
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(
+			behavior.getProfileSpecificDiscoveryChecks().get());
+
+		assertThat(conditionClasses).contains(
+			FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing.class,
+			FAPIBrazilCibaCheckUserCodeParameterNotSupported.class);
 	}
 
 	@Test
