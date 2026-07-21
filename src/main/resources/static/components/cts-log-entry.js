@@ -451,6 +451,14 @@ const STYLE_TEXT = css`
     line-height: var(--lh-base);
     color: var(--fg);
     min-width: 0;
+    /* gitlab#1875: lift the condition name + message above the whole-row
+       .logDisclosure::after overlay (inset:0) — the same z-index:1 lift the
+       in-row links and the .moreInfo panel use. Without it the overlay
+       hit-tests every pointer-down over the body, so the text can never be
+       selected or copied. With the body lifted a drag starts a real text
+       selection; a plain click still toggles the row via _onBodyClick below. */
+    position: relative;
+    z-index: 1;
     /* R31: long URLs in log messages must not push content off-screen.
        Combined with min-width: 0 on the Grid 1fr track, overflow-wrap
        anywhere lets a single unbreakable URL wrap at any character when
@@ -817,6 +825,32 @@ class CtsLogEntry extends LitElement {
   }
 
   /**
+   * Whole-row disclosure keeps the entire row clickable, but the body text
+   * (condition source + message) is lifted above the click overlay (see the
+   * `.logBody` z-index lift) so it can be selected and copied (gitlab#1875).
+   * That lift means a click on the body no longer hit-tests to the disclosure
+   * button, so restore the expand-on-click here — while skipping the toggle
+   * when the click ends a text selection (the user was dragging to copy) or
+   * lands on a genuine interactive descendant (e.g. a future inline link).
+   * @param {MouseEvent} event - The click event dispatched on `.logBody`.
+   */
+  _onBodyClick(event) {
+    // Only expandable rows carry the disclosure; leave inert rows alone. The
+    // handler is bound on every row's body, so gate on the same is-expandable
+    // signal the overlay does rather than duplicating the hasMore computation.
+    const item = /** @type {Element} */ (event.currentTarget).closest(".logItem");
+    if (!item || !item.classList.contains("is-expandable")) return;
+    // A live, non-collapsed selection means this click terminated a
+    // drag-select — toggling now would collapse the text the user just
+    // highlighted to copy, which is exactly the bug this fixes.
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed && selection.toString().length > 0) return;
+    // Never hijack clicks on real interactive descendants.
+    if (event.target instanceof Element && event.target.closest("a, button")) return;
+    this._toggleMore();
+  }
+
+  /**
    * Stable per-entry id for the detail panel, linking the disclosure
    * button's `aria-controls` to the `.moreInfo` panel it reveals. Derived
    * from the entry's server `_id` so it is unique across rows on the page.
@@ -1092,7 +1126,7 @@ class CtsLogEntry extends LitElement {
           <div class="logSeverity"> ${this._renderSeverityBadges()} </div>
           <div class="logHttp">${this._renderHttpBadge()}</div>
         </div>
-        <div class="logBody">
+        <div class="logBody" @click=${this._onBodyClick}>
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
         </div>

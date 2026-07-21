@@ -837,6 +837,71 @@ export const DisclosurePanelStaysInteractive = {
   },
 };
 
+/**
+ * gitlab#1875: users could not select/copy the condition name or message
+ * because the whole-row `.logDisclosure::after` overlay (inset:0) sat on top
+ * of the body text and swallowed pointer-down. The fix lifts `.logBody` above
+ * the overlay (z-index:1, the same lift the in-row links and `.moreInfo` panel
+ * use) so a drag starts a real text selection, and adds a selection-aware
+ * click handler on the body so a plain click still toggles the row while a
+ * click that ends a text selection does not (the user is copying, so leave the
+ * selection intact).
+ */
+export const BodyTextSelectable = {
+  render: () => html`<cts-log-entry .entry=${ENTRY_WITH_MORE}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector("button.logDisclosure")).toBeTruthy();
+    });
+    const body = /** @type {HTMLElement} */ (canvasElement.querySelector(".logBody"));
+    const src = /** @type {HTMLElement} */ (canvasElement.querySelector(".logSrc"));
+    const disclosure = canvasElement.querySelector("button.logDisclosure");
+
+    await step("the body text is lifted above the disclosure overlay (R1875)", async () => {
+      // Same lift the in-row links (WholeRowDisclosure) and the disclosed panel
+      // (DisclosurePanelStaysInteractive) use: z-index:1 puts the body above the
+      // inset:0 ::after overlay, so pointer-down starts a text selection on the
+      // condition name / message instead of hit-testing to the button.
+      expect(getComputedStyle(body).zIndex).toBe("1");
+    });
+
+    await step("a plain click on the body text toggles the disclosure", async () => {
+      window.getSelection()?.removeAllRanges();
+      expect(disclosure.getAttribute("aria-expanded")).toBe("false");
+      src.click();
+      await waitFor(() => {
+        expect(disclosure.getAttribute("aria-expanded")).toBe("true");
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      });
+      // Collapse again so the next step starts from a known state.
+      src.click();
+      await waitFor(() => expect(disclosure.getAttribute("aria-expanded")).toBe("false"));
+    });
+
+    await step("clicking after selecting body text copies, does not toggle", async () => {
+      // Simulate the trailing click of a drag-select: a live, non-collapsed
+      // selection over the body, then a click. The handler must see the
+      // selection and skip the toggle so the highlighted text survives to be
+      // copied.
+      const range = document.createRange();
+      range.selectNodeContents(body);
+      const sel = window.getSelection();
+      if (!sel) throw new Error("window.getSelection() returned null");
+      sel.removeAllRanges();
+      sel.addRange(range);
+      expect(sel.isCollapsed).toBe(false);
+
+      body.click();
+      // Give any erroneous toggle a full microtask/Lit update cycle to surface.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(disclosure.getAttribute("aria-expanded")).toBe("false");
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+
+      sel.removeAllRanges();
+    });
+  },
+};
+
 export const BlockEntry = {
   render: () => html`<cts-log-entry .entry=${BLOCK_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
