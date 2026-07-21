@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -7,6 +8,7 @@ import java.util.Set;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
+import net.openid.conformance.authzen.condition.ApplySignedMetadataPrecedence;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyExpectedStatus;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiEndpointPathContainsV1;
@@ -17,17 +19,23 @@ import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestF
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataParamsNotEmpty;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseValid;
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
+import net.openid.conformance.authzen.condition.EnsurePDPJwksConfigured;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
+import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
+import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateAsymmetricKeyMaterial;
+import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateOrSymmetricKeyMaterial;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
@@ -48,7 +56,8 @@ import net.openid.conformance.variant.VariantSetup;
 	"pdp.access_evaluation_endpoint"
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "discovery", configurationFields = {
-	"pdp.policy_decision_point"
+	"pdp.policy_decision_point",
+	"pdp.jwks"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_id",
@@ -140,10 +149,26 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		PDPAuthType PdpAuthType = getVariant(PDPAuthType.class);
 		env.putString("client_auth_type", PdpAuthType.toString());
 
+		callAndStopOnFailure(ValidatePDPIdentifier.class, "AUTHZEN-9.1.1");
+
 		switch (getVariant(PDPServerMetadata.class)) {
 			case DISCOVERY:
 				callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
 				callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
+				// signed_metadata is OPTIONAL (§9.1.3): only when the PDP metadata carries
+				// it do we validate it, verify its signature against the configured PDP JWK
+				// Set, and apply its precedence over the plain JSON metadata so the
+				// downstream checks validate the signed (authoritative) values.
+				if(!Strings.isNullOrEmpty(env.getString("pdp", "signed_metadata"))) {
+					eventLog.startBlock("Verify signed metadata");
+					callAndStopOnFailure(EnsurePDPJwksConfigured.class, "RFC7517-4");
+					// Validate PDP keys and disallow asymmetrical private key, symmetrical key signatures are allowed by spec but will get warning
+					call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
+						.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2")));
+					call(sequence(ValidateDiscoverySignedMetadata.class));
+					callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
+					eventLog.endBlock();
+				}
 				break;
 			case STATIC:
 				callAndStopOnFailure(GetPDPStaticServerConfiguration.class);
@@ -154,6 +179,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			call(sequence(supportMTLSEndpointAliases));
 		}
 
+		eventLog.startBlock("Check PDP Server Configuration");
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
@@ -163,6 +189,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
 		env.unmapKey("server");
+		eventLog.endBlock();
 
 		// Set up the client configuration
 		configureClient();
@@ -255,6 +282,13 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 					if (i == 1) {
 						callAndStopOnFailure(capture);
 					} else {
+						// Idempotency is mandated by the AuthZEN certification profile
+						// (https://github.com/openid/authzen/issues/433 §2.6: "The PDP MUST
+						// return the same decision value each time"), not by the base
+						// Authorization API specification — which does not address
+						// idempotency. There is therefore deliberately no AUTHZEN- spec
+						// section tag on this assertion; the FAILURE severity reflects the
+						// cert-profile MUST.
 						callAndContinueOnFailure(match, ConditionResult.FAILURE);
 					}
 				} finally {

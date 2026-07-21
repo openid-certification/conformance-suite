@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-missing-evaluations-array-backward-compat",
 	displayName = "Authzen Evaluations API - Section 7.1: Backward compat with missing `evaluations` array",
-	summary = "Per Section 7.1, a request to the Evaluations endpoint that omits the `evaluations` array MAY receive either the single-decision form (`{decision: <bool>}`) or the one-element evaluations array form (`{evaluations: [{decision: <bool>}]}`). Sends a single-evaluation-shaped request (alice/read/record-1) and accepts either response shape.\n" + AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.payload,
+	summary = "Per Section 7.1, a request to the Evaluations endpoint that omits the `evaluations` array MUST be handled like the single Access Evaluation API: the PDP returns a single-decision response (`{decision: <bool>}`) and MUST NOT return an `evaluations` array. Sends a single-evaluation-shaped request (alice/read/record-1, fixture rule 1) and validates the response shape and that the decision is `true`.\n" + AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest extends AbstractAuthzenPDPEvaluationsBackwardCompatTest {
@@ -22,16 +22,5 @@ public class AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest exte
 	@Override
 	protected String getPayload() {
 		return payload;
-	}
-
-	@Override
-	protected String getExpectedEvaluationsResponseJson() {
-		return """
-			{
-				"evaluations": [
-					{ "decision": true }
-				]
-			}
-			""";
 	}
 }
