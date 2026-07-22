@@ -189,6 +189,29 @@ const REAL_HTTP_RESPONSE_ENTRY = {
   },
 };
 
+// gitlab#1906: a POST request in the real `/api/log` wire shape — HTTP fields
+// at the top level with `request_*` names, no `more` envelope. Exercises the
+// _formatCurl branches the nested-`more` CopyAsCurl fixture never reached: a
+// non-GET method, a body (`request_body`), and a multi-valued header (an
+// array, as mapToJsonObject serialises repeated headers) alongside a single
+// string header.
+const REAL_HTTP_POST_REQUEST_ENTRY = {
+  _id: "entry-real-http-post",
+  testId: "test-real",
+  testName: "oidcc-server",
+  src: "CallTokenEndpoint",
+  time: NOW - 5900,
+  msg: "HTTP request",
+  http: "request",
+  request_uri: "https://oidcc-provider:3000/token",
+  request_method: "POST",
+  request_headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Accept: ["application/json", "application/jwt"],
+  },
+  request_body: "grant_type=authorization_code&code=abc123",
+};
+
 // Envelope-only entry: every field on it is in the strip set, so the More
 // panel must remain hidden — no empty disclosure for an entry with nothing
 // to disclose.
@@ -700,6 +723,81 @@ export const CopyAsCurl = {
     expect(canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded")).toBe(
       "false",
     );
+  },
+};
+
+/**
+ * gitlab#1906 regression: Copy as cURL must work against the shape
+ * `/api/log/{testId}` actually serialises — HTTP fields at the entry top level
+ * with `request_*` names and no `more` envelope. The previous _formatCurl read
+ * `this.entry.more.{method,url,...}`, so on real backend entries (`entry.more`
+ * undefined) it produced an empty string and the button silently copied
+ * nothing while still flashing "copied". The CopyAsCurl story above only used
+ * the nested-`more` fixture, so it stayed green through the bug; this story
+ * pins the wire shape.
+ */
+export const CopyAsCurlFromApiShape = {
+  render: () => html`<cts-log-entry .entry=${REAL_HTTP_POST_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
+    });
+
+    await canvas.getByRole("button", { name: "Copy as cURL" }).click();
+    await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+    const curl = /** @type {string} */ (writeSpy.mock.calls[0][0]);
+
+    await step("a real curl command is copied, not an empty string (R1906)", async () => {
+      // The core regression: before the fix this was "". Assert the command
+      // carries the top-level request_* fields the wire shape provides.
+      expect(curl).not.toBe("");
+      expect(curl).toContain("curl -X POST");
+      expect(curl).toContain("'https://oidcc-provider:3000/token'");
+      expect(curl).toContain("-d 'grant_type=authorization_code&code=abc123'");
+    });
+
+    await step("headers render, multi-valued header joins into one -H", async () => {
+      expect(curl).toContain("-H 'Content-Type: application/x-www-form-urlencoded'");
+      // request_headers.Accept is an array (mapToJsonObject's multi-value form);
+      // it must collapse to a single comma-joined header, not "[object Object]"
+      // or a bracketed array literal.
+      expect(curl).toContain("-H 'Accept: application/json, application/jwt'");
+    });
+
+    await step("copying did not toggle the row's detail panel", async () => {
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      expect(
+        canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded"),
+      ).toBe("false");
+    });
+  },
+};
+
+/**
+ * gitlab#1906: the exact reported real-world case — a GET discovery request in
+ * the wire shape with an empty `request_body`. Confirms the URL, method, and a
+ * header are emitted and that an empty body adds no `-d` flag.
+ */
+export const CopyAsCurlEmptyBody = {
+  render: () => html`<cts-log-entry .entry=${REAL_HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
+    });
+
+    await canvas.getByRole("button", { name: "Copy as cURL" }).click();
+    await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+    const curl = /** @type {string} */ (writeSpy.mock.calls[0][0]);
+
+    expect(curl).toContain("curl -X GET");
+    expect(curl).toContain("'https://oidcc-provider:3000/.well-known/openid-configuration'");
+    expect(curl).toContain("-H 'Accept:");
+    // request_body is "" — no data flag should be emitted.
+    expect(curl).not.toContain("-d ");
   },
 };
 

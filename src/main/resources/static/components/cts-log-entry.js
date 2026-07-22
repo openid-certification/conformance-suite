@@ -860,21 +860,45 @@ class CtsLogEntry extends LitElement {
     return `more-panel-${this.entry?._id ?? ""}`;
   }
 
+  /**
+   * Build a `curl` command line from an HTTP request log entry (gitlab#1906).
+   *
+   * Reads the payload through `extractMoreFields` so it works against both
+   * entry shapes: live `/api/log` request entries expose the HTTP fields at
+   * the top level with `request_*` names (`request_method`, `request_uri`,
+   * `request_headers`, `request_body`; see LoggingRequestInterceptor), while
+   * story fixtures use a nested `more` object with short names
+   * (`method`/`url`/`headers`/`body`). The earlier version only read
+   * `this.entry.more.{method,url,...}`, so on real backend data — where
+   * `entry.more` is undefined — it returned an empty string and the button
+   * silently copied nothing.
+   * @returns {string} The assembled curl command, or `""` when the entry has
+   *   no request URL to build one from.
+   */
   _formatCurl() {
-    const { more } = this.entry;
-    if (!more) return "";
-    const method = (more.method || "GET").toUpperCase();
-    const url = more.url || "";
+    const more = extractMoreFields(this.entry);
+    const url = more.request_uri || more.url || "";
+    // No URL means this is not a copyable request entry — bail so the caller
+    // can skip the "copied" confirmation rather than flashing success over an
+    // empty clipboard.
+    if (!url) return "";
+    const method = String(more.request_method || more.method || "GET").toUpperCase();
+    const headers = more.request_headers || more.headers;
+    const body = more.request_body ?? more.body;
     const parts = [`curl -X ${method}`];
-    if (more.headers) {
-      for (const [key, value] of Object.entries(more.headers)) {
-        parts.push(`-H '${key}: ${value}'`);
+    if (headers && typeof headers === "object") {
+      for (const [key, value] of Object.entries(headers)) {
+        // mapToJsonObject serialises a multi-valued header as a JSON array and
+        // a single-valued one as a string; represent the array form as the
+        // standard comma-joined combined header value.
+        const rendered = Array.isArray(value) ? value.join(", ") : value;
+        parts.push(`-H '${key}: ${rendered}'`);
       }
     }
-    if (more.body && typeof more.body === "string") {
-      parts.push(`-d '${more.body}'`);
-    } else if (more.body && typeof more.body === "object") {
-      parts.push(`-d '${JSON.stringify(more.body)}'`);
+    if (body && typeof body === "string") {
+      parts.push(`-d '${body}'`);
+    } else if (body && typeof body === "object") {
+      parts.push(`-d '${JSON.stringify(body)}'`);
     }
     parts.push(`'${url}'`);
     return parts.join(" \\\n  ");
@@ -886,6 +910,9 @@ class CtsLogEntry extends LitElement {
     // null (per the DOM spec), so reading it later loses the trigger.
     const trigger = event && event.currentTarget;
     const curl = this._formatCurl();
+    // Nothing to copy (no request URL on the entry): don't touch the
+    // clipboard or flash a false "copied" confirmation.
+    if (!curl) return;
     try {
       await navigator.clipboard.writeText(curl);
     } catch (err) {
