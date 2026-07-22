@@ -207,6 +207,11 @@ import java.util.function.Supplier;
 	"client.client_id",
 	"client2.client_id"
 })
+@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"directory.discoveryUrl",
+	"directory.client_id",
+	"directory.apibase"
+})
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name",
 	"client2.client_name",
@@ -219,6 +224,9 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
+	"directory.discoveryUrl",
+	"directory.client_id",
+	"directory.apibase",
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
