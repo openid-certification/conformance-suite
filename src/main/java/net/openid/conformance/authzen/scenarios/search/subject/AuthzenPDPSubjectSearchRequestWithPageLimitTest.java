@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-request-with-page-limit",
-	displayName = "Authzen Subject Search API - Section 8.3: Request with page limit",
+	displayName = "AuthZEN Subject Search API - Section 8.3: Request with page limit",
 	summary = "Section 8.3 request with a `page.limit` field. The PDP MUST accept the request. With `limit: 1`, a conformant PDP returns each result on its own page, so the harness follows the pagination across pages and the accumulated results MUST include alice and bob.\n" + AuthzenPDPSubjectSearchRequestWithPageLimitTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPSubjectSearchRequestWithPageLimitTest extends AbstractAuthzenPDPPaginatedSubjectSearchTest {
 

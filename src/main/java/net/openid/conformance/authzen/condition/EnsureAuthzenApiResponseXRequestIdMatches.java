@@ -22,7 +22,7 @@ public class EnsureAuthzenApiResponseXRequestIdMatches extends AbstractCondition
 		String expected = env.getString("authzen_api_endpoint_request_x_request_id");
 		JsonObject headers = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "headers");
 		if (headers == null) {
-			throw error("No response headers captured for Authzen API response");
+			throw error("No response headers captured for AuthZEN API response");
 		}
 
 		String actual = findHeaderCaseInsensitive(headers, "X-Request-ID");

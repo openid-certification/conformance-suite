@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-accept-content-type-with-charset",
-	displayName = "Authzen Evaluations API - Section 10.1: Accept Content-Type with charset",
+	displayName = "AuthZEN Evaluations API - Section 10.1: Accept Content-Type with charset",
 	summary = "Section 10.1 and RFC 9110, `application/json; charset=utf-8` is a valid form of the JSON Content-Type. The PDP MUST accept it and return the expected response.",
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest extends AbstractAuthzenPDPEvaluationsTest {
 

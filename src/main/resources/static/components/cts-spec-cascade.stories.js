@@ -538,7 +538,7 @@ export const ProgrammaticSelection = {
  * Re-selecting a plan from a *different* spec family must drive the Test Type
  * control to the new plan, not reset it to the placeholder.
  *
- * Regression test for the schedule-test.html report (FAPI2 -> AuthZen): when
+ * Regression test for the schedule-test.html report (FAPI2 -> AuthZEN): when
  * `selectPlanByName` swaps the option set, lit-html commits the `<select>`'s
  * `.value` binding before its `<option>` children, so the new value is
  * applied while the *previous* family's options are still in the DOM — it

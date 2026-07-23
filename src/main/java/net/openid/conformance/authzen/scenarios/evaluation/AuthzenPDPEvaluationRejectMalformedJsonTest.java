@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-reject-malformed-json",
-	displayName = "Authzen Evaluation API - Section 10.1: Reject malformed JSON",
+	displayName = "AuthZEN Evaluation API - Section 10.1: Reject malformed JSON",
 	summary = "Section 10.1 — the PDP MUST return HTTP 400 when the request body is not valid JSON.",
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationRejectMalformedJsonTest extends AbstractAuthzenPDPEvaluationTest {
 

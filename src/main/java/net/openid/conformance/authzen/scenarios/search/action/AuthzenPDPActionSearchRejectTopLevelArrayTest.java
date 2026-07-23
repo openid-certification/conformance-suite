@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-top-level-array",
-	displayName = "Authzen Action Search API - Section 10.1.1: Reject top-level JSON array",
+	displayName = "AuthZEN Action Search API - Section 10.1.1: Reject top-level JSON array",
 	summary = "Per Section 10.1.1, the top-level element of the request body MUST be a JSON object. The PDP MUST return HTTP 400 when sent a top-level array.",
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchRejectTopLevelArrayTest extends AbstractAuthzenPDPActionSearchTest {
 

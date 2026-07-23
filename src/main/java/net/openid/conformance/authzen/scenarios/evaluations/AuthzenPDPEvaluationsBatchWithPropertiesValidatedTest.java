@@ -7,9 +7,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-batch-with-properties-validated",
-	displayName = "Authzen Evaluations API - Section 7.1: Batch with properties validated",
+	displayName = "AuthZEN Evaluations API - Section 7.1: Batch with properties validated",
 	summary = "Section 7.1 batch with properties validated (rules 2 and 5). Per-evaluation resource properties drive the per-item decision; expects [true, false].\n" + AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})
 public class AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest extends AbstractAuthzenPDPEvaluationsTest {

@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-get-method",
-	displayName = "Authzen Action Search API - Section 10.1: Reject GET method",
+	displayName = "AuthZEN Action Search API - Section 10.1: Reject GET method",
 	summary = "Per Section 10.1, action search requests are made via HTTPS POST. The PDP MUST reject a GET request to the action search endpoint with an HTTP 4xx error (typically 405 Method Not Allowed).",
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchRejectGetMethodTest extends AbstractAuthzenPDPActionSearchTest {
 

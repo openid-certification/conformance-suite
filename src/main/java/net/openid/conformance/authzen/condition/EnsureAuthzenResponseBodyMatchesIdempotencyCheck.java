@@ -14,7 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Asserts that the JSON body of the current Authzen API response equals the body
+ * Asserts that the JSON body of the current AuthZEN API response equals the body
  * captured by {@link CaptureAuthzenResponseBodyForIdempotencyCheck} on the first
  * iteration of an idempotency test loop.
  *

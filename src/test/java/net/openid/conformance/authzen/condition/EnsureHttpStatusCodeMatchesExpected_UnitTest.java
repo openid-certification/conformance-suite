@@ -34,7 +34,7 @@ class EnsureHttpStatusCodeMatchesExpected_UnitTest {
 	private void putAcceptable(int actualStatus, int... codes) {
 		JsonObject endpointResponse = new JsonObject();
 		endpointResponse.addProperty("status", actualStatus);
-		endpointResponse.addProperty("endpoint_name", "Authzen API");
+		endpointResponse.addProperty("endpoint_name", "AuthZEN API");
 		env.putObject("endpoint_response", endpointResponse);
 		JsonArray arr = new JsonArray();
 		for (int c : codes) {
@@ -73,7 +73,7 @@ class EnsureHttpStatusCodeMatchesExpected_UnitTest {
 	public void noExpectedCodesEnvKey_fails() {
 		JsonObject endpointResponse = new JsonObject();
 		endpointResponse.addProperty("status", 200);
-		endpointResponse.addProperty("endpoint_name", "Authzen API");
+		endpointResponse.addProperty("endpoint_name", "AuthZEN API");
 		env.putObject("endpoint_response", endpointResponse);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
@@ -82,7 +82,7 @@ class EnsureHttpStatusCodeMatchesExpected_UnitTest {
 	public void emptyCodesArray_fails() {
 		JsonObject endpointResponse = new JsonObject();
 		endpointResponse.addProperty("status", 200);
-		endpointResponse.addProperty("endpoint_name", "Authzen API");
+		endpointResponse.addProperty("endpoint_name", "AuthZEN API");
 		env.putObject("endpoint_response", endpointResponse);
 		JsonObject wrapper = new JsonObject();
 		wrapper.add("codes", new JsonArray());

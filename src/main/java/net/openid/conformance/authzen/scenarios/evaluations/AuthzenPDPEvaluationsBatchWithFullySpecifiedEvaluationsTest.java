@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-batch-with-fully-specified-evaluations",
-	displayName = "Authzen Evaluations API - Section 7.1: Batch with fully specified evaluations (no defaults)",
+	displayName = "AuthZEN Evaluations API - Section 7.1: Batch with fully specified evaluations (no defaults)",
 	summary = "Section 7.1 batch with fully specified evaluations. Each item supplies subject, action, and resource; expects [true, false].\n" + AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest extends AbstractAuthzenPDPEvaluationsTest {
 

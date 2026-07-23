@@ -15,7 +15,7 @@ public class ExtractAuthzenApiEndpointEvaluationsResponse extends AbstractCondit
 
 		JsonObject response = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
 		if (response == null) {
-			throw error("No json response from Authzen API endpoint");
+			throw error("No json response from AuthZEN API endpoint");
 		}
 		env.putObject("authzen_evaluations_endpoint_response", response);
 

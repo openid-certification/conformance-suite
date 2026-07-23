@@ -7,9 +7,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-fixture-request-permit-based-on-action-properties",
-	displayName = "Authzen Evaluation API - Section 6.1: Fixture request -- permit based on action properties",
+	displayName = "AuthZEN Evaluation API - Section 6.1: Fixture request -- permit based on action properties",
 	summary = "Section 6.1 fixture request -- permit based on action properties (rule 7). Soft delete is permitted; expects {\"decision\": true}.\n" + AuthzenPDPEvaluationFixtureRequestPermitBasedOnActionPropertiesTest.payload,
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})
 public class AuthzenPDPEvaluationFixtureRequestPermitBasedOnActionPropertiesTest extends AbstractAuthzenPDPEvaluationTest {

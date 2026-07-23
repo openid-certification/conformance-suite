@@ -5,7 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 /**
- * Calls the Authzen API endpoint and asserts the actual HTTP status is in
+ * Calls the AuthZEN API endpoint and asserts the actual HTTP status is in
  * the acceptable-codes set previously written to {@code authzen_expected_http_status_codes}.
  * Intended for negative tests where the spec only mandates "some 4xx" — the
  * test author overrides {@code getAcceptableHttpStatusCodes()} to declare

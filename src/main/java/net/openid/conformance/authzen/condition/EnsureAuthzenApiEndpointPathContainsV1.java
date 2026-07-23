@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Spec section 4 says Authzen API endpoint URIs SHOULD include the version
+ * Spec section 4 says AuthZEN API endpoint URIs SHOULD include the version
  * identifier `v1` in their path. This condition throws on absence so the
  * caller can surface it as a WARNING.
  */
@@ -21,7 +21,7 @@ public class EnsureAuthzenApiEndpointPathContainsV1 extends AbstractCondition {
 		try {
 			uri = new URI(endpoint);
 		} catch (URISyntaxException e) {
-			throw error("Authzen API endpoint URL is not a valid URI",
+			throw error("AuthZEN API endpoint URL is not a valid URI",
 				args("endpoint", endpoint, "error", e.getMessage()));
 		}
 		String path = uri.getPath();

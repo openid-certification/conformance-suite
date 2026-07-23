@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-empty-body",
-	displayName = "Authzen Action Search API - Section 10.1: Reject empty body",
+	displayName = "AuthZEN Action Search API - Section 10.1: Reject empty body",
 	summary = "Section 10.1 — the PDP MUST return HTTP 400 when the request body is empty.",
-	profile = "Authzen"
+	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchRejectEmptyBodyTest extends AbstractAuthzenPDPActionSearchTest {
 

@@ -15,7 +15,7 @@ public class ExtractAuthzenApiEndpointSearchResponse extends AbstractCondition {
 
 		JsonObject search = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
 		if (search == null) {
-			throw error("No json response from Authzen API endpoint");
+			throw error("No json response from AuthZEN API endpoint");
 		}
 
 		env.putObject("authzen_search_endpoint_response", search);
