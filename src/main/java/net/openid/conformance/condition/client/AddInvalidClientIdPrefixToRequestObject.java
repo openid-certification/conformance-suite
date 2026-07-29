@@ -10,7 +10,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * Replaces the client_id in the authorization request with one that uses an
  * invalid/unrecognized client_id prefix scheme.
  *
- * Per OID4VP, wallets must reject requests with unrecognized client_id_prefix values.
+ * Per OID4VP section 5.9.2, a wallet receiving an unrecognized prefix must either refuse the
+ * request or treat the full client_id as referring to a pre-registered client; the value used
+ * here is not pre-registered with any wallet, so a conformant wallet cannot complete the flow
+ * in either case.
  */
 public class AddInvalidClientIdPrefixToRequestObject extends AbstractCondition {
 
