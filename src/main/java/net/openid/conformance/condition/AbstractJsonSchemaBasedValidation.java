@@ -46,7 +46,21 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 	}
 
 	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {
-		return new JsonSchemaValidation(input.getSchemaResource());
+		JsonSchemaValidation validation = new JsonSchemaValidation(input.getSchemaResource());
+		validation.setIgnoreUnknownPropertyStrictness(ignoreUnknownPropertyStrictness());
+		return validation;
+	}
+
+	/**
+	 * Structural validators (called with FAILURE) that have a paired unknown-property condition
+	 * (called with WARNING) can override this to return true so that unknown properties never fail
+	 * them, not even indirectly via composite oneOf/anyOf errors; see
+	 * {@link JsonSchemaValidation#setIgnoreUnknownPropertyStrictness}. Before enabling this for a
+	 * schema, check it has no oneOf branches discriminated only by {@code additionalProperties:
+	 * false} - removing the keyword would let such a payload match more than one branch.
+	 */
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return false;
 	}
 
 }

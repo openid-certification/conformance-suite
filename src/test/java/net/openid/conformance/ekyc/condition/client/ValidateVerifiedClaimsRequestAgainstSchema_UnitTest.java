@@ -347,91 +347,23 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_fail_unknown_property_in_document_details() {
-		String request = """
-			{
-			  "claims": {
-			    "id_token": {
-			      "verified_claims": {
-			        "claims": {"given_name": null},
-			        "verification": {
-			          "trust_framework": {"value": "de_aml"},
-			          "evidence": [{
-			            "type": {"value": "document"},
-			            "document_details": {
-			              "type": null,
-			              "personal_number": null
-			            }
-			          }]
-			        }
-			      }
-			    }
-			  }
-			}
-			""";
-
-		assertThrows(ConditionError.class, () -> runTest(request));
+	public void testEvaluate_noError_unknown_property_in_document_details() {
+		// Unknown properties are reported (as a warning) by
+		// CheckForUnexpectedPropertiesInVerifiedClaimsRequest, not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_DOCUMENT_DETAILS));
 	}
 
 	@Test
-	public void testEvaluate_fail_unknown_property_in_check_details() {
-		String request = """
-			{
-			  "claims": {
-			    "id_token": {
-			      "verified_claims": {
-			        "claims": {"given_name": null},
-			        "verification": {
-			          "trust_framework": {"value": "de_aml"},
-			          "evidence": [{
-			            "type": {"value": "document"},
-			            "check_details": [{
-			              "check_method": null,
-			              "unknown_field": null
-			            }]
-			          }]
-			        }
-			      }
-			    }
-			  }
-			}
-			""";
-
-		assertThrows(ConditionError.class, () -> runTest(request));
+	public void testEvaluate_noError_unknown_property_in_check_details() {
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_CHECK_DETAILS));
 	}
 
 	@Test
-	public void testEvaluate_vouch_rejects_wrong_branch_fields_at_evidence_level() {
-		// The evidence object uses allOf with if/then for conditional properties,
-		// so unevaluatedProperties: false is used to reject fields from non-matching branches.
-		String request = """
-			{
-			  "claims": {
-			    "id_token": {
-			      "verified_claims": {
-			        "claims": {
-			          "given_name": null
-			        },
-			        "verification": {
-			          "trust_framework": {
-			            "value": "de_aml"
-			          },
-			          "evidence": [
-			            {
-			              "type": {
-			                "value": "vouch"
-			              },
-			              "document_details": "ignored-for-vouch"
-			            }
-			          ]
-			        }
-			      }
-			    }
-			  }
-			}
-			""";
-
-		assertThrows(ConditionError.class, () -> runTest(request));
+	public void testEvaluate_noError_vouch_can_contain_document_details_without_document_branch_validation() {
+		// Fields from a non-matching evidence branch are unevaluated properties; they are
+		// reported (as a warning) by CheckForUnexpectedPropertiesInVerifiedClaimsRequest,
+		// not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.REQUEST_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE));
 	}
 
 	@Test

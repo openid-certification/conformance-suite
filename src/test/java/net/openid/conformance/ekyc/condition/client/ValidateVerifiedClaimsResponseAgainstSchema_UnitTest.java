@@ -34,10 +34,8 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 
 	}
 
-	@Test
-	public void testEvaluate_validateVerifiedClaimsSimple() {
+	private void runTest(String claimsJson) {
 		JsonObject verifiedClaimsResponse = new JsonObject();
-		String claimsJson = "{\"claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
 		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 		verifiedClaimsResponse.add("id_token", parsedClaims);
 		env.putObject("verified_claims_response", verifiedClaimsResponse);
@@ -45,143 +43,34 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 	}
 
 	@Test
+	public void testEvaluate_validateVerifiedClaimsSimple() {
+		runTest("{\"claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}");
+	}
+
+	@Test
 	public void testEvaluate_validateVerifiedClaimsError() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-			});
+		assertThrows(ConditionError.class, () ->
+			runTest("{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}"));
 	}
 
 	@Test
-	public void testEvaluate_rejectUnknownPropertyInDocumentDetails() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = """
-				{
-				  "claims": {"given_name": "Paula"},
-				  "verification": {
-				    "trust_framework": "de_aml",
-				    "evidence": [{
-				      "type": "document",
-				      "document_details": {
-				        "type": "idcard",
-				        "personal_number": "should-not-be-here"
-				      }
-				    }]
-				  }
-				}
-				""";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-		});
+	public void testEvaluate_unknownPropertyInDocumentDetailsIsNotAStructuralFailure() {
+		// Unknown properties are reported (as a warning) by
+		// CheckForUnexpectedPropertiesInVerifiedClaimsResponse, not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_UNKNOWN_PROPERTY_IN_DOCUMENT_DETAILS));
 	}
 
 	@Test
-	public void testEvaluate_rejectUnknownPropertyInVoucher() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = """
-				{
-				  "claims": {"given_name": "Paula"},
-				  "verification": {
-				    "trust_framework": "de_aml",
-				    "evidence": [{
-				      "type": "vouch",
-				      "attestation": {
-				        "type": "written_attestation",
-				        "voucher": {
-				          "given_name": "should-use-name-not-given_name"
-				        }
-				      }
-				    }]
-				  }
-				}
-				""";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-		});
+	public void testEvaluate_unknownPropertyInVoucherIsNotAStructuralFailure() {
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_UNKNOWN_PROPERTY_IN_VOUCHER));
 	}
 
 	@Test
-	public void testEvaluate_rejectUnknownPropertyInAggregatedClaims() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = """
-				{
-				  "_claim_names": {"verified_claims": "src1"},
-				  "_claim_sources": {
-				    "src1": {
-				      "JWT": "eyJ...",
-				      "unknown_field": "should-not-be-here"
-				    }
-				  }
-				}
-				""";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-		});
-	}
-
-	@Test
-	public void testEvaluate_rejectUnknownPropertyInDistributedClaims() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = """
-				{
-				  "_claim_names": {"verified_claims": "src1"},
-				  "_claim_sources": {
-				    "src1": {
-				      "endpoint": "https://example.com/claims",
-				      "access_token": "token123",
-				      "unknown_field": "should-not-be-here"
-				    }
-				  }
-				}
-				""";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-		});
-	}
-
-	@Test
-	public void testEvaluate_vouchRejectsWrongBranchFieldsAtEvidenceLevel() {
-		// The evidence object uses allOf with if/then for conditional properties,
-		// so unevaluatedProperties: false is used to reject fields from non-matching branches.
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = """
-				{
-				  "claims": {
-				    "given_name": "Paula"
-				  },
-				  "verification": {
-				    "trust_framework": "de_aml",
-				    "evidence": [
-				      {
-				        "type": "vouch",
-				        "document_details": "ignored-for-vouch"
-				      }
-				    ]
-				  }
-				}
-				""";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-		});
+	public void testEvaluate_validateVerifiedClaimsVouchCanContainDocumentDetailsWithoutDocumentBranchValidation() {
+		// Fields from a non-matching evidence branch are unevaluated properties; they are
+		// reported (as a warning) by CheckForUnexpectedPropertiesInVerifiedClaimsResponse,
+		// not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE));
 	}
 
 	@Test
@@ -206,8 +95,7 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 	}
 
 	private void executeWithAttachmentContentType(String contentType) {
-		JsonObject verifiedClaimsResponse = new JsonObject();
-		String claimsJson = """
+		runTest("""
 			{
 			  "claims": {"given_name": "Paula"},
 			  "verification": {
@@ -221,10 +109,6 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 			    }]
 			  }
 			}
-			""".formatted(contentType);
-		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-		verifiedClaimsResponse.add("id_token", parsedClaims);
-		env.putObject("verified_claims_response", verifiedClaimsResponse);
-		cond.execute(env);
+			""".formatted(contentType));
 	}
 }
