@@ -12,7 +12,9 @@ import net.openid.conformance.variant.VariantNotApplicableWhen;
 	displayName = "OID4VP-1.0-FINAL: Invalid client_id prefix scheme",
 	summary = """
 		Sends a request with an unrecognized client_id prefix scheme (e.g. 'invalid_scheme:'). \
-		The wallet must reject requests with unknown client_id prefix values. \
+		Per OID4VP section 5.9.2 the wallet must either refuse the request or fall back to treating \
+		the full client_id as referring to a pre-registered client, which is not known to the wallet, \
+		so either way the wallet cannot complete the flow. \
 		The wallet should display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
