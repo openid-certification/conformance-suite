@@ -46,7 +46,7 @@
                                 "type": "string",
                                 "pattern": "^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+$",
                                 "not": {
-                                    "pattern": "^(multipart|message)/"
+                                    "pattern": "^([Mm][Uu][Ll][Tt][Ii][Pp][Aa][Rr][Tt]|[Mm][Ee][Ss][Ss][Aa][Gg][Ee])/"
                                 }
                             },
                             "content": {
