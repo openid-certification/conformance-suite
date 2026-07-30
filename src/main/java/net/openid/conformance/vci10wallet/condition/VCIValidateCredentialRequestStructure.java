@@ -46,14 +46,20 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 		return super.evaluate(env);
 	}
 
+	/**
+	 * Unknown properties are surfaced (as a warning) by
+	 * {@link CheckForUnexpectedParametersInCredentialRequest}, not by this condition.
+	 */
+	@Override
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return true;
+	}
+
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
-		if (!structuralErrors.isValid()) {
-			String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
-			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
-			super.onValidationFailure(env, structuralErrors, input);
-		}
+		String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
+		VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+		super.onValidationFailure(env, validationResult, input);
 	}
 
 	@Override

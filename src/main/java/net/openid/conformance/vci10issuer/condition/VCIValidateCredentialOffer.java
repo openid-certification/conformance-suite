@@ -8,7 +8,6 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.validation.JsonSchemaValidationInput;
-import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 public class VCIValidateCredentialOffer extends AbstractJsonSchemaBasedValidation {
 
@@ -20,12 +19,13 @@ public class VCIValidateCredentialOffer extends AbstractJsonSchemaBasedValidatio
 		return new JsonSchemaValidationInput(metadataName, schemaResource, metadata);
 	}
 
+	/**
+	 * Unknown properties are surfaced (as a warning) by
+	 * {@link CheckForUnexpectedParametersInCredentialOffer}, not by this condition.
+	 */
 	@Override
-	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
-		if (!structuralErrors.isValid()) {
-			super.onValidationFailure(env, structuralErrors, input);
-		}
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return true;
 	}
 
 	@Override
