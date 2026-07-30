@@ -5,7 +5,6 @@ import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidationInput;
-import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 public class ValidateVerifierInfo extends AbstractJsonSchemaBasedValidation {
 
@@ -22,11 +21,12 @@ public class ValidateVerifierInfo extends AbstractJsonSchemaBasedValidation {
 		return super.evaluate(env);
 	}
 
+	/**
+	 * Unknown properties are surfaced (as a warning) by
+	 * {@link CheckForUnexpectedParametersInVerifierInfo}, not by this condition.
+	 */
 	@Override
-	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
-		if (!structuralErrors.isValid()) {
-			super.onValidationFailure(env, structuralErrors, input);
-		}
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return true;
 	}
 }
