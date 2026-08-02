@@ -32,6 +32,9 @@ public class ExtractVerifiedClaimsFromIdToken extends AbstractCondition {
 			envHolder.add("id_token", verifiedClaimsElement);
 			return env;
 		}
+		// Aggregated/distributed delivery of verified_claims (OIDC IDA section 6.1, via
+		// _claim_names/_claim_sources) is not currently supported - an OP using it for the
+		// requested claims fails here even though that delivery mode is spec-permitted.
 		throw error("id_token does not contain verified_claims");
 	}
 
