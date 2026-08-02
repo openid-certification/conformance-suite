@@ -39,6 +39,8 @@ public class ExtractVerifiedClaimsFromUserinfoResponse extends AbstractCondition
 			logSuccess("Extracted verified claims from UserInfo", args("userinfo verified_claims", verifiedClaimsElement));
 			return env;
 		}
+		// Aggregated/distributed delivery of verified_claims (OIDC IDA section 6.1, via
+		// _claim_names/_claim_sources) is not currently supported and would end up here.
 		log("userinfo response does not contain verified_claims");
 		return env;
 	}
