@@ -7,6 +7,11 @@ workflow:
 variables:
   LM_JAVA_VERSION: 17
   PLAYWRIGHT_IMAGE_TAG: "v1.60.0-noble"
+  # Pinned buildx helpers, mirrored into the project registry by ensure-buildx-images
+  BINFMT_IMAGE_TAG: "qemu-v10.2.3"
+  BINFMT_IMAGE_DIGEST: "sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0"
+  BUILDKIT_IMAGE_TAG: "v0.32.0"
+  BUILDKIT_IMAGE_DIGEST: "sha256:1f8167fcb0eca5b7126353d35299386945cbb8949cc516c592a49f80cfce4fa2"
 
 stages:
   - build
@@ -67,7 +72,7 @@ upload:
 
 publish-image:
   stage: upload
-  needs: ["build"]
+  needs: ["build", "ensure-buildx-images"]
   image: docker:25.0.5-git
   services:
     - docker:dind
@@ -84,19 +89,21 @@ publish-image:
       when: on_success
   script:
     - setup_docker
-    - docker build -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
+    # qemu binfmt for the non-native halves of the multi-arch build (emulation cost is negligible: the image only copies the jar);
+    # helper images referenced by digest so a mutated registry tag cannot be substituted
+    - docker run --privileged --rm "$CI_REGISTRY_IMAGE/binfmt@$BINFMT_IMAGE_DIGEST" --install amd64,arm64
+    - docker buildx create --use --driver-opt "image=$CI_REGISTRY_IMAGE/buildkit@$BUILDKIT_IMAGE_DIGEST"
+    - docker buildx build --platform linux/amd64,linux/arm64 --provenance=false -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" --push .
     # When publishing from a git tag, also update :latest
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
-        docker tag "$CI_REGISTRY_IMAGE:$IMAGE_TAG" "$CI_REGISTRY_IMAGE:latest"
-        docker push "$CI_REGISTRY_IMAGE:latest"
+        docker buildx imagetools create -t "$CI_REGISTRY_IMAGE:latest" "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
       fi
 
 publish-nginx-image:
   stage: upload
-  needs: []
+  needs: ["ensure-buildx-images"]
   image: docker:25.0.5-git
   services:
     - docker:dind
@@ -112,13 +119,13 @@ publish-nginx-image:
       when: on_success
   script:
     - setup_docker
-    - docker build -t "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG" nginx/
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - docker push "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG"
+    - docker run --privileged --rm "$CI_REGISTRY_IMAGE/binfmt@$BINFMT_IMAGE_DIGEST" --install amd64,arm64
+    - docker buildx create --use --driver-opt "image=$CI_REGISTRY_IMAGE/buildkit@$BUILDKIT_IMAGE_DIGEST"
+    - docker buildx build --platform linux/amd64,linux/arm64 --provenance=false -t "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG" --push nginx/
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
-        docker tag "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG" "$CI_REGISTRY_IMAGE/nginx:latest"
-        docker push "$CI_REGISTRY_IMAGE/nginx:latest"
+        docker buildx imagetools create -t "$CI_REGISTRY_IMAGE/nginx:latest" "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG"
       fi
 
 test:
@@ -186,6 +193,33 @@ ensure-playwright-image:
         skopeo copy "docker://$SRC" --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" "docker://$DEST"
       fi
   <<: *frontend-rules
+
+# Mirror the pinned buildx helper images (qemu binfmt + buildkit) into the project
+# registry so the publish jobs never run a floating upstream image with --privileged.
+ensure-buildx-images:
+  stage: build
+  interruptible: true
+  needs: []
+  image:
+    name: quay.io/skopeo/stable:latest
+    entrypoint: [""]
+  script:
+    - |
+      mirror() {
+        # skip only when the destination tag still carries the pinned digest (skopeo copy preserves it)
+        have=$(skopeo inspect --format '{{.Digest}}' --creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" "docker://$3" 2>/dev/null || true)
+        if [ "$have" = "$2" ]; then
+          echo "Already mirrored: $3 — skipping upstream pull"
+        else
+          echo "Mirroring $1@$2 -> $3"
+          skopeo copy --multi-arch all "docker://$1@$2" --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" "docker://$3"
+        fi
+      }
+    - mirror docker.io/tonistiigi/binfmt "$BINFMT_IMAGE_DIGEST" "$CI_REGISTRY_IMAGE/binfmt:$BINFMT_IMAGE_TAG"
+    - mirror docker.io/moby/buildkit "$BUILDKIT_IMAGE_DIGEST" "$CI_REGISTRY_IMAGE/buildkit:$BUILDKIT_IMAGE_TAG"
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
 
 frontend_e2e_test:
   stage: test
