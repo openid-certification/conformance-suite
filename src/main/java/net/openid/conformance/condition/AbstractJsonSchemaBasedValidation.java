@@ -1,6 +1,7 @@
 package net.openid.conformance.condition;
 
 import com.google.gson.JsonObject;
+import com.networknt.schema.SchemaRegistry;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidation;
 import net.openid.conformance.util.validation.JsonSchemaValidationException;
@@ -8,6 +9,7 @@ import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public abstract class AbstractJsonSchemaBasedValidation extends AbstractCondition {
 
@@ -48,7 +50,16 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {
 		JsonSchemaValidation validation = new JsonSchemaValidation(input.getSchemaResource());
 		validation.setIgnoreUnknownPropertyStrictness(ignoreUnknownPropertyStrictness());
+		validation.setSchemaBuilderCustomizer(schemaBuilderCustomizer());
 		return validation;
+	}
+
+	/**
+	 * Schema registry customizer applied when the schema is built (e.g. to map cross-document
+	 * $refs onto classpath resources); null (the default) for none.
+	 */
+	protected Consumer<SchemaRegistry.Builder> schemaBuilderCustomizer() {
+		return null;
 	}
 
 	/**

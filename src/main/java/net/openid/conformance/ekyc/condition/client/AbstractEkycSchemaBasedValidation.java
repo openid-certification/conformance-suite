@@ -5,8 +5,6 @@ import com.google.gson.JsonObject;
 import com.networknt.schema.SchemaRegistry;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
-import net.openid.conformance.util.validation.JsonSchemaValidation;
-import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 
 import java.util.function.Consumer;
 
@@ -22,10 +20,8 @@ public abstract class AbstractEkycSchemaBasedValidation extends AbstractJsonSche
 	static final String EKYC_VALIDATION_INPUT_KEY = "ekyc_schema_validation_input";
 
 	@Override
-	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {
-		JsonSchemaValidation validation = super.createJsonSchemaValidation(input);
-		validation.setSchemaBuilderCustomizer(ekycSchemaMapperCustomizer());
-		return validation;
+	protected Consumer<SchemaRegistry.Builder> schemaBuilderCustomizer() {
+		return ekycSchemaMapperCustomizer();
 	}
 
 	static Consumer<SchemaRegistry.Builder> ekycSchemaMapperCustomizer() {
