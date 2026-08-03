@@ -32,12 +32,12 @@ public class ValidateRequestObjectJti extends AbstractCondition {
 
 		// Reuse is detected across requests/runs via a process-wide store (each module finishes after one
 		// request, so a per-module Environment can never see two request objects). Scoped to the logged-in
-		// suite user (owner_id, set unconditionally by the test module's configure() via
+		// suite user (owner_id, set unconditionally by AbstractTestModule.setProperties() via
 		// exposeOwnerIdToEnvironment()), so its absence is a test suite bug.
 		String scope = env.getString("owner_id");
 		if (scope == null || scope.isBlank()) {
-			throw error("owner_id is missing from the environment - this is a test suite bug; the test "
-				+ "module must surface it via exposeOwnerIdToEnvironment() in configure()");
+			throw error("owner_id is missing from the environment - this is a test suite bug; "
+				+ "AbstractTestModule.setProperties() should surface it via exposeOwnerIdToEnvironment()");
 		}
 
 		RecentValueHistory.SeenValue reused = RecentValueHistory.checkAndRecord(NAMESPACE, scope, List.of(jti), getTestId());

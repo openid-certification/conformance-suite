@@ -36,6 +36,9 @@ public class InvalidateSdJwtKbSignature_UnitTest {
 
 	@BeforeEach
 	public void setUp() {
+		// PreGeneratedJwks requires owner_sub / owner_iss.
+		env.putString("owner_sub", "unit-test-sub");
+		env.putString("owner_iss", "unit-test-iss");
 		cond = new InvalidateSdJwtKbSignature();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}

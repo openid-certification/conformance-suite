@@ -57,6 +57,11 @@ public class CreateClientEncryptionKeyIfMissing extends AbstractCondition {
 		}
 		JWK jwk;
 
+		// Generated fresh per call, deliberately NOT drawn from the PreGeneratedJwks pool: this is the
+		// OID4VP verifier's response-encryption key (advertised in client_metadata.jwks), which must be
+		// ephemeral and specific to each Authorization Request (OID4VP 1.0 Final § 8.3 / HAIP). Reuse
+		// across a user's requests is itself a finding the suite raises via
+		// VP1FinalCheckEncryptionKeyNotReused, so this key must never come from the per-user pool.
 		try {
 			jwk = createJwkForAlg(alg);
 		} catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {

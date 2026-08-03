@@ -4,15 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.jose.jwk.gen.JWKGenerator;
-import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -325,7 +317,7 @@ public class Fapi2DPoPNegativeConditions {
 	}
 
 
-	public static class GenerateNewSignKey extends AbstractCondition {
+	public static class GenerateNewSignKey extends AbstractGenerateKey {
 
 		@Override
 		@PreEnvironment(required = {"client"})
@@ -338,30 +330,10 @@ public class Fapi2DPoPNegativeConditions {
 				throw error(e);
 			}
 			String dpopSigningAlg = signingJwk.getAlgorithm().getName();
-			JWKGenerator<? extends JWK> generator;
-			switch (dpopSigningAlg) {
-				case "ES256":
-					generator = new ECKeyGenerator(Curve.P_256).algorithm(JWSAlgorithm.ES256);
-					break;
-				case "EdDSA":
-					generator = new OctetKeyPairGenerator(Curve.Ed25519).algorithm(JWSAlgorithm.EdDSA);
-					break;
-				case "Ed25519":
-					generator = new OctetKeyPairGenerator(Curve.Ed25519).algorithm(JWSAlgorithm.Ed25519);
-					break;
-				case "PS256":
-					generator = new RSAKeyGenerator(AbstractGenerateClientJWKs.DEFAULT_KEY_SIZE).algorithm(JWSAlgorithm.PS256);
-					break;
-				default:
-					throw error("Failed to generate key for alg", args("alg", dpopSigningAlg));
-			}
-
-			JWK key;
-			try {
-				key = generator.keyUse(KeyUse.SIGNATURE).generate();
-			} catch (JOSEException e) {
-				throw error("Failed to generate DPoP key", e);
-			}
+			// Draw the next entry from the process-wide pool so the new key is
+			// distinct from the existing dpop_private_jwk (which was itself a
+			// prior pool handout). This is the test's whole point.
+			JWK key = createJwkForAlg(env, dpopSigningAlg);
 			JsonObject keyJson = JsonParser.parseString(key.toJSONString()).getAsJsonObject();
 			env.putObject("client", "dpop_private_jwk", keyJson);
 			env.putObject("client", "dpop_private_jwk_old", jwk);

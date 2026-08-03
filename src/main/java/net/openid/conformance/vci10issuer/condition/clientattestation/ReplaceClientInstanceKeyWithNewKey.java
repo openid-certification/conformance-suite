@@ -18,7 +18,7 @@ public class ReplaceClientInstanceKeyWithNewKey extends AbstractGenerateKey {
 	@Override
 	@PreEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
-		JWK newKey = createJwkForAlg("ES256");
+		JWK newKey = createJwkForAlg(env, "ES256");
 
 		String originalThumbprint = null;
 		String originalKeyJson = env.getString("client", "client_instance_key");

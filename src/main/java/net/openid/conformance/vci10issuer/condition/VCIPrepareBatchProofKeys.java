@@ -5,13 +5,14 @@ import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.PreGeneratedJwks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +44,17 @@ public class VCIPrepareBatchProofKeys extends AbstractCondition {
 		List<JWK> keys = new ArrayList<>();
 		for (int i = 0; i < requested; i++) {
 			try {
-				keys.add(new ECKeyGenerator(Curve.P_256)
+				// Each iteration advances the per-test EC-P-256 counter, so the N
+				// proof keys are distinct (required by the batch issuance flow:
+				// keyIDFromThumbprint means distinct keys → distinct kids, which
+				// the credential issuer uses to match proofs 1:1 to responses).
+				keys.add(new ECKey.Builder(PreGeneratedJwks.nextEcKey(env, Curve.P_256))
 					.algorithm(JWSAlgorithm.ES256)
 					.keyUse(KeyUse.SIGNATURE)
-					.keyIDFromThumbprint(true)
-					.generate());
+					.keyIDFromThumbprint()
+					.build());
 			} catch (JOSEException e) {
-				throw error("Failed to generate EC key", e);
+				throw error("Failed to build EC key", e);
 			}
 		}
 
