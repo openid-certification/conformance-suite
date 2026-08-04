@@ -66,20 +66,25 @@ public class FavoritePlansApi {
 		// OIDFJSON.getString throws UnexpectedJsonTypeException on those, which surfaces as a 500
 		// for what is plainly a malformed request.
 		if (!OIDFJSON.isString(plan)) {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			return badRequest("A plan name is required to save a favorite.");
 		}
 
 		String planName = OIDFJSON.getString(plan);
-		if (planName.isBlank() || planName.length() > MAX_PLAN_NAME_LENGTH) {
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		if (planName.isBlank()) {
+			return badRequest("A plan name is required to save a favorite.");
+		}
+		if (planName.length() > MAX_PLAN_NAME_LENGTH) {
+			return badRequest("That plan name is too long to save as a favorite.");
 		}
 
 		List<String> plans;
 		try {
 			plans = favoritePlansService.addFavoritePlanForCurrentUser(planName);
 		} catch (FavoritePlansLimitExceededException e) {
-			// A declined request, not a server fault.
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			// A declined request, not a server fault. The message says what the user can do
+			// about it — the picker shows it verbatim in the failure toast, where "please try
+			// again" would send them round a loop that cannot succeed.
+			return badRequest(e.getMessage());
 		}
 		return new ResponseEntity<>(wrapPlans(plans), HttpStatus.OK);
 	}
@@ -95,6 +100,17 @@ public class FavoritePlansApi {
 
 		List<String> plans = favoritePlansService.removeFavoritePlanForCurrentUser(planName);
 		return new ResponseEntity<>(wrapPlans(plans), HttpStatus.OK);
+	}
+
+	/**
+	 * A 400 whose body carries the reason: {@code { "error": "<message>" }}. The picker surfaces
+	 * the message directly in its failure toast, so it must read as something the user can act
+	 * on rather than as an internal diagnostic.
+	 */
+	private ResponseEntity<Object> badRequest(String message) {
+		JsonObject body = new JsonObject();
+		body.addProperty("error", message);
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 
 	private JsonObject wrapPlans(List<String> plans) {

@@ -717,9 +717,53 @@ export const SaveFailureRevertsWithErrorToast = {
       expect(controller.snapshot()).toEqual([]);
     });
 
-    await step("a kind:error toast is raised", () => {
+    await step("a kind:error toast is raised, advising a retry", () => {
       expect(toastSpy).toHaveBeenCalledTimes(1);
-      expect(toastSpy).toHaveBeenCalledWith(expect.objectContaining({ kind: "error" }));
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "error", message: "Please try again." }),
+      );
+    });
+  },
+};
+
+/**
+ * Declined save: when the server explains why it refused (the favorites limit,
+ * a name it will not store), the toast repeats that reason. "Please try again"
+ * would send the user round a loop that cannot succeed.
+ */
+export const DeclinedSaveShowsTheServerReason = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    const toastSpy = spyOn(/** @type {any} */ (window), "ctsToast").mockImplementation(() => {});
+    const REASON = "You can save up to 100 favorite test plans. Unstar one to make room.";
+    // A 400 as the store surfaces it: status plus the body's `error` string.
+    const controller = {
+      get: async () => ({ plans: [] }),
+      add: async () => {
+        const err = /** @type {Error & { status: number, detail: string }} */ (
+          new Error("favorites: POST -> 400")
+        );
+        err.status = 400;
+        err.detail = REASON;
+        throw err;
+      },
+      remove: async () => ({ plans: [] }),
+    };
+    attachFavorites(host, controller);
+
+    await step("the toast repeats the server's reason instead of advising a retry", async () => {
+      await userEvent.click(starFor(host, NOT_FAV));
+      await waitFor(() => expect(toastSpy).toHaveBeenCalled());
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "error", message: REASON }),
+      );
+    });
+
+    await step("the optimistic star is still reverted", async () => {
+      await waitFor(() => expect(host.favorites).toEqual([]));
+      expect(starFor(host, NOT_FAV).getAttribute("aria-pressed")).toBe("false");
     });
   },
 };

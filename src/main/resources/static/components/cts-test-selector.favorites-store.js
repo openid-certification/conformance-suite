@@ -37,10 +37,11 @@ const DEFAULT_BASE_URL = "/api/favorite-plans";
 
 /**
  * The rejection value for a non-2xx response: an Error carrying the HTTP
- * status that produced it. `status` is absent when `fetch` itself rejected
- * (no response arrived), which callers must treat as retryable rather than as
- * a signed-out answer.
- * @typedef {Error & { status?: number }} FavoritesHttpError
+ * status that produced it, plus the server's reason when it sent one. `status`
+ * is absent when `fetch` itself rejected (no response arrived), which callers
+ * must treat as retryable rather than as a signed-out answer; `detail` is
+ * absent unless the response body carried an `error` string.
+ * @typedef {Error & { status?: number, detail?: string }} FavoritesHttpError
  */
 
 /**
@@ -87,6 +88,18 @@ export function createFavoritesController({ baseUrl = DEFAULT_BASE_URL, fetchImp
         new Error(`favorites: ${method} ${baseUrl}${path} -> ${res.status}`)
       );
       error.status = res.status;
+      // A declined request answers with `{ "error": "<reason the user can act
+      // on>" }`. Carry it so the toast can say what went wrong instead of
+      // offering a retry that will fail identically. Not every error response
+      // has a body (a bare 401 has none), so a parse failure is expected.
+      try {
+        const body = /** @type {{ error?: string }} */ (await res.json());
+        if (body && typeof body.error === "string" && body.error !== "") {
+          error.detail = body.error;
+        }
+      } catch {
+        // No JSON body — the status alone is the whole answer.
+      }
       throw error;
     }
     const data = /** @type {{ plans?: string[] }} */ (await res.json());
@@ -158,6 +171,10 @@ export function attachFavorites(host, controller, { onSettled } = {}) {
       host.favorites = plans;
       settled(plan, favorite, true);
     } catch (err) {
+      // The controller rejects with a FavoritesHttpError, but a caller-supplied
+      // one (the stories' fake) may throw a plain Error, so read `detail`
+      // defensively.
+      const failure = /** @type {Partial<FavoritesHttpError>} */ (/** @type {unknown} */ (err));
       // Revert ONLY this plan's optimistic change, computed against the
       // *current* favorites (not a snapshot captured before the await): an
       // add-failure removes the plan, a remove-failure re-adds it. This keeps
@@ -176,7 +193,11 @@ export function attachFavorites(host, controller, { onSettled } = {}) {
       if (typeof ctsToast === "function") {
         ctsToast({
           title: favorite ? "Couldn’t save favorite" : "Couldn’t remove favorite",
-          message: "Please try again.",
+          // A 4xx from this API explains itself (the favorites limit, a name
+          // the server won't store); "Please try again" would send the user
+          // round a loop that cannot succeed. Anything without a reason is
+          // transient, and retrying IS the advice.
+          message: failure.detail || "Please try again.",
           kind: "error",
         });
       }

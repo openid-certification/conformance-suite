@@ -92,8 +92,10 @@ public class DBFavoritePlansService implements FavoritePlansService {
 			// replaying an add never turns into an error.
 			Query existing = new Query(new Criteria("owner").is(user).and("planName").is(planName));
 			if (!mongoTemplate.exists(existing, COLLECTION)) {
-				throw new FavoritePlansLimitExceededException(
-					"Cannot hold more than " + MAX_FAVORITES_PER_USER + " favorite plans");
+				// Surfaced verbatim to the user in the picker's failure toast, so it names the
+				// limit and the way out rather than reading as an internal diagnostic.
+				throw new FavoritePlansLimitExceededException("You can save up to "
+					+ MAX_FAVORITES_PER_USER + " favorite test plans. Unstar one to make room.");
 			}
 		}
 

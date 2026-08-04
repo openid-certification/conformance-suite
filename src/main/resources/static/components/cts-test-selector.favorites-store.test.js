@@ -106,6 +106,36 @@ describe("createFavoritesController (fetch)", () => {
     }
   });
 
+  it("carries the server's reason from a declined request", async () => {
+    // A 400 explains itself; the toast shows that instead of "please try again",
+    // which for a limit or a rejected name would loop the user forever.
+    const { fetchImpl } = fetchStub({
+      ok: false,
+      status: 400,
+      body: { error: "You can save up to 100 favorite test plans." },
+    });
+    const c = createFavoritesController({ fetchImpl });
+    await expect(c.add("plan-a")).rejects.toMatchObject({
+      status: 400,
+      detail: "You can save up to 100 favorite test plans.",
+    });
+  });
+
+  it("leaves `detail` undefined when the error response has no JSON body", async () => {
+    /** @type {FavoritesFetch} */
+    const fetchImpl = () =>
+      Promise.resolve({
+        ok: false,
+        status: 401,
+        json: () => Promise.reject(new SyntaxError("Unexpected end of JSON input")),
+      });
+    const c = createFavoritesController({ fetchImpl });
+    await expect(c.get()).rejects.toSatisfy(
+      (/** @type {{ status?: number, detail?: string }} */ err) =>
+        err.status === 401 && err.detail === undefined,
+    );
+  });
+
   it("leaves `status` undefined when fetch itself rejects", async () => {
     // No response arrived, so there is no status to report; the page reads that
     // as retryable rather than as a signed-out answer.

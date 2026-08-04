@@ -29,6 +29,13 @@ public class FavoritePlansApi_UnitTest {
 		ReflectionTestUtils.setField(api, "favoritePlansService", service);
 	}
 
+	private static String errorMessage(ResponseEntity<Object> response) {
+		assertThat(response.getBody()).isInstanceOf(JsonObject.class);
+		JsonObject body = (JsonObject) response.getBody();
+		assertThat(body.has("error")).isTrue();
+		return OIDFJSON.getString(body.get("error"));
+	}
+
 	private static List<String> planNames(JsonObject body) {
 		JsonArray plans = body.getAsJsonArray("plans");
 		return plans.asList().stream().map(OIDFJSON::getString).toList();
@@ -144,10 +151,13 @@ public class FavoritePlansApi_UnitTest {
 	}
 
 	@Test
-	public void postPastTheFavoritesLimitReturnsBadRequest() {
-		// The limit is a declined request, not a server fault, so it must not surface as a 500.
+	public void postPastTheFavoritesLimitReturnsBadRequestCarryingTheServiceMessage() {
+		// The limit is a declined request, not a server fault, so it must not surface as a 500 —
+		// and the picker shows the body's message verbatim in its failure toast, so the reason
+		// has to travel with the status.
 		Mockito.when(service.addFavoritePlanForCurrentUser("plan-101"))
-			.thenThrow(new FavoritePlansLimitExceededException("too many"));
+			.thenThrow(new FavoritePlansLimitExceededException(
+				"You can save up to 100 favorite test plans. Unstar one to make room."));
 
 		JsonObject request = new JsonObject();
 		request.addProperty("plan", "plan-101");
@@ -155,6 +165,32 @@ public class FavoritePlansApi_UnitTest {
 		ResponseEntity<Object> response = api.addFavoritePlan(request);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(errorMessage(response))
+			.isEqualTo("You can save up to 100 favorite test plans. Unstar one to make room.");
+	}
+
+	@Test
+	public void everyBadRequestExplainsItself() {
+		// "Please try again" is the wrong advice for a request that can never succeed as sent,
+		// so each 400 must name what is wrong in words the user can act on.
+		JsonObject missing = new JsonObject();
+		JsonObject wrongType = new JsonObject();
+		wrongType.addProperty("plan", 123);
+		JsonObject blank = new JsonObject();
+		blank.addProperty("plan", "   ");
+		JsonObject tooLong = new JsonObject();
+		tooLong.addProperty("plan", "p".repeat(FavoritePlansApi.MAX_PLAN_NAME_LENGTH + 1));
+
+		for (JsonObject request : List.of(missing, wrongType, blank, tooLong)) {
+			ResponseEntity<Object> response = api.addFavoritePlan(request);
+			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+			assertThat(errorMessage(response))
+				.as("400 body for %s", request)
+				.isNotBlank()
+				.endsWith(".");
+		}
+
+		assertThat(errorMessage(api.addFavoritePlan(tooLong))).contains("too long");
 	}
 
 	@Test
