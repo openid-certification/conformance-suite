@@ -134,9 +134,39 @@ test:
   only:
     - branches
 
+# Paths that make the frontend jobs (ensure-playwright-image, frontend_e2e_test,
+# frontend_lint, chromatic) worth running. Backend-only pushes skip all four.
+# .gitlab-ci.yml is included so changes to the jobs themselves re-run them.
+.frontend-change-paths: &frontend-change-paths
+  - frontend/**/*
+  - src/main/resources/static/**/*
+  - src/main/resources/static-legacy/**/*
+  - src/main/resources/templates/**/*
+  - src/main/resources/templates-legacy/**/*
+  - .gitlab-ci.yml
+
+# Two rules are needed because `changes:` alone always matches on the first
+# push of a new branch (GitLab has no previous SHA to diff against) — which is
+# how chromatic used to run, and post its pending "UI Tests"/"UI Review"
+# external statuses, on backend-only branches. `compare_to` closes that hole
+# for feature branches by diffing against master instead of the push. The
+# long-lived branches (master/demo/production) keep the plain push-diff
+# comparison, because diffing master against itself would never match and the
+# jobs would never run there.
+.frontend-rules: &frontend-rules
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "demo" || $CI_COMMIT_BRANCH == "production"'
+      changes: *frontend-change-paths
+    - if: '$CI_COMMIT_BRANCH'
+      changes:
+        paths: *frontend-change-paths
+        compare_to: 'refs/heads/master'
+
 # Mirror the upstream Playwright image into the project container registry so the
 # e2e job does not pull from mcr.microsoft.com on every pipeline (which trips its
 # rate limits on shared runners). Only pulls from upstream when the tag is missing.
+# Same rules as frontend_e2e_test (its only consumer) so its `needs:` entry is
+# always satisfiable.
 ensure-playwright-image:
   stage: build
   interruptible: true
@@ -155,8 +185,7 @@ ensure-playwright-image:
         echo "Not in registry, mirroring $SRC -> $DEST"
         skopeo copy "docker://$SRC" --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" "docker://$DEST"
       fi
-  only:
-    - branches
+  <<: *frontend-rules
 
 frontend_e2e_test:
   stage: test
@@ -173,8 +202,7 @@ frontend_e2e_test:
     paths:
       - frontend/test-results/
     expire_in: 7 days
-  only:
-    - branches
+  <<: *frontend-rules
 
 # frontend_lint: runs the same `npm run test:ci` chain contributors run locally
 # (format:check + lint + type-check + lint:jsdoc). Parallel to `build` (needs: []);
@@ -227,8 +255,7 @@ frontend_lint:
     - npm ci --ignore-scripts
     - npm run test:ci
   allow_failure: true     # R22: sunset in 6 weeks — see Unit 9's sunset doc
-  only:
-    - branches
+  <<: *frontend-rules
 
 # chromatic: publishes the frontend Storybook to https://www.chromatic.com for
 # visual regression review (https://www.chromatic.com/docs/gitlab/).
@@ -247,7 +274,7 @@ frontend_lint:
 # Snapshot quota: `onlyChanged` (TurboSnap) snapshots only stories whose
 # dependency graph intersects the changed files — TurboSnap activates after
 # Chromatic's 10-successful-CI-builds threshold; until then builds are full
-# (~650 snapshots). The `changes:` filter below already skips backend-only
+# (~650 snapshots). The shared frontend rules below already skip backend-only
 # pushes entirely.
 #
 # The project token is committed in plain text deliberately: per Chromatic's
@@ -262,10 +289,14 @@ frontend_lint:
 # history to find the baseline build on an ancestor commit; without it every
 # build is treated as new and snapshot diffs are meaningless.
 #
-# The `changes:` filter skips the job for backend-only pushes — each run
-# snapshots all ~650 stories, which counts against the Chromatic plan's
-# monthly snapshot quota. Chromatic tolerates the gaps: baseline lookup walks
-# ancestor commits until it finds the last published build.
+# The shared frontend rules (`*frontend-rules`) skip the job for backend-only
+# pushes — each run snapshots all ~650 stories, which counts against the
+# Chromatic plan's monthly snapshot quota. Skipping also stops Chromatic from
+# posting its "UI Tests"/"UI Review" external statuses (delivered via the
+# project's index.chromatic.com webhook) onto pipelines that contain no UI
+# change, where they would sit pending forever waiting for a snapshot review.
+# Chromatic tolerates the gaps: baseline lookup walks ancestor commits until
+# it finds the last published build.
 #
 # --ignore-scripts is safe here for the same reason as frontend_lint: the
 # Storybook *build* needs no browser and no postinstall hooks (esbuild/rollup
@@ -303,13 +334,7 @@ chromatic:
     paths:
       - frontend/chromatic-diagnostics.json
   allow_failure: true
-  only:
-    refs:
-      - branches
-    changes:
-      - frontend/**/*
-      - src/main/resources/static/**/*
-      - .gitlab-ci.yml
+  <<: *frontend-rules
 
 .compare: &compare
   stage: compare
