@@ -679,6 +679,55 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     ).toHaveCount(ALL_PLANS.length);
   });
 
+  test("R7: a star clicked during the seed fetch is not clobbered when it lands", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await setupCommonRoutes(page);
+
+    // The seed GET is held open long enough for a click to land first, and it
+    // answers with the pre-click truth (an empty set) — exactly the snapshot
+    // that must not overwrite the newer write.
+    const SEED_DELAY_MS = 1500;
+    const PLAN = "fapi2-security-profile-final-test-plan";
+    await page.route("**/api/favorite-plans**", async (route) => {
+      if (route.request().method() === "GET") {
+        await new Promise((resolve) => setTimeout(resolve, SEED_DELAY_MS));
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ plans: [] }),
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ plans: [PLAN] }),
+      });
+    });
+
+    await page.goto("/schedule-test.html");
+
+    const star = page.locator(`#planSearch [data-favorite-plan="${PLAN}"]`);
+    await expect(star).toHaveAttribute("aria-pressed", "false");
+    await star.click();
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+
+    // Outlive the seed response, then confirm it did not undo the click.
+    await page.waitForTimeout(SEED_DELAY_MS + 500);
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+  });
+
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
     await setupFailFast(page);
 

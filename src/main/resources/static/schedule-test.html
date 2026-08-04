@@ -1104,11 +1104,30 @@
                                 var favController = window.__favoritesController;
                                 var attachFav = window.__attachFavorites;
                                 if (!favController || !attachFav) return;
+                                // A star clicked while the seed GET is still in
+                                // flight already owns `favorites`: attachFav
+                                // updated it optimistically and its own
+                                // response will reconcile it. Letting the
+                                // seed's older snapshot land on top would
+                                // silently undo that write, leaving the UI and
+                                // the server disagreeing until the next reload.
+                                // Registering the listener before attachFav
+                                // does not matter — both run synchronously on
+                                // the same event, and the seed only reads the
+                                // flag a microtask later.
+                                var favoritesMutated = false;
+                                planSearch.addEventListener('cts-favorite-toggle', function () {
+                                    favoritesMutated = true;
+                                }, { once: true });
                                 favController.get().then(function (res) {
-                                    planSearch.favorites = (res && res.plans) || [];
+                                    if (!favoritesMutated) {
+                                        planSearch.favorites = (res && res.plans) || [];
+                                    }
                                     planSearch.canFavorite = true;
                                 }).catch(function (err) {
-                                    planSearch.favorites = [];
+                                    if (!favoritesMutated) {
+                                        planSearch.favorites = [];
+                                    }
                                     // Only an auth answer means "not signed
                                     // in": the stars then render as a
                                     // "Sign in to save favorites" affordance
