@@ -1669,6 +1669,257 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator(".logItem").first()).toBeVisible();
   });
 
+  // #1890: an expired session used to look exactly like a network blip —
+  // "Log connection lost — retrying…" forever, with the viewer re-polling a
+  // 401 every 3s. The banner must name the real cause and polling must stop.
+  test("expired session stops polling and says so (#1890)", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // Registered last so it wins: Playwright matches routes in reverse
+    // registration order, so this shadows setupV2Routes' 200 handler.
+    let logRequests = 0;
+    await page.route(`**/api/log/${MOCK_TEST_STATUS.testId}**`, (route) => {
+      logRequests += 1;
+      // Mirrors RestAuthenticationEntryPoint's response for an
+      // unauthenticated REST call.
+      return route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Unauthorized", message: "Full authentication required" }),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const banner = page.locator('cts-log-viewer [data-testid="log-viewer-error"]');
+    // Two consecutive 401s are required before the viewer calls it, so the
+    // banner lands one poll interval (~3s) in.
+    await expect(banner).toHaveAttribute("data-error-kind", "session-expired", { timeout: 10000 });
+    await expect(banner).toContainText("session has expired");
+    await expect(banner).not.toContainText("retrying");
+    await expect(page.locator('cts-log-viewer [data-testid="log-viewer-reload"]')).toBeVisible();
+
+    // Polling really stopped: the count must hold across two further poll
+    // intervals. `expect.poll` re-reads the counter rather than sleeping a
+    // fixed 7s, so the assertion fails fast the moment a stray request
+    // lands instead of always paying the full wait.
+    const settled = logRequests;
+    await expect.poll(() => logRequests, { timeout: 7000, intervals: [500] }).toBe(settled);
+  });
+
+  // #1890 companion: the log poll is not the only loop on this page. If the
+  // runner poll keeps running, the log freezes behind an honest banner while
+  // /api/info and /api/runner keep hammering the same refusing server — and
+  // the header stays stuck mid-run, contradicting the banner beside it.
+  test("runner poll stops when the log poll gives up (#1890)", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // Registered after setupV2Routes so these win (reverse registration order).
+    let infoRequests = 0;
+    await page.route(`**/api/info/${MOCK_TEST_RUNNING.testId}*`, (route) => {
+      infoRequests += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_RUNNING),
+      });
+    });
+    await page.route(`**/api/log/${MOCK_TEST_RUNNING.testId}**`, (route) =>
+      route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Unauthorized", message: "Full authentication required" }),
+      }),
+    );
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}`);
+
+    const banner = page.locator('cts-log-viewer [data-testid="log-viewer-error"]');
+    await expect(banner).toHaveAttribute("data-error-kind", "session-expired", { timeout: 10000 });
+
+    // A RUNNING test polls, so a zero count here would make the freeze
+    // assertion below vacuous.
+    expect(infoRequests).toBeGreaterThan(0);
+    const infoAtStop = infoRequests;
+    await expect.poll(() => infoRequests, { timeout: 7000, intervals: [500] }).toBe(infoAtStop);
+  });
+
+  // Regression test for the double-loop the retry path can introduce.
+  // `abandonRunnerPolling` has no handle on a `pollOnce` suspended at an
+  // await, so if "Try again" clears the abandoned flag before that straggler
+  // wakes, the straggler arms a timer alongside the freshly started loop —
+  // two loops polling /api/info and /api/runner forever, neither reachable.
+  //
+  // Reproducing it needs a cycle genuinely in flight at the moment of the
+  // retry, which is why /api/info stalls from the second request onward:
+  // bootstrap's own fetch stays fast, then the runner poll's first cycle is
+  // still suspended when the banner lands and the retry is clicked.
+  test("retry restarts the runner poll exactly once, not twice (#1890)", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    const STALL_MS = 6000;
+    let infoRequests = 0;
+    await page.route(`**/api/info/${MOCK_TEST_RUNNING.testId}*`, async (route) => {
+      infoRequests += 1;
+      // Request 1 is bootstrap's — keep it fast so the page reaches its
+      // terminal banner quickly. Everything after it is a runner-poll cycle
+      // and stalls, guaranteeing one is mid-await across the retry.
+      if (infoRequests > 1) {
+        await new Promise((resolve) => setTimeout(resolve, STALL_MS));
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_RUNNING),
+      });
+    });
+    let logIsHealthy = false;
+    await page.route(`**/api/log/${MOCK_TEST_RUNNING.testId}**`, (route) => {
+      if (logIsHealthy) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(MOCK_LOG_ENTRIES),
+        });
+      }
+      return route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Unauthorized", message: "Full authentication required" }),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}`);
+
+    const banner = page.locator('cts-log-viewer [data-testid="log-viewer-error"]');
+    await expect(banner).toHaveAttribute("data-error-kind", "session-expired", { timeout: 10000 });
+    const infoAtStop = infoRequests;
+    expect(infoAtStop).toBeGreaterThan(1); // a runner cycle is in flight
+
+    // Retry immediately — while that cycle is still stalled.
+    logIsHealthy = true;
+    await page.locator('cts-log-viewer [data-testid="log-viewer-retry"] button').click();
+    await expect(banner).toHaveCount(0, { timeout: 10000 });
+
+    // Let the restarted loop issue its own first request, so the window
+    // below contains only what comes *after* a healthy single loop's cycle
+    // has begun.
+    await expect
+      .poll(() => infoRequests, { timeout: 10000, intervals: [100] })
+      .toBeGreaterThan(infoAtStop);
+    const infoAtResume = infoRequests;
+
+    // The detector. A single loop is now stalled for STALL_MS and will not
+    // ask again until STALL_MS + 3s, so this window must stay empty. The
+    // straggler, if it survived, wakes at STALL_MS and arms a 3s timer of
+    // its own — landing one request squarely inside it. Zero versus one, not
+    // a ratio to argue about.
+    await page.waitForTimeout(STALL_MS + 2000);
+    expect(infoRequests).toBe(infoAtResume);
+
+    // …and the loop that should exist is alive: the count moves once the
+    // stalled cycle completes its gap.
+    await expect
+      .poll(() => infoRequests, { timeout: 10000, intervals: [200] })
+      .toBeGreaterThan(infoAtResume);
+  });
+
+  // A superseded cycle must not PUBLISH either, not just not re-arm. The
+  // straggler is holding a payload fetched before the retry; if it applies
+  // that on wake it paints a stale RUNNING over the live loop's terminal
+  // verdict — and because it does not re-arm, nothing ever corrects it. The
+  // banner and badge stay wrong until the user reloads.
+  test("a superseded runner cycle cannot repaint a stale status (#1890)", async ({ page }) => {
+    await setupFailFast(page);
+
+    const runningInfo = {
+      ...MOCK_TEST_RUNNING,
+      testId: "test-stale-repaint-001",
+      _id: "test-stale-repaint-001",
+      planId: "plan-stale-repaint",
+    };
+    const finishedInfo = { ...runningInfo, status: "FINISHED", result: "PASSED" };
+
+    await setupV2Routes(page, { testInfo: runningInfo, logEntries: MOCK_LOG_ENTRIES });
+    await setupCommonRoutes(page);
+
+    const STALL_MS = 6000;
+    let infoRequests = 0;
+    await page.route(`**/api/info/${runningInfo.testId}*`, async (route) => {
+      infoRequests += 1;
+      // 1: bootstrap, fast, RUNNING.
+      // 2: the runner cycle that will be superseded — stalls holding RUNNING,
+      //    the stale payload it must not publish on wake.
+      // 3+: after the retry, the verdict has landed.
+      if (infoRequests === 2) {
+        await new Promise((resolve) => setTimeout(resolve, STALL_MS));
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(runningInfo),
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(infoRequests === 1 ? runningInfo : finishedInfo),
+      });
+    });
+    let logIsHealthy = false;
+    await page.route(`**/api/log/${runningInfo.testId}**`, (route) => {
+      if (logIsHealthy) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(MOCK_LOG_ENTRIES),
+        });
+      }
+      return route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Unauthorized" }),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(runningInfo.testId)}`);
+
+    const banner = page.locator('cts-log-viewer [data-testid="log-viewer-error"]');
+    await expect(banner).toHaveAttribute("data-error-kind", "session-expired", { timeout: 10000 });
+    expect(infoRequests).toBeGreaterThan(1); // the stalling cycle is in flight
+
+    logIsHealthy = true;
+    await page.locator('cts-log-viewer [data-testid="log-viewer-retry"] button').click();
+
+    // The resumed loop picks up the verdict.
+    const terminalBanner = page.locator('[data-testid="terminal-banner"]');
+    await expect(terminalBanner).toBeVisible({ timeout: 15000 });
+    await expect(terminalBanner).toContainText(/Test passed/i);
+
+    // Now outlive the straggler's wake. Unguarded it publishes RUNNING here
+    // and the verdict disappears for good.
+    await page.waitForTimeout(STALL_MS + 2000);
+    await expect(terminalBanner).toBeVisible();
+    await expect(terminalBanner).toContainText(/Test passed/i);
+    await expect(
+      page.locator('[data-testid="status-bar"] cts-badge[label="PASSED"]'),
+    ).toBeVisible();
+  });
+
   test("Edit configuration button fires cts-edit-config with the right detail", async ({
     page,
   }) => {

@@ -48,9 +48,59 @@ let testId = "";
 let isPublic = false;
 /** @type {boolean} */
 let isAdmin = false;
+/** @type {boolean} */
+let isGuest = false;
 
-/** @type {{ active: number | null }} */
-const runnerPollState = { active: null };
+/**
+ * Runner-poll lifecycle.
+ *
+ * `generation` is what actually enforces "one loop at a time". Clearing
+ * `active` cannot: a `pollOnce` suspended at an `await` owns no timer handle,
+ * so stop/start while it is in flight leaves it running, and it then arms a
+ * timer of its own alongside the freshly started loop — two loops polling
+ * /api/info and /api/runner forever, with no handle to either. Every cycle
+ * captures the generation it started under and bails the moment it changes,
+ * so a straggler from a previous generation retires itself.
+ * @type {{ active: number | null, abandoned: boolean, generation: number }}
+ */
+const runnerPollState = { active: null, abandoned: false, generation: 0 };
+
+/**
+ * Shut the runner poll down for good. Called when `cts-log-viewer` reports
+ * that it has stopped polling for a reason no retry can fix — an expired
+ * session, denied access, or an exhausted give-up budget (#1890). Without
+ * this the log stream stops and shows an honest banner while the page
+ * quietly keeps firing /api/info and /api/runner at a server that has
+ * already refused it.
+ * @returns {void}
+ */
+function abandonRunnerPolling() {
+  runnerPollState.abandoned = true;
+  runnerPollState.generation += 1;
+  if (runnerPollState.active !== null) {
+    window.clearTimeout(runnerPollState.active);
+    runnerPollState.active = null;
+  }
+}
+
+/**
+ * Restart the runner poll after the user takes the viewer's "Try again".
+ * The counterpart to `abandonRunnerPolling` — without it a successful retry
+ * would resume the log stream while the header's verdict, progress segment,
+ * and exported values stayed frozen at whatever they showed when the
+ * connection died.
+ * @returns {void}
+ */
+function resumeRunnerPolling() {
+  if (!runnerPollState.abandoned) return;
+  runnerPollState.abandoned = false;
+  // Bump again so any cycle still suspended from the abandoned generation
+  // retires instead of arming a second timer next to the one below.
+  runnerPollState.generation += 1;
+  // startRunnerPolling re-checks the terminal-verdict condition itself, so a
+  // test that finished during the outage correctly stays un-polled.
+  startRunnerPolling(latestTestInfo);
+}
 
 /**
  * Latest /api/info payload (testName, planId, variant). Read by
@@ -110,6 +160,10 @@ async function fetchCurrentUser() {
     if (!response.ok) return;
     const user = await response.json();
     isAdmin = !!(user && user.isAdmin);
+    // `isGuest` marks a private-link (share-JWT) viewer. They never signed
+    // in, so if their session dies the log viewer must not tell them to
+    // "sign in again" — see cts-log-viewer's private-link-expired copy.
+    isGuest = !!(user && user.isGuest);
   } catch (err) {
     console.warn("[log-detail] /api/currentuser failed:", err);
   }
@@ -659,8 +713,16 @@ function isFullyTerminal(testInfo) {
  */
 function startRunnerPolling(testInfo) {
   if (isFullyTerminal(testInfo)) return;
+  if (runnerPollState.abandoned) return;
+
+  // The generation this loop belongs to. Any stop or restart bumps the
+  // counter, which is how a cycle suspended mid-await learns it has been
+  // superseded — see runnerPollState.
+  const generation = runnerPollState.generation;
+  const superseded = () => runnerPollState.abandoned || runnerPollState.generation !== generation;
 
   async function pollOnce() {
+    if (superseded()) return;
     /** @type {any} */
     let fresh = null;
 
@@ -668,6 +730,13 @@ function startRunnerPolling(testInfo) {
     // outage doesn't stall the /api/runner slot rendering below.
     try {
       fresh = await fetchTestInfo();
+      // Re-check before writing, not just before re-arming. A superseded
+      // cycle that skipped straight to the arm guard would still have
+      // published its payload on the way — and its payload is old. After a
+      // "Try again" that means a stale RUNNING landing on top of the live
+      // loop's terminal PASSED, and since this cycle does not re-arm,
+      // nothing would ever correct it: the status stays wrong for good.
+      if (superseded()) return;
       applyTestInfo(fresh);
     } catch (err) {
       console.warn("[log-detail] /api/info refresh failed:", err);
@@ -686,6 +755,10 @@ function startRunnerPolling(testInfo) {
     if (!isPublic) {
       try {
         const response = await fetch("/api/runner/" + encodeURIComponent(testId));
+        // Same rule as the /api/info write above — every branch below
+        // mutates the header, so a superseded cycle stops here rather than
+        // repainting slots the live loop has already moved on from.
+        if (superseded()) return;
         if (response.status === 404) {
           // Runner flushed the test from memory. Clear the exported-values grid
           // so a stale grid doesn't linger if /api/info is briefly still
@@ -695,6 +768,7 @@ function startRunnerPolling(testInfo) {
         } else {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
+          if (superseded()) return;
           renderBrowserSlot(data.browser);
           renderErrorSlot(data.error);
           // Exported values (#1861): feed the runner's `exposed` map straight
@@ -714,6 +788,10 @@ function startRunnerPolling(testInfo) {
     // (CREATED, RUNNING, WAITING, the transient FINISHED-but-no-result
     // race, INTERRUPTED-but-no-result race) without enumerating them.
     if (isFullyTerminal(fresh)) return;
+    // The viewer may have stopped — or stopped and been retried — while this
+    // cycle was awaiting. Either way this loop is no longer the live one and
+    // must not arm a timer beside whichever loop is.
+    if (superseded()) return;
 
     const delay = runnerFailed ? POLL_INTERVAL_MS * 2 : POLL_INTERVAL_MS;
     runnerPollState.active = window.setTimeout(pollOnce, delay);
@@ -1700,6 +1778,13 @@ async function bootstrap() {
     const refs = /** @type {CustomEvent} */ (evt).detail && evt.detail.references;
     if (refs) applyReferences(refs);
   });
+  // #1890: when the viewer gives up (expired session, denied access, or an
+  // exhausted retry budget), the page's own runner poll must stop too —
+  // otherwise the log freezes behind an honest banner while /api/info and
+  // /api/runner keep hammering a server that already said no. Registered
+  // before the viewer's first fetch so an immediate terminal state is caught.
+  document.addEventListener("cts-log-polling-stopped", abandonRunnerPolling);
+  document.addEventListener("cts-log-polling-resumed", resumeRunnerPolling);
 
   await fetchCurrentUser();
 
@@ -1752,6 +1837,10 @@ async function bootstrap() {
     // /api/log fetch, which must already carry public=true for anonymous
     // viewers. Never defer the isPublic assignment past an await.
     viewer.isPublic = isPublic;
+    // Same rule as isPublic: assigned before testId, because testId starts
+    // the fetch and a terminal auth banner must already know which audience
+    // it is talking to (a private-link viewer cannot "sign in again").
+    viewer.isGuest = isGuest;
     viewer.testInfo = testInfo;
     viewer.testId = testId;
   }
