@@ -9,8 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -108,12 +110,9 @@ public class DBFavoritePlansService_UnitTest {
 	}
 
 	@Test
-	public void addInsertsDocumentWithExpectedFieldsWhenNotPresent() {
+	public void addUpsertsSetOnInsertDocumentKeyedOnOwnerAndPlanName() {
 		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
-		Mockito.when(mongoTemplate.exists(any(Query.class),
-				eq(DBFavoritePlansService.COLLECTION)))
-			.thenReturn(false);
-		// The post-insert re-read returns the new favorite.
+		// The post-write re-read returns the new favorite.
 		Mockito.when(mongoTemplate.find(any(Query.class), eq(Document.class),
 				eq(DBFavoritePlansService.COLLECTION)))
 			.thenReturn(List.of(favoriteDoc("plan-a", "2026-06-22T10:00:00Z")));
@@ -122,52 +121,78 @@ public class DBFavoritePlansService_UnitTest {
 
 		assertThat(result).containsExactly("plan-a");
 
-		ArgumentCaptor<Document> docCaptor = ArgumentCaptor.forClass(Document.class);
-		Mockito.verify(mongoTemplate).insert(docCaptor.capture(),
+		ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
+		ArgumentCaptor<Update> updateCaptor = ArgumentCaptor.forClass(Update.class);
+		Mockito.verify(mongoTemplate).upsert(queryCaptor.capture(), updateCaptor.capture(),
 			eq(DBFavoritePlansService.COLLECTION));
-		Document inserted = docCaptor.getValue();
-		assertThat(inserted.getString("planName")).isEqualTo("plan-a");
-		assertThat(inserted.get("owner")).isEqualTo(USER);
-		assertThat(inserted.getString("_id")).hasSize(30);
-		assertThat(inserted.getString("addedAt")).isNotBlank();
+
+		Document criteria = queryCaptor.getValue().getQueryObject();
+		assertThat(criteria.get("owner")).isEqualTo(USER);
+		assertThat(criteria.get("planName")).isEqualTo("plan-a");
+
+		Document setOnInsert = (Document) updateCaptor.getValue().getUpdateObject()
+			.get("$setOnInsert");
+		assertThat(setOnInsert.getString("planName")).isEqualTo("plan-a");
+		assertThat(setOnInsert.get("owner")).isEqualTo(USER);
+		assertThat(setOnInsert.getString("_id")).hasSize(30);
+		assertThat(setOnInsert.get("addedAt")).isNotNull();
 	}
 
 	@Test
-	public void addIsIdempotentAndDoesNotDoubleInsert() {
+	public void addDoesNotReadBeforeWriting() {
+		// The write must be a single atomic upsert, not exists()-then-insert: the
+		// read-modify-write version let two concurrent adds of the same plan both observe
+		// "absent" and both attempt an insert, so one 500'd on the unique index.
 		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
-		// Already favorited: exists() returns true.
-		Mockito.when(mongoTemplate.exists(any(Query.class),
-				eq(DBFavoritePlansService.COLLECTION)))
-			.thenReturn(true);
 		Mockito.when(mongoTemplate.find(any(Query.class), eq(Document.class),
 				eq(DBFavoritePlansService.COLLECTION)))
 			.thenReturn(List.of(favoriteDoc("plan-a", "2026-06-22T10:00:00Z")));
 
-		List<String> result = service.addFavoritePlanForCurrentUser("plan-a");
+		service.addFavoritePlanForCurrentUser("plan-a");
 
-		assertThat(result).containsExactly("plan-a");
+		Mockito.verify(mongoTemplate, Mockito.never())
+			.exists(any(Query.class), eq(DBFavoritePlansService.COLLECTION));
 		Mockito.verify(mongoTemplate, Mockito.never())
 			.insert(any(Document.class), eq(DBFavoritePlansService.COLLECTION));
 	}
 
 	@Test
-	public void addQueriesExistenceByOwnerAndPlanName() {
+	public void addIsIdempotentWhenAlreadyFavorited() {
+		// Re-adding an existing favorite issues the same upsert; every field is setOnInsert, so
+		// the matched document is untouched and the original addedAt (the list order) survives.
 		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
-		Mockito.when(mongoTemplate.exists(any(Query.class),
-				eq(DBFavoritePlansService.COLLECTION)))
-			.thenReturn(true);
 		Mockito.when(mongoTemplate.find(any(Query.class), eq(Document.class),
 				eq(DBFavoritePlansService.COLLECTION)))
-			.thenReturn(List.of());
+			.thenReturn(List.of(favoriteDoc("plan-a", "2026-06-22T10:00:00Z")));
 
-		service.addFavoritePlanForCurrentUser("plan-a");
+		List<String> result = service.addFavoritePlanForCurrentUser("plan-a");
 
-		ArgumentCaptor<Query> existsCaptor = ArgumentCaptor.forClass(Query.class);
-		Mockito.verify(mongoTemplate).exists(existsCaptor.capture(),
+		assertThat(result).containsExactly("plan-a");
+		ArgumentCaptor<Update> updateCaptor = ArgumentCaptor.forClass(Update.class);
+		Mockito.verify(mongoTemplate).upsert(any(Query.class), updateCaptor.capture(),
 			eq(DBFavoritePlansService.COLLECTION));
-		Document criteria = existsCaptor.getValue().getQueryObject();
-		assertThat(criteria.get("owner")).isEqualTo(USER);
-		assertThat(criteria.get("planName")).isEqualTo("plan-a");
+		// No $set: nothing about an existing favorite may be rewritten.
+		assertThat(updateCaptor.getValue().getUpdateObject().keySet())
+			.containsExactly("$setOnInsert");
+	}
+
+	@Test
+	public void addSurvivesConcurrentDuplicateKeyFromUpsert() {
+		// MongoDB documents a residual race for upserts against a unique index: two simultaneous
+		// upserts can both miss the match stage and one loses to the index. Spring Data
+		// translates that into DuplicateKeyException. Adding is idempotent, so the loser must
+		// still succeed and return the (already correct) list rather than 500 the request.
+		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
+		Mockito.when(mongoTemplate.upsert(any(Query.class), any(Update.class),
+				eq(DBFavoritePlansService.COLLECTION)))
+			.thenThrow(new DuplicateKeyException("E11000 duplicate key error"));
+		Mockito.when(mongoTemplate.find(any(Query.class), eq(Document.class),
+				eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn(List.of(favoriteDoc("plan-a", "2026-06-22T10:00:00Z")));
+
+		List<String> result = service.addFavoritePlanForCurrentUser("plan-a");
+
+		assertThat(result).containsExactly("plan-a");
 	}
 
 	// --- remove ---

@@ -1,18 +1,18 @@
 package net.openid.conformance.info;
 
 import com.google.common.collect.ImmutableMap;
-import com.mongodb.ErrorCategory;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import net.openid.conformance.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -67,24 +67,26 @@ public class DBFavoritePlansService implements FavoritePlansService {
 			throw new IllegalStateException("No user found");
 		}
 
-		Query existing = new Query(new Criteria("owner").is(user).and("planName").is(planName));
+		// A single atomic upsert keyed on owner+planName, rather than exists()-then-insert: a
+		// double-clicked star fires two concurrent adds, and the read-modify-write version let
+		// both observe "absent" and both insert. Every field is setOnInsert, so re-adding an
+		// existing favorite is a genuine no-op that preserves the original addedAt (the list is
+		// ordered by it) instead of bumping the plan to the end of the list.
+		Query query = new Query(new Criteria("owner").is(user).and("planName").is(planName));
+		Update update = new Update()
+			.setOnInsert("_id", RandomStringUtils.secure().nextAlphanumeric(30))
+			.setOnInsert("owner", user)
+			.setOnInsert("planName", planName)
+			.setOnInsert("addedAt", Instant.now().toString());
 
-		if (!mongoTemplate.exists(existing, COLLECTION)) {
-			Document document = new Document()
-				.append("_id", RandomStringUtils.secure().nextAlphanumeric(30))
-				.append("owner", user)
-				.append("planName", planName)
-				.append("addedAt", Instant.now().toString());
-
-			try {
-				mongoTemplate.insert(document, COLLECTION);
-			} catch (MongoWriteException e) {
-				// A concurrent request inserted the same owner+planName first; the unique compound
-				// index rejected this duplicate. Adding is idempotent, so treat this as success.
-				if (e.getError().getCategory() != ErrorCategory.DUPLICATE_KEY) {
-					throw e;
-				}
-			}
+		try {
+			mongoTemplate.upsert(query, update, COLLECTION);
+		} catch (DuplicateKeyException e) {
+			// MongoDB documents a residual race for upserts against a unique index: two
+			// simultaneous upserts can both miss the match stage and one loses to the index.
+			// Adding is idempotent, so the loser's outcome is already the desired state.
+			// (Not the exists()-race this replaces — that one is gone; this is the narrower
+			// server-side window, and the caller still gets the correct list below.)
 		}
 
 		return getFavoritePlansForCurrentUser();
