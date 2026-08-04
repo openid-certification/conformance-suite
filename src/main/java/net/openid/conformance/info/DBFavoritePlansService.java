@@ -17,13 +17,19 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Mongo-backed {@link FavoritePlansService}. Stores one document per favorited plan in the
  * {@value #COLLECTION} collection:
  *
- * <pre>{ _id: &lt;random30&gt;, owner: {sub, iss}, planName: &lt;String&gt;, addedAt: &lt;ISO-8601 Instant&gt; }</pre>
+ * <pre>{ _id: &lt;random30&gt;, owner: {sub, iss}, planName: &lt;String&gt;, addedAt: &lt;BSON date&gt; }</pre>
+ *
+ * <p>{@code addedAt} is a BSON date rather than an ISO-8601 string because the list is sorted on
+ * it: {@code Instant.toString()} emits 0, 3, 6 or 9 fractional digits depending on the value, so
+ * lexicographic ordering inverts roughly one timestamp in a thousand (the {@code Z} of a
+ * whole-second stamp sorts after the digits of a sub-second one).
  *
  * <p>This is multi-record-per-owner, mirroring {@code DBTokenService}, rather than the
  * single-latest-record approach of {@link DBSavedConfigurationService}.
@@ -77,7 +83,7 @@ public class DBFavoritePlansService implements FavoritePlansService {
 			.setOnInsert("_id", RandomStringUtils.secure().nextAlphanumeric(30))
 			.setOnInsert("owner", user)
 			.setOnInsert("planName", planName)
-			.setOnInsert("addedAt", Instant.now().toString());
+			.setOnInsert("addedAt", Date.from(Instant.now()));
 
 		try {
 			mongoTemplate.upsert(query, update, COLLECTION);

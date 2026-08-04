@@ -15,6 +15,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +48,7 @@ public class DBFavoritePlansService_UnitTest {
 			.append("_id", "id-" + planName)
 			.append("owner", USER)
 			.append("planName", planName)
-			.append("addedAt", addedAt);
+			.append("addedAt", Date.from(Instant.parse(addedAt)));
 	}
 
 	// --- get ---
@@ -135,7 +137,12 @@ public class DBFavoritePlansService_UnitTest {
 		assertThat(setOnInsert.getString("planName")).isEqualTo("plan-a");
 		assertThat(setOnInsert.get("owner")).isEqualTo(USER);
 		assertThat(setOnInsert.getString("_id")).hasSize(30);
-		assertThat(setOnInsert.get("addedAt")).isNotNull();
+		// A BSON date, not an ISO-8601 string: the list is sorted on this field, and
+		// Instant.toString() varies its fractional-second width, so string ordering inverts
+		// whenever a whole-second stamp ("...:00Z") meets a sub-second one ("...:00.123Z").
+		assertThat(setOnInsert.get("addedAt")).isInstanceOf(Date.class);
+		assertThat((Date) setOnInsert.get("addedAt"))
+			.isCloseTo(Date.from(Instant.now()), 60_000);
 	}
 
 	@Test
