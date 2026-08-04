@@ -668,9 +668,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     });
     await page.goto("/schedule-test.html");
 
-    await expect
-      .poll(() => seedRequests)
-      .toBeGreaterThan(0);
+    await expect.poll(() => seedRequests).toBeGreaterThan(0);
     await expect(
       page.locator('#planSearch .oidf-test-selector__fav[aria-disabled="true"]'),
     ).toHaveCount(0);

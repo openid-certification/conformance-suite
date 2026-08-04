@@ -7,12 +7,12 @@ export default {
   title: "Components/cts-test-selector",
   component: "cts-test-selector",
   // Favorites is always-on, so selecting a family (FamilyFilter) now persists
-  // the choice to cts:test-selector-filter. Clear it (and the favorites list)
-  // before every story so a persisted filter never leaks into a sibling story
-  // that expects the default "All specifications" view.
+  // the choice to cts:test-selector-filter. Clear it before every story so a
+  // persisted filter never leaks into a sibling story that expects the default
+  // "All specifications" view. The favorites list itself needs no reset: it is
+  // server-side account data, passed in as a prop per story.
   beforeEach: () => {
     localStorage.removeItem("cts:test-selector-filter");
-    localStorage.removeItem("cts:favorite-plans");
   },
 };
 

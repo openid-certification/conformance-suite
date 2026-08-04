@@ -28,9 +28,12 @@ import "./cts-loading-state.js";
  * Favorites are surfaced as a "★ Favorites" saved view at the top of the
  * family listbox (selecting it filters the plan list to favorites only) plus
  * a per-row star toggle. The component never mutates `favorites` — the caller
- * owns persistence (localStorage via the favorites-store module today,
- * `/api/favorite-plans` later) and updates the array optimistically in
- * response to `cts-favorite-toggle`.
+ * owns persistence and updates the array optimistically in response to
+ * `cts-favorite-toggle`. In production that caller is schedule-test.html
+ * driving the favorites-store module against the auth-gated
+ * `/api/favorite-plans` API, which keys the list on the logged-in principal;
+ * the stories drive the same wiring with an in-memory fake controller, since
+ * `fetch` has no server to talk to in Storybook.
  *
  * The selected filter choice (a spec family or the ★ Favorites view) is
  * persisted component-internally to `localStorage["cts:test-selector-filter"]`
@@ -49,19 +52,22 @@ import "./cts-loading-state.js";
  *   caller order (most-recently-added last). The component renders these as
  *   starred but never mutates the array itself — exactly like `selected`. The
  *   caller owns persistence: it listens for `cts-favorite-toggle`, updates the
- *   array optimistically, and reverts on a backend failure. Backed by
- *   `localStorage` today (the favorites-store module); `/api/favorite-plans`
- *   later. The component template is identical either way.
+ *   array optimistically, and reverts on a backend failure. Server-persisted
+ *   per principal via `/api/favorite-plans`, so the list follows the user
+ *   across browsers; a name that is no longer in `plans` renders as a
+ *   removable "No longer available" row rather than vanishing.
  * @property {boolean} favoritesLoading - When set, the "★ Favorites" view
  *   count shows an ellipsis placeholder while the caller's first favorites
  *   fetch is in flight. Distinct from `loading`, which governs the whole
  *   plan list.
  * @property {boolean} canFavorite - Whether the current user can save
- *   favorites. Defaults to `true`. The caller sets it to `false` when the
- *   favorites API could not be reached (a 401 with no authenticated principal,
- *   or a network error). When `false` the per-row stars render disabled with a
- *   "Sign in to save favorites" tooltip rather than vanishing — the affordance
- *   stays discoverable — and the ★ Favorites view explains why it is empty.
+ *   favorites. Defaults to `true`. The caller sets it to `false` only when the
+ *   API answers that there is no principal (401/403) — a server fault or a
+ *   dropped connection leaves the stars enabled, since neither says anything
+ *   about who the user is. When `false` the per-row stars render disabled with
+ *   a "Sign in to save favorites" tooltip rather than vanishing — the
+ *   affordance stays discoverable — and the ★ Favorites view explains why it
+ *   is empty.
  * @fires cts-plan-select - When a list item is selected, with
  *   `{ detail: { plan, via } }` where `via` is `'click'` or `'keyboard'`;
  *   bubbles.
@@ -70,8 +76,8 @@ import "./cts-loading-state.js";
  *   `favorite` is the requested next state (`true` = add, `false` = remove),
  *   and `via` is `'click'` or `'keyboard'`; bubbles. The component does not
  *   update `favorites` in response — the caller does (optimistically), which
- *   is what lets the same event drive both the localStorage store and the
- *   future `/api/favorite-plans` wiring.
+ *   is what lets the same event drive the real `/api/favorite-plans` store and
+ *   the stories' in-memory fake through identical wiring.
  */
 
 const STYLE_ID = "cts-test-selector-styles";
@@ -81,10 +87,12 @@ const STYLE_ID = "cts-test-selector-styles";
 const FAVORITES_VIEW_VALUE = "__cts_favorites_view__";
 
 // localStorage key for the component-internal filter preference (which listbox
-// option is active). Distinct from the caller-owned "cts:favorite-plans" store
-// (the favorites list) — different lifecycle, different owner. Value schema is
-// a single JSON object `{ filter }` where `filter` is `""` (All
-// specifications), a spec-family name, or `"favorites"` (the ★ Favorites view).
+// option is active). This is the ONLY thing the component persists: which view
+// you were last looking at is a per-browser UI preference, whereas the
+// favorites list itself is account data the caller stores server-side under the
+// logged-in principal. Different lifecycle, different owner. Value schema is a
+// single JSON object `{ filter }` where `filter` is `""` (All specifications),
+// a spec-family name, or `"favorites"` (the ★ Favorites view).
 const FILTER_STORAGE_KEY = "cts:test-selector-filter";
 const FAVORITES_FILTER_SENTINEL = "favorites";
 
@@ -787,8 +795,8 @@ class CtsTestSelector extends LitElement {
 
   // Announce the user's intent to toggle a favorite. Crucially this does NOT
   // touch `this.favorites` — the caller owns that array and updates it
-  // optimistically, so the same event drives the localStorage store (today)
-  // and `/api/favorite-plans` (later) with no template change.
+  // optimistically, so the same event drives the real `/api/favorite-plans`
+  // store and the stories' in-memory fake with no template change.
   _emitFavoriteToggle(planName, favorite, via) {
     this.dispatchEvent(
       new CustomEvent("cts-favorite-toggle", {
