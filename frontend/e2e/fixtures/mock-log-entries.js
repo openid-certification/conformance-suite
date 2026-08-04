@@ -305,6 +305,36 @@ export const MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES = [
   },
 ];
 
+/**
+ * /api/log entries with neither blocks nor findings — every row is INFO, so
+ * the cts-log-viewer's block-summary list AND the failure list the rail
+ * renders both stay empty, and cts-log-toc must hide itself.
+ *
+ * Distinct from MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES: since #1866 the rail's
+ * failures come from this log stream rather than from a (nonexistent)
+ * `testInfo.results`, so a stream carrying FAILURE / INTERRUPTED rows gives
+ * the rail something to show even with no blocks. "Empty rail" now means
+ * empty on both axes.
+ */
+export const MOCK_NO_BLOCKS_NO_FINDINGS_ENTRIES = [
+  {
+    _id: "nb-1",
+    testId: "test-interrupted-noblock-001",
+    src: "TEST-RUNNER",
+    time: NOW - 9000,
+    msg: "Test instance test-interrupted-noblock-001 created",
+    result: "INFO",
+  },
+  {
+    _id: "nb-2",
+    testId: "test-interrupted-noblock-001",
+    src: "TEST-RUNNER",
+    time: NOW - 8000,
+    msg: "Test has run to completion.",
+    result: "INFO",
+  },
+];
+
 /** A block-start row with no children yet — WAITING / RUNNING state. */
 export const MOCK_EMPTY_BLOCK = [
   {

@@ -16,6 +16,7 @@ import {
   MOCK_BLOCKS_POLL_FIRST,
   MOCK_BLOCKS_POLL_SECOND,
   MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+  MOCK_NO_BLOCKS_NO_FINDINGS_ENTRIES,
   MOCK_SUCCESS_LOG,
 } from "./fixtures/mock-log-entries.js";
 
@@ -440,6 +441,261 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('[data-testid="hero-waiting"]')).toContainText(
       "The test is waiting for something to happen",
     );
+  });
+
+  test("#1895 — WAITING test with a FAILED result keeps the waiting hero and its browser slot", async ({
+    page,
+  }) => {
+    // OID4VP browser-API tests routinely sit at status=WAITING with
+    // result=FAILED: `updateResultFromConditionFailure` writes the verdict on
+    // the first failing condition, and the test keeps waiting for the wallet.
+    // The header used to dispatch on the verdict first, so it rendered the
+    // finished-fail hero — which carries no [data-slot="browser"], so
+    // renderBrowserSlot()'s `if (!slot) return` silently dropped the "Proceed
+    // with test via browser API" affordance and the run looked aborted (#1896).
+    const waitingFailedInfo = {
+      ...MOCK_TEST_RUNNING_2,
+      testId: "test-waiting-failed-001",
+      status: "WAITING",
+      result: "FAILED",
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: waitingFailedInfo,
+      logEntries: MOCK_FAILED_LOG_ENTRIES,
+    });
+    // The runner reports a browser-API prompt for this still-live test.
+    await page.route(`**/api/runner/${waitingFailedInfo.testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          browser: { urls: ["https://op.example.com/authorize?client_id=test"] },
+        }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(waitingFailedInfo.testId)}`);
+
+    const waitingHero = page.locator('[data-testid="hero-waiting"]');
+    await expect(waitingHero).toBeVisible();
+    await expect(page.locator('[data-testid="hero-failures"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="terminal-banner"]')).toHaveCount(0);
+    await expect(page.locator("cts-log-detail-header")).not.toContainText("Test failed");
+
+    // The slot is present AND the runner's prompt actually lands in it — this
+    // is the affordance open MR !2116 renders its paste-URI box into.
+    await expect(waitingHero.locator('[data-slot="browser"]')).toHaveCount(1);
+    await expect(waitingHero).toContainText("Visit one of the following URLs");
+  });
+
+  test("#1903 — a WAITING test still offers Repeat Test, and it POSTs a new run", async ({
+    page,
+  }) => {
+    // A test that timed out waiting for an incoming request had no rerun
+    // affordance anywhere: the WAITING bar omitted Repeat, the kebab never
+    // carried it, and cts-test-nav-controls drops its own copy in `slim` mode.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    /** @type {{ method: string, url: string }[]} */
+    const runnerCalls = [];
+    await page.route("**/api/runner**", (route) => {
+      const req = route.request();
+      if (req.method() === "POST") {
+        runnerCalls.push({ method: req.method(), url: req.url() });
+        // No `id` in the response, so handleRepeat reloads instead of
+        // navigating to a new instance. Returning an `id` here races the
+        // success-branch navigation against afterEach's unmocked-call check —
+        // the new page would fetch /api/info/<new id>, which nothing mocks.
+        // Same reasoning as the U4 Repeat-Test capture below.
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({}),
+        });
+      }
+      return route.fulfill({ status: 404, body: "" });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}`);
+
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
+    const repeat = page.locator('cts-log-detail-header [data-testid="status-bar-repeat"]');
+    await expect(repeat).toBeVisible();
+    await expect(repeat).toContainText("Repeat Test");
+    // Repeat is not Start (#1862): the WAITING bar still has no primary.
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+
+    await repeat.locator("button").first().click();
+    await expect.poll(() => runnerCalls.length, { timeout: 5000 }).toBeGreaterThan(0);
+    expect(new URL(runnerCalls[0].url).searchParams.get("test")).toBe(MOCK_TEST_RUNNING_2.testName);
+  });
+
+  test("#1903 — Cmd/Ctrl+Shift+X repeats from the live bar's data-action hook", async ({
+    page,
+  }) => {
+    // The shortcut used to click `[data-testid="status-bar-primary"]`, which on
+    // a live bar is Stop (running) or Start Test (needs-start) — so repointing
+    // it at `[data-action="repeat-test"]` is what makes the shortcut agree with
+    // the button in every phase. Without this, the selector change is unguarded.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    /** @type {string[]} */
+    const runnerPosts = [];
+    await page.route("**/api/runner**", (route) => {
+      const req = route.request();
+      if (req.method() === "POST") {
+        runnerPosts.push(req.url());
+        // No `id` — see the sibling test above: a navigating response would
+        // leave the follow-up /api/info/<new id> unmocked and flake afterEach.
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({}),
+        });
+      }
+      return route.fulfill({ status: 404, body: "" });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}`);
+    await expect(page.locator('cts-log-detail-header [data-action="repeat-test"]')).toBeVisible();
+
+    // Dispatched rather than driven through page.keyboard: Cmd+X is a native
+    // editing shortcut, so the real modifier is unreliable to deliver headless.
+    // A synthetic event still runs handleKeydown end-to-end, which is where the
+    // selector under test lives.
+    await page.evaluate(() => {
+      const nav = /** @type {any} */ (navigator);
+      const platform =
+        (nav.userAgentData && nav.userAgentData.platform) ||
+        nav.platform ||
+        navigator.userAgent ||
+        "";
+      const isMac = platform.toUpperCase().includes("MAC");
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "X",
+          shiftKey: true,
+          metaKey: isMac,
+          ctrlKey: !isMac,
+          bubbles: true,
+        }),
+      );
+    });
+
+    await expect.poll(() => runnerPosts.length, { timeout: 5000 }).toBeGreaterThan(0);
+    expect(new URL(runnerPosts[0]).searchParams.get("test")).toBe(MOCK_TEST_RUNNING_2.testName);
+  });
+
+  test("#1866 — findings come from the log stream when /api/info carries no results", async ({
+    page,
+  }) => {
+    // /api/info serializes net.openid.conformance.info.TestInfo, which has a
+    // singular `result` and no per-condition `results` array — verified against
+    // a live server. So the old testInfo-sourced filter always produced an
+    // empty list and the hero fell through to its placeholder, which claimed
+    // "No conditions ran before the test ended." over a full log (#1866).
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_FAILED, // no `results` key — the production shape
+      logEntries: MOCK_FAILED_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_FAILED.testId)}`);
+
+    const hero = page.locator('[data-testid="hero-failures"]');
+    await expect(hero).toBeVisible();
+    await expect(hero).toContainText("2 failures");
+    await expect(hero).toContainText("ID token signature validation failed");
+    await expect(page.locator('[data-testid="hero-findings-placeholder"]')).toHaveCount(0);
+    await expect(page.locator("cts-log-detail-header")).not.toContainText("No conditions ran");
+    // The reference chip resolves too — applyReferences now feeds the header's
+    // `references` property instead of reaching into its render output.
+    await expect(hero.locator('[data-testid="log-entry-id-chip"]').first()).toBeVisible();
+  });
+
+  test("#1866 — REVIEW findings appear in the hero list", async ({ page }) => {
+    // REVIEW was missing from the findings filter, so a test whose only
+    // findings need human review rendered an empty list — even though the
+    // headline formatter can already say "N need review".
+    const reviewInfo = {
+      ...MOCK_TEST_STATUS,
+      testId: "test-review-001",
+      status: "FINISHED",
+      result: "REVIEW",
+    };
+    const reviewEntries = [
+      {
+        _id: "rev-1",
+        testId: reviewInfo.testId,
+        src: "CheckConfig",
+        time: Date.now() - 5000,
+        msg: "Config valid",
+        result: "SUCCESS",
+      },
+      {
+        _id: "rev-2",
+        testId: reviewInfo.testId,
+        src: "ExpectLoginPage",
+        time: Date.now() - 4000,
+        msg: "Check the login page rendered correctly",
+        result: "REVIEW",
+      },
+    ];
+
+    await setupFailFast(page);
+    await setupV2Routes(page, { testInfo: reviewInfo, logEntries: reviewEntries });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(reviewInfo.testId)}`);
+
+    const hero = page.locator('[data-testid="hero-failures"]');
+    await expect(hero).toBeVisible();
+    await expect(hero).toContainText("1 needs review");
+    await expect(hero).toContainText("Check the login page rendered correctly");
+    await expect(page.locator('[data-testid="hero-findings-placeholder"]')).toHaveCount(0);
+  });
+
+  test("#1866 — the empty-findings placeholder no longer claims nothing ran", async ({ page }) => {
+    // An empty *filtered* list says nothing about whether conditions ran.
+    const noFindingsInfo = {
+      ...MOCK_TEST_FAILED,
+      testId: "test-fail-no-findings-001",
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: noFindingsInfo,
+      logEntries: [
+        {
+          _id: "nf-1",
+          testId: noFindingsInfo.testId,
+          src: "CheckConfig",
+          time: Date.now() - 5000,
+          msg: "Config valid",
+          result: "SUCCESS",
+        },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(noFindingsInfo.testId)}`);
+
+    const placeholder = page.locator('[data-testid="hero-findings-placeholder"]');
+    await expect(placeholder).toBeVisible();
+    await expect(placeholder).toContainText("No findings were recorded for this test.");
+    await expect(page.locator("cts-log-detail-header")).not.toContainText("No conditions ran");
   });
 
   test("#1862 — CONFIGURED test shows Start Test and clicking it POSTs the start", async ({
@@ -1042,6 +1298,112 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // up to two 3s poll cycles so the assertion never flakes under slow CI (the
     // default 5s window is marginal against the 3s cadence).
     await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/, { timeout: 8000 });
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
+  });
+
+  test("#1895: a live WAITING+FAILED test's own segment does not announce the verdict", async ({
+    page,
+  }) => {
+    // Same-page contradiction: the hero reads "Test waiting" while the progress
+    // bar three rows above it painted a red FAILED segment, because the runner
+    // writes `result` on the first failing condition and statusBadgeVariant
+    // lets any settled verdict win. syncCurrentSegmentStatus drops the verdict
+    // while the polled status is live, so the two agree.
+    await setupFailFast(page);
+    const waitingFailed = {
+      ...MOCK_TEST_RUNNING_2,
+      testId: "test-waiting-failed-seg-001",
+      status: "WAITING",
+      result: "FAILED",
+    };
+    const planModules = makePlanModules(2, {
+      markedIndex: 0,
+      markedInstances: [waitingFailed.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: waitingFailed,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    // Delay the viewed test's /api/info so the page-load fan-out's render
+    // flushes before the first poll can correct it. Without this the two land
+    // in the same Lit update and the flash is coalesced away — invisible to the
+    // test, but not to a user on a real server, where the round-trip is real.
+    await page.route(`**/api/info/${waitingFailed.testId}*`, async (route) => {
+      await new Promise((r) => setTimeout(r, 150));
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(waitingFailed),
+      });
+    });
+    await setupCommonRoutes(page);
+
+    // Record every class the watched segment ever carries, starting BEFORE
+    // navigation. Asserting `not.toHaveClass` instead would be wait-until-true:
+    // it resolves the instant the class is absent and never looks again, so
+    // both a load-time flash and a later poll repainting --fail would pass.
+    // The page-load fan-out resolves segment colour before polling begins, so a
+    // recorder attached after load misses the flash entirely.
+    await page.addInitScript(() => {
+      const seen = new Set();
+      const w = /** @type {any} */ (window);
+      w.__segClasses = seen;
+      // Sampled per animation frame, from the empty document onward. (An
+      // observer on document.documentElement is not an option here: it is null
+      // when init scripts run, so observe() throws and the recorder never
+      // starts.) The route delay below holds the flash across many frames.
+      const tick = () => {
+        for (const el of document.querySelectorAll('[data-testid="plan-status-segment"]')) {
+          if (el.closest('cts-plan-status[data-testid="progress"]')) seen.add(el.className);
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(waitingFailed.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(2);
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
+
+    // Watch across more than two 3s sync cycles so a verdict written by any
+    // later poll lands inside the sampled window. The recorder was installed
+    // before navigation, so the window also covers page load — where the
+    // fan-out resolves segment colour before polling even starts.
+    //
+    // Scope note: with routes mocked this cannot reproduce the load-time flash
+    // that a real server's round-trip produces (Lit coalesces the fan-out and
+    // first-poll renders into one update). `liveSegmentResult` closes that
+    // window by construction — both writers suppress the verdict — rather than
+    // by timing. What this asserts is the durable property: across load and
+    // several sync cycles the segment never once claims a verdict.
+    await page.waitForTimeout(7000);
+
+    const allSeen = await page.evaluate(() => {
+      const w = /** @type {any} */ (window);
+      return [...(w.__segClasses || [])];
+    });
+    // Sanity-check the recorder itself: an empty set would make the assertion
+    // below vacuously true, which is the failure mode this whole rewrite exists
+    // to avoid.
+    expect(allSeen.length).toBeGreaterThan(0);
+    expect(allSeen.some((c) => c.includes("cts-pst-seg--fail"))).toBe(false);
+
+    // Still live, and still not claiming a verdict, at the end of the window.
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
+    await expect(segments.nth(0)).not.toHaveClass(/cts-pst-seg--fail/);
+    // The untouched sibling still resolves normally — suppression is scoped to
+    // the viewed instance, not applied to every segment.
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
   });
 
@@ -2305,17 +2667,10 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // hides whichever doesn't apply at the current breakpoint
     // (`render-twice-hide-one`).
     // Plan: docs/plans/2026-04-26-005-feat-extract-cts-failure-summary-plan.md
-    const failedTestInfo = {
-      ...MOCK_TEST_FAILED,
-      results: [
-        {
-          _id: "swap-r1",
-          result: "FAILURE",
-          src: "ValidateIdToken",
-          msg: "Signature invalid",
-        },
-      ],
-    };
+    // No `results` on the info payload — that is the production shape, and
+    // since #1866 both summaries derive their rows from the /api/log stream
+    // (here MOCK_FAILED_LOG_ENTRIES, whose first finding is `f-2`).
+    const failedTestInfo = MOCK_TEST_FAILED;
 
     await setupFailFast(page);
     await setupV2Routes(page, {
@@ -2387,7 +2742,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         if (failure) /** @type {HTMLElement} */ (failure).click();
       });
     });
-    expect(eventDetail).toMatchObject({ entryId: "swap-r1" });
+    expect(eventDetail).toMatchObject({ entryId: "f-2" });
   });
 
   test("entries stream does not overflow horizontally at 375px viewport", async ({ page }) => {
@@ -2593,10 +2948,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // Wide viewport — the two-column grid only activates at ≥ 1440px,
     // so this assertion is meaningful only above that breakpoint.
     await page.setViewportSize({ width: 1500, height: 900 });
-    // Mirror the production /api/info shape for an interrupted-before-
-    // results test: no `results` array at all (selectFailures() in
-    // log-detail.js then returns []). MOCK_TEST_STATUS already omits
-    // `results`, so the spread copy inherits the right shape.
+    // Mirror the production /api/info shape: no `results` array at all —
+    // MOCK_TEST_STATUS already omits it, so the spread copy inherits the
+    // right shape. The log stream must ALSO be finding-free, because since
+    // #1866 the rail's failure list is derived from the entries rather than
+    // from `testInfo.results`: a stream with FAILURE / INTERRUPTED rows now
+    // (correctly) gives the rail something to render even with no blocks.
     const interruptedInfo = {
       ...MOCK_TEST_STATUS,
       testId: "test-interrupted-noblock-001",
@@ -2605,7 +2962,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     };
     await setupV2Routes(page, {
       testInfo: interruptedInfo,
-      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+      logEntries: MOCK_NO_BLOCKS_NO_FINDINGS_ENTRIES,
     });
     await setupCommonRoutes(page);
 
@@ -4175,7 +4532,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     };
     await setupV2Routes(page, {
       testInfo: interruptedInfo,
-      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+      // No blocks AND no findings — see the fixture's note: since #1866 a
+      // stream carrying FAILURE rows would populate the rail's failure list.
+      logEntries: MOCK_NO_BLOCKS_NO_FINDINGS_ENTRIES,
     });
     await setupCommonRoutes(page);
 
