@@ -313,6 +313,58 @@ export const ViewCountAndUnstarUpdateLive = {
         expect(viewOption(host).textContent).toContain("★ Favorites (1)");
       });
     });
+
+    await step("focus lands on the row that took the vacated position", async () => {
+      // Rows are rendered by a plain .map, so Lit reuses their DOM by
+      // position: without an explicit repair the star the user just pressed
+      // keeps focus while now representing the NEXT plan, and the following
+      // keystroke silently unstars the wrong one.
+      const active = host.ownerDocument.activeElement;
+      expect(active).toBeTruthy();
+      expect(active.classList.contains("oidf-test-selector__row")).toBe(true);
+      expect(active.getAttribute("data-plan-name")).toBe(OIDCC_BASIC);
+      // The roving tabindex must agree with where focus actually is, or the
+      // next ArrowDown/ArrowUp roves from a stale origin.
+      expect(active.getAttribute("tabindex")).toBe("0");
+    });
+  },
+};
+
+/**
+ * Unstarring the LAST favorite empties the view. Rows are tabindex="-1", so
+ * focus falling to <body> here strands the keyboard user outside the list with
+ * no way to Tab back in — it must land on a real tab stop instead.
+ */
+export const ViewUnstarLastFavoriteMovesFocusToEscapeHatch = {
+  render: () => html`
+    <cts-test-selector .plans=${MOCK_PLANS} .favorites=${[FAV]}></cts-test-selector>
+  `,
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+    wireOptimistic(host);
+
+    await step("enter the favorites view with a single favorite", async () => {
+      await selectFavoritesView(host);
+      await waitFor(() => expect(mainRows(host).length).toBe(1));
+    });
+
+    await step("unstarring it empties the list", async () => {
+      await userEvent.click(starFor(host, FAV));
+      await waitFor(() => {
+        expect(mainRows(host).length).toBe(0);
+        expect(host.querySelector(".oidf-test-selector__empty").textContent).toContain(
+          "No favorites yet",
+        );
+      });
+    });
+
+    await step("focus moves to the escape hatch, not <body>", async () => {
+      const active = host.ownerDocument.activeElement;
+      expect(active).toBeTruthy();
+      expect(active.tagName).not.toBe("BODY");
+      expect(active.classList.contains("oidf-test-selector__escape-link")).toBe(true);
+    });
   },
 };
 

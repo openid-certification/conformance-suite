@@ -554,6 +554,12 @@ class CtsTestSelector extends LitElement {
     // BEFORE keyup, so a keyup-driven dispatch would land after the
     // click handler already ran). Cleared after each click dispatch.
     this._activationVia = null;
+    // Pre-render snapshot of the list, captured in willUpdate() whenever
+    // `favorites` changes, so updated() can tell a favorites-driven shrink
+    // from any other re-render and put focus somewhere sensible. Plain fields,
+    // not reactive state — they describe the render that just happened.
+    this._rowCountBeforeUpdate = 0;
+    this._focusedRowIndexBeforeUpdate = -1;
   }
 
   connectedCallback() {
@@ -831,6 +837,63 @@ class CtsTestSelector extends LitElement {
     }
   }
 
+  // Snapshot where focus sits in the currently-rendered list, before the
+  // incoming `favorites` value re-renders it. Unstarring inside the ★ Favorites
+  // view drops the row the user is standing on, and rows are keyed by position
+  // (a plain .map, not repeat()), so without this the focused button silently
+  // comes to represent a *different* plan — or, if the last row went, focus
+  // falls to <body> and Tab cannot get back in (rows are tabindex="-1").
+  willUpdate(changed) {
+    if (!changed.has("favorites")) return;
+    const list = this.querySelector(".oidf-test-selector__list");
+    const active = this.ownerDocument ? this.ownerDocument.activeElement : null;
+    if (!list || !active || !list.contains(active)) {
+      this._rowCountBeforeUpdate = 0;
+      this._focusedRowIndexBeforeUpdate = -1;
+      return;
+    }
+    const rows = list.querySelectorAll(".oidf-test-selector__row");
+    this._rowCountBeforeUpdate = rows.length;
+    // Focus may be on the row itself or on its sibling star; both live inside
+    // the same item wrapper. A stale-favorite item has no row, and stale rows
+    // render after the live ones, so treat it as sitting past the last row —
+    // the clamp below then lands focus on the last live row.
+    const item = active.closest(".oidf-test-selector__item");
+    const row = item ? item.querySelector(".oidf-test-selector__row") : null;
+    const index = row ? Number(row.getAttribute("data-index")) : rows.length;
+    this._focusedRowIndexBeforeUpdate = Number.isFinite(index) ? index : -1;
+  }
+
+  // Focus repair for a favorites-driven shrink: land on the row that now
+  // occupies the vacated position (clamped to the last row), which is the row
+  // that visually slid up under the user's cursor. When the list empties there
+  // is no row left, so fall back to the escape hatch, then the search input —
+  // both are real tab stops, unlike the rows.
+  _restoreFocusAfterFavoritesShrink() {
+    const list = this.querySelector(".oidf-test-selector__list");
+    if (!list) return;
+    const rows = list.querySelectorAll(".oidf-test-selector__row");
+    if (rows.length === 0) {
+      const escapeHatch = /** @type {HTMLElement | null} */ (
+        this.querySelector(".oidf-test-selector__escape-link")
+      );
+      const search = /** @type {HTMLElement | null} */ (
+        this.querySelector(".oidf-test-selector__search")
+      );
+      this._focusedRowIndex = -1;
+      if (escapeHatch) escapeHatch.focus();
+      else if (search) search.focus();
+      return;
+    }
+    const index = Math.min(Math.max(this._focusedRowIndexBeforeUpdate, 0), rows.length - 1);
+    // Keep the roving tabindex in step with where focus actually is, then move
+    // focus explicitly: the index often has not changed (the row at position i
+    // was replaced, not renumbered), so the _focusedRowIndex branch above would
+    // not re-run on its own.
+    this._focusedRowIndex = index;
+    /** @type {HTMLElement} */ (rows[index]).focus();
+  }
+
   updated(changed) {
     // After the post-render commit, move real DOM focus to the row that
     // the index now points at. Running here (not inside the keydown
@@ -842,6 +905,19 @@ class CtsTestSelector extends LitElement {
       const rows = list ? list.querySelectorAll(".oidf-test-selector__row") : [];
       const target = /** @type {HTMLElement | undefined} */ (rows[this._focusedRowIndex]);
       if (target) target.focus();
+    }
+    // A favorites change that removed rows the user was standing in: repair
+    // focus before the next keystroke acts on whatever slid into place. Gated
+    // on the shrink, so starring from another view (where the row count is
+    // unchanged) never steals focus.
+    if (changed.has("favorites") && this._focusedRowIndexBeforeUpdate >= 0) {
+      const list = this.querySelector(".oidf-test-selector__list");
+      const rowCount = list ? list.querySelectorAll(".oidf-test-selector__row").length : 0;
+      if (rowCount < this._rowCountBeforeUpdate) {
+        this._restoreFocusAfterFavoritesShrink();
+      }
+      this._focusedRowIndexBeforeUpdate = -1;
+      this._rowCountBeforeUpdate = 0;
     }
     // A restored family filter that no longer matches the (now-loaded) plans
     // falls back to "All specifications". Guarded on a non-empty `plans` so
