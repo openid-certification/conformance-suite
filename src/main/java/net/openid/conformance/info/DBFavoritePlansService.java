@@ -33,6 +33,15 @@ import java.util.List;
  *
  * <p>This is multi-record-per-owner, mirroring {@code DBTokenService}, rather than the
  * single-latest-record approach of {@link DBSavedConfigurationService}.
+ *
+ * <p><b>Private-link viewers.</b> Every method here keys on
+ * {@code AuthenticationFacade.getPrincipal()}, and for a private-link viewer
+ * {@code OIDCAuthenticationFacade.getPrincipal()} returns the SHARED ASSET OWNER — not the viewer.
+ * A private-link viewer reaching these methods would therefore read and mutate the sharer's
+ * favorites. That is prevented one layer up: the private-link rule in
+ * {@code WebSecurityResourceServerConfig} denies every API route outside a small read-only
+ * allowlist, and {@code /api/favorite-plans} is deliberately not on it. Do not add it.
+ * {@code FavoritePlansEndpointSecurity_UnitTest} pins both halves of that.
  */
 @Service
 public class DBFavoritePlansService implements FavoritePlansService {
