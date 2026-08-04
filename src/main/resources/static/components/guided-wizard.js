@@ -667,6 +667,9 @@ export function startGuidedJourney(modeController, deps) {
   // backtrack. Guided internal navigation is button-based, so no link
   // interceptor is needed.
   let guidedDirty = false;
+  // Monotonic create-attempt counter. Only the latest attempt is allowed to
+  // render its outcome, so a superseded failure cannot clobber a newer one.
+  let createAttempt = 0;
   window.addEventListener("beforeunload", (e) => {
     if (guidedDirty && modeController.getMode() === "guided") {
       e.preventDefault();
@@ -1369,8 +1372,18 @@ export function startGuidedJourney(modeController, deps) {
   }
 
   /**
-   * Render the normalized create failure inline on the config step — the
-   * journey (answers + config) stays exactly where it was (R5).
+   * Surface the normalized create failure on the config step — the journey
+   * (answers + config) stays exactly where it was (R5).
+   *
+   * The inline alert alone is not enough to be seen: #guidedConfigError sits
+   * at the very top of the config stage while the "Create test plan" button
+   * the user just pressed lives in the viewport-pinned action bar at the
+   * bottom. On a long config form the alert renders several screens away, so
+   * the click reads as "nothing happened" (#1860). Three surfaces fix that:
+   * scroll the alert into view, move focus to it (so keyboard users land on
+   * the message and Tab continues from there), and fire a toast next to where
+   * the user was actually looking.
+   *
    * @param {string} code
    * @param {string} message
    */
@@ -1379,11 +1392,36 @@ export function startGuidedJourney(modeController, deps) {
     if (!box) return;
     const alert = document.createElement("cts-alert");
     alert.setAttribute("variant", "danger");
+    // Script-focusable only — the alert must not join the tab order.
+    alert.setAttribute("tabindex", "-1");
     alert.textContent = code
       ? `Creating the test plan failed (HTTP ${code}): ${message}`
       : `Creating the test plan failed: ${message}`;
-    box.replaceChildren(alert);
+    // Un-hide BEFORE inserting. hideConfigError() leaves the box hidden, and
+    // cts-alert renders its own role="alert" div on connect — inserted into a
+    // display:none subtree that live region never fires, and later un-hiding
+    // an ancestor is not a content mutation, so it would never fire at all.
+    // Inserting into an already-visible box is what makes it announce.
     box.hidden = false;
+    box.replaceChildren(alert);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    alert.scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth", block: "center" });
+    // Focus is for placement, not for announcing: it puts keyboard users on
+    // the message and makes Tab continue from here. The announcement comes
+    // from the role="alert" insertion above (the host itself carries no role
+    // or name — it is only the scroll/focus anchor).
+    alert.focus({ preventScroll: true });
+
+    const toast = /** @type {any} */ (window).ctsToast;
+    if (typeof toast === "function") {
+      toast({ title: "Couldn't create test plan", message, kind: "error" });
+    } else {
+      // Unreachable on schedule-test.html — js/cts-toast-api.js is a deferred
+      // module imported in <head>, so it has evaluated long before a create
+      // can be attempted. Log rather than swallow so a regression (module
+      // fetch failure, import dropped in a page restructure) is observable.
+      console.warn("[guided-wizard] window.ctsToast not available — toast skipped");
+    }
   }
 
   /** @param {boolean} pending */
@@ -1424,6 +1462,7 @@ export function startGuidedJourney(modeController, deps) {
 
     writeRecoveryRecord();
     setCreatePending(true);
+    const attempt = ++createAttempt;
     try {
       const data = await deps.createPlan(result.plan_name, variant, state.configValues);
       clearRecoveryRecord();
@@ -1433,8 +1472,18 @@ export function startGuidedJourney(modeController, deps) {
     } catch (error) {
       setCreatePending(false);
       const { code, message } = await deps.normalizeCreateError(error);
+      // A newer create started while this failure was still being normalized
+      // (reading the response body is a real async gap). Dropping the stale
+      // result matters more now than it used to: showConfigError scrolls and
+      // steals focus, so a superseded error would yank the user away from the
+      // retry that is currently in flight — or from a page already navigating
+      // away because the retry succeeded.
+      if (attempt !== createAttempt) return;
       showConfigError(code, message);
-      announce("Creating the test plan failed. " + message);
+      // No announce() here: showConfigError inserts a role="alert" element
+      // into an already-visible container, so that assertive live region
+      // fires on its own. A second, differently-worded live-region write
+      // only repeats the same sentence.
     }
   }
 

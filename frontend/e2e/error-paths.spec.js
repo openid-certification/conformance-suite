@@ -423,4 +423,121 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
     await expect(entitySelect).toHaveValue("client-basic");
   });
+
+  /**
+   * `FAPI_UI.showError()` used to call `#errorModal.show()` unconditionally.
+   * cts-modal is a lazily-upgraded custom element and the page CSS hides
+   * `cts-modal:not(:defined)`, so on a page whose component module failed to
+   * load the call threw a TypeError against a plain unknown element and the
+   * user was told nothing at all. Blocking the module reproduces that; the
+   * error must still reach the user, now via the toast fallback (#1860).
+   */
+  test("cts-modal module unavailable: the create failure falls back to a toast", async ({
+    page,
+  }) => {
+    const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
+
+    await setupFailFast(page);
+    await page.route("**/components/cts-modal.js", (route) => route.abort());
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ code: 400, error: "invalid plan configuration" }),
+        });
+      }
+      return route.fallback();
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    const entitySelect = page.locator("#entitySelect");
+    await expect(entitySelect).toBeVisible();
+    await entitySelect.selectOption("client-basic");
+
+    const createBtn = page.locator("#createPlanBtn");
+    await expect(createBtn).toBeEnabled({ timeout: 5000 });
+    await createBtn.click();
+
+    // The modal element exists but never upgraded, so it shows nothing...
+    await expect(page.locator("#errorModal")).toBeHidden();
+    // ...and the toast carries the error instead.
+    await expect(page.locator("cts-toast-host cts-toast")).toContainText("Bad Request");
+
+    // The user is still on the page with their selections intact.
+    await expect(page).toHaveURL(/\/schedule-test\.html/);
+    await expect(entitySelect).toHaveValue("client-basic");
+  });
+
+  /**
+   * The last rung of the same degrade chain: with neither the modal nor the
+   * toast available, `showError()` must still reach the user via a native
+   * `alert()`. Without it the branch is unexercised and a future refactor
+   * could silently drop the only remaining surface.
+   */
+  test("neither cts-modal nor the toast API: the create failure falls back to alert()", async ({
+    page,
+  }) => {
+    const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
+
+    await setupFailFast(page);
+    await page.route("**/components/cts-modal.js", (route) => route.abort());
+    await page.route("**/js/cts-toast-api.js", (route) => route.abort());
+
+    /** @type {string[]} */
+    const dialogs = [];
+    page.on("dialog", (dialog) => {
+      dialogs.push(dialog.message());
+      return dialog.dismiss();
+    });
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ code: 400, error: "invalid plan configuration" }),
+        });
+      }
+      return route.fallback();
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    const entitySelect = page.locator("#entitySelect");
+    await expect(entitySelect).toBeVisible();
+    await entitySelect.selectOption("client-basic");
+
+    const createBtn = page.locator("#createPlanBtn");
+    await expect(createBtn).toBeEnabled({ timeout: 5000 });
+    await createBtn.click();
+
+    await expect.poll(() => dialogs.join("\n")).toContain("Bad Request");
+  });
 });
