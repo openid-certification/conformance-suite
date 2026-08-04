@@ -1060,6 +1060,22 @@
             onSecurityProfileChange();
         }
 
+        // Lay the user's still-unresolved star presses back over a server list.
+        // Used when the seed GET lands after the user has already toggled
+        // something: the server list is the baseline, and each decision whose
+        // write has not settled yet is re-applied on top so the optimistic UI
+        // survives. A pending unstar drops the plan; a pending star appends it
+        // (insertion order, matching the store).
+        function applyPendingToggles(serverPlans, pendingToggles) {
+            var next = serverPlans.filter(function (name) {
+                return pendingToggles.get(name) !== false;
+            });
+            pendingToggles.forEach(function (wanted, plan) {
+                if (wanted && next.indexOf(plan) === -1) next.push(plan);
+            });
+            return next;
+        }
+
         function loadAvailablePlans() {
             return fetch('/api/plan/available')
                 .then((response) => {
@@ -1104,21 +1120,33 @@
                                 var favController = window.__favoritesController;
                                 var attachFav = window.__attachFavorites;
                                 if (!favController || !attachFav) return;
-                                // A star clicked while the seed GET is still in
-                                // flight already owns `favorites`: attachFav
-                                // updated it optimistically and its own
-                                // response will reconcile it. Letting the
-                                // seed's older snapshot land on top would
-                                // silently undo that write, leaving the UI and
-                                // the server disagreeing until the next reload.
-                                // Registering the listener before attachFav
-                                // does not matter — both run synchronously on
-                                // the same event, and the seed only reads the
-                                // flag a microtask later.
-                                var favoritesMutated = false;
-                                planSearch.addEventListener('cts-favorite-toggle', function () {
-                                    favoritesMutated = true;
-                                }, { once: true });
+                                // Reconciling the seed GET against stars the
+                                // user presses while it is still open. Two
+                                // facts decide whether the seed's answer is
+                                // still worth applying when it lands:
+                                //
+                                //  - a write that SUCCEEDED returned the full
+                                //    updated set, which is newer than anything
+                                //    the seed can say, so the seed is dropped;
+                                //  - a write still IN FLIGHT is showing
+                                //    optimistically, so the seed supplies the
+                                //    baseline underneath it and the pending
+                                //    decision is re-applied on top.
+                                //
+                                // A write that FAILED makes the seed neither
+                                // stale nor overlaid: attachFavorites reverted
+                                // it against whatever `favorites` held at page
+                                // load — a placeholder, not the truth — so the
+                                // seed's answer is exactly what should be
+                                // shown. (Discarding it there was the bug: a
+                                // failed star during the seed window hid every
+                                // real favorite behind "No favorites yet" for
+                                // the rest of the page-load.)
+                                var pendingToggles = new Map();
+                                var seedSuperseded = false;
+                                planSearch.addEventListener('cts-favorite-toggle', function (e) {
+                                    pendingToggles.set(e.detail.plan, e.detail.favorite);
+                                });
                                 // Show "★ Favorites (…)" rather than a
                                 // confident "(0)" while the seed is open —
                                 // the count is unknown until it lands, and
@@ -1126,13 +1154,15 @@
                                 // races the seed.
                                 planSearch.favoritesLoading = true;
                                 favController.get().then(function (res) {
-                                    if (!favoritesMutated) {
-                                        planSearch.favorites = (res && res.plans) || [];
+                                    if (!seedSuperseded) {
+                                        planSearch.favorites = applyPendingToggles(
+                                            (res && res.plans) || [], pendingToggles);
                                     }
                                     planSearch.canFavorite = true;
                                 }).catch(function (err) {
-                                    if (!favoritesMutated) {
-                                        planSearch.favorites = [];
+                                    if (!seedSuperseded) {
+                                        planSearch.favorites =
+                                            applyPendingToggles([], pendingToggles);
                                     }
                                     // Only an auth answer means "not signed
                                     // in": the stars then render as a
@@ -1151,7 +1181,15 @@
                                 }).finally(function () {
                                     planSearch.favoritesLoading = false;
                                 });
-                                attachFav(planSearch, favController);
+                                attachFav(planSearch, favController, {
+                                    onSettled: function (plan, favorite, ok) {
+                                        pendingToggles.delete(plan);
+                                        // Only a successful write outranks the
+                                        // seed; a failed one leaves the server
+                                        // exactly as the seed described it.
+                                        if (ok) seedSuperseded = true;
+                                    }
+                                });
                             });
                         }
                     }

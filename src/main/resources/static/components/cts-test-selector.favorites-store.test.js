@@ -188,4 +188,40 @@ describe("attachFavorites", () => {
     expect(host.favorites).toEqual(["B"]); // A reverted, B preserved
     expect(c.snapshot()).toEqual(["B"]);
   });
+
+  it("reports each write's outcome through onSettled", async () => {
+    // The page reconciles its seed GET against these outcomes: a success makes
+    // the seed stale, a failure does not (it leaves `favorites` back at the
+    // page-load placeholder, so the seed's answer is still the one to show).
+    const c = createFakeFavoritesController({ latency: 5, failOn: "A" });
+    const host = fakeHost();
+    /** @type {Array<[string, boolean, boolean]>} */
+    const settled = [];
+    attachFavorites(
+      /** @type {HTMLElement & { favorites: string[] }} */ (/** @type {unknown} */ (host)),
+      c,
+      { onSettled: (plan, favorite, ok) => settled.push([plan, favorite, ok]) },
+    );
+
+    host.emit("cts-favorite-toggle", { plan: "A", favorite: true });
+    host.emit("cts-favorite-toggle", { plan: "B", favorite: true });
+    expect(settled).toEqual([]); // nothing has settled while the writes are open
+
+    await new Promise((r) => setTimeout(r, 20));
+    expect(settled).toContainEqual(["A", true, false]);
+    expect(settled).toContainEqual(["B", true, true]);
+    expect(settled).toHaveLength(2);
+  });
+
+  it("works without an onSettled hook", async () => {
+    const c = createFakeFavoritesController({ failOn: "A" });
+    const host = fakeHost();
+    attachFavorites(
+      /** @type {HTMLElement & { favorites: string[] }} */ (/** @type {unknown} */ (host)),
+      c,
+    );
+    host.emit("cts-favorite-toggle", { plan: "A", favorite: true });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(host.favorites).toEqual([]);
+  });
 });

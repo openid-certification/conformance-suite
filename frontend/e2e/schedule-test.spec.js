@@ -733,6 +733,71 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(favoritesView).toHaveText(/★ Favorites \(1\)/);
   });
 
+  test("R7: a star that FAILS during the seed fetch still reveals the saved favorites", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await setupCommonRoutes(page);
+
+    // The user already has two favorites on the server. The seed is held open,
+    // a third star is pressed during that window, and its write fails — so the
+    // revert puts `favorites` back to the page-load placeholder, NOT to the
+    // saved pair. The seed's answer is the only thing that knows about them,
+    // and it must still be applied.
+    const SEED_DELAY_MS = 1500;
+    const SAVED = ["oidcc-basic-certification-test-plan", "fapi-ciba-id1-test-plan"];
+    const DOOMED = "fapi2-security-profile-final-test-plan";
+    await page.route("**/api/favorite-plans**", async (route) => {
+      if (route.request().method() === "GET") {
+        await new Promise((resolve) => setTimeout(resolve, SEED_DELAY_MS));
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ plans: SAVED }),
+        });
+      }
+      // Slow enough that the optimistic press is observable, but settling well
+      // BEFORE the seed lands — the exact ordering that used to lose the saved
+      // favorites, since the write was already over by the time the seed had
+      // an answer to apply.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return route.fulfill({ status: 500, body: "" });
+    });
+
+    await page.goto("/schedule-test.html");
+
+    const doomedStar = page.locator(`#planSearch [data-favorite-plan="${DOOMED}"]`);
+    await expect(doomedStar).toHaveAttribute("aria-pressed", "false");
+    await doomedStar.click();
+    await expect(doomedStar).toHaveAttribute("aria-pressed", "true");
+    // The write fails and the optimistic star is reverted.
+    await expect(doomedStar).toHaveAttribute("aria-pressed", "false");
+
+    // Outlive the seed, then confirm the two saved favorites are visible —
+    // the failed write must not have suppressed them.
+    await page.waitForTimeout(SEED_DELAY_MS + 500);
+    for (const plan of SAVED) {
+      await expect(page.locator(`#planSearch [data-favorite-plan="${plan}"]`)).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    }
+    await expect(doomedStar).toHaveAttribute("aria-pressed", "false");
+    await expect(page.locator("#planSearch .oidf-test-selector__family-view")).toHaveText(
+      /★ Favorites \(2\)/,
+    );
+  });
+
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
     await setupFailFast(page);
 

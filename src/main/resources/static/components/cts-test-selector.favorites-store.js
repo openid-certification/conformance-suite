@@ -133,9 +133,20 @@ export function createFavoritesController({ baseUrl = DEFAULT_BASE_URL, fetchImp
  *   add: (name: string) => Promise<{ plans: string[] }>,
  *   remove: (name: string) => Promise<{ plans: string[] }>,
  * }} controller - The persistence controller to drive.
+ * @param {object} [options] - Optional hooks.
+ * @param {(plan: string, favorite: boolean, ok: boolean) => void} [options.onSettled] - Called
+ *   once per write when it finishes, with the outcome. Writes are the only thing that can make
+ *   a caller's other in-flight request (notably the page's initial seed GET) stale, and a
+ *   *failed* write makes nothing stale — it leaves `favorites` back at whatever baseline the
+ *   optimistic edit started from, which on a fresh page load is a placeholder rather than the
+ *   truth. A caller reconciling several responses needs both facts, and neither is observable
+ *   from the toggle event alone.
  * @returns {() => void} A detach function that removes the listener.
  */
-export function attachFavorites(host, controller) {
+export function attachFavorites(host, controller, { onSettled } = {}) {
+  const settled = (/** @type {string} */ plan, /** @type {boolean} */ favorite, ok) => {
+    if (typeof onSettled === "function") onSettled(plan, favorite, ok);
+  };
   const handler = async (/** @type {Event} */ e) => {
     const { plan, favorite } = /** @type {CustomEvent} */ (e).detail;
     // Optimistic: append on add (insertion order), filter out on remove.
@@ -145,7 +156,8 @@ export function attachFavorites(host, controller) {
     try {
       const { plans } = favorite ? await controller.add(plan) : await controller.remove(plan);
       host.favorites = plans;
-    } catch {
+      settled(plan, favorite, true);
+    } catch (err) {
       // Revert ONLY this plan's optimistic change, computed against the
       // *current* favorites (not a snapshot captured before the await): an
       // add-failure removes the plan, a remove-failure re-adds it. This keeps
@@ -168,6 +180,7 @@ export function attachFavorites(host, controller) {
           kind: "error",
         });
       }
+      settled(plan, favorite, false);
     }
   };
   host.addEventListener("cts-favorite-toggle", handler);
