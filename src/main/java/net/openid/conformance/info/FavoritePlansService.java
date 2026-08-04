@@ -12,9 +12,10 @@ import java.util.List;
 public interface FavoritePlansService {
 
 	/**
-	 * Maximum favorites one user may hold. A bound on what an authenticated client can write
-	 * through this API, not a product limit anyone is expected to reach — the picker lists a few
-	 * hundred plans in total.
+	 * The point past which an add is declined — a guard rail on sequential growth, not a hard
+	 * quota: the check reads the current count before writing, so concurrent adds at the
+	 * boundary can overshoot it. Not a product limit anyone is expected to reach either; the
+	 * picker lists a few hundred plans in total.
 	 */
 	int MAX_FAVORITES_PER_USER = 100;
 

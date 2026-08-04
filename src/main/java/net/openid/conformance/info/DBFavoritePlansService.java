@@ -82,10 +82,15 @@ public class DBFavoritePlansService implements FavoritePlansService {
 			throw new IllegalStateException("No user found");
 		}
 
-		// Cap what one account can write through this API. The check is advisory: two adds racing
-		// at the boundary can both pass it and leave the user one over. That is fine — the bound
-		// exists to stop unbounded growth, and the unique owner+planName index means the real
-		// ceiling is the number of distinct plan names in any case.
+		// Cap what one account can write through this API. This bounds SEQUENTIAL growth only,
+		// and it is read-then-write: N adds issued concurrently at the boundary can all observe
+		// a count below the cap and all proceed, so the stored total can overshoot by roughly
+		// the number of requests in flight. Nothing here is a hard ceiling — the unique
+		// owner+planName index only stops the same plan being stored twice, and plan names are
+		// deliberately not validated against the plan registry (favorites outlive a plan being
+		// renamed or retired), so a determined client can pick arbitrary distinct strings.
+		// Enforcing a true limit would need a conditional write or a per-owner counter document;
+		// this is a guard rail, not a quota.
 		Query owned = new Query(new Criteria("owner").is(user));
 		if (mongoTemplate.count(owned, COLLECTION) >= MAX_FAVORITES_PER_USER) {
 			// Only re-adding something already favorited is still allowed at the cap, so a client
