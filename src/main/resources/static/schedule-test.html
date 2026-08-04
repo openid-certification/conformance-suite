@@ -1183,7 +1183,18 @@
                                 });
                                 attachFav(planSearch, favController, {
                                     onSettled: function (plan, favorite, ok) {
-                                        pendingToggles.delete(plan);
+                                        // Retire only the decision this write
+                                        // carried. Toggling the same plan twice
+                                        // before the first write returns leaves
+                                        // a NEWER intent recorded here, and an
+                                        // unconditional delete would erase it.
+                                        // Compared strictly, never for
+                                        // truthiness: an unstar records `false`
+                                        // and a missing entry reads `undefined`,
+                                        // so the two can't be confused.
+                                        if (pendingToggles.get(plan) === favorite) {
+                                            pendingToggles.delete(plan);
+                                        }
                                         // Only a successful write outranks the
                                         // seed; a failed one leaves the server
                                         // exactly as the seed described it.
