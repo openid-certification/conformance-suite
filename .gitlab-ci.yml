@@ -262,10 +262,12 @@ frontend_lint:
 # history to find the baseline build on an ancestor commit; without it every
 # build is treated as new and snapshot diffs are meaningless.
 #
-# The `changes:` filter skips the job for backend-only pushes — each run
+# The `rules:changes` filter skips the job for backend-only work — each run
 # snapshots all ~650 stories, which counts against the Chromatic plan's
-# monthly snapshot quota. Chromatic tolerates the gaps: baseline lookup walks
-# ancestor commits until it finds the last published build.
+# monthly snapshot quota. On branches the diff is taken against the merge
+# base with master (compare_to), so backend-only branches never run it; on
+# master it is the push diff. Chromatic tolerates the gaps: baseline lookup
+# walks ancestor commits until it finds the last published build.
 #
 # --ignore-scripts is safe here for the same reason as frontend_lint: the
 # Storybook *build* needs no browser and no postinstall hooks (esbuild/rollup
@@ -303,13 +305,29 @@ chromatic:
     paths:
       - frontend/chromatic-diagnostics.json
   allow_failure: true
-  only:
-    refs:
-      - branches
-    changes:
-      - frontend/**/*
-      - src/main/resources/static/**/*
-      - .gitlab-ci.yml
+  # rules (not only:changes): on branch pipelines `only:changes` diffs against
+  # the *previous push*, and on the first push of a new branch that diff is
+  # undefined so GitLab runs the job unconditionally — backend-only branches
+  # were paying the full ~650-snapshot cost on their first pipeline. `rules`
+  # with `compare_to` diffs against the merge base with master instead, so a
+  # branch only runs Chromatic when *it* touches frontend files, regardless of
+  # push history. Master keeps plain push-diff semantics: compare_to master on
+  # master itself would always be an empty diff and baselines would never
+  # publish.
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        paths:
+          - frontend/**/*
+          - src/main/resources/static/**/*
+          - .gitlab-ci.yml
+    - if: '$CI_COMMIT_BRANCH'
+      changes:
+        compare_to: 'refs/heads/master'
+        paths:
+          - frontend/**/*
+          - src/main/resources/static/**/*
+          - .gitlab-ci.yml
 
 .compare: &compare
   stage: compare
