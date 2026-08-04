@@ -94,6 +94,29 @@ describe("createFavoritesController (fetch)", () => {
     await expect(c.get()).rejects.toThrow(/401/);
   });
 
+  it("carries the HTTP status on the rejection so 401 is separable from 5xx", async () => {
+    // The page treats 401/403 as "not signed in" (stars disabled) and anything
+    // else as retryable (stars stay enabled), so the status has to survive.
+    for (const status of [401, 403, 500, 503]) {
+      const { fetchImpl } = fetchStub({ ok: false, status, body: {} });
+      const c = createFavoritesController({ fetchImpl });
+      await expect(c.get()).rejects.toMatchObject({ status });
+      await expect(c.add("plan-a")).rejects.toMatchObject({ status });
+      await expect(c.remove("plan-a")).rejects.toMatchObject({ status });
+    }
+  });
+
+  it("leaves `status` undefined when fetch itself rejects", async () => {
+    // No response arrived, so there is no status to report; the page reads that
+    // as retryable rather than as a signed-out answer.
+    /** @type {FavoritesFetch} */
+    const fetchImpl = () => Promise.reject(new TypeError("Failed to fetch"));
+    const c = createFavoritesController({ fetchImpl });
+    await expect(c.get()).rejects.toSatisfy(
+      (/** @type {{ status?: number }} */ err) => err.status === undefined,
+    );
+  });
+
   it("tolerates a response missing `plans` as an empty set", async () => {
     const { fetchImpl } = fetchStub({ body: {} });
     const c = createFavoritesController({ fetchImpl });

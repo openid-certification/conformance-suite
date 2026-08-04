@@ -1107,15 +1107,22 @@
                                 favController.get().then(function (res) {
                                     planSearch.favorites = (res && res.plans) || [];
                                     planSearch.canFavorite = true;
-                                }).catch(function () {
-                                    // get() rejecting (401 when there is no
-                                    // authenticated principal, or a network
-                                    // error) disables favorites: the stars
-                                    // render as a "Sign in to save favorites"
-                                    // affordance instead of offering toggles
-                                    // that would fail. The picker stays usable.
+                                }).catch(function (err) {
                                     planSearch.favorites = [];
-                                    planSearch.canFavorite = false;
+                                    // Only an auth answer means "not signed
+                                    // in": the stars then render as a
+                                    // "Sign in to save favorites" affordance
+                                    // rather than offering toggles that would
+                                    // fail. A 5xx, or a rejected fetch (which
+                                    // carries no status at all), is transient
+                                    // — leave the stars enabled so a retry is
+                                    // one click away instead of stranding the
+                                    // user on a false "signed out" until they
+                                    // reload. A failed toggle has its own
+                                    // revert + error toast in the store.
+                                    if (err && (err.status === 401 || err.status === 403)) {
+                                        planSearch.canFavorite = false;
+                                    }
                                 });
                                 attachFav(planSearch, favController);
                             });

@@ -642,6 +642,43 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(disabledStars.first()).toHaveAttribute("aria-label", /Sign in to save favorites/);
   });
 
+  test("R7: a 500 from /api/favorite-plans leaves the stars enabled (retryable)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await setupCommonRoutes(page);
+    // A server fault is NOT an answer about who the user is. Telling a
+    // signed-in user "Sign in to save favorites" is wrong, and the disabled
+    // state has no recovery short of a reload — so the stars stay live and a
+    // failed toggle reverts with its own error toast instead.
+    let seedRequests = 0;
+    await page.route("**/api/favorite-plans**", (route) => {
+      seedRequests++;
+      return route.fulfill({ status: 500, body: "" });
+    });
+    await page.goto("/schedule-test.html");
+
+    await expect
+      .poll(() => seedRequests)
+      .toBeGreaterThan(0);
+    await expect(
+      page.locator('#planSearch .oidf-test-selector__fav[aria-disabled="true"]'),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('#planSearch .oidf-test-selector__fav[aria-pressed="false"]'),
+    ).toHaveCount(ALL_PLANS.length);
+  });
+
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
     await setupFailFast(page);
 

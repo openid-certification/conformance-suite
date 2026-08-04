@@ -36,6 +36,14 @@ const DEFAULT_BASE_URL = "/api/favorite-plans";
  */
 
 /**
+ * The rejection value for a non-2xx response: an Error carrying the HTTP
+ * status that produced it. `status` is absent when `fetch` itself rejected
+ * (no response arrived), which callers must treat as retryable rather than as
+ * a signed-out answer.
+ * @typedef {Error & { status?: number }} FavoritesHttpError
+ */
+
+/**
  * Create a favorites controller backed by the `/api/favorite-plans` API. The
  * `fetch` implementation is injectable so a node unit test can drive it without
  * a real server.
@@ -67,11 +75,19 @@ export function createFavoritesController({ baseUrl = DEFAULT_BASE_URL, fetchImp
       init.body = JSON.stringify(body);
     }
     const res = await doFetch(`${baseUrl}${path}`, init);
-    // Any non-2xx (401 when unauthenticated, 5xx, network) rejects so the
-    // caller can fall back (disable favorites on seed) or revert + toast (on a
-    // toggle).
+    // Any non-2xx rejects so the caller can fall back (on the seed) or revert +
+    // toast (on a toggle). The status rides along on the error because the two
+    // cases are not the same: 401/403 means "no principal — favorites are not
+    // available to you", while a 5xx is transient and the caller should leave
+    // the stars enabled so a retry is one click away. A rejected fetch (network
+    // down, request aborted) never reaches here and so carries no status, which
+    // the caller reads as retryable.
     if (!res.ok) {
-      throw new Error(`favorites: ${method} ${baseUrl}${path} -> ${res.status}`);
+      const error = /** @type {FavoritesHttpError} */ (
+        new Error(`favorites: ${method} ${baseUrl}${path} -> ${res.status}`)
+      );
+      error.status = res.status;
+      throw error;
     }
     const data = /** @type {{ plans?: string[] }} */ (await res.json());
     return { plans: Array.isArray(data.plans) ? data.plans : [] };
