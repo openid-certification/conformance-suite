@@ -30,8 +30,45 @@
 import { renderErrorIntoSlot } from "./log-detail-error-slot.js";
 import { scrollEntryIntoView } from "../components/cts-log-entry.js";
 import { tryGetStorage } from "../components/guided-wizard.js";
+import { selectFindings } from "../components/log-findings.js";
 
 const POLL_INTERVAL_MS = 3000;
+
+/**
+ * Statuses that mean "this test has not settled yet". Used only by
+ * `syncCurrentSegmentStatus` to keep the live progress bar from announcing a
+ * mid-run verdict — see the comment there. Mirrors the live set in
+ * `cts-log-detail-header._derivePhase`; deliberately NOT shared with
+ * `js/module-status.js`, which serves the one-shot plan surfaces where the
+ * opposite precedence is correct.
+ * @type {ReadonlySet<string>}
+ */
+const LIVE_STATUSES = new Set(["CREATED", "CONFIGURED", "RUNNING", "WAITING"]);
+
+/**
+ * The `result` a progress segment should carry for one instance, dropping a
+ * mid-run verdict on the test this page is actually watching.
+ *
+ * Scoped to `instanceId === testId` on purpose. The viewed test is the only one
+ * whose liveness this page tracks: it polls `/api/info` until terminal, so a
+ * suppressed verdict lands within one 3s cycle. Every OTHER module's segment
+ * shows a historical instance that nothing here re-polls — suppressing a
+ * verdict there would strand it neutral-grey for the session, which is the
+ * #1858/#1859 complaint. So they keep their verdict colour.
+ *
+ * Used by both writers of the viewed segment — the page-load fan-out
+ * (`resolveOneSegment`) and the 3s live sync (`syncCurrentSegmentStatus`) —
+ * because the fan-out is awaited BEFORE polling starts, so without it a
+ * WAITING+FAILED test painted its own segment red for one `/api/info`
+ * round-trip before the first sync cleared it.
+ * @param {string} instanceId - The instance whose segment is being coloured.
+ * @param {{status?: string, result?: string}} info - Its `/api/info` slice.
+ * @returns {string|null|undefined} The result to store, or null while live.
+ */
+function liveSegmentResult(instanceId, info) {
+  if (instanceId !== testId) return info.result;
+  return LIVE_STATUSES.has(String(info.status).toUpperCase()) ? null : info.result;
+}
 
 /**
  * localStorage key for the Test-structure rail collapse preference
@@ -172,43 +209,52 @@ async function fetchCurrentUser() {
 /** ──────────── testInfo fan-out ──────────── */
 
 /**
- * Filter the per-condition `results` array down to the entries the failure
- * summary surfaces. Mirrors `cts-log-detail-header._getFailures()` so the
- * page-level `#ctsTopFailureSummary` and the in-header instance render
- * the same list. Kept in this file (not exported from the component) to
- * avoid coupling the bootstrap to component internals.
+ * The findings the three failure summaries on this page render.
+ *
+ * Sourced from the `/api/log` stream the `cts-log-viewer` has already loaded
+ * (`viewer.findings`), because `/api/info` has no per-condition `results`
+ * array to filter: it serializes `net.openid.conformance.info.TestInfo`, whose
+ * `result` is a single verdict string. Reading `testInfo.results` therefore
+ * always produced an empty list in production and every "Findings" section
+ * fell through to its empty-state copy (GitLab #1866).
+ *
+ * `testInfo.results` is still honoured as a fallback: it is what the e2e
+ * fixtures and Storybook stories supply, and it covers the window before the
+ * viewer's first poll resolves.
+ *
+ * The "log stream wins" test is deliberately `length > 0`, not "the viewer
+ * exists": at first paint the viewer is in the DOM with an empty buffer, and
+ * treating that as authoritative would blank the summaries for a frame. The
+ * cost is that a genuinely finding-free stream cannot override a non-empty
+ * `testInfo.results` — which is unreachable in production (the field is never
+ * serialized) and only ever surfaces in a fixture that supplies both.
  *
  * @param {any} testInfo
  * @returns {Array<any>}
  */
 function selectFailures(testInfo) {
-  if (!testInfo || !Array.isArray(testInfo.results)) return [];
-  return testInfo.results.filter(
-    (entry) =>
-      entry.result === "FAILURE" ||
-      entry.result === "WARNING" ||
-      entry.result === "SKIPPED" ||
-      entry.result === "INTERRUPTED",
-  );
+  /** @type {any} */
+  const viewer = document.getElementById("logViewer");
+  const fromLog = viewer && viewer.findings;
+  if (Array.isArray(fromLog) && fromLog.length > 0) return fromLog;
+  return selectFindings(testInfo && testInfo.results);
 }
 
 /**
- * Push a fresh `testInfo` to the header and the filtered failures to the
- * page-level summary. Single update site so any future re-fetch path
- * (uploaded-images stamping, runner-poll state changes, etc.) keeps both
- * instances in sync without duplicating the filter.
- *
- * @param {any} testInfo
+ * Push the current findings to every failure-summary surface on the page:
+ * the header's in-hero instance, the page-level `#ctsTopFailureSummary`
+ * (mobile / tablet), and the wide-viewport `#ctsLogToc` rail. Called both
+ * when a fresh `/api/info` payload lands and when the log stream grows.
  */
-function applyTestInfo(testInfo) {
-  latestTestInfo = testInfo;
+function applyFindings() {
+  const findings = selectFailures(latestTestInfo);
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
-  if (header) header.testInfo = testInfo;
+  if (header) header.findings = findings;
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
   if (topFailureSummary) {
-    topFailureSummary.failures = selectFailures(testInfo);
+    topFailureSummary.failures = findings;
     topFailureSummary.testId = testId;
   }
   /** @type {any} */
@@ -217,9 +263,25 @@ function applyTestInfo(testInfo) {
     // U8 — keep the rail's compact failure summary in lockstep with the
     // page-level instance. The viewer-driven blocks list arrives via the
     // cts-blocks-updated event in setupLogToc().
-    rail.failures = selectFailures(testInfo);
+    rail.failures = findings;
     rail.testId = testId;
   }
+}
+
+/**
+ * Push a fresh `testInfo` to the header and refresh every failure summary.
+ * Single update site so any future re-fetch path (uploaded-images stamping,
+ * runner-poll state changes, etc.) keeps all instances in sync without
+ * duplicating the filter.
+ *
+ * @param {any} testInfo
+ */
+function applyTestInfo(testInfo) {
+  latestTestInfo = testInfo;
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) header.testInfo = testInfo;
+  applyFindings();
   // Live-sync the current segment when a poll returns a fresh verdict (#1857);
   // safe no-op until fetchAndApplyPlanState seeds the bar. See the helper's JSDoc.
   syncCurrentSegmentStatus(testInfo);
@@ -260,13 +322,11 @@ function applyReferences(references) {
   }
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
-  if (header) {
-    const inHeaderSummary = header.querySelector("cts-failure-summary");
-    if (inHeaderSummary) {
-      inHeaderSummary.references = references;
-      inHeaderSummary.testId = testId;
-    }
-  }
+  // Set the property, don't reach into the render output: the in-hero
+  // cts-failure-summary is created by the header's own Lit template, so a
+  // querySelector here lost the map whenever the summary had not been
+  // rendered yet (which, before #1866, was every production page load).
+  if (header) header.references = references;
 }
 
 /** ──────────── /api/info ──────────── */
@@ -514,7 +574,7 @@ async function resolveOneSegment(mod) {
     const settled = segmentStatusMemo.get(lastInstance);
     const slice = isTerminalSlice(settled)
       ? settled
-      : { status: info.status, result: info.result };
+      : { status: info.status, result: liveSegmentResult(lastInstance, info) };
     segmentStatusMemo.set(lastInstance, slice);
     mod.status = slice.status;
     mod.result = slice.result;
@@ -626,13 +686,26 @@ function syncCurrentSegmentStatus(testInfo) {
     return instances.length > 0 && instances[instances.length - 1] === testId;
   });
   if (!mod) return; // older re-run, or current test not in this plan → leave the segment
-  if (mod.status === testInfo.status && mod.result === testInfo.result) return; // unchanged
-  mod.status = testInfo.status;
-  mod.result = testInfo.result;
+  // While the test is still live, drop the mid-run verdict before it reaches
+  // the segment. The runner writes `result` on the first failing condition, so
+  // a WAITING test can already carry FAILED — and `statusBadgeVariant` lets any
+  // settled verdict win, which painted a red FAILED segment three rows above
+  // this page's own "Test waiting" hero (#1895). Suppressing it here makes the
+  // bar agree with the hero without touching module-status.js, whose
+  // verdict-wins rule is still right for the plan surfaces: they fan out
+  // /api/info once and never refresh, so there a settled verdict is the most
+  // useful thing to show (#1858/#1859). See liveSegmentResult for why this is
+  // scoped to the viewed instance; `resolveOneSegment` shares the helper so the
+  // page-load fan-out cannot paint the flash this then has to clear.
+  const status = testInfo.status;
+  const result = liveSegmentResult(testId, testInfo);
+  if (mod.status === status && mod.result === result) return; // unchanged
+  mod.status = status;
+  mod.result = result;
   mod._statusResolved = true;
   // Keep the fan-out memo consistent so any later read of the current instance
   // never reintroduces the stale slice it cached at page load (KTD1).
-  segmentStatusMemo.set(testId, { status: testInfo.status, result: testInfo.result });
+  segmentStatusMemo.set(testId, { status, result });
   // Fresh array so cts-plan-status observes the change (Lit's default hasChanged
   // is reference equality) and repaints the segment — mirrors resolveSegmentStatuses.
   header.planModules = modules.slice();
@@ -1740,12 +1813,14 @@ function handleKeydown(event) {
   const key = event.key.toLowerCase();
   if (key === "x") {
     event.preventDefault();
-    // The Repeat button lives in the status bar primary slot now —
-    // cts-test-nav-controls' "Repeat Test" was removed once the status
-    // bar took over the affordance. Both clicks dispatch the same
-    // cts-repeat-test event the page already wires through handleRepeat.
+    // The Repeat button lives in the status bar now — cts-test-nav-controls'
+    // "Repeat Test" was removed once the status bar took over the affordance.
+    // Target `data-action="repeat-test"`, NOT `status-bar-primary`: since
+    // #1903 the live bars carry Repeat as a secondary action, and on the
+    // needs-start / running bars the primary slot is Start Test / Stop —
+    // so keying on the primary testid would fire the wrong action there.
     const inner = document.querySelector(
-      'cts-log-detail-header [data-testid="status-bar-primary"] button',
+      'cts-log-detail-header [data-action="repeat-test"] button',
     );
     if (inner) inner.click();
   } else if (key === "u") {
@@ -1773,10 +1848,13 @@ async function bootstrap() {
   // U6: cts-log-viewer dispatches cts-references-updated after each
   // successful poll that appended rows. Forward the map to every
   // failure summary instance so chips render in lockstep with the
-  // entries stream.
+  // entries stream — and, on the same beat, re-read the viewer's
+  // findings (#1866): the event fires exactly when the stream has grown,
+  // and its `updateComplete` gating guarantees the new rows are committed.
   document.addEventListener("cts-references-updated", (evt) => {
     const refs = /** @type {CustomEvent} */ (evt).detail && evt.detail.references;
     if (refs) applyReferences(refs);
+    applyFindings();
   });
   // #1890: when the viewer gives up (expired session, denied access, or an
   // exhausted retry budget), the page's own runner poll must stop too —

@@ -12,6 +12,7 @@ import "./cts-log-entry-id.js";
 const RESULT_BADGE_VARIANTS = {
   FAILURE: "fail",
   WARNING: "warn",
+  REVIEW: "review",
   SKIPPED: "skip",
   INTERRUPTED: "fail",
 };
@@ -189,7 +190,8 @@ function ensureStylesInjected() {
  * @property {string} _id - Server-side log entry ID; emitted in the
  *   `cts-scroll-to-entry` event so the page-level handler can locate
  *   the matching `<cts-log-entry>`.
- * @property {string} result - One of FAILURE / WARNING / SKIPPED / INTERRUPTED.
+ * @property {string} result - One of FAILURE / WARNING / REVIEW / SKIPPED /
+ *   INTERRUPTED.
  * @property {string} src - The condition class name (e.g. `EnsureValidAud`).
  * @property {string} msg - Human-readable failure message.
  * @property {Array<string>} [requirements] - Optional requirement IDs (rendered as chips).
@@ -198,7 +200,7 @@ function ensureStylesInjected() {
 
 /**
  * Renders the failure summary block: heading + chevron + clickable list of
- * failure / warning / skipped / interrupted entries. Hoistable — the same
+ * failure / warning / review / skipped / interrupted entries. Hoistable — the same
  * component renders inside `cts-log-detail-header` (desktop), directly below
  * the sticky status bar (mobile / tablet), and inside the wide-viewport rail
  * (U8) with `compact=true`. Three positions, one component, one event seam.
@@ -212,8 +214,9 @@ function ensureStylesInjected() {
  * is mounted in — including future shadow-DOM hosts (e.g. if U8's rail
  * ever moves into a shadow root).
  *
- * @property {Array<FailureEntry>} failures - Failure / warning / skipped /
- *   interrupted entries. Filtered upstream from `testInfo.results`. Required.
+ * @property {Array<FailureEntry>} failures - Failure / warning / review /
+ *   skipped / interrupted entries. Filtered upstream by `selectFindings`
+ *   (`./log-findings.js`). Required.
  * @property {boolean} compact - Wide-viewport rail rendering: smaller
  *   typography, no chevron, single-line ellipsis truncation, no
  *   requirement chips. Reflects the `compact` attribute.
@@ -301,6 +304,30 @@ class CtsFailureSummary extends LitElement {
     );
   }
 
+  /**
+   * Row label. Normally `src: msg`, but `msg` is genuinely optional. The
+   * no-arg `AbstractCondition.createBrowserInteractionPlaceholder()` logs
+   * `args("upload", <id>, "result", REVIEW)` with no message at all, and
+   * `DBImageService.fillPlaceholder` later unsets `upload`, sets the image
+   * fields, and leaves `result: REVIEW` in place — the certification team
+   * still has to look at the screenshot. So both the pending and the filled
+   * row legitimately appear in this list now that REVIEW is a finding
+   * (#1866), and interpolating the absent message rendered them as a dangling
+   * `SomeCondition: ` with nothing after the colon. The `upload || img` test
+   * covers both states.
+   * @param {{src?: string, msg?: string, upload?: unknown, img?: unknown}} item - The finding entry.
+   * @returns {string} The row's display text.
+   */
+  _failureRowText(item) {
+    const src = item.src || "";
+    const msg = typeof item.msg === "string" ? item.msg.trim() : "";
+    if (msg) return `${src}: ${msg}`;
+    // An image row with no description is waiting on a human, so say that
+    // rather than leaving the reader with a bare condition name.
+    if (item.upload || item.img) return `${src}: awaiting manual review`;
+    return src;
+  }
+
   _renderFailureRow(item) {
     const referenceId = (this.references && this.references[item._id]) || "";
     return html`
@@ -321,7 +348,7 @@ class CtsFailureSummary extends LitElement {
           href="#entry-${item._id}"
           data-entry-id=${item._id}
           @click=${this._handleRowClick}
-          >${item.src}: ${item.msg}</a
+          >${this._failureRowText(item)}</a
         >
       </div>
     `;

@@ -3,6 +3,7 @@ import "./cts-badge.js";
 import "./cts-alert.js";
 import "./cts-button.js";
 import { scrollEntryIntoView } from "./cts-log-entry.js";
+import { selectFindings } from "./log-findings.js";
 
 const FAILURE_THRESHOLD = 3;
 const POLL_INTERVAL_MS = 3000;
@@ -744,6 +745,22 @@ class CtsLogViewer extends LitElement {
    */
   get references() {
     return this._references;
+  }
+
+  /**
+   * Public read-only view of the loaded stream's findings — the entries a
+   * `cts-failure-summary` renders. `/api/log` is the only place these exist:
+   * `/api/info` serializes `net.openid.conformance.info.TestInfo`, which has
+   * a singular `result` and no per-condition `results` array, so the
+   * `testInfo`-sourced list every summary used to read was always empty in
+   * production (GitLab #1866). Read by `js/log-detail.js` on each
+   * `cts-references-updated` — no separate event, since that one already
+   * fires exactly when the stream has grown and its `updateComplete` gating
+   * guarantees the freshly-appended entries are committed.
+   * @returns {Array<{result?: string}>} Finding entries, stream order.
+   */
+  get findings() {
+    return selectFindings(this._entries);
   }
 
   /**

@@ -13,6 +13,7 @@ import "./cts-failure-summary.js";
 import "./cts-action-overflow.js";
 import "./cts-time.js";
 import { formatDescription } from "./format-description.js";
+import { selectFindings } from "./log-findings.js";
 import { splitTestSummary } from "./test-summary-split.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
@@ -786,12 +787,23 @@ function ensureStylesInjected() {
  *     FINAL_ERROR alert.
  *   - `[data-slot="action-overflow"]` remains inside the sticky bar
  *     for the kebab-popover host.
- *   - `cts-failure-summary` still renders inside the host so
- *     `applyReferences()` in `log-detail.js` can set `.references`
- *     and `.testId` on it for the R32 chip rendering.
+ *   - `cts-failure-summary` still renders inside the host, fed by the
+ *     `findings` and `references` properties `log-detail.js` sets on
+ *     this component (it used to reach through the render output with
+ *     `querySelector`, which raced the summary's own first render).
  *
  * @property {TestInfo} testInfo - The test info object fetched from
  *   `/api/info`. Reflects the `test-info` attribute when set as a string.
+ * @property {Array<object>|null} findings - Log entries the failure hero
+ *   summarises, sourced by `log-detail.js` from the `/api/log` stream the
+ *   `cts-log-viewer` loads. Set via JS only. `/api/info` carries no per-entry
+ *   `results` array (GitLab #1866), so this is the only production source;
+ *   `null` means "not supplied", and the component falls back to
+ *   `testInfo.results` (how the stories and e2e fixtures drive it).
+ * @property {Object.<string, string>} references - `entry._id` → `LOG-NNNN`
+ *   map shipped by `cts-log-viewer` (U6), forwarded to the in-hero
+ *   `cts-failure-summary` so each finding row renders its reference chip.
+ *   Set via JS only, by `log-detail.js`'s `applyReferences`.
  * @property {boolean} isAdmin - Reveals admin-only rows and actions.
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
@@ -840,6 +852,8 @@ function ensureStylesInjected() {
 class CtsLogDetailHeader extends LitElement {
   static properties = {
     testInfo: { type: Object, attribute: "test-info" },
+    findings: { type: Array, attribute: false },
+    references: { type: Object, attribute: false },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     planModules: { type: Array, attribute: false },
@@ -851,6 +865,8 @@ class CtsLogDetailHeader extends LitElement {
   constructor() {
     super();
     this.testInfo = null;
+    this.findings = null;
+    this.references = {};
     this.isAdmin = false;
     this.isPublic = false;
     this.planModules = [];
@@ -936,15 +952,29 @@ class CtsLogDetailHeader extends LitElement {
     return counts;
   }
 
+  /**
+   * The findings rendered by the failure hero.
+   *
+   * `findings` (set by `js/log-detail.js` from the `/api/log` entries the
+   * `cts-log-viewer` has already loaded) is the real source: `/api/info`
+   * serializes the `TestInfo` document, which has no `results` field at all
+   * (see `net.openid.conformance.info.TestInfo` — `result` is singular), so
+   * `testInfo.results` is always absent in production and the hero always fell
+   * through to its placeholder (GitLab #1866). `testInfo.results` is kept as a
+   * fallback because it is how every existing story and e2e fixture drives
+   * this component, and because it is still the source before the log stream's
+   * first poll resolves.
+   *
+   * Both sources run back through `selectFindings`, so `findings` accepts
+   * either a pre-filtered list (what `log-detail.js` sets) or a raw entry
+   * array (convenient for stories). The filter is idempotent, so the extra
+   * pass over an already-filtered handful of rows costs nothing and removes a
+   * "who filtered this?" contract question from every call site.
+   * @returns {Array<{result?: string}>} Finding entries, stream order.
+   */
   _getFailures() {
-    if (!this.testInfo || !Array.isArray(this.testInfo.results)) return [];
-    return this.testInfo.results.filter(
-      (entry) =>
-        entry.result === "FAILURE" ||
-        entry.result === "WARNING" ||
-        entry.result === "SKIPPED" ||
-        entry.result === "INTERRUPTED",
-    );
+    if (Array.isArray(this.findings)) return selectFindings(this.findings);
+    return selectFindings(this.testInfo && this.testInfo.results);
   }
 
   _getUploadCount() {
@@ -1178,22 +1208,29 @@ class CtsLogDetailHeader extends LitElement {
   /**
    * Derive a lifecycle phase from `(status, result)`. Used by the
    * status bar, hero, and terminal banner so all three agree on
-   * "what kind of state is this?" even when the polling cadence in
-   * log-detail.js has not yet flipped `status` from WAITING/RUNNING
-   * to FINISHED. The runner sets `result` as soon as a verdict is
-   * assigned, so `result` is authoritative for "is this terminal?";
-   * `status` only owns the non-terminal branches.
+   * "what kind of state is this?".
    *
-   * Closes MR 1998 finding A1: previously the bar branched on
-   * `status` alone, so a test whose `result` had landed but whose
-   * `status` still read WAITING kept showing the Start button.
+   * Two rules, applied in this order:
    *
-   * A settled verdict wins over the INTERRUPTED status (GitLab #1859):
-   * a failed test is reported as status=INTERRUPTED, result=FAILED and
-   * must read "Test failed" (phase `finished-fail`), not "Test
-   * interrupted". The `interrupted` phase is reserved for an
-   * interruption with no concrete verdict (e.g. an admin force-stop or
-   * an unexpected exception before any result was assigned).
+   *   1. **A live status wins over a settled result** (GitLab #1895 /
+   *      #1896). `AbstractTestModule.updateResultFromConditionFailure`
+   *      writes `result` the moment a condition fails, long before the
+   *      run ends — so `{status: WAITING, result: FAILED}` is a normal,
+   *      long-lived state (common in OID4VP browser-API tests: an early
+   *      condition fails and the test keeps waiting for the wallet).
+   *      Rendering the finished-fail hero there dropped the WAITING
+   *      hero's `[data-slot="browser"]`, silently removing the
+   *      "Proceed with test via browser API" button and making an
+   *      active test look aborted. CREATED / CONFIGURED / RUNNING /
+   *      WAITING are the live statuses.
+   *   2. **Within a terminal status, the verdict wins** (GitLab
+   *      #1858 / #1859). A failed test is reported as
+   *      status=INTERRUPTED, result=FAILED and must read "Test failed"
+   *      (phase `finished-fail`), never "Test interrupted". The
+   *      `interrupted` phase is reserved for an interruption with no
+   *      concrete verdict (an admin force-stop, or an exception before
+   *      any result was assigned).
+   *
    * The runner auto-starts every test module on creation except the
    * rare `autoStart() == false` modules (currently only
    * oidcc-server-rotate-keys — see TestRunner.createTest). So status
@@ -1201,7 +1238,25 @@ class CtsLogDetailHeader extends LitElement {
    * Start" (phase `needs-start`), while WAITING always means "the test
    * is mid-run and paused on something else" — an incoming request
    * from the system under test, the user visiting a URL, or an image
-   * upload — and must never offer a Start button (#1862).
+   * upload — and must never offer a Start button (#1862). That #1862
+   * split is also what keeps rule 1 safe: MR 1998 finding A1 (a
+   * polling-lagged WAITING test still offering Start) is now
+   * structurally impossible because the WAITING bar has no Start
+   * button to leak, whatever the result says.
+   *
+   * Rule 1 is deliberately NOT mirrored into `js/module-status.js`,
+   * which colours the plan-level module badges and progress segments.
+   * The two surfaces have different refresh semantics: this page polls
+   * `/api/info` until `isFullyTerminal`, so a live phase always
+   * self-corrects within one 3s cycle. `plan-detail.html` fans out
+   * `/api/info` once per module and sets `_statusResolved` for the rest
+   * of the session, so a module snapshotted mid-run at
+   * `{WAITING, FAILED}` would sit neutral-grey until a manual reload —
+   * exactly the "a failed module does not read as failed" complaint
+   * #1858/#1859 was filed about. On a one-shot surface the settled
+   * verdict is the most useful thing to show; on a polled one the live
+   * status is. Do not "unify" these without giving the plan surfaces a
+   * re-resolve path first.
    * @param {TestInfo} test - Test info with `status` and `result`.
    * @returns {string} One of: `needs-start`, `waiting`, `running`,
    *   `interrupted`, `finished-pass`, `finished-fail`, `finished-warn`,
@@ -1210,9 +1265,15 @@ class CtsLogDetailHeader extends LitElement {
   _derivePhase(test) {
     const status = (test.status || "").toUpperCase();
     const result = (test.result || "").toUpperCase();
-    // A concrete result verdict wins over the INTERRUPTED status (#1859): a
-    // failed test is status=INTERRUPTED, result=FAILED and must read as
-    // "finished-fail", so dispatch on the verdict before the status below.
+    // Rule 1 — a live status wins over whatever verdict has been written so
+    // far (#1895). CREATED is a transient mid-setup blip between creation and
+    // the runner's auto-start/auto-configure; render it like RUNNING rather
+    // than flashing a Start prompt for a sub-second state.
+    if (status === "CONFIGURED") return "needs-start";
+    if (status === "WAITING") return "waiting";
+    if (status === "RUNNING" || status === "CREATED") return "running";
+    // Rule 2 — terminal status: the concrete verdict wins over INTERRUPTED
+    // (#1859), so dispatch on the verdict before falling back to the status.
     if (result === "PASSED") return "finished-pass";
     if (result === "FAILED") return "finished-fail";
     if (result === "WARNING") return "finished-warn";
@@ -1221,12 +1282,6 @@ class CtsLogDetailHeader extends LitElement {
     // No concrete verdict: a genuine interruption — status INTERRUPTED, or the
     // INTERRUPTED sentinel some paths write into `result` — reads as interrupted.
     if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
-    if (status === "CONFIGURED") return "needs-start";
-    if (status === "WAITING") return "waiting";
-    // CREATED is a transient mid-setup blip between creation and the runner's
-    // auto-start/auto-configure; render it like RUNNING rather than flashing a
-    // Start prompt or a bogus finished header for a sub-second state.
-    if (status === "RUNNING" || status === "CREATED") return "running";
     return "unknown";
   }
 
@@ -1409,6 +1464,53 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
+   * The Repeat Test action, rendered by every bar that can offer it.
+   *
+   * Before GitLab #1903 this lived only in `_renderFinishedBar`, so a live
+   * test had no rerun affordance anywhere on the page: the WAITING / RUNNING
+   * bars omitted it, `_buildOverflowActions` never carried it, and
+   * `cts-test-nav-controls` deliberately drops its own copy in `slim` mode
+   * precisely because the header is supposed to own this action. A WAITING
+   * test that has timed out waiting for an incoming request is exactly when a
+   * user reaches for "run it again", so the live bars carry it too — at
+   * `secondary` prominence, since on a live bar the phase's own action (Stop
+   * while running) is itself secondary and rerunning must not out-shout it.
+   * Only the finished bar, where rerunning IS the obvious next step, renders
+   * it as the `primary`.
+   *
+   * Known residual: on a live bar this abandons the in-flight run without
+   * confirmation — `handleRepeat` in `js/log-detail.js` POSTs a new instance
+   * and navigates away, leaving the old one running server-side. That matches
+   * the finished bar's long-standing behaviour, so it is deliberately not
+   * special-cased here; a confirm step would belong on both.
+   *
+   * `needs-start` is deliberately excluded: that test has not run yet, so
+   * Start Test is the only meaningful action and a sibling "Repeat" would just
+   * be a confusing second way to launch it.
+   *
+   * `data-action="repeat-test"` is the stable hook for the page-level
+   * Cmd/Ctrl+Shift+X shortcut in `js/log-detail.js`, which must not depend on
+   * `status-bar-primary` (that testid is Start Test on the needs-start bar and
+   * Stop on the running bar).
+   * @param {"primary"|"secondary"} variant - cts-button prominence.
+   * @param {string} testid - `data-testid` for the button.
+   * @returns {import('lit').TemplateResult|typeof nothing} The button, or
+   *   `nothing` in the read-only (public) view.
+   */
+  _renderRepeatButton(variant, testid) {
+    if (this._isReadonly()) return nothing;
+    return html`<cts-button
+      variant="${variant}"
+      size="sm"
+      icon="arrows-reload-01"
+      label="Repeat Test"
+      data-action="repeat-test"
+      data-testid="${testid}"
+      @cts-click=${this._handleRepeatTest}
+    ></cts-button>`;
+  }
+
+  /**
    * WAITING bar — the test is mid-run and paused on something else: an
    * incoming request from the system under test, the user visiting a
    * URL, or an image upload. It has already been started (the runner
@@ -1429,7 +1531,10 @@ class CtsLogDetailHeader extends LitElement {
           >
         </div>
         <div class="ctsStatusBarMiddle"></div>
-        <div class="ctsStatusBarPrimary"> ${this._renderStatusBarOverflowSlot()} </div>
+        <div class="ctsStatusBarPrimary">
+          ${this._renderRepeatButton("secondary", "status-bar-repeat")}
+          ${this._renderStatusBarOverflowSlot()}
+        </div>
         ${this._renderStatusBarCreated(test)}
       </div>
     `;
@@ -1493,6 +1598,7 @@ class CtsLogDetailHeader extends LitElement {
             data-testid="status-bar-primary"
             @cts-click=${this._handleStopTest}
           ></cts-button>
+          ${this._renderRepeatButton("secondary", "status-bar-repeat")}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}
@@ -1503,7 +1609,6 @@ class CtsLogDetailHeader extends LitElement {
   _renderFinishedBar(test) {
     const counts = this._getResultCounts();
     const resultVariant = RESULT_BADGE_VARIANTS[test.result] || "skip";
-    const readonly = this._isReadonly();
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">
@@ -1517,16 +1622,7 @@ class CtsLogDetailHeader extends LitElement {
           ${this._renderResultPills(counts)}
         </div>
         <div class="ctsStatusBarPrimary">
-          ${!readonly
-            ? html`<cts-button
-                variant="primary"
-                size="sm"
-                icon="arrows-reload-01"
-                label="Repeat Test"
-                data-testid="status-bar-primary"
-                @cts-click=${this._handleRepeatTest}
-              ></cts-button>`
-            : nothing}
+          ${this._renderRepeatButton("primary", "status-bar-primary")}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}
@@ -1540,10 +1636,10 @@ class CtsLogDetailHeader extends LitElement {
     // `slim` removes the cluster's Return-to-Plan and Repeat-Test
     // buttons. The page-level breadcrumb (cts-crumb in
     // log-detail.html) — which sits immediately above this nav row
-    // — already links back to the plan, and the sticky status
-    // bar's primary action (rendered directly below this row) already
-    // carries Repeat — so emitting them again here would duplicate
-    // two prominent affordances inside one viewport.
+    // — already links back to the plan, and the sticky status bar
+    // (rendered directly below this row) carries Repeat Test in every
+    // phase that can offer it (#1903) — so emitting them again here
+    // would duplicate two prominent affordances inside one viewport.
     return html`
       <div class="ctsNavRow" data-testid="nav-row">
         <cts-test-nav-controls
@@ -1565,15 +1661,19 @@ class CtsLogDetailHeader extends LitElement {
 
   /**
    * Lifecycle dispatcher for the hero zone. Routes by the derived
-   * phase (see `_derivePhase`), which prefers `test.result` over
-   * `test.status` whenever a verdict is set — so a polling-lagged
-   * test whose `status` still reads WAITING but whose `result` has
-   * already landed renders the appropriate finished hero, not the
-   * WAITING one. A PASSED test that produced informational WARNING
-   * entries still reads as "passed" at the top of the page; the
-   * warning count surfaces in the sticky bar's pill cluster and in
-   * the log entries below. The hero is the verdict; the warning is
-   * annotation.
+   * phase — see `_derivePhase` for the two precedence rules (a live
+   * status beats a mid-run verdict; within a terminal status the
+   * verdict beats the status). So a test still reporting WAITING
+   * renders the WAITING hero, verdict or not, and keeps the browser
+   * slot the page injects into. A PASSED test that produced informational WARNING
+   * entries still reads as "passed" at the top of the page; the warning
+   * surfaces in the log entries below. The hero is the verdict; the
+   * warning is annotation.
+   *
+   * (This used to also claim the warning count surfaces in the sticky
+   * bar's pill cluster. It does not: `_getResultCounts` reads
+   * `testInfo.results`, which `/api/info` never serializes — the same
+   * dead field #1866 fixed for the findings list. Tracked as #1915.)
    * @param {TestInfo} test - Test info that drives phase routing.
    * @returns {import('lit').TemplateResult|typeof nothing} The hero template for the current lifecycle state,
    *   or `nothing` when the persistent objective summary is enough.
@@ -1644,8 +1744,12 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-failure-summary
               data-testid="header-failure-summary"
               .failures=${failures}
+              .references=${this.references}
+              .testId=${this.testInfo ? this.testInfo.testId : ""}
             ></cts-failure-summary>`
-          : html`<div class="ctsHeroPlaceholder"> No conditions ran before the test ended. </div>`}
+          : html`<div class="ctsHeroPlaceholder" data-testid="hero-findings-placeholder">
+              No findings were recorded for this test.
+            </div>`}
       </div>
     `;
   }
@@ -1653,20 +1757,19 @@ class CtsLogDetailHeader extends LitElement {
   /**
    * INTERRUPTED hero — failure-list pattern with the FINAL_ERROR alert
    * pinned at the top via the existing `[data-slot="error"]` placeholder.
-   * If no conditions ran before the interruption (failures array empty),
-   * the headline reads "No checks completed before the test stopped" —
-   * scoped to the absence of findings, not to the interruption verdict
-   * (which is already established by the terminal banner above the hero).
-   * Reads testInfo via `this._getFailures()`, so no test arg is needed.
+   * When the findings list is empty the headline reads "No findings were
+   * recorded" — scoped to the absence of findings, and deliberately NOT a
+   * claim about whether conditions ran (an empty *filtered* list is not
+   * evidence that nothing executed, GitLab #1866). The interruption itself
+   * is already established by the terminal banner above the hero.
+   * Reads findings via `this._getFailures()`, so no test arg is needed.
    * @returns {import('lit').TemplateResult} The INTERRUPTED hero template.
    */
   _renderInterruptedHero() {
     const failures = this._getFailures();
     const counts = this._countFailureSeverities(failures);
     const headline =
-      failures.length > 0
-        ? this._formatFailureCountHeadline(counts)
-        : "No checks completed before the test stopped";
+      failures.length > 0 ? this._formatFailureCountHeadline(counts) : "No findings were recorded";
     return html`
       <div class="ctsHero ctsHero--failures" data-testid="hero-interrupted">
         <div id="runningTestError" data-slot="error" data-testid="running-error-slot"></div>
@@ -1676,6 +1779,8 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-failure-summary
               data-testid="header-failure-summary"
               .failures=${failures}
+              .references=${this.references}
+              .testId=${this.testInfo ? this.testInfo.testId : ""}
             ></cts-failure-summary>`
           : nothing}
       </div>
