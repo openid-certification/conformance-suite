@@ -677,9 +677,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     ).toHaveCount(ALL_PLANS.length);
   });
 
-  test("R7: a star clicked during the seed fetch is not clobbered when it lands", async ({
-    page,
-  }) => {
+  test("R7: a star still being written survives the seed landing under it", async ({ page }) => {
     await setupFailFast(page);
     await page.route("**/api/plan/available", (route) =>
       route.fulfill({
@@ -693,30 +691,39 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     );
     await setupCommonRoutes(page);
 
-    // The seed GET is held open long enough for a click to land first, and it
-    // answers with the pre-click truth (an empty set) — exactly the snapshot
-    // that must not overwrite the newer write.
-    const SEED_DELAY_MS = 1500;
+    // The seed is held open long enough for a click to land first, and the
+    // write is held open LONGER than the seed. So the seed resolves while the
+    // toggle is still in flight: it supplies the baseline (the plan already
+    // saved on the server) and the pending decision has to be laid back over
+    // the top, or the star the user just pressed silently un-presses itself
+    // mid-write.
+    const SEED_DELAY_MS = 1200;
+    const WRITE_DELAY_MS = 2600;
+    const SAVED = "oidcc-basic-certification-test-plan";
     const PLAN = "fapi2-security-profile-final-test-plan";
+    let writeResolved = false;
     await page.route("**/api/favorite-plans**", async (route) => {
       if (route.request().method() === "GET") {
         await new Promise((resolve) => setTimeout(resolve, SEED_DELAY_MS));
         return route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ plans: [] }),
+          body: JSON.stringify({ plans: [SAVED] }),
         });
       }
+      await new Promise((resolve) => setTimeout(resolve, WRITE_DELAY_MS));
+      writeResolved = true;
       return route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ plans: [PLAN] }),
+        body: JSON.stringify({ plans: [SAVED, PLAN] }),
       });
     });
 
     await page.goto("/schedule-test.html");
 
     const star = page.locator(`#planSearch [data-favorite-plan="${PLAN}"]`);
+    const savedStar = page.locator(`#planSearch [data-favorite-plan="${SAVED}"]`);
     const favoritesView = page.locator("#planSearch .oidf-test-selector__family-view");
 
     // While the seed is open the count is unknown, so the view shows a
@@ -727,10 +734,24 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await star.click();
     await expect(star).toHaveAttribute("aria-pressed", "true");
 
-    // Outlive the seed response, then confirm it did not undo the click.
-    await page.waitForTimeout(SEED_DELAY_MS + 500);
+    // The already-saved plan lighting up is the seed landing. At that moment
+    // the write is provably still open, so the pressed star can only be there
+    // because the pending decision was re-applied over the seed's baseline.
+    // These reads are one-shot on purpose: a retrying assertion would wait out
+    // the transient un-press and pass once the write's own response arrived,
+    // which is exactly the regression this is here to catch.
+    await expect(savedStar).toHaveAttribute("aria-pressed", "true");
+    expect(writeResolved).toBe(false);
+    // eslint-disable-next-line playwright/prefer-web-first-assertions -- must not retry, see above
+    expect(await star.getAttribute("aria-pressed")).toBe("true");
+    expect(await favoritesView.textContent()).toMatch(/★ Favorites \(2\)/);
+    expect(writeResolved).toBe(false);
+
+    // The write's own response is authoritative and settles the same list.
+    await expect.poll(() => writeResolved).toBe(true);
     await expect(star).toHaveAttribute("aria-pressed", "true");
-    await expect(favoritesView).toHaveText(/★ Favorites \(1\)/);
+    await expect(savedStar).toHaveAttribute("aria-pressed", "true");
+    await expect(favoritesView).toHaveText(/★ Favorites \(2\)/);
   });
 
   test("R7: a star that FAILS during the seed fetch still reveals the saved favorites", async ({
