@@ -12,6 +12,13 @@ import java.util.List;
 public interface FavoritePlansService {
 
 	/**
+	 * Maximum favorites one user may hold. A bound on what an authenticated client can write
+	 * through this API, not a product limit anyone is expected to reach — the picker lists a few
+	 * hundred plans in total.
+	 */
+	int MAX_FAVORITES_PER_USER = 100;
+
+	/**
 	 * @return the current user's favorited plan names in insertion order (most-recently-added
 	 *     last). Never {@code null}; an empty list is returned when there is no authenticated
 	 *     user or the user has no favorites.
@@ -24,6 +31,8 @@ public interface FavoritePlansService {
 	 *
 	 * @param planName the test-plan name to favorite
 	 * @return the updated favorites list
+	 * @throws FavoritePlansLimitExceededException when the user already holds
+	 *     {@link #MAX_FAVORITES_PER_USER} favorites and {@code planName} is not one of them
 	 */
 	List<String> addFavoritePlanForCurrentUser(String planName);
 

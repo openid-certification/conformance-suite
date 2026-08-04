@@ -73,6 +73,21 @@ public class DBFavoritePlansService implements FavoritePlansService {
 			throw new IllegalStateException("No user found");
 		}
 
+		// Cap what one account can write through this API. The check is advisory: two adds racing
+		// at the boundary can both pass it and leave the user one over. That is fine — the bound
+		// exists to stop unbounded growth, and the unique owner+planName index means the real
+		// ceiling is the number of distinct plan names in any case.
+		Query owned = new Query(new Criteria("owner").is(user));
+		if (mongoTemplate.count(owned, COLLECTION) >= MAX_FAVORITES_PER_USER) {
+			// Only re-adding something already favorited is still allowed at the cap, so a client
+			// replaying an add never turns into an error.
+			Query existing = new Query(new Criteria("owner").is(user).and("planName").is(planName));
+			if (!mongoTemplate.exists(existing, COLLECTION)) {
+				throw new FavoritePlansLimitExceededException(
+					"Cannot hold more than " + MAX_FAVORITES_PER_USER + " favorite plans");
+			}
+		}
+
 		// A single atomic upsert keyed on owner+planName, rather than exists()-then-insert: a
 		// double-clicked star fires two concurrent adds, and the read-modify-write version let
 		// both observe "absent" and both insert. Every field is setOnInsert, so re-adding an

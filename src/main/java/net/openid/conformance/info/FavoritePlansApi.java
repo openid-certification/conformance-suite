@@ -26,6 +26,15 @@ import java.util.List;
 @RequestMapping(value = "/api")
 public class FavoritePlansApi {
 
+	/**
+	 * Longest accepted plan name. Real plan names are well under 100 characters; this only stops
+	 * an authenticated client writing arbitrarily large strings into the favorites collection.
+	 * Deliberately not a check against the live plan registry — favorites survive a plan being
+	 * renamed or retired, and the picker already renders an unknown name as a removable
+	 * "No longer available" row.
+	 */
+	static final int MAX_PLAN_NAME_LENGTH = 256;
+
 	@Autowired
 	private FavoritePlansService favoritePlansService;
 
@@ -45,7 +54,8 @@ public class FavoritePlansApi {
 	@Operation(summary = "Add a test plan to the current user's favorites")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Added successfully (idempotent)"),
-		@ApiResponse(responseCode = "400", description = "Missing or invalid plan name")
+		@ApiResponse(responseCode = "400",
+			description = "Missing or invalid plan name, or the per-user favorites limit is reached")
 	})
 	public ResponseEntity<Object> addFavoritePlan(
 			@Parameter(description = "An object containing the plan name to favorite, e.g. {\"plan\":\"planName\"}")
@@ -60,11 +70,17 @@ public class FavoritePlansApi {
 		}
 
 		String planName = OIDFJSON.getString(plan);
-		if (planName.isBlank()) {
+		if (planName.isBlank() || planName.length() > MAX_PLAN_NAME_LENGTH) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
-		List<String> plans = favoritePlansService.addFavoritePlanForCurrentUser(planName);
+		List<String> plans;
+		try {
+			plans = favoritePlansService.addFavoritePlanForCurrentUser(planName);
+		} catch (FavoritePlansLimitExceededException e) {
+			// A declined request, not a server fault.
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 		return new ResponseEntity<>(wrapPlans(plans), HttpStatus.OK);
 	}
 

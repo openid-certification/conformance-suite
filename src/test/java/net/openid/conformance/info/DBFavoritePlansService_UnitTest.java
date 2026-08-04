@@ -202,6 +202,63 @@ public class DBFavoritePlansService_UnitTest {
 		assertThat(result).containsExactly("plan-a");
 	}
 
+	// --- add: per-user cap ---
+
+	@Test
+	public void addAtTheCapRejectsANewPlan() {
+		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
+		Mockito.when(mongoTemplate.count(any(Query.class), eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn((long) FavoritePlansService.MAX_FAVORITES_PER_USER);
+		// Not already favorited, so this add would grow the set past the cap.
+		Mockito.when(mongoTemplate.exists(any(Query.class),
+				eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn(false);
+
+		assertThatThrownBy(() -> service.addFavoritePlanForCurrentUser("one-too-many"))
+			.isInstanceOf(FavoritePlansLimitExceededException.class);
+
+		Mockito.verify(mongoTemplate, Mockito.never())
+			.upsert(any(Query.class), any(Update.class), eq(DBFavoritePlansService.COLLECTION));
+	}
+
+	@Test
+	public void addAtTheCapStillAcceptsAnAlreadyFavoritedPlan() {
+		// Re-adding is idempotent; a client replaying an add must not start failing just because
+		// the user sits exactly on the cap.
+		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
+		Mockito.when(mongoTemplate.count(any(Query.class), eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn((long) FavoritePlansService.MAX_FAVORITES_PER_USER);
+		Mockito.when(mongoTemplate.exists(any(Query.class),
+				eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn(true);
+		Mockito.when(mongoTemplate.find(any(Query.class), eq(Document.class),
+				eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn(List.of(favoriteDoc("plan-a", "2026-06-22T10:00:00Z")));
+
+		assertThat(service.addFavoritePlanForCurrentUser("plan-a")).containsExactly("plan-a");
+
+		Mockito.verify(mongoTemplate)
+			.upsert(any(Query.class), any(Update.class), eq(DBFavoritePlansService.COLLECTION));
+	}
+
+	@Test
+	public void addOneBelowTheCapIsAccepted() {
+		Mockito.when(authenticationFacade.getPrincipal()).thenReturn(USER);
+		Mockito.when(mongoTemplate.count(any(Query.class), eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn((long) FavoritePlansService.MAX_FAVORITES_PER_USER - 1);
+		Mockito.when(mongoTemplate.find(any(Query.class), eq(Document.class),
+				eq(DBFavoritePlansService.COLLECTION)))
+			.thenReturn(List.of(favoriteDoc("plan-a", "2026-06-22T10:00:00Z")));
+
+		assertThat(service.addFavoritePlanForCurrentUser("plan-a")).containsExactly("plan-a");
+
+		// Below the cap the add costs one count plus the upsert — no existence probe.
+		Mockito.verify(mongoTemplate, Mockito.never())
+			.exists(any(Query.class), eq(DBFavoritePlansService.COLLECTION));
+		Mockito.verify(mongoTemplate)
+			.upsert(any(Query.class), any(Update.class), eq(DBFavoritePlansService.COLLECTION));
+	}
+
 	// --- remove ---
 
 	@Test

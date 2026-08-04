@@ -120,6 +120,44 @@ public class FavoritePlansApi_UnitTest {
 	}
 
 	@Test
+	public void postAcceptsAPlanNameAtTheLengthLimit() {
+		String planName = "p".repeat(FavoritePlansApi.MAX_PLAN_NAME_LENGTH);
+		Mockito.when(service.addFavoritePlanForCurrentUser(planName)).thenReturn(List.of(planName));
+
+		JsonObject request = new JsonObject();
+		request.addProperty("plan", planName);
+
+		ResponseEntity<Object> response = api.addFavoritePlan(request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
+	public void postWithOverlongPlanNameReturnsBadRequest() {
+		JsonObject request = new JsonObject();
+		request.addProperty("plan", "p".repeat(FavoritePlansApi.MAX_PLAN_NAME_LENGTH + 1));
+
+		ResponseEntity<Object> response = api.addFavoritePlan(request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		Mockito.verifyNoInteractions(service);
+	}
+
+	@Test
+	public void postPastTheFavoritesLimitReturnsBadRequest() {
+		// The limit is a declined request, not a server fault, so it must not surface as a 500.
+		Mockito.when(service.addFavoritePlanForCurrentUser("plan-101"))
+			.thenThrow(new FavoritePlansLimitExceededException("too many"));
+
+		JsonObject request = new JsonObject();
+		request.addProperty("plan", "plan-101");
+
+		ResponseEntity<Object> response = api.addFavoritePlan(request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
 	public void deleteRemovesPlanAndReturnsUpdatedList() {
 		Mockito.when(service.removeFavoritePlanForCurrentUser("plan-b"))
 			.thenReturn(List.of("plan-a"));
