@@ -1119,6 +1119,12 @@
                                 planSearch.addEventListener('cts-favorite-toggle', function () {
                                     favoritesMutated = true;
                                 }, { once: true });
+                                // Show "★ Favorites (…)" rather than a
+                                // confident "(0)" while the seed is open —
+                                // the count is unknown until it lands, and
+                                // this is exactly the window in which a click
+                                // races the seed.
+                                planSearch.favoritesLoading = true;
                                 favController.get().then(function (res) {
                                     if (!favoritesMutated) {
                                         planSearch.favorites = (res && res.plans) || [];
@@ -1142,6 +1148,8 @@
                                     if (err && (err.status === 401 || err.status === 403)) {
                                         planSearch.canFavorite = false;
                                     }
+                                }).finally(function () {
+                                    planSearch.favoritesLoading = false;
                                 });
                                 attachFav(planSearch, favController);
                             });

@@ -719,6 +719,12 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await page.goto("/schedule-test.html");
 
     const star = page.locator(`#planSearch [data-favorite-plan="${PLAN}"]`);
+    const favoritesView = page.locator("#planSearch .oidf-test-selector__family-view");
+
+    // While the seed is open the count is unknown, so the view shows a
+    // placeholder rather than a confident "(0)".
+    await expect(favoritesView).toHaveText(/★ Favorites \(…\)/);
+
     await expect(star).toHaveAttribute("aria-pressed", "false");
     await star.click();
     await expect(star).toHaveAttribute("aria-pressed", "true");
@@ -726,6 +732,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // Outlive the seed response, then confirm it did not undo the click.
     await page.waitForTimeout(SEED_DELAY_MS + 500);
     await expect(star).toHaveAttribute("aria-pressed", "true");
+    await expect(favoritesView).toHaveText(/★ Favorites \(1\)/);
   });
 
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
