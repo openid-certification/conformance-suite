@@ -51,13 +51,16 @@ public class FavoritePlansApi {
 			@Parameter(description = "An object containing the plan name to favorite, e.g. {\"plan\":\"planName\"}")
 			@RequestBody JsonObject request) {
 
-		String planName = null;
 		JsonElement plan = request.get("plan");
-		if (plan != null && plan.isJsonPrimitive()) {
-			planName = OIDFJSON.getString(plan);
+		// isString rather than isJsonPrimitive: a JSON number or boolean is a primitive too, and
+		// OIDFJSON.getString throws UnexpectedJsonTypeException on those, which surfaces as a 500
+		// for what is plainly a malformed request.
+		if (!OIDFJSON.isString(plan)) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
-		if (planName == null || planName.isBlank()) {
+		String planName = OIDFJSON.getString(plan);
+		if (planName.isBlank()) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 

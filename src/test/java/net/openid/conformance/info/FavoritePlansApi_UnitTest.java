@@ -95,6 +95,31 @@ public class FavoritePlansApi_UnitTest {
 	}
 
 	@Test
+	public void postWithNonStringPlanReturnsBadRequest() {
+		// A JSON number is a primitive, so an isJsonPrimitive() guard lets it through to
+		// OIDFJSON.getString, which throws UnexpectedJsonTypeException -> 500 for a request
+		// that is simply malformed.
+		JsonObject request = new JsonObject();
+		request.addProperty("plan", 123);
+
+		ResponseEntity<Object> response = api.addFavoritePlan(request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		Mockito.verifyNoInteractions(service);
+	}
+
+	@Test
+	public void postWithNonPrimitivePlanReturnsBadRequest() {
+		JsonObject request = new JsonObject();
+		request.add("plan", new JsonArray());
+
+		ResponseEntity<Object> response = api.addFavoritePlan(request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		Mockito.verifyNoInteractions(service);
+	}
+
+	@Test
 	public void deleteRemovesPlanAndReturnsUpdatedList() {
 		Mockito.when(service.removeFavoritePlanForCurrentUser("plan-b"))
 			.thenReturn(List.of("plan-a"));
