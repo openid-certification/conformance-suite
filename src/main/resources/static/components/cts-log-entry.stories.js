@@ -189,6 +189,29 @@ const REAL_HTTP_RESPONSE_ENTRY = {
   },
 };
 
+// gitlab#1906: a POST request in the real `/api/log` wire shape — HTTP fields
+// at the top level with `request_*` names, no `more` envelope. Exercises the
+// _formatCurl branches the nested-`more` CopyAsCurl fixture never reached: a
+// non-GET method, a body (`request_body`), and a multi-valued header (an
+// array, as mapToJsonObject serialises repeated headers) alongside a single
+// string header.
+const REAL_HTTP_POST_REQUEST_ENTRY = {
+  _id: "entry-real-http-post",
+  testId: "test-real",
+  testName: "oidcc-server",
+  src: "CallTokenEndpoint",
+  time: NOW - 5900,
+  msg: "HTTP request",
+  http: "request",
+  request_uri: "https://oidcc-provider:3000/token",
+  request_method: "POST",
+  request_headers: {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Accept: ["application/json", "application/jwt"],
+  },
+  request_body: "grant_type=authorization_code&code=abc123",
+};
+
 // Envelope-only entry: every field on it is in the strip set, so the More
 // panel must remain hidden — no empty disclosure for an entry with nothing
 // to disclose.
@@ -703,6 +726,81 @@ export const CopyAsCurl = {
   },
 };
 
+/**
+ * gitlab#1906 regression: Copy as cURL must work against the shape
+ * `/api/log/{testId}` actually serialises — HTTP fields at the entry top level
+ * with `request_*` names and no `more` envelope. The previous _formatCurl read
+ * `this.entry.more.{method,url,...}`, so on real backend entries (`entry.more`
+ * undefined) it produced an empty string and the button silently copied
+ * nothing while still flashing "copied". The CopyAsCurl story above only used
+ * the nested-`more` fixture, so it stayed green through the bug; this story
+ * pins the wire shape.
+ */
+export const CopyAsCurlFromApiShape = {
+  render: () => html`<cts-log-entry .entry=${REAL_HTTP_POST_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
+    });
+
+    await canvas.getByRole("button", { name: "Copy as cURL" }).click();
+    await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+    const curl = /** @type {string} */ (writeSpy.mock.calls[0][0]);
+
+    await step("a real curl command is copied, not an empty string (R1906)", async () => {
+      // The core regression: before the fix this was "". Assert the command
+      // carries the top-level request_* fields the wire shape provides.
+      expect(curl).not.toBe("");
+      expect(curl).toContain("curl -X POST");
+      expect(curl).toContain("'https://oidcc-provider:3000/token'");
+      expect(curl).toContain("-d 'grant_type=authorization_code&code=abc123'");
+    });
+
+    await step("headers render, multi-valued header joins into one -H", async () => {
+      expect(curl).toContain("-H 'Content-Type: application/x-www-form-urlencoded'");
+      // request_headers.Accept is an array (mapToJsonObject's multi-value form);
+      // it must collapse to a single comma-joined header, not "[object Object]"
+      // or a bracketed array literal.
+      expect(curl).toContain("-H 'Accept: application/json, application/jwt'");
+    });
+
+    await step("copying did not toggle the row's detail panel", async () => {
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      expect(
+        canvasElement.querySelector("button.logDisclosure").getAttribute("aria-expanded"),
+      ).toBe("false");
+    });
+  },
+};
+
+/**
+ * gitlab#1906: the exact reported real-world case — a GET discovery request in
+ * the wire shape with an empty `request_body`. Confirms the URL, method, and a
+ * header are emitted and that an empty body adds no `-d` flag.
+ */
+export const CopyAsCurlEmptyBody = {
+  render: () => html`<cts-log-entry .entry=${REAL_HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
+    });
+
+    await canvas.getByRole("button", { name: "Copy as cURL" }).click();
+    await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+    const curl = /** @type {string} */ (writeSpy.mock.calls[0][0]);
+
+    expect(curl).toContain("curl -X GET");
+    expect(curl).toContain("'https://oidcc-provider:3000/.well-known/openid-configuration'");
+    expect(curl).toContain("-H 'Accept:");
+    // request_body is "" — no data flag should be emitted.
+    expect(curl).not.toContain("-d ");
+  },
+};
+
 export const NoMoreFields = {
   render: () => html`<cts-log-entry .entry=${ENTRY_NO_MORE}></cts-log-entry>`,
   async play({ canvasElement }) {
@@ -833,6 +931,71 @@ export const DisclosurePanelStaysInteractive = {
         ).toBe("true"),
       );
       expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+    });
+  },
+};
+
+/**
+ * gitlab#1875: users could not select/copy the condition name or message
+ * because the whole-row `.logDisclosure::after` overlay (inset:0) sat on top
+ * of the body text and swallowed pointer-down. The fix lifts `.logBody` above
+ * the overlay (z-index:1, the same lift the in-row links and `.moreInfo` panel
+ * use) so a drag starts a real text selection, and adds a selection-aware
+ * click handler on the body so a plain click still toggles the row while a
+ * click that ends a text selection does not (the user is copying, so leave the
+ * selection intact).
+ */
+export const BodyTextSelectable = {
+  render: () => html`<cts-log-entry .entry=${ENTRY_WITH_MORE}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector("button.logDisclosure")).toBeTruthy();
+    });
+    const body = /** @type {HTMLElement} */ (canvasElement.querySelector(".logBody"));
+    const src = /** @type {HTMLElement} */ (canvasElement.querySelector(".logSrc"));
+    const disclosure = canvasElement.querySelector("button.logDisclosure");
+
+    await step("the body text is lifted above the disclosure overlay (R1875)", async () => {
+      // Same lift the in-row links (WholeRowDisclosure) and the disclosed panel
+      // (DisclosurePanelStaysInteractive) use: z-index:1 puts the body above the
+      // inset:0 ::after overlay, so pointer-down starts a text selection on the
+      // condition name / message instead of hit-testing to the button.
+      expect(getComputedStyle(body).zIndex).toBe("1");
+    });
+
+    await step("a plain click on the body text toggles the disclosure", async () => {
+      window.getSelection()?.removeAllRanges();
+      expect(disclosure.getAttribute("aria-expanded")).toBe("false");
+      src.click();
+      await waitFor(() => {
+        expect(disclosure.getAttribute("aria-expanded")).toBe("true");
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      });
+      // Collapse again so the next step starts from a known state.
+      src.click();
+      await waitFor(() => expect(disclosure.getAttribute("aria-expanded")).toBe("false"));
+    });
+
+    await step("clicking after selecting body text copies, does not toggle", async () => {
+      // Simulate the trailing click of a drag-select: a live, non-collapsed
+      // selection over the body, then a click. The handler must see the
+      // selection and skip the toggle so the highlighted text survives to be
+      // copied.
+      const range = document.createRange();
+      range.selectNodeContents(body);
+      const sel = window.getSelection();
+      if (!sel) throw new Error("window.getSelection() returned null");
+      sel.removeAllRanges();
+      sel.addRange(range);
+      expect(sel.isCollapsed).toBe(false);
+
+      body.click();
+      // Give any erroneous toggle a full microtask/Lit update cycle to surface.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(disclosure.getAttribute("aria-expanded")).toBe("false");
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+
+      sel.removeAllRanges();
     });
   },
 };

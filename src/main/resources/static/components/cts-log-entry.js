@@ -451,6 +451,14 @@ const STYLE_TEXT = css`
     line-height: var(--lh-base);
     color: var(--fg);
     min-width: 0;
+    /* gitlab#1875: lift the condition name + message above the whole-row
+       .logDisclosure::after overlay (inset:0) — the same z-index:1 lift the
+       in-row links and the .moreInfo panel use. Without it the overlay
+       hit-tests every pointer-down over the body, so the text can never be
+       selected or copied. With the body lifted a drag starts a real text
+       selection; a plain click still toggles the row via _onBodyClick below. */
+    position: relative;
+    z-index: 1;
     /* R31: long URLs in log messages must not push content off-screen.
        Combined with min-width: 0 on the Grid 1fr track, overflow-wrap
        anywhere lets a single unbreakable URL wrap at any character when
@@ -817,6 +825,32 @@ class CtsLogEntry extends LitElement {
   }
 
   /**
+   * Whole-row disclosure keeps the entire row clickable, but the body text
+   * (condition source + message) is lifted above the click overlay (see the
+   * `.logBody` z-index lift) so it can be selected and copied (gitlab#1875).
+   * That lift means a click on the body no longer hit-tests to the disclosure
+   * button, so restore the expand-on-click here — while skipping the toggle
+   * when the click ends a text selection (the user was dragging to copy) or
+   * lands on a genuine interactive descendant (e.g. a future inline link).
+   * @param {MouseEvent} event - The click event dispatched on `.logBody`.
+   */
+  _onBodyClick(event) {
+    // Only expandable rows carry the disclosure; leave inert rows alone. The
+    // handler is bound on every row's body, so gate on the same is-expandable
+    // signal the overlay does rather than duplicating the hasMore computation.
+    const item = /** @type {Element} */ (event.currentTarget).closest(".logItem");
+    if (!item || !item.classList.contains("is-expandable")) return;
+    // A live, non-collapsed selection means this click terminated a
+    // drag-select — toggling now would collapse the text the user just
+    // highlighted to copy, which is exactly the bug this fixes.
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed && selection.toString().length > 0) return;
+    // Never hijack clicks on real interactive descendants.
+    if (event.target instanceof Element && event.target.closest("a, button")) return;
+    this._toggleMore();
+  }
+
+  /**
    * Stable per-entry id for the detail panel, linking the disclosure
    * button's `aria-controls` to the `.moreInfo` panel it reveals. Derived
    * from the entry's server `_id` so it is unique across rows on the page.
@@ -826,21 +860,45 @@ class CtsLogEntry extends LitElement {
     return `more-panel-${this.entry?._id ?? ""}`;
   }
 
+  /**
+   * Build a `curl` command line from an HTTP request log entry (gitlab#1906).
+   *
+   * Reads the payload through `extractMoreFields` so it works against both
+   * entry shapes: live `/api/log` request entries expose the HTTP fields at
+   * the top level with `request_*` names (`request_method`, `request_uri`,
+   * `request_headers`, `request_body`; see LoggingRequestInterceptor), while
+   * story fixtures use a nested `more` object with short names
+   * (`method`/`url`/`headers`/`body`). The earlier version only read
+   * `this.entry.more.{method,url,...}`, so on real backend data — where
+   * `entry.more` is undefined — it returned an empty string and the button
+   * silently copied nothing.
+   * @returns {string} The assembled curl command, or `""` when the entry has
+   *   no request URL to build one from.
+   */
   _formatCurl() {
-    const { more } = this.entry;
-    if (!more) return "";
-    const method = (more.method || "GET").toUpperCase();
-    const url = more.url || "";
+    const more = extractMoreFields(this.entry);
+    const url = more.request_uri || more.url || "";
+    // No URL means this is not a copyable request entry — bail so the caller
+    // can skip the "copied" confirmation rather than flashing success over an
+    // empty clipboard.
+    if (!url) return "";
+    const method = String(more.request_method || more.method || "GET").toUpperCase();
+    const headers = more.request_headers || more.headers;
+    const body = more.request_body ?? more.body;
     const parts = [`curl -X ${method}`];
-    if (more.headers) {
-      for (const [key, value] of Object.entries(more.headers)) {
-        parts.push(`-H '${key}: ${value}'`);
+    if (headers && typeof headers === "object") {
+      for (const [key, value] of Object.entries(headers)) {
+        // mapToJsonObject serialises a multi-valued header as a JSON array and
+        // a single-valued one as a string; represent the array form as the
+        // standard comma-joined combined header value.
+        const rendered = Array.isArray(value) ? value.join(", ") : value;
+        parts.push(`-H '${key}: ${rendered}'`);
       }
     }
-    if (more.body && typeof more.body === "string") {
-      parts.push(`-d '${more.body}'`);
-    } else if (more.body && typeof more.body === "object") {
-      parts.push(`-d '${JSON.stringify(more.body)}'`);
+    if (body && typeof body === "string") {
+      parts.push(`-d '${body}'`);
+    } else if (body && typeof body === "object") {
+      parts.push(`-d '${JSON.stringify(body)}'`);
     }
     parts.push(`'${url}'`);
     return parts.join(" \\\n  ");
@@ -852,6 +910,9 @@ class CtsLogEntry extends LitElement {
     // null (per the DOM spec), so reading it later loses the trigger.
     const trigger = event && event.currentTarget;
     const curl = this._formatCurl();
+    // Nothing to copy (no request URL on the entry): don't touch the
+    // clipboard or flash a false "copied" confirmation.
+    if (!curl) return;
     try {
       await navigator.clipboard.writeText(curl);
     } catch (err) {
@@ -1092,7 +1153,7 @@ class CtsLogEntry extends LitElement {
           <div class="logSeverity"> ${this._renderSeverityBadges()} </div>
           <div class="logHttp">${this._renderHttpBadge()}</div>
         </div>
-        <div class="logBody">
+        <div class="logBody" @click=${this._onBodyClick}>
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
         </div>
