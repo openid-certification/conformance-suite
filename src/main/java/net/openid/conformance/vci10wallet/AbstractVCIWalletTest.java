@@ -3,7 +3,6 @@ package net.openid.conformance.vci10wallet;
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -114,7 +113,6 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
-import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -390,7 +388,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
-		checkCredentialSigningKey(env);
+		callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-4.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
@@ -501,28 +499,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		String issuer = env.getString("server", "issuer");
 		String listAggregationEndpoint = issuer + "statuslists";
 		env.putString("server", "status_list_aggregation_endpoint", listAggregationEndpoint);
-	}
-
-	protected void checkCredentialSigningKey(Environment env) {
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		if (credentialSigningJwkEl == null) {
-			throw new TestFailureException(getId(), "Credential Signing JWK missing from configuration.");
-		}
-
-		JWK credentialSigningJwk;
-		try {
-			credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
-		} catch (ParseException e) {
-			throw new TestFailureException(getId(), "Failed to create JWK from Credential Signing JWK: " + e.getMessage());
-		}
-
-		if (credentialSigningJwk.getX509CertChain() == null || credentialSigningJwk.getX509CertChain().isEmpty()) {
-			throw new TestFailureException(getId(), "Credential Signing JWK must contain the certificate chain in the x5c claim.");
-		}
-
-		env.putString("vci", "credential_signing_jwk", credentialSigningJwkEl.toString());
-
-		callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-4.1");
 	}
 
 	protected void configureCredentialIssuerMetadata() {
