@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialTimeClaimsNotLinkable;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @ConfigurationFields({"client2.client_id", "client2.jwks"})
@@ -51,6 +52,11 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 			generateClientAttestationKeys();
+		}
+
+		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			waitForCredentialOffer();
+			return;
 		}
 
 		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
