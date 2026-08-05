@@ -73,13 +73,13 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {
-			throw error("Credential Signing JWK missing from configuration");
+			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
 		}
 		JWK credentialSigningJwk = null;
 		try {
 			credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
 		} catch (ParseException e) {
-			throw error("Failed to create JWK from credential signing_jwk", e, args("signing_jwk", credentialSigningJwkEl));
+			throw error("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration", e, args("signing_jwk", credentialSigningJwkEl));
 		}
 
 		// tries to generate a credential that's valid as per https://bmi.usercontent.opencode.de/eudi-wallet/eidas-2.0-architekturkonzept/functions/00-pid-issuance-and-presentation/#pid-contents
