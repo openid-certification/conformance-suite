@@ -1021,8 +1021,15 @@ function handleScanQr(evt) {
   const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
   let stream = null;
   let rafId = null;
+  // Set when the modal closes. getUserMedia can resolve AFTER the user has
+  // already dismissed the modal (the permission prompt / camera spin-up is
+  // not cancellable) — by then the one-shot close listener has fired with
+  // nothing to stop, so the late .then must stop the stream itself or the
+  // camera stays on with no owner.
+  let cancelled = false;
 
   const stopCamera = () => {
+    cancelled = true;
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
       rafId = null;
@@ -1041,11 +1048,16 @@ function handleScanQr(evt) {
   navigator.mediaDevices
     .getUserMedia({ video: { facingMode: "environment" } })
     .then((mediaStream) => {
+      if (cancelled) {
+        for (const track of mediaStream.getTracks()) track.stop();
+        return;
+      }
       stream = mediaStream;
       video.srcObject = stream;
       return video.play();
     })
     .then(() => {
+      if (!stream) return; // modal closed while the camera was starting
       statusEl.textContent = "Scanning…";
       const scanFrame = () => {
         if (!stream) return;

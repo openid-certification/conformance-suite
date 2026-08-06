@@ -3265,6 +3265,74 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(textarea).toHaveValue("openid4vp://?client_id=persisted");
   });
 
+  test("URI input: closing the scan modal while the camera is starting stops the late stream", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl);
+
+    // getUserMedia resolves only when the test calls window.__resolveCamera()
+    // — modelling the user cancelling while the browser's permission prompt /
+    // camera spin-up is still pending.
+    await page.addInitScript(() => {
+      /** @type {any} */ (window).BarcodeDetector = class {
+        async detect() {
+          return [];
+        }
+      };
+      Object.defineProperty(navigator, "mediaDevices", {
+        configurable: true,
+        value: {
+          getUserMedia: () =>
+            new Promise((resolve) => {
+              /** @type {any} */ (window).__resolveCamera = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = 64;
+                canvas.height = 64;
+                const stream = canvas.captureStream(10);
+                /** @type {any} */ (window).__lateStream = stream;
+                resolve(stream);
+              };
+            }),
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    await page.locator(".scanQrBtn button").click();
+    const modal = page.locator("#scanQrModal");
+    await expect(modal).toBeVisible();
+    await expect(page.locator("#scanQrStatus")).toHaveText("Requesting camera…");
+
+    // Cancel while getUserMedia is still pending…
+    await modal.locator("button", { hasText: "Cancel" }).click();
+    await expect(modal).toBeHidden();
+
+    // …then the camera finally starts. The late stream must be stopped
+    // immediately (regression: it kept running — camera light on — with no
+    // close listener left to ever stop it).
+    await page.evaluate(() => /** @type {any} */ (window).__resolveCamera());
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          /** @type {any} */ (window).__lateStream.getTracks().map((t) => t.readyState),
+        ),
+      )
+      .toEqual(["ended"]);
+    // The hidden <video> must never have been handed the late stream.
+    expect(
+      await page.evaluate(
+        () =>
+          /** @type {HTMLVideoElement} */ (document.getElementById("scanQrVideo")).srcObject ===
+          null,
+      ),
+    ).toBe(true);
+  });
+
   test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({ page }) => {
     await setupFailFast(page);
     const testIdLocal = MOCK_TEST_RUNNING.testId;
