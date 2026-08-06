@@ -732,6 +732,15 @@ function clearSlot(slot) {
 }
 
 /**
+ * JSON snapshot of the last-rendered runner `browser` payload. The runner
+ * poll calls renderBrowserSlot every cycle; skipping identical payloads
+ * keeps user state in the slot alive between polls — most importantly the
+ * focus and text of the paste-URI textarea that uriInputRequests renders.
+ * @type {string | undefined}
+ */
+let lastRenderedBrowserJson;
+
+/**
  * Render the running-test browser-URL prompt into the browser slot.
  * Near-verbatim port of log-detail.html's BROWSER template + handlers,
  * but assembled with DOM methods instead of Underscore string templates.
@@ -739,12 +748,23 @@ function clearSlot(slot) {
 function renderBrowserSlot(browser) {
   const slot = findSlot("browser");
   if (!slot) return;
+  const snapshot = JSON.stringify(browser ?? null);
+  if (snapshot === lastRenderedBrowserJson) return;
+  lastRenderedBrowserJson = snapshot;
+  // Pasted-but-unsubmitted URI text must survive a re-render triggered by
+  // an unrelated change elsewhere in the browser payload.
+  const preservedUriInputs = new Map();
+  for (const el of slot.querySelectorAll("textarea.uriInput")) {
+    if (el.value) preservedUriInputs.set(el.dataset.submiturl, el.value);
+  }
   clearSlot(slot);
   if (!browser) return;
   const hasUrls = Array.isArray(browser.urls) && browser.urls.length > 0;
   const hasApiRequests =
     Array.isArray(browser.browserApiRequests) && browser.browserApiRequests.length > 0;
-  if (!hasUrls && !hasApiRequests) return;
+  const hasUriInputs =
+    Array.isArray(browser.uriInputRequests) && browser.uriInputRequests.length > 0;
+  if (!hasUrls && !hasApiRequests && !hasUriInputs) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "v2-browser-wrapper";
@@ -849,7 +869,188 @@ function renderBrowserSlot(browser) {
     }
   }
 
+  // uriInputRequests — paste-an-openid4vp://-URI rows (mirrors the legacy
+  // `templates/browser.html` uriInputRequests block). Each entry has
+  // `{ submitUrl, description }`: the user pastes the verifier-under-test's
+  // authorization request (or scans its QR code) and the submit handler
+  // GETs the pasted URI's query string to submitUrl.
+  if (hasUriInputs) {
+    for (const uriReq of browser.uriInputRequests) {
+      if (!uriReq || !uriReq.submitUrl) continue;
+
+      const row = document.createElement("div");
+      row.className = "v2-browser-row";
+      row.style.display = "flex";
+      row.style.flexDirection = "column";
+      row.style.gap = "var(--space-2)";
+      row.style.marginBottom = "var(--space-3)";
+
+      if (uriReq.description) {
+        const desc = document.createElement("p");
+        desc.textContent = uriReq.description;
+        desc.style.margin = "0";
+        row.appendChild(desc);
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.className = "uriInput";
+      textarea.rows = 3;
+      textarea.placeholder = "openid4vp://?client_id=...&request_uri=...";
+      textarea.setAttribute("aria-label", "Verifier authorization request URI");
+      textarea.dataset.submiturl = uriReq.submitUrl;
+      textarea.style.width = "100%";
+      textarea.style.boxSizing = "border-box";
+      textarea.style.fontFamily = "var(--font-mono)";
+      textarea.style.fontSize = "var(--fs-13)";
+      const preserved = preservedUriInputs.get(uriReq.submitUrl);
+      if (preserved) textarea.value = preserved;
+      row.appendChild(textarea);
+
+      const btnRow = document.createElement("div");
+      btnRow.style.display = "flex";
+      btnRow.style.gap = "var(--space-2)";
+
+      const submitBtn = document.createElement("cts-button");
+      submitBtn.classList.add("submitUriBtn");
+      submitBtn.setAttribute("variant", "primary");
+      submitBtn.setAttribute("size", "sm");
+      submitBtn.setAttribute("icon", "paper-plane");
+      submitBtn.setAttribute("label", "Submit pasted URI");
+      submitBtn.dataset.submiturl = uriReq.submitUrl;
+      submitBtn.addEventListener("cts-click", handleSubmitUri);
+      btnRow.appendChild(submitBtn);
+
+      // Scan QR is only offered where the browser can decode QR codes
+      // natively (BarcodeDetector — Chromium-based browsers).
+      if (
+        "BarcodeDetector" in window &&
+        navigator.mediaDevices &&
+        navigator.mediaDevices.getUserMedia
+      ) {
+        const scanBtn = document.createElement("cts-button");
+        scanBtn.classList.add("scanQrBtn");
+        scanBtn.setAttribute("variant", "secondary");
+        scanBtn.setAttribute("size", "sm");
+        scanBtn.setAttribute("icon", "qr-code");
+        scanBtn.setAttribute("label", "Scan QR");
+        scanBtn.addEventListener("cts-click", handleScanQr);
+        btnRow.appendChild(scanBtn);
+      }
+
+      row.appendChild(btnRow);
+      wrapper.appendChild(row);
+    }
+  }
+
   slot.appendChild(wrapper);
+}
+
+/**
+ * uriInputRequests submit handler. Takes the query string of the pasted
+ * URI (everything from the first "?") and GETs it to the row's submitUrl
+ * — delivering, e.g., a verifier-under-test's openid4vp:// authorization
+ * request to the test's own authorization endpoint. On success the page
+ * reloads to pick up the test's progress.
+ *
+ * @param {Event} evt
+ */
+async function handleSubmitUri(evt) {
+  const host = /** @type {HTMLElement} */ (evt.currentTarget);
+  const submitUrl = host.dataset.submiturl || "";
+  const row = host.closest(".v2-browser-row");
+  const textarea = row ? row.querySelector("textarea.uriInput") : null;
+  const raw = textarea ? textarea.value.trim() : "";
+  const q = raw.indexOf("?");
+  if (q < 0) {
+    showError("No '?' query string found in the pasted URI.");
+    return;
+  }
+  const target = submitUrl + raw.substring(q); // substring includes the leading '?'
+  showBusy("Delivering authorization request…");
+  try {
+    const response = await fetch(target, { method: "GET" });
+    if (!response.ok) {
+      throw new Error(await readRunnerError(response));
+    }
+    window.location.reload();
+  } catch (err) {
+    hideBusy();
+    showError(`Failed to deliver authorization request: ${err.message}`);
+  }
+}
+
+/**
+ * "Scan QR" handler for uriInputRequests rows. Opens scanQrModal, streams
+ * the camera into its <video>, and polls the frames with the browser's
+ * native BarcodeDetector until a QR code decodes — the decoded text lands
+ * in the row's paste textarea and the modal closes. The camera stream is
+ * stopped whenever the modal closes, whatever the close path (success,
+ * Cancel, X, ESC, backdrop click — every path fires cts-modal-close).
+ *
+ * @param {Event} evt
+ */
+function handleScanQr(evt) {
+  const host = /** @type {HTMLElement} */ (evt.currentTarget);
+  const row = host.closest(".v2-browser-row");
+  const textarea = row ? row.querySelector("textarea.uriInput") : null;
+  const modal = document.getElementById("scanQrModal");
+  const video = /** @type {HTMLVideoElement} */ (document.getElementById("scanQrVideo"));
+  const statusEl = document.getElementById("scanQrStatus");
+  if (!textarea || !modal || !video || !statusEl) return;
+
+  const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+  let stream = null;
+  let rafId = null;
+
+  const stopCamera = () => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    if (stream) {
+      for (const track of stream.getTracks()) track.stop();
+      stream = null;
+    }
+    video.srcObject = null;
+  };
+  modal.addEventListener("cts-modal-close", stopCamera, { once: true });
+
+  statusEl.textContent = "Requesting camera…";
+  if (typeof modal.show === "function") modal.show();
+
+  navigator.mediaDevices
+    .getUserMedia({ video: { facingMode: "environment" } })
+    .then((mediaStream) => {
+      stream = mediaStream;
+      video.srcObject = stream;
+      return video.play();
+    })
+    .then(() => {
+      statusEl.textContent = "Scanning…";
+      const scanFrame = () => {
+        if (!stream) return;
+        detector
+          .detect(video)
+          .then((codes) => {
+            if (!stream) return;
+            if (codes.length > 0 && codes[0].rawValue) {
+              textarea.value = codes[0].rawValue;
+              statusEl.textContent = "QR code captured.";
+              if (typeof modal.hide === "function") modal.hide(); // fires cts-modal-close → stopCamera
+            } else {
+              rafId = requestAnimationFrame(scanFrame);
+            }
+          })
+          .catch(() => {
+            // ignore per-frame decode errors and keep trying until the modal closes
+            if (stream) rafId = requestAnimationFrame(scanFrame);
+          });
+      };
+      rafId = requestAnimationFrame(scanFrame);
+    })
+    .catch((err) => {
+      statusEl.textContent = `Camera error: ${err && err.message ? err.message : err}`;
+    });
 }
 
 /**
