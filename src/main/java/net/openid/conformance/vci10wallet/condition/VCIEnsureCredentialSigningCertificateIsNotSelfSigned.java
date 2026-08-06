@@ -51,9 +51,9 @@ public class VCIEnsureCredentialSigningCertificateIsNotSelfSigned extends Abstra
 				args("cert_0_from_x5c", encodedCert));
 		}
 
-		// Per HAIP section 4.5.1: Credential signing certificate must NOT be self-signed
+		// Per HAIP section 6.1.1: Credential signing certificate must NOT be self-signed
 		if (X509CertificateUtil.isSelfSigned(credentialSigningCert)) {
-			throw error("The first certificate in the 'x5c' claim of the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration is self-signed; HAIP section 4.5.1 requires that the credential signing certificate is not self-signed",
+			throw error("The first certificate in the 'x5c' claim of the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration is self-signed; HAIP section 6.1.1 requires that the credential signing certificate is not self-signed",
 				args("cert_0_from_x5c", encodedCert));
 		}
 

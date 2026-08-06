@@ -388,7 +388,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
-		callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-4.1");
+		callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
