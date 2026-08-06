@@ -138,7 +138,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 				callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
 				// signing JWK required so we can issue real mdoc / SD-JWT credentials
-				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-4.1");
+				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
 				callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
 			}
 		};
