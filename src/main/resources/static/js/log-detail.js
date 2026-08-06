@@ -741,6 +741,16 @@ function clearSlot(slot) {
 let lastRenderedBrowserJson;
 
 /**
+ * The slot element `lastRenderedBrowserJson` was rendered into. The RUNNING
+ * and WAITING heroes are separate Lit templates, each with its own
+ * [data-slot="browser"] node — a status flip swaps in a brand-new empty slot
+ * while the browser payload stays identical, so the JSON snapshot alone
+ * would skip the render and leave the prompt blank for the rest of the run.
+ * @type {Element | undefined}
+ */
+let lastRenderedBrowserSlot;
+
+/**
  * Render the running-test browser-URL prompt into the browser slot.
  * Near-verbatim port of log-detail.html's BROWSER template + handlers,
  * but assembled with DOM methods instead of Underscore string templates.
@@ -749,14 +759,24 @@ function renderBrowserSlot(browser) {
   const slot = findSlot("browser");
   if (!slot) return;
   const snapshot = JSON.stringify(browser ?? null);
-  if (snapshot === lastRenderedBrowserJson) return;
-  lastRenderedBrowserJson = snapshot;
+  if (snapshot === lastRenderedBrowserJson && slot === lastRenderedBrowserSlot) return;
   // Pasted-but-unsubmitted URI text must survive a re-render triggered by
-  // an unrelated change elsewhere in the browser payload.
+  // an unrelated change elsewhere in the browser payload — and a hero swap
+  // that replaced the slot node itself, in which case the user's text only
+  // exists in the detached previous slot (current slot wins if both have
+  // text for the same submitUrl, hence the harvest order).
   const preservedUriInputs = new Map();
-  for (const el of slot.querySelectorAll("textarea.uriInput")) {
-    if (el.value) preservedUriInputs.set(el.dataset.submiturl, el.value);
+  const harvestRoots =
+    lastRenderedBrowserSlot && lastRenderedBrowserSlot !== slot
+      ? [lastRenderedBrowserSlot, slot]
+      : [slot];
+  for (const root of harvestRoots) {
+    for (const el of root.querySelectorAll("textarea.uriInput")) {
+      if (el.value) preservedUriInputs.set(el.dataset.submiturl, el.value);
+    }
   }
+  lastRenderedBrowserJson = snapshot;
+  lastRenderedBrowserSlot = slot;
   clearSlot(slot);
   if (!browser) return;
   const hasUrls = Array.isArray(browser.urls) && browser.urls.length > 0;
