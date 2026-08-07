@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -18,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -152,6 +154,40 @@ public class CreateSdJwtKbCredential_UnitTest {
 		// element disclosure (the "FR" inside nationalities) and any other top-level disclosure
 		// should have been dropped because no kept disclosure references their digest.
 		assertEquals(Set.of("given_name", "family_name"), disclosedClaimNames);
+	}
+
+	@Test
+	public void testEvaluate_missingSigningJwkErrorReferencesConfigField() {
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
+		env.putObject("config", new JsonObject());
+
+		ConditionError err = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(err.getMessage().contains("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration"),
+			"expected message to reference the missing 'Signing JWK' config field but was: " + err.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_unparseableSigningJwkErrorReferencesConfigField() {
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
+		env.putObjectFromJsonString("config", "credential.signing_jwk", """
+			{"kty": "not-a-real-kty"}""");
+
+		ConditionError err = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(err.getMessage().contains("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration"),
+			"expected message to reference the unparseable 'Signing JWK' config field but was: " + err.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_signingJwkWithoutAlgErrorReferencesConfigField() {
+		// OKP key with no 'alg' claim: no default algorithm is defined (unlike EC, which
+		// falls back to ES256), so the condition must fail pointing at the config field.
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
+		env.putObjectFromJsonString("config", "credential.signing_jwk", """
+			{"kty": "OKP", "crv": "Ed25519", "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"}""");
+
+		ConditionError err = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(err.getMessage().contains("'Signing JWK'") && err.getMessage().contains("'alg'"),
+			"expected message to reference the 'Signing JWK' config field and the 'alg' claim but was: " + err.getMessage());
 	}
 
 }

@@ -33,7 +33,7 @@ public class VCIGenerateSignedCredentialIssuerMetadata extends AbstractSignJWT {
 
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {
-			throw error("Credential signing JWK missing from configuration");
+			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
 		}
 
 		String issuer = env.getString("credential_issuer_metadata", "credential_issuer");

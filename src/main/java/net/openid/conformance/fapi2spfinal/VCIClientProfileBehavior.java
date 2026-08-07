@@ -110,14 +110,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				"'Client Attestation Trust Anchor' field is missing from the 'Client Attestation' section in the test configuration");
 		}
 
-		// The credential signing JWK is required so we can issue real mdoc / SD-JWT credentials.
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		if (credentialSigningJwkEl == null) {
-			throw new TestFailureException(module.getId(),
-				"'Credential Signing JWK' field is missing from the 'Credential' section in the test configuration");
-		}
-		env.putString("vci", "credential_signing_jwk", credentialSigningJwkEl.toString());
-
 		// Pre-populate credential_issuer_metadata + credential_configurations_supported
 		// so the VCI conditions invoked from the credential / nonce endpoints find them.
 		JsonObject metadata;
@@ -145,7 +137,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			public void evaluate() {
 				callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 				callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
-				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-4.1");
+				// signing JWK required so we can issue real mdoc / SD-JWT credentials
+				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
 				callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
 			}
 		};
