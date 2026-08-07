@@ -253,6 +253,32 @@ public class VariantService {
 	}
 
 	/**
+	 * Rejects plan definitions the schedule-test UI cannot represent: an entry guarded by
+	 * multiple applicableWhen conditions (AND semantics) whose fixed variants declare
+	 * configuration fields. getVariantSummary() attaches such fields to a single
+	 * user-selectable variant value, which can only express a single condition.
+	 */
+	static void validateConditionalEntryFields(Class<? extends TestPlan> planClass, Class<?> moduleClass,
+			List<TestPlan.VariantCondition> applicableWhen,
+			List<String> fixedVariantConfigurationFields,
+			List<String> fixedVariantHidesConfigurationFields) {
+		if (applicableWhen.size() <= 1
+			|| (fixedVariantConfigurationFields.isEmpty() && fixedVariantHidesConfigurationFields.isEmpty())) {
+			return;
+		}
+		throw new RuntimeException("Test plan '" + planClass.getSimpleName() + "' module '"
+			+ moduleClass.getSimpleName() + "' is in a ModuleListEntry with multiple applicableWhen conditions, "
+			+ "but its fixed variants declare configuration fields "
+			+ "(" + fixedVariantConfigurationFields + ", hides " + fixedVariantHidesConfigurationFields + "). "
+			+ "The configuration form can only show/hide these fields based on a single user-selectable variant "
+			+ "value, so AND conditions are not supported. Either attach the fields to a user-selectable variant "
+			+ "value via @VariantConfigurationFields, restructure the variants so a single selectable value "
+			+ "encodes the combination, or extend getVariantSummary() to support AND visibility. Do not split "
+			+ "the entry into one entry per condition: separate entries apply when either condition matches, "
+			+ "which would change which modules run.");
+	}
+
+	/**
 	 * Wraps a test module with the variants specific to it in a particular test plan
 	 */
 	public class TestPlanModuleWithVariant {
@@ -314,6 +340,8 @@ public class VariantService {
 			}
 			this.fixedVariantConfigurationFields = configurationFields;
 			this.fixedVariantHidesConfigurationFields = hidesConfigurationFields;
+			validateConditionalEntryFields(planClass, module.moduleClass, applicableWhen,
+				configurationFields, hidesConfigurationFields);
 		}
 
 		/**
@@ -496,7 +524,10 @@ public class VariantService {
 		}
 
 		public List<String> configurationFields() {
+			// entries guarded by applicableWhen contribute their fixed-variant fields via
+			// getVariantSummary() under the condition's variant value(s) instead
 			Set<String> fields = modulesWithVariant.stream()
+				.filter(m -> m.applicableWhen.isEmpty())
 				.flatMap(testPlanModuleWithVariant -> testPlanModuleWithVariant.fixedVariantConfigurationFields.stream())
 				.collect(toSet());
 			fields.addAll(Arrays.asList(info.configurationFields()));
@@ -504,7 +535,9 @@ public class VariantService {
 		}
 
 		public List<String> hidesConfigurationFields() {
+			// see configurationFields(): conditional entries are handled per variant value
 			Set<String> fields = modulesWithVariant.stream()
+				.filter(m -> m.applicableWhen.isEmpty())
 				.flatMap(testPlanModuleWithVariant -> testPlanModuleWithVariant.fixedVariantHidesConfigurationFields.stream())
 				.collect(toSet());
 			return new ArrayList<>(fields);
@@ -512,6 +545,40 @@ public class VariantService {
 
 		public List<String> certificationProfileForVariant(VariantSelection variantSelection) {
 			return planInstance.certificationProfileName(variantSelection);
+		}
+
+		/**
+		 * Merges the fixed-variant configuration fields of applicableWhen-guarded entries into
+		 * the per-variant-value maps used by getVariantSummary(), keyed by the condition's
+		 * parameter and value(s). Multiple condition values mirror the OR matching in
+		 * isApplicableEntry; entries with multiple conditions and fields are rejected at
+		 * construction (validateConditionalEntryFields). Condition values are keyed by the enum
+		 * toString() form, matching both the collectors above and isApplicableEntry. Values
+		 * seeded for a parameter that is not user-selectable (a dead entry) are ignored by the
+		 * summary assembly, which only iterates selectable parameters.
+		 */
+		private void mergeConditionalEntryFields(
+				Map<ParameterHolder<?>, Map<String, Set<String>>> fields,
+				Map<ParameterHolder<?>, Map<String, Set<String>>> hideFields) {
+			for (TestPlanModuleWithVariant m : modulesWithVariant) {
+				for (TestPlan.VariantCondition condition : m.applicableWhen) {
+					// parameter() returns the canonical cached holder, the same instance the
+					// collectors above use as grouping key
+					ParameterHolder<?> holder = parameter(condition.parameter);
+					for (String value : condition.values) {
+						if (!m.fixedVariantConfigurationFields.isEmpty()) {
+							fields.computeIfAbsent(holder, k -> new HashMap<>())
+								.computeIfAbsent(value, k -> new HashSet<>())
+								.addAll(m.fixedVariantConfigurationFields);
+						}
+						if (!m.fixedVariantHidesConfigurationFields.isEmpty()) {
+							hideFields.computeIfAbsent(holder, k -> new HashMap<>())
+								.computeIfAbsent(value, k -> new HashSet<>())
+								.addAll(m.fixedVariantHidesConfigurationFields);
+						}
+					}
+				}
+			}
 		}
 
 		private boolean isApplicableEntry(TestPlanModuleWithVariant entry, VariantSelection variantSelection) {
@@ -633,6 +700,11 @@ public class VariantService {
 											flatMapping(e -> e.getValue().stream(),
 													mapping(v -> v.toString(),
 															toSet()))))));
+
+			// Entries guarded by applicableWhen contribute their fixed-variant configuration
+			// fields under the condition's variant value(s), so the form only requests them
+			// when a value that makes the entry applicable is selected.
+			mergeConditionalEntryFields(fields, hideFields);
 
 			// for each available variant, collect conditional exclusion info
 			// e.g. CredentialOfferVariant : { "auth_flow_variant": { "wallet_initiated": ["by_value", "by_reference"] } }
