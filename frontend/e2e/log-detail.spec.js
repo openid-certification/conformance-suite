@@ -671,6 +671,19 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // The click below navigates to the sibling's OWN log-detail page, whose
+    // bootstrap fetches /api/log/<sibling-id> — mock it the same way
+    // setupV2Routes mocks the viewed test's own /api/log/<testId>, otherwise
+    // this request falls through to setupFailFast's catch-all (gitlab#1863).
+    await page.route("**/api/log/s-*", (route) => {
+      const url = new URL(route.request().url());
+      const since = url.searchParams.get("since");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(since && Number(since) > 0 ? [] : MOCK_LOG_ENTRIES),
+      });
+    });
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -809,6 +822,19 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // The click below navigates to the sibling's OWN log-detail page, whose
+    // bootstrap fetches /api/log/<sibling-id> — mock it the same way
+    // setupV2Routes mocks the viewed test's own /api/log/<testId>, otherwise
+    // this request falls through to setupFailFast's catch-all (gitlab#1863).
+    await page.route("**/api/log/s-*", (route) => {
+      const url = new URL(route.request().url());
+      const since = url.searchParams.get("since");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(since && Number(since) > 0 ? [] : MOCK_LOG_ENTRIES),
+      });
+    });
     await setupCommonRoutes(page, { user: null }); // anonymous viewer
 
     await page.goto(
