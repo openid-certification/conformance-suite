@@ -6,5 +6,27 @@
     },
     "credential": {
         "signing_jwk": {vp-signing-jwk.json}
-    }
+    },
+    "browser": [
+        {
+            "comment": "capture the suite-served evidence page to fill the verification-result screenshot placeholder without human interaction",
+            "match": "https://*/test/a/*/verification-evidence",
+            "tasks": [
+                {
+                    "task": "Capture verification evidence",
+                    "match": "https://*/test/a/*/verification-evidence",
+                    "commands": [
+                        [
+                            "wait",
+                            "xpath",
+                            "//*",
+                            10,
+                            ".*Deferred verification evidence.*",
+                            "update-image-placeholder"
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
 }

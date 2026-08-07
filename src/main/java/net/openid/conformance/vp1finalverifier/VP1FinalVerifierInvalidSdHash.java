@@ -16,6 +16,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		The conformance suite acts as a mock web wallet. You must configure your verifier to use \
 		the authorization endpoint url below instead of 'openid4vp://' and then start the flow in \
 		your verifier as normal.
+
+		On a 4xx response the test passes immediately; on a success response a screenshot of the \
+		verifier's error must be uploaded and the test finishes as REVIEW.
 		""",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
