@@ -5,6 +5,7 @@ import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
@@ -14,6 +15,12 @@ import net.openid.conformance.testmodule.TestFailureException;
 		The wallet must reject requests with unknown client_id prefix values. \
 		The wallet should display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
+)
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletRequestMethod.class,
+	values = {"request_uri_unsigned"},  // unsigned DC API requests contain no client_id to corrupt (OID4VP Appendix A.2)
+	whenParameter = VP1FinalWalletResponseMode.class,
+	hasValues = {"dc_api", "dc_api.jwt"}
 )
 public class VP1FinalWalletInvalidClientIdPrefix extends AbstractVP1FinalWalletTest {
 

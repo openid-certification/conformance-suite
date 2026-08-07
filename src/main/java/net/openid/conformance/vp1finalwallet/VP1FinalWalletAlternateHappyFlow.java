@@ -2,8 +2,10 @@ package net.openid.conformance.vp1finalwallet;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientIdWithUnknownPrefixToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddMismatchedIssToRequestObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddWrongExpectedOriginsToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc;
@@ -26,7 +28,8 @@ import org.jetbrains.annotations.NotNull;
 		- Encryption key without 'use: enc' (for encrypted response modes)
 		- Reordered query parameters in the redirect URL (no-op for DC API response modes, which don't use a redirect URL)
 		- response_uri response returns a redirect_uri which the wallet must open (no-op for DC API response modes; for ISO mdoc the default flow already returns a redirect_uri)
-		- response_uri request parameter is omitted when client_id_prefix=redirect_uri and response_mode is direct_post or direct_post.jwt (per OID4VP §5.9.3, the wallet must derive it from client_id)""",
+		- response_uri request parameter is omitted when client_id_prefix=redirect_uri and response_mode is direct_post or direct_post.jwt (per OID4VP §5.9.3, the wallet must derive it from client_id)
+		- Unsigned DC API requests include a client_id with an unknown prefix and a non-matching expected_origins, both of which must be ignored as per OID4VP Appendix A.2 (no-op for signed requests and non-DC-API response modes)""",
 	profile = "OID4VP-1FINAL"
 )
 
@@ -63,6 +66,19 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 			// the value from the client_id itself.
 			createAuthorizationRequestSteps.skip(AddResponseUriToAuthorizationEndpointRequest.class,
 				"response_uri is optional under client_id_prefix=redirect_uri + direct_post (OID4VP §5.9.3)");
+		}
+
+		if (requestMethod == VP1FinalWalletRequestMethod.REQUEST_URI_UNSIGNED
+			&& (responseMode == VP1FinalWalletResponseMode.DC_API
+				|| responseMode == VP1FinalWalletResponseMode.DC_API_JWT)) {
+			// OID4VP Appendix A.2: unsigned DC API requests must omit client_id, and the wallet MUST
+			// ignore client_id and expected_origins if they are present. Send both with values that
+			// would fail validation - a wallet that wrongly processes either will not complete the flow.
+			createAuthorizationRequestSteps = createAuthorizationRequestSteps
+				.then(condition(AddClientIdWithUnknownPrefixToAuthorizationEndpointRequest.class)
+					.requirements("OID4VP-1FINALA-A.2"))
+				.then(condition(AddWrongExpectedOriginsToAuthorizationEndpointRequest.class)
+					.requirements("OID4VP-1FINALA-A.2"));
 		}
 
 		return createAuthorizationRequestSteps;
