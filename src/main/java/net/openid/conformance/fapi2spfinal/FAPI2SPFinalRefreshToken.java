@@ -227,7 +227,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 					// (mirrors callSenderConstrainedTokenEndpoint).
 					for (int i = 0; i < 2; i++) {
 						createDpopForTokenEndpoint();
-						callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+						callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, "FAPI2-SP-FINAL-5.3.2.1-6");
 						extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 						if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 							break;
@@ -237,7 +237,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 					// non-mtls auth + mtls sender. Cert is intact (only mtls auth unmaps it),
 					// so the TLS handshake succeeds; the AS sees the request with a valid cert
 					// but no client authentication parameter.
-					callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+					callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, "FAPI2-SP-FINAL-5.3.2.1-6");
 					extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				}
 
