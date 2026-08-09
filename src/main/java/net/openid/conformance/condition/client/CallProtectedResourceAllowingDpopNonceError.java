@@ -8,6 +8,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.http.DpopNonceResponseHeader;
 import net.openid.conformance.util.http.WwwAuthenticateHeaderValueParser;
 import org.springframework.http.MediaType;
 import org.springframework.http.InvalidMediaTypeException;
@@ -66,8 +67,22 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
 		super.handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
+
+		// checked whatever the status code was, so the violation is attributed to the response that carried it
+		DpopNonceResponseHeader nonceHeader = DpopNonceResponseHeader.from(responseHeaders);
+		if (nonceHeader.violation() != null) {
+			throw error(nonceHeader.violation(), args("headers", responseHeaders));
+		}
+
 		if(null != fullResponse) {
 			int status = OIDFJSON.getInt(responseCode.get("code"));
+			if (status >= 200 && status < 300 && nonceHeader.nonce() != null) {
+				// RFC 9449 §9: resource servers supply nonces the same way authorization servers do,
+				// including §8.2's rotation via a successful response, so a nonce arriving on a 2xx
+				// replaces the stored one for the next resource request. Nothing went wrong with this
+				// request, so resource_endpoint_dpop_nonce_error (the retry trigger) stays unset.
+				env.putString("resource_server_dpop_nonce", nonceHeader.nonce());
+			}
 			if(status == 401) {
 				if(null != responseHeaders) {
 					if(responseHeaders.has("www-authenticate")) {
@@ -101,10 +116,13 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 									keyPairs.put(key, val);
 								}
 								if("use_dpop_nonce".equals(keyPairs.get("error"))) {
-									if(responseHeaders.has("dpop-nonce")) {
-										env.putString("resource_server_dpop_nonce", OIDFJSON.getString(responseHeaders.get("dpop-nonce")));
-										env.putString("resource_endpoint_dpop_nonce_error", OIDFJSON.getString(responseHeaders.get("dpop-nonce")));
+									if(nonceHeader.nonce() == null) {
+										throw error("The resource server returned a 'use_dpop_nonce' error but supplied"
+											+ " no DPoP-Nonce header, leaving no nonce to retry the request with.",
+											args("headers", responseHeaders));
 									}
+									env.putString("resource_server_dpop_nonce", nonceHeader.nonce());
+									env.putString("resource_endpoint_dpop_nonce_error", nonceHeader.nonce());
 								}
 							}
 						}

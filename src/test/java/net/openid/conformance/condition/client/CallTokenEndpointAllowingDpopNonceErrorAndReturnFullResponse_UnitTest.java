@@ -6,6 +6,7 @@ import io.specto.hoverfly.junit.core.Hoverfly;
 import io.specto.hoverfly.junit.dsl.HoverflyDsl;
 import io.specto.hoverfly.junit5.HoverflyExtension;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(HoverflyExtension.class)
@@ -63,6 +65,21 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 				.willReturn(HoverflyDsl.response()
 					.status(200)
 					.body(successBody)
+					.header("Content-Type", "application/json")),
+			service("dpop-success-bad-nonce.example.com")
+				.post("/token")
+				.anyBody()
+				.willReturn(HoverflyDsl.response()
+					.status(200)
+					.body(successBody)
+					.header("Content-Type", "application/json")
+					.header("DPoP-Nonce", "nonce with spaces")),
+			service("dpop-nonce-error-without-nonce.example.com")
+				.post("/token")
+				.anyBody()
+				.willReturn(HoverflyDsl.response()
+					.status(400)
+					.body(useDpopNonceErrorBody)
 					.header("Content-Type", "application/json"))));
 		hoverfly.resetJournal();
 
@@ -113,6 +130,32 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 		cond.execute(env);
 
 		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("previous-nonce");
+		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isNull();
+	}
+
+	@Test
+	public void testRejectsNonceWithCharactersOutsideNqchar() {
+		// RFC9449 section 8.1 defines the nonce as 1*NQCHAR, which does not include a space. Harvesting the
+		// value silently would leave the violation to surface later as an unrelated proof-construction failure.
+		env.putString("server", "token_endpoint", "https://dpop-success-bad-nonce.example.com/token");
+		env.putString("authorization_server_dpop_nonce", "previous-nonce");
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", new JsonObject());
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+
+		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("previous-nonce");
+	}
+
+	@Test
+	public void testRejectsUseDpopNonceErrorWithNoNonceSupplied() {
+		// There is no nonce to retry with, so this must be reported rather than throwing a NullPointerException
+		env.putString("server", "token_endpoint", "https://dpop-nonce-error-without-nonce.example.com/token");
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", new JsonObject());
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+
 		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isNull();
 	}
 }
