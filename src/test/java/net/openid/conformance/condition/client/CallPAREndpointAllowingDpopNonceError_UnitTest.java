@@ -10,9 +10,11 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,6 +22,11 @@ import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(HoverflyExtension.class)
@@ -74,6 +81,13 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 				.willReturn(HoverflyDsl.response()
 					.status(400)
 					.body(useDpopNonceErrorBody)
+					.header("Content-Type", "application/json")),
+			service("dpop-success-no-nonce.example.com")
+				.post("/par")
+				.anyBody()
+				.willReturn(HoverflyDsl.response()
+					.status(201)
+					.body(successBody)
 					.header("Content-Type", "application/json"))));
 		hoverfly.resetJournal();
 
@@ -135,5 +149,46 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 
 		assertThat(env.getString("par_endpoint_dpop_nonce_error")).isNull();
+	}
+
+	/**
+	 * The number of log entries one call produces must not depend on whether the server happened to supply a
+	 * DPoP nonce: the CI compare-results job diffs the sequence of log entries, so an entry that only appears
+	 * when a nonce arrives shows up as a difference between two otherwise identical runs.
+	 */
+	private String parsedResponseLogMessage() {
+		ArgumentCaptor<JsonObject> entries = ArgumentCaptor.forClass(JsonObject.class);
+		// LoggingRequestInterceptor logs the request and the response, then the parsed-response entry
+		verify(eventLog, times(3)).log(anyString(), entries.capture());
+		// a map-payload entry would escape the captor above, and so would escape the count
+		verify(eventLog, never()).log(anyString(), anyMap());
+
+		return OIDFJSON.getString(entries.getAllValues().get(2).get("msg"));
+	}
+
+	@Test
+	public void testReportsTheSuppliedNonceOnTheParsedResponseEntry() {
+		env.putString("server", "pushed_authorization_request_endpoint", "https://dpop-success.example.com/par");
+		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
+		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
+
+		cond.execute(env);
+
+		// in the message, so it is visible without expanding the entry; the nonce itself is not repeated
+		// here because the response headers are logged with the response
+		assertThat(parsedResponseLogMessage())
+			.isEqualTo("Parsed pushed authorization request endpoint response - DPoP nonce supplied");
+	}
+
+	@Test
+	public void testReportsTheAbsenceOfANonceOnTheParsedResponseEntry() {
+		env.putString("server", "pushed_authorization_request_endpoint", "https://dpop-success-no-nonce.example.com/par");
+		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
+		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
+
+		cond.execute(env);
+
+		assertThat(parsedResponseLogMessage())
+			.isEqualTo("Parsed pushed authorization request endpoint response - no DPoP nonce supplied");
 	}
 }

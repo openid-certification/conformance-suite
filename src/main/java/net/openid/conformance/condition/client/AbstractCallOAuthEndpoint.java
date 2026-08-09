@@ -89,11 +89,22 @@ public abstract class AbstractCallOAuthEndpoint extends AbstractCallEndpoint {
 			if (jsonObjectError) {
 				throw error(endpointName + " did not return a JSON object", args("response", jsonString));
 			}
-			logSuccess("Parsed " + endpointName + " response", env.getObject(responseEnvironmentKey));
+			logSuccess("Parsed " + endpointName + " response" + parsedResponseLogSuffix(),
+				env.getObject(responseEnvironmentKey));
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
+	}
+
+	/**
+	 * Appended to the message of the "Parsed ... response" entry. Subclasses override this to say, in the
+	 * part of the entry visible without expanding it, what the server did on this particular response -
+	 * putting it here rather than in an entry of its own keeps the number of entries one call produces the
+	 * same whatever the server sent, which the CI compare-results job depends on.
+	 */
+	protected String parsedResponseLogSuffix() {
+		return "";
 	}
 }

@@ -12,6 +12,10 @@ import org.springframework.http.ResponseEntity;
  * required nonce for retry.
  */
 public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
+
+	/** The nonce the server supplied on this response, or null if it supplied none. */
+	private String suppliedDpopNonce;
+
 	@Override
 	public Environment evaluate(Environment env) {
 		env.removeNativeValue("par_endpoint_dpop_nonce_error");
@@ -31,6 +35,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			throw error(nonceHeader.violation(), args("headers", jsonResponseHeaders));
 		}
 		String dpopNonce = nonceHeader.nonce();
+		suppliedDpopNonce = dpopNonce;
 
 		if((status == 400) && (null != jsonError) && OIDFJSON.getString(jsonError).equals("use_dpop_nonce")) {
 			if (dpopNonce == null) {
@@ -41,7 +46,6 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
 			env.putString("par_endpoint_dpop_nonce_error", dpopNonce);
 			env.putObject("par_endpoint_response", env.getElementFromObject(RESPONSE_KEY, "body_json").getAsJsonObject());
-			log("Got DPoP-Nonce header", args("DPoP-Nonce", dpopNonce));
 		} else if (status >= 200 && status < 300 && dpopNonce != null) {
 			// RFC 9449 §8.2: the server may rotate the DPoP nonce on every response and the
 			// client MUST use the newly supplied value on subsequent requests. Some ASes treat
@@ -49,9 +53,12 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			// path), so harvesting the freshly issued nonce from a successful response is
 			// required to avoid stale-nonce reuse on the next call.
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
-			log("Harvested DPoP-Nonce response header for use in the next request",
-				args("DPoP-Nonce", dpopNonce));
 		}
+	}
+
+	@Override
+	protected String parsedResponseLogSuffix() {
+		return " - " + DpopNonceResponseHeader.describeSuppliedNonce(suppliedDpopNonce);
 	}
 
 }
