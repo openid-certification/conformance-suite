@@ -16,6 +16,9 @@ import org.springframework.http.ResponseEntity;
  */
 public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
 
+	/** The nonce the server supplied on this response, or null if it supplied none. */
+	private String suppliedDpopNonce;
+
 	// WARNING optional token_endpoint_dpop_nonce_error returned with required nonce value
 	@Override
 	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
@@ -39,6 +42,7 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 			throw error(nonceHeader.violation(), args("headers", jsonResponseHeaders));
 		}
 		String dpopNonce = nonceHeader.nonce();
+		suppliedDpopNonce = dpopNonce;
 
 		if((status == 400) && (null != jsonError) && OIDFJSON.getString(jsonError).equals("use_dpop_nonce")) {
 			if (dpopNonce == null) {
@@ -49,7 +53,6 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
 			env.putString("token_endpoint_dpop_nonce_error", dpopNonce);
 			env.putObject("token_endpoint_response", env.getElementFromObject("token_endpoint_response_full", "body_json").getAsJsonObject());
-			log("Got DPoP-Nonce header", args("DPoP-Nonce", dpopNonce));
 		} else if (status >= 200 && status < 300 && dpopNonce != null) {
 			// RFC 9449 §8.2: the server may rotate the DPoP nonce on every response and the
 			// client MUST use the newly supplied value on subsequent requests. Some ASes treat
@@ -57,8 +60,11 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 			// path), so harvesting the freshly issued nonce from a successful response is
 			// required to avoid stale-nonce reuse on the next call.
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
-			log("Harvested DPoP-Nonce response header for use in the next request",
-				args("DPoP-Nonce", dpopNonce));
 		}
+	}
+
+	@Override
+	protected String parsedResponseLogSuffix() {
+		return " - " + DpopNonceResponseHeader.describeSuppliedNonce(suppliedDpopNonce);
 	}
 }

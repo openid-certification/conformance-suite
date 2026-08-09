@@ -128,12 +128,18 @@ public class CallPAREndpoint extends AbstractCondition {
 				throw error("Pushed Authorization did not return a JSON object");
 			}
 
-			logSuccess("Parsed pushed authorization request endpoint response", jsonRoot.getAsJsonObject());
+			logSuccess("Parsed pushed authorization request endpoint response" + parsedResponseLogSuffix(),
+				jsonRoot.getAsJsonObject());
 
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
+	}
+
+	/** @see AbstractCallOAuthEndpoint#parsedResponseLogSuffix() */
+	protected String parsedResponseLogSuffix() {
+		return "";
 	}
 
 	protected void addFullResponse(Environment env, ResponseEntity<String> response) {

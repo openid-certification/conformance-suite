@@ -60,6 +60,21 @@ public record DpopNonceResponseHeader(String nonce, String violation) {
 		return new DpopNonceResponseHeader(value, null);
 	}
 
+	/**
+	 * Wording for the log message of a condition that has just read a response, saying whether the server
+	 * supplied a DPoP nonce on it.
+	 *
+	 * <p>This goes in the message, not in the logged details, for two reasons: it is then visible without
+	 * expanding the entry, and it can live on an entry the condition logs on every call. A server is free to
+	 * supply a nonce on one response and not the next, so an entry that appears only when a nonce arrives
+	 * would make the number of log entries one condition call produces depend on what the server did, which
+	 * the CI compare-results job reports as a difference between two otherwise identical runs. The nonce
+	 * itself is not repeated here because the response headers are already logged with the response.
+	 */
+	public static String describeSuppliedNonce(String suppliedNonce) {
+		return suppliedNonce == null ? "no DPoP nonce supplied" : "DPoP nonce supplied";
+	}
+
 	private static DpopNonceResponseHeader violation(String description) {
 		return new DpopNonceResponseHeader(null, description);
 	}
