@@ -35,7 +35,10 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 		env.putBoolean("has_nested_key_attestation", false);
 
 		// All proofs of a (batch) credential request are validated; they all carry the same
-		// c_nonce, which is only invalidated after every proof has been validated.
+		// c_nonce, which is only invalidated after every proof has been validated. OID4VCI does
+		// not explicitly require batch proofs to share one c_nonce; we require it (behaviour '1'
+		// in the issue below) - revisit if the WG rules otherwise.
+		// https://github.com/openid/OpenID4VCI/issues/774
 		List<String> proofJwtStrings = new ArrayList<>();
 		JsonObject proofJwtsWrapper = env.getObject("proof_jwts");
 		JsonArray proofJwtItems = null;
