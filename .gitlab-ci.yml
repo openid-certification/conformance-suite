@@ -230,6 +230,8 @@ frontend_e2e_test:
     - node -v && npm -v
     - cd frontend
     - npm install
+    # Storybook play-function + axe a11y suite; needs this image's headless Chromium
+    - npm run test-storybook
     - npx playwright test --config playwright.config.js
   artifacts:
     when: on_failure
