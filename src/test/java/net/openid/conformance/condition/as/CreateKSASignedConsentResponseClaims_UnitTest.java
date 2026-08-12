@@ -2,6 +2,7 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -10,7 +11,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CreateKSASignedConsentResponseClaims_UnitTest {
 
@@ -44,5 +47,23 @@ public class CreateKSASignedConsentResponseClaims_UnitTest {
 		assertThat(OIDFJSON.getString(claims.get("iss")), is("https://suite.example/issuer"));
 		assertThat(claims.has("iat"), is(true));
 		assertThat(OIDFJSON.getString(claims.getAsJsonObject("message").getAsJsonObject("Data").get("ConsentId")), is("aac-123"));
+	}
+
+	@Test
+	public void testMissingIssuerThrows() {
+		env.putObject("server", new JsonObject());
+
+		ConditionError err = assertThrows(ConditionError.class, () -> cond.evaluate(env));
+		assertThat(err.getMessage(), containsString("No server issuer available"));
+	}
+
+	@Test
+	public void testEmptyIssuerThrows() {
+		JsonObject server = new JsonObject();
+		server.addProperty("issuer", "");
+		env.putObject("server", server);
+
+		ConditionError err = assertThrows(ConditionError.class, () -> cond.evaluate(env));
+		assertThat(err.getMessage(), containsString("No server issuer available"));
 	}
 }

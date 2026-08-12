@@ -103,12 +103,12 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 
 		if (signedConsent) {
 			if (secondClient) {
-				callAndStopOnFailure(CreateKSAConsentRequestWithExpiration.class);
+				callAndStopOnFailure(CreateKSAConsentRequestWithExpiration.class, "KSA");
 			} else {
-				callAndStopOnFailure(CreateKSAConsentRequest.class);
+				callAndStopOnFailure(CreateKSAConsentRequest.class, "KSA");
 			}
-			callAndStopOnFailure(SignKSAConsentRequest.class);
-			callAndStopOnFailure(CallKSASignedAccountRequestsEndpointWithBearerToken.class);
+			callAndStopOnFailure(SignKSAConsentRequest.class, "KSA");
+			callAndStopOnFailure(CallKSASignedAccountRequestsEndpointWithBearerToken.class, "KSA");
 		} else {
 			if (secondClient) {
 				callAndStopOnFailure(CreateKSACreateAccountRequestRequestWithExpiration.class);

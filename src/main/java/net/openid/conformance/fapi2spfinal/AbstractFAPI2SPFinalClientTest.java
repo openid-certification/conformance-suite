@@ -1604,9 +1604,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		checkResourceEndpointRequest(true);
 
 		// KSA requires the consent to be a signed JWT (application/jwt)
-		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractKSASignedConsentRequest.class);
-		callAndContinueOnFailure(ValidateKSAConsentRequestSignature.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "KSA");
+		callAndStopOnFailure(ExtractKSASignedConsentRequest.class, "KSA");
+		callAndContinueOnFailure(ValidateKSAConsentRequestSignature.class, Condition.ConditionResult.FAILURE, "KSA");
 
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
@@ -1616,8 +1616,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndStopOnFailure(CreateKSAOBAccountRequestResponse.class);
 
 		// Sign the response per the KSA spec (OBReadConsentResponseSigned, application/jwt)
-		callAndStopOnFailure(CreateKSASignedConsentResponseClaims.class);
-		callAndStopOnFailure(SignKSAConsentResponse.class);
+		callAndStopOnFailure(CreateKSASignedConsentResponseClaims.class, "KSA");
+		callAndStopOnFailure(SignKSAConsentResponse.class, "KSA");
 
 		String signedConsentResponse = env.getString("signed_consent_response");
 		JsonObject headerJson = env.getObject("account_request_response_headers");
