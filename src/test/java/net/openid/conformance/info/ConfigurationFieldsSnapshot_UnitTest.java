@@ -26,7 +26,8 @@ class ConfigurationFieldsSnapshot_UnitTest {
 		"fapi2-security-profile-final-brazil-dcr-test-plan",
 		"fapi2-message-signing-final-test-plan",
 		"oid4vci-1_0-issuer-test-plan",
-		"oid4vci-1_0-issuer-haip-test-plan"
+		"oid4vci-1_0-issuer-haip-test-plan",
+		"oid4vp-1final-wallet-haip-test-plan"
 	);
 
 	@Test

@@ -1,15 +1,24 @@
 package net.openid.conformance.variant;
 
 import net.openid.conformance.info.Plan;
+import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialFormat;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletResponseMode;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletTestPlanHaip;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VariantCondition_UnitTest {
@@ -166,5 +175,81 @@ class VariantCondition_UnitTest {
 
 		assertEquals(1, certProfiles.size());
 		assertEquals("OID4VP-1.0-FINAL+HAIP-1.0-FINAL Wallet sd_jwt_vc direct_post.jwt", certProfiles.get(0));
+	}
+
+	// Fixed-variant configuration fields of applicableWhen-guarded entries must not leak into
+	// the flat plan-level lists; they are attached to the condition's variant value instead.
+	@Test
+	void testPlanLevelFieldsExcludeConditionalEntries() {
+		List<String> fields = haipPlan.configurationFields();
+		assertFalse(fields.contains("client2.jwks"), "client2.jwks should not be plan-level: " + fields);
+		assertFalse(fields.contains("client2.client_id"), "client2.client_id should not be plan-level: " + fields);
+		assertFalse(fields.contains("credential.trust_anchor_pem"),
+			"credential.trust_anchor_pem should not be plan-level: " + fields);
+
+		List<String> hides = haipPlan.hidesConfigurationFields();
+		assertFalse(hides.contains("client2.client_id"), "client2.client_id hide should not be plan-level: " + hides);
+	}
+
+	@Test
+	void testVariantSummaryCarriesConditionalFieldsPerResponseMode() {
+		// dc_api.jwt is required by the multisigned entry, whose fixed request_uri_multisigned
+		// variant needs the second client; x509_hash on the same entry hides client2.client_id
+		Collection<String> dcApiFields = summaryFields("dc_api.jwt", "configurationFields");
+		assertTrue(dcApiFields.contains("client2.jwks"), "dc_api.jwt fields: " + dcApiFields);
+		assertTrue(dcApiFields.contains("client2.client_id"), "dc_api.jwt fields: " + dcApiFields);
+		assertTrue(dcApiFields.contains("credential.trust_anchor_pem"), "dc_api.jwt fields: " + dcApiFields);
+		Collection<String> dcApiHides = summaryFields("dc_api.jwt", "hidesConfigurationFields");
+		assertTrue(dcApiHides.contains("client2.client_id"), "dc_api.jwt hides: " + dcApiHides);
+
+		// no direct_post.jwt entry uses the multisigned request method
+		Collection<String> directPostFields = summaryFields("direct_post.jwt", "configurationFields");
+		assertTrue(directPostFields.contains("credential.trust_anchor_pem"),
+			"direct_post.jwt fields: " + directPostFields);
+		assertFalse(directPostFields.contains("client2.jwks"), "direct_post.jwt fields: " + directPostFields);
+		Collection<String> directPostHides = summaryFields("direct_post.jwt", "hidesConfigurationFields");
+		assertTrue(directPostHides.contains("client2.client_id"), "direct_post.jwt hides: " + directPostHides);
+	}
+
+	// Mirrors the UI: shown = configurationFields minus hidesConfigurationFields
+	@Test
+	void testNetEffectiveSecondClientFieldsPerResponseMode() {
+		Set<String> dcApiNet = new HashSet<>(summaryFields("dc_api.jwt", "configurationFields"));
+		dcApiNet.removeAll(summaryFields("dc_api.jwt", "hidesConfigurationFields"));
+		assertTrue(dcApiNet.contains("client2.jwks"), "dc_api.jwt net fields: " + dcApiNet);
+		assertFalse(dcApiNet.contains("client2.client_id"), "dc_api.jwt net fields: " + dcApiNet);
+
+		Set<String> directPostNet = new HashSet<>(summaryFields("direct_post.jwt", "configurationFields"));
+		directPostNet.removeAll(summaryFields("direct_post.jwt", "hidesConfigurationFields"));
+		assertTrue(directPostNet.stream().noneMatch(f -> f.startsWith("client2.")),
+			"direct_post.jwt must have no client2 fields: " + directPostNet);
+	}
+
+	@Test
+	void testMultipleConditionsWithFixedFieldsRejected() {
+		List<TestPlan.VariantCondition> twoConditions = List.of(
+			new TestPlan.VariantCondition(VP1FinalWalletResponseMode.class, "dc_api.jwt"),
+			new TestPlan.VariantCondition(VP1FinalWalletCredentialFormat.class, "sd_jwt_vc"));
+		List<TestPlan.VariantCondition> oneCondition = List.of(
+			new TestPlan.VariantCondition(VP1FinalWalletResponseMode.class, "dc_api.jwt"));
+
+		assertThrows(RuntimeException.class, () -> VariantService.validateConditionalEntryFields(
+			VP1FinalWalletTestPlanHaip.class, Object.class, twoConditions, List.of("client2.jwks"), List.of()));
+		assertThrows(RuntimeException.class, () -> VariantService.validateConditionalEntryFields(
+			VP1FinalWalletTestPlanHaip.class, Object.class, twoConditions, List.of(), List.of("client2.client_id")));
+
+		assertDoesNotThrow(() -> VariantService.validateConditionalEntryFields(
+			VP1FinalWalletTestPlanHaip.class, Object.class, oneCondition,
+			List.of("client2.jwks"), List.of("client2.client_id")));
+		assertDoesNotThrow(() -> VariantService.validateConditionalEntryFields(
+			VP1FinalWalletTestPlanHaip.class, Object.class, twoConditions, List.of(), List.of()));
+	}
+
+	@SuppressWarnings("unchecked")
+	private Collection<String> summaryFields(String responseModeValue, String key) {
+		Map<String, Map<String, Object>> summary = (Map<String, Map<String, Object>>) haipPlan.getVariantSummary();
+		Map<String, Object> variantValues = (Map<String, Object>) summary.get("response_mode").get("variantValues");
+		Map<String, Object> valueData = (Map<String, Object>) variantValues.get(responseModeValue);
+		return (Collection<String>) valueData.get(key);
 	}
 }

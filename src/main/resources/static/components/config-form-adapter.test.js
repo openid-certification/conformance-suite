@@ -49,6 +49,14 @@ const CATALOG = {
       ],
     },
     {
+      key: "client2",
+      title: "Second client",
+      fields: [
+        { key: "client2.client_id", label: "client_id", type: "string" },
+        { key: "client2.jwks", label: "jwks", type: "object" },
+      ],
+    },
+    {
       key: "federation_trust_anchor",
       title: "Test suite trust anchor",
       fields: [
@@ -354,6 +362,37 @@ describe("computeHiddenFields", () => {
     expect(hiddenMtls.has("client.client_secret")).toBe(true);
     const hiddenOther = computeHiddenFields(plan, { client_auth: "select" }, CATALOG);
     expect(hiddenOther.has("client.client_secret")).toBe(false);
+  });
+
+  it("hides a field the selected variant value both adds and hides (conditional-entry shape)", () => {
+    // Mirrors oid4vp-1final-wallet-haip-test-plan: the dc_api.jwt value carries the
+    // multisigned entry's second-client fields AND the x509_hash hide of client2.client_id.
+    const plan = {
+      configurationFields: [],
+      variants: {
+        response_mode: {
+          variantValues: {
+            "dc_api.jwt": {
+              configurationFields: ["client2.jwks", "client2.client_id"],
+              hidesConfigurationFields: ["client2.client_id"],
+            },
+            "direct_post.jwt": {
+              hidesConfigurationFields: ["client2.client_id"],
+            },
+          },
+        },
+      },
+    };
+    const hiddenDcApi = computeHiddenFields(plan, { response_mode: "dc_api.jwt" }, CATALOG);
+    expect(hiddenDcApi.has("client2.jwks")).toBe(false);
+    expect(hiddenDcApi.has("client2.client_id")).toBe(true);
+    const hiddenDirectPost = computeHiddenFields(
+      plan,
+      { response_mode: "direct_post.jwt" },
+      CATALOG,
+    );
+    expect(hiddenDirectPost.has("client2.jwks")).toBe(true);
+    expect(hiddenDirectPost.has("client2.client_id")).toBe(true);
   });
 
   it("treats catalog-unknown applicable fields as visible (handled by 'Other' section)", () => {
