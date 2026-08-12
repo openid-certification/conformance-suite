@@ -38,6 +38,7 @@ import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckAudInBindingJwtDcApi;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
+import net.openid.conformance.condition.client.CheckForNonSelectivelyDisclosableClaimsInDcqlQuery;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcqlQuery;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVerifierInfo;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
@@ -537,6 +538,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
 			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6", "OID4VP-1FINAL-6.1");
 			callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
+			callAndContinueOnFailure(CheckForNonSelectivelyDisclosableClaimsInDcqlQuery.class, ConditionResult.WARNING, "SDJWTVC-3.2.2.2");
 			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 
 			call(condition(ExtractVerifierInfoFromClientConfiguration.class)
