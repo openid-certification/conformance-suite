@@ -13,15 +13,17 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 {
 
 	@Override
-	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
+	@PreEnvironment(required = { CreateAuthorizationEndpointResponseParams.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	@PostEnvironment(required = "direct_post_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
+		// read from the effective request parameters, which are populated for all request methods
+		// (with url_query there is no request object, so authorization_request_object is absent)
 		final JsonElement jwksEl;
 		try {
-			jwksEl = env.getElementFromObject("authorization_request_object", "claims.client_metadata.jwks");
+			jwksEl = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.jwks");
 		} catch (Exception e) {
-			throw error("Couldn't read client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject("authorization_request_object")));
+			throw error("Couldn't read client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY)));
 		}
 		if (jwksEl == null) {
 			throw error("An encrypted response was requested but client_metadata.jwks is not present in the received request.");
@@ -36,7 +38,7 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 		try {
 			algEl = clientJwks.get("keys").getAsJsonArray().get(0).getAsJsonObject().get("alg");
 		} catch (Exception e) {
-			throw error("Couldn't read alg from first key in client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject("authorization_request_object")));
+			throw error("Couldn't read alg from first key in client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY)));
 		}
 		if (algEl == null) {
 			throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
@@ -44,7 +46,7 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 		String alg = OIDFJSON.getString(algEl);
 
 		// and just use the first enc - if there's not one default to A128GCM as per OID4VP spec
-		JsonElement encValuesSupported = env.getElementFromObject("authorization_request_object", "claims.client_metadata.encrypted_response_enc_values_supported");
+		JsonElement encValuesSupported = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.encrypted_response_enc_values_supported");
 		String enc;
 		if (encValuesSupported != null) {
 			enc = OIDFJSON.getString(encValuesSupported.getAsJsonArray().get(0));
