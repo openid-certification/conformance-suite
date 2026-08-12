@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -30,7 +31,7 @@ public class CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted_U
 	@Test
 	public void testEvaluate_noErrorNoJwk() throws Exception {
 		env.putString("client_id", "x509_san_dns:example.com");
-		env.putString("authorization_request_object", "claims.response_uri", "https://example.com/response"); // FIXME key name might be wrong
+		env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "response_uri", "https://example.com/response");
 		env.putString("nonce", "exc7gBkxjx1rdc9udRrveKvSsJIq80avlXeLHhGwqtA");
 
 		cond.execute(env);

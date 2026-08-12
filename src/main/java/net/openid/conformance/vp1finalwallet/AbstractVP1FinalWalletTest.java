@@ -827,18 +827,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 				callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class);
 				if (responseMode == VP1FinalWalletResponseMode.DC_API_JWT) {
-					// VP1FinalEncryptVPResponse reads from authorization_request_object.claims.client_metadata.
-					// For unsigned DC API requests there's no request object, so construct one from
-					// the authorization request parameters (which contain the correct client_metadata
-					// with only the encryption key in the JWKS).
-					if (!env.containsObject("authorization_request_object")) {
-						JsonObject claims = new JsonObject();
-						claims.add("client_metadata", env.getElementFromObject(
-							"authorization_endpoint_request", "client_metadata").deepCopy());
-						JsonObject requestObject = new JsonObject();
-						requestObject.add("claims", claims);
-						env.putObject("authorization_request_object", requestObject);
-					}
+					// VP1FinalEncryptVPResponse reads client_metadata from
+					// effective_authorization_endpoint_request, which was populated above.
 					callAndStopOnFailure(VP1FinalEncryptVPResponse.class);
 				}
 

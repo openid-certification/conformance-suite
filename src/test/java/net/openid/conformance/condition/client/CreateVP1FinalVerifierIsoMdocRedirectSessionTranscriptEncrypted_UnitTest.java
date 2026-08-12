@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -32,7 +33,7 @@ public class CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted_Uni
 	@Test
 	public void testEvaluate_noError() throws Exception {
 		// example from https://openid.net/specs/openid-4-verifiable-presentations-1_0-29.html#appendix-B.2.6.1
-		env.putObjectFromJsonString("authorization_request_object", "claims.client_metadata.jwks", """
+		env.putObjectFromJsonString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.jwks", """
 			{ "keys": [
 			{
 			  "kty": "EC",
@@ -47,7 +48,7 @@ public class CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted_Uni
 			}
 			""");
 		env.putString("client_id", "x509_san_dns:example.com");
-		env.putString("authorization_request_object", "claims.response_uri", "https://example.com/response"); // FIXME key name might be wrong
+		env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "response_uri", "https://example.com/response");
 		env.putString("nonce", "exc7gBkxjx1rdc9udRrveKvSsJIq80avlXeLHhGwqtA");
 
 		cond.execute(env);
@@ -64,7 +65,7 @@ public class CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted_Uni
 	public void testEvaluate_noErrorNoJwk() throws Exception {
 		assertThrows(ConditionError.class, () -> {
 			env.putString("client_id", "x509_san_dns:example.com");
-			env.putString("authorization_request_object", "claims.response_uri", "https://example.com/response"); // FIXME key name might be wrong
+			env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "response_uri", "https://example.com/response");
 			env.putString("nonce", "exc7gBkxjx1rdc9udRrveKvSsJIq80avlXeLHhGwqtA");
 
 			cond.execute(env);
