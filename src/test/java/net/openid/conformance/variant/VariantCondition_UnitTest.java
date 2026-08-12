@@ -4,12 +4,15 @@ import net.openid.conformance.info.Plan;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VariantCondition_UnitTest {
@@ -140,6 +143,60 @@ class VariantCondition_UnitTest {
 		List<Plan.Module> modules = haipPlan.getTestModulesForVariant(variant);
 
 		assertTrue(modules.isEmpty(), "direct_post (non-jwt) should not match any HAIP entries");
+	}
+
+	// The plan-level configurationFields() unions the fixed-variant fields of every module
+	// entry without evaluating the entry's VariantCondition, so the multisigned entry
+	// (dc_api.jwt only) leaks client2.* into the always-visible list. The client2 jwks is
+	// only needed for multi-signed requests, which are DC API only (OID4VP Appendix A.3.2),
+	// so AbstractVP1FinalWalletTest hides it for the direct_post response modes.
+	// client2.client_id is hidden by the fixed x509_hash prefix in both cases.
+	@Test
+	void testClient2FieldsNotVisibleForDirectPostJwt() {
+		Set<String> visible = effectiveVisibleFields("direct_post.jwt");
+
+		assertFalse(visible.contains("client2.jwks"), "client2.jwks should not be visible for direct_post.jwt");
+		assertFalse(visible.contains("client2.client_id"), "client2.client_id should not be visible for direct_post.jwt");
+	}
+
+	@Test
+	void testClient2JwksVisibleForDcApiJwt() {
+		Set<String> visible = effectiveVisibleFields("dc_api.jwt");
+
+		assertTrue(visible.contains("client2.jwks"), "client2.jwks should be visible for dc_api.jwt (multi-signed entry)");
+		// client2.client_id stays hidden: the fixed x509_hash prefix derives the id from the certificate
+		assertFalse(visible.contains("client2.client_id"), "client2.client_id should stay hidden for x509_hash");
+	}
+
+	// Mirrors the field visibility logic of schedule-test.html / config-form-adapter.js:
+	// plan.configurationFields plus the selected variant values' configurationFields,
+	// minus plan.hidesConfigurationFields and the selected values' hidesConfigurationFields.
+	@SuppressWarnings("unchecked")
+	private Set<String> effectiveVisibleFields(String responseMode) {
+		Map<String, String> selection = Map.of(
+			"response_mode", responseMode,
+			"credential_format", "sd_jwt_vc"
+		);
+
+		Set<String> show = new HashSet<>(haipPlan.configurationFields());
+		Set<String> hide = new HashSet<>(haipPlan.hidesConfigurationFields());
+
+		Map<String, Map<String, Object>> summary = (Map<String, Map<String, Object>>) haipPlan.getVariantSummary();
+		selection.forEach((param, value) -> {
+			Map<String, Object> info = summary.get(param);
+			if (info == null) {
+				return;
+			}
+			Map<String, Map<String, Collection<String>>> variantValues =
+				(Map<String, Map<String, Collection<String>>>) info.get("variantValues");
+			Map<String, Collection<String>> valueData = variantValues.get(value);
+			assertTrue(valueData != null, "variant value '" + value + "' not offered for parameter '" + param + "'");
+			show.addAll(valueData.get("configurationFields"));
+			hide.addAll(valueData.get("hidesConfigurationFields"));
+		});
+
+		show.removeAll(hide);
+		return show;
 	}
 
 	@Test

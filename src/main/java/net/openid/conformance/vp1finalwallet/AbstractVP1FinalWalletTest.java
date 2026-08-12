@@ -193,6 +193,16 @@ import java.util.concurrent.TimeUnit;
 @VariantHidesConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_hash", configurationFields = {
 	"client2.client_id"
 })
+// The client2 jwks is only used for multi-signed requests, which are DC API only
+// (OID4VP Appendix A.3.2). Plan-level aggregation shows the fixed-variant fields of every
+// module entry regardless of its VariantCondition, so without these hides the HAIP wallet
+// plan shows client2.jwks even when direct_post.jwt is selected.
+@VariantHidesConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post", configurationFields = {
+	"client2.jwks"
+})
+@VariantHidesConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
+	"client2.jwks"
+})
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
 	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
