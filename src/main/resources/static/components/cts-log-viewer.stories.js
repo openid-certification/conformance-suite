@@ -920,6 +920,49 @@ export const AlignedBlocks = {
   },
 };
 
+export const SingleFetchChainOnAttributePath = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        callCount: 0,
+        responder: function () {
+          this.callCount += 1;
+          return new Response(JSON.stringify(MOCK_EMPTY_LOG), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  // 100s interval: a timer-driven second fetch is impossible inside the
+  // assertion window, so callCount > 1 can only mean a second kickoff.
+  render: () => html`
+    <cts-log-viewer test-id="test-single-chain" ._pollIntervalMs=${100000}></cts-log-viewer>
+  `,
+  async play() {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      // The attribute path starts polling in connectedCallback; the
+      // updated() kickoff exists only for the imperative-testId path and
+      // must NOT start a second chain here. A double kickoff lands within
+      // microtasks of mount (it is not timer-driven), so 300ms is ample.
+      await waitFor(() => expect(state.callCount).toBeGreaterThanOrEqual(1), {
+        timeout: 2000,
+      });
+      await new Promise((r) => setTimeout(r, 300));
+      expect(state.callCount).toBe(1);
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
 export const DisconnectStopsPolling = {
   decorators: [
     (storyFn) => {

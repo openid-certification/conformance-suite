@@ -409,6 +409,14 @@ class CtsLogViewer extends LitElement {
     this._announceFilterChange = false;
     this._latestTimestamp = 0;
     this._pollTimer = null;
+    // True while a poll chain is running (set by _fetchEntries, reset on
+    // disconnect). The updated() kickoff checks this rather than
+    // _pollTimer: on the attribute path connectedCallback's first fetch is
+    // still in flight when the first update fires, so _pollTimer is still
+    // null and checking it would start a SECOND poll chain — two chains
+    // then overwrite each other's timer handle, leaving a pending timer
+    // that disconnectedCallback cannot clear.
+    this._pollingStarted = false;
     this._consecutiveFailures = 0;
     // Test hook: stories may override this to run the retry loop fast.
     this._pollIntervalMs = POLL_INTERVAL_MS;
@@ -626,14 +634,16 @@ class CtsLogViewer extends LitElement {
     // Kick off the first fetch when `testId` is assigned imperatively
     // AFTER connectedCallback fired (the new-page bootstrap pattern in
     // log-detail.js: the viewer is declared statically in HTML, then
-    // `viewer.testId = …` is set once URL params are read). The legacy
-    // attribute path (`<cts-log-viewer test-id="…">`) is unaffected
-    // because that already feeds testId before connectedCallback runs.
+    // `viewer.testId = …` is set once URL params are read). On the legacy
+    // attribute path (`<cts-log-viewer test-id="…">`) connectedCallback
+    // already started the chain, and _pollingStarted blocks this second
+    // kickoff — _pollTimer would NOT: the first fetch is still in flight
+    // when the first update lands, so the timer handle is still null.
     if (
       changedProperties.has("testId") &&
       this.testId &&
       !changedProperties.get("testId") &&
-      !this._pollTimer &&
+      !this._pollingStarted &&
       this.isConnected
     ) {
       this._fetchEntries();
@@ -653,9 +663,13 @@ class CtsLogViewer extends LitElement {
       clearTimeout(this._pollTimer);
       this._pollTimer = null;
     }
+    // Allow polling to resume if the viewer is re-connected (connectedCallback
+    // re-kicks _fetchEntries when testId is set).
+    this._pollingStarted = false;
   }
 
   async _fetchEntries() {
+    this._pollingStarted = true;
     let succeeded = false;
     let entriesCount = 0;
     let appendedAny = false;
@@ -775,6 +789,10 @@ class CtsLogViewer extends LitElement {
       // here (not at the top of _fetchEntries) lets an in-flight cycle finish
       // cleanly without spawning a new one.
       if (this.isConnected) {
+        // Defensive clear: if two cycles ever overlap again, never orphan a
+        // pending timer by overwriting its handle (disconnectedCallback can
+        // only clear what _pollTimer holds). No-op for an already-fired id.
+        if (this._pollTimer !== null) clearTimeout(this._pollTimer);
         this._pollTimer = setTimeout(() => this._fetchEntries(), this._pollIntervalMs);
       }
     }
