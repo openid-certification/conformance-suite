@@ -386,7 +386,11 @@ describe("computeHiddenFields", () => {
     const hiddenDcApi = computeHiddenFields(plan, { response_mode: "dc_api.jwt" }, CATALOG);
     expect(hiddenDcApi.has("client2.jwks")).toBe(false);
     expect(hiddenDcApi.has("client2.client_id")).toBe(true);
-    const hiddenDirectPost = computeHiddenFields(plan, { response_mode: "direct_post.jwt" }, CATALOG);
+    const hiddenDirectPost = computeHiddenFields(
+      plan,
+      { response_mode: "direct_post.jwt" },
+      CATALOG,
+    );
     expect(hiddenDirectPost.has("client2.jwks")).toBe(true);
     expect(hiddenDirectPost.has("client2.client_id")).toBe(true);
   });
