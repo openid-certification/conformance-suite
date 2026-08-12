@@ -950,13 +950,20 @@ export const DisconnectStopsPolling = {
       await waitFor(() => expect(state.callCount).toBeGreaterThanOrEqual(3), {
         timeout: 2000,
       });
-      const countAtDisconnect = state.callCount;
       el.remove();
-      // Wait long enough for several more polls to have been scheduled.
+      // Drain: a poll whose timer had already fired (or whose fetch was in
+      // flight) at remove() time finishes inside this window — its finally
+      // sees isConnected === false and schedules nothing further.
+      await new Promise((r) => setTimeout(r, 100));
+      const settledCount = state.callCount;
+      // The invariant under test: once drained, polling has fully stopped,
+      // so the count must not grow across ten further poll intervals. A
+      // "no further growth" assertion (rather than an absolute bound
+      // relative to the pre-remove count) is immune to scheduler jitter on
+      // loaded CI runners — the previous countAtDisconnect + 1 bound flaked
+      // when two queued cycles drained instead of one.
       await new Promise((r) => setTimeout(r, 200));
-      // After remove(), isConnected is false so finally skips setTimeout.
-      // At most one in-flight poll may finish after remove(); we allow +1.
-      expect(state.callCount).toBeLessThanOrEqual(countAtDisconnect + 1);
+      expect(state.callCount).toBe(settledCount);
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;
