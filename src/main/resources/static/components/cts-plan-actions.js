@@ -2,8 +2,9 @@ import { LitElement, html, nothing, css } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
-import "./cts-json-editor.js";
+import "./cts-json-view.js";
 import "./cts-modal.js";
+import "./cts-private-link-dialog.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
@@ -72,7 +73,7 @@ const STYLE_TEXT = css`
   }
   /* '.planConfigJson' (and the '.config-json' sibling on the same element)
      are pre-existing class names from when this slot rendered a <pre>;
-     the slot is now a <cts-json-editor>. Do not rename without updating
+     the slot is now a <cts-json-view> (a highlighted <pre>). Do not rename without updating
      all three call sites at once: this CSS rule, the '.config-json'
      selector that frontend/e2e/clipboard.spec.js + plan-detail.spec.js
      match on, and the data-clipboard-target=".config-json" attribute
@@ -82,40 +83,6 @@ const STYLE_TEXT = css`
     margin: 0;
     max-height: 60vh;
     min-height: calc(var(--space-6) * 14);
-  }
-  cts-plan-actions .planLinkInput {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    height: 32px;
-    padding: 0 var(--space-2);
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    color: var(--fg);
-    background: var(--bg-elev);
-    border: 1px solid var(--ink-300);
-    border-radius: var(--radius-2);
-  }
-  cts-plan-actions .planLinkInput:focus {
-    outline: none;
-    border-color: var(--orange-400);
-    box-shadow: var(--focus-ring);
-  }
-  cts-plan-actions .planLinkLabel {
-    display: block;
-    font-size: var(--fs-12);
-    color: var(--fg-soft);
-    margin-bottom: var(--space-1);
-  }
-  cts-plan-actions .planLinkResult {
-    margin-top: var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    color: var(--ink-900);
-    background: var(--ink-50);
-    padding: var(--space-2);
-    border-radius: var(--radius-2);
-    word-break: break-all;
   }
   cts-plan-actions .planDeleteWarning {
     color: var(--ink-900);
@@ -143,10 +110,12 @@ function ensureStylesInjected() {
 
 /**
  * Action rail for a plan-detail page. Renders a stack of buttons whose
- * visibility depends on admin / readonly / publish / immutable state, and
- * inline panels for view-config, private-link generation, and delete
- * confirmation. Does not perform the actions itself — emits events for the
- * host page to handle.
+ * visibility depends on admin / readonly / publish / immutable state, the
+ * view-config modal, the delete-confirm panel, and the shared
+ * cts-private-link-dialog. Most actions are delegated — the component emits
+ * events for the host page to handle rather than performing them itself; the
+ * exceptions handled in-component are config-copy and the private-link flow
+ * (the dialog owns its own fetch + Safari-safe auto-copy).
  *
  * Light DOM. Scoped CSS is injected once on first connect; every button
  * is a `cts-button` (or `cts-link-button` for navigations), so the visual
@@ -171,9 +140,6 @@ function ensureStylesInjected() {
  *   `everything`; bubbles.
  * @fires cts-unpublish - When the Unpublish button is clicked, with
  *   `{ detail: { planId } }`; bubbles.
- * @fires cts-generate-private-link - When the Generate button in the
- *   private-link panel is clicked, with `{ detail: { planId, days } }`;
- *   bubbles.
  * @fires cts-certify - When the Publish for certification button is clicked,
  *   with `{ detail: { planId } }`; bubbles.
  * @fires cts-make-mutable - When the Make plan Mutable button is clicked,
@@ -188,8 +154,6 @@ class CtsPlanActions extends LitElement {
     isReadonly: { type: Boolean, attribute: "is-readonly" },
     canCertify: { type: Boolean, attribute: "can-certify" },
     _showDeleteConfirm: { state: true },
-    _privateLinkDays: { state: true },
-    _privateLinkResult: { state: true },
     _copyFeedback: { state: true },
   };
 
@@ -200,10 +164,8 @@ class CtsPlanActions extends LitElement {
     this.isReadonly = false;
     this.canCertify = false;
     this._configModalRef = createRef();
-    this._privateLinkModalRef = createRef();
+    this._privateLinkDialogRef = createRef();
     this._showDeleteConfirm = false;
-    this._privateLinkDays = 30;
-    this._privateLinkResult = "";
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
   }
@@ -287,28 +249,13 @@ class CtsPlanActions extends LitElement {
   }
 
   _handleTogglePrivateLink() {
-    this._privateLinkResult = "";
-    /** @type {any} */ (this._privateLinkModalRef.value)?.show();
-  }
-
-  _handlePrivateLinkDaysInput(e) {
-    this._privateLinkDays = Number(e.target.value);
-  }
-
-  _isPrivateLinkDaysValid() {
-    return this._privateLinkDays >= 1 && this._privateLinkDays <= 1000;
-  }
-
-  _handleGeneratePrivateLink() {
-    this.dispatchEvent(
-      new CustomEvent("cts-generate-private-link", {
-        bubbles: true,
-        detail: {
-          planId: this.plan._id,
-          days: this._privateLinkDays,
-        },
-      }),
-    );
+    // Point the shared dialog at this plan's share endpoint, then open it.
+    // The dialog owns the whole flow (expiry, generate, Safari-safe auto-copy,
+    // Copy button) — identical to log-detail.
+    const dlg = /** @type {any} */ (this._privateLinkDialogRef.value);
+    if (!dlg) return;
+    dlg.shareUrl = `/api/plan/${encodeURIComponent(this.plan._id)}/share`;
+    dlg.show();
   }
 
   _handleCertify() {
@@ -383,54 +330,20 @@ class CtsPlanActions extends LitElement {
             ></cts-button>
           </div>
         </div>
-        <cts-json-editor
+        <cts-json-view
           class="planConfigJson config-json"
-          readonly
           aria-label="Plan configuration JSON"
           .value=${configJson}
-        ></cts-json-editor>
+        ></cts-json-view>
       </cts-modal>
     `;
   }
 
-  _renderPrivateLinkModal() {
-    const isValid = this._isPrivateLinkDaysValid();
-
-    return html`
-      <cts-modal
-        ${ref(this._privateLinkModalRef)}
-        heading="Private Link"
-        data-testid="private-link-panel"
-      >
-        <label for="privateLinkDays" class="planLinkLabel">
-          Number of days the link will be valid (1-1000):
-        </label>
-        <input
-          type="number"
-          id="privateLinkDays"
-          class="planLinkInput"
-          min="1"
-          max="1000"
-          .value=${String(this._privateLinkDays)}
-          @input=${this._handlePrivateLinkDaysInput}
-        />
-        <div style="margin-top: var(--space-2);">
-          <cts-button
-            class="generate-link-btn"
-            variant="primary"
-            size="sm"
-            label="Generate"
-            ?disabled=${!isValid}
-            @cts-click=${this._handleGeneratePrivateLink}
-          ></cts-button>
-        </div>
-        ${this._privateLinkResult
-          ? html`<div class="planLinkResult" data-testid="private-link-result">
-              <code>${this._privateLinkResult}</code>
-            </div>`
-          : nothing}
-      </cts-modal>
-    `;
+  _renderPrivateLinkDialog() {
+    // Shared dialog — opened by _handleTogglePrivateLink after it sets shareUrl.
+    return html`<cts-private-link-dialog
+      ${ref(this._privateLinkDialogRef)}
+    ></cts-private-link-dialog>`;
   }
 
   _renderDeleteConfirm() {
@@ -602,7 +515,7 @@ class CtsPlanActions extends LitElement {
           : nothing}
       </div>
 
-      ${this._renderConfigModal()} ${this._renderPrivateLinkModal()} ${this._renderDeleteConfirm()}
+      ${this._renderConfigModal()} ${this._renderPrivateLinkDialog()} ${this._renderDeleteConfirm()}
     `;
   }
 }

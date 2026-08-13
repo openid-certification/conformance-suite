@@ -374,20 +374,19 @@ export const ViewConfigViaKebab = {
       });
     });
 
-    await step("config JSON renders inside the read-only Monaco editor", async () => {
+    await step("config JSON renders inside the read-only JSON view", async () => {
       const configJson = /** @type {any} */ (
         await waitFor(() => {
-          const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
-          if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+          const el = canvasElement.querySelector('cts-json-view[data-testid="config-json"]');
+          if (!el) throw new Error("cts-json-view[data-testid='config-json'] not yet attached");
           return el;
         })
       );
       await configJson.whenReady();
-      expect(configJson.getAttribute("readonly")).not.toBeNull();
       expect(configJson.value).toContain("server.issuer");
       expect(configJson.value).toContain("https://op.example.com");
 
-      // The editor renders with a positive height inside the modal.
+      // The view renders with a positive height inside the modal.
       const smallConfigRect = configJson.getBoundingClientRect();
       expect(smallConfigRect.height).toBeGreaterThan(0);
     });
@@ -396,12 +395,10 @@ export const ViewConfigViaKebab = {
 
 /**
  * Build a large config payload whose serialised JSON (4-space indent)
- * is comfortably longer than the configuration editor's fixed
- * `calc(var(--space-6) * 14)` = 336 px height. If the editor were free
- * to grow, opening the drawer would inflate the host beyond 336 px
- * (Monaco's default auto-grow ceiling) and the second-jump regression
- * this story guards against would resurface. 60 keys is well past the
- * 14-line ceiling that fits inside 336 px at the editor's line height.
+ * is comfortably longer than the configuration view's fixed
+ * `calc(var(--space-6) * 14)` = 336 px min-height, so the bounded host
+ * must scroll rather than grow. 60 keys is well past the ~14 lines that
+ * fit inside 336 px at the view's line height.
  */
 function makeOversizedConfig() {
   /** @type {Record<string, string>} */
@@ -421,20 +418,16 @@ const OVERSIZED_CONFIG_TEST = {
  * Regression guard for
  * docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
  *
- * Before the fix, `.ctsConfigJson` declared only `min-height`. Monaco's
- * auto-grow then expanded the host past 336 px whenever the config
- * payload was longer than ~14 lines, producing a second layout jump
- * after the drawer's disclosure had already settled. The fix sets both
- * `min-height` and `max-height` to the same value so the host stays
- * exactly 336 px tall and long content scrolls inside Monaco.
+ * `.ctsConfigJson` sets both `min-height` and `max-height` so the
+ * configuration view stays bounded and long content scrolls inside it
+ * rather than inflating the drawer (the original bug was a second layout
+ * jump from an unbounded, auto-growing editor host). cts-json-view is the
+ * scroll container itself (overflow:auto).
  *
- * This story opens the drawer with an oversized config, waits for
- * Monaco to mount, and asserts:
- *   1. The `.ctsConfigJson` host's outer height is within ±1 px of
- *      336 px (the calc(var(--space-6) * 14) value).
- *   2. A Monaco scrollable surface is present inside the host, so the
- *      bounded height does not silently clip the configuration — the
- *      user can scroll through the JSON within the editor.
+ * This story opens the drawer with an oversized config and asserts:
+ *   1. The host's outer height does not exceed 60 vh (its max-height).
+ *   2. The host scrolls (scrollHeight > clientHeight), so the bounded
+ *      height does not silently clip the configuration.
  */
 export const ConfigDrawerHeightLockedAtFixedValue = {
   render: () =>
@@ -458,24 +451,22 @@ export const ConfigDrawerHeightLockedAtFixedValue = {
       });
     });
 
-    await step("the editor height is bounded and Monaco scrolls inside", async () => {
+    await step("the view height is bounded and the oversized JSON scrolls inside", async () => {
       const configJson = /** @type {any} */ (
         await waitFor(() => {
-          const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
-          if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+          const el = canvasElement.querySelector('cts-json-view[data-testid="config-json"]');
+          if (!el) throw new Error("cts-json-view[data-testid='config-json'] not yet attached");
           return el;
         })
       );
       await configJson.whenReady();
 
-      // The editor must not exceed 60 vh (max-height). Also verify Monaco's
-      // scroll surface is present so the oversized payload is reachable.
+      // The view must not exceed 60 vh (max-height). The host is itself the
+      // scroll container (overflow:auto), so the oversized payload stays
+      // reachable — its scrollHeight exceeds the clamped client height.
       const hostRect = configJson.getBoundingClientRect();
       expect(hostRect.height).toBeLessThanOrEqual(window.innerHeight * 0.6 + 1);
-
-      const scrollable = configJson.querySelector(".monaco-scrollable-element");
-      expect(scrollable).toBeTruthy();
-      expect(scrollable.scrollHeight).toBeGreaterThan(hostRect.height);
+      expect(configJson.scrollHeight).toBeGreaterThan(configJson.clientHeight);
     });
   },
 };

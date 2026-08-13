@@ -1164,41 +1164,15 @@ function handleEditConfig(evt) {
   }
 }
 
-async function handleShareLink(evt) {
+function handleShareLink(evt) {
   const eventTestId = (evt.detail && evt.detail.testId) || testId;
-  const expirationModal = document.getElementById("privateLinkExpirationModal");
-  const resultModal = document.getElementById("privateLinkResultModal");
-  if (!expirationModal || !resultModal) return;
-
-  const createBtn = document.getElementById("privateLinkCreateBtn");
-  const expirationInput = document.getElementById("privateLinkExpirationDays");
-
-  const onCreate = async () => {
-    if (createBtn) createBtn.removeEventListener("click", onCreate);
-    const days = expirationInput ? Number(expirationInput.value) || 30 : 30;
-    expirationModal.hide();
-    showBusy("Creating private link…");
-    try {
-      const response = await fetch(
-        `/api/info/${encodeURIComponent(eventTestId)}/share?exp=${encodeURIComponent(days)}`,
-        { method: "POST" },
-      );
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      hideBusy();
-      const messageEl = document.getElementById("privateLinkMessage");
-      const urlEl = document.getElementById("privateLinkUrl");
-      if (messageEl) messageEl.textContent = data.message || "";
-      if (urlEl) urlEl.value = data.link || "";
-      resultModal.show();
-    } catch (err) {
-      hideBusy();
-      showError(`Failed to create private link: ${err.message}`);
-    }
-  };
-
-  if (createBtn) createBtn.addEventListener("click", onCreate);
-  expirationModal.show();
+  const dialog = document.getElementById("privateLinkDialog");
+  if (!dialog) return;
+  // The shared cts-private-link-dialog owns the whole flow (expiry input,
+  // generate, Safari-safe auto-copy, Copy button). We only point it at the
+  // per-test share endpoint and open it.
+  /** @type {any} */ (dialog).shareUrl = `/api/info/${encodeURIComponent(eventTestId)}/share`;
+  /** @type {any} */ (dialog).show();
 }
 
 async function handlePublish(evt) {

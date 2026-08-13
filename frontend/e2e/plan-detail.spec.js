@@ -208,8 +208,8 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await configBtn.locator("button").click();
 
     // Modal appears with the plan ID and the config JSON inside the
-    // read-only Monaco editor. Monaco virtualises rendered content, so we
-    // assert on the editor's `.value` rather than the modal's textContent.
+    // read-only JSON view. Assert on the view's `.value` rather than the
+    // modal's textContent.
     const configPanel = page.locator('[data-testid="config-modal"]');
     await expect(configPanel).toBeVisible();
     await expect(configPanel).toContainText("plan-abc-123");
@@ -217,7 +217,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
       .poll(
         () =>
           page.evaluate(() => {
-            const el = /** @type {any} */ (document.querySelector("cts-json-editor.config-json"));
+            const el = /** @type {any} */ (document.querySelector("cts-json-view.config-json"));
             return el ? el.value : "";
           }),
         { timeout: 10000 },
@@ -227,7 +227,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // preserving the pre-swap assertion (testing-reviewer T4) keeps the
     // JSON content check honest rather than relying on key existence alone.
     const configValue = await page.evaluate(() => {
-      const el = /** @type {any} */ (document.querySelector("cts-json-editor.config-json"));
+      const el = /** @type {any} */ (document.querySelector("cts-json-view.config-json"));
       return el ? el.value : "";
     });
     expect(configValue).toContain("op.example.com");
@@ -1157,5 +1157,87 @@ test.describe("plan-detail.html — also-required banner (R12)", () => {
     await page.goto("/plan-detail.html?plan=plan-abc-123");
     await expect(page.locator("#planDetailHeader")).toContainText("plan-abc-123");
     await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
+  });
+
+  test("private link: auto-copies, shows server message + Copy button + copied status", async ({
+    page,
+  }) => {
+    const SHARE_LINK = "https://example.test/login.html?token=plan-xyz";
+    const SHARE_MESSAGE = "INFO: This link will be invalidated on a server restart";
+
+    // Spy on both clipboard paths: navigator.clipboard.write (the Safari-safe
+    // ClipboardItem auto-copy the page starts synchronously in the
+    // cts-generate-private-link handler) and writeText (the manual Copy button).
+    await page.addInitScript(() => {
+      window.__clipboardWriteValue = null;
+      window.__clipboardWriteCalled = false;
+      window.__clipboardWriteText = null;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText = (text) => {
+          window.__clipboardWriteText = text;
+          return Promise.resolve();
+        };
+        navigator.clipboard.write = async (items) => {
+          window.__clipboardWriteCalled = true;
+          try {
+            const item = items && items[0];
+            if (item && item.getType) {
+              const blob = await item.getType("text/plain");
+              window.__clipboardWriteValue = await blob.text();
+            }
+          } catch {
+            /* ignore — spy must never throw */
+          }
+          return Promise.resolve();
+        };
+      }
+    });
+
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupTestInfoRoute(page, {
+      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
+      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
+      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "PASSED" },
+    });
+    await page.route("**/api/plan/plan-abc-123/share*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ link: SHARE_LINK, message: SHARE_MESSAGE }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Open the shared private-link dialog and generate.
+    await page.locator('[data-testid="private-link-btn"]').click();
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    await expect(dialog).toBeVisible();
+    await dialog.locator(".plinkGenerateBtn").click();
+
+    // Result shows the link + server message.
+    const result = dialog.locator('[data-testid="private-link-result"]');
+    await expect(result).toBeVisible();
+    await expect(result.locator(".plinkUrl")).toContainText(SHARE_LINK);
+    await expect(result.locator(".plinkMessage")).toContainText("invalidated on a server restart");
+
+    // Auto-copy fired with the link; copied status reflects the real outcome.
+    await expect.poll(() => page.evaluate(() => window.__clipboardWriteCalled)).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.__clipboardWriteValue)).toBe(SHARE_LINK);
+    await expect(dialog.locator('[data-testid="private-link-copy-status"]')).toHaveText(
+      "Copied to clipboard.",
+    );
+
+    // The manual Copy button re-copies via writeText.
+    await result.locator(".plinkCopyBtn").click();
+    await expect.poll(() => page.evaluate(() => window.__clipboardWriteText)).toBe(SHARE_LINK);
   });
 });
