@@ -1032,6 +1032,8 @@ security_test:
     echo "CONFORMANCE_SERVER_MTLS=$CI_ENVIRONMENT_MTLS_URL" >> deploy.env
     # Note that this means the token is available to download from the pipeline artifacts - this isn't great, but equally the token doesn't give access to anything really important
     echo "CONFORMANCE_TOKEN=$CI_TOKEN" >> deploy.env
+
+    echo "Deployed to: $CI_ENVIRONMENT_URL"
   }
 
   function get_mongo_pod() {
