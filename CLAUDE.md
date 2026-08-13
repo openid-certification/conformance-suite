@@ -413,7 +413,7 @@ Lint, format, and type-check for the frontend are covered by the `frontend_lint`
 
 Severity ladder: default is `error`; R8 light-DOM preset warnings from `eslint-plugin-lit` / `eslint-plugin-wc` stay at `warn`; a named Legacy Overrides block in `frontend/eslint.config.js` tracks per-file exceptions to zero — never blanket `"off"`.
 
-The CI job currently runs with `allow_failure: true` and is due to flip to blocking on 2026-06-12. The promotion criteria and flip procedure live in the comment block above the `frontend_lint` job in `.gitlab-ci.yml`. The date reminder lives on the owner's calendar, not in the repo.
+The CI job is blocking (promoted 2026-08-13 once the R22 criteria were met — see the comment above the `frontend_lint` job in `.gitlab-ci.yml`). The Storybook suite (play functions + axe a11y) is also blocking, inside `frontend_e2e_test`; the deferred page-level axe half is tracked in `frontend/README.md`'s "Accessibility testing" section.
 
 ## Key Dependencies
 

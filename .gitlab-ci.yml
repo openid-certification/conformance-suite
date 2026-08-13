@@ -230,6 +230,8 @@ frontend_e2e_test:
     - node -v && npm -v
     - cd frontend
     - npm install
+    # Storybook play-function + axe a11y suite; needs this image's headless Chromium
+    - npm run test-storybook
     - npx playwright test --config playwright.config.js
   artifacts:
     when: on_failure
@@ -242,19 +244,11 @@ frontend_e2e_test:
 # (format:check + lint + type-check + lint:jsdoc). Parallel to `build` (needs: []);
 # conceptually a peer of `check-trailing-whitespace` in the build stage.
 #
-# Promotion criterion (R22):
-# - Job has been green on `main` for 2 consecutive weeks
-#   (Joseph or Thomas sign-off in the MR that flips allow_failure)
-# - AND all open entries in the named legacy-override tier in eslint.config.js
-#   have been either deleted (rule error on all files) or have their cleanup
-#   GitLab issue closed. Current count: 0 entries.
-# - AND the a11y CI gate follow-up (see
-#   docs/brainstorms/2026-04-17-a11y-ci-gate-requirements.md) has landed.
-# Sunset (R23): `allow_failure: true` is a temporary concession. Owner
-# (Joseph or Thomas) sets a calendar reminder for 2026-06-12 to flip it to
-# `false`. The R22 criteria above are the hard preconditions for the flip;
-# if they aren't met by that date, the flip slips — but the slip requires
-# a written rationale in a new MR, not silence.
+# Blocking since 2026-08-13 (the R22/R23 sunset): two weeks green on master,
+# legacy-override tier in eslint.config.js empty, and the a11y gate's
+# Storybook half now blocking in frontend_e2e_test. The page-level half
+# (@axe-core/playwright in the e2e specs) is deferred — see "Accessibility
+# testing" in frontend/README.md.
 #
 # --ignore-scripts justification: safe here because test:ci launches no
 # browser and doesn't need MSW's postinstall hook — the MSW worker is
@@ -288,7 +282,6 @@ frontend_lint:
     - cd frontend
     - npm ci --ignore-scripts
     - npm run test:ci
-  allow_failure: true     # R22: sunset in 6 weeks — see Unit 9's sunset doc
   <<: *frontend-rules
 
 # chromatic: publishes the frontend Storybook to https://www.chromatic.com for
