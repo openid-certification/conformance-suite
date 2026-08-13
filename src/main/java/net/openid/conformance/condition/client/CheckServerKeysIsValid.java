@@ -1,14 +1,13 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.jwk.JWKSet;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
 
-public class CheckServerKeysIsValid extends AbstractCondition {
+public class CheckServerKeysIsValid extends AbstractLenientJwksCondition {
 
 	@Override
 	@PreEnvironment(required = "server_jwks")
@@ -20,8 +19,9 @@ public class CheckServerKeysIsValid extends AbstractCondition {
 		}
 
 		try {
-			// parse the key to make sure it's really a JWK
-			JWKSet.parse(serverJWKs.toString());
+			// parse to make sure it's really a JWK set; individual keys the JOSE library cannot use
+			// are logged and skipped, as a recipient ignores them (RFC 7517 section 5)
+			parseJwksLenientlyLoggingSkips(serverJWKs.toString(), "server");
 		} catch (ParseException e) {
 			throw error("Unable to parse JWK set", e);
 		}
