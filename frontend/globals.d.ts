@@ -36,6 +36,9 @@ interface Window {
   __clipboardWriteCalled?: boolean;
   __clipboardWriteValue?: string | null;
   __clipboardWriteText?: string | null;
+  // Ticks once per settled clipboard.write (resolved OR rejected) — the
+  // stale-response race test uses it to know the held response was processed.
+  __clipboardSettledCount?: number;
 }
 
 // R24 split-summary helper exposed for the lodash Mustache template
