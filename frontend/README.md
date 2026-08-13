@@ -294,6 +294,14 @@ Locally, **`npm run test`** (which includes `test-storybook`) remains the
 correct pre-push gate — a green `npm run test:ci` alone does **not** exercise
 a11y.
 
+**Deferred: page-level axe checks.** Stories exercise components in
+isolation; whole-page concerns (landmark structure, heading order across
+components, duplicate IDs where components meet) need axe run against the
+rendered pages — `@axe-core/playwright` inside the `frontend/e2e/` specs.
+That half of the original a11y-gate commitment has not landed yet. Whoever
+picks it up must mirror the review-on-fail backlog (Playwright does not read
+`.storybook/preview.js`), ideally from a shared module both configs import.
+
 ## Visual regression testing (Chromatic)
 
 Every push that touches `frontend/` or `src/main/resources/static/` triggers
