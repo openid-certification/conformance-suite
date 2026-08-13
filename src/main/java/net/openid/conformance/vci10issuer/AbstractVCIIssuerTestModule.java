@@ -169,12 +169,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	 * {@link #handleCredentialOffer} and {@link #handleTxCode}: a request arriving in the
 	 * wrong state (e.g. a tx_code while the test waits for the second client's credential
 	 * offer in the multiple-clients test) fails with a clear message instead of replaying
-	 * an already-consumed pre-authorized code. Written by the test thread and read by HTTP
-	 * threads, hence volatile.
+	 * an already-consumed pre-authorized code. Not volatile: every access happens while the
+	 * env lock is held, i.e. between setStatus(RUNNING) and the setStatus(WAITING) that ends
+	 * the running phase — the waitFor* methods write it before setStatus(WAITING) releases
+	 * the lock, and the handlers only read/reset it after setStatus(RUNNING) has acquired
+	 * the lock. Keep it that way: do not touch this field before setStatus(RUNNING) in a
+	 * request handler.
 	 */
 	protected enum VciWaitState { NONE, CREDENTIAL_OFFER, TX_CODE }
 
-	protected volatile VciWaitState vciWaitState = VciWaitState.NONE;
+	protected VciWaitState vciWaitState = VciWaitState.NONE;
 
 	// --- Configuration overrides ---
 
@@ -371,14 +375,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	protected Object handleCredentialOffer(HttpServletRequest req, HttpServletResponse res,
 										   HttpSession session, JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
+
 		if (vciWaitState != VciWaitState.CREDENTIAL_OFFER) {
 			throw new TestFailureException(getId(),
 				"Received a request to the credential offer endpoint, but the test is not waiting for a credential offer"
 					+ (vciWaitState == VciWaitState.TX_CODE ? " - it is waiting for a tx_code" : "") + ".");
 		}
 		vciWaitState = VciWaitState.NONE;
-
-		setStatus(Status.RUNNING);
 
 		switch (vciGrantType) {
 			case AUTHORIZATION_CODE -> {
@@ -409,6 +413,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected Object handleTxCode() {
 
+		setStatus(Status.RUNNING);
+
 		if (vciWaitState != VciWaitState.TX_CODE) {
 			throw new TestFailureException(getId(),
 				"Received a request to the tx_code endpoint, but the test is not waiting for a tx_code"
@@ -419,7 +425,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 		vciWaitState = VciWaitState.NONE;
 
-		setStatus(Status.RUNNING);
 		callAndStopOnFailure(VCIExtractTxCodeFromRequest.class,
 			ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 		performPreAuthorizationCodeFlow();
