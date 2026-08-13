@@ -37,21 +37,30 @@ public class CheckServerKeysIsValid_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_errorWithUnsupportedServerJWKs() {
-		assertThrows(ConditionError.class, () -> {
+	public void testEvaluate_skipsKeyWithUnsupportedCurve() {
+		// a recipient ignores keys it cannot use (RFC 7517 section 5), so a key on a curve the JOSE
+		// library does not support is logged and skipped rather than failing the whole set
+		JsonObject serverJWKs = JsonParser.parseString("{"
+			+ "\"keys\":["
+			+ "{"
+			+ "\"crv\":\"P-256K\","
+			+ "\"x\":\"x1VOGFv0yuGvWhfQBMFZ5KPlvXwbm9HwPY-RAzZdj7g\","
+			+ "\"y\":\"FhHT44a-pvfXf42c--EjrSMR7vCMtQGzrUZsItdidSs\","
+			+ "\"d\":\"p8nLEvyACILbzRQYecb2bt7aSZTBuI3L39n7ygad8To\","
+			+ "\"kty\":\"EC\","
+			+ "\"use\":\"sig\","
+			+ "\"kid\":\"PRvpagnns5AZqGSZaOAmX3BKSejLizPME_Q-KZiyz24\""
+			+ "}"
+			+ "]}").getAsJsonObject();
 
-			JsonObject serverJWKs = JsonParser.parseString("{"
-				+ "\"keys\":["
-				+ "{"
-				+ "\"crv\":\"P-256K\","
-				+ "\"x\":\"x1VOGFv0yuGvWhfQBMFZ5KPlvXwbm9HwPY-RAzZdj7g\","
-				+ "\"y\":\"FhHT44a-pvfXf42c--EjrSMR7vCMtQGzrUZsItdidSs\","
-				+ "\"d\":\"p8nLEvyACILbzRQYecb2bt7aSZTBuI3L39n7ygad8To\","
-				+ "\"kty\":\"EC\","
-				+ "\"use\":\"sig\","
-				+ "\"kid\":\"PRvpagnns5AZqGSZaOAmX3BKSejLizPME_Q-KZiyz24\""
-				+ "}"
-				+ "]}").getAsJsonObject();
+		env.putObject("server_jwks", serverJWKs);
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_errorWhenNotAJwkSet() {
+		assertThrows(ConditionError.class, () -> {
+			JsonObject serverJWKs = JsonParser.parseString("{\"notkeys\":[]}").getAsJsonObject();
 
 			env.putObject("server_jwks", serverJWKs);
 			cond.execute(env);
