@@ -22,6 +22,7 @@ import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfi
 import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddUnusableKeysToServerPublicJwks;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -613,6 +614,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.4.3-3");
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
+		// published in all RP tests so the check does not depend on when the client last fetched/cached
+		// the JWKS; must stay after SetRsaAltServerJwks, which rebuilds server_public_jwks
+		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 	}
 
 	@Override

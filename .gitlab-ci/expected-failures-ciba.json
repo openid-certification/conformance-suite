@@ -11,10 +11,10 @@
     {
         "test-name": "fapi-ciba-id1-refresh-token",
         "variant": {
-                "client_auth_type": "private_key_jwt",
-                "fapi_ciba_profile": "plain_fapi",
-                "ciba_mode": "poll",
-                "client_registration": "static_client"
+            "client_auth_type": "private_key_jwt",
+            "fapi_ciba_profile": "plain_fapi",
+            "ciba_mode": "poll",
+            "client_registration": "static_client"
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
@@ -25,10 +25,10 @@
     {
         "test-name": "fapi-ciba-id1-refresh-token",
         "variant": {
-                "client_auth_type": "private_key_jwt",
-                "fapi_ciba_profile": "openbanking_uk",
-                "ciba_mode": "poll",
-                "client_registration": "static_client"
+            "client_auth_type": "private_key_jwt",
+            "fapi_ciba_profile": "openbanking_uk",
+            "ciba_mode": "poll",
+            "client_registration": "static_client"
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json",
         "current-block": "Second client: Check for refresh token",
@@ -175,7 +175,6 @@
         "condition": "EnsureIncomingTls13",
         "expected-result": "warning",
         "comment": "Authlete doesn't support tls 1.3"
-
     },
     {
         "test-name": "fapi-ciba-id1-ensure-requested-expiry-as-string-succeeds",
@@ -404,15 +403,78 @@
     {
         "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
         "variant": {
-                "client_auth_type": "private_key_jwt",
-                "fapi_ciba_profile": "plain_fapi",
-                "ciba_mode": "poll",
-                "client_registration": "static_client"
+            "client_auth_type": "private_key_jwt",
+            "fapi_ciba_profile": "plain_fapi",
+            "ciba_mode": "poll",
+            "client_registration": "static_client"
         },
         "configuration-filename": "*fapi-ciba-op-test-config-no-scope.json",
         "current-block": "Verify token endpoint response",
         "condition": "ExtractExpiresInFromTokenEndpointResponse",
         "expected-result": "warning",
         "comment": "The paired RP no-scope token response test deliberately omits expires_in; CIBA treats expires_in as recommended, so the OP test records this as a warning."
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-requested-expiry-as-string-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-requested-expiry-is-ignored-for-brazil",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-authorization-request-with-binding-message-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-connectid-ensure-authorization-request-with-purpose-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-card-login-hint-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-payment-authorization-details-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
     }
 ]
