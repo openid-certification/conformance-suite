@@ -73,6 +73,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
@@ -937,6 +938,135 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		eventStore.cleanup();
 	}
 
+	/**
+	 * A single interaction this test waits for the receiver under test to perform.
+	 * {@code key} is a stable snake_case identifier surfaced in the
+	 * {@code observed_interactions} / {@code pending_interactions} log-entry fields
+	 * so e2e/CI tooling can parse progress without matching on human-readable text;
+	 * {@code label} is the human-readable description used in the log message.
+	 * {@code detected} reads the module's detection state; {@code detail} may supply
+	 * extra progress information rendered while the interaction is still pending
+	 * (return {@code null} for none).
+	 */
+	public record ExpectedInteraction(String key, String label, BooleanSupplier detected, Supplier<String> detail) {
+
+		public ExpectedInteraction(String key, String label, BooleanSupplier detected) {
+			this(key, label, detected, () -> null);
+		}
+	}
+
+	/**
+	 * Ordered checklist of the interactions the test waits for, mirroring the
+	 * module's finish condition. Tests that override this get a progress log entry
+	 * whenever an interaction is first observed (checked from
+	 * {@link CheckTestFinishedTask}) and a "still waiting for" summary when the
+	 * test is stopped or times out before completing.
+	 */
+	protected List<ExpectedInteraction> expectedInteractions() {
+		return List.of();
+	}
+
+	private volatile String lastLoggedProgressSignature;
+
+	/**
+	 * Logs an "observed / still waiting for" summary of {@link #expectedInteractions()}.
+	 * Only logs when the observed set (or a pending detail) changed since the last
+	 * entry, so the once-per-second finish check does not spam the event log.
+	 */
+	protected void logExpectedInteractionsProgress() {
+		List<ExpectedInteraction> interactions = expectedInteractions();
+		if (interactions.isEmpty()) {
+			return;
+		}
+
+		List<String> observedKeys = new ArrayList<>();
+		List<String> pendingKeys = new ArrayList<>();
+		List<String> pendingDescriptions = new ArrayList<>();
+		for (ExpectedInteraction interaction : interactions) {
+			if (interaction.detected().getAsBoolean()) {
+				observedKeys.add(interaction.key());
+			} else {
+				pendingKeys.add(interaction.key());
+				pendingDescriptions.add(describePending(interaction));
+			}
+		}
+
+		String signature = observedKeys + "|" + pendingDescriptions;
+		if (signature.equals(lastLoggedProgressSignature)) {
+			return;
+		}
+		lastLoggedProgressSignature = signature;
+
+		String next = null;
+		if (!pendingDescriptions.isEmpty()) {
+			next = pendingDescriptions.get(0);
+			if (pendingDescriptions.size() > 1) {
+				next += " (+%d more pending)".formatted(pendingDescriptions.size() - 1);
+			}
+		}
+
+		// keep the frontend's exposed-values panel (and external drivers polling
+		// /api/runner) updated with the key of the interaction the test is waiting for
+		if (pendingKeys.isEmpty()) {
+			unexpose("waiting_for");
+		} else {
+			expose("waiting_for", pendingKeys.get(0));
+		}
+
+		String msg = "Progress: observed %d of %d expected receiver interactions.".formatted(observedKeys.size(), interactions.size());
+		if (next != null) {
+			// only surface the next expected step — the full pending set is in pending_interactions
+			msg += " Next, the test waits for the receiver to: " + next;
+		}
+		eventLog.log(getName(), args(
+			"msg", msg,
+			"observed_interactions", observedKeys,
+			"pending_interactions", pendingKeys));
+	}
+
+	private static String describePending(ExpectedInteraction interaction) {
+		String detail = interaction.detail().get();
+		return detail == null ? interaction.label() : interaction.label() + " (" + detail + ")";
+	}
+
+	@Override
+	public void stop(String reason) {
+		logPendingInteractionsBeforeInterrupt();
+		super.stop(reason);
+	}
+
+	/**
+	 * When the test is stopped (user action or idle timeout) before all expected
+	 * interactions were observed, record what was still missing as the final
+	 * checklist answer to "what did my receiver not do?".
+	 */
+	private void logPendingInteractionsBeforeInterrupt() {
+		// Only a started test has initialized detection state — the checklist
+		// suppliers may dereference structures created in start().
+		if (getStatus() != Status.RUNNING && getStatus() != Status.WAITING) {
+			return;
+		}
+		List<ExpectedInteraction> interactions = expectedInteractions();
+		if (interactions.isEmpty()) {
+			return;
+		}
+		List<String> pendingKeys = new ArrayList<>();
+		List<String> pendingDescriptions = new ArrayList<>();
+		for (ExpectedInteraction interaction : interactions) {
+			if (!interaction.detected().getAsBoolean()) {
+				pendingKeys.add(interaction.key());
+				pendingDescriptions.add(describePending(interaction));
+			}
+		}
+		if (pendingKeys.isEmpty()) {
+			return;
+		}
+		eventLog.log(getName(), args(
+			"msg", "The test was stopped before all expected receiver interactions were observed. "
+				+ "Still waiting for the receiver to: " + String.join("; ", pendingDescriptions),
+			"pending_interactions", pendingKeys));
+	}
+
 	protected class CheckTestFinishedTask implements Callable<String> {
 
 		protected final Supplier<Boolean> finishedCondition;
@@ -953,6 +1083,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		@Override
 		public String call() throws Exception {
+
+			logExpectedInteractionsProgress();
 
 			if (finishedCondition.get()) {
 				fireTestFinished();

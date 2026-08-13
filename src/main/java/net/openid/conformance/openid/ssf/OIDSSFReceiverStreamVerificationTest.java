@@ -7,6 +7,7 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
@@ -34,7 +35,27 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	@Override
 	public void start() {
 		super.start();
+		// emit the initial "waiting for the receiver to: ..." checklist right away
+		logExpectedInteractionsProgress();
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 10, TimeUnit.SECONDS);
+	}
+
+	@Override
+	protected List<ExpectedInteraction> expectedInteractions() {
+		return List.of(
+			new ExpectedInteraction("ssf_create_stream", "create a stream", () -> createdStreamId != null),
+			new ExpectedInteraction("ssf_stream_verification", verificationInteractionLabel(), () -> createdStreamId != null && createdStreamId.equals(verificationStreamId)),
+			new ExpectedInteraction("ssf_delete_stream", "delete the stream", () -> createdStreamId != null && createdStreamId.equals(deletedStreamId))
+		);
+	}
+
+	/**
+	 * Label of the verification checklist entry — overridden by
+	 * {@link OIDSSFReceiverUnsolicitedStreamVerificationTest}, which waits for the
+	 * transmitter-initiated (stateless) event instead of a solicited one.
+	 */
+	protected String verificationInteractionLabel() {
+		return "trigger and acknowledge a stream verification";
 	}
 
 	@Override
@@ -78,7 +99,9 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 
 	@Override
 	protected boolean isFinished() {
-		return createdStreamId != null && createdStreamId.equals(verificationStreamId) && createdStreamId.equals(deletedStreamId);
+		// derived from the same checklist that drives the progress log entries,
+		// so "still waiting for" can never disagree with the finish condition
+		return expectedInteractions().stream().allMatch(interaction -> interaction.detected().getAsBoolean());
 	}
 
 	@Override

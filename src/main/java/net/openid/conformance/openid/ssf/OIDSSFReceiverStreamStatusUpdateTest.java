@@ -8,6 +8,7 @@ import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
@@ -35,14 +36,25 @@ public class OIDSSFReceiverStreamStatusUpdateTest extends AbstractOIDSSFReceiver
 	@Override
 	public void start() {
 		super.start();
+		// emit the initial "waiting for the receiver to: ..." checklist right away
+		logExpectedInteractionsProgress();
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 4, TimeUnit.SECONDS);
 	}
 
 	@Override
+	protected List<ExpectedInteraction> expectedInteractions() {
+		return List.of(
+			new ExpectedInteraction("ssf_create_stream", "create a stream", () -> createdStreamId != null),
+			new ExpectedInteraction("ssf_update_stream_status", "update the stream status", () -> createdStreamId != null && createdStreamId.equals(updatedStatusStreamId)),
+			new ExpectedInteraction("ssf_delete_stream", "delete the stream", () -> createdStreamId != null && createdStreamId.equals(deletedStreamId))
+		);
+	}
+
+	@Override
 	protected boolean isFinished() {
-		return createdStreamId != null
-			&& createdStreamId.equals(deletedStreamId)
-			&& createdStreamId.equals(updatedStatusStreamId);
+		// derived from the same checklist that drives the progress log entries,
+		// so "still waiting for" can never disagree with the finish condition
+		return expectedInteractions().stream().allMatch(interaction -> interaction.detected().getAsBoolean());
 	}
 
 	@Override

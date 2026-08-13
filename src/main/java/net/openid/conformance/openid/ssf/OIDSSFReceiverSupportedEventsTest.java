@@ -52,7 +52,37 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		super.start();
 		eventsAcked = new ConcurrentHashMap<>();
 		eventsEnqueued = new ConcurrentHashMap<>();
+		// emit the initial "waiting for the receiver to: ..." checklist right away
+		logExpectedInteractionsProgress();
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 10, TimeUnit.SECONDS);
+	}
+
+	@Override
+	protected List<ExpectedInteraction> expectedInteractions() {
+		return List.of(
+			new ExpectedInteraction("ssf_create_stream", "create a stream", () -> createdStreamId != null),
+			new ExpectedInteraction("ssf_stream_verification", "trigger and acknowledge a stream verification", () -> createdStreamId != null && createdStreamId.equals(verificationStreamId)),
+			new ExpectedInteraction("ssf_ack_generated_events", "retrieve and acknowledge all generated events",
+				this::allGeneratedEventsAcknowledged, this::describeEventAckState),
+			new ExpectedInteraction("ssf_delete_stream", "delete the stream", () -> createdStreamId != null && createdStreamId.equals(deletedStreamId))
+		);
+	}
+
+	protected boolean allGeneratedEventsAcknowledged() {
+		return createdStreamId != null
+			&& eventsEnqueued.get(createdStreamId) != null
+			&& eventsAcked.get(createdStreamId) != null
+			&& didReceiveExpectedAcksForAllDeliveredEvents();
+	}
+
+	protected String describeEventAckState() {
+		if (createdStreamId == null || verificationStreamId == null) {
+			return "the events are generated after the stream verification was acknowledged";
+		}
+		Set<String> enqueued = eventsEnqueued.getOrDefault(createdStreamId, Set.of());
+		Set<String> acked = eventsAcked.getOrDefault(createdStreamId, Set.of());
+		long ackedCount = enqueued.stream().filter(acked::contains).count();
+		return "%d of %d generated events acknowledged".formatted(ackedCount, enqueued.size());
 	}
 
 	@Override
@@ -144,12 +174,9 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 
 	@Override
 	protected boolean isFinished() {
-		return createdStreamId != null
-			&& !eventsEnqueued.isEmpty()
-			&& eventsEnqueued.get(createdStreamId) != null
-			&& eventsAcked.get(createdStreamId) != null
-			&& didReceiveExpectedAcksForAllDeliveredEvents()
-			&& createdStreamId.equals(deletedStreamId);
+		// derived from the same checklist that drives the progress log entries,
+		// so "still waiting for" can never disagree with the finish condition
+		return expectedInteractions().stream().allMatch(interaction -> interaction.detected().getAsBoolean());
 	}
 
 	protected boolean didReceiveExpectedAcksForAllDeliveredEvents() {

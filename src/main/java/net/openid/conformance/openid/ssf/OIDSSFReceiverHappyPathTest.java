@@ -7,6 +7,8 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
@@ -41,6 +43,8 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 	@Override
 	public void start() {
 		super.start();
+		// emit the initial "waiting for the receiver to: ..." checklist right away
+		logExpectedInteractionsProgress();
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 3, TimeUnit.SECONDS);
 	}
 
@@ -51,19 +55,24 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 	}
 
 	@Override
-	protected boolean isFinished() {
-
-		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
-			return createdStreamId != null
-				&& createdStreamId.equals(readStreamId)
-				&& createdStreamId.equals(deletedStreamId);
+	protected List<ExpectedInteraction> expectedInteractions() {
+		List<ExpectedInteraction> interactions = new ArrayList<>();
+		interactions.add(new ExpectedInteraction("ssf_create_stream", "create a stream", () -> createdStreamId != null));
+		interactions.add(new ExpectedInteraction("ssf_read_stream_config", "read the stream configuration", () -> createdStreamId != null && createdStreamId.equals(readStreamId)));
+		if (!isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			// stream update/replace are skipped under the CAEP Interop Profile
+			interactions.add(new ExpectedInteraction("ssf_update_stream", "update the stream", () -> createdStreamId != null && createdStreamId.equals(updatedStreamId)));
+			interactions.add(new ExpectedInteraction("ssf_replace_stream", "replace the stream", () -> createdStreamId != null && createdStreamId.equals(replacedStreamId)));
 		}
+		interactions.add(new ExpectedInteraction("ssf_delete_stream", "delete the stream", () -> createdStreamId != null && createdStreamId.equals(deletedStreamId)));
+		return List.copyOf(interactions);
+	}
 
-		return createdStreamId != null
-			&& createdStreamId.equals(readStreamId)
-			&& createdStreamId.equals(updatedStreamId)
-			&& createdStreamId.equals(replacedStreamId)
-			&& createdStreamId.equals(deletedStreamId);
+	@Override
+	protected boolean isFinished() {
+		// derived from the same checklist that drives the progress log entries,
+		// so "still waiting for" can never disagree with the finish condition
+		return expectedInteractions().stream().allMatch(interaction -> interaction.detected().getAsBoolean());
 	}
 
 	@Override

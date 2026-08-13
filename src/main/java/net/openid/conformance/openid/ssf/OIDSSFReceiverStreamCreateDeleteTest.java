@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
@@ -29,6 +30,8 @@ public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiver
 	@Override
 	public void start() {
 		super.start();
+		// emit the initial "waiting for the receiver to: ..." checklist right away
+		logExpectedInteractionsProgress();
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 4, TimeUnit.SECONDS);
 	}
 
@@ -39,8 +42,18 @@ public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiver
 	}
 
 	@Override
+	protected List<ExpectedInteraction> expectedInteractions() {
+		return List.of(
+			new ExpectedInteraction("ssf_create_stream", "create a stream", () -> createdStreamId != null),
+			new ExpectedInteraction("ssf_delete_stream", "delete the stream", () -> createdStreamId != null && createdStreamId.equals(deletedStreamId))
+		);
+	}
+
+	@Override
 	protected boolean isFinished() {
-		return createdStreamId != null && createdStreamId.equals(deletedStreamId);
+		// derived from the same checklist that drives the progress log entries,
+		// so "still waiting for" can never disagree with the finish condition
+		return expectedInteractions().stream().allMatch(interaction -> interaction.detected().getAsBoolean());
 	}
 
 	@Override

@@ -44,6 +44,11 @@ public class OIDSSFReceiverUnsolicitedStreamVerificationTest extends OIDSSFRecei
 	}
 
 	@Override
+	protected String verificationInteractionLabel() {
+		return "acknowledge the transmitter-initiated (stateless) stream verification event";
+	}
+
+	@Override
 	protected void afterStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
 		// Per SSF 1.0 §8.1.4.2, a transmitter-initiated (unsolicited) verification
 		// event MUST NOT carry a 'state' claim. This test specifically exercises

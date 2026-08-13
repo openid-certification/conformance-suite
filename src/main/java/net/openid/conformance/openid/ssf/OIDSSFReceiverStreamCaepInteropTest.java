@@ -13,6 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,7 +64,36 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		eventsAcked = new ConcurrentHashMap<>();
 		eventsEnqueued = new ConcurrentHashMap<>();
 		caepInteropEventsGenerated = false;
+		// emit the initial "waiting for the receiver to: ..." checklist right away
+		logExpectedInteractionsProgress();
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 4, TimeUnit.SECONDS);
+	}
+
+	@Override
+	protected List<ExpectedInteraction> expectedInteractions() {
+		return List.of(
+			new ExpectedInteraction("ssf_create_stream", "create a stream", () -> createdStreamId != null),
+			new ExpectedInteraction("ssf_read_stream_config", "read the stream configuration", () -> createdStreamId != null && createdStreamId.equals(readStreamId)),
+			new ExpectedInteraction("ssf_read_stream_status", "read the stream status", () -> createdStreamId != null && createdStreamId.equals(readStreamStatusStreamId)),
+			new ExpectedInteraction("ssf_stream_verification", "trigger and acknowledge a stream verification", () -> createdStreamId != null && createdStreamId.equals(verificationStreamId)),
+			new ExpectedInteraction("ssf_ack_caep_events", "retrieve and acknowledge the requested CAEP events",
+				this::allRequestedCaepEventsAcknowledged, this::describeCaepEventAckState)
+		);
+	}
+
+	private boolean allRequestedCaepEventsAcknowledged() {
+		return createdStreamId != null && caepInteropEventsGenerated
+			&& eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
+	}
+
+	private String describeCaepEventAckState() {
+		if (createdStreamId == null || !caepInteropEventsGenerated) {
+			return "the requested events are generated after the stream verification was acknowledged";
+		}
+		Set<String> enqueued = eventsEnqueued.getOrDefault(createdStreamId, Set.of());
+		Set<String> acked = eventsAcked.getOrDefault(createdStreamId, Set.of());
+		long ackedCount = enqueued.stream().filter(acked::contains).count();
+		return "%d of %d generated events acknowledged".formatted(ackedCount, enqueued.size());
 	}
 
 	@Override
@@ -74,22 +104,9 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	@Override
 	protected boolean isFinished() {
-
-		boolean detectedCreateStream = createdStreamId != null;
-		if (!detectedCreateStream) {
-			return false;
-		}
-
-		boolean detectedReadStream = createdStreamId.equals(readStreamId);
-		boolean detectedReadStreamStatus = createdStreamId.equals(readStreamStatusStreamId);
-		boolean detectedStreamVerification = createdStreamId.equals(verificationStreamId);
-		boolean detectedAllExpectedAcknowledgedEvents = caepInteropEventsGenerated
-			&& eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
-
-		return detectedReadStream
-			&& detectedReadStreamStatus
-			&& detectedStreamVerification
-			&& detectedAllExpectedAcknowledgedEvents;
+		// derived from the same checklist that drives the progress log entries,
+		// so "still waiting for" can never disagree with the finish condition
+		return expectedInteractions().stream().allMatch(interaction -> interaction.detected().getAsBoolean());
 	}
 
 	@Override
