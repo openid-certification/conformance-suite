@@ -2,8 +2,8 @@ package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
@@ -26,6 +26,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
+import net.openid.conformance.util.JWAUtil;
 
 import java.security.KeyPair;
 import java.text.ParseException;
@@ -45,8 +46,18 @@ public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCond
 
 			JWSHeader header = jwt.getHeader();
 			String headerKeyID = header.getKeyID();
-			String headerAlg = header.getAlgorithm() != null ? header.getAlgorithm().getName() : null;
-			String headerKty = KeyType.forAlgorithm(new Algorithm(headerAlg)).getValue();
+			JWSAlgorithm headerJwsAlg = header.getAlgorithm();
+			String headerAlg = headerJwsAlg != null ? headerJwsAlg.getName() : null;
+			// Only a registered JWS signature or MAC algorithm names a key that could verify this
+			// signature. KeyType.forAlgorithm() is not a sufficient test on its own: it maps the JWE
+			// key management algorithms onto a key type too ('dir' and 'A128KW' to oct, 'RSA-OAEP-256'
+			// to RSA), and it returns null for an unregistered name, which used to be dereferenced
+			// below and crash the test with an internal error instead of failing the condition.
+			if (!JWAUtil.isJwsAlgorithm(headerAlg)) {
+				throw error("The '" + tokenName + "' JWS header 'alg' is not a registered JWS signature or MAC "
+					+ "algorithm, so its signature cannot be verified", args("alg", headerAlg, tokenName, token));
+			}
+			String headerKty = KeyType.forAlgorithm(headerJwsAlg).getValue();
 			Base64URL headerX509CertSha256Thumbprint = header.getX509CertSHA256Thumbprint();
 
 			int numberOfKeyValid = 0;
