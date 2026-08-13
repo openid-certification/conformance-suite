@@ -20,6 +20,14 @@ import java.util.function.Consumer;
 
 public class JsonSchemaValidation {
 
+	// Jackson 3 mappers are immutable and thread-safe, so a shared default is safe
+	private static final ObjectMapper DEFAULT_MAPPER = new JsonMapper();
+
+	// networknt 3.x's default instance-path format differs from 1.5.x; the conformance suite and its
+	// tests expect the classic dotted form (e.g. $.credentials[0].unexpected), i.e. PathType.LEGACY.
+	private static final SchemaRegistryConfig LEGACY_PATH_CONFIG =
+		SchemaRegistryConfig.builder().pathType(PathType.LEGACY).build();
+
 	private final ObjectMapper mapper;
 
 	private final Resource schemaResource;
@@ -32,7 +40,7 @@ public class JsonSchemaValidation {
 	}
 
 	public JsonSchemaValidation(Resource schemaResource) {
-		this(new JsonMapper(), schemaResource);
+		this(DEFAULT_MAPPER, schemaResource);
 	}
 
 	public JsonSchemaValidation(String schemaResource) {
@@ -60,15 +68,7 @@ public class JsonSchemaValidation {
 		JsonNode schemaNode = mapper.readTree(schemaResource.getInputStream());
 
 		SpecificationVersion specVersion = SpecificationVersionDetector.detect(schemaNode);
-		Consumer<SchemaRegistry.Builder> registryCustomizer = builder -> {
-			// networknt 3.x's default instance-path format differs from 1.5.x; the conformance suite and its
-			// tests expect the classic dotted form (e.g. $.credentials[0].unexpected), i.e. PathType.LEGACY.
-			builder.schemaRegistryConfig(SchemaRegistryConfig.builder().pathType(PathType.LEGACY).build());
-			if (schemaBuilderCustomizer != null) {
-				schemaBuilderCustomizer.accept(builder);
-			}
-		};
-		SchemaRegistry registry = SchemaRegistry.withDefaultDialect(specVersion, registryCustomizer);
+		SchemaRegistry registry = createRegistry(specVersion, schemaBuilderCustomizer);
 		// Provide the schema's resource URI as the base location so internal `#/definitions/...` $refs
 		// (and any cross-document refs) resolve. Loading from a bare JsonNode gives no base IRI, which
 		// silently skips ref-guarded constraints — see networknt/json-schema-validator quickstart.
@@ -80,6 +80,22 @@ public class JsonSchemaValidation {
 		var errors = schema.validate(inputNode);
 
 		return new JsonSchemaValidationResult(errors);
+	}
+
+	/**
+	 * Builds a SchemaRegistry with the suite-wide registry configuration (legacy dotted instance
+	 * paths, see {@link #LEGACY_PATH_CONFIG}) plus an optional caller-supplied customizer. All schema
+	 * validation in the suite should construct its registry through this method so error paths render
+	 * consistently in {@link JsonSchemaValidationResult}. Note the customizer runs last, so a
+	 * customizer that calls {@code schemaRegistryConfig(...)} would replace the suite-wide config.
+	 */
+	public static SchemaRegistry createRegistry(SpecificationVersion specVersion, Consumer<SchemaRegistry.Builder> customizer) {
+		return SchemaRegistry.withDefaultDialect(specVersion, builder -> {
+			builder.schemaRegistryConfig(LEGACY_PATH_CONFIG);
+			if (customizer != null) {
+				customizer.accept(builder);
+			}
+		});
 	}
 
 	/**
