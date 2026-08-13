@@ -18,6 +18,19 @@ in
   enterShell = ''
     hello
 
+    MKCERT_DIR="${config.env.DEVENV_STATE}/mkcert/"
+	mkdir -p "$MKCERT_DIR"
+
+	if [ ! -f "$MKCERT_DIR/fullchain.pem" ]; then
+		echo "creating cert chain"
+
+		mkcert -cert-file "$MKCERT_DIR/cert.pem" -key-file "$MKCERT_DIR/key.pem" "localhost.emobix.co.uk"
+
+		cat "$MKCERT_DIR/cert.pem" "$(mkcert -CAROOT)/rootCA.pem" > "$MKCERT_DIR/fullchain.pem";
+
+		echo "certs created under $MKCERT_DIR"
+	fi
+
     export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
 
     if ! ${pkgs.ngrok}/bin/ngrok config check &>/dev/null; then
@@ -27,9 +40,6 @@ in
   '';
 
   dotenv.enable = true;
-  certificates = [
-    "localhost.emobix.co.uk"
-  ];
 
   hosts."localhost.emobix.co.uk" = "127.0.0.1";
 
@@ -55,8 +65,8 @@ in
             ssl_protocols       TLSv1.2 TLSv1.3;
             ssl_prefer_server_ciphers on;
 
-            ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk.pem;
-            ssl_certificate_key ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk-key.pem;
+            ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/fullchain.pem;
+            ssl_certificate_key ${config.env.DEVENV_STATE}/mkcert/key.pem;
 
             server {
                 listen 8443 ssl;
