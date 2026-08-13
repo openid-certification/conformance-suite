@@ -100,7 +100,8 @@ function humanizeKey(key) {
  *
  * Anything in this set is either rendered elsewhere in the row (timestamp,
  * severity badge, source label, message, HTTP marker, requirements chips,
- * upload pill) or is per-test metadata identical across every entry of the
+ * upload pill, the uploaded-image footer preview) or is per-test metadata
+ * identical across every entry of the
  * test and therefore noise inside the per-entry disclosure. Anything NOT in
  * the set is application payload — request bodies, response headers, the
  * `expected` / `actual` R30 keys, JWT claims, etc. — that belongs in the
@@ -116,6 +117,7 @@ const ENVELOPE_FIELDS = new Set([
   "result",
   "requirements",
   "upload",
+  "img",
   "testOwner",
   "testId",
   "http",
@@ -210,6 +212,117 @@ function classifyMoreEntries(more) {
     else otherRows.push(row);
   }
   return [...expectedRows, ...actualRows, ...otherRows];
+}
+
+/**
+ * JWT / JWE structural matcher: `header.payload.signature` with an optional
+ * JWE `.cypher.tag` tail. Mirrors the regex the legacy `more.html` template
+ * used to color token segments. The `e[yw]` anchor keeps false positives
+ * low — compact JWTs start with `eyJ` (base64url of `{"`).
+ * @type {RegExp}
+ */
+const JWT_RE =
+  /^(e[yw][a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(?:\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
+
+/**
+ * Render the dotted segments of a JWT/JWE in jwt.io's canonical colors so a
+ * token is visually parseable at a glance (header / payload / signature, plus
+ * cypher / tag for a JWE).
+ * @param {string[]} m Match produced by {@link JWT_RE} (groups 1-3 always
+ *   present; 4-5 present only for a JWE).
+ * @returns {import("lit").TemplateResult} The colored token-segment markup.
+ */
+function renderJwtSegments(m) {
+  return html`<span class="jwtSegments"
+    ><span class="jwtHeader">${m[1]}</span><b>.</b><span class="jwtPayload">${m[2]}</span><b>.</b
+    ><span class="jwtSignature">${m[3]}</span>${m[4]
+      ? html`<b>.</b><span class="jweCypher">${m[4]}</span><b>.</b
+          ><span class="jweTag">${m[5]}</span>`
+      : nothing}</span
+  >`;
+}
+
+/**
+ * Build the jwt.io debugger deep-link for a verifiable JWS, pre-loading the
+ * public JWK so the signature verifies on arrival.
+ *
+ * URL contract: the jwt.io v2 fragment is parsed as URLSearchParams —
+ * `token` carries the JWS and `publicKey` carries the verification key
+ * (raw JWK JSON or PEM, format auto-inferred), per the fragment-links
+ * restoration in jsonwebtoken.github.io#943 (which fixes #880; the v2
+ * redesign had dropped the legacy `#debugger-io?token=…&publicKey=…`
+ * form's key on redirect, see #723). Until #943 deploys, production
+ * jwt.io ignores the `publicKey` param but still loads the token, so the
+ * link degrades gracefully — the caller also renders the JWK alongside
+ * the badge for manual pasting in that case.
+ * @param {string} jws The serialized JWS.
+ * @param {unknown} publicJwk The public JWK (object or string), if known.
+ * @returns {string} The jwt.io debugger URL.
+ */
+function jwtIoDebuggerUrl(jws, publicJwk) {
+  let url = `https://jwt.io/#token=${encodeURIComponent(jws)}`;
+  if (publicJwk !== undefined && publicJwk !== null) {
+    const key = typeof publicJwk === "string" ? publicJwk : JSON.stringify(publicJwk);
+    url += `&publicKey=${encodeURIComponent(key)}`;
+  }
+  return url;
+}
+
+/**
+ * Render a single More-panel value, restoring the rich affordances the legacy
+ * `more.html` template had and the Lit migration flattened to plain `<pre>`:
+ *
+ * - `schema_link` → a clickable link to the JSON schema we validated against.
+ * - a `{ verifiable_jws, public_jwk? }` object → a colored token split plus,
+ *   when a key is present, the jwt.io debugger badge (key embedded in the
+ *   link per jwtIoDebuggerUrl) and the JWK itself for manual pasting on
+ *   jwt.io deployments that predate the #943 fragment-links restoration.
+ * - any bare JWT string → a colored token split.
+ * - everything else → the existing `<pre>` text / pretty-printed JSON.
+ *
+ * Lit auto-escapes text and attribute bindings, so untrusted values (`img`
+ * src, token contents) cannot inject markup — matching the escaped `<%- %>`
+ * output the old template relied on.
+ * @param {string} key The More-entry key.
+ * @param {unknown} value The More-entry value.
+ * @returns {import("lit").TemplateResult} The rendered value markup.
+ */
+function renderMoreValue(key, value) {
+  if (key === "schema_link" && typeof value === "string") {
+    return html`<a class="moreInfo-schemaLink" href=${value} target="_blank" rel="noopener"
+      >${value}</a
+    >`;
+  }
+  if (value && typeof value === "object") {
+    const jws = /** @type {Record<string, unknown>} */ (value).verifiable_jws;
+    if (typeof jws === "string") {
+      const publicJwk = /** @type {Record<string, unknown>} */ (value).public_jwk;
+      const m = JWT_RE.exec(jws);
+      return html`${m ? renderJwtSegments(m) : html`<pre>${jws}</pre>`}${publicJwk !== undefined
+        ? html`<div class="moreInfo-jwtio">
+            <a
+              href=${jwtIoDebuggerUrl(jws, publicJwk)}
+              target="_blank"
+              rel="noopener"
+              title="Open in the jwt.io debugger"
+              ><img class="moreInfo-jwtioBadge" src="/images/jwt_io_badge.png" alt="View on jwt.io"
+            /></a>
+            <pre
+              class="moreInfo-jwk"
+              title="Public JWK — paste into jwt.io's signature-verification box"
+            >
+${typeof publicJwk === "string" ? publicJwk : JSON.stringify(publicJwk)}</pre
+            >
+          </div>`
+        : nothing}`;
+    }
+  }
+  if (typeof value === "string") {
+    const m = JWT_RE.exec(value);
+    if (m) return renderJwtSegments(m);
+    return html`<pre>${value}</pre>`;
+  }
+  return html`<pre>${JSON.stringify(value, null, 2)}</pre>`;
 }
 
 const STYLE_ID = "cts-log-entry-styles";
@@ -625,6 +738,47 @@ const STYLE_TEXT = css`
     font-size: var(--fs-12);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+  }
+  /* Restored rich More-panel renderings (legacy more.html parity). */
+  cts-log-entry .moreInfo-schemaLink {
+    color: var(--fg-link);
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+  }
+  /* Colored JWT/JWE token split. The --jwt-header/--jwt-payload/
+     --jwt-signature/--jwe-cypher/--jwe-tag tokens are darkened riffs on
+     jwt.io's canonical segment hues — same hue families so the mapping
+     stays recognizable, deepened to clear WCAG AA 4.5:1 for the 12px
+     text on the panel's --bg-muted surface (see oidf-tokens.css). */
+  cts-log-entry .jwtSegments {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    overflow-wrap: anywhere;
+  }
+  cts-log-entry .jwtHeader {
+    color: var(--jwt-header);
+  }
+  cts-log-entry .jwtPayload {
+    color: var(--jwt-payload);
+  }
+  cts-log-entry .jwtSignature {
+    color: var(--jwt-signature);
+  }
+  cts-log-entry .jweCypher {
+    color: var(--jwe-cypher);
+  }
+  cts-log-entry .jweTag {
+    color: var(--jwe-tag);
+  }
+  cts-log-entry .moreInfo-jwtio {
+    margin-top: var(--space-2);
+  }
+  cts-log-entry .moreInfo-jwk {
+    margin-top: var(--space-2);
+  }
+  cts-log-entry .moreInfo-jwtioBadge {
+    max-width: 100%;
+    height: auto;
   }
 
   /* Wide layout. Restores the original five-column track (timestamp /
@@ -1045,7 +1199,7 @@ class CtsLogEntry extends LitElement {
                 ${displayLabel}
               </dt>
               <dd class="moreInfo-value ${MORE_KIND_VALUE_CLASSES[kind]}">
-                <pre>${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre>
+                ${renderMoreValue(key, value)}
               </dd>
             `,
           )}
