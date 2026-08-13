@@ -429,10 +429,17 @@ class Conformance(object):
         return resp.json().get('status')
 
     async def wait_for_server_ready(self, timeout=360):
-        """Poll until the server responds successfully, or raise after timeout."""
+        """Poll until the server responds successfully, or raise after timeout.
+
+        Deliberately probes the plan listing (a MongoDB query) rather than a
+        static endpoint like api/runner/available, so that a server whose JVM
+        is up but whose MongoDB is down/flapping does not report as ready.
+        Note the helm chart's k8s readiness/liveness probes still hit an
+        in-memory endpoint; mid-run mongo outages are handled by the test
+        runner's consecutive-failure circuit breaker, not by kubernetes."""
         start = time.time()
         attempt = 0
-        api_url = '{0}api/runner/available'.format(self.api_url_base)
+        api_url = '{0}api/plan?length=1'.format(self.api_url_base)
         while True:
             attempt += 1
             elapsed = time.time() - start

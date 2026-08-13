@@ -185,6 +185,38 @@ class LongPollTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn('Timed out', str(ctx.exception))
 
 
+class ServerReadyTest(unittest.IsolatedAsyncioTestCase):
+
+    def setUp(self):
+        self.c = make_conformance()
+
+    def _set_handler(self, response):
+        def handler(url, kwargs):
+            if isinstance(response, Exception):
+                raise response
+            return response
+
+        self.c.httpclient = FakeClient(handler)
+
+    async def test_probes_plan_listing_and_returns_on_200(self):
+        # The probe must hit an endpoint that queries MongoDB (the plan listing),
+        # not a static one, so a mongo-down server is not reported ready.
+        self._set_handler(FakeResponse(200, json_body={'data': []}))
+        await self.c.wait_for_server_ready()
+        url, _ = self.c.httpclient.calls[0]
+        self.assertEqual(url, 'https://server.example/api/plan?length=1')
+
+    async def test_non_200_raises_after_timeout(self):
+        self._set_handler(FakeResponse(500, content=b'mongo timeout'))
+        with self.assertRaises(ServerUnavailableError):
+            await self.c.wait_for_server_ready(timeout=0)
+
+    async def test_connection_error_raises_after_timeout(self):
+        self._set_handler(Exception("connection refused"))
+        with self.assertRaises(ServerUnavailableError):
+            await self.c.wait_for_server_ready(timeout=0)
+
+
 class CloseClientTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_closes_client(self):
