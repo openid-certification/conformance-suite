@@ -2,6 +2,7 @@ package net.openid.conformance.security;
 
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
+import net.openid.conformance.security.keycloak.EntitlementsAuthoritiesConverter;
 import net.openid.conformance.sharing.privatelink.ShareJwtBearerAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,14 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
@@ -44,13 +52,62 @@ public class WebSecurityResourceServerConfig {
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
+
+	@Value("${spring.security.oauth2.client.provider.idp.issuerUri}")
+	private String issuerUri;
+
+	// The algorithm(s) the IdP signs access tokens with, comma separated.
+	@Value("${oidc.idp.access-token-signing-algs:}")
+	private String accessTokenSigningAlgs;
+
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
+
+	/**
+	 * Resolves the IdP's OIDC discovery document (a network call), so it is a
+	 * separate bean rather than inline in the filter chain: tests that exercise
+	 * the chain can supply a stub instead of reaching the IdP.
+	 */
+	@Bean
+	public JwtAuthenticationProvider idpJwtAuthenticationProvider(EntitlementsAuthoritiesConverter authoritiesConverter) {
+		// Access tokens are not necessarily signed with the same algorithm as ID
+		// tokens - Keycloak defaults to RS256 for access tokens even when ID tokens
+		// are ES256 - so this is configured separately, and accepts a set. Every
+		// accepted algorithm is asymmetric and key-resolved from the IdP's JWKS by
+		// kid, so accepting more than one does not enable algorithm confusion.
+		var jwsAlgorithms = IdpJwsAlgorithms.parse(accessTokenSigningAlgs);
+
+		// Lazily built: withIssuerLocation(..).build() fetches the IdP's discovery
+		// document, and doing that during bean creation would make startup fail
+		// whenever the IdP is unreachable - stopping the suite from starting at all,
+		// including for the many tests that never authenticate. SupplierJwtDecoder
+		// defers it to the first token and does not cache a failed attempt, so an
+		// outage heals without a restart. IdpJwtDecoder then turns a resolution
+		// failure into a JwtException; without that, an IdP outage makes every
+		// unrecognised bearer token escape the filter chain as a server error
+		// instead of returning 401.
+		JwtDecoder jwtDecoder = new IdpJwtDecoder(new SupplierJwtDecoder(() -> {
+			NimbusJwtDecoder decoder = NimbusJwtDecoder.withIssuerLocation(issuerUri)
+				.jwsAlgorithms(algorithms -> algorithms.addAll(jwsAlgorithms))
+				.build();
+			OAuth2TokenValidator<Jwt> jwtValidator = JwtValidators.createDefaultWithIssuer(issuerUri);
+			decoder.setJwtValidator(jwtValidator);
+			return decoder;
+		}));
+		var jwtAuthProvider = new JwtAuthenticationProvider(jwtDecoder);
+		var jwtAuthConverter = new JwtAuthenticationConverter();
+		// Must be the injected bean: a hand-constructed converter never gets its
+		// @Value admin-role name populated, so ROLE_ADMIN would never be granted.
+		jwtAuthConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+		jwtAuthProvider.setJwtAuthenticationConverter(jwtAuthConverter);
+		return jwtAuthProvider;
+	}
 
 	@Bean
 	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http,
 															ApiTokenAuthenticationProvider apiTokenAuthenticationProvider,
-															ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider) throws Exception {
+															ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider,
+															JwtAuthenticationProvider jwtAuthProvider) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle API requests with this filter chain
@@ -98,12 +155,12 @@ public class WebSecurityResourceServerConfig {
 			}).denyAll();
 
 			requests.requestMatchers(getPublicMatcher()).permitAll();
-			requests.requestMatchers(getApiMatcher()).authenticated();
+			requests.requestMatchers(getApiMatcher()).hasAnyAuthority("ROLE_USER", "ROLE_ADMIN");
 			// deny access for any unmatched API routes
 			requests.anyRequest().denyAll();
 		});
-
 		http.oauth2ResourceServer(oauthResourceServer -> {
+
 			oauthResourceServer.opaqueToken(opaqueTokenConfigurer -> {
 				// Order matters for efficiency only: share JWT parse failure is a cheap local
 				// check; the opaque-token path may hit the DB via TokenService.findToken.
@@ -111,7 +168,9 @@ public class WebSecurityResourceServerConfig {
 				// ProviderManager falls through to the next.
 				opaqueTokenConfigurer.authenticationManager(new ProviderManager(List.of(
 					shareJwtBearerAuthenticationProvider,
-					apiTokenAuthenticationProvider)));
+					apiTokenAuthenticationProvider,
+					jwtAuthProvider
+					)));
 			});
 		});
 
@@ -126,6 +185,18 @@ public class WebSecurityResourceServerConfig {
 		return http.build();
 	}
 
+	/**
+	 * Placeholder that keeps Spring Boot's resource-server auto-configuration from
+	 * contributing a JwtDecoder of its own (every one of its variants is
+	 * {@code @ConditionalOnMissingBean(JwtDecoder.class)}).
+	 * <p>
+	 * This chain does not use {@code oauth2ResourceServer().jwt(..)} - it wires its
+	 * own providers through {@code opaqueToken(..)} - so no auto-configured decoder
+	 * would ever be consulted, and one built from half-set properties would only be
+	 * a confusing second source of truth. Deliberately keyless: nothing should
+	 * decode with it, and if anything ever does, failing loudly beats verifying
+	 * against a key source nobody configured.
+	 */
 	@Bean
 	public NimbusJwtDecoder jwtDecoder() {
 		return new NimbusJwtDecoder(new DefaultJWTProcessor<>());

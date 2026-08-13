@@ -52,4 +52,12 @@ public interface TestInfoService {
 	void createIndexes();
 
 	boolean deleteTests(List<String> id);
+
+	/**
+	 * Hand every test owned by the given legacy (issuer, subject) over to the
+	 * currently authenticated user.
+	 *
+	 * @return the number of tests whose ownership changed
+	 */
+	long migrateOwnership(String oldIss, String oldOwner);
 }

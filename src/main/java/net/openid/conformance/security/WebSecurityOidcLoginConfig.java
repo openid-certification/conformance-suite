@@ -1,7 +1,8 @@
 package net.openid.conformance.security;
 
-import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
+import net.openid.conformance.security.keycloak.EntitlementsAuthoritiesConverter;
+import net.openid.conformance.security.keycloak.IDPLogoutHandler;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,7 +35,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -43,9 +44,8 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -63,17 +63,14 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,20 +90,10 @@ class WebSecurityOidcLoginConfig {
 	@Value("${fintechlabs.base_url}")
 	private String baseURL;
 
-	@Value("${oidc.google.iss:https://accounts.google.com}")
-	private String googleIss;
-
-	// Config for the admin role
-	@Value("${oidc.admin.domains:}")
-	private String adminDomains;
-	@Value("${oidc.admin.group:}")
-	private String adminGroup;
-	@Value("${oidc.admin.issuer}")
-	private String adminIss;
-
-	// Allows to deduce ROLE_ADMIN by gitlab project role
-	@Value("#{${oidc.gitlab.admin-group-indicator-claims}}")
-	private Map<String, Set<String>> gitlabAdminGroupIndicatorClaims;
+	// The algorithm the IdP signs ID tokens with (the RP's registered
+	// id_token_signed_response_alg). Exactly one value.
+	@Value("${oidc.idp.id-token-signed-response-alg:}")
+	private String idTokenSignedResponseAlg;
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
@@ -120,20 +107,24 @@ class WebSecurityOidcLoginConfig {
 	@Autowired
 	private Environment environment;
 
+	@Autowired
+	private IDPLogoutHandler idpLogoutHandler;
+
+	@Autowired
+	private EntitlementsAuthoritiesConverter authorityConverter;
+
+	/**
+	 * Resolved lazily: mapping these properties fetches the IdP's discovery document,
+	 * and doing it here would mean the suite cannot start while the IdP is briefly
+	 * unreachable. See LazyClientRegistrationRepository.
+	 */
 	@Bean
-	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
-		try {
+	public ClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
+		return new LazyClientRegistrationRepository(() -> {
 			List<ClientRegistration> registrations = new ArrayList<>(
 				new OAuth2ClientPropertiesMapper(properties).asClientRegistrations().values());
 			return new InMemoryClientRegistrationRepository(registrations);
-		} catch (Exception e) {
-			if (devmode) {
-				logger.warn("Failed to load client registrations. Error: {}", e.getMessage());
-				return new InMemoryClientRegistrationRepository(Map.of());
-			} else {
-				throw new RuntimeException(e);
-			}
-		}
+		}, devmode);
 	}
 
 	@Bean
@@ -141,8 +132,38 @@ class WebSecurityOidcLoginConfig {
 		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
 	}
 
+	/**
+	 * Spring's default resolver answers RS256 for every registration regardless of
+	 * what the IdP actually uses, so the algorithm has to be stated somewhere; this
+	 * takes it from configuration rather than pinning one in code.
+	 */
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, OneTimeTokenService oneTimeTokenService, PrivateLinkUserDetailsService privateLinkUserDetailsService) throws Exception {
+	public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory() {
+		SignatureAlgorithm algorithm = IdpJwsAlgorithms.parseSingle(idTokenSignedResponseAlg);
+
+		OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
+		idTokenDecoderFactory.setJwsAlgorithmResolver(clientRegistration -> {
+			// A mismatch here fails every login with only a signature error to go on,
+			// so say so up front. Warn rather than fail: the discovery document lists
+			// what the IdP can do, and an IdP may sign with an algorithm it omits.
+			Object advertised = clientRegistration.getProviderDetails().getConfigurationMetadata()
+				.get("id_token_signing_alg_values_supported");
+			if (advertised instanceof Collection<?> algorithms && !IdpJwsAlgorithms.isAdvertised(algorithms, algorithm)) {
+				logger.warn("Configured id_token_signed_response_alg {} is not advertised by {}, which lists {}."
+						+ " Set oidc.idp.id-token-signed-response-alg to one of those if logins fail to verify.",
+					algorithm.getName(), clientRegistration.getRegistrationId(), algorithms);
+			}
+			return algorithm;
+		});
+		return idTokenDecoderFactory;
+	}
+
+	@Bean
+	public SecurityFilterChain filterChainOidc(HttpSecurity http,
+											   ClientRegistrationRepository clientRegistrationRepository,
+											   MigrationAuthenticationHandler migrationAuthenticationHandler,
+											   OneTimeTokenService oneTimeTokenService,
+											   PrivateLinkUserDetailsService privateLinkUserDetailsService) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
@@ -309,7 +330,6 @@ class WebSecurityOidcLoginConfig {
 
 		// we use oauth2 client login support instead of openIdConnectAuthenticationFilter
 		http.oauth2Client(oauth2Client -> {
-
 			// the following is to enable PKCE support for auth-code flow
 			var oauth2AuthRequestResolver = new DefaultOAuth2AuthorizationRequestResolver( //
 				clientRegistrationRepository, //
@@ -323,43 +343,12 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.oauth2Login(oauth2Login -> {
+
 			oauth2Login.failureHandler(loginFailureHandler);
+			oauth2Login.successHandler(migrationAuthenticationHandler);
+
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
-				userInfoCustomization.userAuthoritiesMapper(authorities -> {
-
-					Set<GrantedAuthority> extendedAuthorities = new HashSet<>(authorities);
-
-					authorities.forEach(authority -> {
-						if (authority instanceof OidcUserAuthority oidcUserAuthority) {
-
-							OidcIdToken idToken = oidcUserAuthority.getIdToken();
-							OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
-
-							if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
-								// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-								// Google account's userInfo. hd = Hosted Domain. Use this to filter to
-								// any users of a specific domain
-								var authoritiesByGoogleClaim = new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGoogleClaim)) {
-									extendedAuthorities.addAll(authoritiesByGoogleClaim);
-								}
-							} else if (!Strings.isNullOrEmpty(adminGroup)) {
-								// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-								var authoritiesByGroupsClaim = new GroupsAdminAuthoritiesMapper(adminGroup, adminIss).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGroupsClaim)) {
-									extendedAuthorities.addAll(authoritiesByGroupsClaim);
-								}
-								// use gitlab specific project role claims to determine admin role
-								var authoritiesByGitlabProject = new GitlabProjectAdminAuthoritiesMapper(adminIss, gitlabAdminGroupIndicatorClaims).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGitlabProject)) {
-									extendedAuthorities.addAll(authoritiesByGitlabProject);
-								}
-							}
-						}
-					});
-
-					return extendedAuthorities;
-				});
+				userInfoCustomization.userAuthoritiesMapper(authorityConverter);
 			});
 		});
 
@@ -372,10 +361,17 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.logout(logout -> {
-			// `?logout=true` lights up the "You have been logged out." banner
-			// on login.html (it gates on the param VALUE being truthy, so a
-			// bare `?logout` would not trigger it).
-			logout.logoutSuccessUrl("/login.html?logout=true");
+			// Single owner of the logout redirect. IDPLogoutHandler sends the
+			// browser to the IdP's end-session endpoint for IdP-issued sessions
+			// and to /login.html?logout=true for everything else (private-link
+			// logins, the dev-mode dummy user, other issuers); the IdP round-trip
+			// lands back on that same URL. `?logout=true` lights up the "You have
+			// been logged out." banner on login.html (it gates on the param VALUE
+			// being truthy, so a bare `?logout` would not trigger it).
+			// Do NOT move this to addLogoutHandler(): handlers run before the
+			// success handler, so redirecting from one commits the response and
+			// the success handler's redirect is lost.
+			logout.logoutSuccessHandler(idpLogoutHandler);
 			// Pages are bfcache-eligible now that they send "Cache-Control:
 			// no-cache" instead of no-store (ApplicationConfig
 			// addResourceHandlers). Evict the browser's cache for this origin

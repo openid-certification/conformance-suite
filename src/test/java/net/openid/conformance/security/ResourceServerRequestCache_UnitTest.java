@@ -16,6 +16,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -168,6 +169,15 @@ public class ResourceServerRequestCache_UnitTest {
 		@Bean
 		public ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider() {
 			return Mockito.mock(ShareJwtBearerAuthenticationProvider.class);
+		}
+
+		@Bean
+		public JwtAuthenticationProvider idpJwtAuthenticationProvider() {
+			// Overrides the config's bean, which resolves the IdP's OIDC
+			// discovery document over the network at refresh time. Like the
+			// other providers, it is only consulted when an Authorization
+			// header is present.
+			return Mockito.mock(JwtAuthenticationProvider.class);
 		}
 	}
 }

@@ -340,6 +340,12 @@ public class DBTestPlanService implements TestPlanService {
 		sortedMap.put("certificationProfileName", "text");
 
 		collection.createIndex(new Document(sortedMap));
+
+		// Almost every read here is scoped to the calling user via an exact match on
+		// the whole owner sub-document, and migrateOwnership updates by it. Without
+		// this, all of those are collection scans. Creating an index that already
+		// exists is a no-op, so this is safe to run on every startup.
+		collection.createIndex(new Document("owner", 1));
 	}
 
 	@Override
@@ -361,5 +367,29 @@ public class DBTestPlanService implements TestPlanService {
 		}
 
 		plans.deleteById(id);
+	}
+
+	@Override
+	public long migrateOwnership(String oldIss, String oldOwner) {
+
+		ImmutableMap<String, String> newOwner = authenticationFacade.getPrincipal();
+		ImmutableMap<String, String> owner = ImmutableMap.of(
+			"sub", oldOwner,
+			"iss", oldIss
+		);
+
+		// A null new owner would rewrite every matching document's owner to null,
+		// orphaning the plans it was supposed to hand over.
+		if (newOwner == null || newOwner.equals(owner)) {
+			return 0;
+		}
+
+		Criteria criteria = Criteria.where("owner").is(owner);
+
+		Query query = new Query(criteria);
+
+		Update udt = Update.update("owner", newOwner);
+
+		return mongoTemplate.updateMulti(query, udt, COLLECTION).getModifiedCount();
 	}
 }

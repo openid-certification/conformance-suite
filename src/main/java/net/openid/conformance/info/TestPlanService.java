@@ -81,4 +81,12 @@ public interface TestPlanService {
 	 * @param id Plan ID
 	 */
 	void deleteMutableTestPlan(String id);
+
+	/**
+	 * Hand every plan owned by the given legacy (issuer, subject) over to the
+	 * currently authenticated user.
+	 *
+	 * @return the number of plans whose ownership changed
+	 */
+	long migrateOwnership(String oldIss, String oldOwner);
 }

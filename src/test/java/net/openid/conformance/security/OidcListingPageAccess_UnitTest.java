@@ -1,6 +1,7 @@
 package net.openid.conformance.security;
 
 import jakarta.servlet.http.HttpServletResponse;
+import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
 import org.junit.jupiter.api.AfterEach;
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import net.openid.conformance.security.keycloak.EntitlementsAuthoritiesConverter;
+import net.openid.conformance.security.keycloak.IDPLogoutHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -54,10 +57,7 @@ public class OidcListingPageAccess_UnitTest {
 		context = new AnnotationConfigWebApplicationContext();
 		context.setServletContext(new MockServletContext());
 		context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(
-			"fintechlabs.base_url", "https://localhost.emobix.co.uk:8443",
-			"oidc.admin.issuer", "https://gitlab.com",
-			"oidc.gitlab.admin-group-indicator-claims",
-			"{'https://gitlab.org/claims/groups/maintainer':{'openid'}}")));
+			"fintechlabs.base_url", "https://localhost.emobix.co.uk:8443")));
 		context.register(TestSecurityConfig.class);
 		context.refresh();
 		filterChainProxy = new FilterChainProxy(context.getBean("filterChainOidc", SecurityFilterChain.class));
@@ -198,6 +198,32 @@ public class OidcListingPageAccess_UnitTest {
 				.tokenUri("https://idp.example.invalid/token")
 				.build();
 			return new InMemoryClientRegistrationRepository(registration);
+		}
+
+		@Bean
+		public IDPLogoutHandler keycloakLogoutHandler(
+			org.springframework.beans.factory.ObjectProvider<
+				org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> repository) {
+			// A @Component in the real app; this minimal context does no
+			// component scanning. The chains under test never log out — see
+			// OidcLogoutRedirect_UnitTest for the logout contract itself.
+			return new IDPLogoutHandler(repository, "https://localhost.emobix.co.uk:8443");
+		}
+
+		@Bean
+		public EntitlementsAuthoritiesConverter keyCloakAuthoritiesConverter() {
+			// Likewise a scanned @Component; only consulted while mapping
+			// authorities for a real IdP login.
+			return new EntitlementsAuthoritiesConverter("conformance-admin");
+		}
+
+		@Bean
+		public MigrationAuthenticationHandler migrationAuthenticationHandler() {
+			// A scanned @Component in the real app. Built for real (not mocked)
+			// so the chain keeps the SavedRequestAware success-handler behaviour
+			// these tests assert on; only its migration collaborators are stubs.
+			return new MigrationAuthenticationHandler(
+				Mockito.mock(TestPlanService.class), Mockito.mock(TestInfoService.class));
 		}
 	}
 }

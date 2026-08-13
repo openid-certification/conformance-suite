@@ -54,6 +54,10 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
+**Logging in.** Sign-in goes through a single OpenID Provider (`spring.security.oauth2.client.registration.idp.*`), which brokers the upstream accounts; there are no longer separate Google and GitLab buttons. Admin rights come from the IdP's `entitlements` claim containing the role named by `spring.security.oauth2.client.registration.idp.admin-role`. Running the `dev` profile from your IDE requires a real login (see the devmode note below); `docker-compose -f docker-compose-dev.yml up` sets `fintechlabs.devmode=true` and so bypasses login altogether.
+
+The JWS algorithms used to verify IdP tokens are configuration, because an IdP's discovery document advertises what it *can* sign with rather than what it *does*: `oidc.idp.id-token-signed-response-alg` (exactly one) and `oidc.idp.access-token-signing-algs` (comma-separated). If logins fail with a signature error, or API bearer tokens are rejected, check these first.
+
 ### Running the legacy (pre-redesign) UI
 
 The `legacy-ui` Spring profile serves a frozen snapshot of the pre-redesign jQuery/Handlebars
@@ -90,7 +94,9 @@ If save-and-see does not work, you are most likely running the packaged fat JAR 
 
 **Production-parity invariant.** `spring-boot-devtools` MUST stay `<scope>provided</scope>` in `pom.xml`. The `maven-enforcer-plugin` rule `enforce-devtools-scope` fails the build at `validate` phase if the scope drifts to `compile`/`runtime`/`test`/`system`. Do not bypass the rule.
 
-**Never set `SPRING_PROFILES_ACTIVE=dev` in a non-dev environment.** The dev profile activates `DummyUserFilter` (`fintechlabs.devmode=true`), which injects a synthetic admin-level user on every request and bypasses real authentication. The DevTools properties added alongside that flag do not change this risk, but they do live in the same file — read `application-dev.properties` end-to-end before deploying any environment that loads it.
+**Never set `fintechlabs.devmode=true` in a non-dev environment.** That flag activates `DummyUserFilter`, which injects a synthetic admin-level user on every request and bypasses real authentication entirely.
+
+The flag is no longer implied by the `dev` profile: `application-dev.properties` sets `fintechlabs.devmode=false`, so running the `dev` profile from your IDE means logging in through the real IdP. It is the docker-compose dev stacks that opt in, by passing `--fintechlabs.devmode=true` on the command line. Treat `SPRING_PROFILES_ACTIVE=dev` as still unsafe outside development regardless — `application-dev.properties` also points MongoDB, the base URLs, and the IdP client at local values, so read it end-to-end before deploying any environment that loads it.
 
 ### Running integration tests
 

@@ -1,0 +1,71 @@
+package net.openid.conformance.security;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoderInitializationException;
+import org.springframework.security.oauth2.jwt.JwtException;
+
+import java.time.Instant;
+import java.util.Map;
+
+/**
+ * The IdP's decoder is resolved lazily, so a request can be the first thing to
+ * discover that the IdP is unreachable. Spring reports that as
+ * JwtDecoderInitializationException, which extends RuntimeException rather than
+ * JwtException — so nothing in the filter chain recognises it as an
+ * authentication failure and it escapes as a server error. These tests pin the
+ * translation that keeps such a request answering 401.
+ */
+public class IdpJwtDecoder_UnitTest {
+
+	private static final String TOKEN = "a-token";
+
+	/**
+	 * BadJwtException specifically, not a plain JwtException: the provider maps
+	 * JwtException to AuthenticationServiceException, and
+	 * AuthenticationEntryPointFailureHandler re-throws those by default rather than
+	 * committing a 401 — which is the escaping-exception behaviour being fixed.
+	 */
+	@Test
+	public void a_decoder_initialization_failure_becomes_a_bad_jwt_exception() {
+		JwtDecoder failing = Mockito.mock(JwtDecoder.class);
+		Mockito.when(failing.decode(TOKEN)).thenThrow(
+			new JwtDecoderInitializationException("Failed to lazily resolve the supplied JwtDecoder instance",
+				new IllegalArgumentException("Unable to resolve the Configuration with the provided Issuer")));
+
+		BadJwtException e = Assertions.assertThrows(BadJwtException.class,
+			() -> new IdpJwtDecoder(failing).decode(TOKEN));
+
+		Assertions.assertFalse(JwtDecoderInitializationException.class.isInstance(e),
+			"the untranslated type escapes BearerTokenAuthenticationFilter as a server error");
+		Assertions.assertNotNull(e.getCause(), "the underlying cause must be preserved for the logs");
+	}
+
+	@Test
+	public void a_successful_decode_is_passed_through_unchanged() {
+		Jwt jwt = new Jwt(TOKEN, Instant.now(), Instant.now().plusSeconds(60),
+			Map.of("typ", "jwt"), Map.of("sub", "a-user"));
+		JwtDecoder delegate = Mockito.mock(JwtDecoder.class);
+		Mockito.when(delegate.decode(TOKEN)).thenReturn(jwt);
+
+		Assertions.assertSame(jwt, new IdpJwtDecoder(delegate).decode(TOKEN));
+	}
+
+	/**
+	 * A genuinely bad token must keep its own failure type: JwtAuthenticationProvider
+	 * maps BadJwtException to InvalidBearerTokenException, which carries the
+	 * "invalid_token" WWW-Authenticate detail. Collapsing everything into one type
+	 * would lose that.
+	 */
+	@Test
+	public void an_invalid_token_failure_is_left_alone() {
+		JwtDecoder delegate = Mockito.mock(JwtDecoder.class);
+		Mockito.when(delegate.decode(TOKEN)).thenThrow(new BadJwtException("Malformed token"));
+
+		Assertions.assertThrows(BadJwtException.class, () -> new IdpJwtDecoder(delegate).decode(TOKEN));
+	}
+}
