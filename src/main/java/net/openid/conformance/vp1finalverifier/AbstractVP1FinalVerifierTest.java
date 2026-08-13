@@ -67,7 +67,9 @@ import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionFor
 import net.openid.conformance.condition.as.WarnIfRequestUriMethodInRequestObject;
 import net.openid.conformance.condition.client.BuildUnsignedRequestToDirectPostEndpoint;
 import net.openid.conformance.condition.client.CallDirectPostEndpoint;
+import net.openid.conformance.condition.client.CheckForNonSelectivelyDisclosableClaimsInDcqlQuery;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcqlQuery;
+import net.openid.conformance.condition.client.CheckForUnreferencedClaimsInDcqlQuery;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVerifierInfo;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted;
@@ -508,6 +510,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractDCQLQueryFromAuthorizationRequest.class, "OID4VP-1FINAL-6");
 		callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
+		callAndContinueOnFailure(CheckForNonSelectivelyDisclosableClaimsInDcqlQuery.class, ConditionResult.WARNING, "SDJWTVC-3.2.2.2");
+		callAndContinueOnFailure(CheckForUnreferencedClaimsInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.4.1");
 		// Test harness check: ensures verifier requests the credential format matching the test configuration
 		callAndContinueOnFailure(CheckDCQLQueryCredentialFormatMatchesTestConfiguration.class, ConditionResult.FAILURE);
 
