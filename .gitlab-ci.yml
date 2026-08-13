@@ -546,6 +546,7 @@ scale up env:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_up
+    - check_mongo_disk_space
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
       when: manual
@@ -1004,6 +1005,7 @@ security_test:
     echo "Using pod: $MONGO_POD"
     echo -n "Connecting to mongodb"
     while ! kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongosh mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
+    check_mongo_disk_space
     # despite the db.version check we've seen instances of the insert failing - give it an extra few seconds to settle
     sleep 2
     echo "Inserting CI token"
@@ -1039,6 +1041,29 @@ security_test:
       -o template --template="{{(index .items 0).metadata.name}}" 2>&1` \
       || MONGO_POD=''
     export MONGO_POD
+  }
+
+  function check_mongo_disk_space() {
+    # A nearly-full mongodb volume makes mongod restart at random and test jobs grind for hours
+    MIN_MONGO_FREE_MB=500
+    echo -n "Waiting for mongodb pod to start"
+    while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done; echo
+    echo -n "Reading mongodb disk usage on pod $MONGO_POD"
+    MONGO_DF=""
+    while [ -z "$MONGO_DF" ]; do
+      echo -n .
+      MONGO_DF=$(kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- df -P -m /bitnami/mongodb 2>/dev/null | tail -1) || MONGO_DF=""
+      [ -z "$MONGO_DF" ] && sleep 1
+    done; echo
+    MONGO_DISK_TOTAL_MB=$(echo "$MONGO_DF" | awk '{print $2}')
+    MONGO_DISK_USED_MB=$(echo "$MONGO_DF" | awk '{print $3}')
+    MONGO_DISK_FREE_MB=$(echo "$MONGO_DF" | awk '{print $4}')
+    echo "mongodb data volume: total ${MONGO_DISK_TOTAL_MB} MB, used ${MONGO_DISK_USED_MB} MB, free ${MONGO_DISK_FREE_MB} MB"
+    if [ "$MONGO_DISK_FREE_MB" -lt "$MIN_MONGO_FREE_MB" ]; then
+      echo "ERROR: mongodb data volume has only ${MONGO_DISK_FREE_MB} MB free (minimum ${MIN_MONGO_FREE_MB} MB)."
+      echo "A nearly-full mongodb volume makes mongod restart at random and test jobs fail/grind. Free up space, e.g. for a review app play stop_review to delete the environment (including its mongodb volume), or increase mongodb.persistence.size."
+      exit 1
+    fi
   }
 
   function setup_docker() {
