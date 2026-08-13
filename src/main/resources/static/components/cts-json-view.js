@@ -24,6 +24,11 @@ import { LitElement, html, css } from "lit";
  * Light DOM, so consumer CSS keyed on the host class (e.g. `.config-json`,
  * `.ctsConfigJson`) and selectors like `cts-json-view .oidf-json-view`
  * apply directly.
+ * Accessibility: the host is a bounded scroll box, so it makes itself
+ * keyboard-focusable (`tabindex="0"`, `role="region"`, default
+ * `aria-label="JSON"`) with a `:focus-visible` ring — keyboard users must
+ * be able to scroll it (axe: scrollable-region-focusable). Consumers
+ * should supply a more specific `aria-label` (all current ones do).
  * @property {string} value - JSON text to display. Mirrors
  *   `<cts-json-editor>.value` so call sites and tests reading `el.value`
  *   keep working after the swap.
@@ -42,6 +47,20 @@ class CtsJsonView extends LitElement {
   createRenderRoot() {
     injectStyles();
     return this;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // The host is a bounded scroll box (overflow:auto, max-height), so it
+    // must be reachable by keyboard for scrolling (WCAG 2.1.1 / axe
+    // scrollable-region-focusable). A focusable region also needs a role for
+    // its aria-label to be valid on it; consumers may override both, and a
+    // consumer-supplied aria-label wins over the generic default.
+    if (!this.hasAttribute("tabindex")) this.setAttribute("tabindex", "0");
+    if (!this.hasAttribute("role")) this.setAttribute("role", "region");
+    if (!this.hasAttribute("aria-label") && !this.hasAttribute("aria-labelledby")) {
+      this.setAttribute("aria-label", "JSON");
+    }
   }
 
   /**
@@ -126,6 +145,17 @@ const STYLE_TEXT = css`
        read-only affordance the muted Monaco theme gave these views. */
     background: var(--bg-muted);
     box-shadow: inset 2px 0 0 var(--ink-200);
+  }
+  cts-json-view:focus {
+    outline: none;
+  }
+  cts-json-view:focus-visible {
+    /* Keep the quiet left rail and add the shared focus ring on top —
+       box-shadow lists replace, they don't compose. */
+    outline: none;
+    box-shadow:
+      inset 2px 0 0 var(--ink-200),
+      var(--focus-ring);
   }
   cts-json-view .oidf-json-view {
     margin: 0;
