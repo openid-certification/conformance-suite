@@ -628,7 +628,7 @@ public class LogApi {
 				return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 			}
 			if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
-				return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+				return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_CONTENT);
 			}
 			return exportPlanAsZip(id, true, false, true, clientSideData.orElse(null));
 		} else {
@@ -647,7 +647,7 @@ public class LogApi {
 		};
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		return new ResponseEntity<>(responseBody, headers, HttpStatus.UNPROCESSABLE_ENTITY);
+		return new ResponseEntity<>(responseBody, headers, HttpStatus.UNPROCESSABLE_CONTENT);
 	}
 
 	private JsonObject getFailedOrIncompleteTests(String planId, boolean publicOnly) {

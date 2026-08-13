@@ -155,7 +155,7 @@ if [ "$TEST_SUITE" = "--security-tests" ]; then
     echo "    API token inserted into MongoDB"
     java -cp "$APP_CP" "$MAIN_CLASS" \
       --fintechlabs.devmode=false \
-      --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
+      --spring.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443 \
       --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444 \
       --server.port="$SERVER_PORT" \

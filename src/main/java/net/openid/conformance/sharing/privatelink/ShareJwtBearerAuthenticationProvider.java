@@ -4,7 +4,7 @@ import net.openid.conformance.sharing.AssetSharing;
 import net.openid.conformance.sharing.SharedAsset;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,8 +46,8 @@ public class ShareJwtBearerAuthenticationProvider implements AuthenticationProvi
 			PrivateLinkOneTimeToken.forSharedAsset(tokenValue, sharedAsset);
 
 		UserDetails userDetails = userDetailsService.loadUserByUsername(privateLinkOneTimeToken.getUsername());
-		OneTimeTokenAuthenticationToken authenticated =
-			OneTimeTokenAuthenticationToken.authenticated(userDetails, userDetails.getAuthorities());
+		OneTimeTokenAuthentication authenticated =
+			new OneTimeTokenAuthentication(userDetails, userDetails.getAuthorities());
 		authenticated.setDetails(privateLinkOneTimeToken);
 		return authenticated;
 	}

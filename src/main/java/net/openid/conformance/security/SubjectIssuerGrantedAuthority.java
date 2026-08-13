@@ -3,6 +3,8 @@ package net.openid.conformance.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
+import java.io.Serial;
+
 /**
  *
  * Simple authority representing a user at an issuer.
@@ -11,6 +13,7 @@ import org.springframework.util.StringUtils;
  */
 public class SubjectIssuerGrantedAuthority implements GrantedAuthority {
 
+	@Serial
 	private static final long serialVersionUID = 5584978219226664794L;
 
 	private final String subject;

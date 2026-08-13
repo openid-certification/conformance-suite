@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.15</version>
+		<version>4.0.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -23,14 +23,14 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>21</java.version>
 		<pmdVersion>7.25.0</pmdVersion>
-		<jackson.version>2.15.1</jackson.version>
-		<kotlin.version>2.2.21</kotlin.version>
-
+<!--		<jackson.version>2.15.1</jackson.version>-->
+<!--		<kotlin.version>2.2.21</kotlin.version>-->
 		<!-- remove when upgrading to Spring Boot 4.x -->
-		<thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>
-		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>
-		<commons-lang3.version>3.20.0</commons-lang3.version>
+<!--		<thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>-->
+<!--		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>-->
+<!--		<commons-lang3.version>3.20.0</commons-lang3.version>-->
 		<bouncycastle.version>1.84</bouncycastle.version>
+		<json-schema-validator.version>3.0.3</json-schema-validator.version>
 	</properties>
 
 	<dependencies>
@@ -50,7 +50,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -79,18 +79,22 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-client</artifactId>
+			<artifactId>spring-boot-starter-security-oauth2-client</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.6.0</version>
+			<version>3.0.3</version>
 		</dependency>
 
 		<dependency>
@@ -227,10 +231,10 @@
 		<dependency>
 			<groupId>com.networknt</groupId>
 			<artifactId>json-schema-validator</artifactId>
-			<version>1.5.6</version>
+			<version>${json-schema-validator.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 		<dependency>
@@ -238,7 +242,7 @@
 			<artifactId>jackson-annotations</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 		</dependency>
 		<dependency>
@@ -250,7 +254,6 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib-jdk8</artifactId>
-			<version>${kotlin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
@@ -265,17 +268,14 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-serialization-json</artifactId>
-			<version>1.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-coroutines-core-jvm</artifactId>
-			<version>1.10.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-test</artifactId>
-			<version>${kotlin.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -501,7 +501,6 @@
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
-				<version>${kotlin.version}</version>
 				<executions>
 					<execution>
 						<id>compile</id>
@@ -537,6 +536,25 @@
 					</args>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.openrewrite.maven</groupId>
+				<artifactId>rewrite-maven-plugin</artifactId>
+				<version>6.41.0</version>
+				<configuration>
+					<exportDatatables>true</exportDatatables>
+					<activeRecipes>
+						<recipe>org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0</recipe>
+					</activeRecipes>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.openrewrite.recipe</groupId>
+						<artifactId>rewrite-spring</artifactId>
+						<version>6.32.1</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 		<finalName>fapi-test-suite</finalName>
 		<resources>
@@ -557,7 +575,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.14</version>
+					<version>0.8.15</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
