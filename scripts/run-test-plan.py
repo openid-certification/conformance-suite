@@ -20,6 +20,25 @@ from test_plan_parser import test_plan
 # Track server restart detections across all test modules
 restart_detections = []
 
+# Circuit breaker: abort the whole run once this many modules in a row fail to
+# run to completion with no intervening success. A single such failure already
+# makes the run fail, so this only makes a doomed run against a dead/flapping
+# server abort in minutes rather than grinding retries until the CI job timeout.
+consecutive_module_failures = []
+max_consecutive_failures = int(os.getenv('CONFORMANCE_MAX_CONSECUTIVE_FAILURES', '3'))
+
+
+class ServerUnhealthyError(Exception):
+    """Deliberate whole-run abort from the consecutive-failure circuit breaker."""
+
+
+def record_module_did_not_complete(module_with_variants):
+    # Raising here propagates into queue_worker, which exits the process
+    consecutive_module_failures.append(module_with_variants)
+    if len(consecutive_module_failures) >= max_consecutive_failures:
+        raise ServerUnhealthyError('Aborting run: {} consecutive test modules failed to run to completion ({}) - conformance server appears to be unhealthy'.format(
+            len(consecutive_module_failures), ', '.join(consecutive_module_failures))) from None
+
 # Modules list here are deliberately not run, as they have known problems
 # Can be overriden by using the 'selected_modules' mechanism, as is done to run the dcr happy path test in the OP against RP tests
 ignored_modules = [
@@ -105,6 +124,10 @@ async def queue_worker(q):
         code = await q.get()
         try:
             await code
+        except ServerUnhealthyError as e:
+            # deliberate circuit-breaker abort - the message is the whole story, no traceback
+            print(e)
+            sys.exit(1)
         except Exception as e:
             # log and ignore all exceptions, as run_queue otherwise locks up
             print('Exception caught in queue_worker:')
@@ -357,6 +380,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                 await conformance.wait_for_state(module_id, ["FINISHED"])
 
             plan_results.extend(attempt_plan_results)
+            consecutive_module_failures.clear()
             break  # success, exit retry loop
 
         except UnrecoverableHTTPError as e:
@@ -378,6 +402,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     os.remove(partial)
             if attempt >= max_attempts:
                 module_info['error'] = str(e)
+                record_module_did_not_complete(module_with_variants)
                 break
             continue
 
@@ -385,6 +410,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
             traceback.print_exc()
             print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
             module_info['error'] = str(e)
+            record_module_did_not_complete(module_with_variants)
             break
 
     if module_id != '':
