@@ -1052,6 +1052,17 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	/**
+	 * Remove a previously exposed value, e.g. when the endpoint it points to no longer
+	 * applies to the current test state and leaving it visible would mislead the user
+	 * (or an external test driver polling the exposed values).
+	 *
+	 * @param key the key to remove; removing a key that was never exposed is a no-op
+	 */
+	protected void unexpose(String key) {
+		exposed.remove(key);
+	}
+
+	/**
 	 * Expose a value from the environment so the user sees it in the frontend
 	 * <p>
 	 * The value is extracted from env by the given {@code key}.

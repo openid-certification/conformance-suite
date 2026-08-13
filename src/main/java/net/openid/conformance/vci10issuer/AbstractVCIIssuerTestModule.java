@@ -164,6 +164,22 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected VCICredentialEncryption vciCredentialEncryption;
 
+	/**
+	 * What incoming request the test is currently waiting for. Drives the guards in
+	 * {@link #handleCredentialOffer} and {@link #handleTxCode}: a request arriving in the
+	 * wrong state (e.g. a tx_code while the test waits for the second client's credential
+	 * offer in the multiple-clients test) fails with a clear message instead of replaying
+	 * an already-consumed pre-authorized code. Not volatile: every access happens while the
+	 * env lock is held, i.e. between setStatus(RUNNING) and the setStatus(WAITING) that ends
+	 * the running phase — the waitFor* methods write it before setStatus(WAITING) releases
+	 * the lock, and the handlers only read/reset it after setStatus(RUNNING) has acquired
+	 * the lock. Keep it that way: do not touch this field before setStatus(RUNNING) in a
+	 * request handler.
+	 */
+	protected enum VciWaitState { NONE, CREDENTIAL_OFFER, TX_CODE }
+
+	protected VciWaitState vciWaitState = VciWaitState.NONE;
+
 	// --- Configuration overrides ---
 
 	protected void initializeVciVariants() {
@@ -346,6 +362,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	// --- Credential offer and tx_code handling ---
 
 	protected void waitForCredentialOffer() {
+		vciWaitState = VciWaitState.CREDENTIAL_OFFER;
+		// remove the tx_code endpoint left over from a previous pre-authorized code flow
+		// (multiple-clients test): while waiting for a credential offer it is stale, and an
+		// external driver polling the exposed values would otherwise see both endpoints at once
+		unexpose("tx_code_endpoint");
 		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
 		callAndStopOnFailure(VCIWaitForCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 		setStatus(Status.WAITING);
@@ -355,6 +376,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 										   HttpSession session, JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
+
+		if (vciWaitState != VciWaitState.CREDENTIAL_OFFER) {
+			throw new TestFailureException(getId(),
+				"Received a request to the credential offer endpoint, but the test is not waiting for a credential offer"
+					+ (vciWaitState == VciWaitState.TX_CODE ? " - it is waiting for a tx_code" : "") + ".");
+		}
+		vciWaitState = VciWaitState.NONE;
 
 		switch (vciGrantType) {
 			case AUTHORIZATION_CODE -> {
@@ -386,6 +414,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	protected Object handleTxCode() {
 
 		setStatus(Status.RUNNING);
+
+		if (vciWaitState != VciWaitState.TX_CODE) {
+			throw new TestFailureException(getId(),
+				"Received a request to the tx_code endpoint, but the test is not waiting for a tx_code"
+					+ (vciWaitState == VciWaitState.CREDENTIAL_OFFER
+						? " - it is waiting for a credential offer. Pre-authorized codes are single-use, so a"
+							+ " fresh credential offer must be supplied before sending the next tx_code."
+						: "."));
+		}
+		vciWaitState = VciWaitState.NONE;
+
 		callAndStopOnFailure(VCIExtractTxCodeFromRequest.class,
 			ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 		performPreAuthorizationCodeFlow();
@@ -397,6 +436,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected void waitForTxCode() {
+		vciWaitState = VciWaitState.TX_CODE;
 		expose("tx_code_endpoint", env.getString("base_url") + "/tx_code?code=your_tx_code");
 		callAndStopOnFailure(VCIWaitForTxCode.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 
