@@ -1279,8 +1279,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     var detector = new BarcodeDetector({ formats: ['qr_code'] });
                                     var stream = null;
                                     var rafId = null;
+                                    // set when the modal closes; getUserMedia can resolve after the
+                                    // user dismissed the modal, by which time the one-shot close
+                                    // listener has already fired with nothing to stop — the late
+                                    // .then must stop the stream itself or the camera stays on
+                                    var cancelled = false;
 
                                     function stop() {
+                                        cancelled = true;
                                         if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
                                         if (stream) { stream.getTracks().forEach(function(t) { t.stop(); }); stream = null; }
                                         video.srcObject = null;
@@ -1294,11 +1300,16 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                                     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                                     .then(function(s) {
+                                        if (cancelled) {
+                                            s.getTracks().forEach(function(t) { t.stop(); });
+                                            return;
+                                        }
                                         stream = s;
                                         video.srcObject = stream;
                                         return video.play();
                                     })
                                     .then(function() {
+                                        if (!stream) { return; } // modal closed while the camera was starting
                                         statusEl.textContent = 'Scanning…';
                                         var scan = function() {
                                             if (!stream) { return; }

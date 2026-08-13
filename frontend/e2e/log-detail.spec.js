@@ -3043,14 +3043,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
    * @param {import("@playwright/test").Page} page
    * @param {string} testIdLocal
    * @param {string} submitUrl
-   * @param {{ onRunnerCall?: () => void }} [opts]
+   * @param {{ onRunnerCall?: () => void, info?: () => any }} [opts]
    */
   async function setupUriInputRoutes(page, testIdLocal, submitUrl, opts = {}) {
     await page.route(`**/api/info/${testIdLocal}*`, (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+        body: JSON.stringify(opts.info ? opts.info() : { ...MOCK_TEST_RUNNING, planId: undefined }),
       }),
     );
     await page.route(`**/api/log/${testIdLocal}**`, (route) =>
@@ -3231,6 +3231,106 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       timeout: 10000,
     });
     await expect(page.locator("#scanQrModal")).toBeHidden();
+  });
+
+  test("URI input: prompt survives a RUNNING → WAITING hero swap", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+
+    // The RUNNING and WAITING heroes are separate Lit templates, each with
+    // its own [data-slot="browser"] node — a status flip swaps in a brand-new
+    // empty slot while the /api/runner browser payload stays byte-identical.
+    // Regression: renderBrowserSlot's JSON cache skipped the fresh slot and
+    // the prompt vanished for the rest of the run.
+    let infoStatus = "RUNNING";
+    await setupUriInputRoutes(page, testIdLocal, submitUrl, {
+      info: () => ({ ...MOCK_TEST_RUNNING, status: infoStatus, planId: undefined }),
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    // Rendered once under the RUNNING hero, with text pasted but not submitted.
+    await expect(page.locator('[data-testid="hero-running"]')).toBeVisible();
+    const textarea = page.locator('[data-slot="browser"] textarea.uriInput');
+    await expect(textarea).toBeVisible();
+    await textarea.fill("openid4vp://?client_id=persisted");
+
+    // Flip to WAITING: the prompt must re-render into the new hero's slot,
+    // and the pasted-but-unsubmitted text must survive the swap.
+    infoStatus = "WAITING";
+    await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible({ timeout: 10000 });
+    await expect(textarea).toBeVisible({ timeout: 10000 });
+    await expect(textarea).toHaveValue("openid4vp://?client_id=persisted");
+  });
+
+  test("URI input: closing the scan modal while the camera is starting stops the late stream", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/test/a/alias/authorize`;
+    await setupUriInputRoutes(page, testIdLocal, submitUrl);
+
+    // getUserMedia resolves only when the test calls window.__resolveCamera()
+    // — modelling the user cancelling while the browser's permission prompt /
+    // camera spin-up is still pending.
+    await page.addInitScript(() => {
+      /** @type {any} */ (window).BarcodeDetector = class {
+        async detect() {
+          return [];
+        }
+      };
+      Object.defineProperty(navigator, "mediaDevices", {
+        configurable: true,
+        value: {
+          getUserMedia: () =>
+            new Promise((resolve) => {
+              /** @type {any} */ (window).__resolveCamera = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = 64;
+                canvas.height = 64;
+                const stream = canvas.captureStream(10);
+                /** @type {any} */ (window).__lateStream = stream;
+                resolve(stream);
+              };
+            }),
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    await page.locator(".scanQrBtn button").click();
+    const modal = page.locator("#scanQrModal");
+    await expect(modal).toBeVisible();
+    await expect(page.locator("#scanQrStatus")).toHaveText("Requesting camera…");
+
+    // Cancel while getUserMedia is still pending…
+    await modal.locator("button", { hasText: "Cancel" }).click();
+    await expect(modal).toBeHidden();
+
+    // …then the camera finally starts. The late stream must be stopped
+    // immediately (regression: it kept running — camera light on — with no
+    // close listener left to ever stop it).
+    await page.evaluate(() => /** @type {any} */ (window).__resolveCamera());
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          /** @type {any} */ (window).__lateStream.getTracks().map((t) => t.readyState),
+        ),
+      )
+      .toEqual(["ended"]);
+    // The hidden <video> must never have been handed the late stream.
+    expect(
+      await page.evaluate(
+        () =>
+          /** @type {HTMLVideoElement} */ (document.getElementById("scanQrVideo")).srcObject ===
+          null,
+      ),
+    ).toBe(true);
   });
 
   test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({ page }) => {
