@@ -4,12 +4,12 @@ import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
 
-public abstract class AbstractEnsureMinimumKeyLength extends AbstractCondition {
+public abstract class AbstractEnsureMinimumKeyLength extends AbstractLenientJwksCondition {
 	protected Environment checkKeyLength(Environment env, String jwksKey, int minimumKeyLengthRsa, int minimumKeyLengthEc) {
 		JsonObject jwks = env.getObject(jwksKey);
 		if (jwks == null) {
@@ -18,7 +18,9 @@ public abstract class AbstractEnsureMinimumKeyLength extends AbstractCondition {
 
 		JWKSet jwkset;
 		try {
-			jwkset = JWKSet.parse(jwks.toString());
+			// keys the JOSE library cannot parse have no key-length requirement: a recipient ignores
+			// keys it cannot use (RFC 7517 section 5), so they are logged and skipped here
+			jwkset = parseJwksLenientlyLoggingSkips(jwks.toString(), jwksKey);
 		} catch (ParseException e) {
 			throw error("Failure parsing "+ jwksKey, e);
 		}
