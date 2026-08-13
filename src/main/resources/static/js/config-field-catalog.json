@@ -264,6 +264,12 @@
           "label": "PDP JWK Set",
           "type": "object",
           "tooltip": "PDP's public signing key(s) in JSON Web Key Set format (must begin with { &quot;keys&quot;: [ ). Used to verify the signature of the discovery metadata 'signed_metadata' JWT. REQUIRED when the PDP's discovery metadata contains 'signed_metadata' — the test fails without it; leave blank otherwise."
+        },
+        {
+          "key": "pdp.metadata_issuer",
+          "label": "Signed Metadata Issuer",
+          "type": "string",
+          "tooltip": "Expected 'iss' claim of the discovery metadata 'signed_metadata' JWT. OPTIONAL; set this when a third party, rather than the PDP itself, attests to the signed metadata. Leave blank to require that 'iss' matches the PDP Identifier."
         }
       ]
     },
