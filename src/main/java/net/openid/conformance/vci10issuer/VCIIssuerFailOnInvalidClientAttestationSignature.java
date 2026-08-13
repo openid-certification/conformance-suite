@@ -1,19 +1,7 @@
 package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
-import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation;
-import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
-import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalidateClientAttestationSignature;
 
 /**
@@ -40,8 +28,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalid
 		grant, or at the token endpoint if PAR is not in use.""",
 	profile = "OID4VCI-1_0"
 )
-@VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
-public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVCIIssuerTestModule {
+public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVCIIssuerClientAttestationNegativeTest {
 
 	@Override
 	protected void afterClientAttestationGenerated() {
@@ -49,33 +36,5 @@ public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVC
 
 		// Invalidate the client attestation signature
 		callAndContinueOnFailure(VCIInvalidateClientAttestationSignature.class, Condition.ConditionResult.INFO, "OAuth2-ATCA07-1");
-	}
-
-	@Override
-	protected void processParResponse() {
-		// Expect an error response when client attestation signature is invalid
-		// The PAR endpoint should reject with invalid_client
-		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-1");
-		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
-		env.unmapKey("endpoint_response");
-
-		fireTestFinished();
-	}
-
-	// Reached for the pre-authorization code grant, which skips PAR and sends the client
-	// attestation directly to the token endpoint. Mirrors the structure used by other token-
-	// endpoint failure tests (e.g. FAPI2SPFinalEnsureClientAssertionWithNoSubFails).
-	@Override
-	protected void processTokenEndpointResponse() {
-		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
-		callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-		callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-1");
-		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
-
-		fireTestFinished();
 	}
 }
