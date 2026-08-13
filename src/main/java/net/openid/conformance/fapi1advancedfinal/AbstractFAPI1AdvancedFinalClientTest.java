@@ -20,6 +20,7 @@ import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddUnusableKeysToServerPublicJwks;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -342,6 +343,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
+		// published in all RP tests so the check does not depend on when the client last fetched/cached
+		// the JWKS; must stay after SetRsaAltServerJwks, which rebuilds server_public_jwks
+		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 
 		if(isBrazil()) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");

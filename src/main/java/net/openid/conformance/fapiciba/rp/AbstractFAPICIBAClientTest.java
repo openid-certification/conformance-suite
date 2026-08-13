@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfigur
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddUnusableKeysToServerPublicJwks;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
@@ -257,6 +258,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
+		// published in all RP tests so the check does not depend on when the client last fetched/cached
+		// the JWKS; must stay after SetRsaAltServerJwks, which rebuilds server_public_jwks
+		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 
 		callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
 		call(profileBehavior.applyProfileSpecificServerConfigurationSetup());

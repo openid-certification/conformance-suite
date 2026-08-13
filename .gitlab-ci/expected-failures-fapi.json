@@ -2,7 +2,7 @@
     {
         "test-name": "fapi1-advanced-final-discovery-end-point-verification",
         "variant": {
-                "fapi_profile": "openbanking_uk"
+            "fapi_profile": "openbanking_uk"
         },
         "configuration-filename": "authlete-*.json",
         "current-block": "",
@@ -22,9 +22,9 @@
     {
         "test-name": "fapi1-advanced-final-refresh-token",
         "variant": {
-                "client_auth_type": "private_key_jwt",
-                "fapi_profile": "openbanking_uk",
-                "fapi_response_mode": "plain_response"
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "openbanking_uk",
+            "fapi_response_mode": "plain_response"
         },
         "configuration-filename": "authlete-fapi1-adv-final-ob-privatekey.json",
         "current-block": "Second client: Check for refresh token",
@@ -265,5 +265,59 @@
         "condition": "EnsureInvalidRequestUriError",
         "expected-result": "failure",
         "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-payment-consent-request-aud-as-array",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
     }
 ]
