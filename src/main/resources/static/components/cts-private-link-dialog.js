@@ -130,6 +130,12 @@ export class CtsPrivateLinkDialog extends LitElement {
     this._busy = false;
     this._error = "";
     this._modalRef = createRef();
+    // Monotonic token identifying the latest generate request. show() and
+    // _handleGenerate() bump it; every async completion (fetch and clipboard)
+    // compares its captured token and bails when superseded, so a slow
+    // response from a previous opening can never clobber a newer result or
+    // land stale content in the clipboard.
+    this._reqToken = 0;
   }
 
   createRenderRoot() {
@@ -139,6 +145,7 @@ export class CtsPrivateLinkDialog extends LitElement {
 
   /** Reset to a clean state and open the dialog. */
   show() {
+    this._reqToken += 1; // invalidate any request still in flight
     this._link = "";
     this._message = "";
     this._copyStatus = "";
@@ -165,6 +172,7 @@ export class CtsPrivateLinkDialog extends LitElement {
    */
   _handleGenerate() {
     if (this._busy || !this._daysValid() || !this.shareUrl) return;
+    const token = ++this._reqToken;
 
     const url = `${this.shareUrl}?exp=${encodeURIComponent(this._days)}`;
     const fetchPromise = fetch(url, {
@@ -176,14 +184,23 @@ export class CtsPrivateLinkDialog extends LitElement {
     });
 
     // Start the clipboard write synchronously, before any state change, so the
-    // user gesture is still active. The blob resolves from the in-flight fetch.
+    // user gesture is still active. The blob resolves from the in-flight fetch
+    // — but only while this is still the latest request: once superseded the
+    // blob promise rejects, so the write fails instead of landing a stale link
+    // in the clipboard. (On WebKit the superseded write may still be counted
+    // as the one allowed outstanding write until it settles, in which case the
+    // newer generate's auto-copy is refused and the status text falls back to
+    // pointing at the Copy button — degraded but honest.)
     let clipboardWritePromise = null;
     try {
       clipboardWritePromise = navigator.clipboard.write([
         new ClipboardItem({
-          "text/plain": fetchPromise.then(
-            (data) => new Blob([data.link || ""], { type: "text/plain" }),
-          ),
+          "text/plain": fetchPromise.then((data) => {
+            if (token !== this._reqToken) {
+              throw new DOMException("Superseded private-link request", "AbortError");
+            }
+            return new Blob([data.link || ""], { type: "text/plain" });
+          }),
         }),
       ]);
     } catch (e) {
@@ -197,6 +214,7 @@ export class CtsPrivateLinkDialog extends LitElement {
 
     fetchPromise
       .then((data) => {
+        if (token !== this._reqToken) return; // superseded — drop the result
         this._busy = false;
         this._link = data.link || "";
         this._message = data.message || "";
@@ -205,10 +223,12 @@ export class CtsPrivateLinkDialog extends LitElement {
         if (clipboardWritePromise) {
           clipboardWritePromise.then(
             () => {
+              if (token !== this._reqToken) return;
               this._copyStatus = "Copied to clipboard.";
               this._flashCopyButton();
             },
             () => {
+              if (token !== this._reqToken) return;
               this._copyStatus = "Press “Copy to clipboard” to copy the link.";
             },
           );
@@ -217,6 +237,7 @@ export class CtsPrivateLinkDialog extends LitElement {
         }
       })
       .catch((err) => {
+        if (token !== this._reqToken) return; // superseded — drop the error
         this._busy = false;
         this._error = `Failed to create private link: ${err.message}`;
       });

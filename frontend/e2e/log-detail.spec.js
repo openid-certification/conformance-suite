@@ -1888,6 +1888,112 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(result).toHaveCount(0);
   });
 
+  test("Private link: a stale in-flight response cannot clobber a newer result", async ({
+    page,
+  }) => {
+    const OLD_LINK = "https://example.test/login.html?token=stale-old";
+    const NEW_LINK = "https://example.test/login.html?token=fresh-new";
+
+    // Same clipboard spy as the auto-copy test: `write` records the value the
+    // ClipboardItem's blob eventually resolves to, so a stale write landing
+    // late overwrites __clipboardWriteValue — exactly the clobber under test.
+    // __clipboardSettledCount ticks when a write settles (either way), giving
+    // the test a deterministic "stale response fully processed" signal.
+    await page.addInitScript(() => {
+      window.__clipboardWriteValue = null;
+      window.__clipboardSettledCount = 0;
+      if (navigator.clipboard) {
+        navigator.clipboard.write = async (items) => {
+          try {
+            const item = items && items[0];
+            if (item && item.getType) {
+              const blob = await item.getType("text/plain");
+              window.__clipboardWriteValue = await blob.text();
+            }
+          } catch {
+            /* rejected blob — settled without a value */
+          } finally {
+            window.__clipboardSettledCount = (window.__clipboardSettledCount ?? 0) + 1;
+          }
+        };
+      }
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // First generate (exp=30, the default) is HELD in flight; the second
+    // (exp=45) resolves immediately. Releasing the held response after the
+    // second result renders replays the race the fix must neutralise.
+    /** @type {import("@playwright/test").Route | null} */
+    let heldRoute = null;
+    await page.route(`**/api/info/${MOCK_TEST_STATUS.testId}/share*`, (route) => {
+      if (route.request().url().includes("exp=30")) {
+        heldRoute = route;
+        return; // hold — fulfilled later
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ link: NEW_LINK, message: "" }),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    const result = dialog.locator('[data-testid="private-link-result"]');
+
+    const openDialog = async () => {
+      await overflow.locator('[data-testid="overflow-trigger"]').click();
+      await overflow.locator('[data-action-id="share-link"]').click();
+      await expect(dialog).toBeVisible();
+    };
+
+    // Generate with the default expiry — request 1 stays in flight.
+    await openDialog();
+    await dialog.locator(".plinkGenerateBtn").click();
+    await expect(dialog.locator(".plinkBusy")).toBeVisible();
+    await expect.poll(() => heldRoute !== null).toBe(true);
+
+    // Close while busy, reopen, change the expiry, generate again — request 2
+    // resolves immediately with the new link.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await openDialog();
+    await dialog.locator(".plinkDays").fill("45");
+    await dialog.locator(".plinkGenerateBtn").click();
+    await expect(result.locator(".plinkUrl")).toHaveText(NEW_LINK);
+    await expect.poll(() => page.evaluate(() => window.__clipboardWriteValue)).toBe(NEW_LINK);
+
+    // Now release the stale response and let the page process it. (TS cannot
+    // see the closure assignment, so it narrows heldRoute to null — cast via
+    // unknown; the expect.poll above guarantees it is set.)
+    const staleRoute = /** @type {import("@playwright/test").Route} */ (
+      /** @type {unknown} */ (heldRoute)
+    );
+    const staleResponse = page.waitForResponse((resp) => resp.url().includes("exp=30"));
+    await staleRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ link: OLD_LINK, message: "" }),
+    });
+    await staleResponse;
+    // Both clipboard writes settling proves the stale fetch's resolution chain
+    // (blob mapper + state handlers) has run — no arbitrary sleep needed.
+    await expect.poll(() => page.evaluate(() => window.__clipboardSettledCount)).toBe(2);
+
+    // The newer result must survive: displayed link and clipboard contents.
+    await expect(result.locator(".plinkUrl")).toHaveText(NEW_LINK);
+    expect(await page.evaluate(() => window.__clipboardWriteValue)).toBe(NEW_LINK);
+  });
+
   test("failure summary jump-link bubbles cts-scroll-to-entry to the page", async ({ page }) => {
     // Inject FAILURE entries into testInfo.results so the Lit header's
     // _renderFailureSummary() has data to render. The base MOCK_TEST_FAILED
