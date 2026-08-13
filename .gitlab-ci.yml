@@ -546,6 +546,8 @@ scale up env:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_up
+    - prune_ci_test_results
+    - check_mongo_disk_space
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
       when: manual
@@ -998,9 +1000,8 @@ security_test:
       "$name" \
       chart/
 
-    echo -n "Waiting for mongodb pod to start"
     export MONGO_POD=""
-    while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done; echo
+    wait_for_mongo_pod
     echo "Using pod: $MONGO_POD"
     echo -n "Connecting to mongodb"
     while ! kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongosh mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
@@ -1025,11 +1026,19 @@ security_test:
     done
     IFS=$OLDIFS
 
+    if [[ "$CI_COMMIT_BRANCH" != "master" && "$CI_COMMIT_BRANCH" != "demo" && "$CI_COMMIT_BRANCH" != "production" ]]; then
+      # review apps only: compacting the far larger staging/demo/production EVENT_LOG could exceed the job timeout
+      prune_ci_test_results
+    fi
+    check_mongo_disk_space
+
     # This passes these two variables to the test jobs
     echo "CONFORMANCE_SERVER=$CI_ENVIRONMENT_URL" >> deploy.env
     echo "CONFORMANCE_SERVER_MTLS=$CI_ENVIRONMENT_MTLS_URL" >> deploy.env
     # Note that this means the token is available to download from the pipeline artifacts - this isn't great, but equally the token doesn't give access to anything really important
     echo "CONFORMANCE_TOKEN=$CI_TOKEN" >> deploy.env
+
+    echo "Deployed to: $CI_ENVIRONMENT_URL"
   }
 
   function get_mongo_pod() {
@@ -1039,6 +1048,84 @@ security_test:
       -o template --template="{{(index .items 0).metadata.name}}" 2>&1` \
       || MONGO_POD=''
     export MONGO_POD
+  }
+
+  function wait_for_mongo_pod() {
+    if [ -z "$MONGO_POD" ]; then
+      echo -n "Waiting for mongodb pod to start"
+      while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done; echo
+    fi
+  }
+
+  function read_mongo_df() {
+    # Sets MONGO_DISK_{TOTAL,USED,FREE}_MB from df on the mongodb data volume
+    wait_for_mongo_pod
+    MONGO_DF=""
+    while [ -z "$MONGO_DF" ]; do
+      MONGO_DF=$(kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- df -P -m /bitnami/mongodb 2>/dev/null | tail -1) || MONGO_DF=""
+      [ -z "$MONGO_DF" ] && sleep 1
+    done
+    MONGO_DISK_TOTAL_MB=$(echo "$MONGO_DF" | awk '{print $2}')
+    MONGO_DISK_USED_MB=$(echo "$MONGO_DF" | awk '{print $3}')
+    MONGO_DISK_FREE_MB=$(echo "$MONGO_DF" | awk '{print $4}')
+  }
+
+  function check_mongo_disk_space() {
+    # A nearly-full mongodb volume makes mongod restart at random and test jobs grind for hours
+    MIN_MONGO_FREE_MB=500
+    read_mongo_df
+    echo "mongodb data volume: total ${MONGO_DISK_TOTAL_MB} MB, used ${MONGO_DISK_USED_MB} MB, free ${MONGO_DISK_FREE_MB} MB"
+    if [ "$MONGO_DISK_FREE_MB" -lt "$MIN_MONGO_FREE_MB" ]; then
+      echo "ERROR: mongodb data volume has only ${MONGO_DISK_FREE_MB} MB free (minimum ${MIN_MONGO_FREE_MB} MB)."
+      echo "A nearly-full mongodb volume makes mongod restart at random and test jobs fail/grind. Free up space, e.g. for a review app play stop_review to delete the environment (including its mongodb volume), or increase mongodb.persistence.size."
+      exit 1
+    fi
+  }
+
+  function prune_ci_test_results() {
+    # Space-driven prune: when disk is tight, delete oldest CI-created test plans via the
+    # suite's own API (whose delete cascades to the test modules and log entries) until
+    # there's breathing room. A quiet app with ample free space never deletes anything.
+    PRUNE_TARGET_MB=1500
+    COMPACT_IF_BELOW_MB=1000
+    # deploy() sets CI_TOKEN/CI_ENVIRONMENT_URL; 'scale up env' has the deploy.env equivalents
+    PRUNE_TOKEN="${CI_TOKEN:-$CONFORMANCE_TOKEN}"
+    PRUNE_URL="${CI_ENVIRONMENT_URL:-$CONFORMANCE_SERVER}"
+    # API deletes never change df (space is freed inside mongo's files, df only moves on
+    # compact), so df is read once here and the loop below steers by df + reusable bytes
+    read_mongo_df
+    echo "mongodb data volume before pruning: total ${MONGO_DISK_TOTAL_MB} MB, used ${MONGO_DISK_USED_MB} MB, free ${MONGO_DISK_FREE_MB} MB"
+    if [ "$MONGO_DISK_FREE_MB" -ge "$PRUNE_TARGET_MB" ]; then
+      echo "No result pruning needed (more than ${PRUNE_TARGET_MB} MB free)"
+      return 0
+    fi
+    # curl/jq needed when called from 'scale up env', which skips check_commit_is_current
+    apk add --no-cache curl jq > /dev/null 2>&1 || true
+    PREV_IDS=""
+    while :; do
+      REUSE_MB=$(kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongosh --quiet mongodb://localhost/test_suite --eval 'let r = 0; for (const c of ["EVENT_LOG","TEST_INFO","TEST_PLAN"]) { try { r += db.getCollection(c).stats().wiredTiger["block-manager"]["file bytes available for reuse"]; } catch (e) {} } print(Math.floor(r/1048576));')
+      REUSE_MB=${REUSE_MB:-0}
+      echo "mongodb disk: ${MONGO_DISK_FREE_MB} MB free on disk + ${REUSE_MB} MB reusable inside mongo"
+      [ "$((MONGO_DISK_FREE_MB + REUSE_MB))" -ge "$PRUNE_TARGET_MB" ] && break
+      PLAN_IDS=$(curl -sf --retry 10 --retry-delay 5 --retry-all-errors -H "Authorization: Bearer $PRUNE_TOKEN" "${PRUNE_URL}/api/plan?length=300&order=started,asc" | jq -r '.data[]._id') || PLAN_IDS=""
+      if [ -z "$PLAN_IDS" ] || [ "$PLAN_IDS" = "$PREV_IDS" ]; then
+        echo "No (more) CI-created test plans to prune"
+        break
+      fi
+      PREV_IDS="$PLAN_IDS"
+      # one curl invocation: reuses the connection, and serial deletes are kind to a disk-stressed mongod
+      if curl -sSf -X DELETE -H "Authorization: Bearer $PRUNE_TOKEN" $(printf "${PRUNE_URL}/api/plan/%s " $PLAN_IDS) > /dev/null; then
+        echo "Pruned $(echo "$PLAN_IDS" | wc -l) oldest CI-created test plans"
+      else
+        echo "Some plan deletions failed; stopping when the listing no longer changes"
+      fi
+    done
+    if [ "$MONGO_DISK_FREE_MB" -lt "$COMPACT_IF_BELOW_MB" ]; then
+      echo "Compacting mongodb collections to return freed space to the filesystem (blocks until done, may take minutes)"
+      kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongosh --quiet mongodb://localhost/test_suite --eval 'for (const c of ["EVENT_LOG","TEST_INFO","TEST_PLAN"]) { const r = db.runCommand({compact: c}); print(c + ": bytesFreed=" + (r.bytesFreed || 0) + " ok=" + r.ok); }'
+      read_mongo_df
+      echo "mongodb disk after compact: ${MONGO_DISK_FREE_MB} MB free"
+    fi
   }
 
   function setup_docker() {
