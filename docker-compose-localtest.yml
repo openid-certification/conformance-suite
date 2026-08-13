@@ -51,6 +51,9 @@ services:
        --fintechlabs.base_mtls_url=https://nginx:8444
        --fintechlabs.devmode=$$DEVMODE
        --fintechlabs.startredir=true
+       --oidc.idp.iss=$OIDC_IDP_ISS
+       --oidc.idp.clientid=$OIDC_IDP_CLIENTID
+       --oidc.idp.secret=$OIDC_IDP_SECRET
     links:
      - mongodb:mongodb
     depends_on:
