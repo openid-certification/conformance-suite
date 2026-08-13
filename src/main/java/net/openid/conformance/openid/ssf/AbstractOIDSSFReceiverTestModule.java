@@ -55,6 +55,7 @@ import net.openid.conformance.util.OAuthUriUtil;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
@@ -102,6 +103,13 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUS
 	"client.client_secret_jwt_alg",
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
+	"client.jwks",
+})
+// In static mode the hidden ClientAuthType dropdown is still auto-selected to satisfy
+// validation, so its per-value fields above would otherwise leak into the config form.
+@VariantHidesConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
+	"client.client_secret",
+	"client.client_secret_jwt_alg",
 	"client.jwks",
 })
 // In static mode the receiver presents a pre-shared token, so the OAuth client-auth
