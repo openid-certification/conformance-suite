@@ -1,7 +1,7 @@
 package net.openid.conformance.authzen;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.Set;
@@ -57,7 +57,8 @@ import net.openid.conformance.variant.VariantSetup;
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "discovery", configurationFields = {
 	"pdp.policy_decision_point",
-	"pdp.jwks"
+	"pdp.jwks",
+	"pdp.metadata_issuer"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_id",
@@ -159,7 +160,12 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 				// it do we validate it, verify its signature against the configured PDP JWK
 				// Set, and apply its precedence over the plain JSON metadata so the
 				// downstream checks validate the signed (authoritative) values.
-				if(!Strings.isNullOrEmpty(env.getString("pdp", "signed_metadata"))) {
+				// The gate inspects the raw JsonElement rather than reading it as a string:
+				// a non-string signed_metadata (number, object, array) is a protocol error that
+				// ExtractPDPSignedMetadata is there to report, so it has to reach the sequence
+				// instead of throwing an UnexpectedTypeException out of the gate itself.
+				JsonElement signedMetadataElement = env.getElementFromObject("pdp", "signed_metadata");
+				if(signedMetadataElement != null && !signedMetadataElement.isJsonNull()) {
 					eventLog.startBlock("Verify signed metadata");
 					callAndStopOnFailure(EnsurePDPJwksConfigured.class, "RFC7517-4");
 					// Validate PDP keys and disallow asymmetrical private key, symmetrical key signatures are allowed by spec but will get warning
