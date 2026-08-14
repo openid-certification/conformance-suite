@@ -9,6 +9,7 @@ authentication. Tests cover:
 - Share-link JWT used directly as Authorization: Bearer on the API chain
 - Unauthenticated access rejection
 - Public access to published plans
+- Plan deletion: cross-user rejection and the EVENT_LOG delete cascade
 - Cross-user isolation for a second full user (info/plan/log/runner/token)
 - Certification package: owner success, immutable-plan rules, and that
   unauthenticated / another user cannot prepare a package
@@ -976,6 +977,78 @@ def run_tests():
                              content=json.dumps({"publish": "summary"}),
                              headers={"Content-Type": "application/json"})
     runner.check_status("Publish: non-admin cannot lower publish level", resp, 403)
+
+    # ===================================================================
+    # 4d. PLAN DELETION & EVENT_LOG CASCADE
+    # ===================================================================
+    # Deleting a plan must remove the plan, its tests AND their EVENT_LOG
+    # entries. The log delete silently matched nothing for non-admin users
+    # until the owner/testOwner field fix, orphaning every log entry.
+    # /api/log/{id} reads EVENT_LOG directly (no TEST_INFO gating), so
+    # orphans stay visible to their owner after a broken delete - making
+    # the post-delete log check a true discriminator for the cascade.
+    print("\n--- 4d. Plan deletion & EVENT_LOG cascade ---")
+
+    del_plan_id, del_module = create_test_plan(owner_client, base_url, plan_name, config)
+    del_test_id = create_test_from_plan(owner_client, base_url, del_plan_id, del_module)
+
+    # a still-running test keeps writing log entries, which would race the counts below
+    wait_for_test_finished(owner_client, base_url, del_test_id)
+
+    resp = owner_client.get(f"{base_url}api/log/{del_test_id}")
+    runner.check_status("Delete: owner can read log entries before delete", resp, 200)
+    entries_before = _json_len(resp)
+    runner.check("Delete: test has log entries before delete", entries_before > 0,
+                 f"got {entries_before} entries")
+
+    if token_2:
+        user_b = second_user_client()
+
+        resp = user_b.get(f"{base_url}api/currentuser")
+        runner.check_status("Delete: second user's token is accepted", resp, 200)
+
+        resp = user_b.get(f"{base_url}api/plan/{del_plan_id}")
+        runner.check_status("Delete: another user cannot see the plan", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/log/{del_test_id}")
+        n = _json_len(resp)
+        runner.check("Delete: another user sees no log entries",
+                     resp.status_code == 200 and n == 0,
+                     f"HTTP {resp.status_code}, {n} entries")
+
+        resp = user_b.delete(f"{base_url}api/plan/{del_plan_id}")
+        runner.check_status("Delete: another user cannot delete the plan", resp, 404)
+
+        resp = owner_client.get(f"{base_url}api/plan/{del_plan_id}")
+        runner.check_status("Delete: plan still present after another user's attempt", resp, 200)
+
+        resp = owner_client.get(f"{base_url}api/log/{del_test_id}")
+        n = _json_len(resp)
+        runner.check("Delete: log entries still present after another user's attempt",
+                     resp.status_code == 200 and n > 0,
+                     f"HTTP {resp.status_code}, {n} entries")
+
+        user_b.close()
+    else:
+        print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping second-user delete checks")
+
+    resp = owner_client.delete(f"{base_url}api/plan/{del_plan_id}")
+    runner.check_status("Delete: owner can delete their own plan", resp, 204)
+
+    resp = owner_client.get(f"{base_url}api/plan/{del_plan_id}")
+    runner.check_status("Delete: plan is gone after delete", resp, 404)
+
+    resp = owner_client.get(f"{base_url}api/info/{del_test_id}")
+    runner.check_status("Delete: test info is gone after delete", resp, 404)
+
+    resp = owner_client.get(f"{base_url}api/log/{del_test_id}")
+    n = _json_len(resp)
+    runner.check("Delete: no orphaned EVENT_LOG entries after delete",
+                 resp.status_code == 200 and n == 0,
+                 f"HTTP {resp.status_code}, {n} entries")
+
+    resp = owner_client.delete(f"{base_url}api/plan/{del_plan_id}")
+    runner.check_status("Delete: deleting an already-deleted plan returns 404", resp, 404)
 
     # ===================================================================
     # 4e. CROSS-USER ISOLATION (two full users)
