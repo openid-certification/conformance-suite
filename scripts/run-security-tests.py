@@ -41,8 +41,9 @@ def get_config():
     if not base_url.endswith("/"):
         base_url += "/"
     token = os.environ.get("CONFORMANCE_TOKEN")
+    token_2 = os.environ.get("CONFORMANCE_TOKEN_2")
     verify_ssl = os.environ.get("CONFORMANCE_SSL_VERIFY", "false").lower() != "false"
-    return base_url, token, verify_ssl
+    return base_url, token, token_2, verify_ssl
 
 
 def wait_for_server(base_url, token, verify_ssl, timeout=120):
@@ -226,8 +227,40 @@ class TestRunner:
         return 1 if self.failures else 0
 
 
+def _json_len(resp):
+    """Length of a JSON array response, or -1 if the body is not a JSON array."""
+    try:
+        body = resp.json()
+        return len(body) if isinstance(body, list) else -1
+    except ValueError:
+        return -1
+
+
+def _row_ids(resp):
+    """The _id values from a listing response (DataTables envelope or plain array)."""
+    try:
+        body = resp.json()
+    except ValueError:
+        return None
+    rows = body.get("data") if isinstance(body, dict) else body
+    if not isinstance(rows, list):
+        return None
+    return [row.get("_id") for row in rows if isinstance(row, dict)]
+
+
+def wait_for_test_finished(client, base_url, test_id, timeout=30):
+    """Wait until a test instance reaches a final state and stops writing log entries."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        resp = client.get(f"{base_url}api/info/{test_id}")
+        if resp.status_code == 200 and resp.json().get("status") in ("FINISHED", "INTERRUPTED"):
+            return True
+        time.sleep(1)
+    return False
+
+
 def run_tests():
-    base_url, token, verify_ssl = get_config()
+    base_url, token, token_2, verify_ssl = get_config()
     print(f"Server: {base_url}")
     print(f"SSL verify: {verify_ssl}")
 
@@ -872,6 +905,87 @@ def run_tests():
                              headers={"Content-Type": "application/json"})
     runner.check_status("Publish: missing publish field rejected", resp, 400)
 
+    # non-admins may only raise the publish level, never lower it
+    resp = owner_client.post(f"{base_url}api/info/{other_test_id}/publish",
+                             content=json.dumps({"publish": "summary"}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status("Publish: non-admin cannot lower publish level", resp, 403)
+
+    # ===================================================================
+    # 4e. CROSS-USER ISOLATION (two full users)
+    # ===================================================================
+    # Share-link principals are rejected by the URL allowlist layer before the
+    # controllers run; a second full ROLE_USER passes the same filter chain as
+    # the owner, so these checks exercise the owner-scoping in the service/DB
+    # layer itself.
+    print("\n--- 4e. Cross-user isolation (two full users) ---")
+
+    if token_2:
+        user_b = bearer_client(base_url, token_2, verify_ssl)
+
+        iso_plan_id, iso_module = create_test_plan(owner_client, base_url, plan_name, config)
+        iso_test_id = create_test_from_plan(owner_client, base_url, iso_plan_id, iso_module)
+        if not wait_for_test_finished(owner_client, base_url, iso_test_id):
+            print("  NOTE: test did not reach a final state within 30s")
+
+        resp = user_b.get(f"{base_url}api/info/{iso_test_id}")
+        runner.check_status("Isolation: cannot read another user's test info", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/plan")
+        ids = _row_ids(resp)
+        runner.check("Isolation: plan listing excludes another user's plan",
+                     resp.status_code == 200 and ids is not None and iso_plan_id not in ids,
+                     f"HTTP {resp.status_code}, ids={ids}")
+
+        resp = user_b.get(f"{base_url}api/log")
+        ids = _row_ids(resp)
+        runner.check("Isolation: test listing excludes another user's test",
+                     resp.status_code == 200 and ids is not None and iso_test_id not in ids,
+                     f"HTTP {resp.status_code}, ids={ids}")
+
+        resp = user_b.get(f"{base_url}api/log/export/{iso_test_id}")
+        runner.check_status("Isolation: cannot export another user's test log", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/plan/exporthtml/{iso_plan_id}")
+        runner.check_status("Isolation: cannot export another user's plan html", resp, 404)
+
+        resp = user_b.post(f"{base_url}api/plan/{iso_plan_id}/share", params={"exp": "1"})
+        runner.check_status("Isolation: cannot share another user's plan", resp, 404)
+
+        resp = user_b.post(f"{base_url}api/info/{iso_test_id}/share", params={"exp": "1"})
+        runner.check_status("Isolation: cannot share another user's test", resp, 404)
+
+        resp = user_b.post(f"{base_url}api/plan/{iso_plan_id}/publish",
+                           content=json.dumps({"publish": "everything"}),
+                           headers={"Content-Type": "application/json"})
+        runner.check_status("Isolation: cannot publish another user's plan", resp, 403)
+
+        resp = user_b.post(f"{base_url}api/info/{iso_test_id}/publish",
+                           content=json.dumps({"publish": "everything"}),
+                           headers={"Content-Type": "application/json"})
+        runner.check_status("Isolation: cannot publish another user's test", resp, 403)
+
+        resp = user_b.post(f"{base_url}api/plan/{iso_plan_id}/makemutable", data={"unused": "1"})
+        runner.check_status("Isolation: cannot make another user's plan mutable", resp, 403)
+
+        # regression: this NPE'd into a 500 before createTest null-checked the plan lookup
+        resp = user_b.post(f"{base_url}api/runner", params={"test": iso_module, "plan": iso_plan_id})
+        runner.check_status("Isolation: cannot create a test on another user's plan", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/runner/{iso_test_id}")
+        runner.check_status("Isolation: cannot read another user's runner state", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/runner/{iso_test_id}/wait-state",
+                          params={"states": "FINISHED", "timeoutMs": 1})
+        runner.check_status("Isolation: cannot wait on another user's test", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/log/{iso_test_id}/images")
+        runner.check_status("Isolation: cannot list another user's test images", resp, 403)
+
+        user_b.close()
+    else:
+        print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping cross-user isolation checks")
+
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
     # ===================================================================
@@ -879,10 +993,34 @@ def run_tests():
 
     resp = owner_client.get(f"{base_url}api/token")
     runner.check_status("Token: user can list their tokens", resp, 200)
+    own_token_ids = []
     if resp.status_code == 200:
         token_list = resp.json()
         runner.check("Token: list contains the auth token", len(token_list) > 0,
                      f"got {len(token_list)} tokens")
+        own_token_ids = [t["_id"] for t in token_list]
+
+    # regression: deleteToken returned wasAcknowledged(), so a matched-nothing
+    # delete reported 200 while deleting nothing
+    resp = owner_client.delete(f"{base_url}api/token/does-not-exist-xyz")
+    runner.check_status("Token: deleting a nonexistent token returns 404", resp, 404)
+
+    if token_2 and own_token_ids:
+        user_b = bearer_client(base_url, token_2, verify_ssl)
+
+        resp = user_b.get(f"{base_url}api/token")
+        b_token_ids = _row_ids(resp) if resp.status_code == 200 else None
+        runner.check("Token: another user's listing excludes this user's tokens",
+                     resp.status_code == 200 and not (set(own_token_ids) & set(b_token_ids or [])),
+                     f"HTTP {resp.status_code}")
+
+        resp = user_b.delete(f"{base_url}api/token/{own_token_ids[0]}")
+        runner.check_status("Token: another user cannot delete this user's token", resp, 404)
+
+        resp = owner_client.get(f"{base_url}api/currentuser")
+        runner.check_status("Token: owner's token still valid after the attempt", resp, 200)
+
+        user_b.close()
 
     # ===================================================================
     # 6. FAVORITE PLANS (owner access)
