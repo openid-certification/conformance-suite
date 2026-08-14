@@ -54,7 +54,7 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
-**Logging in.** Sign-in goes through a single OpenID Provider (`spring.security.oauth2.client.registration.idp.*`), which brokers the upstream accounts; there are no longer separate Google and GitLab buttons. Admin rights come from the IdP's `entitlements` claim containing the role named by `spring.security.oauth2.client.registration.idp.admin-role`. Running the `dev` profile from your IDE requires a real login (see the devmode note below); `docker-compose -f docker-compose-dev.yml up` sets `fintechlabs.devmode=true` and so bypasses login altogether.
+**Logging in.** Sign-in goes through a single OpenID Provider (`spring.security.oauth2.client.registration.idp.*`), which brokers the upstream accounts; there are no longer separate Google and GitLab buttons. Admin rights come from the IdP's `entitlements` claim containing the role named by `oidc.idp.admin-role`. Running the `dev` profile from your IDE requires a real login (see the devmode note below); `docker-compose -f docker-compose-dev.yml up` sets `fintechlabs.devmode=true` and so bypasses login altogether.
 
 The JWS algorithms used to verify IdP tokens are configuration, because an IdP's discovery document advertises what it *can* sign with rather than what it *does*: `oidc.idp.id-token-signed-response-alg` (exactly one) and `oidc.idp.access-token-signing-algs` (comma-separated). If logins fail with a signature error, or API bearer tokens are rejected, check these first.
 
@@ -74,7 +74,13 @@ How it works: `application-legacy-ui.properties` repoints `spring.web.resources.
 at the snapshot, `HomeController` is `@Profile("!legacy-ui")` so `/` falls back to the old
 welcome page, and `LegacyUiConfig` reverts the three redesign-restyled Thymeleaf pages. It is a
 frozen snapshot: it does **not** track new-UI features or surface config fields added after the
-snapshot (those remain settable via the old JSON config tab). To remove it, delete
+snapshot (those remain settable via the old JSON config tab).
+
+One deliberate exception to "frozen": `static-legacy/login.html` was updated when login moved to
+the IdP. Its Google and GitLab buttons pointed at `/oauth2/authorization/google|gitlab`, which no
+longer exist, so leaving them frozen would have left the escape hatch with no way to sign in at
+all. It now carries the same single `/oauth2/authorization/idp` link as the new UI. Any future
+change to the login route has to be mirrored here. To remove it, delete
 `static-legacy/`, `templates-legacy/`, `application-legacy-ui.properties`, `LegacyUiConfig`, and
 the `@Profile` on `HomeController`.
 

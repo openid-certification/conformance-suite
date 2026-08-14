@@ -370,11 +370,11 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public long migrateOwnership(String oldIss, String oldOwner) {
+	public long migrateOwnership(String oldIss, String oldSub) {
 
 		ImmutableMap<String, String> newOwner = authenticationFacade.getPrincipal();
 		ImmutableMap<String, String> owner = ImmutableMap.of(
-			"sub", oldOwner,
+			"sub", oldSub,
 			"iss", oldIss
 		);
 

@@ -88,5 +88,5 @@ public interface TestPlanService {
 	 *
 	 * @return the number of plans whose ownership changed
 	 */
-	long migrateOwnership(String oldIss, String oldOwner);
+	long migrateOwnership(String oldIss, String oldSub);
 }

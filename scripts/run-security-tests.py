@@ -735,6 +735,21 @@ def run_tests():
     runner.check_rejected("IdP JWT: expired token rejected", c.get(f"{base_url}api/currentuser"))
     c.close()
 
+    # A token minted for a different client of the same realm must not authenticate
+    # here. Like the cases above this one is rejected at signature verification, so
+    # it pins the outcome rather than the audience check itself -- the realm's
+    # signing key is not available to this script. IdpAudienceValidator_UnitTest is
+    # the authoritative coverage for a token that IS correctly signed but carries
+    # someone else's aud/azp.
+    wrong_audience = forged_jwt(
+        {"alg": "ES256", "typ": "JWT"},
+        {"iss": "https://idp.example.invalid", "sub": "attacker", "aud": "some-other-app",
+         "azp": "some-other-app", "exp": now + 3600, "iat": now})
+    c = bearer_client(base_url, wrong_audience, verify_ssl)
+    runner.check_rejected("IdP JWT: token for another client rejected",
+                          c.get(f"{base_url}api/currentuser"))
+    c.close()
+
     # An admin-looking entitlements claim must buy nothing without a valid signature.
     forged_admin = forged_jwt(
         {"alg": "ES256", "typ": "JWT"},

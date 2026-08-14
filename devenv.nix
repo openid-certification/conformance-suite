@@ -11,6 +11,9 @@ in
     pkgs.git
     pkgs.ngrok
     pkgs.mvnd
+    # Used by enterShell to issue the local TLS chain. Previously pulled in
+    # implicitly by the `certificates` option, which enterShell now replaces.
+    pkgs.mkcert
   ];
 
   scripts.hello.exec = "echo $GREET";
@@ -18,18 +21,28 @@ in
   enterShell = ''
     hello
 
+    # TLS for the local nginx proxy. This replaces devenv's `certificates` option,
+    # which issues a bare leaf certificate: nginx has to serve the full chain
+    # (leaf + the mkcert root) so that clients which only have the root out of
+    # band can build a path to it. Concatenating the two is the whole reason this
+    # is hand-rolled.
+    #
+    # The trade-off is that devenv's own regeneration and trust-store handling no
+    # longer apply: the chain is created once and then left alone. To reissue it
+    # (expiry, or a new mkcert root after `mkcert -uninstall`), delete
+    # "$MKCERT_DIR" and re-enter the shell.
     MKCERT_DIR="${config.env.DEVENV_STATE}/mkcert/"
-	mkdir -p "$MKCERT_DIR"
+    mkdir -p "$MKCERT_DIR"
 
-	if [ ! -f "$MKCERT_DIR/fullchain.pem" ]; then
-		echo "creating cert chain"
+    if [ ! -f "$MKCERT_DIR/fullchain.pem" ]; then
+      echo "creating cert chain"
 
-		mkcert -cert-file "$MKCERT_DIR/cert.pem" -key-file "$MKCERT_DIR/key.pem" "localhost.emobix.co.uk"
+      mkcert -cert-file "$MKCERT_DIR/cert.pem" -key-file "$MKCERT_DIR/key.pem" "localhost.emobix.co.uk"
 
-		cat "$MKCERT_DIR/cert.pem" "$(mkcert -CAROOT)/rootCA.pem" > "$MKCERT_DIR/fullchain.pem";
+      cat "$MKCERT_DIR/cert.pem" "$(mkcert -CAROOT)/rootCA.pem" > "$MKCERT_DIR/fullchain.pem"
 
-		echo "certs created under $MKCERT_DIR"
-	fi
+      echo "certs created under $MKCERT_DIR"
+    fi
 
     export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
 

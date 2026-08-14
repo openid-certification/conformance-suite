@@ -35,7 +35,7 @@ test.describe("login.html — Login page", () => {
     const idpBtn = loginPage.locator('a[href="/oauth2/authorization/idp"]');
 
     await expect(idpBtn).toBeVisible();
-    await expect(idpBtn).toContainText("Login with social");
+    await expect(idpBtn).toContainText("Sign in with OpenID");
 
     // Login now goes through a single IdP, which brokers the upstream providers.
     // The per-provider buttons must not come back alongside it.

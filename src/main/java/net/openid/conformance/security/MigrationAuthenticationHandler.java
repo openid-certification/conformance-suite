@@ -26,6 +26,14 @@ import java.io.IOException;
  * <p>
  * The claims are read from the ID token the IdP signed, so they are trusted input:
  * a user cannot ask to take over another user's records by supplying them.
+ * <p>
+ * <strong>Temporary.</strong> This runs on every login, including the many after
+ * the user's records have already been migrated, where it costs two indexed
+ * updates that match nothing. That is deliberate: there is no marker saying a
+ * given user has been migrated, and adding one to carry a one-off data fix-up is
+ * not worth it. Once the pre-IdP accounts have had time to log in at least once,
+ * this handler and the {@code migrateOwnership} methods behind it should be
+ * deleted outright.
  */
 @Component
 public class MigrationAuthenticationHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -70,14 +78,18 @@ public class MigrationAuthenticationHandler extends SavedRequestAwareAuthenticat
 		// retried on their next login.
 		try {
 			long plans = testPlanService.migrateOwnership(legacyIssuer, legacySubject);
-			long tests = testInfoService.migrateOwnership(legacyIssuer, legacySubject);
-			if (plans > 0 || tests > 0) {
-				log.info("Migrated ownership from legacy identity. issuer={} plans={} tests={}",
-					legacyIssuer, plans, tests);
+			// Also moves the test's log entries and screenshots, which are
+			// access-controlled on their own copy of the owner.
+			TestInfoService.MigrationCounts tests = testInfoService.migrateOwnership(legacyIssuer, legacySubject);
+			if (plans > 0 || !tests.movedNothing()) {
+				// Ownership transfer is irreversible and driven by claims from the
+				// IdP, so who took over what has to be reconstructable afterwards.
+				log.info("Migrated ownership from legacy identity. legacyIss={} legacySub={} newSub={} plans={} tests={} logEntries={}",
+					legacyIssuer, legacySubject, principal.getSubject(), plans, tests.tests(), tests.logEntries());
 			}
 		} catch (RuntimeException e) {
-			log.error("Failed to migrate ownership from legacy identity; login continues. issuer={}",
-				legacyIssuer, e);
+			log.error("Failed to migrate ownership from legacy identity; login continues. legacyIss={} legacySub={} newSub={}",
+				legacyIssuer, legacySubject, principal.getSubject(), e);
 		}
 	}
 }

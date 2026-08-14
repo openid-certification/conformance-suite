@@ -58,7 +58,8 @@ public class MigrationAuthenticationHandler_UnitTest {
 	@Test
 	public void migrates_ownership_when_the_legacy_identity_claims_are_present() throws Exception {
 		Mockito.when(testPlanService.migrateOwnership(LEGACY_ISS, LEGACY_SUB)).thenReturn(2L);
-		Mockito.when(testInfoService.migrateOwnership(LEGACY_ISS, LEGACY_SUB)).thenReturn(7L);
+		Mockito.when(testInfoService.migrateOwnership(LEGACY_ISS, LEGACY_SUB))
+			.thenReturn(new TestInfoService.MigrationCounts(7L, 42L));
 
 		handler.onAuthenticationSuccess(request, response,
 			oidcLoginWithClaims(Map.of("idp_iss", LEGACY_ISS, "idp_sub", LEGACY_SUB)));

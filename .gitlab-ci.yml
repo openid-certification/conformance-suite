@@ -711,9 +711,12 @@ local_test:
   needs: ["build"]
   script:
     - apk add docker-compose
-    - echo "OIDC_IDP_ISS=$OIDC_IDP_ISS" > .env
-    - echo "OIDC_IDP_CLIENTID=$OIDC_IDP_CLIENTID" >> .env
-    - echo "OIDC_IDP_SECRET=$OIDC_IDP_SECRET" >> .env
+    # OIDC_IDP_ISS/CLIENTID/SECRET are CI variables, so they are already in this
+    # job's environment and docker-compose interpolates $OIDC_IDP_* in
+    # docker-compose-localtest.yml straight from the shell. They must NOT be
+    # written to .env: that file is tracked (it carries MAVEN_CACHE for
+    # builder-compose.yml), so writing there both clobbers it and puts a live
+    # client secret in a tracked path.
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx

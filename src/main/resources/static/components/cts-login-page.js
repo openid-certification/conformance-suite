@@ -289,19 +289,19 @@ function injectStyles() {
 }
 
 /**
- * Login/register landing page. Offers Google/GitLab OAuth buttons (each with
- * its vendor mark) and rich-list links to the public logs and plans listings.
+ * Login/register landing page. Offers a single sign-in button that hands off to
+ * the OpenID Provider brokering the upstream accounts, plus rich-list links to
+ * the public logs and plans listings.
  *
  * Layout is a single rounded shell containing two panels: a warm-ink brand
  * band (OIDF wordmark + capability pillars) on the left and a focused form
  * panel on the right at viewports >=860px, collapsing to a single column on
  * narrow screens. The error banner uses `cts-alert variant="danger"`; the
- * post-logout banner uses `cts-alert variant="info"`. Provider buttons render
- * as plain `<a class="oidf-btn oidf-btn-secondary oidf-btn-lg">` anchors
- * with the inline Google/GitLab brand SVG taking the leading-icon slot —
- * `cts-link-button`'s `icon` prop only accepts a coolicons name, and
- * brand glyphs are intentionally outside the cts-icon set (per the
- * 2026-04-25 brand-icon carve-out). The `oidf-btn` styles arrive via the
+ * post-logout banner uses `cts-alert variant="info"`. The sign-in button renders
+ * as a plain `<a class="oidf-btn oidf-btn-secondary oidf-btn-lg">` anchor with a
+ * `cts-icon` in the leading-icon slot. It is a plain anchor rather than a
+ * `cts-link-button` because it is a full-page navigation to the IdP that must
+ * work before any component has upgraded. The `oidf-btn` styles arrive via the
  * `cts-link-button.js` import which injects them at module load. All
  * other styling comes from `oidf-tokens.css` plus the scoped
  * `.oidf-login-*` rules injected on first mount.
@@ -417,8 +417,10 @@ class CtsLoginPage extends LitElement {
                 class="oidf-btn oidf-btn-secondary oidf-btn-lg"
                 href="/oauth2/authorization/idp"
                 role="button"
-                >Login with social</a
               >
+                <cts-icon name="user-01" aria-hidden="true"></cts-icon>
+                Sign in with OpenID
+              </a>
             </div>
             <div class="oidf-login-divider" role="separator">
               <span>Or browse without signing in</span>

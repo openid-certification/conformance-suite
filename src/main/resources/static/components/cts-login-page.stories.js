@@ -47,7 +47,7 @@ export const Default = {
 
     await step("sign-in button is the single IdP entry point", async () => {
       const idpAnchor = /** @type {HTMLAnchorElement} */ (
-        canvas.getByText("Login with social").closest("a")
+        canvas.getByText("Sign in with OpenID").closest("a")
       );
       expect(idpAnchor).toBeTruthy();
       expect(idpAnchor.getAttribute("href")).toBe("/oauth2/authorization/idp");
@@ -60,10 +60,13 @@ export const Default = {
 
     await step("sign-in button carries the design-system button treatment", async () => {
       const idpAnchor = /** @type {HTMLAnchorElement} */ (
-        canvas.getByText("Login with social").closest("a")
+        canvas.getByText("Sign in with OpenID").closest("a")
       );
       expect(idpAnchor.classList.contains("oidf-btn")).toBe(true);
       expect(idpAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
+      // oidf-btn-secondary is styled around a leading icon; without one the
+      // button reads as under-filled next to the rest of the design system.
+      expect(idpAnchor.querySelector("cts-icon")?.getAttribute("name")).toBe("user-01");
       // Bootstrap btn-* must NOT leak through — the legacy page styled this
       // anchor with btn/btn-lg/btn-primary.
       expect([...idpAnchor.classList].some((c) => /^btn(-|$)/.test(c))).toBe(false);
@@ -139,7 +142,7 @@ export const WithError = {
     });
 
     await step("IdP sign-in button still renders", async () => {
-      expect(canvas.getByText("Login with social")).toBeInTheDocument();
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
   },
 };
@@ -171,7 +174,7 @@ export const PostLogout = {
     });
 
     await step("IdP sign-in button still renders", async () => {
-      expect(canvas.getByText("Login with social")).toBeInTheDocument();
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
   },
 };
@@ -234,7 +237,7 @@ export const ErrorAndLogout = {
     });
 
     await step("IdP sign-in button still renders", async () => {
-      expect(canvas.getByText("Login with social")).toBeInTheDocument();
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
 
     await step("public links still present", async () => {

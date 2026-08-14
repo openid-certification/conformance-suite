@@ -32,7 +32,7 @@ public class EntitlementsAuthoritiesConverter implements Converter<Jwt, Collecti
 	// Constructor injection, not a @Value field: a hand-constructed converter then
 	// cannot silently end up with a null admin role and quietly grant nobody admin.
 	public EntitlementsAuthoritiesConverter(
-		@Value("${spring.security.oauth2.client.registration.idp.admin-role}") String adminRole) {
+		@Value("${oidc.idp.admin-role}") String adminRole) {
 		this.adminRole = adminRole;
 	}
 

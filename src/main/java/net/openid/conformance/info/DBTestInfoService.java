@@ -237,27 +237,54 @@ public class DBTestInfoService implements TestInfoService {
 	}
 
 	@Override
-	public long migrateOwnership(String oldIss, String oldOwner) {
+	public MigrationCounts migrateOwnership(String oldIss, String oldSub) {
 
 		ImmutableMap<String, String> newOwner = authenticationFacade.getPrincipal();
 		ImmutableMap<String, String> owner = ImmutableMap.of(
-			"sub", oldOwner,
+			"sub", oldSub,
 			"iss", oldIss
 		);
 
 		// A null new owner would rewrite every matching document's owner to null,
 		// orphaning the tests it was supposed to hand over.
 		if (newOwner == null || newOwner.equals(owner)) {
-			return 0;
+			return MigrationCounts.NONE;
 		}
 
-		Criteria criteria = Criteria.where("owner").is(owner);
-
-		Query query = new Query(criteria);
+		Query query = new Query(Criteria.where("owner").is(owner));
 
 		Update udt = Update.update("owner", newOwner);
 
-		return mongoTemplate.updateMulti(query, udt, COLLECTION).getModifiedCount();
+		long tests = mongoTemplate.updateMulti(query, udt, COLLECTION).getModifiedCount();
+
+		// Log entries carry their own copy of the owner, under "testOwner", and are
+		// access-controlled on it independently of TEST_INFO (LogApi filters on
+		// testOwner; DBImageService does too, because uploaded screenshots are
+		// stored as EVENT_LOG documents). Migrating TEST_INFO alone leaves the user
+		// seeing their tests in the listings but getting an empty log and no
+		// screenshots when they open one.
+		Query logQuery = new Query(Criteria.where("testOwner").is(owner));
+		Update logUpdate = Update.update("testOwner", newOwner);
+
+		long logEntries = mongoTemplate.updateMulti(logQuery, logUpdate, DBEventLog.COLLECTION).getModifiedCount();
+
+		MigrationCounts counts = new MigrationCounts(tests, logEntries);
+		if (!counts.movedNothing()) {
+			// getTestOwner answers from this cache for up to 30 minutes, so without
+			// this the owner checks in ImageApi keep comparing against the identity
+			// the migration just replaced, and keep failing. Invalidating everything
+			// rather than the migrated ids: the cache holds at most 1000 entries and
+			// reloads on demand, so finding out exactly which ones moved would cost
+			// more than rebuilding them.
+			testOwnerCache.invalidateAll();
+
+			logger.info("Migrated ownership of legacy records. legacyIss={} legacySub={} newOwner={} tests={} logEntries={}",
+				oldIss, oldSub, newOwner.get("sub"), tests, logEntries);
+		} else {
+			logger.debug("No legacy records to migrate. legacyIss={} legacySub={}", oldIss, oldSub);
+		}
+
+		return counts;
 	}
 
 }

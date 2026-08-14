@@ -16,13 +16,18 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 @Component
 public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
+
+	/**
+	 * Stands in for the presented secret in the principal's token value. Non-empty
+	 * because Jwt rejects a blank one.
+	 */
+	private static final String PLACEHOLDER_TOKEN_VALUE = "api-token";
 
 	private final TokenService tokenService;
 
@@ -58,7 +63,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 			return null;
 		}
 
-		Jwt fakeToken = createJwtFromApiToken(token, tokenInfoMap, tokenInfo, issuedAt, expiresAt);
+		Jwt fakeToken = createJwtFromApiToken(tokenInfo, issuedAt, expiresAt);
 		if (fakeToken == null) {
 			return null;
 		}
@@ -73,10 +78,19 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		return expires != null ? Instant.ofEpochMilli(OIDFJSON.getLong(expires)) : null;
 	}
 
-	private Jwt createJwtFromApiToken(String token, Map<String, Object> tokenInfoMap, JsonObject tokenInfo,
-									  Instant issuedAt, Instant expiresAt) {
-
-		Map<String, Object> tokenClaims = new HashMap<>(tokenInfoMap);
+	/**
+	 * Builds the principal for an accepted API token.
+	 * <p>
+	 * Deliberately carries the owner's identity and nothing else. The token's own
+	 * database row must not be copied in wholesale: it holds the token secret under
+	 * "token", and everything in a Jwt's claims is reachable from the security
+	 * context and liable to be logged or serialized. For the same reason the token
+	 * value is a placeholder rather than the presented secret — a Jwt's token value
+	 * is the string a resource server would forward onwards, and this one is an
+	 * opaque credential that nothing downstream should ever see. (The pre-IdP code
+	 * used the literal "dummy" here, and exposed only iss and sub.)
+	 */
+	private Jwt createJwtFromApiToken(JsonObject tokenInfo, Instant issuedAt, Instant expiresAt) {
 
 		JsonObject ownerClaims = tokenInfo.getAsJsonObject("owner");
 		if (ownerClaims == null || ownerClaims.get("iss") == null || ownerClaims.get("sub") == null) {
@@ -85,12 +99,11 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 			// out of the filter chain as a 500.
 			return null;
 		}
-		String iss = OIDFJSON.getString(ownerClaims.get("iss"));
-		String sub = OIDFJSON.getString(ownerClaims.get("sub"));
-		tokenClaims.put("iss", iss);
-		tokenClaims.put("sub", sub);
+		Map<String, Object> tokenClaims = Map.of(
+			"iss", OIDFJSON.getString(ownerClaims.get("iss")),
+			"sub", OIDFJSON.getString(ownerClaims.get("sub")));
 
-		return new Jwt(token, issuedAt, expiresAt, Map.of("typ", "jwt"), tokenClaims);
+		return new Jwt(PLACEHOLDER_TOKEN_VALUE, issuedAt, expiresAt, Map.of("typ", "jwt"), tokenClaims);
 	}
 
 	@Override

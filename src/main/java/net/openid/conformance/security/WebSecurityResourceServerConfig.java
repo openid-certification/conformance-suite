@@ -20,6 +20,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -60,6 +61,11 @@ public class WebSecurityResourceServerConfig {
 	@Value("${oidc.idp.access-token-signing-algs:}")
 	private String accessTokenSigningAlgs;
 
+	// Same registration the browser login uses: a bearer token is only ours if the
+	// IdP minted it for this client. See IdpAudienceValidator.
+	@Value("${spring.security.oauth2.client.registration.idp.client-id}")
+	private String clientId;
+
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
@@ -90,7 +96,12 @@ public class WebSecurityResourceServerConfig {
 			NimbusJwtDecoder decoder = NimbusJwtDecoder.withIssuerLocation(issuerUri)
 				.jwsAlgorithms(algorithms -> algorithms.addAll(jwsAlgorithms))
 				.build();
-			OAuth2TokenValidator<Jwt> jwtValidator = JwtValidators.createDefaultWithIssuer(issuerUri);
+			// createDefaultWithIssuer checks iss, exp and nbf only. On its own that
+			// accepts any token the realm ever issued, to any of its clients, as a
+			// suite user - so the audience check is not optional here.
+			OAuth2TokenValidator<Jwt> jwtValidator = new DelegatingOAuth2TokenValidator<>(
+				JwtValidators.createDefaultWithIssuer(issuerUri),
+				new IdpAudienceValidator(clientId));
 			decoder.setJwtValidator(jwtValidator);
 			return decoder;
 		}));

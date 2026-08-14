@@ -55,9 +55,26 @@ public interface TestInfoService {
 
 	/**
 	 * Hand every test owned by the given legacy (issuer, subject) over to the
-	 * currently authenticated user.
+	 * currently authenticated user, along with the log entries and screenshots
+	 * belonging to those tests.
 	 *
-	 * @return the number of tests whose ownership changed
+	 * @return how many documents changed hands in each collection
 	 */
-	long migrateOwnership(String oldIss, String oldOwner);
+	MigrationCounts migrateOwnership(String oldIss, String oldSub);
+
+	/**
+	 * What a single ownership migration moved.
+	 *
+	 * @param tests      documents re-owned in TEST_INFO
+	 * @param logEntries documents re-owned in EVENT_LOG — the test log, including
+	 *                   the entries that carry uploaded screenshots
+	 */
+	record MigrationCounts(long tests, long logEntries) {
+
+		public static final MigrationCounts NONE = new MigrationCounts(0, 0);
+
+		public boolean movedNothing() {
+			return tests == 0 && logEntries == 0;
+		}
+	}
 }

@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The provider hands back a {@link JwtAuthenticationToken}, which is authenticated
@@ -27,6 +28,9 @@ public class ApiTokenAuthenticationProvider_UnitTest {
 		TokenService tokenService = Mockito.mock(TokenService.class);
 		Map<String, Object> tokenInfo = new java.util.HashMap<>();
 		tokenInfo.put("owner", Map.of("iss", "https://issuer.example.com", "sub", "the-user"));
+		// findToken returns the whole database row, secret included — which is why
+		// the provider must pick claims out of it rather than copy it.
+		tokenInfo.put("token", TOKEN);
 		if (expiresEpochMillis != null) {
 			tokenInfo.put("expires", expiresEpochMillis);
 		}
@@ -55,6 +59,23 @@ public class ApiTokenAuthenticationProvider_UnitTest {
 		Assertions.assertEquals("the-user", jwt.getSubject());
 		Assertions.assertEquals("https://issuer.example.com", jwt.getIssuer().toString());
 		Assertions.assertTrue(auth.getAuthorities().contains(OIDCAuthenticationFacade.ROLE_USER));
+	}
+
+	/**
+	 * The presented secret must not survive into the security context. It used to
+	 * arrive there twice over — as the Jwt's token value, and again in the claims,
+	 * because the whole token row (which contains the "token" field) was copied in.
+	 * Anything that logs or serializes the principal would then leak a live
+	 * credential.
+	 */
+	@Test
+	public void the_token_secret_is_kept_out_of_the_principal() {
+		Jwt jwt = (Jwt) authenticateWithExpiry(null).getPrincipal();
+
+		Assertions.assertNotEquals(TOKEN, jwt.getTokenValue(), "the token value must be a placeholder");
+		Assertions.assertFalse(jwt.getClaims().containsValue(TOKEN), "no claim may carry the secret");
+		Assertions.assertEquals(Set.of("iss", "sub"), jwt.getClaims().keySet(),
+			"only the owner's identity belongs in the claims");
 	}
 
 	@Test
