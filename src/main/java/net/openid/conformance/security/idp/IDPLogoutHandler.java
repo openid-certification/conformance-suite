@@ -1,4 +1,4 @@
-package net.openid.conformance.security.keycloak;
+package net.openid.conformance.security.idp;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

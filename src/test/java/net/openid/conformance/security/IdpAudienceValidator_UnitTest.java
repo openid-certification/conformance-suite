@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Every access token the IdP issues carries the same issuer and is signed by the
  * same keys, so issuer plus signature does not distinguish a token minted for the
- * suite from one minted for any other client of the realm — including a public
+ * suite from one minted for any other client of the IdP — including a public
  * client a user can get a token from themselves. These tests pin the check that
  * keeps such a token from authenticating anyone here.
  */
@@ -58,7 +58,7 @@ public class IdpAudienceValidator_UnitTest {
 	}
 
 	/**
-	 * The confused-deputy case this validator exists for: a token the realm minted
+	 * The confused-deputy case this validator exists for: a token the IdP minted
 	 * for some other client, which is otherwise entirely valid.
 	 */
 	@Test

@@ -2,7 +2,7 @@ package net.openid.conformance.security;
 
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
-import net.openid.conformance.security.keycloak.EntitlementsAuthoritiesConverter;
+import net.openid.conformance.security.idp.EntitlementsAuthoritiesConverter;
 import net.openid.conformance.sharing.privatelink.ShareJwtBearerAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +97,7 @@ public class WebSecurityResourceServerConfig {
 				.jwsAlgorithms(algorithms -> algorithms.addAll(jwsAlgorithms))
 				.build();
 			// createDefaultWithIssuer checks iss, exp and nbf only. On its own that
-			// accepts any token the realm ever issued, to any of its clients, as a
+			// accepts any token the IdP ever issued, to any of its clients, as a
 			// suite user - so the audience check is not optional here.
 			OAuth2TokenValidator<Jwt> jwtValidator = new DelegatingOAuth2TokenValidator<>(
 				JwtValidators.createDefaultWithIssuer(issuerUri),

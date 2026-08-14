@@ -17,7 +17,7 @@ import java.util.List;
  * same keys. Without this check, such a token authenticates its bearer here and is
  * granted ROLE_USER over the whole {@code /api/**} surface, with its (iss, sub)
  * becoming the ownership principal: a confused deputy that turns any other client
- * of the realm into a way in.
+ * of the IdP into a way in.
  * <p>
  * A token counts as ours if either:
  * <ul>

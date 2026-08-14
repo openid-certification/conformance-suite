@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import net.openid.conformance.security.keycloak.EntitlementsAuthoritiesConverter;
-import net.openid.conformance.security.keycloak.IDPLogoutHandler;
+import net.openid.conformance.security.idp.EntitlementsAuthoritiesConverter;
+import net.openid.conformance.security.idp.IDPLogoutHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -201,7 +201,7 @@ public class OidcListingPageAccess_UnitTest {
 		}
 
 		@Bean
-		public IDPLogoutHandler keycloakLogoutHandler(
+		public IDPLogoutHandler idpLogoutHandler(
 			org.springframework.beans.factory.ObjectProvider<
 				org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> repository) {
 			// A @Component in the real app; this minimal context does no

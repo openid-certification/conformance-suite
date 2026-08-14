@@ -1,4 +1,4 @@
-package net.openid.conformance.security.keycloak;
+package net.openid.conformance.security.idp;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

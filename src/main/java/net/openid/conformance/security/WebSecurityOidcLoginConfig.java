@@ -1,8 +1,8 @@
 package net.openid.conformance.security;
 
 import jakarta.servlet.Filter;
-import net.openid.conformance.security.keycloak.EntitlementsAuthoritiesConverter;
-import net.openid.conformance.security.keycloak.IDPLogoutHandler;
+import net.openid.conformance.security.idp.EntitlementsAuthoritiesConverter;
+import net.openid.conformance.security.idp.IDPLogoutHandler;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
