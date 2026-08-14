@@ -259,6 +259,14 @@ def wait_for_test_finished(client, base_url, test_id, timeout=30):
     return False
 
 
+def dump_failing_conditions(client, base_url, test_id):
+    """Print a test's FAILURE/WARNING log conditions, to diagnose a red CI run."""
+    resp = client.get(f"{base_url}api/log/{test_id}")
+    for entry in (resp.json() if resp.status_code == 200 else []):
+        if entry.get("result") in ("FAILURE", "WARNING"):
+            print(f"    {entry.get('result')}: {entry.get('src')}: {entry.get('msg')}")
+
+
 def run_tests():
     base_url, token, token_2, verify_ssl = get_config()
     print(f"Server: {base_url}")
@@ -985,6 +993,103 @@ def run_tests():
         user_b.close()
     else:
         print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping cross-user isolation checks")
+
+    # ===================================================================
+    # 4f. CERTIFICATION PACKAGE & IMMUTABLE PLANS
+    # ===================================================================
+    # 'Prepare certification package' publishes the plan and marks it
+    # immutable - the only API route to an immutable plan. Certification
+    # refuses plans with failed/incomplete tests, so to get a passing test we
+    # start a client test (the suite acting as OP) and point a config plan's
+    # discovery check at the suite's own discovery endpoint.
+    print("\n--- 4f. Certification package & immutable plans ---")
+
+    op_alias = "security-test-cert-op"
+    op_config = json.dumps({
+        "alias": op_alias,
+        "description": "security-test OP for certification checks",
+        "client": {"client_id": "cl1", "client_secret": "clsecret", "scope": "openid",
+                   "redirect_uri": "http://localhost:44444/", "client_name": "cli"},
+    })
+    op_variant = {"client_auth_type": "client_secret_basic", "response_type": "code",
+                  "response_mode": "default", "request_type": "plain_http_request",
+                  "client_registration": "dynamic_client"}
+    op_plan_id, op_module = create_test_plan(owner_client, base_url, "oidcc-client-test-plan",
+                                             op_config, variant=op_variant)
+    op_test_id = create_test_from_plan(owner_client, base_url, op_plan_id, op_module)
+
+    # creating only configures the module; it must be started to go WAITING and expose the OP
+    resp = owner_client.post(f"{base_url}api/runner/{op_test_id}")
+    runner.check_status("Certification: helper OP test started", resp, 200)
+
+    # the start is asynchronous; wait server-side until the OP is WAITING. Do NOT poll
+    # the OP's public endpoints for this - a front-channel request arriving before the
+    # module is WAITING fails the client test.
+    op_discovery_url = f"{base_url}test/a/{op_alias}/.well-known/openid-configuration"
+    resp = owner_client.get(f"{base_url}api/runner/{op_test_id}/wait-state",
+                            params={"states": "WAITING", "timeoutMs": 30000})
+    op_ready = resp.status_code == 200 and resp.json().get("state") == "WAITING"
+    runner.check("Certification: helper OP reached WAITING",
+                 op_ready, f"HTTP {resp.status_code}, {resp.text[:120]}")
+    if not op_ready:
+        dump_failing_conditions(owner_client, base_url, op_test_id)
+
+    cert_config = json.dumps({
+        "description": "security-test certification plan",
+        "server": {"discoveryUrl": op_discovery_url},
+    })
+    cert_plan_id, cert_module = create_test_plan(owner_client, base_url, plan_name, cert_config)
+    cert_test_id = create_test_from_plan(owner_client, base_url, cert_plan_id, cert_module)
+    if not wait_for_test_finished(owner_client, base_url, cert_test_id):
+        print("  NOTE: certification test did not reach a final state within 30s")
+
+    resp = owner_client.get(f"{base_url}api/info/{cert_test_id}")
+    cert_result = resp.json().get("result") if resp.status_code == 200 else None
+    runner.check("Certification: discovery test against the suite's own OP passes",
+                 cert_result in ("PASSED", "WARNING", "REVIEW"),
+                 f"result={cert_result}")
+    if cert_result not in ("PASSED", "WARNING", "REVIEW"):
+        dump_failing_conditions(owner_client, base_url, cert_test_id)
+
+    # owner_client pins Content-Type: application/json, which would override the
+    # multipart/form encodings on these requests (httpx keeps explicit client headers),
+    # so form and multipart calls go through a client that only sets Authorization
+    owner_form = bearer_client(base_url, token, verify_ssl)
+
+    # multipart with an unrelated field: clientSideData stays absent (only needed for RP tests)
+    resp = owner_form.post(f"{base_url}api/plan/{cert_plan_id}/certificationpackage",
+                           files={"ignored": ("ignored.txt", b"x")})
+    runner.check_status("Certification: owner can prepare certification package", resp, 200)
+
+    resp = owner_client.get(f"{base_url}api/plan/{cert_plan_id}")
+    cert_immutable = resp.json().get("immutable") if resp.status_code == 200 else None
+    runner.check("Certification: plan is now immutable",
+                 resp.status_code == 200 and cert_immutable is True,
+                 f"HTTP {resp.status_code}, immutable={cert_immutable}")
+
+    resp = owner_client.delete(f"{base_url}api/plan/{cert_plan_id}")
+    runner.check_status("Certification: immutable plan cannot be deleted", resp, 405)
+
+    resp = owner_client.post(f"{base_url}api/runner",
+                             params={"test": cert_module, "plan": cert_plan_id})
+    runner.check_status("Certification: cannot create new test on immutable plan", resp, 401)
+
+    if token_2:
+        user_b = bearer_client(base_url, token_2, verify_ssl)
+        resp = user_b.post(f"{base_url}api/plan/{cert_plan_id}/makemutable", data={"unused": "1"})
+        runner.check_status("Certification: another user cannot make the plan mutable", resp, 403)
+        user_b.close()
+
+    # reverting immutability is admin-only, so even the owner is refused
+    resp = owner_form.post(f"{base_url}api/plan/{cert_plan_id}/makemutable", data={"unused": "1"})
+    runner.check_status("Certification: even the owner cannot make the plan mutable", resp, 403)
+    owner_form.close()
+
+    # clean up the helper OP test and its (still mutable) plan
+    resp = owner_client.delete(f"{base_url}api/runner/{op_test_id}")
+    runner.check_status_in("Certification: helper OP test cancelled", resp, {200, 204})
+    resp = owner_client.delete(f"{base_url}api/plan/{op_plan_id}")
+    runner.check_status("Certification: helper OP plan cleaned up", resp, 204)
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
