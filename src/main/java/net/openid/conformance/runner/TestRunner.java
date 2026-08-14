@@ -242,8 +242,12 @@ public class TestRunner implements DataUtils {
 				// user should not supply a configuration when creating a test from a test plan
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
-			// stop if the plan is immutable
 			Plan testPlan = planService.getTestPlan(planId);
+			if (testPlan == null) {
+				// unknown plan id or a plan owned by another user; same 404 for both so ids don't leak
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+			// stop if the plan is immutable
 			planName = testPlan.getPlanName();
 			if(testPlan.getImmutable()!=null && testPlan.getImmutable()) {
 				//the plan is immutable
