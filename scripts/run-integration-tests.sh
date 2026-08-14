@@ -145,14 +145,21 @@ echo "==> Starting server (logging to ${SERVER_LOG})..."
 if [ "$TEST_SUITE" = "--security-tests" ]; then
     # Security tests run in non-dev mode with API token auth
     SECURITY_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
+    SECURITY_TOKEN_2=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
     mongosh mongodb://127.0.0.1:27017/test_suite --quiet --eval "
       db.API_TOKEN.updateOne(
         { _id: 'security_test_token' },
         { \$set: { _id: 'security_test_token', owner: { sub: 'security-test', iss: 'https://localhost.emobix.co.uk:8443' }, info: {}, token: '${SECURITY_TOKEN}', expires: null } },
         { upsert: true }
-      )" || die "Failed to insert API token into MongoDB"
+      );
+      db.API_TOKEN.updateOne(
+        { _id: 'security_test_token_2' },
+        { \$set: { _id: 'security_test_token_2', owner: { sub: 'security-test-2', iss: 'https://localhost.emobix.co.uk:8443' }, info: {}, token: '${SECURITY_TOKEN_2}', expires: null } },
+        { upsert: true }
+      )" || die "Failed to insert API tokens into MongoDB"
     export CONFORMANCE_TOKEN="$SECURITY_TOKEN"
-    echo "    API token inserted into MongoDB"
+    export CONFORMANCE_TOKEN_2="$SECURITY_TOKEN_2"
+    echo "    API tokens inserted into MongoDB"
     java -cp "$APP_CP" "$MAIN_CLASS" \
       --fintechlabs.devmode=false \
       --spring.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
