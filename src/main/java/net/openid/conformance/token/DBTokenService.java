@@ -57,7 +57,8 @@ public class DBTokenService implements TokenService {
 		Criteria criteria = new Criteria("_id").is(id);
 		criteria.and("owner").is(authenticationFacade.getPrincipal());
 		Query query = new Query(criteria);
-		return mongoTemplate.remove(query, COLLECTION).wasAcknowledged();
+		// wasAcknowledged() is true even when nothing matched; only a positive count is a delete
+		return mongoTemplate.remove(query, COLLECTION).getDeletedCount() > 0;
 	}
 
 	@Override
