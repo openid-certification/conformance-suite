@@ -853,6 +853,7 @@ class CtsLogDetailHeader extends LitElement {
   static properties = {
     testInfo: { type: Object, attribute: "test-info" },
     findings: { type: Array, attribute: false },
+    resultCounts: { type: Object, attribute: false },
     references: { type: Object, attribute: false },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
@@ -866,6 +867,7 @@ class CtsLogDetailHeader extends LitElement {
     super();
     this.testInfo = null;
     this.findings = null;
+    this.resultCounts = null;
     this.references = {};
     this.isAdmin = false;
     this.isPublic = false;
@@ -936,7 +938,23 @@ class CtsLogDetailHeader extends LitElement {
     });
   }
 
+  /**
+   * Counts for the sticky status bar's pill cluster (`_renderResultPills`).
+   *
+   * `resultCounts` (set by `js/log-detail.js` from the `cts-log-viewer`'s
+   * `resultCounts` getter, itself tallied over the `/api/log` entries the
+   * viewer has already loaded) is the real source, for the same reason
+   * `findings` is: `/api/info` never serializes `testInfo.results` in
+   * production (#1866, #1915), so a tally over it was always all-zero.
+   * `testInfo.results` is kept as a fallback for the same two reasons
+   * `_getFailures` keeps it — existing stories/e2e fixtures drive the
+   * component that way, and it's the only source before the log stream's
+   * first poll resolves.
+   * @returns {Record<string, number>} Counts keyed by lowercase result type.
+   */
   _getResultCounts() {
+    if (this.resultCounts) return this.resultCounts;
+    /** @type {Record<string, number>} */
     const counts = {};
     for (const type of RESULT_TYPES) {
       counts[type] = 0;
@@ -1671,9 +1689,10 @@ class CtsLogDetailHeader extends LitElement {
    * warning is annotation.
    *
    * (This used to also claim the warning count surfaces in the sticky
-   * bar's pill cluster. It does not: `_getResultCounts` reads
+   * bar's pill cluster. For a while it did not: `_getResultCounts` read
    * `testInfo.results`, which `/api/info` never serializes — the same
-   * dead field #1866 fixed for the findings list. Tracked as #1915.)
+   * dead field #1866 fixed for the findings list. #1915 fixed the pills
+   * the same way, via `resultCounts`.)
    * @param {TestInfo} test - Test info that drives phase routing.
    * @returns {import('lit').TemplateResult|typeof nothing} The hero template for the current lifecycle state,
    *   or `nothing` when the persistent objective summary is enough.

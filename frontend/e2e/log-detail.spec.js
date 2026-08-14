@@ -249,6 +249,38 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
+  test("#1915 — sticky bar's result pills count the live /api/log stream, not the never-served testInfo.results", async ({
+    page,
+  }) => {
+    // MOCK_LOG_ENTRIES: 3 SUCCESS (entry-1, entry-4, entry-7), 1 WARNING
+    // (entry-6), plus two startBlock rows and one http-only row that carry
+    // no `result` at all — those must not inflate any bucket. MOCK_TEST_STATUS
+    // carries no `results` field (the real /api/info shape), so a pass here
+    // is only possible via cts-log-viewer's resultCounts, not the dead field.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const pills = page.locator('[data-testid="status-bar-pills"]');
+    await expect(pills.locator('[data-testid="status-bar-pill-success"]')).toHaveAttribute(
+      "label",
+      "✓ 3",
+    );
+    await expect(pills.locator('[data-testid="status-bar-pill-warning"]')).toHaveAttribute(
+      "label",
+      "⚠ 1",
+    );
+    // Zero-count types render no pill at all (_renderResultPills filters them).
+    await expect(pills.locator('[data-testid="status-bar-pill-failure"]')).toHaveCount(0);
+    await expect(pills.locator('[data-testid="status-bar-pill-review"]')).toHaveCount(0);
+    await expect(pills.locator('[data-testid="status-bar-pill-info"]')).toHaveCount(0);
+  });
+
   test("log entry More panel renders schema_link and JWT with rich affordances; img renders once", async ({
     page,
   }) => {
@@ -993,6 +1025,16 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // The click below navigates the real page to a sibling instance, whose
+    // cts-log-viewer fetches /api/log/s-0 on load. Unmocked, setupFailFast's
+    // catch-all aborts it — a latent gap that only sometimes lost the race
+    // against the test finishing before the fetch fired. #1915's extra
+    // synchronous work per applyFindings() call shifts that timing enough
+    // to make the miss common instead of rare (the exact class of hazard
+    // already called out at this file's U4 capture).
+    await page.route("**/api/log/s-*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -1130,6 +1172,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         contentType: "application/json",
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
+    );
+    // Same gap as the sibling-navigation test above: the click below lands
+    // on a real sibling page whose cts-log-viewer fetches /api/log/s-0 —
+    // unmocked here, so it was only ever the fail-fast race deciding
+    // whether that showed up as a failure.
+    await page.route("**/api/log/s-*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
     await setupCommonRoutes(page, { user: null }); // anonymous viewer
 

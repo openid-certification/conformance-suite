@@ -250,7 +250,17 @@ function applyFindings() {
   const findings = selectFailures(latestTestInfo);
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
-  if (header) header.findings = findings;
+  if (header) {
+    header.findings = findings;
+    // #1915: same log-stream-wins contract as findings above, but the
+    // sticky bar's pill cluster needs full counts (including SUCCESS/INFO,
+    // which selectFindings deliberately excludes), so this reads the
+    // viewer's own resultCounts getter rather than routing through
+    // selectFailures.
+    /** @type {any} */
+    const viewer = document.getElementById("logViewer");
+    if (viewer) header.resultCounts = viewer.resultCounts;
+  }
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
   if (topFailureSummary) {
@@ -1696,8 +1706,7 @@ function setupTocCollapse() {
    */
   let inertTimer = 0;
 
-  const prefersReducedMotion = () =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /**
    * Sync the toggle's accessible label, `aria-expanded` (forwarded by
