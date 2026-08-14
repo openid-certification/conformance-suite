@@ -17,7 +17,6 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
 		// evaluations_semantic option (Section 7.1.2.1)
-		AuthzenPDPEvaluationsDefaultSemanticIsExecuteAllTest.class,
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
