@@ -1565,6 +1565,11 @@ async def main():
                 # no implementations support authentication yet
                 or re.match(r'authzen-pdp-evaluation-invalid-credentials-returns-401', m)
                 or re.match(r'authzen-pdp-evaluation-missing-credentials-returns-401', m)
+                # evaluations_semantic is an OPTIONAL request option, so these modules are only
+                # in authzen-pdp-evaluations-comprehensive-test-plan, which CI does not run
+                or re.match(r'authzen-pdp-evaluations-deny-on-first-deny', m)
+                or re.match(r'authzen-pdp-evaluations-permit-on-first-permit', m)
+                or re.match(r'authzen-pdp-evaluations-unknown-semantic-value', m)
             ):
                 untested_test_modules.remove(m)
                 continue
