@@ -1107,7 +1107,14 @@ security_test:
       REUSE_MB=${REUSE_MB:-0}
       echo "mongodb disk: ${MONGO_DISK_FREE_MB} MB free on disk + ${REUSE_MB} MB reusable inside mongo"
       [ "$((MONGO_DISK_FREE_MB + REUSE_MB))" -ge "$PRUNE_TARGET_MB" ] && break
-      PLAN_IDS=$(curl -sf --retry 10 --retry-delay 5 --retry-all-errors -H "Authorization: Bearer $PRUNE_TOKEN" "${PRUNE_URL}/api/plan?length=300&order=started,asc" | jq -r '.data[]._id') || PLAN_IDS=""
+      # capture curl's status separately: a failed listing must not read as "nothing to prune"
+      CURL_RC=0
+      PLAN_LIST_JSON=$(curl -sS -f --retry 10 --retry-delay 5 --retry-all-errors -w '%{stderr}plan listing: HTTP %{http_code} in %{time_total}s\n' -H "Authorization: Bearer $PRUNE_TOKEN" "${PRUNE_URL}/api/plan?length=300&order=started,asc") || CURL_RC=$?
+      if [ "$CURL_RC" -ne 0 ]; then
+        echo "WARNING: plan listing failed (curl exit ${CURL_RC}; app not up yet?); cannot prune, proceeding to disk space check"
+        break
+      fi
+      PLAN_IDS=$(echo "$PLAN_LIST_JSON" | jq -r '.data[]._id')
       if [ -z "$PLAN_IDS" ] || [ "$PLAN_IDS" = "$PREV_IDS" ]; then
         echo "No (more) CI-created test plans to prune"
         break
