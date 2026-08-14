@@ -1086,8 +1086,10 @@ security_test:
     # Space-driven prune: when disk is tight, delete oldest CI-created test plans via the
     # suite's own API (whose delete cascades to the test modules and log entries) until
     # there's breathing room. A quiet app with ample free space never deletes anything.
-    PRUNE_TARGET_MB=1500
+    PRUNE_TARGET_MB=1000  # 500 MB of headroom above check_mongo_disk_space's 500 MB minimum
     COMPACT_IF_BELOW_MB=1000
+    # bounded so compact + check_mongo_disk_space always run inside the deploy jobs' 10 minute timeout
+    PRUNE_TIME_BUDGET_S=300
     # deploy() sets CI_TOKEN/CI_ENVIRONMENT_URL; 'scale up env' has the deploy.env equivalents
     PRUNE_TOKEN="${CI_TOKEN:-$CONFORMANCE_TOKEN}"
     PRUNE_URL="${CI_ENVIRONMENT_URL:-$CONFORMANCE_SERVER}"
@@ -1102,7 +1104,12 @@ security_test:
     # curl/jq needed when called from 'scale up env', which skips check_commit_is_current
     apk add --no-cache curl jq > /dev/null 2>&1 || true
     PREV_IDS=""
+    PRUNE_START_S=$SECONDS
     while :; do
+      if [ "$((SECONDS - PRUNE_START_S))" -ge "$PRUNE_TIME_BUDGET_S" ]; then
+        echo "Prune time budget (${PRUNE_TIME_BUDGET_S}s) spent; proceeding to compact and disk space check"
+        break
+      fi
       REUSE_MB=$(kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongosh --quiet mongodb://localhost/test_suite --eval 'let r = 0; for (const c of ["EVENT_LOG","TEST_INFO","TEST_PLAN"]) { try { r += db.getCollection(c).stats().wiredTiger["block-manager"]["file bytes available for reuse"]; } catch (e) {} } print(Math.floor(r/1048576));')
       REUSE_MB=${REUSE_MB:-0}
       echo "mongodb disk: ${MONGO_DISK_FREE_MB} MB free on disk + ${REUSE_MB} MB reusable inside mongo"
