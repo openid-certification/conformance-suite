@@ -369,13 +369,18 @@
         "transformed_claims_predefined": {
             "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html"
         },
+        "grant_management_endpoint": {
+            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/oauth-v2-grant-management.html",
+            "type": "string",
+            "format": "uri"
+        },
         "grant_management_actions_supported": {
-            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/fapi-grant-management.html",
+            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/oauth-v2-grant-management.html",
             "type": "array",
             "items": { "type": "string" }
         },
         "grant_management_action_required": {
-            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/fapi-grant-management.html",
+            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/oauth-v2-grant-management.html",
             "type": "boolean"
         },
         "request_authentication_methods_supported": {
