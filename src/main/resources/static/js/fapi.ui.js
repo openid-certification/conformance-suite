@@ -128,13 +128,53 @@ var FAPI_UI = {
 		},
 
 		/**
+		 * Call show()/hide() on a cts-modal, defensively.
+		 *
+		 * cts-modal is a lazily-upgraded custom element: until its module has
+		 * evaluated, `getElementById` returns a plain unknown element with no
+		 * show()/hide(), and the page CSS hides `cts-modal:not(:defined)` so
+		 * nothing is on screen either. Calling through would throw a
+		 * TypeError — which, on the error path, means the error the modal was
+		 * meant to report gets swallowed instead. Returns whether the call
+		 * landed so callers can fall back to another surface.
+		 *
+		 * "Not upgraded" is not the only way this fails, so the guard covers
+		 * three shapes rather than one:
+		 *
+		 *  - method missing (element never upgraded);
+		 *  - method throws — the native `dialog.showModal()` underneath
+		 *    raises InvalidStateError when the dialog is not connected;
+		 *  - method silently no-ops — cts-modal's show() early-returns when
+		 *    its internal `_dialog` is missing, e.g. after a partial
+		 *    connectedCallback failure. For 'show' we therefore trust the
+		 *    host's mirrored `open` attribute rather than the mere absence of
+		 *    an exception, since "returned normally" is not the same as
+		 *    "something is on screen" — and reporting success for an invisible
+		 *    modal is the exact swallow this guard exists to prevent.
+		 */
+		callModal : function(id, method) {
+			const el = document.getElementById(id);
+			if (!el || typeof el[method] !== 'function') {
+				return false;
+			}
+			try {
+				el[method]();
+			} catch (e) {
+				console.warn('[fapi.ui.js] ' + id + '.' + method + '() threw; falling back', e);
+				return false;
+			}
+			return method === 'show' ? el.hasAttribute('open') : true;
+		},
+
+		/**
 		 * Takes in a JSON object representing the error from the server and shows an error display
 		 */
 		showError : function(error) {
 			const elem = document.getElementById('errorMessage');
+			var msg = 'Error from server.';
 
 			if (error != null) {
-				var msg = error.error || error.code;
+				msg = error.error || error.code;
 				if (/^\d+$/.test(msg)) {
 					// Tomcat considers that HTTP status messages should not be sent,
 					// so we get unhelpful responses like "HTTP/1.1 404 404". Make it
@@ -148,17 +188,58 @@ var FAPI_UI = {
 				if (error.error == "Unauthorized") {
 					msgHtml += "<br><br>Refresh the page to renew your session";
 				}
-				elem.innerHTML = msgHtml;
-			} else {
-				elem.innerHTML = 'Error from server.';
+				if (elem) elem.innerHTML = msgHtml;
+			} else if (elem) {
+				elem.innerHTML = msg;
 			}
 
 			FAPI_UI.hideBusy(); // only one modal at a time
-			document.getElementById('errorModal').show();
+
+			// Whichever surface wins, the previous fallback toast must go —
+			// otherwise a stale duration-0 toast sits beside the new modal.
+			FAPI_UI.dismissErrorToast();
+
+			if (FAPI_UI.callModal('errorModal', 'show')) {
+				return;
+			}
+
+			// No usable modal — degrade to a toast, then to alert(), so a
+			// server error is never reported to an empty screen. The modal
+			// body carries the session hint as markup; the plain-text
+			// surfaces have to state it themselves or the user is told
+			// "Unauthorized" with no idea that a refresh fixes it.
+			if (error != null && error.error == "Unauthorized") {
+				msg += " Refresh the page to renew your session.";
+			}
+
+			const toast = window.ctsToast;
+			if (typeof toast === 'function') {
+				// The modal is a singleton the rest of this file keeps to
+				// "only one at a time"; the toast has to be tracked by hand to
+				// honour the same invariant (any previous one was already
+				// dismissed above). duration 0 = no auto-dismiss, standing in
+				// for a modal the user would have dismissed.
+				FAPI_UI._errorToast = toast({ title: 'Error', message: msg, kind: 'error', duration: 0 });
+			} else {
+				window.alert(msg);
+			}
+		},
+
+		/** Handle on the fallback error toast, so hideError() can clear it. */
+		_errorToast : null,
+
+		dismissErrorToast : function() {
+			const toast = FAPI_UI._errorToast;
+			FAPI_UI._errorToast = null;
+			if (toast && typeof toast.dismiss === 'function') {
+				toast.dismiss();
+			}
 		},
 
 		hideError : function() {
-			document.getElementById('errorModal')?.hide();
+			// Clears whichever surface actually rendered the last error.
+			FAPI_UI.dismissErrorToast();
+			FAPI_UI.callModal('errorModal', 'hide');
 		},
 
 		showBusy : function(label, message) {
@@ -166,18 +247,21 @@ var FAPI_UI = {
 				label = "Loading...";
 			}
 
+			// The title node is rendered BY cts-modal (from its `heading`
+			// attribute), so it does not exist at all until the component has
+			// upgraded — hence the null guards rather than a bare write.
 			var elem = document.getElementById('loadingModal-title');
-			elem.innerHTML = _.escape(label);
-			var elem = document.getElementById('loadingMessage');
-			elem.innerHTML = _.escape(message);
+			if (elem) elem.innerHTML = _.escape(label);
+			elem = document.getElementById('loadingMessage');
+			if (elem) elem.innerHTML = _.escape(message);
 
 			FAPI_UI.hideError(); // only one modal at a time
 
-			document.getElementById('loadingModal').show();
+			FAPI_UI.callModal('loadingModal', 'show');
 		},
 
 		hideBusy : function() {
-			document.getElementById('loadingModal')?.hide();
+			FAPI_UI.callModal('loadingModal', 'hide');
 		},
 
 		selectedVariant: undefined

@@ -582,6 +582,58 @@ test.describe("schedule-test.html — guided config + create", () => {
     expect(record.answers).toEqual(["op", "pkjwt", "ksav2"]);
   });
 
+  test("create failure: the error is brought to the user — scrolled into view, focused, and toasted (#1860)", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "alias is already in use by another user" }),
+        });
+      }
+      return route.fallback();
+    });
+
+    // A short viewport reproduces the reported condition: #guidedConfigError
+    // sits at the top of the config stage while the create button is pinned
+    // to the bottom of the screen, so the alert lands off-viewport.
+    await page.setViewportSize({ width: 900, height: 500 });
+    await page.goto("/schedule-test.html");
+    await walkToConfigStep(page);
+    await page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }).fill("dupe");
+
+    // Park the viewport at the bottom of the form — where the user is when
+    // they press the pinned action-bar button.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+
+    // Pin the precondition this whole test rests on. toBeInViewport() only
+    // discriminates if the alert starts OFF screen, which is true only while
+    // the mocked config form overflows the viewport. If a fixture change ever
+    // makes the page stop scrolling, fail here rather than let the assertion
+    // below quietly pass with scrollIntoView() deleted.
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
+
+    // No alert yet — toHaveCount(0), not toBeHidden(), which also passes for
+    // an element that does not exist.
+    const errorBox = page.locator("#guidedConfigError cts-alert");
+    await expect(errorBox).toHaveCount(0);
+
+    await page.locator("#guidedCreateBtn").click();
+
+    // The alert is scrolled back into the viewport and takes focus, so both
+    // pointer and keyboard users end up on the message.
+    await expect(errorBox).toBeInViewport();
+    await expect(errorBox).toBeFocused();
+
+    // ...and a toast fires next to where the user was looking.
+    const toast = page.locator("cts-toast-host cts-toast");
+    await expect(toast).toContainText("Couldn't create test plan");
+    await expect(toast).toContainText("alias is already in use by another user");
+  });
+
   test("recovery: a reload after a failed create re-enters guided at the config step", async ({
     page,
   }) => {
