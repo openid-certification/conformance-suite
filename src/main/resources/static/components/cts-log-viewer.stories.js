@@ -13,6 +13,7 @@ import {
   MOCK_BLOCKS_ALIGN,
 } from "@fixtures/mock-log-entries.js";
 import { MOCK_TEST_STATUS } from "@fixtures/mock-test-data.js";
+import { BACKOFF_MAX_MULTIPLIER, RESUME_GAP_MULTIPLIER } from "./cts-log-viewer.js";
 import "./cts-log-viewer.js";
 
 export default {
@@ -167,6 +168,10 @@ export const PersistentFailureBanner = {
             const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
             expect(banner).toBeTruthy();
             expect(banner.textContent).toContain("Log connection lost");
+            // The terminal "gave-up" copy also starts "Log connection lost",
+            // so the text alone no longer distinguishes the two. Pin the
+            // kind, or this story would pass if 500s wrongly went terminal.
+            expect(banner.getAttribute("data-error-kind")).toBe("retrying");
           },
           { timeout: 3000 },
         );
@@ -222,7 +227,709 @@ export const RecoveryClearsBanner = {
           { timeout: 2000 },
         );
       });
+      await step("recovery also resets the give-up budget", async () => {
+        // Without this, a tab that failed once at minute 0 would give up 15
+        // minutes later even on a connection that healed immediately — a
+        // slow, unreproducible bug no banner assertion would catch.
+        const viewer = canvasElement.querySelector("cts-log-viewer");
+        expect(viewer._firstFailureAt).toBe(0);
+        expect(viewer._lastFailureAt).toBe(0);
+        expect(viewer._consecutiveFailures).toBe(0);
+        expect(viewer._consecutiveAuthFailures).toBe(0);
+      });
     } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+// --- Terminal (polling-stopped) states, GitLab #1890 ---
+// A 401 from the backend's RestAuthenticationEntryPoint used to be flattened
+// into the same "Log connection lost — retrying…" banner as a network blip,
+// and the viewer then retried every 3s forever. These stories pin the two
+// states where polling must STOP: an authentication rejection, and a
+// generic failure that outlives the give-up budget.
+
+// The fast poll interval every story below uses. Named so the settle window
+// in expectPollingStopped can be derived from it rather than guessed.
+const FAST_POLL_MS = 20;
+
+// BACKOFF_MAX_MULTIPLIER and RESUME_GAP_MULTIPLIER are imported from the
+// component itself, not mirrored here — a hand-copied constant would drift
+// the moment someone tuned the real one, silently shrinking the settle
+// window below and defanging the threshold assertions further down.
+
+/**
+ * Assert the viewer really stopped polling, rather than merely re-labelling
+ * its banner.
+ *
+ * Deliberately NOT built on `waitFor`: that helper re-runs its callback on
+ * every DOM mutation as well as on its interval, so two invocations can land
+ * in the same tick, observe the same count, and "settle" while requests are
+ * still flowing. This sleeps on its own timer for longer than the widest
+ * backed-off delay and asserts the count did not move — the only sampling
+ * that actually proves a negative.
+ *
+ * The `minRequests` floor guards the other failure mode: if a future refactor
+ * broke the responder's URL filter, `urls` would stay empty and a naive
+ * stability check would pass vacuously.
+ * @param {{ urls: string[] }} state Programmable-fetch state recording each polled URL.
+ * @param {number} [minRequests] Requests that must have been recorded before the settle check.
+ * @returns {Promise<void>} Resolves once the count has held still.
+ */
+/**
+ * Detach the story's viewer so `disconnectedCallback` clears its poll timer.
+ * Storybook leaves the previous story's DOM mounted until the next render,
+ * so a story that ends while the viewer is still healthily polling every
+ * 20ms keeps firing requests into the NEXT story's fetch mock — which is how
+ * `DisconnectStopsPolling`'s unscoped counter starts seeing phantom calls.
+ * Call from the `finally` of any story that does not end in a terminal state.
+ * @param {any} canvasElement The story root.
+ * @returns {void}
+ */
+function stopViewer(canvasElement) {
+  const viewer = canvasElement.querySelector("cts-log-viewer");
+  if (viewer) viewer.remove();
+}
+
+async function expectPollingStopped(state, minRequests = 2) {
+  expect(state.urls.length).toBeGreaterThanOrEqual(minRequests);
+  const before = state.urls.length;
+  // Wider than the widest backed-off delay the component can schedule, with
+  // headroom, so a still-running loop is guaranteed at least one more
+  // request inside the window.
+  const settleWindowMs = FAST_POLL_MS * BACKOFF_MAX_MULTIPLIER * 3;
+  await new Promise((resolve) => setTimeout(resolve, settleWindowMs));
+  expect(state.urls.length).toBe(before);
+}
+
+export const SessionExpiredStopsPolling = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          // Scope to THIS story's viewer: a previous fast-polling story can
+          // still have an in-flight poll when this story patches fetch, and
+          // that stray request must not read as "still polling".
+          if (!url.includes("test-expired-session")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          // Shape mirrors RestAuthenticationEntryPoint's JSON body.
+          return new Response(JSON.stringify({ error: "Unauthorized", message: "expired" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`
+    <cts-log-viewer test-id="test-expired-session" ._pollIntervalMs=${20}></cts-log-viewer>
+  `,
+  async play({ canvasElement, step }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await step("401s surface a session-expiry banner, not 'connection lost'", async () => {
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("session-expired");
+          },
+          { timeout: 3000 },
+        );
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        expect(banner.textContent).toContain("session has expired");
+        expect(banner.textContent).not.toContain("retrying");
+      });
+      await step("terminal banner is danger, not the warning retry banner", async () => {
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        expect(banner.getAttribute("variant")).toBe("danger");
+      });
+      await step("empty log does not also claim 'No log entries'", async () => {
+        // Nothing ever fetched, so `_entries` is empty — but saying the test
+        // produced no output would be a different (and wrong) claim.
+        expect(canvasElement.textContent).not.toContain("No log entries");
+      });
+      await step("banner offers both a retry and a reload affordance", async () => {
+        const retry = canvasElement.querySelector('[data-testid="log-viewer-retry"]');
+        const reload = canvasElement.querySelector('[data-testid="log-viewer-reload"]');
+        expect(retry).toBeTruthy();
+        expect(reload).toBeTruthy();
+        // Neither is clicked here: reload would tear down the test runner's
+        // page, and the retry path gets its own story (RetryResumesPolling).
+        expect(retry.getAttribute("label")).toBe("Try again");
+        expect(reload.getAttribute("label")).toBe("Reload page");
+        // `cts-button icon=` is outside lint:icons' literal `cts-icon name=`
+        // check, so pin the vendored name here.
+        expect(retry.getAttribute("icon")).toBe("arrow-reload-02");
+      });
+      await step("polling stops", async () => {
+        await expectPollingStopped(state);
+      });
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const PublicViewAccessDenied = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          if (!url.includes("test-unpublished-log")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          // 403, not 401: an unpublished log is the realistic
+          // authenticated-but-denied shape, and it also covers the second
+          // half of the `status === 401 || status === 403` branch.
+          return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`
+    <cts-log-viewer
+      test-id="test-unpublished-log"
+      is-public
+      ._pollIntervalMs=${20}
+    ></cts-log-viewer>
+  `,
+  async play({ canvasElement, step }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await step("anonymous viewers never see a 'session expired' message", async () => {
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("access-denied");
+          },
+          { timeout: 3000 },
+        );
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        // There is no session on the public view, so "expired" is wrong.
+        expect(banner.textContent).toContain("Access to this log was refused");
+        expect(banner.textContent).not.toContain("session");
+        // And it must NOT blame unpublishing: LogApi.getTestResults returns
+        // HTTP 200 with an empty list for an unpublished log, so a 401/403
+        // here cannot have come from the application.
+        expect(banner.textContent).not.toContain("unpublish");
+      });
+      await step("polling stops", async () => {
+        await expectPollingStopped(state);
+      });
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const GivesUpAfterSustainedFailure = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          if (!url.includes("test-give-up")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          return new Response("Bad gateway", { status: 502 });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  // The budget starts large so the "retrying" phase cannot expire while the
+  // play function is still starting up (a loaded CI runner can easily burn
+  // several hundred ms before the first assertion). The play function then
+  // shrinks it to 0, and the next failure flips deterministically — no
+  // wall-clock window to miss.
+  render: () => html`
+    <cts-log-viewer
+      test-id="test-give-up"
+      ._pollIntervalMs=${FAST_POLL_MS}
+      ._giveUpAfterMs=${60000}
+    ></cts-log-viewer>
+  `,
+  async play({ canvasElement, step }) {
+    const state = window.__ctsLogViewerFetchState;
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+    try {
+      await step("sustained 502s keep retrying under a healthy budget", async () => {
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("retrying");
+          },
+          { timeout: 3000 },
+        );
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        expect(banner.getAttribute("variant")).toBe("warning");
+      });
+      await step("retries back off geometrically up to the 4x cap", async () => {
+        // White-box: timing assertions on the real scheduler would be flaky,
+        // but the delay function itself is pure. Restore the live counter
+        // afterwards so the give-up step below runs against real state.
+        const live = viewer._consecutiveFailures;
+        const delays = [0, 1, 2, 3, 4, 9].map((n) => {
+          viewer._consecutiveFailures = n;
+          return viewer._nextPollDelay();
+        });
+        viewer._consecutiveFailures = live;
+        expect(delays).toEqual([20, 20, 40, 80, 80, 80]);
+      });
+      await step("budget exhausted: banner turns terminal", async () => {
+        viewer._giveUpAfterMs = 0;
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("gave-up");
+          },
+          { timeout: 3000 },
+        );
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        expect(banner.getAttribute("variant")).toBe("danger");
+        expect(banner.textContent).toContain("Automatic retrying has stopped");
+        expect(canvasElement.querySelector('[data-testid="log-viewer-reload"]')).toBeTruthy();
+      });
+      await step("polling stops", async () => {
+        await expectPollingStopped(state);
+      });
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const PrivateLinkExpired = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          if (!url.includes("test-private-link")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`
+    <cts-log-viewer
+      test-id="test-private-link"
+      is-guest
+      ._pollIntervalMs=${FAST_POLL_MS}
+    ></cts-log-viewer>
+  `,
+  async play({ canvasElement, step }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await step("share-link viewers are not told to sign in again", async () => {
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("private-link-expired");
+          },
+          { timeout: 3000 },
+        );
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        // A private-link viewer never signed in, and the one-time token is
+        // no longer in the address bar — "sign in again" is advice they
+        // cannot act on. Point them back at the link instead.
+        expect(banner.textContent).toContain("private link is no longer valid");
+        expect(banner.textContent).not.toContain("sign in again");
+      });
+      await step("no Reload affordance — reloading would blank their page", async () => {
+        // The one-time token is gone from the address bar, so a reload drops
+        // a share-link viewer to an unauthenticated page and throws away the
+        // log still on screen. Retry stays: it costs one request and keeps
+        // everything.
+        expect(canvasElement.querySelector('[data-testid="log-viewer-reload"]')).toBeNull();
+        expect(canvasElement.querySelector('[data-testid="log-viewer-retry"]')).toBeTruthy();
+      });
+      await step("polling stops", async () => {
+        await expectPollingStopped(state);
+      });
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const SingleAuthFailureIsTolerated = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          if (!url.includes("test-transient-401")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          // Exactly one rejection, then healthy — the rolling-restart shape
+          // that AUTH_FAILURE_THRESHOLD = 2 exists to absorb.
+          if (state.urls.length === 1) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          return new Response(JSON.stringify(MOCK_SUCCESS_LOG), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  // testId is assigned imperatively in the play function, NOT via the
+  // attribute. The attribute path starts two overlapping poll loops
+  // (connectedCallback plus the first updated() cycle), which would land two
+  // 401s at once and hide the very debounce this story exists to prove.
+  // log-detail.js assigns testId the same way in production.
+  render: () => html`<cts-log-viewer ._pollIntervalMs=${FAST_POLL_MS}></cts-log-viewer>`,
+  async play({ canvasElement, step }) {
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+    try {
+      await step("a lone 401 does not end the stream", async () => {
+        viewer.testId = "test-transient-401";
+        await waitFor(
+          () => {
+            expect(canvasElement.querySelectorAll(".logItem").length).toBeGreaterThan(0);
+          },
+          { timeout: 3000 },
+        );
+        expect(viewer._terminal).toBe("");
+        expect(canvasElement.querySelector('[data-testid="log-viewer-error"]')).toBeNull();
+      });
+    } finally {
+      stopViewer(canvasElement);
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const AuthRunBrokenByServerError = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          if (!url.includes("test-alternating-401")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          // 401, 500, 401, 500, … — never two auth failures in a row, so the
+          // run is broken every time and must never be called a dead session.
+          return state.urls.length % 2 === 1
+            ? new Response(JSON.stringify({ error: "Unauthorized" }), {
+                status: 401,
+                headers: { "Content-Type": "application/json" },
+              })
+            : new Response("Server error", { status: 500 });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`<cts-log-viewer ._pollIntervalMs=${FAST_POLL_MS}></cts-log-viewer>`,
+  async play({ canvasElement, step }) {
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+    try {
+      await step("interleaved 500s keep the auth run broken", async () => {
+        viewer.testId = "test-alternating-401";
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("retrying");
+          },
+          { timeout: 3000 },
+        );
+      });
+      await step("still retrying after many alternating failures", async () => {
+        await new Promise((resolve) => setTimeout(resolve, FAST_POLL_MS * 10));
+        expect(viewer._terminal).toBe("");
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        expect(banner.getAttribute("data-error-kind")).toBe("retrying");
+      });
+    } finally {
+      stopViewer(canvasElement);
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const SuspendedTabDoesNotBurnTheBudget = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          if (!url.includes("test-suspend-gap")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          return new Response("Bad gateway", { status: 502 });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`
+    <cts-log-viewer test-id="test-suspend-gap" ._pollIntervalMs=${FAST_POLL_MS}></cts-log-viewer>
+  `,
+  async play({ canvasElement, step }) {
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+    try {
+      await step("failures accumulate normally", async () => {
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("retrying");
+          },
+          { timeout: 3000 },
+        );
+      });
+      await step("a frozen-tab gap re-seeds instead of exhausting the budget", async () => {
+        // Simulate what a frozen background tab or a suspended laptop looks
+        // like from inside the component: the clock jumped far past the
+        // retry delay we asked for, without any retrying having happened.
+        // Backdate both marks by an hour and squeeze the budget to 15s; the
+        // elapsed-time reading alone would say "gave up an hour ago".
+        viewer._giveUpAfterMs = 15000;
+        viewer._firstFailureAt -= 3600000;
+        viewer._lastFailureAt -= 3600000;
+        viewer._recordFailure(new Error("network down"));
+        expect(viewer._terminal).toBe("");
+        // Budget restarted from the resumed failure, not the pre-sleep one.
+        expect(viewer._lastFailureAt - viewer._firstFailureAt).toBe(0);
+      });
+    } finally {
+      stopViewer(canvasElement);
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const ResumeGapThresholdIsSizedForBackgroundTabs = {
+  parameters: pollingStoryParameters,
+  // No test-id: nothing is fetched, so _recordFailure can be driven directly
+  // with the production poll interval. This is a unit test of the threshold
+  // arithmetic wearing a story's clothes — real timers cannot express a
+  // 50-second gap in a play function.
+  render: () => html`<cts-log-viewer></cts-log-viewer>`,
+  async play({ canvasElement, step }) {
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+    // Production cadence, and enough failures that the backoff has reached
+    // its cap — the widest delay is what the threshold is measured against.
+    viewer._pollIntervalMs = 3000;
+    viewer._consecutiveFailures = 5;
+    const cappedDelay = viewer._nextPollDelay();
+    const threshold = cappedDelay * RESUME_GAP_MULTIPLIER;
+
+    /**
+     * Backdate the failure marks by `gapMs`, record one more failure, and
+     * report whether the budget was re-seeded.
+     * @param {number} gapMs Simulated gap since the previous failure.
+     * @returns {boolean} True when the budget restarted from this failure.
+     */
+    const reSeededAfterGap = (gapMs) => {
+      viewer._terminal = "";
+      viewer._consecutiveFailures = 5;
+      const base = performance.now();
+      viewer._firstFailureAt = base - gapMs;
+      viewer._lastFailureAt = base - gapMs;
+      viewer._recordFailure(new Error("network down"));
+      // A re-seed moves _firstFailureAt up to the current failure, collapsing
+      // the span to ~0; carrying the budget forward leaves it at ~gapMs.
+      return viewer._lastFailureAt - viewer._firstFailureAt < gapMs / 2;
+    };
+
+    await step("the threshold sits in the band that makes it meaningful", async () => {
+      // Both bounds are absolute, because an assertion phrased in terms of
+      // `threshold` moves with the constant it is supposed to pin.
+      //
+      // Lower: browsers clamp hidden-tab timers to roughly one wake per
+      // minute, so a 50s gap must not read as a resume — if it did, a
+      // backgrounded tab would re-seed on every wake and the ceiling would
+      // never fire in the "left open overnight" case it exists for.
+      expect(threshold).toBeGreaterThan(50000);
+      // Upper: a threshold of minutes means almost no gap counts as a
+      // resume, which disables the give-up ceiling from the other side —
+      // the tab would sit in "retrying…" indefinitely again.
+      expect(threshold).toBeLessThan(5 * 60 * 1000);
+      expect(reSeededAfterGap(50000)).toBe(false);
+    });
+
+    await step("a genuine suspend still re-seeds", async () => {
+      // The mechanism itself: past its own threshold the page really was
+      // not retrying, and charging that dead time would give up on a
+      // connection that is healthy two seconds later.
+      expect(reSeededAfterGap(threshold * 2)).toBe(true);
+    });
+  },
+};
+
+export const RetryResumesPolling = {
+  parameters: pollingStoryParameters,
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        healthy: false,
+        responder: (url) => {
+          if (!url.includes("test-retry-resume")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          if (state.healthy) {
+            return new Response(JSON.stringify(MOCK_SUCCESS_LOG), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          // A WAF/proxy 403 is the case the terminal decision can get wrong:
+          // it looks exactly like a dead session but clears on its own.
+          return new Response("Forbidden", { status: 403 });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`
+    <cts-log-viewer test-id="test-retry-resume" ._pollIntervalMs=${FAST_POLL_MS}></cts-log-viewer>
+  `,
+  async play({ canvasElement, step }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await step("403s stop the stream and announce it to the page", async () => {
+        /** @type {string[]} */
+        const stopped = [];
+        const record = (/** @type {Event} */ e) => stopped.push(e.type);
+        document.addEventListener("cts-log-polling-stopped", record);
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.getAttribute("data-error-kind")).toBe("session-expired");
+          },
+          { timeout: 3000 },
+        );
+        await expectPollingStopped(state);
+        document.removeEventListener("cts-log-polling-stopped", record);
+        expect(stopped).toEqual(["cts-log-polling-stopped"]);
+      });
+      await step("Try again resumes without a reload once the block clears", async () => {
+        state.healthy = true;
+        // The stop/resume pair is a contract with the host page: log-detail.js
+        // shuts its runner poll down on `stopped` and must restart it on
+        // `resumed`, or the log revives while the header stays frozen.
+        /** @type {string[]} */
+        const lifecycle = [];
+        const record = (/** @type {Event} */ e) => lifecycle.push(e.type);
+        document.addEventListener("cts-log-polling-resumed", record);
+        const retry = canvasElement.querySelector('[data-testid="log-viewer-retry"] button');
+        expect(retry).toBeTruthy();
+        await userEvent.click(retry);
+        document.removeEventListener("cts-log-polling-resumed", record);
+        expect(lifecycle).toEqual(["cts-log-polling-resumed"]);
+        await waitFor(
+          () => {
+            expect(canvasElement.querySelector('[data-testid="log-viewer-error"]')).toBeNull();
+            expect(canvasElement.querySelectorAll(".logItem").length).toBeGreaterThan(0);
+          },
+          { timeout: 3000 },
+        );
+      });
+    } finally {
+      stopViewer(canvasElement);
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;
       delete window.__ctsLogViewerFetchState;

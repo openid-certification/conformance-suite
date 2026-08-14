@@ -359,7 +359,7 @@ sigil fails the lint step.
 | `cts-link-button`       | LitElement  | Yes       | Same shape as cts-button but renders `<a>`                                                                                     |
 | `cts-log-detail-header` | LitElement  | Yes       | Header for log-detail page; dispatches several action events                                                                   |
 | `cts-log-entry`         | LitElement  | Yes       | Single log line; supports block start/end formatting                                                                           |
-| `cts-log-viewer`        | LitElement  | Yes       | Polls `/api/log/:id`; surfaces persistent failures as a banner                                                                 |
+| `cts-log-viewer`        | LitElement  | Yes       | Polls `/api/log/:id`; backs off on failure, stops with a terminal banner on 401/403 or after the give-up budget                |
 | `cts-login-page`        | LitElement  | Yes       | Login form with OAuth2 buttons and logout-message slot                                                                         |
 | `cts-modal`             | HTMLElement | No        | Wraps Bootstrap 5 Modal; exposes `show()`/`hide()`                                                                             |
 | `cts-navbar`            | LitElement  | Yes       | Fetches user via `/api/currentuser` on connect                                                                                 |

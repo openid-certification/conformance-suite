@@ -1,10 +1,117 @@
 import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-alert.js";
+import "./cts-button.js";
 import { scrollEntryIntoView } from "./cts-log-entry.js";
 
 const FAILURE_THRESHOLD = 3;
 const POLL_INTERVAL_MS = 3000;
+
+/**
+ * Consecutive 401/403 responses required before the viewer declares the
+ * session dead and stops polling. Two (rather than one) absorbs the
+ * single spurious rejection a rolling backend restart can produce, while
+ * still surfacing a genuinely expired session within one extra poll
+ * cycle (~3s). Sessions are node-local (no spring-session store), so a
+ * restart really does invalidate them — the second failure confirms it.
+ */
+const AUTH_FAILURE_THRESHOLD = 2;
+
+/**
+ * How much *continuous retrying* the viewer will do against a failing poll
+ * before it gives up and shows a terminal banner. Without this ceiling a
+ * foreground tab on a dead connection retries every 3s forever, silently
+ * burning requests and promising a retry that cannot succeed (#1890).
+ *
+ * Read this as a budget of retry effort, not of calendar time: a gap that
+ * shows the page was not actually retrying re-seeds it (see
+ * `RESUME_GAP_MULTIPLIER`). A tab throttled hard in the background may
+ * therefore stay in the retrying state for much longer than 15 minutes of
+ * wall clock. That is the intended trade: a throttled tab is issuing a
+ * request a minute at most, which is not the runaway this ceiling exists
+ * to stop.
+ */
+const GIVE_UP_AFTER_MS = 15 * 60 * 1000;
+
+/**
+ * A gap between consecutive failures longer than this multiple of the delay
+ * we scheduled means the page was not really retrying through it — a
+ * suspended laptop or a frozen tab, where the clock advances but the timer
+ * queue does not. The budget re-seeds rather than charging that dead time,
+ * so a tab that fails once, sleeps for twenty minutes, and fails again on
+ * the first packet after resume gets a fresh budget instead of an instant,
+ * bogus "gave up".
+ *
+ * Sized against background-tab throttling rather than the happy path.
+ * Browsers clamp hidden-tab timers to roughly one wake per minute; at the
+ * backed-off ceiling (12s) this multiplier puts the re-seed threshold at
+ * 96s, so those wakes still count as genuine retry effort. A smaller
+ * multiple would treat every background wake as a resume and the budget
+ * would never expire in a backgrounded tab — precisely the "left open
+ * overnight" case.
+ */
+const RESUME_GAP_MULTIPLIER = 8;
+
+/**
+ * Backoff ceiling as a multiple of the base poll interval. Failures widen
+ * the gap (3s → 6s → 12s at the default interval) so a sustained outage in
+ * a foreground tab costs ~80 requests over the give-up window instead of
+ * ~300, while a recovered connection still resumes streaming within 12s.
+ * (A hidden tab issues far fewer: browsers clamp background timers.)
+ */
+const BACKOFF_MAX_MULTIPLIER = 4;
+
+/**
+ * Terminal (polling-stopped) banner copy, keyed by the reason the viewer
+ * stopped. Every one of these is a state a page reload can resolve or at
+ * least re-evaluate, which is why each banner carries a reload button —
+ * reloading re-enters the OIDC auth chain for an expired session.
+ * @type {Object.<string, string>}
+ */
+const TERMINAL_MESSAGES = {
+  // Signed-in view, 401/403: the session cookie is gone or no longer grants
+  // access. Never used for the public or private-link views.
+  "session-expired":
+    "Your session has expired, so this log stopped updating. Reload the page to sign in again.",
+  // Private-link (share-JWT) view, 401/403. These viewers never signed in —
+  // they followed a one-time-token link, and the token is not in the address
+  // bar any more, so "sign in again" is advice they cannot act on. Their
+  // real recovery is the original link (which a server restart invalidates).
+  "private-link-expired":
+    "This private link is no longer valid, so the log stopped updating. Open the original private link again, or ask whoever shared it for a new one.",
+  // Public view, 401/403. Deliberately says nothing about publishing:
+  // unpublishing a log does NOT produce a 401/403. LogApi.getTestResults
+  // returns an empty list with HTTP 200 for a log that is not published,
+  // and Spring permits the `public=true` poll, so a rejection here cannot
+  // have come from the application at all — it came from something in
+  // front of it.
+  "access-denied":
+    "Access to this log was refused, so it stopped updating. A proxy or firewall in front of the conformance suite may be blocking the request.",
+  // Generic transport failure that never recovered inside the give-up window.
+  "gave-up": "Log connection lost. Automatic retrying has stopped.",
+};
+
+/**
+ * Monotonic milliseconds for the give-up budget. `performance.now()` is
+ * immune to wall-clock *steps* (NTP corrections, manual clock changes) and
+ * — unlike `Date.now()` — keeps ticking under Storybook's frozen clock
+ * (`frontend/.storybook/frozen-clock.js` patches `Date` only), so the
+ * ceiling stays exercisable in a play test.
+ *
+ * It is NOT a measure of how much retrying happened: whether it advances
+ * across tab freezing or machine suspend is platform-dependent, and on a
+ * frozen tab the timer queue stops while the clock may not. That is why
+ * `_recordFailure` re-seeds the budget across a `RESUME_GAP_MULTIPLIER`
+ * gap rather than trusting elapsed time on its own.
+ *
+ * No `Date.now()` fallback: the frontend targets current
+ * Chrome/Safari/Firefox/Edge, all of which have had `performance.now` for
+ * a decade.
+ * @returns {number} Monotonic timestamp in milliseconds.
+ */
+function monotonicNow() {
+  return performance.now();
+}
 
 /**
  * Format a 1-based ordinal as the canonical `LOG-NNNN` label. Padding to
@@ -75,6 +182,15 @@ const STYLE_TEXT = css`
      above it stays sticky and continues to anchor the page. */
   cts-log-viewer .logViewerErrorBanner {
     margin-bottom: var(--space-3);
+  }
+  /* Terminal banners pair the message with a reload affordance. Wraps so
+     the button drops below the sentence on narrow viewports instead of
+     squeezing the text to one word per line. */
+  cts-log-viewer .logViewerErrorContent {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
   }
   cts-log-viewer .logEntries {
     border: 1px solid var(--border);
@@ -332,6 +448,13 @@ function ensureStylesInjected() {
  * and shows a connection-lost banner (a token-styled `cts-alert
  * variant="warning"`) after `FAILURE_THRESHOLD` consecutive fetch failures.
  *
+ * Polling is not unconditional. It stops — with a `variant="danger"` banner
+ * that names the cause and offers a reload — when the backend rejects the
+ * poll with 401/403 (an expired session on the authenticated view, an
+ * unpublished log on the public view) or when failures persist past
+ * `GIVE_UP_AFTER_MS`. Retries back off up to `BACKOFF_MAX_MULTIPLIER`× the
+ * base interval in the meantime.
+ *
  * Light DOM. Scoped CSS is injected once on first connect; all visual
  * styling routes through OIDF tokens. No Bootstrap `alert-*`, `text-muted`,
  * or `bg-info` markup is emitted; the only Bootstrap-derived class kept is
@@ -346,6 +469,9 @@ function ensureStylesInjected() {
  *   are only permitted with `public=true`). The page MUST set this BEFORE
  *   `testId` — the `testId` assignment triggers the first fetch. Reflects
  *   the `is-public` attribute.
+ * @property {boolean} isGuest - Marks a private-link (share-JWT) viewer, who
+ *   never signed in and cannot "sign in again". Only affects the wording of
+ *   the terminal auth banner. Reflects the `is-guest` attribute.
  * @property {boolean} autoScroll - Auto-scroll to the newest entry as rows
  *   arrive. Reflects the `auto-scroll` attribute.
  * @property {object} testInfo - Optional pre-fetched `/api/info` payload.
@@ -354,24 +480,37 @@ function ensureStylesInjected() {
  *   fetch. Not reflected to an attribute.
  * @fires cts-first-fetch-resolved - Fires once after the viewer's first
  *   successful `/api/log` poll resolves with HTTP 200. Detail:
- *   `{ testId, entriesCount }`. Bubbles. Used by log-detail.js to
- *   defer hash-anchor scroll-to-entry until rows are present in the DOM.
+ *   `{ testId, entriesCount }`. Bubbles. Currently has no consumer: the
+ *   viewer does its own hash-anchor scrolling. Note it never fires when
+ *   the first poll fails terminally, so any future consumer must treat it
+ *   as an opportunistic signal, never as something to await.
  * @fires cts-references-updated - Fires after each successful poll once
  *   the per-entry `LOG-NNNN` reference map has been recomputed. Detail:
  *   `{ testId, references }`, where `references` is an
  *   `Object<entryId, referenceId>` plain object so consumers (e.g. the
  *   page-level cts-failure-summary instances) can render reference chips
  *   without a second walk over `_entries`. Bubbles.
+ * @fires cts-log-polling-stopped - Fires once when the viewer stops polling
+ *   for good: an expired session / denied access (401 or 403) or an
+ *   exhausted give-up budget. Detail: `{ testId, reason }`, where `reason`
+ *   is a `TERMINAL_MESSAGES` key. Bubbles. log-detail.js listens so its own
+ *   runner poll stops alongside the log poll.
+ * @fires cts-log-polling-resumed - Fires when the user takes the terminal
+ *   banner's "Try again". Detail: `{ testId }`. Bubbles. The counterpart to
+ *   `cts-log-polling-stopped` — hosts that shut a loop down on that event
+ *   must restart it here, or the page half-recovers.
  */
 class CtsLogViewer extends LitElement {
   static properties = {
     testId: { type: String, attribute: "test-id" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    isGuest: { type: Boolean, attribute: "is-guest" },
     autoScroll: { type: Boolean, attribute: "auto-scroll" },
     testInfo: { type: Object, attribute: false },
     _entries: { state: true },
     _loading: { state: true },
     _error: { state: true },
+    _terminal: { state: true },
     _activeFilters: { state: true },
   };
 
@@ -384,11 +523,20 @@ class CtsLogViewer extends LitElement {
     super();
     this.testId = "";
     this.isPublic = false;
+    this.isGuest = false;
     this.autoScroll = true;
     this.testInfo = null;
     this._entries = [];
     this._loading = true;
     this._error = "";
+    /**
+     * Terminal (polling-stopped) reason, or `""` while polling continues.
+     * One of the `TERMINAL_MESSAGES` keys. Once set, no further poll is
+     * scheduled — the only way out is a page reload, which is exactly what
+     * the banner asks for.
+     * @type {string}
+     */
+    this._terminal = "";
     /**
      * Active result-type filters as a Set of raw uppercase `result` values
      * (e.g. "FAILURE", "REVIEW"). Empty = show everything (the default and
@@ -417,9 +565,31 @@ class CtsLogViewer extends LitElement {
     // then overwrite each other's timer handle, leaving a pending timer
     // that disconnectedCallback cannot clear.
     this._pollingStarted = false;
+    // True while a poll cycle is awaiting its fetch. A second, narrower
+    // singleton guard checked inside _fetchEntries itself (see there) —
+    // catches re-entrant calls _pollingStarted's caller-side check doesn't
+    // cover (e.g. a fetch still in flight from before a disconnect racing
+    // a reconnect's fresh kickoff).
+    this._fetchInFlight = false;
     this._consecutiveFailures = 0;
+    // Consecutive 401/403 responses. Reset by a success AND by any
+    // non-auth failure, so only an unbroken run of rejections counts
+    // towards AUTH_FAILURE_THRESHOLD.
+    this._consecutiveAuthFailures = 0;
+    // Monotonic timestamp of the first failure in the current unbroken run
+    // of failures, or 0 while the connection is healthy. Seeds the
+    // give-up budget.
+    this._firstFailureAt = 0;
+    // Monotonic timestamp of the most recent failure. Only used to spot a
+    // gap far larger than the scheduled retry delay, which means the tab
+    // was frozen or the machine slept rather than retrying (see
+    // RESUME_GAP_MULTIPLIER).
+    this._lastFailureAt = 0;
     // Test hook: stories may override this to run the retry loop fast.
     this._pollIntervalMs = POLL_INTERVAL_MS;
+    // Test hook: stories may shrink the give-up budget so the terminal
+    // state is reachable inside a play function.
+    this._giveUpAfterMs = GIVE_UP_AFTER_MS;
     // Track whether the cts-first-fetch-resolved event has been dispatched
     // already. The event is single-shot — it covers the new-page hash-
     // navigation contract that depends on rows being in the DOM, not a
@@ -670,6 +840,21 @@ class CtsLogViewer extends LitElement {
 
   async _fetchEntries() {
     this._pollingStarted = true;
+    // Hard stop once terminal. Belt-and-braces alongside the reschedule
+    // guard below: an already-armed timer (or a concurrent in-flight cycle
+    // that resolved after the terminal one) must not fire another request.
+    if (this._terminal) return;
+    // Exactly one poll loop, ever. Declarative mounts
+    // (`<cts-log-viewer test-id="…">`) used to start two: connectedCallback
+    // fires one, then the first updated() cycle fires another because
+    // `_pollTimer` is still null while the first await is pending. Two loops
+    // double the request rate, race the failure counters (two rejections
+    // arriving together look like the sustained run that
+    // AUTH_FAILURE_THRESHOLD is meant to distinguish), and leave a second
+    // armed timer that disconnectedCallback — which only knows the latest
+    // `_pollTimer` — cannot clear.
+    if (this._fetchInFlight) return;
+    this._fetchInFlight = true;
     let succeeded = false;
     let entriesCount = 0;
     let appendedAny = false;
@@ -683,7 +868,18 @@ class CtsLogViewer extends LitElement {
       const query = params.toString();
       const url = "/api/log/" + encodeURIComponent(this.testId) + (query ? `?${query}` : "");
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) {
+        // Carry the status on the error object: the catch block needs to
+        // tell an auth rejection (terminal — retrying cannot fix a dead
+        // session) apart from a transport blip (worth retrying). Flattening
+        // it into the message string alone is what made every failure look
+        // identical to the user (#1890).
+        const httpError = /** @type {Error & { status?: number }} */ (
+          new Error(`HTTP ${response.status}: ${response.statusText}`)
+        );
+        httpError.status = response.status;
+        throw httpError;
+      }
       const newEntries = await response.json();
       if (newEntries.length > 0) {
         // U6: warn on out-of-order delivery. The ordinal index is the
@@ -714,16 +910,17 @@ class CtsLogViewer extends LitElement {
         appendedAny = true;
       }
       this._consecutiveFailures = 0;
+      this._consecutiveAuthFailures = 0;
+      this._firstFailureAt = 0;
+      this._lastFailureAt = 0;
       this._error = "";
       succeeded = true;
       entriesCount = this._entries.length;
     } catch (err) {
-      this._consecutiveFailures += 1;
-      if (this._consecutiveFailures >= FAILURE_THRESHOLD) {
-        this._error = "Log connection lost — retrying…";
-      }
+      this._recordFailure(err);
       console.warn("[cts-log-viewer] /api/log fetch failed:", err);
     } finally {
+      this._fetchInFlight = false;
       this._loading = false;
       // Single-shot event: dispatch only on the first successful resolution.
       // The new log-detail page registers a hash-navigation handler that
@@ -787,15 +984,137 @@ class CtsLogViewer extends LitElement {
       // Guard after the in-flight fetch resolves: if the element was removed
       // while we were awaiting, do NOT schedule another poll. Placing the check
       // here (not at the top of _fetchEntries) lets an in-flight cycle finish
-      // cleanly without spawning a new one.
-      if (this.isConnected) {
+      // cleanly without spawning a new one. A terminal state is the other
+      // stop condition — an expired session or an exhausted give-up budget
+      // is not something the next poll can fix (#1890).
+      if (this.isConnected && !this._terminal) {
         // Defensive clear: if two cycles ever overlap again, never orphan a
         // pending timer by overwriting its handle (disconnectedCallback can
         // only clear what _pollTimer holds). No-op for an already-fired id.
         if (this._pollTimer !== null) clearTimeout(this._pollTimer);
-        this._pollTimer = setTimeout(() => this._fetchEntries(), this._pollIntervalMs);
+        this._pollTimer = setTimeout(() => this._fetchEntries(), this._nextPollDelay());
       }
     }
+  }
+
+  /**
+   * Classify a failed poll and update the banner state accordingly.
+   *
+   * Three outcomes, in precedence order:
+   * 1. An unbroken run of 401/403 responses means the request is being
+   *    rejected on authentication/authorization, which no amount of
+   *    retrying repairs — stop and tell the user what actually happened.
+   * 2. A run of failures that outlives the give-up budget stops too, so a
+   *    forgotten tab does not poll a dead endpoint indefinitely.
+   * 3. Anything else keeps retrying, showing the existing "retrying…"
+   *    banner once the failures become sustained.
+   *
+   * An auth rejection never falls through to outcome 2 — a 401 must not be
+   * reported as "connection lost" just because the budget happened to be
+   * spent when it arrived.
+   * @param {unknown} err The rejection from the fetch attempt; an HTTP
+   *   failure carries a numeric `status`, a transport failure does not.
+   */
+  _recordFailure(err) {
+    // Terminal is final. Two poll loops can briefly overlap (the
+    // attribute-mounted path starts one in connectedCallback and another in
+    // the first updated() cycle), and the straggler must not write `_error`
+    // back over a terminal state that the other loop already settled.
+    if (this._terminal) return;
+    const status =
+      err && typeof (/** @type {{ status?: unknown }} */ (err).status) === "number"
+        ? /** @type {{ status: number }} */ (err).status
+        : 0;
+    const isAuthFailure = status === 401 || status === 403;
+    // Delay that scheduled THIS attempt — read before the counter moves.
+    const scheduledDelay = this._nextPollDelay();
+    const now = monotonicNow();
+    // Re-seed the budget on a fresh run of failures, and also when the gap
+    // since the previous failure dwarfs the delay we asked for: that gap is
+    // dead time (frozen tab, suspended machine), not retry effort, and
+    // charging it to the budget would give up on a connection that has had
+    // one real attempt.
+    if (
+      this._firstFailureAt === 0 ||
+      now - this._lastFailureAt > scheduledDelay * RESUME_GAP_MULTIPLIER
+    ) {
+      this._firstFailureAt = now;
+    }
+    this._lastFailureAt = now;
+    this._consecutiveFailures += 1;
+
+    if (isAuthFailure) {
+      this._consecutiveAuthFailures += 1;
+      if (this._consecutiveAuthFailures >= AUTH_FAILURE_THRESHOLD) {
+        this._enterTerminalState(this._authTerminalReason());
+      }
+      // Either way the run is an auth run — never label it "connection lost".
+      return;
+    }
+    this._consecutiveAuthFailures = 0;
+
+    if (now - this._firstFailureAt >= this._giveUpAfterMs) {
+      this._enterTerminalState("gave-up");
+      return;
+    }
+
+    if (this._consecutiveFailures >= FAILURE_THRESHOLD) {
+      this._error = "Log connection lost — retrying…";
+    }
+  }
+
+  /**
+   * Pick the terminal reason for an authentication/authorization rejection.
+   * The right words depend on how the viewer got here, and each audience
+   * has a different recovery: sign in again, re-open the private link, or
+   * nothing at all (the log stopped being public).
+   * @returns {string} A `TERMINAL_MESSAGES` key.
+   */
+  _authTerminalReason() {
+    if (this.isPublic) return "access-denied";
+    if (this.isGuest) return "private-link-expired";
+    return "session-expired";
+  }
+
+  /**
+   * Stop polling for good and switch the banner to its terminal wording.
+   * Clears any pending timer so an in-flight schedule cannot resurrect the
+   * loop, and drops the transient "retrying…" message the terminal banner
+   * replaces.
+   *
+   * Announces the stop so the host page can shut down its own loops. The
+   * log poll is not the only thing hitting the server on log-detail.html —
+   * the runner poll refreshes `/api/info` and `/api/runner` on its own
+   * timer, and leaving that running against an expired session would keep
+   * burning the exact requests this change exists to stop.
+   * @param {string} reason A `TERMINAL_MESSAGES` key.
+   */
+  _enterTerminalState(reason) {
+    this._terminal = reason;
+    this._error = "";
+    if (this._pollTimer) {
+      clearTimeout(this._pollTimer);
+      this._pollTimer = null;
+    }
+    this.dispatchEvent(
+      new CustomEvent("cts-log-polling-stopped", {
+        bubbles: true,
+        detail: { testId: this.testId, reason },
+      }),
+    );
+  }
+
+  /**
+   * Delay before the next poll. Healthy polling keeps the steady cadence;
+   * a run of failures backs off geometrically up to
+   * `BACKOFF_MAX_MULTIPLIER`× the base interval so an outage does not
+   * hammer the endpoint, while recovery is still noticed promptly.
+   * @returns {number} Delay in milliseconds.
+   */
+  _nextPollDelay() {
+    if (this._consecutiveFailures === 0) return this._pollIntervalMs;
+    const multiplier = Math.min(2 ** (this._consecutiveFailures - 1), BACKOFF_MAX_MULTIPLIER);
+    return this._pollIntervalMs * multiplier;
   }
 
   /**
@@ -1124,6 +1443,132 @@ class CtsLogViewer extends LitElement {
     return out;
   }
 
+  /**
+   * Reload the page. For an expired session this re-enters the OIDC chain
+   * (bouncing straight back when the IdP session is still alive); for a
+   * lost connection it restarts every page-level poll from scratch.
+   */
+  _reloadPage() {
+    window.location.reload();
+  }
+
+  /**
+   * Clear the terminal state and start polling again, keeping the entries
+   * already on screen. Public because the terminal decision is a judgement
+   * made from two rejections, and judgements can be wrong: a WAF's 403, a
+   * captive portal, or a proxy hiccup all look like a dead session from
+   * here. A retry costs one request and — unlike the reload — loses no
+   * scroll position, no filters, and no already-fetched log.
+   */
+  resumePolling() {
+    if (!this._terminal) return;
+    this._terminal = "";
+    this._error = "";
+    this._consecutiveFailures = 0;
+    this._consecutiveAuthFailures = 0;
+    this._firstFailureAt = 0;
+    this._lastFailureAt = 0;
+    // Announce first: whatever the host page shut down on
+    // `cts-log-polling-stopped` has to come back before the fetch lands, or
+    // the log would resume while the header stayed frozen mid-run.
+    this.dispatchEvent(
+      new CustomEvent("cts-log-polling-resumed", {
+        bubbles: true,
+        detail: { testId: this.testId },
+      }),
+    );
+    if (this.isConnected && this.testId) this._fetchEntries();
+  }
+
+  /**
+   * Render the connection banner, if any. Two shapes:
+   * - terminal (`danger`): polling has stopped; the message names the
+   *   actual cause and the buttons offer a way out.
+   * - transient (`warning`): sustained failures, still retrying.
+   *
+   * "Reload page" is withheld from the private-link case. For every other
+   * audience a reload is at worst wasted; for a share-JWT viewer it is
+   * actively destructive — the one-time token is long gone from the address
+   * bar, so reloading drops them to an unauthenticated blank page and
+   * throws away the log they can still read. Their only real recovery is
+   * the original link, which is what the message says.
+   *
+   * Both keep `data-testid="log-viewer-error"` on the host so existing
+   * probes still find the banner; `data-error-kind` distinguishes them.
+   * They are separate template literals on purpose — `cts-alert` bakes its
+   * children in once on upgrade, so switching between the two must replace
+   * the element rather than mutate it in place.
+   *
+   * The terminal branch carries no `aria-live`: it is a freshly inserted
+   * node, and a live region has to be in the DOM *before* its content
+   * changes to be announced reliably. `cts-alert` puts `role="alert"` on
+   * the rendered alert, which is the pattern that does announce an
+   * inserted message.
+   * @returns {unknown} A Lit template, or `nothing` when the connection is healthy.
+   */
+  _renderConnectionBanner() {
+    if (this._terminal) {
+      const message = TERMINAL_MESSAGES[this._terminal];
+      return html`<div class="logViewerErrorBanner">
+        <cts-alert
+          variant="danger"
+          data-testid="log-viewer-error"
+          data-error-kind=${this._terminal}
+        >
+          <div class="logViewerErrorContent">
+            <span>${message}</span>
+            <cts-button
+              variant="secondary"
+              size="xs"
+              label="Try again"
+              icon="arrow-reload-02"
+              data-testid="log-viewer-retry"
+              @cts-click=${this.resumePolling}
+            ></cts-button>
+            ${this._terminal === "private-link-expired"
+              ? nothing
+              : html`<cts-button
+                  variant="secondary"
+                  size="xs"
+                  label="Reload page"
+                  data-testid="log-viewer-reload"
+                  @cts-click=${this._reloadPage}
+                ></cts-button>`}
+          </div>
+        </cts-alert>
+      </div>`;
+    }
+    if (this._error) {
+      return html`<div class="logViewerErrorBanner">
+        <cts-alert
+          variant="warning"
+          data-testid="log-viewer-error"
+          data-error-kind="retrying"
+          aria-live="polite"
+          >${this._error}</cts-alert
+        >
+      </div>`;
+    }
+    return nothing;
+  }
+
+  /**
+   * Whether to render "No log entries". Only an empty log that fetched
+   * cleanly earns that message — while any failure is outstanding it would
+   * read as "this test produced no output", which is a different and wrong
+   * claim. So it stays hidden through a failure run, the "retrying…"
+   * banner, and any terminal state.
+   * @returns {boolean} True when the empty state should render.
+   */
+  _shouldShowEmptyState() {
+    return (
+      this._entries.length === 0 &&
+      !this._error &&
+      !this._terminal &&
+      this._consecutiveFailures === 0
+    );
+  }
+
   render() {
     if (this._loading && this._entries.length === 0) {
       return html`<div class="logLoading"
@@ -1132,21 +1577,16 @@ class CtsLogViewer extends LitElement {
       >`;
     }
     return html`
-      ${this._error
-        ? html`<div class="logViewerErrorBanner">
-            <cts-alert variant="warning" data-testid="log-viewer-error" aria-live="polite"
-              >${this._error}</cts-alert
-            >
-          </div>`
-        : nothing}
-      ${this._renderResultSummary()}
+      ${this._renderConnectionBanner()} ${this._renderResultSummary()}
       <div class="logEntries">${this._renderEntries()}</div>
-      ${this._entries.length === 0 && !this._error
-        ? html`<div class="logEmpty">No log entries</div>`
-        : nothing}
+      ${this._shouldShowEmptyState() ? html`<div class="logEmpty">No log entries</div>` : nothing}
     `;
   }
 }
 customElements.define("cts-log-viewer", CtsLogViewer);
 
-export {};
+// Exported for the stories, which size their "did polling stop?" settle
+// window against the widest delay this component can schedule. Importing the
+// real value means raising the cap here cannot silently shorten that window
+// into uselessness. Not part of the page-facing API.
+export { BACKOFF_MAX_MULTIPLIER, RESUME_GAP_MULTIPLIER };
