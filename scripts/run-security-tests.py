@@ -1238,6 +1238,16 @@ def run_tests():
     resp = unauthenticated_get(base_url, "api/plan/available", verify_ssl)
     runner.check_status("Metadata: available plans requires authentication", resp, 401)
 
+    # owner-success for the two endpoints otherwise only covered as denial cases
+    resp = owner_client.get(f"{base_url}api/server")
+    runner.check_status("Metadata: server info readable by an authenticated user", resp, 200)
+
+    resp = owner_client.get(f"{base_url}api/runner/available")
+    body = resp.json() if resp.status_code == 200 else None
+    runner.check("Metadata: available test modules list is non-empty",
+                 isinstance(body, list) and len(body) > 0,
+                 f"HTTP {resp.status_code}")
+
     resp = owner_client.get(f"{base_url}api/plan/info/{plan_name}")
     runner.check("Metadata: plan info returns the requested plan",
                  resp.status_code == 200 and resp.json().get("planName") == plan_name,
