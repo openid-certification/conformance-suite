@@ -260,14 +260,18 @@ def _row_ids(resp):
     return [row.get("_id") for row in rows if isinstance(row, dict)]
 
 
-def wait_for_test_finished(client, base_url, test_id, timeout=30):
-    """Wait until a test instance reaches a final state and stops writing log entries."""
+def wait_for_test_finished(client, base_url, test_id, label="test", timeout=30):
+    """Wait until a test instance reaches a final state and stops writing log entries.
+
+    Prints a NOTE and returns False if the deadline passes without a final state.
+    """
     deadline = time.time() + timeout
     while time.time() < deadline:
         resp = client.get(f"{base_url}api/info/{test_id}")
         if resp.status_code == 200 and resp.json().get("status") in ("FINISHED", "INTERRUPTED"):
             return True
         time.sleep(1)
+    print(f"  NOTE: {label} did not reach a final state within {timeout}s")
     return False
 
 
@@ -294,6 +298,10 @@ def run_tests():
         print("ERROR: CONFORMANCE_TOKEN not set. Required for security tests.")
         print("Run via: ./scripts/run-integration-tests.sh --security-tests")
         return 1
+
+    def second_user_client():
+        """A bearer client for the second, unrelated user (CONFORMANCE_TOKEN_2)."""
+        return bearer_client(base_url, token_2, verify_ssl)
 
     runner = TestRunner()
 
@@ -947,12 +955,11 @@ def run_tests():
     print("\n--- 4e. Cross-user isolation (two full users) ---")
 
     if token_2:
-        user_b = bearer_client(base_url, token_2, verify_ssl)
+        user_b = second_user_client()
 
         iso_plan_id, iso_module = create_test_plan(owner_client, base_url, plan_name, config)
         iso_test_id = create_test_from_plan(owner_client, base_url, iso_plan_id, iso_module)
-        if not wait_for_test_finished(owner_client, base_url, iso_test_id):
-            print("  NOTE: test did not reach a final state within 30s")
+        wait_for_test_finished(owner_client, base_url, iso_test_id)
 
         resp = user_b.get(f"{base_url}api/info/{iso_test_id}")
         runner.check_status("Isolation: cannot read another user's test info", resp, 404)
@@ -1061,7 +1068,7 @@ def run_tests():
                      f"HTTP {resp.status_code}, {resp.text[:120]}")
 
         if token_2:
-            user_b = bearer_client(base_url, token_2, verify_ssl)
+            user_b = second_user_client()
 
             resp = user_b.get(f"{base_url}api/runner/running")
             runner.check("Running: another user's running list excludes it",
@@ -1087,8 +1094,7 @@ def run_tests():
     })
     cert_plan_id, cert_module = create_test_plan(owner_client, base_url, plan_name, cert_config)
     cert_test_id = create_test_from_plan(owner_client, base_url, cert_plan_id, cert_module)
-    if not wait_for_test_finished(owner_client, base_url, cert_test_id):
-        print("  NOTE: certification test did not reach a final state within 30s")
+    wait_for_test_finished(owner_client, base_url, cert_test_id, label="certification test")
 
     resp = owner_client.get(f"{base_url}api/info/{cert_test_id}")
     cert_result = resp.json().get("result") if resp.status_code == 200 else None
@@ -1122,7 +1128,7 @@ def run_tests():
     runner.check_status("Certification: cannot create new test on immutable plan", resp, 401)
 
     if token_2:
-        user_b = bearer_client(base_url, token_2, verify_ssl)
+        user_b = second_user_client()
         resp = user_b.post(f"{base_url}api/plan/{cert_plan_id}/makemutable", data={"unused": "1"})
         runner.check_status("Certification: another user cannot make the plan mutable", resp, 403)
         user_b.close()
@@ -1168,7 +1174,7 @@ def run_tests():
                  f"HTTP {resp.status_code}")
 
     if token_2:
-        user_b = bearer_client(base_url, token_2, verify_ssl)
+        user_b = second_user_client()
         resp = user_b.get(f"{base_url}api/lastconfig")
         runner.check("Lastconfig: does not leak another user's config",
                      resp.status_code == 200 and marker_a not in resp.text and marker_b not in resp.text,
@@ -1223,7 +1229,7 @@ def run_tests():
     runner.check_status("Token: deleting a nonexistent token returns 404", resp, 404)
 
     if token_2 and own_token_ids:
-        user_b = bearer_client(base_url, token_2, verify_ssl)
+        user_b = second_user_client()
 
         resp = user_b.get(f"{base_url}api/token")
         b_token_ids = _row_ids(resp) if resp.status_code == 200 else None
