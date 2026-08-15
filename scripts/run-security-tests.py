@@ -9,7 +9,8 @@ authentication. Tests cover:
 - Share-link JWT used directly as Authorization: Bearer on the API chain
 - Unauthenticated access rejection
 - Public access to published plans
-- Plan deletion: cross-user rejection and the EVENT_LOG delete cascade
+- Plan deletion: cross-user rejection, the EVENT_LOG delete cascade, and
+  that deleting a plan stops any still-running module (no re-orphaning)
 - Cross-user isolation for a second full user (info/plan/log/runner/token)
 - Certification package: owner success, immutable-plan rules, and that
   unauthenticated / another user cannot prepare a package
@@ -1255,11 +1256,27 @@ def run_tests():
     runner.check_status("Certification: even the owner cannot make the plan mutable", resp, 403)
     owner_form.close()
 
-    # clean up the helper OP test and its (still mutable) plan
-    resp = owner_client.delete(f"{base_url}api/runner/{op_test_id}")
-    runner.check_status_in("Certification: helper OP test cancelled", resp, {200, 204})
+    # stop-on-delete: the helper OP test is still WAITING (running). Deleting its plan must
+    # stop the module, otherwise it would keep writing EVENT_LOG rows after its logs are
+    # deleted and re-orphan them. The runner status is served from the in-memory module, so
+    # it is still readable right after the plan (and TEST_INFO) are gone.
+    resp = owner_client.get(f"{base_url}api/runner/{op_test_id}")
+    updated_before = resp.json().get("updated") if resp.status_code == 200 else None
+    runner.check("Stop-on-delete: helper OP is running before delete",
+                 resp.status_code == 200 and updated_before is not None,
+                 f"HTTP {resp.status_code}")
+
     resp = owner_client.delete(f"{base_url}api/plan/{op_plan_id}")
-    runner.check_status("Certification: helper OP plan cleaned up", resp, 204)
+    runner.check_status("Stop-on-delete: can delete the plan of a running test", resp, 204)
+
+    # stop() moves the module to INTERRUPTED, bumping its status-updated timestamp; had the
+    # delete not stopped it, the still-WAITING module's timestamp would be unchanged. (The
+    # runner status map exposes no 'status' field, so the timestamp is the observable here.)
+    resp = owner_client.get(f"{base_url}api/runner/{op_test_id}")
+    updated_after = resp.json().get("updated") if resp.status_code == 200 else None
+    runner.check("Stop-on-delete: deleting the plan stopped the running module",
+                 updated_after is not None and updated_after != updated_before,
+                 f"before={updated_before}, after={updated_after}")
 
     # ===================================================================
     # 4g. METADATA & LISTING ENDPOINTS
