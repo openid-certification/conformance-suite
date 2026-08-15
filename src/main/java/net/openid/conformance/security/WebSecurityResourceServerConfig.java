@@ -161,6 +161,7 @@ public class WebSecurityResourceServerConfig {
 			"/api/info/**", //
 			"/api/plan/**", //
 			"/api/token/**", //
+			"/api/statistics/**", //
 			"/api/lastconfig", //
 			"/api/favorite-plans", //
 			"/api/favorite-plans/**" //

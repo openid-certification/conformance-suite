@@ -1,0 +1,58 @@
+package net.openid.conformance.statistics;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+/**
+ * The body of {@code GET /api/statistics/overview}, in each of the three states the
+ * snapshot cache can be in. Every field is a JSON primitive or the payload itself, so the
+ * client never has to parse a Java-specific rendering of a date or a duration.
+ */
+public sealed interface StatisticsResponse permits StatisticsResponse.Ready, StatisticsResponse.Pending, StatisticsResponse.Failed {
+
+	/**
+	 * A snapshot is being served (HTTP 200), possibly while a newer one is computed.
+	 *
+	 * @param status            always {@code "ready"}
+	 * @param computedAt        when the snapshot being served was computed, ISO-8601 UTC
+	 * @param computeDurationMs how long computing it took, in milliseconds
+	 * @param refreshing        true if a newer snapshot is being computed right now
+	 * @param lastError         the failure of the most recent computation, or null if it
+	 *                          succeeded; a snapshot is served either way
+	 * @param data              the snapshot
+	 */
+	@Schema(name = "StatisticsReady")
+	record Ready(String status, String computedAt, long computeDurationMs, boolean refreshing, LastError lastError, StatisticsOverview data) implements StatisticsResponse {
+	}
+
+	/**
+	 * No snapshot yet and the first computation is running (HTTP 202); the client should
+	 * retry after the {@code Retry-After} interval.
+	 *
+	 * @param status    always {@code "pending"}
+	 * @param startedAt when the running computation started, ISO-8601 UTC
+	 */
+	@Schema(name = "StatisticsPending")
+	record Pending(String status, String startedAt) implements StatisticsResponse {
+	}
+
+	/**
+	 * There is no snapshot to serve and the last computation failed (HTTP 500).
+	 *
+	 * @param status   always {@code "error"}
+	 * @param message  what went wrong
+	 * @param failedAt when the computation failed, ISO-8601 UTC
+	 */
+	@Schema(name = "StatisticsFailed")
+	record Failed(String status, String message, String failedAt) implements StatisticsResponse {
+	}
+
+	/**
+	 * A failed recomputation reported alongside an older, still-served snapshot.
+	 *
+	 * @param message  what went wrong
+	 * @param failedAt when the computation failed, ISO-8601 UTC
+	 */
+	@Schema(name = "StatisticsLastError")
+	record LastError(String message, String failedAt) {
+	}
+}
