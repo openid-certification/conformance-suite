@@ -10,18 +10,23 @@ authentication. Tests cover:
 - Unauthenticated access rejection
 - Public access to published plans
 - Cross-user isolation for a second full user (info/plan/log/runner/token)
-- Certification package preparation and immutable-plan rules
-- Runner running-list and cancel, /lastconfig, and plan metadata endpoints
+- Certification package: owner success, immutable-plan rules, and that
+  unauthenticated / another user cannot prepare a package
+- Public list/export endpoints return only published results
+- Runner running-list, start, and cancel, /lastconfig, and plan metadata
 - API token lifecycle
 
 Not yet covered (the exposed API surface these do NOT touch):
 - POST /token (creating a new token; only listing/deleting is covered)
 - POST /log/{id}/images and /log/{id}/images/{placeholder} (image upload;
-  only GET /log/{id}/images is covered)
+  only GET /log/{id}/images cross-user denial is covered — not owner
+  success, private-link, or deleted-test behaviour)
+- POST /runner with an inline config (standalone test creation; only
+  plan-based creation is covered)
 - GET /runner/browser/{id} and POST /runner/browser/{id}/visit
   (front-channel browser endpoints)
-- GET /jwks and GET /api/ui/spec_links without ?public (intentionally
-  public / low value)
+- Expiry: expired API tokens and expired share JWTs
+- GET /jwks (intentionally public / low value)
 
 Usage:
     python3 scripts/run-security-tests.py
@@ -860,6 +865,30 @@ def run_tests():
     resp = pub_client.get(f"{base_url}api/log/export/{other_test_id}?public=true")
     runner.check_status("Public: cannot export unpublished test zip", resp, 404)
 
+    # /api/plan/export/{id} zip: public for a published plan, denied without ?public
+    resp = pub_client.get(f"{base_url}api/plan/export/{plan_id}?public=true")
+    assert_valid_export_zip(runner, "Public: can export published plan zip", resp, [test_id])
+
+    resp = pub_client.get(f"{base_url}api/plan/export/{plan_id}")
+    runner.check_status("Public: plan/export without ?public requires auth", resp, 401)
+
+    # the public LIST endpoints must return only published results: assert every returned row
+    # carries a publish level, which is pagination-independent (a leak would surface an
+    # unpublished row here). The lists are non-empty because we just published a plan and test.
+    resp = pub_client.get(f"{base_url}api/plan?public=true")
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    runner.check("Public: plan list returns only published plans",
+                 resp.status_code == 200 and len(rows) > 0
+                 and all(r.get("publish") in ("summary", "everything") for r in rows),
+                 f"HTTP {resp.status_code}, {len(rows)} rows")
+
+    resp = pub_client.get(f"{base_url}api/log?public=true")
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    runner.check("Public: test log list returns only published tests",
+                 resp.status_code == 200 and len(rows) > 0
+                 and all(r.get("publish") in ("summary", "everything") for r in rows),
+                 f"HTTP {resp.status_code}, {len(rows)} rows")
+
     # Without ?public=true, published plan still requires auth
     resp = pub_client.get(f"{base_url}api/plan/{plan_id}")
     runner.check_status("Public: plan without ?public requires auth", resp, 401)
@@ -898,6 +927,9 @@ def run_tests():
 
     resp = owner_client.get(f"{base_url}api/log/export/{test_id}")
     assert_valid_export_zip(runner, "Export: owner can export own test zip", resp, [test_id])
+
+    resp = owner_client.get(f"{base_url}api/plan/export/{plan_id}")
+    assert_valid_export_zip(runner, "Export: owner can export own plan zip", resp, [test_id])
 
     resp = owner_client.get(f"{base_url}api/log/exporthtml/does-not-exist")
     runner.check_status("Export: missing test id html returns 404", resp, 404)
@@ -1120,6 +1152,18 @@ def run_tests():
                  resp.status_code == 200 and cert_immutable is True,
                  f"HTTP {resp.status_code}, immutable={cert_immutable}")
 
+    # nobody but the owner may prepare a certification package (which publishes + freezes a plan)
+    cert_pkg = f"{base_url}api/plan/{cert_plan_id}/certificationpackage"
+    with httpx.Client(verify=verify_ssl, timeout=10) as c:
+        resp = c.post(cert_pkg, files={"ignored": ("ignored.txt", b"x")})
+    runner.check_status("Certification: unauthenticated cannot prepare package", resp, 401)
+    if token_2:
+        user_b = second_user_client()
+        resp = user_b.post(cert_pkg, files={"ignored": ("ignored.txt", b"x")})
+        # owner-scoped plan lookup returns null -> the 'invalid_plan_id' 422 path, no cross-user access
+        runner.check_status("Certification: another user cannot prepare package", resp, 422)
+        user_b.close()
+
     resp = owner_client.delete(f"{base_url}api/plan/{cert_plan_id}")
     runner.check_status("Certification: immutable plan cannot be deleted", resp, 405)
 
@@ -1202,12 +1246,15 @@ def run_tests():
     resp = owner_client.get(f"{base_url}api/plan/info/this-plan-does-not-exist")
     runner.check_status("Metadata: unknown plan name returns 404", resp, 404)
 
-    # spec_links is public only with ?public
-    resp = owner_client.get(f"{base_url}api/ui/spec_links", params={"public": "true"})
+    # spec_links is public only with ?public — probe it unauthenticated to prove that
+    resp = unauthenticated_get(base_url, "api/ui/spec_links", verify_ssl, params={"public": "true"})
     body = resp.json() if resp.status_code == 200 else None
-    runner.check("Metadata: spec_links returns a mapping",
+    runner.check("Metadata: spec_links?public is publicly reachable and returns a mapping",
                  isinstance(body, dict) and len(body) > 0,
                  f"HTTP {resp.status_code}")
+
+    resp = unauthenticated_get(base_url, "api/ui/spec_links", verify_ssl)
+    runner.check_status("Metadata: spec_links without ?public is denied", resp, 401)
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
