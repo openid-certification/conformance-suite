@@ -230,6 +230,11 @@ public class DBTestInfoService implements TestInfoService {
 		DeleteResult testInfoDeleteResult = mongoTemplate.remove(new Query(testInfoCriteria), COLLECTION);
 		DeleteResult logDeleteResult = mongoTemplate.remove(new Query(eventLogCriteria), DBEventLog.COLLECTION);
 
+		// Drop any cached owner for the deleted tests, otherwise a warm cache (e.g. from an
+		// earlier image-endpoint call) keeps authorising the owner for up to 30 minutes and
+		// lets them re-create orphaned EVENT_LOG rows against the now-deleted test id.
+		ids.forEach(testOwnerCache::invalidate);
+
 		return testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged();
 	}
 }
