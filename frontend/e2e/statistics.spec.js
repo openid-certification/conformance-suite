@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  setupTestInfoRoute,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
+import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
 import { MOCK_ADMIN_USER, MOCK_USER } from "./fixtures/mock-users.js";
 import {
   MOCK_STATS_EMPTY,
@@ -8,8 +14,10 @@ import {
   MOCK_STATS_PENDING,
   MOCK_STATS_READY,
   MOCK_STATS_REFRESHING,
-  MOCK_STATS_WEEKLY,
   MOCK_STATS_WEEKS,
+  invalidVariantMessage,
+  statisticsOverviewFor,
+  statisticsResponseFor,
 } from "./fixtures/mock-statistics.js";
 
 /**
@@ -23,15 +31,20 @@ import {
  * them, so the state machine, the poll cadence, the filters and the navbar
  * gating are all exercised end to end rather than per component.
  *
- * Since phase 2 the SERVER slices, so these specs assert on the query the page
- * SENT rather than on data it re-shaped locally; the routes answer with a fixed
- * payload. What each control does to the numbers is covered by the Storybook
- * play functions, which run against a fixture that really slices.
+ * Since phase 2 the SERVER slices, so these specs assert first and foremost on
+ * the query the page SENT. The default route answers it the way the endpoint
+ * would (`statisticsResponseFor`): the granularity picks the axis, the filters
+ * zero what they exclude and narrow the dimensions, and a malformed
+ * `variant.<name>` is a 400 — enough for the no-match state, the 400 alert and
+ * the cascade to be driven end to end. It deliberately does not clip the axis
+ * to `from` (see the fixture's header: Playwright runs on the real clock), so
+ * a range preset is asserted on its request, not on a row count.
  *
  * The page also makes a second, deliberately unfiltered request on load — the
  * baseline the family colours and the family select come from. It is the only
  * one with an empty query string, which is how the routes below tell them
- * apart.
+ * apart, and it is skipped entirely when the view IS the baseline (All time,
+ * no filters).
  *
  * Chart.js is NOT stubbed: `<cts-chart>` lazily injects
  * `/vendor/chart.js/chart.umd.js`, which the e2e static server serves for real,
@@ -96,16 +109,23 @@ const CHART_TESTIDS = [
  *
  * Responders are module-scope functions rather than inline closures so the
  * `if`s they need stay out of test bodies (`playwright/no-conditional-in-test`).
+ * Both default to {@link respondSliced}, which answers the request the way the
+ * endpoint would, so only a spec about the *state machine* (202, refresh, 500,
+ * 403) has to name one.
  *
  * @param {import('@playwright/test').Page} page
- * @param {(callIndex: number, url: URL) => StatsRouteResponse} respond - Called
- *   with the 1-based number of the FILTERED request and the parsed request URL.
- * @param {(callIndex: number, url: URL) => StatsRouteResponse} [respondBaseline]
- *   - Answers the unfiltered baseline request; defaults to a settled snapshot.
+ * @param {object} [options]
+ * @param {(callIndex: number, url: URL) => StatsRouteResponse} [options.respond]
+ *   - Called with the 1-based number of the FILTERED request and the parsed
+ *   request URL.
+ * @param {(callIndex: number, url: URL) => StatsRouteResponse} [options.respondBaseline]
+ *   - Answers the unfiltered baseline request.
  * @returns {Promise<Array<string>>} Search strings, in request order; grows as
  *   the page polls.
  */
-async function setupStatisticsRoute(page, respond, respondBaseline = respondReady) {
+async function setupStatisticsRoute(page, options = {}) {
+  const respond = options.respond || respondSliced;
+  const respondBaseline = options.respondBaseline || respondSliced;
   /** @type {Array<string>} */
   const searches = [];
   let calls = 0;
@@ -147,18 +167,39 @@ function respondReady() {
 }
 
 /**
- * A settled snapshot at the granularity that was asked for. The server picks
- * which cells to serve from the same cube, so a weekly request must come back
- * with a weekly axis or the page has nothing to prove it asked.
+ * A settled snapshot sliced the way the server would slice it: the
+ * granularity picks the axis (a weekly request must come back on a weekly
+ * axis or the page has nothing to prove it asked), the filters zero the
+ * families and narrow the dimensions they exclude, and a `variant.<name>`
+ * that is not a name at all is a 400.
  * @param {number} callIndex - 1-based request number (unused).
  * @param {URL} url - The request URL.
  * @returns {StatsRouteResponse} The response for this call.
  */
-function respondByGranularity(callIndex, url) {
-  return {
-    status: 200,
-    body: url.searchParams.get("granularity") === "week" ? MOCK_STATS_WEEKLY : MOCK_STATS_READY,
+function respondSliced(callIndex, url) {
+  return statisticsResponseFor(url);
+}
+
+/**
+ * A sliced snapshot whose certification-profile dimension is longer than a
+ * distribution chart plots, so the "top N of M" note has something to say.
+ * Built here rather than in the fixture: the fixture's four profiles are what
+ * every other assertion counts, and this is one spec's shape.
+ * @param {number} callIndex - 1-based request number (unused).
+ * @param {URL} url - The request URL.
+ * @returns {StatsRouteResponse} The response for this call.
+ */
+function respondManyCertProfiles(callIndex, url) {
+  const body = statisticsOverviewFor(url);
+  body.data.dimensions = {
+    ...body.data.dimensions,
+    certProfiles: Array.from({ length: 20 }, (_, i) => ({
+      name: `Certification profile ${i + 1}`,
+      users: 40 - i,
+      plans: 100 - i,
+    })),
   };
+  return { status: 200, body };
 }
 
 /** @returns {StatsRouteResponse} No snapshot to serve, every time. */
@@ -264,6 +305,90 @@ function chartHeaders(page, testid) {
   return page.locator(`[data-testid="${testid}"] table thead th`);
 }
 
+/** One day, in milliseconds — the step both range helpers below count in. */
+const DAY_MS = 86400000;
+
+/**
+ * The `from` a monthly preset resolves to, computed the way
+ * `statistics-model.js` does it: the first of the month `back` months ago, in
+ * UTC. Recomputed per assertion rather than frozen, because the page reads the
+ * real clock and a fixed string would rot overnight.
+ * @param {number} back - How many months before this one (11 for "12 months").
+ * @returns {string} `YYYY-MM`.
+ */
+function monthsBack(back) {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, 1))
+    .toISOString()
+    .slice(0, 7);
+}
+
+/**
+ * The `from` a weekly preset resolves to: the Monday of the ISO week `back`
+ * weeks before this one, in UTC (Sunday belongs to the week that began six
+ * days earlier).
+ * @param {number} back - How many weeks before this one (11 for "12 weeks").
+ * @returns {string} `YYYY-MM-DD`.
+ */
+function weeksBack(back) {
+  const now = new Date();
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const sinceMonday = (new Date(midnight).getUTCDay() + 6) % 7;
+  return new Date(midnight - (sinceMonday + back * 7) * DAY_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * Stop a chart's entry animation and jump it to its final layout, then read
+ * where one bar actually is. A click is hit-tested against where the marks
+ * ARE, so a coordinate read mid-flight would miss.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} testid - Chart wrapper test id, e.g. `stats-chart-runs`.
+ * @returns {Promise<{x: number, y: number, family: string, period: string}>} The
+ *   pixel to click, and what the click means.
+ */
+function settledBar(page, testid) {
+  return page.evaluate((id) => {
+    const host = /** @type {any} */ (document.querySelector(`[data-testid="${id}"] cts-chart`));
+    const chart = host.chartInstance;
+    chart.config.options.animation = false;
+    chart.stop();
+    chart.update("none");
+    const datasetIndex = chart.data.datasets.findIndex(
+      (/** @type {any} */ ds) => ds.label !== "Other",
+    );
+    const values = chart.data.datasets[datasetIndex].data;
+    const index = values.indexOf(Math.max(...values));
+    const bar = chart.getDatasetMeta(datasetIndex).data[index];
+    return {
+      x: bar.x,
+      y: (bar.y + bar.base) / 2,
+      family: chart.data.datasets[datasetIndex].label,
+      period: chart.data.labels[index],
+    };
+  }, testid);
+}
+
+/**
+ * Listen for the page's cancelable `cts-drill-down` and cancel it, so the URL
+ * a click produced can be asserted without the navigation tearing the page
+ * out from under the spec. Production has no listener, so a real click
+ * navigates — which the click-through test covers.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<() => Promise<Array<string>>>} Reads the URLs so far.
+ */
+async function interceptDrillDown(page) {
+  await page.evaluate(() => {
+    /** @type {Array<string>} */
+    const urls = [];
+    /** @type {any} */ (window).__drillDowns = urls;
+    document.addEventListener("cts-drill-down", (event) => {
+      event.preventDefault();
+      urls.push(/** @type {any} */ (event).detail.url);
+    });
+  });
+  return () => page.evaluate(() => /** @type {any} */ (window).__drillDowns);
+}
+
 /**
  * Wait until all four plots exist. The `<canvas>` lands in the DOM a beat
  * before Chart.js has been fetched and instantiated, so the element's
@@ -301,7 +426,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
   test("polls through 202 responses and then renders tiles and five charts", async ({ page }) => {
     test.setTimeout(POLLING_TEST_TIMEOUT);
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondPendingTwiceThenReady);
+    const searches = await setupStatisticsRoute(page, { respond: respondPendingTwiceThenReady });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -376,7 +501,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("the initial request never asks the server to recompute", async ({ page }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondReady);
+    const searches = await setupStatisticsRoute(page, { respond: respondReady });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -403,7 +528,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
   }) => {
     test.setTimeout(POLLING_TEST_TIMEOUT);
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondRefreshingThenSettled);
+    const searches = await setupStatisticsRoute(page, { respond: respondRefreshingThenSettled });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -442,7 +567,10 @@ test.describe("statistics.html — admin usage dashboard", () => {
     page,
   }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondForbidden, respondForbidden);
+    const searches = await setupStatisticsRoute(page, {
+      respond: respondForbidden,
+      respondBaseline: respondForbidden,
+    });
     await setupCommonRoutes(page, { user: MOCK_USER });
 
     await page.goto("/statistics.html");
@@ -469,7 +597,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("an admin's navbar links to Statistics and marks it current", async ({ page }) => {
     await setupFailFast(page);
-    await setupStatisticsRoute(page, respondReady);
+    await setupStatisticsRoute(page, { respond: respondReady });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -482,7 +610,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("a database with no runs shows the empty state and zeroed tiles", async ({ page }) => {
     await setupFailFast(page);
-    await setupStatisticsRoute(page, respondEmpty, respondEmpty);
+    await setupStatisticsRoute(page, { respond: respondEmpty, respondBaseline: respondEmpty });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -513,7 +641,10 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("a 500 shows the server's message and Retry re-requests the snapshot", async ({ page }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondErrorThenReady, respondFailed);
+    const searches = await setupStatisticsRoute(page, {
+      respond: respondErrorThenReady,
+      respondBaseline: respondFailed,
+    });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -539,7 +670,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("every filter goes to the server and into the page URL", async ({ page }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondByGranularity);
+    const searches = await setupStatisticsRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -641,9 +772,59 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(page.locator('[data-testid="stats-clear-filters"]')).toHaveCount(0);
   });
 
+  test("a click on a chart bar opens the plans list filtered to it", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page);
+    // The landing page's own endpoints: the drill-down is only proven if the
+    // plans listing really loads with the parameters the click produced.
+    /** @type {Array<string>} */
+    const planRequests = [];
+    await page.route("**/api/plan*", (route) => {
+      planRequests.push(route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_LIST),
+      });
+    });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+
+    // Where to click, and what the click means — read off the live chart so
+    // the expectation cannot drift from the fixture.
+    const target = await settledBar(page, "stats-chart-runs");
+
+    await page
+      .locator('[data-testid="stats-chart-runs"] canvas')
+      .click({ position: { x: target.x, y: target.y } });
+
+    await page.waitForURL(/plans\.html\?/);
+    const landed = new URL(page.url());
+    expect(landed.searchParams.get("family")).toBe(target.family);
+    expect(landed.searchParams.get("from")).toBe(`${target.period}-01`);
+    // Half-open: the upper bound is the next month's first day, so the month
+    // clicked is included whole and the next one not at all.
+    expect(landed.searchParams.get("to")).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(landed.searchParams.get("to")).not.toBe(`${target.period}-01`);
+
+    // The listing asked the server for exactly that slice...
+    await expect.poll(() => planRequests.length).toBeGreaterThan(0);
+    const requested = new URL(planRequests[0]);
+    expect(requested.searchParams.get("family")).toBe(target.family);
+    expect(requested.searchParams.get("from")).toBe(`${target.period}-01`);
+    // ...and says what it is showing.
+    await expect(page.locator("[data-testid='plan-filter-family']")).toContainText(
+      `Family: ${target.family}`,
+    );
+    await expect(page.locator("[data-testid='plan-filter-from']")).toBeVisible();
+  });
+
   test("a deep link opens the view it names", async ({ page }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondByGranularity);
+    const searches = await setupStatisticsRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto(
@@ -668,5 +849,278 @@ test.describe("statistics.html — admin usage dashboard", () => {
       "plain_fapi",
     );
     await expect(page.locator('[data-testid="stats-clear-filters"]')).toHaveCount(1);
+
+    // The same contract at the other granularity: a weekly range in the link
+    // is a weekly request, and the preset strip says which one is on.
+    await page.goto("/statistics.html?range=26w&family=FAPI2+Security+Profile");
+    await expectChartsPainted(page);
+    expect(filtered(searches).at(-1)).toBe(
+      `?granularity=week&from=${weeksBack(25)}&family=FAPI2+Security+Profile`,
+    );
+    await expect(
+      page.locator('[data-testid="stats-range-weekly"] button[data-range="26w"]'),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('[data-testid="stats-family"]')).toHaveValue(
+      "FAPI2 Security Profile",
+    );
+    await expect(chartHeaders(page, "stats-chart-runs").first()).toHaveText("Week starting");
+  });
+
+  test("each range preset asks the server for the axis it names", async ({ page }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+    const last = () => filtered(searches).at(-1);
+
+    // The default view is two requests and no more: the unfiltered baseline
+    // (the colour slots and the family options) and the twelve-month slice.
+    expect(searches).toHaveLength(2);
+    expect(searches).toContain("");
+    expect(last()).toBe(`?granularity=month&from=${monthsBack(11)}`);
+
+    // A weekly preset is a different granularity, not a shorter range: the
+    // bound is the Monday eleven weeks back and the axis comes back keyed by
+    // week, which the category column and its labels both say.
+    await page.locator('[data-testid="stats-range-weekly"] button[data-range="12w"]').click();
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toBe(`?granularity=week&from=${weeksBack(11)}`);
+    await expect(page).toHaveURL(/\?range=12w$/);
+    await expect(chartHeaders(page, "stats-chart-runs").first()).toHaveText("Week starting");
+    // Compact labels: the day and the month, with the year only where it changes.
+    await expect(chartRows(page, "stats-chart-runs").first().locator("th")).toHaveText(
+      "8 Dec 2025",
+    );
+    await expect(chartRows(page, "stats-chart-runs")).toHaveCount(MOCK_STATS_WEEKS.length);
+
+    await page.locator('[data-testid="stats-range-monthly"] button[data-range="24m"]').click();
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toBe(`?granularity=month&from=${monthsBack(23)}`);
+    await expect(page).toHaveURL(/\?range=24m$/);
+    await expect(chartHeaders(page, "stats-chart-runs").first()).toHaveText("Month");
+    await expect(chartRows(page, "stats-chart-runs").first().locator("th")).toHaveText(
+      MOCK_STATS_MONTHS[0],
+    );
+
+    // "All time" is the one preset with no lower bound: `from` is dropped
+    // rather than sent empty, and `to` is never sent by any of them — the
+    // server's axis already ends at the period containing today.
+    await page.locator('[data-testid="stats-range-monthly"] button[data-range="all"]').click();
+    await expect.poll(last, { timeout: POLL_TIMEOUT }).toBe("?granularity=month");
+    await expect(page).toHaveURL(/\?range=all$/);
+    expect(searches.some((search) => search.includes("to="))).toBe(false);
+  });
+
+  test("the whole-history view is its own baseline and is fetched once", async ({ page }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html?range=all");
+    await expectChartsPainted(page);
+
+    // Unfiltered and all-time IS the baseline, so asking for it twice would
+    // fetch the same payload twice. The empty-query request is not made.
+    expect(searches).toEqual(["?granularity=month"]);
+    // ...and the family select is still fully populated, from that one payload.
+    await expect(page.locator('[data-testid="stats-family"] option')).toHaveCount(11);
+  });
+
+  test("a filter that matches nothing says so, and one click clears it", async ({ page }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    // A family that has never run: the server answers with the full axis and a
+    // zero in every cell, which is what a no-match payload looks like.
+    await page.goto("/statistics.html?family=Shared+Signals+Framework");
+
+    const noMatch = page.locator('[data-testid="stats-no-match"]');
+    await expect(noMatch).toBeVisible();
+    await expect(noMatch).toHaveAttribute("heading", "No test plans match these filters");
+    // Five charts of zeros are what this state exists to replace.
+    await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-empty"]')).toHaveCount(0);
+
+    // The tiles and the filter row stay: they are the context for the sentence
+    // and the way out of it. So do the sections the filters do not scope — a
+    // reader has to be able to see that the database itself is not empty.
+    await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(10);
+    await expect(page.locator('[data-testid="stats-filters"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="stats-heatmap"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="stats-hosts"]')).toHaveCount(1);
+    // The distributions are counted under the whole query, so under a no-match
+    // they would be empty cards restating what the sentence already says.
+    await expect(page.locator('[data-testid="stats-distributions"]')).toHaveCount(0);
+
+    await page.locator('[data-testid="stats-no-match-clear"] button').click();
+
+    await expect
+      .poll(() => filtered(searches).at(-1), { timeout: POLL_TIMEOUT })
+      .toBe(`?granularity=month&from=${monthsBack(11)}`);
+    await expect(page).toHaveURL(/\?range=12m$/);
+    await expect(noMatch).toHaveCount(0);
+    await expectChartsPainted(page);
+  });
+
+  test("a 400 shows the server's message and offers a reset instead of a retry", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    // The realistic way to a 400: a hand-edited link whose variant parameter
+    // NAME is not one. The server never rejects a value.
+    await page.goto("/statistics.html?family=OID4VP&variant.bad%20name=mtls");
+
+    const alert = page.locator('[data-testid="stats-error"]');
+    await expect(alert).toBeVisible();
+    await expect(alert).toHaveAttribute("variant", "danger");
+    await expect(alert).toContainText(invalidVariantMessage("bad name"));
+    await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
+
+    // Retrying a request the server refused is pointless, so the way out is to
+    // drop the filters, not to ask again.
+    await expect(page.locator('[data-testid="stats-reset-filters"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="stats-retry"]')).toHaveCount(0);
+    // A 400 is terminal until the admin acts: nothing is polled.
+    expect(filtered(searches)).toHaveLength(1);
+
+    await page.locator('[data-testid="stats-reset-filters"] button').click();
+
+    await expect
+      .poll(() => filtered(searches).at(-1), { timeout: POLL_TIMEOUT })
+      .toBe(`?granularity=month&from=${monthsBack(11)}`);
+    await expect(page).toHaveURL(/\?range=12m$/);
+    await expect(alert).toHaveCount(0);
+    await expectChartsPainted(page);
+  });
+
+  test("the sections under the charts render from the payload", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+
+    // Storage: one tile per collection, the document count as the value and
+    // the three sizes as the hint, formatted in binary units.
+    const storage = page.locator('[data-testid="stats-storage"] .cts-stats-tile');
+    await expect(storage).toHaveCount(3);
+    const testInfo = page.locator('[data-testid="stat-storage-TEST_INFO"]');
+    await expect(testInfo.locator(".cts-stats-tile-value")).toHaveText("91,800");
+    await expect(testInfo.locator(".cts-stats-tile-label")).toHaveText("TEST_INFO documents");
+    await expect(testInfo.locator(".cts-stats-tile-hint")).toContainText(
+      "1.7 GB data · 581.7 MB on disk · 91.6 MB indexes",
+    );
+
+    // Distributions: the certification-profile and entity charts are always
+    // there; the variant small multiples are withheld until a family or plan
+    // narrows the view, because unfiltered the suite offers dozens of them.
+    await expect(page.locator('[data-testid="stats-distributions"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="stats-dist-variants"]')).toContainText(
+      "Select a family or plan to see variant usage.",
+    );
+    await expect(page.locator('[data-testid^="stats-dist-variant-"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-dist-certs"] tbody tr')).toHaveCount(4);
+    await expect(page.locator('[data-testid="stats-dist-entities"] tbody tr')).toHaveCount(3);
+    // Ranked by the measure that is PLOTTED, whatever order the server sent.
+    await expect(
+      page.locator('[data-testid="stats-dist-certs"] tbody tr').first().locator("th"),
+    ).toHaveText("FAPI2 Security Profile Final");
+
+    // The heatmap: 7 x 24 cells, a caption that names the total and the fact
+    // that only the range scopes it, and a linear table twin.
+    const heatmap = page.locator('[data-testid="stats-heatmap"]');
+    await expect(heatmap.locator(".cts-heatmap-cell")).toHaveCount(7 * 24);
+    await expect(heatmap.locator(".cts-heatmap-caption")).toContainText("9,918 runs in this range");
+    await expect(heatmap.locator(".cts-heatmap-caption")).toContainText(
+      "All hours are UTC. Sliced by the selected range (12 months) only",
+    );
+    await expect(heatmap.locator("table tbody tr")).toHaveCount(7);
+    await expect(heatmap.locator("table thead th")).toHaveCount(25);
+
+    // External servers: all-time, so a disclosure rather than a section.
+    const hosts = page.locator('[data-testid="stats-hosts"]');
+    await expect(hosts.locator("summary")).toHaveText("External servers under test (6)");
+    await expect(hosts.locator("tbody tr")).toHaveCount(6);
+    await expect(hosts.locator("tbody tr").first().locator("th")).toHaveText("as.example.com");
+
+    // Narrowing the view is what brings the variant small multiples out — one
+    // per parameter with something to choose between, so the single-valued
+    // `client_registration` stays out of it.
+    await page.locator('[data-testid="stats-family"]').selectOption("FAPI2 Security Profile");
+    await expect(page.locator('[data-testid^="stats-dist-variant-"]')).toHaveCount(3);
+    await expect(page.locator('[data-testid="stats-dist-variant-client_auth_type"]')).toHaveCount(
+      1,
+    );
+    await expect(
+      page.locator('[data-testid="stats-dist-variant-client_registration"]'),
+    ).toHaveCount(0);
+  });
+
+  test("a distribution longer than the plot says where the rest is", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page, { respond: respondManyCertProfiles });
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+
+    // Capping the bars hides nothing: the note says how many were plotted and
+    // the data table still carries every row.
+    const certs = page.locator('[data-testid="stats-dist-certs"]');
+    await expect(certs.locator('[data-testid="cts-chart-more"]')).toHaveText(
+      "Showing the top 12 of 20; the rest are in the data table.",
+    );
+    await expect(certs.locator("tbody tr")).toHaveCount(20);
+  });
+
+  test("a drill-down names the slice behind the mark that was activated", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+    const drillDowns = await interceptDrillDown(page);
+
+    // The keyboard route: a data-table row is a PERIOD, not a series, so it
+    // drills into the whole column under the filters already set — here, none.
+    const runs = page.locator('[data-testid="stats-chart-runs"]');
+    await runs.locator("details summary").click();
+    const rowLink = runs.locator("tbody tr").nth(2).locator("button.cts-chart-row-link");
+    const period = await rowLink.innerText();
+    await expect(rowLink).toHaveAttribute("aria-label", `List the test plans in ${period}`);
+    await rowLink.click();
+
+    await expect.poll(async () => (await drillDowns()).length).toBe(1);
+    const byPeriod = new URL((await drillDowns())[0], page.url());
+    expect(byPeriod.pathname).toBe("/plans.html");
+    expect(byPeriod.searchParams.get("from")).toBe(`${period}-01`);
+    expect(byPeriod.searchParams.get("to")).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(byPeriod.searchParams.get("family")).toBeNull();
+
+    // The pointer route: a bar names its own series, so the family comes from
+    // the dataset that was clicked.
+    const target = await settledBar(page, "stats-chart-plans");
+    await page
+      .locator('[data-testid="stats-chart-plans"] canvas')
+      .click({ position: { x: target.x, y: target.y } });
+
+    await expect.poll(async () => (await drillDowns()).length).toBe(2);
+    const bySeries = new URL((await drillDowns())[1], page.url());
+    expect(bySeries.searchParams.get("family")).toBe(target.family);
+    expect(bySeries.searchParams.get("from")).toBe(`${target.period}-01`);
+
+    // Cancelling the event is what keeps the page here; production has no
+    // listener, so the same click navigates (see the click-through test).
+    await expect(page).toHaveURL(/statistics\.html/);
   });
 });

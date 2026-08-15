@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, spyOn, waitFor } from "storybook/test";
+import { expect, spyOn, userEvent, waitFor } from "storybook/test";
 import "./cts-chart.js";
 import { __resetChartLoaderForTests, __setChartJsUrlForTests } from "./cts-chart.js";
 
@@ -380,6 +380,157 @@ export const Horizontal = {
         cell.textContent.trim(),
       );
       expect(lastRow).toEqual(["Profile 14", "4", "8"]);
+    });
+  },
+};
+
+/**
+ * The opt-in `clickable` form: the statistics page's drill-down. A click on a
+ * mark names the series it landed on; a click inside the band but not on a
+ * mark names the category alone (`datasetIndex: null`), because that is all
+ * the reader pointed at.
+ *
+ * The plot's hit targets live on a `<canvas>`, which no keyboard can reach —
+ * so every row of the data table gets a button in its category cell emitting
+ * the same "whole category" event. That is the keyboard and screen-reader
+ * twin of the click, not a lesser version of it.
+ */
+export const Clickable = {
+  args: {
+    heading: "Test runs by specification family",
+    categoryLabel: "Month",
+  },
+  render: ({ heading, categoryLabel }) => html`
+    <cts-chart
+      stacked
+      clickable
+      click-label="List the test plans in"
+      heading=${heading}
+      category-label=${categoryLabel}
+      .labels=${MONTHS}
+      .datasets=${STACKED_DATASETS}
+    ></cts-chart>
+  `,
+
+  async play({ canvasElement, step }) {
+    const { canvas, chart } = await waitForChart(canvasElement);
+    const host = canvasElement.querySelector("cts-chart");
+    /** @type {Array<any>} */
+    const events = [];
+    host.addEventListener("cts-chart-click", (/** @type {any} */ evt) => events.push(evt.detail));
+
+    /**
+     * Dispatch a real mouse event at a point in canvas space. Chart.js reads
+     * the position off the native event, so this exercises its own hit
+     * testing rather than a private entry point.
+     * @param {string} type - Event type.
+     * @param {number} x - Canvas-space x.
+     * @param {number} y - Canvas-space y.
+     * @returns {void}
+     */
+    const fire = (type, x, y) => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new MouseEvent(type, {
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    };
+
+    /**
+     * The vertical middle of one bar segment. A bar's own `y` is its data
+     * END — the top edge — so aiming at it lands on the boundary rather than
+     * inside the mark.
+     * @param {any} bar - A Chart.js bar element.
+     * @returns {number} Canvas-space y inside it.
+     */
+    const midOf = (bar) => (bar.y + bar.base) / 2;
+
+    // A click is hit-tested against where the marks ARE, and Chart.js animates
+    // them in from the baseline on first render. The story iframe's
+    // requestAnimationFrame barely ticks in headless Chromium, so that entry
+    // animation would still be sitting on the axis when the clicks below
+    // land — every one of them would miss. Turn animation off in the chart's
+    // own config, drop the entry animation already queued, and jump to the
+    // final layout: the state a real reader clicks at.
+    chart.config.options.animation = false;
+    chart.stop();
+    await waitFor(() => {
+      chart.update("none");
+      const bar = chart.getDatasetMeta(1).data[3];
+      expect(bar.base - bar.y).toBeGreaterThan(1);
+    });
+
+    await step("the pointer says the marks are targets", async () => {
+      const bar = chart.getDatasetMeta(0).data[2];
+      fire("mousemove", bar.x, midOf(bar));
+      await waitFor(() => {
+        expect(canvas.style.cursor).toBe("pointer");
+      });
+
+      // Chart.js reports a hover only inside the chart area, so leaving the
+      // canvas off a bar would otherwise leave the hand behind on a chart
+      // nobody is pointing at.
+      canvas.dispatchEvent(new MouseEvent("mouseleave", { bubbles: false }));
+      await waitFor(() => {
+        expect(canvas.style.cursor).toBe("");
+      });
+    });
+
+    await step("a click on a mark names the period AND its series", async () => {
+      const bar = chart.getDatasetMeta(1).data[3];
+      fire("click", bar.x, midOf(bar));
+      await waitFor(() => {
+        expect(events.length).toBe(1);
+      });
+      expect(events[0]).toEqual({
+        periodIndex: 3,
+        datasetIndex: 1,
+        datasetLabel: "OpenID Connect",
+        label: "2026-03",
+      });
+    });
+
+    await step("a click in the band but not on a mark names the period only", async () => {
+      const bar = chart.getDatasetMeta(0).data[5];
+      // Two pixels below the top of the plot area: inside the column, above
+      // every stacked segment in it.
+      fire("click", bar.x, chart.chartArea.top + 2);
+      await waitFor(() => {
+        expect(events.length).toBe(2);
+      });
+      expect(events[1]).toEqual({
+        periodIndex: 5,
+        datasetIndex: null,
+        datasetLabel: "",
+        label: "2026-05",
+      });
+    });
+
+    await step("every data-table row carries the same action for the keyboard", async () => {
+      const buttons = canvasElement.querySelectorAll("cts-chart .cts-chart-row-link");
+      expect(buttons.length).toBe(MONTHS.length);
+      // Named by what activating it does, not by the bare label — "2025-12,
+      // button" would tell a screen-reader user nothing.
+      expect(buttons[0].getAttribute("aria-label")).toBe("List the test plans in 2025-12");
+      expect(buttons[0].textContent.trim()).toBe("2025-12");
+      expect(buttons[0].getAttribute("type")).toBe("button");
+
+      await userEvent.click(buttons[6]);
+      await waitFor(() => {
+        expect(events.length).toBe(3);
+      });
+      // A row is a period, not a series, so it emits the same "whole period"
+      // shape a click inside the band does.
+      expect(events[2]).toEqual({
+        periodIndex: 6,
+        datasetIndex: null,
+        datasetLabel: "",
+        label: "2026-06",
+      });
     });
   },
 };

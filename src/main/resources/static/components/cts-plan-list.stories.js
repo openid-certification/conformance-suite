@@ -3,6 +3,7 @@ import { expect, within, waitFor, userEvent, spyOn } from "storybook/test";
 import { http, HttpResponse } from "msw";
 import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "@fixtures/mock-plans.js";
 import "./cts-plan-list.js";
+import { emptyFilter } from "./plan-list-filter.js";
 
 export default {
   title: "Pages/cts-plan-list",
@@ -88,6 +89,48 @@ function infoHandler(infoMap = MOCK_PLAN_INFO, requested) {
     if (!info) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json(info);
   });
+}
+
+/**
+ * Every `/api/plan` query the FilteredByChips story caused, in order — the
+ * only place a play function can prove that removing a chip really went back
+ * to the SERVER rather than re-filtering what was already on screen. Reset by
+ * that story's `beforeEach`.
+ * @type {Array<string>}
+ */
+const PLAN_REQUESTS = [];
+
+/**
+ * The filter a drill-down from a weekly bar of the statistics page produces.
+ * @returns {import("./plan-list-filter.js").PlanListFilter} That filter.
+ */
+function drillDownFilter() {
+  return {
+    ...emptyFilter(),
+    family: "OID4VP",
+    plan: "",
+    variant: { client_auth_type: "private_key_jwt" },
+    cert: "",
+    from: "2026-05-04",
+    to: "2026-05-11",
+  };
+}
+
+/**
+ * The chip badge with a given test id, and the `role="button"` span inside it
+ * that is the actual click target (cts-badge renders to its own light DOM).
+ * @param {ParentNode} root - The story canvas.
+ * @param {string} key - Chip key, e.g. `family`.
+ * @returns {HTMLElement} The clickable span.
+ */
+function chipButton(root, key) {
+  const badge = /** @type {HTMLElement} */ (
+    root.querySelector(`[data-testid="plan-filter-${key}"]`)
+  );
+  expect(badge).toBeTruthy();
+  const span = /** @type {HTMLElement} */ (badge.querySelector('span[role="button"]'));
+  expect(span).toBeTruthy();
+  return span;
 }
 
 // --- Stories ---
@@ -738,6 +781,49 @@ export const ApiError = {
   },
 };
 
+/**
+ * A filtered listing whose fetch fails keeps its chips. A filter is what can
+ * CAUSE the failure — `/api/plan` answers 400 for a variant parameter name it
+ * cannot parse — so an error with the filters hidden would leave the reader
+ * unable to see what was asked for, let alone clear it.
+ */
+export const FilteredApiError = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () =>
+          HttpResponse.json({ error: "variant.$where is not a variant name" }, { status: 400 }),
+        ),
+      ],
+    },
+  },
+  beforeEach() {
+    history.replaceState(null, "", "/iframe.html");
+  },
+  render: () => html`<cts-plan-list .filters=${drillDownFilter()}></cts-plan-list>`,
+  async play({ canvasElement, step }) {
+    await waitForPlansToLoad(canvasElement);
+
+    await step("the error is shown", async () => {
+      expect(canvasElement.querySelector(".oidf-alert-danger")).toBeTruthy();
+      expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
+    });
+
+    await step("and the filters are still there to be read and removed", async () => {
+      expect(canvasElement.querySelector('[data-testid="plan-filters"]')).toBeTruthy();
+      expect(canvasElement.querySelectorAll('[data-testid="plan-filters"] cts-badge').length).toBe(
+        3,
+      );
+      await userEvent.click(chipButton(canvasElement, "family"));
+      await waitFor(() => {
+        expect(
+          canvasElement.querySelectorAll('[data-testid="plan-filters"] cts-badge').length,
+        ).toBe(2);
+      });
+    });
+  },
+};
+
 export const AdminView = {
   parameters: {
     msw: {
@@ -908,6 +994,133 @@ export const EmptyPublishedView = {
     // can't pass vacuously and also catches a secondary rendering with a
     // mangled href.
     expect(empty.querySelectorAll("a").length).toBe(1);
+  },
+};
+
+/**
+ * The drill-down landing state: `plans.html` has read the filters out of its
+ * query string and handed them over as a property, so the FIRST request
+ * already carries them — the listing never paints an unfiltered set it then
+ * has to correct.
+ *
+ * Each filter is a removable chip. The chips are `clickable` badges (the
+ * badge IS the click target and nothing wraps it), so each one carries
+ * `role="button"`, keyboard activation and the stronger affordance ring.
+ * Removing one refetches — the SERVER applies these filters, unlike the
+ * search box above the list, which is client-side.
+ */
+export const FilteredByChips = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", ({ request }) => {
+          const url = new URL(request.url);
+          PLAN_REQUESTS.push(url.search);
+          // Stand in for the server: this family has nothing in the window,
+          // which is exactly the state a drill-down can land in.
+          if (url.searchParams.get("family")) return HttpResponse.json([]);
+          return HttpResponse.json(MOCK_PLAN_LIST.filter((plan) => plan.publish));
+        }),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  beforeEach() {
+    // The component mirrors chip removals into the page URL, so a story that
+    // did not reset it would hydrate the next one.
+    history.replaceState(null, "", "/iframe.html?public=true");
+    PLAN_REQUESTS.length = 0;
+  },
+  render: () => html`<cts-plan-list is-public .filters=${drillDownFilter()}></cts-plan-list>`,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForPlansToLoad(canvasElement);
+
+    await step("the first request already carries every filter", async () => {
+      expect(PLAN_REQUESTS.length).toBe(1);
+      const params = new URLSearchParams(PLAN_REQUESTS[0]);
+      expect(params.get("public")).toBe("true");
+      expect(params.get("family")).toBe("OID4VP");
+      expect(params.get("variant.client_auth_type")).toBe("private_key_jwt");
+      expect(params.get("from")).toBe("2026-05-04");
+      // Exclusive, so it is the NEXT period's start — the day after the last
+      // day the chip names.
+      expect(params.get("to")).toBe("2026-05-11");
+      expect(params.get("length")).toBe("1000");
+    });
+
+    await step("one chip per filter, each announced as a remove action", async () => {
+      const row = canvasElement.querySelector('[data-testid="plan-filters"]');
+      expect(row).toBeTruthy();
+      const chips = Array.from(row.querySelectorAll("cts-badge"));
+      expect(chips.map((chip) => chip.getAttribute("label"))).toEqual([
+        "Family: OID4VP",
+        "client_auth_type: private_key_jwt",
+        "Started 4 May 2026 – 10 May 2026",
+      ]);
+      // The badge is the click target and nothing wraps it, so it is
+      // `clickable`: a real button role, reachable by keyboard, with a name
+      // that says what activating it does.
+      const family = chipButton(canvasElement, "family");
+      expect(family.getAttribute("tabindex")).toBe("0");
+      // WCAG 2.5.3: the accessible name contains the visible label verbatim.
+      expect(family.getAttribute("aria-label")).toBe("Remove filter: Family: OID4VP");
+      expect(family.classList.contains("is-clickable")).toBe(true);
+      // Not a toggle: no aria-pressed on a one-shot command.
+      expect(family.hasAttribute("aria-pressed")).toBe(false);
+    });
+
+    await step("a filter that matches nothing says so, and offers the way out", async () => {
+      expect(canvas.getByText("No plans match these filters")).toBeInTheDocument();
+      const empty = canvasElement.querySelector('[data-testid="plan-list-empty"]');
+      const clear = /** @type {HTMLAnchorElement} */ (
+        empty.querySelector('a[href="plans.html?public=true"]')
+      );
+      expect(clear.textContent?.trim()).toContain("Clear filters");
+    });
+
+    await step("removing a chip refetches without it and rewrites the URL", async () => {
+      await userEvent.click(chipButton(canvasElement, "family"));
+      await waitFor(() => {
+        expect(PLAN_REQUESTS.length).toBe(2);
+      });
+      const params = new URLSearchParams(PLAN_REQUESTS[1]);
+      expect(params.get("family")).toBeNull();
+      expect(params.get("variant.client_auth_type")).toBe("private_key_jwt");
+      expect(params.get("from")).toBe("2026-05-04");
+      // The dataset the user is on survives the rewrite: dropping `public`
+      // would switch the Published tab back to My behind their back.
+      expect(location.search).toBe(
+        "?public=true&variant.client_auth_type=private_key_jwt&from=2026-05-04&to=2026-05-11",
+      );
+      await waitFor(() => {
+        expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
+          MOCK_PLAN_LIST.filter((plan) => plan.publish).length,
+        );
+      });
+      expect(canvasElement.querySelectorAll('[data-testid="plan-filters"] cts-badge').length).toBe(
+        2,
+      );
+    });
+
+    await step("Clear all drops the rest in one go", async () => {
+      await userEvent.click(
+        /** @type {HTMLElement} */ (
+          canvasElement.querySelector('[data-testid="plan-filters-clear"]')
+        ),
+      );
+      await waitFor(() => {
+        expect(PLAN_REQUESTS.length).toBe(3);
+      });
+      const params = new URLSearchParams(PLAN_REQUESTS[2]);
+      expect(params.get("from")).toBeNull();
+      expect(params.get("variant.client_auth_type")).toBeNull();
+      expect(params.get("public")).toBe("true");
+      expect(location.search).toBe("?public=true");
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="plan-filters"]')).toBeNull();
+      });
+    });
   },
 };
 

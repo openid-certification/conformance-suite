@@ -63,7 +63,24 @@ const HORIZONTAL_MIN_HEIGHT_PX = 120;
  * styles for nothing.
  * @type {Array<string>}
  */
-const PLOT_PROPS = ["type", "labels", "datasets", "stacked", "horizontal", "maxBars", "_status"];
+const PLOT_PROPS = [
+  "type",
+  "labels",
+  "datasets",
+  "stacked",
+  "horizontal",
+  "maxBars",
+  "clickable",
+  "_status",
+];
+
+/**
+ * Verb phrase the data-table row buttons are named with when the consumer
+ * sets `clickable` but not `click-label`. Deliberately vague, because the
+ * primitive does not know what the consumer does with the click; every real
+ * consumer should say what it does.
+ */
+const DEFAULT_CLICK_LABEL = "Show details for";
 
 /** Per-instance id counter, so each `<figure>` can point at its own `<h3>`. */
 let headingSeq = 0;
@@ -206,6 +223,31 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
     font-weight: var(--fw-bold, 700);
   }
+  /* Keyboard twin of a click on a bar: the plot's hit targets live on a
+     <canvas>, which no keyboard can reach, so on a clickable chart every row
+     of the data table carries the same action in its category cell. Styled as
+     a link rather than a button because it behaves like one — it takes the
+     reader somewhere. */
+  .cts-chart-row-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--fg-link);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--link-decoration-color);
+    cursor: pointer;
+  }
+  .cts-chart-row-link:hover {
+    text-decoration-color: currentColor;
+  }
+  .cts-chart-row-link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-2, 4px);
+  }
 `;
 
 /**
@@ -293,6 +335,22 @@ function token(cs, name, fallback) {
  *   Optional property-only hook returning extra tooltip footer lines for
  *   the hovered label index (used to name the families folded into
  *   "Other"). Not settable as an attribute.
+ * @property {boolean} clickable - Make the plot a click target: the pointer
+ *   turns into a hand over a mark, a click emits {@link CtsChart#event:cts-chart-click},
+ *   and every row of the data table gets a button in its category cell
+ *   carrying the same action for keyboard and screen-reader users. Opt-in,
+ *   because a chart nothing listens to must not pretend to be actionable.
+ * @property {string} clickLabel - What activating a data-table row button
+ *   does, as a verb phrase the category label is appended to ("List the test
+ *   plans in" → "List the test plans in 2026-06"). It is the button's
+ *   accessible name; the visible text stays the bare label. Attribute name:
+ *   `click-label`. Only used when `clickable` is set.
+ * @fires cts-chart-click - When a mark, or a data-table row button, is
+ *   activated on a `clickable` chart. `detail: {periodIndex, datasetIndex,
+ *   datasetLabel, label}`. `datasetIndex` is `null` (and `datasetLabel` `""`)
+ *   when the activation names a whole category rather than one series — a
+ *   click inside the band but not on a mark, and every row button, which is
+ *   the keyboard equivalent of "this whole period". Bubbles and is composed.
  */
 class CtsChart extends LitElement {
   static properties = {
@@ -306,6 +364,8 @@ class CtsChart extends LitElement {
     heading: { type: String },
     categoryLabel: { type: String, attribute: "category-label" },
     tooltipFooter: { attribute: false },
+    clickable: { type: Boolean },
+    clickLabel: { type: String, attribute: "click-label" },
     _status: { state: true },
   };
 
@@ -331,6 +391,10 @@ class CtsChart extends LitElement {
     this.categoryLabel = "";
     /** @type {((hoveredIndex: number) => Array<string>)|undefined} */
     this.tooltipFooter = undefined;
+    /** @type {boolean} */
+    this.clickable = false;
+    /** @type {string} */
+    this.clickLabel = DEFAULT_CLICK_LABEL;
     /** @type {"loading"|"ready"|"error"} */
     this._status = "loading";
     /** @type {any} */
@@ -616,7 +680,110 @@ class CtsChart extends LitElement {
       },
     };
     if (reduceMotion) options.animation = false;
+    if (this.clickable === true) {
+      // The hit target is the whole band (interaction mode "index",
+      // intersect false), so the hand appears wherever a click would land on
+      // something — and only there, which keeps the axis gutters honest.
+      // `options` is itself typed `any` (Chart.js ships no types this project
+      // consumes), so these callbacks' parameters are implicitly `any` too —
+      // deliberately left unannotated rather than papered over with a cast per
+      // parameter, which is how the rest of this file's Chart.js seam reads.
+      options.onHover = (event, elements) => {
+        const target = event && event.native && event.native.target;
+        if (target && target.style) target.style.cursor = elements.length ? "pointer" : "";
+      };
+
+      options.onClick = (event, _elements, chart) => this._emitPlotClick(event, chart);
+    }
     return options;
+  }
+
+  /**
+   * Resolve a canvas click to a category, and to the series it landed on when
+   * it landed on one.
+   *
+   * Two lookups, because they answer different questions. `nearest` +
+   * `intersect` is the only mode that names ONE mark — which stacked segment
+   * the pointer is actually inside — and that is what identifies the series.
+   * When the click is inside the band but above the bars (or between the
+   * points of a line), that lookup is empty and the band lookup answers the
+   * weaker question the reader is still entitled to ask: which category is
+   * this column? That case emits a `datasetIndex` of `null`.
+   * @param {any} event - The Chart.js event wrapper.
+   * @param {any} chart - The Chart.js instance.
+   * @returns {void}
+   */
+  _emitPlotClick(event, chart) {
+    // `useFinalPosition: false` throughout: hit-test against where the marks
+    // ARE, not where an in-flight animation is taking them, so a click during
+    // the repaint that follows a filter change resolves to the bar the reader
+    // actually pointed at. It is also what Chart.js's own hover does.
+    const onMark = chart.getElementsAtEventForMode(event, "nearest", { intersect: true }, false);
+    if (onMark.length > 0) {
+      this._dispatchClick(onMark[0].index, onMark[0].datasetIndex);
+      return;
+    }
+    const inBand = chart.getElementsAtEventForMode(
+      event,
+      "index",
+      { intersect: false, axis: this.horizontal === true ? "y" : "x" },
+      false,
+    );
+    if (inBand.length === 0) return;
+    this._dispatchClick(inBand[0].index, null);
+  }
+
+  /**
+   * Emit `cts-chart-click` for one category, optionally naming a series.
+   * @param {number} periodIndex - Position in `labels`.
+   * @param {number|null} datasetIndex - Position in `datasets`, or `null` when
+   *   the activation names the whole category.
+   * @returns {void}
+   */
+  _dispatchClick(periodIndex, datasetIndex) {
+    const dataset = datasetIndex === null ? null : (this.datasets || [])[datasetIndex];
+    this.dispatchEvent(
+      new CustomEvent("cts-chart-click", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          periodIndex,
+          datasetIndex,
+          datasetLabel: (dataset && dataset.label) || "",
+          label: (this.labels || [])[periodIndex] ?? "",
+        },
+      }),
+    );
+  }
+
+  /**
+   * Put the cursor back when the pointer leaves the plot.
+   *
+   * Chart.js reports a hover only while the pointer is inside the chart area,
+   * so leaving the canvas straight off a bar never clears the hand it set —
+   * it would stay on a chart nobody is pointing at, and on the element behind
+   * it once the chart is re-rendered. `mouseleave` is the one event that
+   * always fires on the way out.
+   * @param {Event} event - The canvas's `mouseleave`.
+   * @returns {void}
+   */
+  _handleCanvasLeave(event) {
+    if (this.clickable !== true) return;
+    const canvas = /** @type {HTMLCanvasElement} */ (event.currentTarget);
+    canvas.style.cursor = "";
+  }
+
+  /**
+   * Row-button handler: the keyboard twin of a click on a bar. It names the
+   * category only — a row is a period, not a series — so it emits the same
+   * "whole category" event a click inside the band emits.
+   * @param {Event} event - The button's click event.
+   * @returns {void}
+   */
+  _handleRowClick(event) {
+    const index = Number(/** @type {HTMLElement} */ (event.currentTarget).dataset.index);
+    if (!Number.isInteger(index)) return;
+    this._dispatchClick(index, null);
   }
 
   render() {
@@ -630,6 +797,7 @@ class CtsChart extends LitElement {
     const ariaLabel =
       `${this.heading}: ${type} chart of ${plotted} ${unit} across ` +
       `${datasets.length} series. Data table available below.`;
+    const clickLabel = this.clickLabel || DEFAULT_CLICK_LABEL;
 
     return html`
       <figure class="cts-chart" aria-labelledby=${this._headingId}>
@@ -642,7 +810,11 @@ class CtsChart extends LitElement {
               class=${classMap({ "cts-chart-frame": true, "is-horizontal": horizontal })}
               style="--cts-chart-rows:${plotted}"
             >
-              <canvas role="img" aria-label=${ariaLabel}></canvas>
+              <canvas
+                role="img"
+                aria-label=${ariaLabel}
+                @mouseleave=${this._handleCanvasLeave}
+              ></canvas>
             </div>`}
         ${plotted < labels.length
           ? html`<p class="cts-chart-more" data-testid="cts-chart-more">
@@ -664,7 +836,19 @@ class CtsChart extends LitElement {
               ${labels.map(
                 (label, i) =>
                   html`<tr>
-                    <th scope="row">${label}</th>
+                    <th scope="row">
+                      ${this.clickable === true
+                        ? html`<button
+                            type="button"
+                            class="cts-chart-row-link"
+                            data-index=${i}
+                            aria-label="${clickLabel} ${label}"
+                            @click=${this._handleRowClick}
+                          >
+                            ${label}
+                          </button>`
+                        : label}
+                    </th>
                     ${datasets.map((ds) => html`<td>${ds.data?.[i] ?? ""}</td>`)}
                     ${extras.map((extra) => html`<td>${extra.data?.[i] ?? ""}</td>`)}
                   </tr>`,

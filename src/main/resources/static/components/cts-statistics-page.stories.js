@@ -806,6 +806,160 @@ export const DeepLinkedFilters = {
 };
 
 /**
+ * Drill-down: a chart bar is a link to the plans behind it.
+ *
+ * The page builds the `plans.html?…` URL and emits a cancelable
+ * `cts-drill-down` before navigating, which is what lets this story assert
+ * the URL without the iframe leaving for another page. Production has no
+ * listener, so a click there navigates.
+ */
+export const DrillDown = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await waitForCharts(canvasElement);
+    const page = canvasElement.querySelector("cts-statistics-page");
+    /** @type {Array<string>} */
+    const urls = [];
+    page.addEventListener("cts-drill-down", (/** @type {any} */ event) => {
+      // Cancel the navigation: the assertion is the URL the page built.
+      event.preventDefault();
+      urls.push(event.detail.url);
+    });
+
+    const chart = runsChartInstance(canvasElement);
+    const canvas = /** @type {HTMLCanvasElement} */ (
+      canvasElement.querySelector('[data-testid="stats-chart-runs"] canvas')
+    );
+
+    // A click is hit-tested against where the marks ARE, and Chart.js animates
+    // them in from the baseline. The story iframe's requestAnimationFrame
+    // barely ticks in headless Chromium, so without this the bars would still
+    // be flat on the axis and every click would miss. Jump to the final
+    // layout — the state a real reader clicks at.
+    chart.config.options.animation = false;
+    chart.stop();
+    await waitFor(() => {
+      chart.update("none");
+      const bar = chart.getDatasetMeta(0).data[0];
+      expect(bar.base - bar.y).toBeGreaterThan(1);
+    });
+
+    /**
+     * Click the middle of one bar segment, through a real mouse event so
+     * Chart.js's own hit testing is what resolves it.
+     * @param {number} datasetIndex - Which series.
+     * @param {number} index - Which period.
+     * @returns {void}
+     */
+    const clickBar = (datasetIndex, index) => {
+      const bar = chart.getDatasetMeta(datasetIndex).data[index];
+      const rect = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new MouseEvent("click", {
+          clientX: rect.left + bar.x,
+          clientY: rect.top + (bar.y + bar.base) / 2,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    };
+
+    /**
+     * The half-open date bounds of a `YYYY-MM` period, computed here rather
+     * than imported so the assertion does not restate the implementation.
+     * @param {string} period - The period key.
+     * @returns {string} `from=…&to=…`.
+     */
+    const bounds = (period) => {
+      const [year, month] = period.split("-").map(Number);
+      const next =
+        month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+      return `from=${period}-01&to=${next}`;
+    };
+
+    await step("a click on a family's segment lists that family, that month", async () => {
+      const datasetIndex = chart.data.datasets.findIndex(
+        (/** @type {any} */ ds) => ds.label !== "Other",
+      );
+      const family = chart.data.datasets[datasetIndex].label;
+      const values = chart.data.datasets[datasetIndex].data;
+      const index = values.indexOf(Math.max(...values));
+      const period = chart.data.labels[index];
+
+      clickBar(datasetIndex, index);
+      await waitFor(() => {
+        expect(urls.length).toBe(1);
+      });
+      expect(urls[0]).toBe(
+        `plans.html?family=${encodeURIComponent(family).replace(/%20/g, "+")}&${bounds(period)}`,
+      );
+    });
+
+    await step("the folded Other series is refused, with a toast that says why", async () => {
+      const datasetIndex = chart.data.datasets.findIndex(
+        (/** @type {any} */ ds) => ds.label === "Other",
+      );
+      expect(datasetIndex).toBeGreaterThan(-1);
+      const values = chart.data.datasets[datasetIndex].data;
+      const index = values.indexOf(Math.max(...values));
+
+      clickBar(datasetIndex, index);
+      const toast = /** @type {HTMLElement} */ (
+        await waitFor(() => {
+          const found = document.querySelector("cts-toast-host cts-toast");
+          expect(found).toBeTruthy();
+          return found;
+        })
+      );
+      // "Other" is a fold of the families outside the seven colour slots, so
+      // /api/plan has no way to be asked for it.
+      expect(toast.textContent).toContain("No drill-down for");
+      expect(toast.textContent).toContain("Other");
+      expect(urls.length).toBe(1);
+      /** @type {any} */ (toast).dismiss();
+      await waitFor(() => {
+        expect(document.querySelector("cts-toast-host cts-toast")).toBeNull();
+      });
+    });
+
+    await step("a data-table row is the keyboard route into a whole period", async () => {
+      const rows = Array.from(
+        canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
+      );
+      const period = rows[2].textContent.trim();
+      expect(rows[2].getAttribute("aria-label")).toBe(`List the test plans in ${period}`);
+
+      await userEvent.click(rows[2]);
+      await waitFor(() => {
+        expect(urls.length).toBe(2);
+      });
+      // A row names a period, not a series, and no family is filtered — so
+      // the link narrows by the period alone.
+      expect(urls[1]).toBe(`plans.html?${bounds(period)}`);
+    });
+
+    await step("with a family filtered, even the keyboard route carries it", async () => {
+      await userEvent.selectOptions(select(canvasElement, "stats-family"), "OID4VP");
+      await waitFor(() => {
+        expect(location.search).toContain("family=OID4VP");
+      }, POLL_TIMEOUT);
+      await waitForCharts(canvasElement);
+
+      const rows = Array.from(
+        canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
+      );
+      const period = rows[1].textContent.trim();
+      await userEvent.click(rows[1]);
+      await waitFor(() => {
+        expect(urls.length).toBe(3);
+      });
+      expect(urls[2]).toBe(`plans.html?family=OID4VP&${bounds(period)}`);
+    });
+  },
+};
+
+/**
  * A filter combination the data has nothing for. The axis still comes back
  * full — the periods are the cube's, not the filter's — so without this the
  * reader would be left interpreting five charts of zeros.

@@ -20,6 +20,12 @@
  * narrowed. Nothing in this file re-slices a payload.
  */
 
+// The drill-down link lands on the plans listing, so its parameters are that
+// listing's vocabulary, not this page's — `plan-list-filter.js` owns the
+// names, the variant prefix and the order they are written in, and parses
+// them back on the other side. Pure module, no DOM, no cycle.
+import { emptyFilter, toParams as planListParams } from "./plan-list-filter.js";
+
 /**
  * The statistics payload. Every field is declared as present because the
  * server contract guarantees it; the runtime guards throughout this file are
@@ -494,6 +500,91 @@ export function periodBounds(period, granularity) {
     from: isoDay(new Date(Date.UTC(year, month - 1, 1))),
     to: isoDay(new Date(Date.UTC(year, month, 1))),
   };
+}
+
+// --- Drill-down --------------------------------------------------------
+
+/** The listing the drill-down lands on. Both pages sit at the web root. */
+const PLANS_PAGE = "plans.html";
+
+/**
+ * The separator `StatisticsCube` joins a plan's certification profiles with
+ * when it builds a `certKey`. `GET /api/plan?cert=` matches ONE profile
+ * exactly, so a joined key cannot be forwarded as it stands.
+ */
+const CERT_JOIN = " | ";
+
+/**
+ * What a click on a chart bar identifies, over and above the page's own
+ * filter state.
+ * @typedef {object} DrillDownClick
+ * @property {number} periodIndex - Position in the payload's `periods`, from
+ *   `cts-chart-click`. Out of range (or `-1` for the keyboard route on a chart
+ *   with no period) simply drops the date bounds.
+ * @property {string} [family] - The family the clicked dataset stands for, for
+ *   the charts whose datasets ARE families (runs, plans, certified). Empty for
+ *   the results chart (its datasets are result buckets, which the plans
+ *   listing cannot filter on) and for the keyboard row route.
+ */
+
+/**
+ * The plans-listing URL a chart click drills into: the page's current filters,
+ * narrowed to the clicked family and the clicked period.
+ *
+ * Returns `null` when the click cannot name a listing — the folded "Other"
+ * series and the two synthetic buckets stand for plans that are not in the
+ * registry (or, for "No plan", for runs with no plan at all), and
+ * `GET /api/plan?family=` has no way to express either, so it would answer
+ * with an empty list. The caller says so with a toast instead of navigating.
+ * @param {FilterState} state - The page's filter state.
+ * @param {DrillDownClick} click - What was clicked.
+ * @param {StatisticsData} data - The payload the chart was built from (its
+ *   `periods` and `granularity` turn `periodIndex` into date bounds).
+ * @returns {string|null} A relative `plans.html?…` URL, or `null` when the
+ *   clicked bucket has no plans to list.
+ */
+export function drillDownUrl(state, click, data) {
+  const family = text(state && state.family) || text(click && click.family);
+  if (family === OTHER_LABEL || SYNTHETIC_FAMILIES.has(family)) return null;
+
+  const periods = list(data && data.periods);
+  const index = Number(click && click.periodIndex);
+  const bounds = Number.isInteger(index)
+    ? periodBounds(periods[index], (data && data.granularity) || "month")
+    : null;
+  const cert = text(state && state.cert);
+
+  // Built as the listing's own filter object and serialised by the listing's
+  // own `toParams`, so the two ends of this link cannot drift: the parameter
+  // names, the variant prefix and the order the variants come out in have
+  // exactly one definition, in `plan-list-filter.js`, and `plans.html` parses
+  // back what this produced.
+  const query = planListParams({
+    ...emptyFilter(),
+    family,
+    plan: text(state && state.plan),
+    variant: (state && state.variant) || {},
+    // The cube joins every certification profile of a plan into one key, while
+    // the listing matches a single element of `certificationProfileName`.
+    // Sending the first element is therefore a SUPERSET of the statistics
+    // slice: the listing also shows plans certified for that profile alongside
+    // others. Sending the joined key would match nothing at all.
+    cert: cert ? cert.split(CERT_JOIN)[0] : "",
+    from: bounds ? bounds.from : "",
+    to: bounds ? bounds.to : "",
+  }).toString();
+  return query ? `${PLANS_PAGE}?${query}` : PLANS_PAGE;
+}
+
+/**
+ * The bucket a drill-down click resolved to, for the message shown when
+ * {@link drillDownUrl} declines it.
+ * @param {FilterState} state - The page's filter state.
+ * @param {DrillDownClick} click - What was clicked.
+ * @returns {string} The family name, or `""` when the click named none.
+ */
+export function drillDownFamily(state, click) {
+  return text(state && state.family) || text(click && click.family);
 }
 
 // --- Filter options ----------------------------------------------------

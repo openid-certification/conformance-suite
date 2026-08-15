@@ -10,11 +10,20 @@
  * assertions and the Storybook play functions quote the same figures, so a
  * drift in one shows up as a puzzling mismatch in the other.
  *
- * Unlike the Storybook twin this one does NOT apply the query: since phase 2
- * the server slices, so these specs answer every request with the same payload
- * and assert on the query the page *sent*. What each control does to the data
- * is covered by the Storybook play functions, which run against a fixture that
- * really slices.
+ * Like the Storybook twin, {@link statisticsOverviewFor} answers one request
+ * the way `StatisticsSlicer` would — with ONE deliberate difference: it does
+ * **not** clip the axis to `from`/`to`. Storybook runs on a frozen clock, but
+ * Playwright runs on the real one, so clipping fixed fixture dates against
+ * "12 weeks before today" would empty the payload the moment this fixture aged
+ * past the preset — a test that rots on a calendar. The specs assert on the
+ * `from` the page *sent* instead, which is the half the page is responsible
+ * for; what clipping does to the numbers is covered by the Storybook play
+ * functions. Everything else (granularity, filters, dimensions, the 400 for a
+ * malformed `variant.<name>`) is applied here.
+ *
+ * The canned constants below (`MOCK_STATS_READY`, `MOCK_STATS_EMPTY`, …) are
+ * the whole, unfiltered payload and are what the state-machine specs (202
+ * polling, refresh, 500) answer with, so their axis assertions do not move.
  *
  * The READY payload is 14 months of synthetic traffic across eight spec
  * families plus the two synthetic buckets ("No plan", "Other / retired") and
@@ -339,6 +348,10 @@ const UNRESOLVED_PLANS = [
   { planName: "openbanking-uk-v1", runs: 205 },
 ];
 
+/** The per-period half of the fixture at each granularity. */
+const MONTHLY = seriesFor(MOCK_STATS_MONTHS, "month");
+const WEEKLY = seriesFor(MOCK_STATS_WEEKS, "week");
+
 /**
  * The snapshot itself — the `data` half of a READY response, monthly.
  * @type {any}
@@ -346,22 +359,13 @@ const UNRESOLVED_PLANS = [
 export const MOCK_STATS_DATA = {
   families: FAMILIES,
   resultBuckets: RESULT_BUCKETS,
-  ...seriesFor(MOCK_STATS_MONTHS, "month"),
+  ...MONTHLY,
   tiles: TILES,
   storage: STORAGE,
   dimensions: DIMENSIONS,
   heatmap: HEATMAP,
   externalHosts: EXTERNAL_HOSTS,
   unresolvedPlans: UNRESOLVED_PLANS,
-};
-
-/**
- * The same snapshot at weekly granularity, for the weekly range presets.
- * @type {any}
- */
-export const MOCK_STATS_WEEKLY_DATA = {
-  ...MOCK_STATS_DATA,
-  ...seriesFor(MOCK_STATS_WEEKS, "week"),
 };
 
 /**
@@ -377,11 +381,168 @@ export const MOCK_STATS_READY = {
   data: MOCK_STATS_DATA,
 };
 
+// --- The slicer, in miniature ------------------------------------------
+
+/** Matches `QueryParams.VARIANT_NAME` on the server. */
+const VARIANT_NAME = /^[A-Za-z0-9_-]+$/;
+
 /**
- * 200 with the weekly snapshot, for a request that asked for `granularity=week`.
- * @type {any}
+ * The server's verbatim complaint about a `variant.<name>` whose NAME is not
+ * one (`QueryParams.variant()`), which is the realistic way a page reaches a
+ * 400: a value is never rejected, only a name.
+ * @param {string} name - The offending name, without the `variant.` prefix.
+ * @returns {string} The message the server would answer with.
  */
-export const MOCK_STATS_WEEKLY = { ...MOCK_STATS_READY, data: MOCK_STATS_WEEKLY_DATA };
+export function invalidVariantMessage(name) {
+  return (
+    `'variant.${name}' is not a variant parameter name; ` +
+    "only letters, digits, '_' and '-' can be used"
+  );
+}
+
+/**
+ * @param {URLSearchParams} params - The request's query.
+ * @returns {Record<string, string>} The `variant.<name>=<value>` filters.
+ */
+function variantFilters(params) {
+  /** @type {Record<string, string>} */
+  const variant = {};
+  for (const [key, value] of params.entries()) {
+    if (key.startsWith("variant.") && value) variant[key.slice("variant.".length)] = value;
+  }
+  return variant;
+}
+
+/**
+ * @param {Record<string, Array<number>>} map - Family → series.
+ * @param {(family: string) => number} weight - 0 drops a family, 1 keeps it whole.
+ * @returns {Record<string, Array<number>>} The weighted map.
+ */
+function scaleFamilies(map, weight) {
+  return Object.fromEntries(
+    Object.entries(map).map(([family, series]) => [
+      family,
+      series.map((value) => Math.round(value * weight(family))),
+    ]),
+  );
+}
+
+/**
+ * The dimensions under one query. Each dimension is narrowed by every filter,
+ * its own included — which is what makes the page's remembered option lists
+ * worth having.
+ * @param {string} family - The family filter, or `""`.
+ * @param {string} plan - The plan filter, or `""`.
+ * @param {Record<string, string>} variant - The variant filters.
+ * @param {string} cert - The certification profile filter, or `""`.
+ * @returns {any} The dimensions.
+ */
+function narrowDimensions(family, plan, variant, cert) {
+  const plans = DIMENSIONS.plans.filter(
+    (option) => (!family || option.family === family) && (!plan || option.planName === plan),
+  );
+  const variants = Object.fromEntries(
+    Object.entries(DIMENSIONS.variants).map(([name, values]) => [
+      name,
+      variant[name]
+        ? /** @type {Array<any>} */ (values).filter((option) => option.value === variant[name])
+        : values,
+    ]),
+  );
+  return {
+    plans,
+    variants,
+    certProfiles: cert
+      ? DIMENSIONS.certProfiles.filter((profile) => profile.name === cert)
+      : DIMENSIONS.certProfiles,
+    entities: DIMENSIONS.entities,
+  };
+}
+
+/**
+ * Answer one `GET /api/statistics/overview` request from this fixture: the
+ * granularity picks the axis, families outside the filter are zeroed (never
+ * removed — the contract is that every family has a series), the dimensions
+ * are counted under the whole query INCLUDING their own filter, and the tiles,
+ * storage, heatmap, hosts and unresolved plans are never filtered at all.
+ * The axis itself is NOT clipped to `from`/`to` — see the file header.
+ *
+ * Variant and certification filters halve every series rather than modelling
+ * real per-variant traffic: what a spec needs is that filtering visibly
+ * changes the numbers and the dimensions, not that the fixture is a database.
+ * A family that never ran ("Shared Signals Framework") therefore yields a
+ * payload of zeros, which is what the page's no-match state is made of.
+ * @param {string|URL} requestUrl - The request URL.
+ * @returns {any} A READY response body.
+ */
+export function statisticsOverviewFor(requestUrl) {
+  const url = requestUrl instanceof URL ? requestUrl : new URL(requestUrl);
+  const params = url.searchParams;
+  const weekly = params.get("granularity") === "week";
+  const base = weekly ? WEEKLY : MONTHLY;
+
+  const plan = params.get("plan") || "";
+  const planFamily = (DIMENSIONS.plans.find((option) => option.planName === plan) || {}).family;
+  const family = params.get("family") || planFamily || "";
+  const cert = params.get("cert") || "";
+  const variant = variantFilters(params);
+
+  const narrowing = cert || Object.keys(variant).length > 0 ? 0.5 : 1;
+  const weight = (/** @type {string} */ name) => (family && name !== family ? 0 : narrowing);
+  const userScale = (family ? 0.5 : 1) * narrowing;
+
+  return {
+    status: "ready",
+    computedAt: MOCK_STATS_READY.computedAt,
+    computeDurationMs: MOCK_STATS_READY.computeDurationMs,
+    refreshing: false,
+    lastError: null,
+    data: {
+      families: FAMILIES,
+      resultBuckets: RESULT_BUCKETS,
+      periods: [...base.periods],
+      granularity: weekly ? "week" : "month",
+      testRunsByFamily: scaleFamilies(base.testRunsByFamily, weight),
+      plansByFamily: scaleFamilies(base.plansByFamily, weight),
+      certifiedByFamily: scaleFamilies(base.certifiedByFamily, weight),
+      resultsByFamily: Object.fromEntries(
+        Object.entries(base.resultsByFamily).map(([name, byBucket]) => [
+          name,
+          scaleFamilies(byBucket, () => weight(name)),
+        ]),
+      ),
+      users: {
+        activeByPeriod: base.users.activeByPeriod.map((value) => Math.round(value * userScale)),
+        newByPeriod: base.users.newByPeriod.map((value) => Math.round(value * userScale)),
+      },
+      tiles: TILES,
+      storage: STORAGE,
+      dimensions: narrowDimensions(family, plan, variant, cert),
+      heatmap: HEATMAP,
+      externalHosts: EXTERNAL_HOSTS,
+      unresolvedPlans: UNRESOLVED_PLANS,
+    },
+  };
+}
+
+/**
+ * The whole response — status included — the way the endpoint would answer
+ * it, so a route helper can be handed the request URL and nothing else.
+ * @param {string|URL} requestUrl - The request URL.
+ * @returns {{status: number, body: any}} The status and body to answer with.
+ */
+export function statisticsResponseFor(requestUrl) {
+  const url = requestUrl instanceof URL ? requestUrl : new URL(requestUrl);
+  for (const key of url.searchParams.keys()) {
+    if (!key.startsWith("variant.")) continue;
+    const name = key.slice("variant.".length).trim();
+    // The server validates the NAME whether or not a value came with it.
+    if (!VARIANT_NAME.test(name)) {
+      return { status: 400, body: { status: "invalid", message: invalidVariantMessage(name) } };
+    }
+  }
+  return { status: 200, body: statisticsOverviewFor(url) };
+}
 
 /**
  * 200 with the same snapshot while a newer one is being computed
@@ -448,8 +609,7 @@ export const MOCK_STATS_PENDING = {
  */
 export const MOCK_STATS_INVALID = {
   status: "invalid",
-  message:
-    "'variant.bad name' is not a variant parameter name; only letters, digits, '_' and '-' can be used",
+  message: invalidVariantMessage("bad name"),
 };
 
 /**

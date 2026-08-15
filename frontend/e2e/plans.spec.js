@@ -953,3 +953,174 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
     await expect(tip).toContainText("Published test plans are conformance");
   });
 });
+
+/**
+ * Refuse the first /api/plan request and answer every later one with the full
+ * listing, recording each URL. `/api/plan` answers 400 for a filter it cannot
+ * use — a `variant.<name>` that is not a name — so a filtered listing is
+ * exactly where a failed fetch is reachable. Module scope, so the `if` stays
+ * out of the test body (`playwright/no-conditional-in-test`).
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string[]>} requested /api/plan URLs, in order
+ */
+async function recordRefusedThenOkPlanRoute(page) {
+  /** @type {string[]} */
+  const planRequests = [];
+  await page.route("**/api/plan*", (route) => {
+    planRequests.push(route.request().url());
+    if (planRequests.length === 1) {
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "'variant.bad name' is not a variant parameter name" }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_PLAN_LIST),
+    });
+  });
+  return planRequests;
+}
+
+/**
+ * Drill-down from the statistics charts (Task 14). `plans.html` reads
+ * `family` / `plan` / `variant.<k>` / `cert` / `from` / `to` out of its query
+ * string and hands them to `<cts-plan-list>` as a property before the element
+ * upgrades, so the FIRST `/api/plan` request already carries them — the
+ * SERVER applies them, unlike the search box, which is client-side.
+ */
+test.describe("plans.html — drill-down filters", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("the URL's filters go to the server, show as chips, and each chip removes its own", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto(
+      "/plans.html?family=OIDCC&variant.client_auth_type=client_secret_basic" +
+        "&from=2026-05-01&to=2026-06-01",
+    );
+    await expect(page.locator(CARD).first()).toBeVisible();
+
+    const first = new URL(planRequests[0]);
+    expect(first.searchParams.get("family")).toBe("OIDCC");
+    expect(first.searchParams.get("variant.client_auth_type")).toBe("client_secret_basic");
+    expect(first.searchParams.get("from")).toBe("2026-05-01");
+    // Exclusive upper bound: the next period's start, not the last day.
+    expect(first.searchParams.get("to")).toBe("2026-06-01");
+    // One request, already filtered — no unfiltered paint to correct.
+    expect(planRequests).toHaveLength(1);
+
+    const filters = page.locator("[data-testid='plan-filters']");
+    await expect(filters.locator("cts-badge")).toHaveCount(3);
+    await expect(page.locator("[data-testid='plan-filter-family']")).toContainText("Family: OIDCC");
+    await expect(
+      page.locator("[data-testid='plan-filter-variant-client_auth_type']"),
+    ).toContainText("client_auth_type: client_secret_basic");
+    // `to` is exclusive, so the chip names the last day a plan could have
+    // started on — never the day the range excludes.
+    await expect(page.locator("[data-testid='plan-filter-from']")).toContainText(
+      "Started 1 May 2026 – 31 May 2026",
+    );
+
+    // The filters are the view's scope, so they survive a dataset switch.
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await expect.poll(() => planRequests.length).toBe(2);
+    const published = new URL(planRequests[1]);
+    expect(published.searchParams.get("public")).toBe("true");
+    expect(published.searchParams.get("family")).toBe("OIDCC");
+    expect(published.searchParams.get("from")).toBe("2026-05-01");
+    await page.locator("cts-view-tabs a[data-view='my']").click();
+    await expect.poll(() => planRequests.length).toBe(3);
+
+    // Removing a chip goes back to the server without that one parameter.
+    await page.locator("[data-testid='plan-filter-family'] span[role='button']").click();
+    await expect.poll(() => planRequests.length).toBe(4);
+    const narrowed = new URL(planRequests[3]);
+    expect(narrowed.searchParams.get("family")).toBeNull();
+    expect(narrowed.searchParams.get("variant.client_auth_type")).toBe("client_secret_basic");
+    expect(narrowed.searchParams.get("from")).toBe("2026-05-01");
+    await expect(page).toHaveURL(
+      /\?variant\.client_auth_type=client_secret_basic&from=2026-05-01&to=2026-06-01$/,
+    );
+    await expect(filters.locator("cts-badge")).toHaveCount(2);
+
+    await page.locator("[data-testid='plan-filters-clear']").click();
+    await expect(page.locator("[data-testid='plan-filters']")).toHaveCount(0);
+    await expect(page).toHaveURL(/plans\.html$/);
+    const cleared = new URL(planRequests[4]);
+    expect(cleared.searchParams.get("from")).toBeNull();
+    expect(cleared.searchParams.get("variant.client_auth_type")).toBeNull();
+  });
+
+  test("a filter that matches nothing says so and offers a way back to everything", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await mockEmptyPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html?family=OID4VP&from=2026-05-01&to=2026-06-01");
+
+    const empty = page.locator(PLAN_EMPTY);
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText("No plans match these filters");
+    // A real link, so it works with the keyboard and the middle button.
+    const clear = empty.locator("a[href='plans.html']");
+    await expect(clear).toContainText("Clear filters");
+    // The chips stay put, so the reader can see what emptied the list.
+    await expect(page.locator("[data-testid='plan-filters'] cts-badge")).toHaveCount(2);
+  });
+
+  test("a listing the server refuses keeps its chips, and removing one asks again", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordRefusedThenOkPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto(
+      "/plans.html?family=OIDCC&plan=oidcc-basic-certification-test-plan" +
+        "&cert=OpenID+Connect+Basic+OP",
+    );
+
+    const alert = page.locator("#plansListing cts-alert[variant='danger']");
+    await expect(alert).toContainText("Failed to load test plans (HTTP 400)");
+    await expect(page.locator(CARD)).toHaveCount(0);
+
+    // A filter is what can CAUSE the failure, so hiding the chips would leave
+    // the reader an error with no way to see what was asked for — let alone
+    // clear it.
+    const filters = page.locator("[data-testid='plan-filters']");
+    await expect(filters.locator("cts-badge")).toHaveCount(3);
+    await expect(page.locator("[data-testid='plan-filter-family']")).toContainText("Family: OIDCC");
+    await expect(page.locator("[data-testid='plan-filter-plan']")).toContainText(
+      "Plan: oidcc-basic-certification-test-plan",
+    );
+    await expect(page.locator("[data-testid='plan-filter-cert']")).toContainText(
+      "Certification profile: OpenID Connect Basic OP",
+    );
+
+    // Removing one is the way out: the request goes again without it and the
+    // listing replaces the alert.
+    await page.locator("[data-testid='plan-filter-cert'] span[role='button']").click();
+    await expect.poll(() => planRequests.length).toBe(2);
+    const retried = new URL(planRequests[1]);
+    expect(retried.searchParams.get("cert")).toBeNull();
+    expect(retried.searchParams.get("family")).toBe("OIDCC");
+    expect(retried.searchParams.get("plan")).toBe("oidcc-basic-certification-test-plan");
+    await expect(page.locator(CARD).first()).toBeVisible();
+    await expect(alert).toHaveCount(0);
+    await expect(filters.locator("cts-badge")).toHaveCount(2);
+  });
+});

@@ -349,11 +349,24 @@ class CtsViewTabs extends LitElement {
    * is page-agnostic (reused by plans.html and logs.html). Used for graceful
    * degradation and middle-click; the click handler preventDefaults the
    * in-page navigation.
+   *
+   * Every parameter other than `public` is carried over, exactly as
+   * {@link _handleTabClick} carries them: the plans listing's drill-down
+   * filters (`family`, `from`, …) and the logs listing's `status` / `result`
+   * live there, and opening the other tab in a new window must not silently
+   * widen the view the user is looking at.
    * @param {"my" | "published"} view - The view the anchor targets.
    * @returns {string} The href for that view.
    */
   _hrefFor(view) {
-    return view === "published" ? `${location.pathname}?public=true` : location.pathname;
+    const params = new URLSearchParams(location.search);
+    if (view === "published") {
+      params.set("public", "true");
+    } else {
+      params.delete("public");
+    }
+    const query = params.toString();
+    return location.pathname + (query ? `?${query}` : "");
   }
 
   render() {

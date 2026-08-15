@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { emptyFilter, planListFilterFromUrl } from "./plan-list-filter.js";
 import {
   CATEGORY_COLOR_VARS,
   DEFAULT_RANGE,
@@ -16,6 +17,8 @@ import {
   certifiedDatasets,
   defaultFilterState,
   distributionDatasets,
+  drillDownFamily,
+  drillDownUrl,
   familiesWithRuns,
   foldOther,
   formatBytes,
@@ -510,6 +513,162 @@ describe("periodBounds", () => {
     expect(periodBounds("2026-06", "week")).toBeNull();
     expect(periodBounds("2026-13", "month")).toBeNull();
     expect(periodBounds("", "month")).toBeNull();
+  });
+});
+
+// --- Drill-down --------------------------------------------------------
+
+describe("drillDownUrl", () => {
+  /** @type {() => any} The payload's period axis, monthly. */
+  const monthly = () => ({ periods: [...PERIODS], granularity: "month" });
+  /** @type {any} A payload with no periods at all. */
+  const noPeriods = {};
+
+  it("takes the family from the clicked dataset when none is filtered", () => {
+    const url = drillDownUrl(
+      defaultFilterState(),
+      { periodIndex: 0, family: "FAPI-CIBA" },
+      monthly(),
+    );
+    expect(url).toBe("plans.html?family=FAPI-CIBA&from=2024-01-01&to=2024-02-01");
+  });
+
+  it("keeps the filtered family even when a different series was clicked", () => {
+    // The page is already showing one family, so every bar in every chart
+    // belongs to it; the dataset label cannot widen the slice.
+    const state = { ...defaultFilterState(), family: "OID4VP" };
+    const url = drillDownUrl(state, { periodIndex: 1, family: "FAPI-CIBA" }, monthly());
+    expect(url).toBe("plans.html?family=OID4VP&from=2024-02-01&to=2024-03-01");
+  });
+
+  it("carries the plan and every variant, variants in a stable order", () => {
+    const state = {
+      ...defaultFilterState(),
+      family: "FAPI1 Advanced",
+      plan: "fapi1-advanced-final-test-plan",
+      variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
+    };
+    expect(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly())).toBe(
+      "plans.html?family=FAPI1+Advanced&plan=fapi1-advanced-final-test-plan" +
+        "&variant.client_auth_type=mtls&variant.fapi_profile=openbanking_brazil" +
+        "&from=2024-01-01&to=2024-02-01",
+    );
+  });
+
+  it("sends the first certification profile of a joined key", () => {
+    // The cube joins a plan's profiles with " | "; /api/plan matches ONE
+    // element, so the joined key would list nothing at all.
+    const state = {
+      ...defaultFilterState(),
+      family: "FAPI-CIBA",
+      cert: "FAPI-CIBA: Poll w/ MTLS | FAPI-CIBA: Ping w/ Private Key",
+    };
+    const url = new URL(
+      String(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly())),
+      "https://example.test/",
+    );
+    expect(url.searchParams.get("cert")).toBe("FAPI-CIBA: Poll w/ MTLS");
+  });
+
+  it("percent-encodes what a query string cannot carry", () => {
+    const state = {
+      ...defaultFilterState(),
+      family: "eKYC & Identity Assurance",
+      cert: "FAPI-CIBA: Poll w/ MTLS",
+    };
+    const raw = String(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly()));
+    expect(raw).toContain("family=eKYC+%26+Identity+Assurance");
+    expect(raw).toContain("cert=FAPI-CIBA%3A+Poll+w%2F+MTLS");
+    const url = new URL(raw, "https://example.test/");
+    expect(url.searchParams.get("family")).toBe("eKYC & Identity Assurance");
+    expect(url.searchParams.get("cert")).toBe("FAPI-CIBA: Poll w/ MTLS");
+  });
+
+  it("bounds a weekly bar by its Monday and the next", () => {
+    /** @type {any} */
+    const weekly = { periods: ["2026-04-27", "2026-05-04"], granularity: "week" };
+    expect(drillDownUrl(defaultFilterState(), { periodIndex: 1, family: "OIDCC" }, weekly)).toBe(
+      "plans.html?family=OIDCC&from=2026-05-04&to=2026-05-11",
+    );
+  });
+
+  it("declines the folded Other series and the two synthetic buckets", () => {
+    const state = defaultFilterState();
+    expect(drillDownUrl(state, { periodIndex: 0, family: OTHER_LABEL }, monthly())).toBeNull();
+    expect(drillDownUrl(state, { periodIndex: 0, family: NO_PLAN_FAMILY }, monthly())).toBeNull();
+    expect(
+      drillDownUrl(state, { periodIndex: 0, family: OTHER_RETIRED_FAMILY }, monthly()),
+    ).toBeNull();
+    // Also when the synthetic bucket is the FILTER rather than the click: the
+    // listing cannot express "not in the registry" either way.
+    expect(
+      drillDownUrl({ ...state, family: NO_PLAN_FAMILY }, { periodIndex: 0, family: "" }, monthly()),
+    ).toBeNull();
+  });
+
+  it("drills into the period alone when nothing names a family", () => {
+    // The results chart's datasets are result buckets, so the click carries
+    // no family — the period is still a useful narrowing on its own.
+    expect(drillDownUrl(defaultFilterState(), { periodIndex: 2, family: "" }, monthly())).toBe(
+      "plans.html?from=2024-03-01&to=2024-04-01",
+    );
+  });
+
+  it("drops the dates rather than the link when the period cannot be resolved", () => {
+    const state = { ...defaultFilterState(), family: "OID4VP" };
+    expect(drillDownUrl(state, { periodIndex: 999, family: "" }, monthly())).toBe(
+      "plans.html?family=OID4VP",
+    );
+    expect(drillDownUrl(state, { periodIndex: -1, family: "" }, monthly())).toBe(
+      "plans.html?family=OID4VP",
+    );
+    expect(drillDownUrl(state, { periodIndex: 0, family: "" }, noPeriods)).toBe(
+      "plans.html?family=OID4VP",
+    );
+  });
+
+  it("produces exactly the filter the plans page reads back out of it", () => {
+    // The parity test across the link: this is the ONE assertion that fails if
+    // the two ends ever disagree about a parameter name, the variant prefix or
+    // how a value is encoded. `drillDownUrl` serialises through the listing's
+    // own `toParams`, and this parses with the listing's own parser.
+    const state = {
+      ...defaultFilterState(),
+      family: "eKYC & Identity Assurance",
+      plan: "ekyc-test-plan",
+      variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
+      cert: "FAPI-CIBA: Poll w/ MTLS | FAPI-CIBA: Ping w/ Private Key",
+    };
+    const url = String(drillDownUrl(state, { periodIndex: 5, family: "" }, monthly()));
+    expect(url.startsWith("plans.html?")).toBe(true);
+    expect(planListFilterFromUrl(url.slice(url.indexOf("?")))).toEqual({
+      ...emptyFilter(),
+      family: "eKYC & Identity Assurance",
+      plan: "ekyc-test-plan",
+      variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
+      // Split: the listing matches one profile, never the joined key.
+      cert: "FAPI-CIBA: Poll w/ MTLS",
+      from: "2024-06-01",
+      to: "2024-07-01",
+    });
+  });
+
+  it("links to the whole listing when there is nothing at all to narrow by", () => {
+    expect(drillDownUrl(defaultFilterState(), { periodIndex: 999, family: "" }, noPeriods)).toBe(
+      "plans.html",
+    );
+  });
+});
+
+describe("drillDownFamily", () => {
+  it("names the bucket a refused click resolved to, for the message", () => {
+    expect(drillDownFamily(defaultFilterState(), { periodIndex: 0, family: OTHER_LABEL })).toBe(
+      OTHER_LABEL,
+    );
+    expect(
+      drillDownFamily({ ...defaultFilterState(), family: NO_PLAN_FAMILY }, { periodIndex: 0 }),
+    ).toBe(NO_PLAN_FAMILY);
+    expect(drillDownFamily(defaultFilterState(), { periodIndex: 0 })).toBe("");
   });
 });
 
