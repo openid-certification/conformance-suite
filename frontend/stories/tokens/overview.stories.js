@@ -188,6 +188,23 @@ const JWT_SEGMENTS = [
   "--jwe-tag",
 ];
 
+// Chart categorical palette (<cts-chart>, admin statistics page). Seven
+// fixed-order series slots plus a neutral "Other" bucket and the surface
+// colour the wrapper paints into bar borders / point rings to make the 2px
+// gap between touching marks. Values are the data-viz reference categorical
+// order; see the validator report at the definition site in oidf-tokens.css.
+const CHART_PALETTE = [
+  "--chart-cat-1",
+  "--chart-cat-2",
+  "--chart-cat-3",
+  "--chart-cat-4",
+  "--chart-cat-5",
+  "--chart-cat-6",
+  "--chart-cat-7",
+  "--chart-other",
+  "--chart-surface",
+];
+
 const BADGE_RINGS = ["--badge-ring", "--badge-ring-clickable", "--badge-ring-pressed"];
 
 /** @type {[string, string[]][]} */
@@ -203,6 +220,7 @@ const COLOR_GROUPS = [
   ["Link decoration", SEMANTIC_MISC],
   ["Status palette", STATUS],
   ["JWT segments", JWT_SEGMENTS],
+  ["Chart categorical palette", CHART_PALETTE],
   ["Badge affordance rings", BADGE_RINGS],
 ];
 
@@ -323,6 +341,7 @@ const ALL_DOCUMENTED_PROPS = [
   ...SEMANTIC_MISC,
   ...STATUS,
   ...JWT_SEGMENTS,
+  ...CHART_PALETTE,
   ...BADGE_RINGS,
   ...FONT_FAMILIES,
   ...FONT_SIZES,

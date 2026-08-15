@@ -35,6 +35,11 @@
      --jwe-cypher / --jwe-tag added for the log-detail More panel's colored
      JWT split (cts-log-entry). AA-darkened takes on jwt.io's debugger hues;
      values documented at the definition site below.
+   - Chart categorical palette: --chart-cat-1..7 / --chart-other /
+     --chart-surface added for <cts-chart> (the admin statistics page). The
+     OIDF ramps cannot supply seven mutually-separable categorical hues, so
+     the seven slots are the data-viz skill's validated reference order;
+     the validator report is recorded at the definition site below.
    ================================================================ */
 
 /* Inter v4.1 — variable woff2, upright, weight axis 100..900.
@@ -202,6 +207,61 @@
   --jwt-signature: #00799E;
   --jwe-cypher:    #A75E0D;
   --jwe-tag:       #2C811A;
+
+  /* ---- Chart categorical palette (<cts-chart>, statistics page) ----
+     Seven categorical series slots plus a neutral "Other" bucket and the
+     chart surface. Assigned in FIXED slot order, never cycled: a series
+     keeps its hue when a filter removes its neighbours, and an 8th family
+     folds into --chart-other rather than generating a new hue.
+
+     Values are the data-viz reference categorical order (blue, orange,
+     aqua, yellow, magenta, green, violet) taken verbatim — snapping slot 2
+     to the OIDF --orange-400 ramp step (#EB8B35) was measured and rejected
+     because it drops the worst adjacent CVD pair from ΔE 9.1 to 7.7, i.e.
+     into the 6–8 warn band. The OIDF ramps also cannot supply seven
+     mutually-separable hues (they are three warm ramps plus a neutral).
+
+     Validator report — `node scripts/validate_palette.js
+     "#2a78d6,#eb6834,#1baf7a,#eda100,#e87ba4,#008300,#4a3aa7"
+     --mode light --surface "#FFFFFF"` (the data-viz skill's script; surface
+     is --bg = --ink-0 = #FFFFFF, and this token file is light-mode only):
+       [PASS] Lightness band      all 7 inside L 0.43–0.77
+       [PASS] Chroma floor        all 7 >= 0.1
+       [PASS] CVD separation      worst adjacent #eda100↔#1baf7a ΔE 9.1
+                                  (protan)                   [gate >= 8 under
+                                  protan/deutan; tritan is reported only,
+                                  not gated: worst 5.8 — see note below]
+       [PASS] Normal-vision floor worst adjacent #e87ba4↔#eda100 ΔE 19.6
+                                                             [floor >= 15]
+       [WARN] Contrast vs surface below 3:1: #1baf7a 2.82, #eda100 2.17,
+                                  #e87ba4 2.69
+       -> ALL CHECKS PASS
+     The contrast WARN is accepted under the skill's relief rule: every
+     <cts-chart> ships a <details> data table carrying the exact values, so
+     no number is reachable only by discriminating a low-contrast fill.
+     The same relief covers the informational tritan figure: the method's
+     CVD gate is protan/deutan (the two common dichromacies); tritanopia is
+     rare and its worst adjacent pair (aqua↔yellow, ΔE 5.8) stays legible
+     via legend, tooltip and the data table.
+
+     --chart-other is a deliberate neutral, so it is validated separately
+     (it FAILs the chroma floor by design — that is what "reads as gray"
+     means, and it is the point of an "Other" bucket). Against slot 7 it
+     measures CVD ΔE 29.7 / normal-vision ΔE 31.5, well clear of both
+     gates; its own surface contrast is 2.80 (same relief rule).
+
+     --chart-surface is the colour <cts-chart> paints into bar borders and
+     point rings to produce the 2px gap that separates touching marks. It
+     must track whatever surface the chart sits on. */
+  --chart-cat-1:   #2a78d6;   /* blue */
+  --chart-cat-2:   #eb6834;   /* orange */
+  --chart-cat-3:   #1baf7a;   /* aqua */
+  --chart-cat-4:   #eda100;   /* yellow */
+  --chart-cat-5:   #e87ba4;   /* magenta */
+  --chart-cat-6:   #008300;   /* green */
+  --chart-cat-7:   #4a3aa7;   /* violet */
+  --chart-other:   var(--ink-400);   /* folded tail — neutral, never a hue */
+  --chart-surface: var(--bg);
 
   /* ---- Badge affordance ring (Radix-style alpha border) ----
      One warm-tinted-grey overlay, drawn as an inset box-shadow on top of
