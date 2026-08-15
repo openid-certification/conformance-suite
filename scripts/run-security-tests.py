@@ -1278,6 +1278,18 @@ def run_tests():
                  updated_after is not None and updated_after != updated_before,
                  f"before={updated_before}, after={updated_after}")
 
+    # no re-orphaning: because the module was stopped BEFORE its logs were deleted, nothing
+    # remains to read. A regression that stopped it after deleteTests would leave the stop
+    # log here as an orphan, which the timestamp check above would not catch.
+    resp = owner_client.get(f"{base_url}api/log/{op_test_id}")
+    n = _json_len(resp)
+    runner.check("Stop-on-delete: no orphaned log entries remain after delete",
+                 resp.status_code == 200 and n == 0,
+                 f"HTTP {resp.status_code}, {n} entries")
+
+    resp = owner_client.get(f"{base_url}api/info/{op_test_id}")
+    runner.check_status("Stop-on-delete: test info is gone after delete", resp, 404)
+
     # ===================================================================
     # 4g. METADATA & LISTING ENDPOINTS
     # ===================================================================
