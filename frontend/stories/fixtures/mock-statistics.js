@@ -20,7 +20,10 @@
  *   family's colour;
  * - every result bucket populated somewhere, including NEVER_FINISHED;
  * - a family with runs but no plans (standalone modules);
- * - plans, variants and certification profiles to cascade through.
+ * - plans, variants and certification profiles to cascade through, including
+ *   a variant parameter with a single value (nothing to choose between, so
+ *   neither the filter row nor the distributions section shows it) and one
+ *   whose delivered order is by PLANS while the chart plots USERS.
  *
  * Since phase 2 the SERVER slices, so a fixture that ignores the query would
  * make every range and filter look broken. {@link statisticsOverviewFor}
@@ -262,11 +265,23 @@ const DIMENSIONS = {
       { value: "openbanking_brazil", users: 37, plans: 290 },
       { value: "openbanking_uk", users: 12, plans: 60 },
     ],
+    // Ranked by PLANS on the way in, and by users the other way round, so the
+    // distribution chart has to sort on the measure it plots rather than trust
+    // the delivered order.
+    server_metadata: [
+      { value: "discovery", users: 23, plans: 512 },
+      { value: "static", users: 71, plans: 145 },
+    ],
+    // A parameter with only one value: nothing to choose between, so neither
+    // the filter row nor the distributions section shows it.
+    client_registration: [{ value: "dynamic_client", users: 9, plans: 34 }],
   },
   certProfiles: [
     { name: "FAPI2 Security Profile Final", users: 31, plans: 120 },
     { name: "Brazil Open Finance | FAPI-CIBA", users: 18, plans: 64 },
     { name: "OpenID Connect Basic OP", users: 11, plans: 39 },
+    // A long name, so the distribution chart's axis has something to elide.
+    { name: "FAPI2 Message Signing Final | Brazil Open Finance", users: 7, plans: 21 },
   ],
   entities: [
     { entity: "Test an OpenID Provider / Authorization Server", runs: 61200 },
@@ -276,8 +291,9 @@ const DIMENSIONS = {
 };
 
 /**
- * Per-collection storage counters. Placeholder shape for Task 13's storage
- * tiles; the numbers are plausible rather than measured.
+ * Per-collection storage counters, behind the storage KPI row. The numbers
+ * are plausible rather than measured, and deliberately span three orders of
+ * magnitude so the byte formatter has to reach MB and GB.
  * @type {any}
  */
 const STORAGE = [
@@ -306,8 +322,9 @@ const STORAGE = [
 
 /**
  * Runs by day of the week (Monday first) and hour of the day, UTC: 7 rows of
- * 24. Deterministic and shaped like office hours — a working-day bulge — so
- * Task 13's heatmap has something with a readable pattern in it.
+ * 24. Deterministic and shaped like office hours — a working-day bulge, quiet
+ * nights and quieter weekends — so the heatmap has a pattern to read and its
+ * sequential ramp is exercised from its palest step to its darkest.
  * @type {Array<Array<number>>}
  */
 const HEATMAP = Array.from({ length: 7 }, (_, day) =>
@@ -326,6 +343,9 @@ const EXTERNAL_HOSTS = [
   { host: "as.example.com", runs: 8200, users: 41, lastSeen: "2026-05-31T22:14:02Z" },
   { host: "auth.bank.example", runs: 5100, users: 12, lastSeen: "2026-05-30T08:02:44Z" },
   { host: "idp.example.org", runs: 2400, users: 26, lastSeen: "2026-05-28T16:39:10Z" },
+  { host: "wallet.example.net", runs: 1180, users: 9, lastSeen: "2026-05-27T11:05:31Z" },
+  { host: "issuer.example.coop", runs: 640, users: 5, lastSeen: "2026-05-21T19:48:00Z" },
+  { host: "op.staging.example", runs: 210, users: 3, lastSeen: "2026-04-30T06:12:19Z" },
 ];
 
 /** @type {any} */

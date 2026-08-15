@@ -247,7 +247,8 @@ export const Ready = {
       // Unfiltered, the suite mentions getting on for forty plan-level variant
       // parameters; a row of forty selects is not a filter row.
       expect(canvasElement.querySelectorAll('[data-testid^="stats-variant-"]').length).toBe(0);
-      expect(select(canvasElement, "stats-cert").options.length).toBe(4);
+      // Four certification profiles plus "All profiles".
+      expect(select(canvasElement, "stats-cert").options.length).toBe(5);
     });
 
     await step("five charts, each on the server's 12-month axis", async () => {
@@ -513,9 +514,11 @@ export const FiltersCascade = {
     });
 
     await step("a variant parameter narrows it further", async () => {
-      // They appear now, because a family and a plan have narrowed the view.
+      // They appear now, because a family and a plan have narrowed the view —
+      // one per parameter with more than one value to choose between, so the
+      // fixture's single-valued `client_registration` is not among them.
       await waitFor(() => {
-        expect(canvasElement.querySelectorAll('[data-testid^="stats-variant-"]').length).toBe(2);
+        expect(canvasElement.querySelectorAll('[data-testid^="stats-variant-"]').length).toBe(3);
       }, POLL_TIMEOUT);
       const variant = select(canvasElement, "stats-variant-client_auth_type");
       expect(variant.getAttribute("aria-label")).toBe("Variant: client_auth_type");
@@ -594,6 +597,159 @@ export const FiltersCascade = {
       for (const dataset of runsChartInstance(canvasElement).data.datasets) {
         expect(dataset.backgroundColor).toBe(paintBefore[dataset.label]);
       }
+    });
+  },
+};
+
+/**
+ * Everything below the trend charts: the storage row, the three
+ * distributions, the activity heatmap and the external servers.
+ *
+ * The three groups are scoped differently and the page has to say so — the
+ * distributions follow the filters, the heatmap follows the range only, the
+ * hosts nothing at all — so this story checks the wording as well as the
+ * numbers.
+ */
+export const PhaseTwoSections = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForCharts(canvasElement);
+
+    await step("a storage tile per collection, in human bytes", async () => {
+      const tiles = canvasElement.querySelectorAll('[data-testid="stats-storage"] .cts-stats-tile');
+      expect(tiles.length).toBe(3);
+      const tile = /** @type {HTMLElement} */ (
+        canvasElement.querySelector('[data-testid="stat-storage-TEST_INFO"]')
+      );
+      const part = (/** @type {string} */ selector) =>
+        /** @type {HTMLElement} */ (tile.querySelector(selector)).textContent;
+      expect(part(".cts-stats-tile-value").trim()).toBe("91,800");
+      expect(part(".cts-stats-tile-label").trim()).toBe("TEST_INFO documents");
+      const hint = part(".cts-stats-tile-hint").replace(/\s+/g, " ");
+      expect(hint).toContain("1.7 GB data");
+      expect(hint).toContain("581.7 MB on disk");
+      expect(hint).toContain("91.6 MB indexes");
+    });
+
+    await step("variant usage waits for a family or a plan", async () => {
+      // Unfiltered, the suite mentions getting on for forty variant
+      // parameters; forty small multiples is not a section.
+      const variants = canvasElement.querySelector('[data-testid="stats-dist-variants"]');
+      expect(variants.textContent).toContain("Select a family or plan to see variant usage");
+      expect(variants.querySelectorAll("cts-chart").length).toBe(0);
+    });
+
+    await step("certification profiles are charted by distinct users", async () => {
+      const { headers, rows } = chartTable(canvasElement, "stats-dist-certs");
+      expect(headers).toEqual(["Certification profile", "Users", "Plans"]);
+      expect(rows.length).toBe(4);
+      const first = [...rows[0].querySelectorAll("th, td")].map((cell) => cell.textContent.trim());
+      expect(first).toEqual(["FAPI2 Security Profile Final", "31", "120"]);
+      // One series, so no legend: the heading already names what is plotted.
+      const chart = /** @type {any} */ (
+        canvasElement.querySelector('[data-testid="stats-dist-certs"] cts-chart')
+      );
+      expect(chart.chartInstance.options.indexAxis).toBe("y");
+      expect(chart.chartInstance.options.interaction.axis).toBe("y");
+      expect(chart.chartInstance.options.plugins.legend.display).toBe(false);
+      expect(chart.chartInstance.data.datasets.length).toBe(1);
+      // The plan count is not plotted — one bar, one measure — so hovering has
+      // to be able to reach it, not just the data table.
+      expect(chart.tooltipFooter(0)).toEqual(["120 plans"]);
+      expect(chart.tooltipFooter(3)).toEqual(["21 plans"]);
+    });
+
+    await step("entity under test is charted by runs, with no second column", async () => {
+      const { headers, rows } = chartTable(canvasElement, "stats-dist-entities");
+      expect(headers).toEqual(["Entity", "Runs"]);
+      expect(rows.length).toBe(3);
+      // Nothing but runs to report, so no footer is wired at all.
+      const chart = /** @type {any} */ (
+        canvasElement.querySelector('[data-testid="stats-dist-entities"] cts-chart')
+      );
+      expect(chart.tooltipFooter).toBeUndefined();
+      expect(/** @type {HTMLElement} */ (rows[0].querySelector("th")).textContent.trim()).toBe(
+        "Test an OpenID Provider / Authorization Server",
+      );
+    });
+
+    await step("picking a family brings the variant small multiples in", async () => {
+      await userEvent.selectOptions(
+        select(canvasElement, "stats-family"),
+        "FAPI2 Security Profile",
+      );
+      await waitFor(() => {
+        expect(canvasElement.querySelectorAll('[data-testid^="stats-dist-variant-"]').length).toBe(
+          3,
+        );
+      }, POLL_TIMEOUT);
+      // The single-valued parameter is not among them: one bar says only that
+      // everything used the one value it could have used.
+      expect(
+        canvasElement.querySelector('[data-testid="stats-dist-variant-client_registration"]'),
+      ).toBeNull();
+      const headings = [
+        ...canvasElement.querySelectorAll('[data-testid^="stats-dist-variant-"] h3'),
+      ].map((h3) => h3.textContent.trim());
+      expect(headings).toEqual(["client_auth_type", "fapi_profile", "server_metadata"]);
+    });
+
+    await step("...ranked on the measure they plot, not on the delivered order", async () => {
+      // The fixture delivers server_metadata ranked by PLANS (discovery
+      // first); the chart plots USERS, so it has to re-rank.
+      const { headers, rows } = chartTable(canvasElement, "stats-dist-variant-server_metadata");
+      expect(headers).toEqual(["Value", "Users", "Plans"]);
+      expect(
+        rows.map((row) => /** @type {HTMLElement} */ (row.querySelector("th")).textContent.trim()),
+      ).toEqual(["static", "discovery"]);
+      const chart = /** @type {any} */ (
+        canvasElement.querySelector('[data-testid="stats-dist-variant-server_metadata"] cts-chart')
+      );
+      expect(chart.tooltipFooter(0)).toEqual(["145 plans"]);
+      expect([...rows[0].querySelectorAll("td")].map((cell) => cell.textContent.trim())).toEqual([
+        "71",
+        "145",
+      ]);
+    });
+
+    await step("the heatmap is 7 x 24 and says what it is and is not filtered by", async () => {
+      const heatmap = canvasElement.querySelector('[data-testid="stats-heatmap"]');
+      expect(heatmap.querySelectorAll(".cts-heatmap-cell").length).toBe(7 * 24);
+      const caption = heatmap
+        .querySelector(".cts-heatmap-caption")
+        .textContent.replace(/\s+/g, " ");
+      // How much the grid is counting altogether, then what it does and does
+      // not follow.
+      expect(caption).toMatch(/^[\d,]+ runs in this range\./);
+      expect(caption).toContain("All hours are UTC");
+      expect(caption).toContain("selected range (12 months) only");
+      expect(caption).toContain("not by family, plan, variant or certification profile");
+      // A family IS selected by now, and the heatmap must not have followed it.
+      const cells = heatmap.querySelectorAll(".cts-heatmap-cell");
+      expect(cells[0].getAttribute("title")).toBe("Mon 00:00 UTC — 18 runs");
+      expect(canvas.getByText("Activity (UTC)")).toBeInTheDocument();
+    });
+
+    await step("external servers are a disclosure, all-time and unfiltered", async () => {
+      const hosts = /** @type {HTMLDetailsElement} */ (
+        canvasElement.querySelector('[data-testid="stats-hosts"]')
+      );
+      expect(hosts.open).toBe(false);
+      expect(/** @type {HTMLElement} */ (hosts.querySelector("summary")).textContent.trim()).toBe(
+        "External servers under test (6)",
+      );
+      expect(hosts.textContent.replace(/\s+/g, " ")).toContain(
+        "the suite's own endpoints are excluded",
+      );
+      const rows = [...hosts.querySelectorAll("tbody tr")];
+      expect(rows.length).toBe(6);
+      const first = [...rows[0].querySelectorAll("th, td")].map((cell) => cell.textContent.trim());
+      expect(first.slice(0, 3)).toEqual(["as.example.com", "8,200", "41"]);
+      expect(
+        /** @type {HTMLElement} */ (rows[0].querySelector("time")).getAttribute("datetime"),
+      ).toBe("2026-05-31T22:14:02.000Z");
     });
   },
 };

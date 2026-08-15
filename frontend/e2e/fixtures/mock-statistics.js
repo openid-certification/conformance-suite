@@ -28,7 +28,11 @@
  * - a family with runs but no plans ("No plan" — standalone modules);
  * - a family with no runs at all ("Shared Signals Framework"), which must not
  *   be offered in the family filter;
- * - plans, variants and certification profiles for the filter cascade.
+ * - plans, variants and certification profiles for the filter cascade,
+ *   including a variant parameter with a single value (which neither the
+ *   filter row nor the distributions section shows);
+ * - storage rows, a day x hour heatmap and external hosts for the sections
+ *   below the trend charts.
  */
 
 const WEEK_COUNT = 26;
@@ -243,11 +247,23 @@ const DIMENSIONS = {
       { value: "openbanking_brazil", users: 37, plans: 290 },
       { value: "openbanking_uk", users: 12, plans: 60 },
     ],
+    // Ranked by PLANS on the way in, and by users the other way round, so the
+    // distribution chart has to sort on the measure it plots rather than trust
+    // the delivered order.
+    server_metadata: [
+      { value: "discovery", users: 23, plans: 512 },
+      { value: "static", users: 71, plans: 145 },
+    ],
+    // A parameter with only one value: nothing to choose between, so neither
+    // the filter row nor the distributions section shows it.
+    client_registration: [{ value: "dynamic_client", users: 9, plans: 34 }],
   },
   certProfiles: [
     { name: "FAPI2 Security Profile Final", users: 31, plans: 120 },
     { name: "Brazil Open Finance | FAPI-CIBA", users: 18, plans: 64 },
     { name: "OpenID Connect Basic OP", users: 11, plans: 39 },
+    // A long name, so the distribution chart's axis has something to elide.
+    { name: "FAPI2 Message Signing Final | Brazil Open Finance", users: 7, plans: 21 },
   ],
   entities: [
     { entity: "Test an OpenID Provider / Authorization Server", runs: 61200 },
@@ -298,6 +314,9 @@ const EXTERNAL_HOSTS = [
   { host: "as.example.com", runs: 8200, users: 41, lastSeen: "2026-05-31T22:14:02Z" },
   { host: "auth.bank.example", runs: 5100, users: 12, lastSeen: "2026-05-30T08:02:44Z" },
   { host: "idp.example.org", runs: 2400, users: 26, lastSeen: "2026-05-28T16:39:10Z" },
+  { host: "wallet.example.net", runs: 1180, users: 9, lastSeen: "2026-05-27T11:05:31Z" },
+  { host: "issuer.example.coop", runs: 640, users: 5, lastSeen: "2026-05-21T19:48:00Z" },
+  { host: "op.staging.example", runs: 210, users: 3, lastSeen: "2026-04-30T06:12:19Z" },
 ];
 
 /** @type {any} */

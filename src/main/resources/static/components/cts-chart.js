@@ -1,4 +1,5 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, nothing } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import "./cts-alert.js";
 
 /**
@@ -46,13 +47,23 @@ const POINT_RADIUS_PX = 4;
 const FRAME_HEIGHT_PX = 320;
 
 /**
+ * Horizontal bars are laid out the other way round: the height is the number
+ * of categories, not a constant. One band per bar plus the value-axis band at
+ * the bottom, so a 3-row chart is short and a 12-row one is tall enough that
+ * every label has room.
+ */
+const HORIZONTAL_BAND_PX = 26;
+const HORIZONTAL_AXIS_PX = 44;
+const HORIZONTAL_MIN_HEIGHT_PX = 120;
+
+/**
  * Properties whose change actually affects the plot. Everything else
  * (`heading`, `categoryLabel`) only re-renders the surrounding markup, so
  * pushing it into Chart.js would replay the animation and re-read computed
  * styles for nothing.
  * @type {Array<string>}
  */
-const PLOT_PROPS = ["type", "labels", "datasets", "stacked", "_status"];
+const PLOT_PROPS = ["type", "labels", "datasets", "stacked", "horizontal", "maxBars", "_status"];
 
 /** Per-instance id counter, so each `<figure>` can point at its own `<h3>`. */
 let headingSeq = 0;
@@ -134,6 +145,25 @@ const STYLE_TEXT = css`
     position: relative;
     height: ${FRAME_HEIGHT_PX}px;
   }
+  /* Horizontal bars grow downwards, so the frame is sized from the category
+     count (set inline as --cts-chart-rows) rather than fixed: a fixed height
+     would either squeeze twelve bars into 320px or leave three floating in
+     it. The axis band is inside the height, so the card never gets a nested
+     scrollbar. */
+  .cts-chart-frame.is-horizontal {
+    height: max(
+      ${HORIZONTAL_MIN_HEIGHT_PX}px,
+      calc(var(--cts-chart-rows, 1) * ${HORIZONTAL_BAND_PX}px + ${HORIZONTAL_AXIS_PX}px)
+    );
+  }
+  /* A long category name is the normal case here (plan-level variant values,
+     certification profile names), so the note that says what the plot leaves
+     out sits with the chart, not in the table. */
+  .cts-chart-more {
+    margin: var(--space-2, 8px) 0 0;
+    font-size: var(--fs-12, 12px);
+    color: var(--fg-soft);
+  }
   .cts-chart-data {
     margin-top: var(--space-3, 12px);
   }
@@ -191,6 +221,22 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
+/** Longest category label a horizontal axis tick renders before eliding. */
+const HORIZONTAL_LABEL_MAX = 28;
+
+/**
+ * Shorten a category label for a horizontal axis tick. The full text stays in
+ * the tooltip and the data table, so nothing is lost — only the axis column's
+ * share of the card is capped.
+ * @param {unknown} label - The tick's label.
+ * @returns {string} The label, elided to {@link HORIZONTAL_LABEL_MAX}.
+ */
+function elide(label) {
+  const text = String(label ?? "");
+  if (text.length <= HORIZONTAL_LABEL_MAX) return text;
+  return `${text.slice(0, HORIZONTAL_LABEL_MAX - 1).trimEnd()}…`;
+}
+
 /**
  * Read a design-system custom property off `:root`.
  * @param {CSSStyleDeclaration} cs - Computed style of `document.documentElement`.
@@ -224,6 +270,20 @@ function token(cs, name, fallback) {
  *   includes the leading `--` (e.g. `"--chart-cat-1"`), resolved off
  *   `:root`; unresolvable names fall back to `--ink-400`.
  * @property {boolean} stacked - Stack the series on both axes (bar charts).
+ * @property {boolean} horizontal - Lay bars out along the x axis, one
+ *   category per row (`indexAxis: "y"`). The frame's height then follows the
+ *   category count. Use it whenever the category names are long enough to be
+ *   unreadable rotated under a column — plan names, variant values,
+ *   certification profiles.
+ * @property {number} maxBars - Plot at most this many categories (0, the
+ *   default, plots them all). The data table is NEVER truncated — it keeps
+ *   every row, and a note under the plot says how many were left out — so
+ *   capping the bars hides nothing.
+ * @property {Array<{label: string, data: Array<number>}>} tableExtras -
+ *   Extra columns for the data table only, appended after the plotted
+ *   series. For the second measure a category carries that is context rather
+ *   than the thing being compared (the plan count behind a user count).
+ *   Property-only; not settable as an attribute.
  * @property {string} heading - Chart title. Rendered as the `<h3>`, the
  *   table `<caption>`, and the leading half of the canvas `aria-label`.
  * @property {string} categoryLabel - Header for the table's first (category)
@@ -240,6 +300,9 @@ class CtsChart extends LitElement {
     labels: { type: Array },
     datasets: { type: Array },
     stacked: { type: Boolean },
+    horizontal: { type: Boolean },
+    maxBars: { type: Number, attribute: "max-bars" },
+    tableExtras: { attribute: false },
     heading: { type: String },
     categoryLabel: { type: String, attribute: "category-label" },
     tooltipFooter: { attribute: false },
@@ -256,6 +319,12 @@ class CtsChart extends LitElement {
     this.datasets = [];
     /** @type {boolean} */
     this.stacked = false;
+    /** @type {boolean} */
+    this.horizontal = false;
+    /** @type {number} */
+    this.maxBars = 0;
+    /** @type {Array<{label: string, data: Array<number>}>} */
+    this.tableExtras = [];
     /** @type {string} */
     this.heading = "";
     /** @type {string} */
@@ -375,6 +444,18 @@ class CtsChart extends LitElement {
   }
 
   /**
+   * How many categories the PLOT shows. The data table always shows them all;
+   * `maxBars` only caps the bars, because past a dozen of them the shortest
+   * stop being comparable.
+   * @returns {number} The plotted category count.
+   */
+  _plottedCount() {
+    const labels = (this.labels || []).length;
+    const cap = Number(this.maxBars) || 0;
+    return cap > 0 ? Math.min(cap, labels) : labels;
+  }
+
+  /**
    * Build the Chart.js `data` object, resolving each series' `colorVar`
    * against `:root` and applying the mark specs (capped bar thickness,
    * rounded data-end, 2px surface gap between touching fills, 2px surface
@@ -387,14 +468,15 @@ class CtsChart extends LitElement {
     const fallbackColor = token(cs, "--ink-400", "#A09A8E");
     const surface = token(cs, "--chart-surface", token(cs, "--bg", "#FFFFFF"));
     const isLine = type === "line";
+    const plotted = this._plottedCount();
 
     return {
-      labels: [...(this.labels || [])],
+      labels: (this.labels || []).slice(0, plotted),
       datasets: (this.datasets || []).map((ds) => {
         const color = ds.colorVar ? token(cs, ds.colorVar, fallbackColor) : fallbackColor;
         const base = {
           label: ds.label,
-          data: [...(ds.data || [])],
+          data: (ds.data || []).slice(0, plotted),
         };
         if (isLine) {
           return {
@@ -446,30 +528,62 @@ class CtsChart extends LitElement {
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    const horizontal = this.horizontal === true;
+    const plottedLabels = (this.labels || []).slice(0, this._plottedCount());
+    // Gridlines belong to the VALUE axis: on the categorical axis they add
+    // ink without carrying a value. Which of x/y that is flips with
+    // `horizontal`, so the two axis descriptions are built and then assigned.
+    /** @type {Record<string, unknown>} */
+    const categoryTicks = {
+      color: tickColor,
+      font,
+      // Every row of a horizontal chart is named — the frame's height is sized
+      // from the category count precisely so they all fit. A vertical axis
+      // keeps Chart.js's own thinning, or 52 weekly ticks would overlap.
+      autoSkip: !horizontal,
+    };
+    if (horizontal) {
+      // Chart.js grows the category axis to fit its longest label, so one
+      // 60-character certification profile name would leave the bars a sliver
+      // of the card. The label is elided in the tick only; the tooltip and the
+      // data table below carry it in full. The index is read out of our own
+      // labels rather than off the scale, so the callback stays an arrow with
+      // no `this` to bind — and the key is only ADDED when it is needed,
+      // because setting `callback: undefined` overrides the category scale's
+      // own formatter and leaves an axis of row numbers.
+      categoryTicks.callback = (/** @type {unknown} */ value, /** @type {number} */ index) =>
+        elide(plottedLabels[index]);
+    }
+    const categoryAxis = {
+      stacked,
+      grid: { display: false },
+      border: { color: gridColor },
+      ticks: categoryTicks,
+    };
+    const valueAxis = {
+      stacked,
+      beginAtZero: true,
+      grid: { color: gridColor, drawTicks: false },
+      border: { display: false },
+      // Everything this component plots is a count of something, so a scale
+      // that tops out at 1 must tick 0/1 rather than 0.0, 0.2, 0.4 …
+      ticks: { color: tickColor, font, precision: 0 },
+    };
+
     /** @type {any} */
     const options = {
       responsive: true,
       maintainAspectRatio: false,
-      // The whole column is the hit target, so the pointer never has to land
-      // on a 2px line to read a value.
-      interaction: { mode: "index", intersect: false },
-      scales: {
-        x: {
-          stacked,
-          // Vertical gridlines add ink without carrying a value on a
-          // categorical axis; the y grid alone locates the marks.
-          grid: { display: false },
-          border: { color: gridColor },
-          ticks: { color: tickColor, font },
-        },
-        y: {
-          stacked,
-          beginAtZero: true,
-          grid: { color: gridColor, drawTicks: false },
-          border: { display: false },
-          ticks: { color: tickColor, font },
-        },
-      },
+      // Chart.js reads the category axis off indexAxis; "y" is what turns
+      // columns into rows.
+      indexAxis: horizontal ? "y" : "x",
+      // The whole band is the hit target, so the pointer never has to land on
+      // a 2px line to read a value. `axis` MUST follow `indexAxis`: index mode
+      // defaults to measuring distance in x, which on a horizontal chart picks
+      // the row whose VALUE is nearest the cursor rather than the row the
+      // pointer is actually over.
+      interaction: { mode: "index", intersect: false, axis: horizontal ? "y" : "x" },
+      scales: horizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis },
       plugins: {
         legend: {
           display: seriesCount >= 2,
@@ -488,6 +602,7 @@ class CtsChart extends LitElement {
         tooltip: {
           mode: "index",
           intersect: false,
+          axis: horizontal ? "y" : "x",
           callbacks: {
             // Values lead, series names follow — the reader already has the
             // series and wants the number.
@@ -507,9 +622,13 @@ class CtsChart extends LitElement {
   render() {
     const labels = this.labels || [];
     const datasets = this.datasets || [];
+    const extras = this.tableExtras || [];
     const type = CHART_TYPES[this.type] || CHART_TYPES.bar;
+    const horizontal = this.horizontal === true;
+    const plotted = this._plottedCount();
+    const unit = horizontal ? "categories" : "periods";
     const ariaLabel =
-      `${this.heading}: ${type} chart of ${labels.length} periods across ` +
+      `${this.heading}: ${type} chart of ${plotted} ${unit} across ` +
       `${datasets.length} series. Data table available below.`;
 
     return html`
@@ -519,9 +638,17 @@ class CtsChart extends LitElement {
           ? html`<cts-alert variant="warning"
               >Chart could not be rendered; the data table below is complete.</cts-alert
             >`
-          : html`<div class="cts-chart-frame">
+          : html`<div
+              class=${classMap({ "cts-chart-frame": true, "is-horizontal": horizontal })}
+              style="--cts-chart-rows:${plotted}"
+            >
               <canvas role="img" aria-label=${ariaLabel}></canvas>
             </div>`}
+        ${plotted < labels.length
+          ? html`<p class="cts-chart-more" data-testid="cts-chart-more">
+              Showing the top ${plotted} of ${labels.length}; the rest are in the data table.
+            </p>`
+          : nothing}
         <details class="cts-chart-data">
           <summary>Show data table</summary>
           <table class="cts-chart-table">
@@ -530,6 +657,7 @@ class CtsChart extends LitElement {
               <tr>
                 <th scope="col">${this.categoryLabel || "Period"}</th>
                 ${datasets.map((ds) => html`<th scope="col">${ds.label}</th>`)}
+                ${extras.map((extra) => html`<th scope="col">${extra.label}</th>`)}
               </tr>
             </thead>
             <tbody>
@@ -538,6 +666,7 @@ class CtsChart extends LitElement {
                   html`<tr>
                     <th scope="row">${label}</th>
                     ${datasets.map((ds) => html`<td>${ds.data?.[i] ?? ""}</td>`)}
+                    ${extras.map((extra) => html`<td>${extra.data?.[i] ?? ""}</td>`)}
                   </tr>`,
               )}
             </tbody>

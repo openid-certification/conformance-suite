@@ -31,6 +31,27 @@ const LINE_DATASETS = [
   { label: "Failed", data: [24, 29, 21, 34, 24, 34, 44, 36], colorVar: "--chart-cat-2" },
 ];
 
+// Fifteen certification profiles, so a top-12 chart has a tail to leave out,
+// and one deliberately long name so the axis tick has something to elide.
+const LONG_PROFILE = "Profile 05 — Brazil Open Finance with a very long name";
+const PROFILE_LABELS = Array.from({ length: 15 }, (_, i) =>
+  i === 5 ? LONG_PROFILE : `Profile ${String(i).padStart(2, "0")}`,
+);
+
+const PROFILE_DATASETS = [
+  {
+    label: "Users",
+    data: Array.from({ length: 15 }, (_, i) => 60 - i * 4),
+    colorVar: "--chart-cat-1",
+  },
+];
+
+// The plan count is context for the user count, not a second thing being
+// compared, so it rides in the data table rather than the plot.
+const PROFILE_EXTRAS = [
+  { label: "Plans", data: Array.from({ length: 15 }, (_, i) => 120 - i * 8) },
+];
+
 // The families the "Other" bucket folds together, keyed by month index — the
 // tooltipFooter contract Task 5 uses so a reader can see what "Other" means
 // without leaving the chart.
@@ -133,6 +154,20 @@ export const Default = {
       // separating stacked segments, not a stroke around the mark.
       expect(chart.data.datasets[0].borderColor).toBe("#FFFFFF");
       expect(chart.data.datasets[0].borderWidth).toBe(2);
+    });
+
+    await step("the category axis renders the labels, not row numbers", async () => {
+      // Regression guard: setting `ticks.callback: undefined` on a category
+      // scale overrides Chart.js's own formatter and leaves an axis of
+      // indices — invisible to every assertion that reads the data table.
+      expect(chart.scales.x.type).toBe("category");
+      expect(chart.scales.x.ticks.map((/** @type {any} */ tick) => tick.label)).toEqual(MONTHS);
+      // The column is the hit target, and on a vertical chart that is the x
+      // axis — the mirror of the horizontal story's assertion.
+      expect(chart.options.interaction.axis).toBe("x");
+      // Counts, so the value axis ticks are whole numbers even when the
+      // biggest value is 1.
+      expect(chart.options.scales.y.ticks.precision).toBe(0);
     });
 
     await step("tooltip lists every series at the hovered label, values leading", async () => {
@@ -238,6 +273,113 @@ export const Line = {
         th.textContent.trim(),
       );
       expect(colHeaders).toEqual(["Month", "Passed", "Failed"]);
+    });
+  },
+};
+
+/**
+ * A single-series horizontal bar chart — the form the statistics page's
+ * distributions use, because a certification profile name is unreadable
+ * rotated under a column.
+ *
+ * It exercises the three properties that form needs: `horizontal` (the
+ * category axis moves to y and the frame's height follows the row count),
+ * `max-bars` (only the leading rows are plotted; the data table keeps every
+ * one and a note says so) and `tableExtras` (a second measure that is context
+ * rather than the thing being compared, so it belongs in the table and not in
+ * the plot).
+ */
+export const Horizontal = {
+  args: {
+    heading: "Certification profiles — distinct users",
+    categoryLabel: "Certification profile",
+  },
+  render: ({ heading, categoryLabel }) => html`
+    <cts-chart
+      horizontal
+      max-bars="12"
+      heading=${heading}
+      category-label=${categoryLabel}
+      .labels=${PROFILE_LABELS}
+      .datasets=${PROFILE_DATASETS}
+      .tableExtras=${PROFILE_EXTRAS}
+    ></cts-chart>
+  `,
+
+  async play({ canvasElement, step }) {
+    const { canvas, chart } = await waitForChart(canvasElement);
+
+    await step("the category axis is y and the value axis carries the grid", async () => {
+      expect(chart.options.indexAxis).toBe("y");
+      // Index mode measures distance in x unless told otherwise, which on a
+      // horizontal chart selects the row whose VALUE is nearest the cursor
+      // rather than the row the pointer is over.
+      expect(chart.options.interaction.axis).toBe("y");
+      expect(chart.options.plugins.tooltip.axis).toBe("y");
+      // Gridlines belong to the value axis; on the categorical one they add
+      // ink without carrying a value.
+      expect(chart.options.scales.y.grid.display).toBe(false);
+      expect(chart.options.scales.x.beginAtZero).toBe(true);
+      // Every row is named: the frame is sized from the row count precisely
+      // so Chart.js never has to thin them out.
+      expect(chart.options.scales.y.ticks.autoSkip).toBe(false);
+    });
+
+    await step("one series means one hue and no legend box", async () => {
+      expect(chart.data.datasets.length).toBe(1);
+      expect(chart.data.datasets[0].backgroundColor).toBe("#2a78d6");
+      // The title already names what is plotted; a box with one swatch would
+      // only restate it.
+      expect(chart.options.plugins.legend.display).toBe(false);
+    });
+
+    await step("the frame's height grows with the number of rows", async () => {
+      const frame = canvasElement.querySelector("cts-chart .cts-chart-frame");
+      expect(frame.classList.contains("is-horizontal")).toBe(true);
+      expect(frame.getAttribute("style")).toMatch(/--cts-chart-rows:\s*12/);
+    });
+
+    await step("only the twelve biggest are plotted, and it says so", async () => {
+      expect(chart.data.labels.length).toBe(12);
+      expect(chart.data.labels[0]).toBe("Profile 00");
+      expect(canvas.getAttribute("aria-label")).toBe(
+        "Certification profiles — distinct users: bar chart of 12 categories across 1 series. " +
+          "Data table available below.",
+      );
+      const note = canvasElement.querySelector('[data-testid="cts-chart-more"]');
+      expect(note.textContent.replace(/\s+/g, " ").trim()).toBe(
+        "Showing the top 12 of 15; the rest are in the data table.",
+      );
+    });
+
+    await step("a long name is elided on the axis, never clipped", async () => {
+      // The tick callback reads the label out of the chart's own list by
+      // index, so it is called the way Chart.js calls it: (value, index).
+      const tickAt = (/** @type {number} */ index) =>
+        chart.options.scales.y.ticks.callback(index, index);
+      expect(tickAt(0)).toBe("Profile 00");
+      const longTick = tickAt(chart.data.labels.indexOf(LONG_PROFILE));
+      // Elided, never clipped: the full name is still in the tooltip and the
+      // data table, and the axis column cannot swallow the plot.
+      expect(longTick.endsWith("…")).toBe(true);
+      expect(longTick.length).toBeLessThanOrEqual(28);
+      expect(LONG_PROFILE.startsWith(longTick.slice(0, -1))).toBe(true);
+    });
+
+    await step("the data table is complete, extra column included", async () => {
+      const table = canvasElement.querySelector("cts-chart .cts-chart-data table");
+      const colHeaders = [...table.querySelectorAll('th[scope="col"]')].map((th) =>
+        th.textContent.trim(),
+      );
+      expect(colHeaders).toEqual(["Certification profile", "Users", "Plans"]);
+      const rows = [...table.querySelectorAll("tbody tr")];
+      // Every row, not just the plotted twelve — capping the bars hides
+      // nothing.
+      expect(rows.length).toBe(15);
+      const lastRow = [...rows[14].querySelectorAll("th, td")].map((cell) =>
+        cell.textContent.trim(),
+      );
+      expect(lastRow).toEqual(["Profile 14", "4", "8"]);
     });
   },
 };

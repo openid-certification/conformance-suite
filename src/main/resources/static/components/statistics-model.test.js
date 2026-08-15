@@ -9,13 +9,21 @@ import {
   OTHER_LABEL,
   RANGE_PRESETS,
   RESULT_COLOR_VARS,
+  DISTRIBUTION_LIMIT,
   assignFamilySlots,
   buildChartInputs,
+  buildDistributions,
   certifiedDatasets,
   defaultFilterState,
+  distributionDatasets,
   familiesWithRuns,
   foldOther,
+  formatBytes,
   hasAnyData,
+  heatmapIntensity,
+  heatmapMax,
+  heatmapScaleSteps,
+  heatmapTotal,
   isFiltered,
   isNarrowed,
   memoiseByArgs,
@@ -31,6 +39,7 @@ import {
   runsDatasets,
   sameState,
   stateFromUrl,
+  topN,
   urlFromState,
   usersDatasets,
   visibleVariants,
@@ -1141,5 +1150,268 @@ describe("familiesWithRuns", () => {
 
   it("tolerates an empty payload", () => {
     expect(familiesWithRuns(/** @type {any} */ ({}))).toEqual([]);
+  });
+});
+
+// --- Distributions -----------------------------------------------------
+
+describe("topN", () => {
+  const valueOf = (/** @type {{n: number}} */ item) => item.n;
+
+  it("ranks on the measure being plotted, not on the delivered order", () => {
+    // The server ranks certification profiles and variant values by ONE of
+    // the two counts they carry; a "top N" taken off the other one has to be
+    // re-ranked or it is not a top N.
+    const { shown, hidden } = topN([{ n: 1 }, { n: 9 }, { n: 5 }], valueOf, 2);
+    expect(shown.map((item) => item.n)).toEqual([9, 5]);
+    expect(hidden.map((item) => item.n)).toEqual([1]);
+  });
+
+  it("breaks ties on the delivered order, so the ranking is stable", () => {
+    const items = [
+      { n: 4, id: "a" },
+      { n: 4, id: "b" },
+      { n: 4, id: "c" },
+    ];
+    expect(topN(items, valueOf, 3).shown.map((item) => item.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("hides nothing when the list is shorter than the limit", () => {
+    expect(topN([{ n: 1 }], valueOf, 12).hidden).toEqual([]);
+  });
+
+  it("defaults to the distribution limit", () => {
+    const items = Array.from({ length: DISTRIBUTION_LIMIT + 3 }, (_, i) => ({ n: i }));
+    const { shown, hidden } = topN(items, valueOf);
+    expect(shown.length).toBe(DISTRIBUTION_LIMIT);
+    expect(hidden.length).toBe(3);
+  });
+
+  it("tolerates a missing list", () => {
+    expect(topN(/** @type {any} */ (undefined), valueOf).shown).toEqual([]);
+  });
+});
+
+describe("distributionDatasets", () => {
+  const values = [
+    { value: "discovery", users: 23, plans: 512 },
+    { value: "static", users: 71, plans: 145 },
+  ];
+  const spec = {
+    label: "value",
+    value: "users",
+    valueLabel: "Users",
+    extra: "plans",
+    extraLabel: "Plans",
+  };
+
+  it("builds one series, biggest first, in the single categorical hue", () => {
+    const distribution = distributionDatasets(values, spec);
+    expect(distribution.labels).toEqual(["static", "discovery"]);
+    expect(distribution.datasets.length).toBe(1);
+    expect(distribution.datasets[0]).toEqual({
+      label: "Users",
+      data: [71, 23],
+      // Nominal categories: one series, one hue. Colouring each bar by its own
+      // value would re-encode what the bar length already shows.
+      colorVar: CATEGORY_COLOR_VARS[0],
+    });
+  });
+
+  it("carries the second measure as a table-only column, in the same order", () => {
+    expect(distributionDatasets(values, spec).extras).toEqual([
+      { label: "Plans", data: [145, 512] },
+    ]);
+  });
+
+  it("has no extra column when the spec names no second measure", () => {
+    expect(
+      distributionDatasets([{ entity: "Wallet", runs: 8 }], {
+        label: "entity",
+        value: "runs",
+        valueLabel: "Runs",
+      }).extras,
+    ).toEqual([]);
+  });
+
+  it("keeps every row, plotted or not — the data table is not truncated", () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({ value: `v${i}`, users: i, plans: i }));
+    const distribution = distributionDatasets(many, spec, 12);
+    expect(distribution.labels.length).toBe(20);
+    expect(distribution.datasets[0].data.length).toBe(20);
+    expect(distribution.extras[0].data.length).toBe(20);
+    // ...and the leading 12, which are what <cts-chart max-bars> plots, are
+    // the twelve biggest.
+    expect(distribution.datasets[0].data.slice(0, 12)).toEqual([
+      19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,
+    ]);
+  });
+
+  it("degrades to an empty chart on a missing list", () => {
+    const distribution = distributionDatasets(/** @type {any} */ (undefined), spec);
+    expect(distribution.labels).toEqual([]);
+    expect(distribution.datasets[0].data).toEqual([]);
+  });
+});
+
+describe("buildDistributions", () => {
+  /** @type {any} */
+  const dimensions = {
+    plans: [],
+    variants: {
+      client_auth_type: [
+        { value: "private_key_jwt", users: 88, plans: 640 },
+        { value: "mtls", users: 61, plans: 410 },
+      ],
+      client_registration: [{ value: "dynamic_client", users: 9, plans: 34 }],
+    },
+    certProfiles: [{ name: "FAPI2 Security Profile Final", users: 31, plans: 120 }],
+    entities: [{ entity: "Test a Wallet", runs: 8200 }],
+  };
+
+  it("charts one variant parameter per key with something to choose between", () => {
+    const built = buildDistributions(dimensions);
+    expect(built.variants.map((variant) => variant.key)).toEqual(["client_auth_type"]);
+    expect(built.variants[0].distribution.labels).toEqual(["private_key_jwt", "mtls"]);
+  });
+
+  it("leaves out a variant parameter with a single value", () => {
+    // One bar says only that everything used the one value it could have
+    // used, which the filter row already says by not offering a choice.
+    expect(buildDistributions(dimensions).variants.map((v) => v.key)).not.toContain(
+      "client_registration",
+    );
+  });
+
+  it("plots users for profiles and runs for entities", () => {
+    const built = buildDistributions(dimensions);
+    expect(built.certProfiles?.datasets[0].label).toBe("Users");
+    expect(built.certProfiles?.extras[0].label).toBe("Plans");
+    expect(built.entities?.datasets[0].label).toBe("Runs");
+    expect(built.entities?.extras).toEqual([]);
+  });
+
+  it("returns null for a dimension with nothing in it, so no empty card renders", () => {
+    const built = buildDistributions(
+      /** @type {any} */ ({ plans: [], variants: {}, certProfiles: [], entities: [] }),
+    );
+    expect(built.variants).toEqual([]);
+    expect(built.certProfiles).toBeNull();
+    expect(built.entities).toBeNull();
+  });
+
+  it("tolerates a payload with no dimensions at all", () => {
+    const built = buildDistributions(/** @type {any} */ (undefined));
+    expect(built.variants).toEqual([]);
+    expect(built.certProfiles).toBeNull();
+  });
+});
+
+// --- Storage -----------------------------------------------------------
+
+describe("formatBytes", () => {
+  it("steps through the binary units with one decimal", () => {
+    expect(formatBytes(0)).toBe("0 B");
+    expect(formatBytes(820)).toBe("820 B");
+    expect(formatBytes(24_000_000)).toBe("22.9 MB");
+    expect(formatBytes(1_820_000_000)).toBe("1.7 GB");
+    expect(formatBytes(18_400_000_000)).toBe("17.1 GB");
+  });
+
+  it("rounds bytes to whole numbers — a tenth of a byte is not a thing", () => {
+    expect(formatBytes(1023.6)).toBe("1024 B");
+    expect(formatBytes(1024)).toBe("1.0 KB");
+  });
+
+  it("stops at petabytes rather than inventing a unit", () => {
+    expect(formatBytes(1024 ** 6)).toBe("1024.0 PB");
+  });
+
+  it("treats junk as nothing rather than rendering NaN in a tile", () => {
+    expect(formatBytes(/** @type {any} */ ("nonsense"))).toBe("0 B");
+    expect(formatBytes(/** @type {any} */ (null))).toBe("0 B");
+    expect(formatBytes(-5)).toBe("0 B");
+  });
+});
+
+// --- Heatmap -----------------------------------------------------------
+
+describe("heatmapMax / heatmapTotal", () => {
+  const grid = [
+    [0, 3, 9],
+    [1, 0, 2],
+  ];
+
+  it("finds the busiest cell and the sum of every cell", () => {
+    expect(heatmapMax(grid)).toBe(9);
+    expect(heatmapTotal(grid)).toBe(15);
+  });
+
+  it("reports 0 for an empty or all-zero grid", () => {
+    expect(heatmapMax([])).toBe(0);
+    expect(heatmapMax([[0, 0]])).toBe(0);
+    expect(heatmapTotal(/** @type {any} */ (undefined))).toBe(0);
+  });
+
+  it("tolerates a ragged or malformed grid", () => {
+    expect(heatmapMax(/** @type {any} */ ([[1], null, [4, 2]]))).toBe(4);
+  });
+});
+
+describe("heatmapIntensity", () => {
+  it("is 0 only for an empty cell, so a quiet hour is still visible", () => {
+    expect(heatmapIntensity(0, 100)).toBe(0);
+    expect(heatmapIntensity(1, 100)).toBeGreaterThanOrEqual(10);
+  });
+
+  it("puts the busiest cell at the dark end", () => {
+    expect(heatmapIntensity(100, 100)).toBe(100);
+  });
+
+  it("is square-root scaled, so a skewed grid keeps its low end apart", () => {
+    // Linear would put a cell at 4% of the peak at 4% of the ramp —
+    // indistinguishable from the surface. The sqrt ramp gives it a fifth of
+    // the range.
+    expect(heatmapIntensity(4, 100)).toBe(28);
+    expect(heatmapIntensity(25, 100)).toBe(55);
+  });
+
+  it("never decreases as the value grows", () => {
+    let previous = -1;
+    for (let value = 0; value <= 200; value += 1) {
+      const intensity = heatmapIntensity(value, 200);
+      expect(intensity).toBeGreaterThanOrEqual(previous);
+      previous = intensity;
+    }
+  });
+
+  it("is 0 when there is no scale to be on", () => {
+    expect(heatmapIntensity(5, 0)).toBe(0);
+    expect(heatmapIntensity(/** @type {any} */ ("x"), 10)).toBe(0);
+  });
+});
+
+describe("heatmapScaleSteps", () => {
+  it("labels each swatch with the value it actually stands for", () => {
+    // The inverse of the sqrt ramp: a swatch a quarter of the way along stands
+    // for a SIXTEENTH of the peak, not a quarter of it. Labelling the ends
+    // only would leave the reader assuming the latter.
+    expect(heatmapScaleSteps(1600)).toEqual([
+      { mix: 33, value: 100 },
+      { mix: 55, value: 400 },
+      { mix: 78, value: 900 },
+      { mix: 100, value: 1600 },
+    ]);
+  });
+
+  it("agrees with heatmapIntensity, which is what makes the legend honest", () => {
+    for (const step of heatmapScaleSteps(1600)) {
+      expect(heatmapIntensity(step.value, 1600)).toBe(step.mix);
+    }
+  });
+
+  it("has no steps when there is no scale to show", () => {
+    expect(heatmapScaleSteps(0)).toEqual([]);
+    expect(heatmapScaleSteps(/** @type {any} */ (undefined))).toEqual([]);
   });
 });

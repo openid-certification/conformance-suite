@@ -7,19 +7,23 @@ import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-spinner.js";
 import "./cts-statistics-filters.js";
+import "./cts-statistics-insights.js";
 import "./cts-time.js";
 import {
   EMPTY_OPTIONS,
   assignFamilySlots,
   buildChartInputs,
+  buildDistributions,
   defaultFilterState,
   familiesWithRuns,
+  formatBytes,
   hasAnyData,
   isFiltered,
   isNarrowed,
   memoiseByArgs,
   otherBreakdown,
   queryFromState,
+  rangePreset,
   rememberOptions,
   sameState,
   stateFromUrl,
@@ -29,6 +33,7 @@ import {
 /** @typedef {import("./statistics-model.js").StatisticsData} StatisticsData */
 /** @typedef {import("./statistics-model.js").ChartDataset} ChartDataset */
 /** @typedef {import("./statistics-model.js").FilterState} FilterState */
+/** @typedef {import("./statistics-model.js").Distributions} Distributions */
 
 /** Admin-only endpoint backing the whole page; one payload feeds every chart. */
 const ENDPOINT = "/api/statistics/overview";
@@ -193,6 +198,16 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
   }
 
+  /* The storage row is the same tile, one step quieter: it answers "how big
+     is this database", not "how much is it being used", so it sits under the
+     usage counters rather than beside them. */
+  .cts-stats-subheading {
+    margin: var(--space-4) 0 var(--space-2);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-bold);
+    color: var(--fg-soft);
+  }
+
   .cts-stats-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -272,8 +287,10 @@ function injectStyles() {
 }
 
 /**
- * Suite-wide usage dashboard for `statistics.html`: a KPI row, a filter row,
- * and five charts, all fed by `GET /api/statistics/overview`.
+ * Suite-wide usage dashboard for `statistics.html`: a KPI row, a storage row,
+ * a filter row, five trend charts and — in a sibling
+ * `<cts-statistics-insights>` — the distributions, the activity heatmap and
+ * the external servers, all fed by one `GET /api/statistics/overview`.
  *
  * The endpoint serves a snapshot recomputed in the background at most every
  * 12 hours, so the component has four things to handle beyond a plain fetch:
@@ -301,12 +318,17 @@ function injectStyles() {
  * DOM hooks for e2e (`data-testid`):
  * `stats-forbidden`, `stats-error`, `stats-retry`, `stats-reset-filters`,
  * `stats-last-error`, `stats-loading`, `stats-empty`, `stats-tiles`,
- * `stat-tile-<key>`, `stats-refresh`, `stats-computed-at`, `stats-filters`,
+ * `stat-tile-<key>`, `stats-storage`, `stat-storage-<collection>`,
+ * `stats-refresh`, `stats-computed-at`, `stats-filters`,
  * `stats-range`, `stats-range-weekly`, `stats-range-monthly`, `stats-family`,
  * `stats-plan`, `stats-variant-<name>`, `stats-cert`, `stats-clear-filters`,
  * `stats-charts`, `stats-chart-runs`, `stats-chart-plans`,
  * `stats-chart-results`, `stats-chart-users`, `stats-chart-certified`,
- * `stats-no-match`, `stats-no-match-clear`, `stats-unresolved`.
+ * `stats-no-match`, `stats-no-match-clear`, `stats-unresolved`,
+ * `stats-insights` and, inside it (`cts-statistics-insights.js`),
+ * `stats-distributions`, `stats-dist-variants`, `stats-dist-variant-<key>`,
+ * `stats-dist-certs`, `stats-dist-entities`, `stats-heatmap`, `stats-hosts`;
+ * plus `cts-chart-more` / `cts-heatmap-empty` from the two primitives.
  *
  * Light DOM (`createRenderRoot()` returns `this`) so the page's design-system
  * tokens and stylesheet reach the rendered markup.
@@ -392,6 +414,7 @@ class CtsStatisticsPage extends LitElement {
     );
     this._familyOptions = memoiseByArgs(familiesWithRuns);
     this._hasAnyData = memoiseByArgs(hasAnyData);
+    this._distributions = memoiseByArgs(buildDistributions);
   }
 
   createRenderRoot() {
@@ -811,6 +834,7 @@ class CtsStatisticsPage extends LitElement {
       ${data && this._hasPeriods() && !noMatch ? this._renderTrends(data) : nothing}
       ${noMatch ? this._renderNoMatch() : nothing}
       ${data && !this._hasPeriods() ? this._renderEmpty() : nothing}
+      ${data ? this._renderInsights(data, noMatch) : nothing}
     `;
   }
 
@@ -942,6 +966,39 @@ class CtsStatisticsPage extends LitElement {
               >
               <span class="cts-stats-tile-label">${tile.label}</span>
               <span class="cts-stats-tile-hint">${tile.hint}</span>
+            </div>
+          `,
+        )}
+      </div>
+      ${this._renderStorage(data)}
+    `;
+  }
+
+  /**
+   * How much room the database is taking up, one tile per collection. Same
+   * mark as the counters above it, because it answers the same kind of
+   * question, and — like them — it is a whole-database figure that neither the
+   * range nor any filter scopes.
+   * @param {StatisticsData} data - The current payload.
+   * @returns {unknown} The storage row, or nothing when the server sent none.
+   */
+  _renderStorage(data) {
+    const storage = Array.isArray(data.storage) ? data.storage : [];
+    if (storage.length === 0) return nothing;
+    return html`
+      <h3 class="cts-stats-subheading">Storage</h3>
+      <div class="cts-stats-tiles" data-testid="stats-storage">
+        ${storage.map(
+          (row) => html`
+            <div class="cts-stats-tile" data-testid="stat-storage-${row.collection}">
+              <span class="cts-stats-tile-value"
+                >${NUMBER_FORMAT.format(Number(row.count) || 0)}</span
+              >
+              <span class="cts-stats-tile-label">${row.collection} documents</span>
+              <span class="cts-stats-tile-hint">
+                ${formatBytes(row.size)} data · ${formatBytes(row.storageSize)} on disk ·
+                ${formatBytes(row.totalIndexSize)} indexes
+              </span>
             </div>
           `,
         )}
@@ -1114,6 +1171,37 @@ class CtsStatisticsPage extends LitElement {
           </tbody>
         </table>
       </details>
+    `;
+  }
+
+  /**
+   * The phase-2 extras under the trends: the three distributions, the
+   * activity heatmap and the external servers.
+   *
+   * They are scoped differently from each other and the component says so:
+   * the distributions are counted under the whole query, so they are withheld
+   * when nothing matches it (they would be three empty cards saying what the
+   * no-match state already says); the heatmap is sliced by the range only and
+   * the hosts not at all, so both stay on screen in every state that has a
+   * payload — including the one where the filters match nothing, which is
+   * exactly when an admin wants to know the database is not empty.
+   * @param {StatisticsData} data - The current payload.
+   * @param {boolean} noMatch - Whether the filters matched nothing.
+   * @returns {unknown} The insights block.
+   */
+  _renderInsights(data, noMatch) {
+    /** @type {Distributions|null} */
+    const distributions = noMatch ? null : this._distributions(data.dimensions);
+    return html`
+      <cts-statistics-insights
+        data-testid="stats-insights"
+        range-label=${rangePreset(this._state.range).label}
+        ?narrowed=${Boolean(this._state.family || this._state.plan)}
+        ?busy=${this._busy}
+        .distributions=${distributions}
+        .heatmap=${data.heatmap}
+        .hosts=${data.externalHosts}
+      ></cts-statistics-insights>
     `;
   }
 }

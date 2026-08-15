@@ -935,3 +935,273 @@ export function familiesWithRuns(data) {
   const runs = (data && data.testRunsByFamily) || {};
   return families.filter((family) => total(runs[family]) > 0);
 }
+
+// --- Distributions, storage and the activity heatmap -------------------
+
+/**
+ * How many bars a distribution chart plots. Past a dozen horizontal bars the
+ * shortest ones stop being comparable and the card grows taller than the
+ * charts beside it. The tail is not lost: `<cts-chart>` says how many rows it
+ * left out and its data table carries every one of them.
+ */
+export const DISTRIBUTION_LIMIT = 12;
+
+/**
+ * One distribution: a single-series horizontal bar chart's inputs.
+ *
+ * `labels`, `datasets[0].data` and every `extras[].data` are the WHOLE ranked
+ * list — `<cts-chart max-bars>` plots the leading few and keeps the data table
+ * complete, so capping the bars hides nothing.
+ * @typedef {object} Distribution
+ * @property {Array<string>} labels - Category labels, biggest first.
+ * @property {Array<ChartDataset>} datasets - Exactly one series, in `--chart-cat-1`.
+ * @property {Array<{label: string, data: Array<number>}>} extras - Table-only columns.
+ */
+
+/**
+ * Which fields of a dimension row to read.
+ * @typedef {object} DistributionSpec
+ * @property {string} label - Field carrying the category name.
+ * @property {string} value - Field carrying the plotted measure.
+ * @property {string} valueLabel - What that measure is called ("Users", "Runs").
+ * @property {string} [extra] - Field carrying a second, table-only measure.
+ * @property {string} [extraLabel] - What THAT is called ("Plans").
+ */
+
+/**
+ * Split a ranked list into the head that gets plotted and the tail that does
+ * not.
+ *
+ * The list is sorted here rather than trusted: the server ranks each
+ * dimension by its own measure, which is not always the one being plotted
+ * (certification profiles and variant values carry both a user count and a
+ * plan count), and a "top 12" taken off a list ranked by something else is
+ * not a top 12. Ties keep the delivered order.
+ * @template T
+ * @param {Array<T>} items - The rows.
+ * @param {(item: T) => number} valueOf - Reads the measure being ranked on.
+ * @param {number} [limit] - How many rows the head keeps.
+ * @returns {{shown: Array<T>, hidden: Array<T>}} The head and the tail, both
+ *   in rank order.
+ */
+export function topN(items, valueOf, limit = DISTRIBUTION_LIMIT) {
+  const sorted = list(items)
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => valueOf(b.item) - valueOf(a.item) || a.index - b.index)
+    .map((entry) => entry.item);
+  const cut = Math.max(0, limit);
+  return { shown: sorted.slice(0, cut), hidden: sorted.slice(cut) };
+}
+
+/**
+ * Turn one dimension list into a horizontal bar chart's inputs.
+ *
+ * One series, so every bar wears the same hue (`--chart-cat-1`) and the chart
+ * needs no legend: these are nominal categories, and colouring them by their
+ * own value would spend the identity channel re-encoding what bar length
+ * already shows.
+ *
+ * The head and the tail are concatenated back together, so the caller hands
+ * `<cts-chart>` the WHOLE ranked list and lets `max-bars` decide how much of
+ * it is plotted — the data table then carries every row.
+ * @param {Array<any>} items - Dimension rows from the payload.
+ * @param {DistributionSpec} spec - Which fields to read.
+ * @param {number} [limit] - How many rows are meant to be plotted.
+ * @returns {Distribution} The chart inputs.
+ */
+export function distributionDatasets(items, spec, limit = DISTRIBUTION_LIMIT) {
+  const valueOf = (/** @type {any} */ row) => Number(row && row[spec.value]) || 0;
+  const ranked = topN(items, valueOf, limit);
+  const rows = [...ranked.shown, ...ranked.hidden];
+  const extra = spec.extra || "";
+  return {
+    labels: rows.map((row) => String((row && row[spec.label]) ?? "")),
+    datasets: [
+      {
+        label: spec.valueLabel,
+        data: rows.map(valueOf),
+        colorVar: CATEGORY_COLOR_VARS[0],
+      },
+    ],
+    extras: extra
+      ? [
+          {
+            label: spec.extraLabel || extra,
+            data: rows.map((row) => Number(row && row[extra]) || 0),
+          },
+        ]
+      : [],
+  };
+}
+
+/**
+ * The three distribution charts, ready to render.
+ * @typedef {object} Distributions
+ * @property {Array<{key: string, distribution: Distribution}>} variants - One per variant parameter worth charting.
+ * @property {Distribution|null} certProfiles - Certification profiles, or null when there are none.
+ * @property {Distribution|null} entities - What was under test, or null when there is nothing.
+ */
+
+/**
+ * Build all three distributions out of one payload's `dimensions`.
+ *
+ * A variant parameter with a single value is left out: a chart of one bar
+ * says only that everything used the one value it could have used, which the
+ * filter row already says by not offering a choice.
+ *
+ * Pure, and meant to be called through {@link memoiseByArgs} — the arrays it
+ * returns go straight to `<cts-chart>`, which re-plots whenever their
+ * identity changes.
+ * @param {StatisticsDimensions} dimensions - The payload's dimensions.
+ * @returns {Distributions} The distributions to render.
+ */
+export function buildDistributions(dimensions) {
+  const variantValues = (dimensions && dimensions.variants) || {};
+  const certProfiles = list(dimensions && dimensions.certProfiles);
+  const entities = list(dimensions && dimensions.entities);
+
+  return {
+    variants: Object.keys(variantValues)
+      .filter((key) => list(variantValues[key]).length > 1)
+      .map((key) => ({
+        key,
+        distribution: distributionDatasets(variantValues[key], {
+          label: "value",
+          value: "users",
+          valueLabel: "Users",
+          extra: "plans",
+          extraLabel: "Plans",
+        }),
+      })),
+    certProfiles:
+      certProfiles.length > 0
+        ? distributionDatasets(certProfiles, {
+            label: "name",
+            value: "users",
+            valueLabel: "Users",
+            extra: "plans",
+            extraLabel: "Plans",
+          })
+        : null,
+    entities:
+      entities.length > 0
+        ? distributionDatasets(entities, {
+            label: "entity",
+            value: "runs",
+            valueLabel: "Runs",
+          })
+        : null,
+  };
+}
+
+/** Byte units, biggest last; `formatBytes` walks them from the small end. */
+const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"];
+/** Binary step. Storage counters come off `collStats`, which reports what the
+ *  filesystem allocated, so the same 1024 step `df -h` and MongoDB Compass
+ *  use is what makes these numbers comparable to those tools. */
+const BYTE_STEP = 1024;
+
+/**
+ * Format a byte count for a storage tile: one decimal from KB up, none for
+ * bytes (a tenth of a byte is not a thing), and never more than PB.
+ * @param {number} bytes - The count.
+ * @returns {string} e.g. `"1.7 GB"`, `"820 B"`, `"0 B"`.
+ */
+export function formatBytes(bytes) {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value <= 0) return "0 B";
+  let scaled = value;
+  let unit = 0;
+  while (scaled >= BYTE_STEP && unit < BYTE_UNITS.length - 1) {
+    scaled /= BYTE_STEP;
+    unit += 1;
+  }
+  return `${unit === 0 ? Math.round(scaled) : scaled.toFixed(1)} ${BYTE_UNITS[unit]}`;
+}
+
+/**
+ * The busiest cell in a 2-D grid — the top of the heatmap's colour scale.
+ * @param {Array<Array<number>>} values - Rows of counts.
+ * @returns {number} The largest value, or 0 for an empty or all-zero grid.
+ */
+export function heatmapMax(values) {
+  let max = 0;
+  for (const row of list(values)) {
+    for (const value of list(row)) {
+      const n = Number(value) || 0;
+      if (n > max) max = n;
+    }
+  }
+  return max;
+}
+
+/**
+ * Every cell added up — the caption's "N runs in this range".
+ * @param {Array<Array<number>>} values - Rows of counts.
+ * @returns {number} The sum.
+ */
+export function heatmapTotal(values) {
+  let sum = 0;
+  for (const row of list(values)) sum += total(row);
+  return sum;
+}
+
+/** The palest a non-zero cell may be: below this it is indistinguishable
+ *  from an empty one, which would hide a quiet hour rather than show it. */
+const HEATMAP_MIN_MIX = 10;
+
+/**
+ * Where one cell sits on the sequential ramp, as the percentage of
+ * `--chart-cat-1` mixed into the surface.
+ *
+ * The scale is **square-root**, not linear. Suite activity is heavily skewed
+ * — a weekday office hour runs an order of magnitude more tests than 03:00 on
+ * a Sunday — and on a linear ramp everything but the peak collapses into the
+ * same near-white, which is the one thing a heatmap must not do. A sqrt ramp
+ * is still monotonic, so it never misstates which cell is busier; it only
+ * spends more of the colour range on the low end. Exact counts are in the
+ * cell tooltip and the data table, so no comparison depends on judging a
+ * fill.
+ * @param {number} value - The cell's count.
+ * @param {number} max - The busiest cell, from {@link heatmapMax}.
+ * @returns {number} 0 for an empty cell, otherwise 10-100.
+ */
+export function heatmapIntensity(value, max) {
+  const n = Number(value) || 0;
+  const top = Number(max) || 0;
+  if (n <= 0 || top <= 0) return 0;
+  const share = Math.sqrt(Math.min(n, top) / top);
+  return Math.round(HEATMAP_MIN_MIX + (100 - HEATMAP_MIN_MIX) * share);
+}
+
+/**
+ * Where the legend samples the ramp: fractions of its LENGTH, low end first.
+ * The top of the ramp is always sampled, so the darkest swatch is labelled
+ * with the busiest cell.
+ * @type {Array<number>}
+ */
+const HEATMAP_SCALE_POSITIONS = [0.25, 0.5, 0.75, 1];
+
+/**
+ * The legend's swatches: how dark each one is, and the value it stands for.
+ *
+ * This is the INVERSE of {@link heatmapIntensity}, and it exists because the
+ * ramp is square-root scaled: five evenly spaced swatches labelled only
+ * "0 … max" would read as linear and put the middle one at a quarter of the
+ * value it actually means. A swatch a fraction `f` along the ramp stands for
+ * `f² × max`, so the labels have to say so.
+ *
+ * The empty-cell swatch is not in here — it is not on the ramp at all (an
+ * empty cell keeps the muted surface), so the component renders it itself.
+ * @param {number} max - The busiest cell, from {@link heatmapMax}.
+ * @returns {Array<{mix: number, value: number}>} Percentage of the hue to mix
+ *   in, and the count it represents. Empty when there is no scale.
+ */
+export function heatmapScaleSteps(max) {
+  const top = Number(max) || 0;
+  if (top <= 0) return [];
+  return HEATMAP_SCALE_POSITIONS.map((position) => ({
+    mix: Math.round(HEATMAP_MIN_MIX + (100 - HEATMAP_MIN_MIX) * position),
+    value: Math.round(top * position * position),
+  }));
+}
