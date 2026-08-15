@@ -1573,4 +1573,57 @@ describe("heatmapScaleSteps", () => {
     expect(heatmapScaleSteps(0)).toEqual([]);
     expect(heatmapScaleSteps(/** @type {any} */ (undefined))).toEqual([]);
   });
+
+  it("never labels a swatch 0, because the legend already has a 0 swatch", () => {
+    // f² × max rounds away on a small scale: a quarter of the way along a
+    // ramp topping out at 7 is 0.44 runs. A step labelled "0" next to the
+    // muted "no runs" swatch says the ramp starts at nothing.
+    for (const max of [1, 2, 3, 5, 7, 8]) {
+      for (const step of heatmapScaleSteps(max)) expect(step.value).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("collapses steps that would carry the same label onto the darkest of them", () => {
+    // One run is all there is: one swatch, and it is the colour a cell with
+    // one run actually gets.
+    expect(heatmapScaleSteps(1)).toEqual([{ mix: 100, value: 1 }]);
+    expect(heatmapScaleSteps(5)).toEqual([
+      { mix: 55, value: 1 },
+      { mix: 78, value: 3 },
+      { mix: 100, value: 5 },
+    ]);
+    // Four distinct labels again from a peak of 7 upwards.
+    expect(heatmapScaleSteps(7)).toEqual([
+      { mix: 33, value: 1 },
+      { mix: 55, value: 2 },
+      { mix: 78, value: 4 },
+      { mix: 100, value: 7 },
+    ]);
+    expect(heatmapScaleSteps(8)).toEqual([
+      { mix: 33, value: 1 },
+      { mix: 55, value: 2 },
+      { mix: 78, value: 5 },
+      { mix: 100, value: 8 },
+    ]);
+  });
+
+  it("always samples the top of the ramp, and never paler than the cells it stands for", () => {
+    for (const max of [1, 2, 5, 7, 8, 16, 1600]) {
+      const steps = heatmapScaleSteps(max);
+      const darkest = steps[steps.length - 1];
+      const labels = steps.map((step) => step.value);
+      expect(labels.at(-1)).toBe(max);
+      expect(darkest.mix).toBe(100);
+      // strictly increasing, so no two swatches say the same thing
+      expect([...labels].sort((a, b) => a - b)).toEqual(labels);
+      expect(new Set(labels).size).toBe(labels.length);
+      // and the ramp itself still darkens step by step
+      const mixes = steps.map((step) => step.mix);
+      expect([...mixes].sort((a, b) => a - b)).toEqual(mixes);
+      // The exact inverse of heatmapIntensity only survives while the labels
+      // are not rounded: on a small scale a swatch can be a step off the shade
+      // a cell of that count gets, which is why the label carries the count.
+      expect(heatmapIntensity(darkest.value, max)).toBe(darkest.mix);
+    }
+  });
 });

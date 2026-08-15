@@ -54,11 +54,14 @@ const STYLE_TEXT = css`
     flex-wrap: wrap;
     gap: var(--space-2);
   }
+  /* No overflow:hidden: --focus-ring is drawn OUTSIDE the element it is on,
+     so clipping the strip would clip the ring off the first and last preset -
+     the two a keyboard reaches first. The end buttons round their own outer
+     corners instead. */
   .cts-stats-range {
     display: inline-flex;
     border: 1px solid var(--ink-300);
     border-radius: var(--radius-2);
-    overflow: hidden;
   }
   .cts-stats-range button {
     padding: 0 var(--space-3);
@@ -72,8 +75,14 @@ const STYLE_TEXT = css`
     line-height: 1;
     cursor: pointer;
   }
+  .cts-stats-range button:first-child {
+    border-start-start-radius: calc(var(--radius-2) - 1px);
+    border-end-start-radius: calc(var(--radius-2) - 1px);
+  }
   .cts-stats-range button:last-child {
     border-right: 0;
+    border-start-end-radius: calc(var(--radius-2) - 1px);
+    border-end-end-radius: calc(var(--radius-2) - 1px);
   }
   .cts-stats-range button:hover {
     background: var(--bg-muted);
@@ -85,6 +94,10 @@ const STYLE_TEXT = css`
   .cts-stats-range button:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
+    /* The ring overlaps the neighbouring buttons, which would otherwise paint
+       their own backgrounds over the half of it that is on their side. */
+    position: relative;
+    z-index: 1;
   }
 
   /* Mirrors cts-form-field's .oidf-select, which is scoped to
@@ -299,6 +312,13 @@ class CtsStatisticsFilters extends LitElement {
    * The variant filters worth carrying across a change of plan: the ones
    * whose parameter the current selection actually offers. A parameter the
    * new plan does not declare can only match nothing.
+   *
+   * "Offers" is the PREVIOUS selection's dimensions - the options the page was
+   * handed for the view being left, not the one being moved to, which nobody
+   * has fetched yet. It is therefore a prune of the obviously impossible
+   * rather than a guarantee: a parameter the old view offered and the new plan
+   * does not is carried over once, and the refetch that follows is what
+   * settles it.
    *
    * When nothing is known yet (no payload, so no dimensions) the filters are
    * kept as they are rather than silently dropped — the server will say what

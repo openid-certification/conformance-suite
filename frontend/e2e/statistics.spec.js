@@ -1119,6 +1119,19 @@ test.describe("statistics.html — admin usage dashboard", () => {
     expect(bySeries.searchParams.get("family")).toBe(target.family);
     expect(bySeries.searchParams.get("from")).toBe(`${target.period}-01`);
 
+    // The results chart drills down by PERIOD only — its datasets are result
+    // buckets and a plan has no single result — so its label says so before
+    // the click, rather than leaving "FAILED" landing on every plan of the
+    // month looking like a bug.
+    const results = page.locator('[data-testid="stats-chart-results"]');
+    await results.locator("details summary").click();
+    const resultRow = results.locator("tbody tr").nth(2).locator("button.cts-chart-row-link");
+    const resultPeriod = await resultRow.innerText();
+    await expect(resultRow).toHaveAttribute(
+      "aria-label",
+      `List all test plans, whatever their result, in ${resultPeriod}`,
+    );
+
     // Cancelling the event is what keeps the page here; production has no
     // listener, so the same click navigates (see the click-through test).
     await expect(page).toHaveURL(/statistics\.html/);

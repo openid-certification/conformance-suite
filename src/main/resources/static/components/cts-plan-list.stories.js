@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent, spyOn } from "storybook/test";
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "@fixtures/mock-plans.js";
 import "./cts-plan-list.js";
 import { emptyFilter } from "./plan-list-filter.js";
@@ -804,8 +804,13 @@ export const FilteredApiError = {
   async play({ canvasElement, step }) {
     await waitForPlansToLoad(canvasElement);
 
-    await step("the error is shown", async () => {
-      expect(canvasElement.querySelector(".oidf-alert-danger")).toBeTruthy();
+    await step("the error is shown, and says which parameter the server refused", async () => {
+      const alert = canvasElement.querySelector(".oidf-alert-danger");
+      expect(alert).toBeTruthy();
+      // `{"error": …}` is what TestPlanApi answers a bad filter with, and it
+      // is the only thing that says WHICH chip to remove; the status code on
+      // its own leaves the reader guessing.
+      expect(alert.textContent).toContain("variant.$where is not a variant name");
       expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
     });
 
@@ -1120,6 +1125,73 @@ export const FilteredByChips = {
       await waitFor(() => {
         expect(canvasElement.querySelector('[data-testid="plan-filters"]')).toBeNull();
       });
+    });
+  },
+};
+
+/**
+ * Two filter changes in a row, answered out of order. The first request is
+ * slow and the second overtakes it, so the listing must show the SECOND
+ * answer — and go on showing it when the first finally lands. Without a
+ * request sequence guard the stale rows win simply by arriving last.
+ */
+export const StaleResponsesAreIgnored = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", async ({ request }) => {
+          const url = new URL(request.url);
+          PLAN_REQUESTS.push(url.search);
+          if (url.searchParams.get("family")) {
+            // The filtered listing is the slow one, so removing its chip
+            // starts a second request that answers first.
+            await delay(400);
+            return HttpResponse.json(MOCK_PLAN_LIST.slice(0, 1));
+          }
+          return HttpResponse.json(MOCK_PLAN_LIST);
+        }),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  beforeEach() {
+    history.replaceState(null, "", "/iframe.html");
+    PLAN_REQUESTS.length = 0;
+  },
+  render: () => html`<cts-plan-list .filters=${drillDownFilter()}></cts-plan-list>`,
+  async play({ canvasElement, step }) {
+    await step("the chip is removed while the filtered request is still out", async () => {
+      // The filter row renders during loading precisely so this is possible.
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="plan-filter-family"]')).toBeTruthy();
+        // msw intercepts asynchronously, so the chip is on screen a tick
+        // before the request it was rendered alongside is recorded.
+        expect(PLAN_REQUESTS.length).toBe(1);
+      });
+      await userEvent.click(chipButton(canvasElement, "family"));
+      await waitFor(() => {
+        expect(PLAN_REQUESTS.length).toBe(2);
+      });
+      expect(new URLSearchParams(PLAN_REQUESTS[1]).get("family")).toBeNull();
+    });
+
+    await step("the second answer is what the reader gets", async () => {
+      await waitForPlansToLoad(canvasElement);
+      expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
+        MOCK_PLAN_LIST.length,
+      );
+    });
+
+    await step("and the overtaken one does not replace it when it lands", async () => {
+      await delay(600);
+      expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
+        MOCK_PLAN_LIST.length,
+      );
+      // Nor does it put the list back into the loading state it left.
+      expect(canvasElement.querySelector("cts-loading-state")).toBeNull();
+      expect(canvasElement.querySelectorAll('[data-testid="plan-filters"] cts-badge').length).toBe(
+        2,
+      );
     });
   },
 };

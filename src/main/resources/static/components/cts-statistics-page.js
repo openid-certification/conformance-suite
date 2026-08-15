@@ -12,6 +12,8 @@ import "./cts-time.js";
 import { ctsToast } from "../js/cts-toast-api.js";
 import {
   EMPTY_OPTIONS,
+  NO_PLAN_FAMILY,
+  OTHER_RETIRED_FAMILY,
   assignFamilySlots,
   buildChartInputs,
   buildDistributions,
@@ -96,6 +98,25 @@ function sameSlots(a, b) {
   return keys.length === Object.keys(a).length && keys.every((family) => a[family] === b[family]);
 }
 
+/**
+ * Why a drill-down was refused, keyed by the family the FILTER ROW is set to.
+ * Both of these are buckets the cube counts and the plan listing cannot be
+ * asked for, so telling the reader to "pick a family" — the advice that fits a
+ * click on the folded "Other" series — would be telling them to do what they
+ * have already done.
+ * @type {Record<string, string>}
+ */
+const NO_DRILL_DOWN_MESSAGES = {
+  [NO_PLAN_FAMILY]:
+    "Runs without a plan can't be listed: these are standalone test modules, and the plans list only holds plans.",
+  [OTHER_RETIRED_FAMILY]:
+    "Unresolved plan names aren't in the registry — retired, renamed or hidden — so there is no family the listing can be asked for.",
+};
+
+/** The refusal that fits a click on the folded "Other" series. */
+const NO_DRILL_DOWN_DEFAULT =
+  "Those runs are not one spec family — pick a family in the filter row to list its plans.";
+
 const GIVE_UP_MESSAGE =
   "Statistics are still being computed after 10 minutes. The server may be busy — try again.";
 const FORBIDDEN_MESSAGE = "Statistics are only available to administrators.";
@@ -127,6 +148,16 @@ const TILES = [
  * the column: it drills into the whole period rather than one family.
  */
 const DRILL_DOWN_LABEL = "List the test plans in";
+
+/**
+ * The same, for the results chart, whose datasets are result buckets rather
+ * than families. `GET /api/plan` has no result filter — a plan has no single
+ * result — so a click on FAILED lists every plan of that period, which reads
+ * as a bug unless the control says so before it is used. The wording is the
+ * chart's own label, on the bars' tooltip cursor and on each data-table row
+ * button, rather than a toast after the fact.
+ */
+const RESULT_DRILL_DOWN_LABEL = "List all test plans, whatever their result, in";
 
 /**
  * What one period is called on an axis and in a heading, per granularity.
@@ -330,7 +361,10 @@ function injectStyles() {
  * Colour is an identity here: {@link assignFamilySlots} is computed from an
  * UNFILTERED, all-time baseline payload fetched once on load, so no range or
  * filter can repaint a family (under a filter every other family is zero,
- * which would otherwise hand the first hue to whatever was selected).
+ * which would otherwise hand the first hue to whatever was selected). The two
+ * requests race, so the first paint waits for the baseline while it is still
+ * in flight — a chart is never ranked from the narrowed payload and then
+ * re-ranked in front of the reader.
  *
  * DOM hooks for e2e (`data-testid`):
  * `stats-forbidden`, `stats-error`, `stats-retry`, `stats-reset-filters`,
@@ -411,6 +445,8 @@ class CtsStatisticsPage extends LitElement {
     this._abort = null;
     /** @type {AbortController|null} The baseline request's own controller. */
     this._baselineAbort = null;
+    /** @type {Promise<void>|null} The baseline request, while it is in flight. */
+    this._baselinePromise = null;
     /** @type {number} How many baseline requests have been made. */
     this._baselineAttempts = 0;
     // Everything derived from a payload is memoised on the identity of what
@@ -504,6 +540,17 @@ class CtsStatisticsPage extends LitElement {
       if (controller.signal.aborted) return;
       const body = await this._readJson(response);
       if (controller.signal.aborted) return;
+      // Colour is an identity, and the ranking that hands it out comes from
+      // the baseline — which a narrowed view (the default 12 months included)
+      // is RACING, not waiting for. Applying this payload first would rank the
+      // families from it and then re-rank them the moment the baseline lands:
+      // every chart repainted in new colours, and the family select reordered,
+      // in front of the reader. Both requests are already in flight, so the
+      // first paint waits at most for the slower of the two; a baseline that
+      // fails or 202s resolves here just the same and the payload is applied
+      // exactly as it was before.
+      if (this._baselinePromise) await this._baselinePromise;
+      if (controller.signal.aborted) return;
       this._settle(controller);
       // _apply is inside the try on purpose: a payload that breaks the
       // shaping helpers must surface as the error state, not vanish.
@@ -522,12 +569,27 @@ class CtsStatisticsPage extends LitElement {
    *
    * Deliberately silent: a page whose baseline failed still charts everything
    * it has, falling back to colouring from the first payload it receives.
-   * @returns {Promise<void>}
+   *
+   * The promise is kept, and handed back, so that {@link _load} can wait for
+   * the ranking before it paints rather than adopting one and then the other.
+   * @returns {Promise<void>} Resolves once the baseline has been adopted, or
+   *   given up on; already resolved when there is nothing left to try.
    */
-  async _loadBaseline() {
-    if (this._baseline || this._baselineAbort || this._baselineAttempts >= BASELINE_MAX_ATTEMPTS) {
-      return;
-    }
+  _loadBaseline() {
+    if (this._baselinePromise) return this._baselinePromise;
+    if (this._baseline || this._baselineAttempts >= BASELINE_MAX_ATTEMPTS) return Promise.resolve();
+    this._baselinePromise = this._fetchBaseline().finally(() => {
+      this._baselinePromise = null;
+    });
+    return this._baselinePromise;
+  }
+
+  /**
+   * The baseline request itself. Never called directly — {@link _loadBaseline}
+   * is what guards against a second one and remembers this promise.
+   * @returns {Promise<void>} Resolves however the request ends.
+   */
+  async _fetchBaseline() {
     this._baselineAttempts += 1;
     const controller = new AbortController();
     this._baselineAbort = controller;
@@ -838,7 +900,9 @@ class CtsStatisticsPage extends LitElement {
    * same slice the whole column stands for: this period, under the filters
    * that are already set. It is still the useful answer to "what is behind
    * this bar", and the alternative (refusing the click) would make three of
-   * the four charts behave one way and one another.
+   * the four charts behave one way and one another. What keeps that from
+   * reading as a bug is the chart's {@link RESULT_DRILL_DOWN_LABEL}, which
+   * says what the click does before it is made.
    * @param {CustomEvent} event - `cts-chart-click` from `<cts-chart>`.
    * @returns {void}
    */
@@ -870,8 +934,7 @@ class CtsStatisticsPage extends LitElement {
       // registry" — neither is something the listing can be asked for.
       ctsToast({
         title: `No drill-down for “${drillDownFamily(this._state, click)}”`,
-        message:
-          "Those runs are not one spec family — pick a family in the filter row to list its plans.",
+        message: NO_DRILL_DOWN_MESSAGES[this._state.family] || NO_DRILL_DOWN_DEFAULT,
       });
       return;
     }
@@ -1199,7 +1262,7 @@ class CtsStatisticsPage extends LitElement {
             category-label=${names.axis}
             stacked
             clickable
-            click-label=${DRILL_DOWN_LABEL}
+            click-label=${RESULT_DRILL_DOWN_LABEL}
             .labels=${view.labels}
             .datasets=${view.results.datasets}
             @cts-chart-click=${this._handleResultChartClick}

@@ -74,6 +74,56 @@ function filteredRequests() {
 }
 
 /**
+ * The query strings the handler has ANSWERED, in the order it answered them —
+ * REQUESTS records when a request was made, which says nothing about which
+ * reply landed first. Reset by the story that uses it.
+ * @type {Array<string>}
+ */
+const ANSWERED = [];
+
+/** How far behind the view's reply the slow baseline lands. */
+const BASELINE_DELAY_MS = 600;
+
+/**
+ * Answer as {@link slicingHandler} does, but hold the baseline back so the
+ * narrowed view's reply arrives first — the ordering the page has no control
+ * over and must not paint twice because of.
+ * @returns {any} An msw handler for the statistics endpoint.
+ */
+function slowBaselineHandler() {
+  return http.get(ENDPOINT, async ({ request }) => {
+    const url = new URL(request.url);
+    REQUESTS.push(url.search);
+    if (isBaseline(url)) await delay(BASELINE_DELAY_MS);
+    ANSWERED.push(url.search);
+    return HttpResponse.json(statisticsOverviewFor(url));
+  });
+}
+
+/**
+ * Each plotted family and the fill it ended up with. The resolved colour, not
+ * the `--chart-cat-N` token: a repaint is only observable here.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @returns {Record<string, string>} Family → colour.
+ */
+function coloursByFamily(canvasElement) {
+  return Object.fromEntries(
+    runsChartInstance(canvasElement).data.datasets.map((/** @type {any} */ ds) => [
+      ds.label,
+      ds.backgroundColor,
+    ]),
+  );
+}
+
+/**
+ * @param {HTMLElement} canvasElement - The story root.
+ * @returns {Array<string>} The family select's options, in order.
+ */
+function familyOptions(canvasElement) {
+  return Array.from(select(canvasElement, "stats-family").options).map((option) => option.value);
+}
+
+/**
  * Wait until the page has painted all of its charts.
  * @param {HTMLElement} canvasElement - The story root.
  * @returns {Promise<void>}
@@ -956,6 +1006,46 @@ export const DrillDown = {
       });
       expect(urls[2]).toBe(`plans.html?family=OID4VP&${bounds(period)}`);
     });
+
+    await step("a synthetic family is refused in its own words, not with advice", async () => {
+      // Both are buckets the cube counts and the listing cannot be asked for,
+      // and the filter row is already set to them: "pick a family" would be
+      // telling the reader to do what they have just done.
+      for (const [family, sentence] of [
+        ["No plan", "Runs without a plan can't be listed"],
+        ["Other / retired", "Unresolved plan names aren't in the registry"],
+      ]) {
+        await userEvent.selectOptions(select(canvasElement, "stats-family"), family);
+        await waitFor(() => {
+          // URLSearchParams spells a space as '+', not %20.
+          expect(location.search).toContain(
+            `family=${encodeURIComponent(family).replace(/%20/g, "+")}`,
+          );
+        }, POLL_TIMEOUT);
+        await waitForCharts(canvasElement);
+
+        const rows = Array.from(
+          canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
+        );
+        await userEvent.click(rows[1]);
+        const toast = /** @type {HTMLElement} */ (
+          await waitFor(() => {
+            const found = document.querySelector("cts-toast-host cts-toast");
+            expect(found).toBeTruthy();
+            return found;
+          })
+        );
+        expect(toast.textContent).toContain(`No drill-down for “${family}”`);
+        expect(toast.textContent).toContain(sentence);
+        expect(toast.textContent).not.toContain("pick a family in the filter row");
+        /** @type {any} */ (toast).dismiss();
+        await waitFor(() => {
+          expect(document.querySelector("cts-toast-host cts-toast")).toBeNull();
+        });
+      }
+      // Refused, so nothing was navigated to.
+      expect(urls.length).toBe(3);
+    });
   },
 };
 
@@ -1036,6 +1126,50 @@ export const WholeHistoryNeedsNoBaseline = {
       }, POLL_TIMEOUT);
       // It was already adopted from the first payload, so still no bare one.
       expect(REQUESTS.filter((search) => search === "")).toHaveLength(0);
+    });
+  },
+};
+
+/**
+ * The baseline is the slower of the two requests a narrowed view — the default
+ * 12 months included — fires. It is what RANKS the families, and the rank is
+ * the colour, so adopting the narrowed payload's own ranking first and the
+ * baseline's a moment later would repaint all five charts and reorder the
+ * family select in front of the reader. The first paint waits for it instead.
+ */
+export const BaselineAnswersAfterTheView = {
+  parameters: { msw: { handlers: [slowBaselineHandler()] } },
+  beforeEach() {
+    ANSWERED.length = 0;
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await step("the narrowed payload does not paint on its own", async () => {
+      await waitFor(() => {
+        expect(ANSWERED).toEqual(["?granularity=month&from=2025-07"]);
+      }, POLL_TIMEOUT);
+      // Well inside the baseline's delay: without the wait the charts would
+      // be up by now, in colours the baseline is about to change.
+      await delay(BASELINE_DELAY_MS / 3);
+      expect(ANSWERED.length).toBe(1);
+      expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
+    });
+
+    await step("the first paint is already ranked from the baseline", async () => {
+      await waitForCharts(canvasElement);
+      expect(ANSWERED).toContain("");
+      // Busy in the fixture's first two months and retired since, so it is in
+      // the all-time payload only: seeing it here is the baseline's ranking.
+      expect(familyOptions(canvasElement)).toContain("OpenID Connect Logout");
+    });
+
+    await step("and nothing is repainted or reordered afterwards", async () => {
+      const colours = coloursByFamily(canvasElement);
+      const families = familyOptions(canvasElement);
+      expect(Object.keys(colours).length).toBeGreaterThan(1);
+      await delay(400);
+      expect(coloursByFamily(canvasElement)).toEqual(colours);
+      expect(familyOptions(canvasElement)).toEqual(families);
     });
   },
 };

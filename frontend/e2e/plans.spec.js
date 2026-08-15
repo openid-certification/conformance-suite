@@ -972,7 +972,8 @@ async function recordRefusedThenOkPlanRoute(page) {
       return route.fulfill({
         status: 400,
         contentType: "application/json",
-        body: JSON.stringify({ message: "'variant.bad name' is not a variant parameter name" }),
+        // `{"error": …}` is the shape TestPlanApi really sends.
+        body: JSON.stringify({ error: "'variant.bad name' is not a variant parameter name" }),
       });
     }
     return route.fulfill({
@@ -1095,7 +1096,10 @@ test.describe("plans.html — drill-down filters", () => {
     );
 
     const alert = page.locator("#plansListing cts-alert[variant='danger']");
-    await expect(alert).toContainText("Failed to load test plans (HTTP 400)");
+    // The server says which parameter it could not use; the status code alone
+    // would leave the reader guessing which chip is at fault.
+    await expect(alert).toContainText("Failed to load test plans:");
+    await expect(alert).toContainText("'variant.bad name' is not a variant parameter name");
     await expect(page.locator(CARD)).toHaveCount(0);
 
     // A filter is what can CAUSE the failure, so hiding the chips would leave

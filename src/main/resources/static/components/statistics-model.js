@@ -1284,15 +1284,35 @@ const HEATMAP_SCALE_POSITIONS = [0.25, 0.5, 0.75, 1];
  *
  * The empty-cell swatch is not in here — it is not on the ramp at all (an
  * empty cell keeps the muted surface), so the component renders it itself.
+ *
+ * Two things happen to the labels on a SMALL scale, where `f² × max` rounds
+ * away: a step never reads "0" (a swatch labelled 0 beside the muted 0 swatch
+ * says the ramp starts at nothing, when in fact its palest step is one run),
+ * so a non-zero step is clamped to 1; and steps that then say the same number
+ * are collapsed onto the DARKEST of them, so a peak of 5 shows three swatches
+ * rather than four, and the one labelled "1" is the shade a cell holding 1
+ * actually gets. The exact inverse of {@link heatmapIntensity} therefore holds
+ * only while the rounding is not clamped — with a peak of 1,600 it does; with
+ * a peak of 5 the "1" swatch is one step darker than a real cell of 1.
  * @param {number} max - The busiest cell, from {@link heatmapMax}.
  * @returns {Array<{mix: number, value: number}>} Percentage of the hue to mix
- *   in, and the count it represents. Empty when there is no scale.
+ *   in, and the count it represents, palest first. Empty when there is no
+ *   scale; never two steps with the same label.
  */
 export function heatmapScaleSteps(max) {
   const top = Number(max) || 0;
   if (top <= 0) return [];
-  return HEATMAP_SCALE_POSITIONS.map((position) => ({
-    mix: Math.round(HEATMAP_MIN_MIX + (100 - HEATMAP_MIN_MIX) * position),
-    value: Math.round(top * position * position),
-  }));
+  /** @type {Array<{mix: number, value: number}>} */
+  const steps = [];
+  for (const position of HEATMAP_SCALE_POSITIONS) {
+    const step = {
+      mix: Math.round(HEATMAP_MIN_MIX + (100 - HEATMAP_MIN_MIX) * position),
+      value: Math.max(1, Math.round(top * position * position)),
+    };
+    // The darkest of the equal steps wins, so the top of the ramp is always
+    // sampled and every swatch is at least as dark as the cells it stands for.
+    if (steps.length > 0 && steps[steps.length - 1].value === step.value) steps.pop();
+    steps.push(step);
+  }
+  return steps;
 }
