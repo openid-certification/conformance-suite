@@ -23,6 +23,15 @@ interface Window {
   MonacoEnvironment?: { getWorkerUrl: (...args: string[]) => string };
 }
 
+// Chart.js — lazy-loaded by `<cts-chart>` via the UMD bundle at
+// `/vendor/chart.js/chart.umd.js`. The wrapper is the only consumer; the
+// type is intentionally `any` since we don't ship `@types/chart.js` and the
+// surface we touch is small (`new Chart(ctx, config)`, `chart.update()`,
+// `chart.destroy()`).
+interface Window {
+  Chart?: any;
+}
+
 // Test-only side channels set by story decorators (`withProgrammableFetch`,
 // `withMockFetch`) to coordinate state between a decorator and its story's
 // `play` function. Not part of runtime component API.
