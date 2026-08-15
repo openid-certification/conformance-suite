@@ -74,6 +74,56 @@ function filteredRequests() {
 }
 
 /**
+ * The query strings the handler has ANSWERED, in the order it answered them —
+ * REQUESTS records when a request was made, which says nothing about which
+ * reply landed first. Reset by the story that uses it.
+ * @type {Array<string>}
+ */
+const ANSWERED = [];
+
+/** How far behind the view's reply the slow baseline lands. */
+const BASELINE_DELAY_MS = 600;
+
+/**
+ * Answer as {@link slicingHandler} does, but hold the baseline back so the
+ * narrowed view's reply arrives first — the ordering the page has no control
+ * over and must not paint twice because of.
+ * @returns {any} An msw handler for the statistics endpoint.
+ */
+function slowBaselineHandler() {
+  return http.get(ENDPOINT, async ({ request }) => {
+    const url = new URL(request.url);
+    REQUESTS.push(url.search);
+    if (isBaseline(url)) await delay(BASELINE_DELAY_MS);
+    ANSWERED.push(url.search);
+    return HttpResponse.json(statisticsOverviewFor(url));
+  });
+}
+
+/**
+ * Each plotted family and the fill it ended up with. The resolved color, not
+ * the `--chart-cat-N` token: a repaint is only observable here.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @returns {Record<string, string>} Family → color.
+ */
+function colorsByFamily(canvasElement) {
+  return Object.fromEntries(
+    runsChartInstance(canvasElement).data.datasets.map((/** @type {any} */ ds) => [
+      ds.label,
+      ds.backgroundColor,
+    ]),
+  );
+}
+
+/**
+ * @param {HTMLElement} canvasElement - The story root.
+ * @returns {Array<string>} The family select's options, in order.
+ */
+function familyOptions(canvasElement) {
+  return Array.from(select(canvasElement, "stats-family").options).map((option) => option.value);
+}
+
+/**
  * Wait until the page has painted all of its charts.
  * @param {HTMLElement} canvasElement - The story root.
  * @returns {Promise<void>}
@@ -806,6 +856,200 @@ export const DeepLinkedFilters = {
 };
 
 /**
+ * Drill-down: a chart bar is a link to the plans behind it.
+ *
+ * The page builds the `plans.html?…` URL and emits a cancelable
+ * `cts-drill-down` before navigating, which is what lets this story assert
+ * the URL without the iframe leaving for another page. Production has no
+ * listener, so a click there navigates.
+ */
+export const DrillDown = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await waitForCharts(canvasElement);
+    const page = canvasElement.querySelector("cts-statistics-page");
+    /** @type {Array<string>} */
+    const urls = [];
+    page.addEventListener("cts-drill-down", (/** @type {any} */ event) => {
+      // Cancel the navigation: the assertion is the URL the page built.
+      event.preventDefault();
+      urls.push(event.detail.url);
+    });
+
+    const chart = runsChartInstance(canvasElement);
+    const canvas = /** @type {HTMLCanvasElement} */ (
+      canvasElement.querySelector('[data-testid="stats-chart-runs"] canvas')
+    );
+
+    // A click is hit-tested against where the marks ARE, and Chart.js animates
+    // them in from the baseline. The story iframe's requestAnimationFrame
+    // barely ticks in headless Chromium, so without this the bars would still
+    // be flat on the axis and every click would miss. Jump to the final
+    // layout — the state a real reader clicks at.
+    chart.config.options.animation = false;
+    chart.stop();
+    await waitFor(() => {
+      chart.update("none");
+      const bar = chart.getDatasetMeta(0).data[0];
+      expect(bar.base - bar.y).toBeGreaterThan(1);
+    });
+
+    /**
+     * Click the middle of one bar segment, through a real mouse event so
+     * Chart.js's own hit testing is what resolves it.
+     * @param {number} datasetIndex - Which series.
+     * @param {number} index - Which period.
+     * @returns {void}
+     */
+    const clickBar = (datasetIndex, index) => {
+      const bar = chart.getDatasetMeta(datasetIndex).data[index];
+      const rect = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new MouseEvent("click", {
+          clientX: rect.left + bar.x,
+          clientY: rect.top + (bar.y + bar.base) / 2,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    };
+
+    /**
+     * The half-open date bounds of a `YYYY-MM` period, computed here rather
+     * than imported so the assertion does not restate the implementation.
+     * @param {string} period - The period key.
+     * @returns {string} `from=…&to=…`.
+     */
+    const bounds = (period) => {
+      const [year, month] = period.split("-").map(Number);
+      const next =
+        month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+      return `from=${period}-01&to=${next}`;
+    };
+
+    await step("a click on a family's segment lists that family, that month", async () => {
+      const datasetIndex = chart.data.datasets.findIndex(
+        (/** @type {any} */ ds) => ds.label !== "Other",
+      );
+      const family = chart.data.datasets[datasetIndex].label;
+      const values = chart.data.datasets[datasetIndex].data;
+      const index = values.indexOf(Math.max(...values));
+      const period = chart.data.labels[index];
+
+      clickBar(datasetIndex, index);
+      await waitFor(() => {
+        expect(urls.length).toBe(1);
+      });
+      expect(urls[0]).toBe(
+        `plans.html?family=${encodeURIComponent(family).replace(/%20/g, "+")}&${bounds(period)}`,
+      );
+    });
+
+    await step("the folded Other series is refused, with a toast that says why", async () => {
+      const datasetIndex = chart.data.datasets.findIndex(
+        (/** @type {any} */ ds) => ds.label === "Other",
+      );
+      expect(datasetIndex).toBeGreaterThan(-1);
+      const values = chart.data.datasets[datasetIndex].data;
+      const index = values.indexOf(Math.max(...values));
+
+      clickBar(datasetIndex, index);
+      const toast = /** @type {HTMLElement} */ (
+        await waitFor(() => {
+          const found = document.querySelector("cts-toast-host cts-toast");
+          expect(found).toBeTruthy();
+          return found;
+        })
+      );
+      // "Other" is a fold of the families outside the seven color slots, so
+      // /api/plan has no way to be asked for it.
+      expect(toast.textContent).toContain("No drill-down for");
+      expect(toast.textContent).toContain("Other");
+      expect(urls.length).toBe(1);
+      /** @type {any} */ (toast).dismiss();
+      await waitFor(() => {
+        expect(document.querySelector("cts-toast-host cts-toast")).toBeNull();
+      });
+    });
+
+    await step("a data-table row is the keyboard route into a whole period", async () => {
+      const rows = Array.from(
+        canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
+      );
+      const period = rows[2].textContent.trim();
+      expect(rows[2].getAttribute("aria-label")).toBe(`List the test plans in ${period}`);
+
+      await userEvent.click(rows[2]);
+      await waitFor(() => {
+        expect(urls.length).toBe(2);
+      });
+      // A row names a period, not a series, and no family is filtered — so
+      // the link narrows by the period alone.
+      expect(urls[1]).toBe(`plans.html?${bounds(period)}`);
+    });
+
+    await step("with a family filtered, even the keyboard route carries it", async () => {
+      await userEvent.selectOptions(select(canvasElement, "stats-family"), "OID4VP");
+      await waitFor(() => {
+        expect(location.search).toContain("family=OID4VP");
+      }, POLL_TIMEOUT);
+      await waitForCharts(canvasElement);
+
+      const rows = Array.from(
+        canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
+      );
+      const period = rows[1].textContent.trim();
+      await userEvent.click(rows[1]);
+      await waitFor(() => {
+        expect(urls.length).toBe(3);
+      });
+      expect(urls[2]).toBe(`plans.html?family=OID4VP&${bounds(period)}`);
+    });
+
+    await step("a synthetic family is refused in its own words, not with advice", async () => {
+      // Both are buckets the cube counts and the listing cannot be asked for,
+      // and the filter row is already set to them: "pick a family" would be
+      // telling the reader to do what they have just done.
+      for (const [family, sentence] of [
+        ["No plan", "Runs without a plan can't be listed"],
+        ["Other / retired", "Unresolved plan names aren't in the registry"],
+      ]) {
+        await userEvent.selectOptions(select(canvasElement, "stats-family"), family);
+        await waitFor(() => {
+          // URLSearchParams spells a space as '+', not %20.
+          expect(location.search).toContain(
+            `family=${encodeURIComponent(family).replace(/%20/g, "+")}`,
+          );
+        }, POLL_TIMEOUT);
+        await waitForCharts(canvasElement);
+
+        const rows = Array.from(
+          canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
+        );
+        await userEvent.click(rows[1]);
+        const toast = /** @type {HTMLElement} */ (
+          await waitFor(() => {
+            const found = document.querySelector("cts-toast-host cts-toast");
+            expect(found).toBeTruthy();
+            return found;
+          })
+        );
+        expect(toast.textContent).toContain(`No drill-down for “${family}”`);
+        expect(toast.textContent).toContain(sentence);
+        expect(toast.textContent).not.toContain("pick a family in the filter row");
+        /** @type {any} */ (toast).dismiss();
+        await waitFor(() => {
+          expect(document.querySelector("cts-toast-host cts-toast")).toBeNull();
+        });
+      }
+      // Refused, so nothing was navigated to.
+      expect(urls.length).toBe(3);
+    });
+  },
+};
+
+/**
  * A filter combination the data has nothing for. The axis still comes back
  * full — the periods are the cube's, not the filter's — so without this the
  * reader would be left interpreting five charts of zeros.
@@ -882,6 +1126,50 @@ export const WholeHistoryNeedsNoBaseline = {
       }, POLL_TIMEOUT);
       // It was already adopted from the first payload, so still no bare one.
       expect(REQUESTS.filter((search) => search === "")).toHaveLength(0);
+    });
+  },
+};
+
+/**
+ * The baseline is the slower of the two requests a narrowed view — the default
+ * 12 months included — fires. It is what RANKS the families, and the rank is
+ * the color, so adopting the narrowed payload's own ranking first and the
+ * baseline's a moment later would repaint all five charts and reorder the
+ * family select in front of the reader. The first paint waits for it instead.
+ */
+export const BaselineAnswersAfterTheView = {
+  parameters: { msw: { handlers: [slowBaselineHandler()] } },
+  beforeEach() {
+    ANSWERED.length = 0;
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await step("the narrowed payload does not paint on its own", async () => {
+      await waitFor(() => {
+        expect(ANSWERED).toEqual(["?granularity=month&from=2025-07"]);
+      }, POLL_TIMEOUT);
+      // Well inside the baseline's delay: without the wait the charts would
+      // be up by now, in colors the baseline is about to change.
+      await delay(BASELINE_DELAY_MS / 3);
+      expect(ANSWERED.length).toBe(1);
+      expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
+    });
+
+    await step("the first paint is already ranked from the baseline", async () => {
+      await waitForCharts(canvasElement);
+      expect(ANSWERED).toContain("");
+      // Busy in the fixture's first two months and retired since, so it is in
+      // the all-time payload only: seeing it here is the baseline's ranking.
+      expect(familyOptions(canvasElement)).toContain("OpenID Connect Logout");
+    });
+
+    await step("and nothing is repainted or reordered afterwards", async () => {
+      const colors = colorsByFamily(canvasElement);
+      const families = familyOptions(canvasElement);
+      expect(Object.keys(colors).length).toBeGreaterThan(1);
+      await delay(400);
+      expect(colorsByFamily(canvasElement)).toEqual(colors);
+      expect(familyOptions(canvasElement)).toEqual(families);
     });
   },
 };

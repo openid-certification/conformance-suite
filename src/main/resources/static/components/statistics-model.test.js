@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { emptyFilter, planListFilterFromUrl } from "./plan-list-filter.js";
 import {
   CATEGORY_COLOR_VARS,
   DEFAULT_RANGE,
@@ -16,7 +17,10 @@ import {
   certifiedDatasets,
   defaultFilterState,
   distributionDatasets,
-  familiesWithRuns,
+  drillDownFamily,
+  drillDownRefusal,
+  drillDownUrl,
+  familiesWithActivity,
   foldOther,
   formatBytes,
   hasAnyData,
@@ -513,6 +517,178 @@ describe("periodBounds", () => {
   });
 });
 
+// --- Drill-down --------------------------------------------------------
+
+describe("drillDownUrl", () => {
+  /** @type {() => any} The payload's period axis, monthly. */
+  const monthly = () => ({ periods: [...PERIODS], granularity: "month" });
+  /** @type {any} A payload with no periods at all. */
+  const noPeriods = {};
+
+  it("takes the family from the clicked dataset when none is filtered", () => {
+    const url = drillDownUrl(
+      defaultFilterState(),
+      { periodIndex: 0, family: "FAPI-CIBA" },
+      monthly(),
+    );
+    expect(url).toBe("plans.html?family=FAPI-CIBA&from=2024-01-01&to=2024-02-01");
+  });
+
+  it("keeps the filtered family even when a different series was clicked", () => {
+    // The page is already showing one family, so every bar in every chart
+    // belongs to it; the dataset label cannot widen the slice.
+    const state = { ...defaultFilterState(), family: "OID4VP" };
+    const url = drillDownUrl(state, { periodIndex: 1, family: "FAPI-CIBA" }, monthly());
+    expect(url).toBe("plans.html?family=OID4VP&from=2024-02-01&to=2024-03-01");
+  });
+
+  it("carries the plan and every variant, variants in a stable order", () => {
+    const state = {
+      ...defaultFilterState(),
+      family: "FAPI1 Advanced",
+      plan: "fapi1-advanced-final-test-plan",
+      variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
+    };
+    expect(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly())).toBe(
+      "plans.html?family=FAPI1+Advanced&plan=fapi1-advanced-final-test-plan" +
+        "&variant.client_auth_type=mtls&variant.fapi_profile=openbanking_brazil" +
+        "&from=2024-01-01&to=2024-02-01",
+    );
+  });
+
+  it("sends the first certification profile of a joined key", () => {
+    // The cube joins a plan's profiles with " | "; /api/plan matches ONE
+    // element, so the joined key would list nothing at all.
+    const state = {
+      ...defaultFilterState(),
+      family: "FAPI-CIBA",
+      cert: "FAPI-CIBA: Poll w/ MTLS | FAPI-CIBA: Ping w/ Private Key",
+    };
+    const url = new URL(
+      String(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly())),
+      "https://example.test/",
+    );
+    expect(url.searchParams.get("cert")).toBe("FAPI-CIBA: Poll w/ MTLS");
+  });
+
+  it("percent-encodes what a query string cannot carry", () => {
+    const state = {
+      ...defaultFilterState(),
+      family: "eKYC & Identity Assurance",
+      cert: "FAPI-CIBA: Poll w/ MTLS",
+    };
+    const raw = String(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly()));
+    expect(raw).toContain("family=eKYC+%26+Identity+Assurance");
+    expect(raw).toContain("cert=FAPI-CIBA%3A+Poll+w%2F+MTLS");
+    const url = new URL(raw, "https://example.test/");
+    expect(url.searchParams.get("family")).toBe("eKYC & Identity Assurance");
+    expect(url.searchParams.get("cert")).toBe("FAPI-CIBA: Poll w/ MTLS");
+  });
+
+  it("bounds a weekly bar by its Monday and the next", () => {
+    /** @type {any} */
+    const weekly = { periods: ["2026-04-27", "2026-05-04"], granularity: "week" };
+    expect(drillDownUrl(defaultFilterState(), { periodIndex: 1, family: "OIDCC" }, weekly)).toBe(
+      "plans.html?family=OIDCC&from=2026-05-04&to=2026-05-11",
+    );
+  });
+
+  it("declines the folded Other series and the two synthetic buckets", () => {
+    const state = defaultFilterState();
+    expect(drillDownUrl(state, { periodIndex: 0, family: OTHER_LABEL }, monthly())).toBeNull();
+    expect(drillDownUrl(state, { periodIndex: 0, family: NO_PLAN_FAMILY }, monthly())).toBeNull();
+    expect(
+      drillDownUrl(state, { periodIndex: 0, family: OTHER_RETIRED_FAMILY }, monthly()),
+    ).toBeNull();
+    // Also when the synthetic bucket is the FILTER rather than the click: the
+    // listing cannot express "not in the registry" either way.
+    expect(
+      drillDownUrl({ ...state, family: NO_PLAN_FAMILY }, { periodIndex: 0, family: "" }, monthly()),
+    ).toBeNull();
+  });
+
+  it("drills into the period alone when nothing names a family", () => {
+    // The results chart's datasets are result buckets, so the click carries
+    // no family — the period is still a useful narrowing on its own.
+    expect(drillDownUrl(defaultFilterState(), { periodIndex: 2, family: "" }, monthly())).toBe(
+      "plans.html?from=2024-03-01&to=2024-04-01",
+    );
+  });
+
+  it("drops the dates rather than the link when the period cannot be resolved", () => {
+    const state = { ...defaultFilterState(), family: "OID4VP" };
+    expect(drillDownUrl(state, { periodIndex: 999, family: "" }, monthly())).toBe(
+      "plans.html?family=OID4VP",
+    );
+    expect(drillDownUrl(state, { periodIndex: -1, family: "" }, monthly())).toBe(
+      "plans.html?family=OID4VP",
+    );
+    expect(drillDownUrl(state, { periodIndex: 0, family: "" }, noPeriods)).toBe(
+      "plans.html?family=OID4VP",
+    );
+  });
+
+  it("produces exactly the filter the plans page reads back out of it", () => {
+    // The parity test across the link: this is the ONE assertion that fails if
+    // the two ends ever disagree about a parameter name, the variant prefix or
+    // how a value is encoded. `drillDownUrl` serializes through the listing's
+    // own `toParams`, and this parses with the listing's own parser.
+    const state = {
+      ...defaultFilterState(),
+      family: "eKYC & Identity Assurance",
+      plan: "ekyc-test-plan",
+      variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
+      cert: "FAPI-CIBA: Poll w/ MTLS | FAPI-CIBA: Ping w/ Private Key",
+    };
+    const url = String(drillDownUrl(state, { periodIndex: 5, family: "" }, monthly()));
+    expect(url.startsWith("plans.html?")).toBe(true);
+    expect(planListFilterFromUrl(url.slice(url.indexOf("?")))).toEqual({
+      ...emptyFilter(),
+      family: "eKYC & Identity Assurance",
+      plan: "ekyc-test-plan",
+      variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
+      // Split: the listing matches one profile, never the joined key.
+      cert: "FAPI-CIBA: Poll w/ MTLS",
+      from: "2024-06-01",
+      to: "2024-07-01",
+    });
+  });
+
+  it("links to the whole listing when there is nothing at all to narrow by", () => {
+    expect(drillDownUrl(defaultFilterState(), { periodIndex: 999, family: "" }, noPeriods)).toBe(
+      "plans.html",
+    );
+  });
+});
+
+describe("drillDownFamily", () => {
+  it("names the bucket a refused click resolved to, for the message", () => {
+    expect(drillDownFamily(defaultFilterState(), { periodIndex: 0, family: OTHER_LABEL })).toBe(
+      OTHER_LABEL,
+    );
+    expect(
+      drillDownFamily({ ...defaultFilterState(), family: NO_PLAN_FAMILY }, { periodIndex: 0 }),
+    ).toBe(NO_PLAN_FAMILY);
+    expect(drillDownFamily(defaultFilterState(), { periodIndex: 0 })).toBe("");
+  });
+});
+
+describe("drillDownRefusal", () => {
+  it("picks the words for the bucket the click resolved to, not for the filter row", () => {
+    // no family filter: the lone "No plan" series was clicked directly
+    const refused = drillDownRefusal(defaultFilterState(), { periodIndex: 0, family: NO_PLAN });
+    expect(refused.family).toBe(NO_PLAN);
+    expect(refused.message).toContain("Runs without a plan can't be listed");
+    expect(refused.message).not.toContain("pick a family");
+  });
+
+  it("advises picking a family for the folded Other series", () => {
+    const refused = drillDownRefusal(defaultFilterState(), { periodIndex: 0, family: OTHER_LABEL });
+    expect(refused.family).toBe(OTHER_LABEL);
+    expect(refused.message).toContain("pick a family in the filter row");
+  });
+});
+
 // --- Filter options ----------------------------------------------------
 
 describe("rememberOptions", () => {
@@ -849,7 +1025,7 @@ describe("assignFamilySlots", () => {
     expect(certifiedDatasets(broken, {}, "")).toEqual([]);
     expect(resultsDatasets(broken, "")).toEqual([]);
     expect(otherBreakdown(broken, {}, 0)).toEqual([]);
-    expect(familiesWithRuns(broken)).toEqual([]);
+    expect(familiesWithActivity(broken)).toEqual([]);
     expect(periodLabels(broken.periods, "week")).toEqual([]);
   });
 });
@@ -1125,9 +1301,9 @@ describe("usersDatasets", () => {
   });
 });
 
-describe("familiesWithRuns", () => {
-  it("lists only families with runs, in the payload's order", () => {
-    expect(familiesWithRuns(makeData())).toEqual([
+describe("familiesWithActivity", () => {
+  it("lists families with runs, plans or certified plans, in the payload's order", () => {
+    expect(familiesWithActivity(makeData())).toEqual([
       "FAPI2 Security Profile",
       "FAPI1 Advanced",
       "OpenID Connect Core",
@@ -1141,15 +1317,39 @@ describe("familiesWithRuns", () => {
     ]);
   });
 
+  it("offers a family with plans but zero runs", () => {
+    // "Shared Signals Framework" is zero everywhere in the base fixture; give
+    // it plans only, so this proves inclusion does not require a run.
+    const data = makeData();
+    data.plansByFamily["Shared Signals Framework"] = data.plansByFamily[
+      "Shared Signals Framework"
+    ].map((_value, index) => (index === 0 ? 2 : 0));
+    expect(familiesWithActivity(data)).toContain("Shared Signals Framework");
+  });
+
+  it("offers a family with only certified plans and no runs or plans", () => {
+    const data = makeData();
+    data.certifiedByFamily["Shared Signals Framework"] = data.certifiedByFamily[
+      "Shared Signals Framework"
+    ].map((_value, index) => (index === 0 ? 1 : 0));
+    expect(familiesWithActivity(data)).toContain("Shared Signals Framework");
+  });
+
+  it("does not offer a family that is zero everywhere", () => {
+    // Runs, plans AND certified are all-zero for "Shared Signals Framework"
+    // in the base fixture.
+    expect(familiesWithActivity(makeData())).not.toContain("Shared Signals Framework");
+  });
+
   it("is meant for the all-time baseline: a narrowed payload loses options", () => {
     // The select must not lose options when the user narrows the range or
     // picks a filter, so the caller passes the baseline — proven by contrast.
-    expect(familiesWithRuns(makeData())).toContain("eKYC & Identity Assurance");
-    expect(familiesWithRuns(makeRecent())).not.toContain("eKYC & Identity Assurance");
+    expect(familiesWithActivity(makeData())).toContain("eKYC & Identity Assurance");
+    expect(familiesWithActivity(makeRecent())).not.toContain("eKYC & Identity Assurance");
   });
 
   it("tolerates an empty payload", () => {
-    expect(familiesWithRuns(/** @type {any} */ ({}))).toEqual([]);
+    expect(familiesWithActivity(/** @type {any} */ ({}))).toEqual([]);
   });
 });
 
@@ -1419,5 +1619,58 @@ describe("heatmapScaleSteps", () => {
   it("has no steps when there is no scale to show", () => {
     expect(heatmapScaleSteps(0)).toEqual([]);
     expect(heatmapScaleSteps(/** @type {any} */ (undefined))).toEqual([]);
+  });
+
+  it("never labels a swatch 0, because the legend already has a 0 swatch", () => {
+    // f² × max rounds away on a small scale: a quarter of the way along a
+    // ramp topping out at 7 is 0.44 runs. A step labeled "0" next to the
+    // muted "no runs" swatch says the ramp starts at nothing.
+    for (const max of [1, 2, 3, 5, 7, 8]) {
+      for (const step of heatmapScaleSteps(max)) expect(step.value).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("collapses steps that would carry the same label onto the darkest of them", () => {
+    // One run is all there is: one swatch, and it is the color a cell with
+    // one run actually gets.
+    expect(heatmapScaleSteps(1)).toEqual([{ mix: 100, value: 1 }]);
+    expect(heatmapScaleSteps(5)).toEqual([
+      { mix: 55, value: 1 },
+      { mix: 78, value: 3 },
+      { mix: 100, value: 5 },
+    ]);
+    // Four distinct labels again from a peak of 7 upwards.
+    expect(heatmapScaleSteps(7)).toEqual([
+      { mix: 33, value: 1 },
+      { mix: 55, value: 2 },
+      { mix: 78, value: 4 },
+      { mix: 100, value: 7 },
+    ]);
+    expect(heatmapScaleSteps(8)).toEqual([
+      { mix: 33, value: 1 },
+      { mix: 55, value: 2 },
+      { mix: 78, value: 5 },
+      { mix: 100, value: 8 },
+    ]);
+  });
+
+  it("always samples the top of the ramp, and never paler than the cells it stands for", () => {
+    for (const max of [1, 2, 5, 7, 8, 16, 1600]) {
+      const steps = heatmapScaleSteps(max);
+      const darkest = steps[steps.length - 1];
+      const labels = steps.map((step) => step.value);
+      expect(labels.at(-1)).toBe(max);
+      expect(darkest.mix).toBe(100);
+      // strictly increasing, so no two swatches say the same thing
+      expect([...labels].sort((a, b) => a - b)).toEqual(labels);
+      expect(new Set(labels).size).toBe(labels.length);
+      // and the ramp itself still darkens step by step
+      const mixes = steps.map((step) => step.mix);
+      expect([...mixes].sort((a, b) => a - b)).toEqual(mixes);
+      // The exact inverse of heatmapIntensity only survives while the labels
+      // are not rounded: on a small scale a swatch can be a step off the shade
+      // a cell of that count gets, which is why the label carries the count.
+      expect(heatmapIntensity(darkest.value, max)).toBe(darkest.mix);
+    }
   });
 });

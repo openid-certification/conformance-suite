@@ -29,7 +29,9 @@
  * make every range and filter look broken. {@link statisticsOverviewFor}
  * applies the query to this fixture the way the slicer does — clip the axis,
  * restrict the families, narrow the dimensions — so stories can drive the
- * real controls and assert on what comes back.
+ * real controls and assert on what comes back. The e2e twin has the same
+ * function with one documented difference: it does not clip the axis, because
+ * Playwright runs on the real clock rather than Storybook's frozen one.
  */
 
 const WEEK_COUNT = 26;
@@ -403,6 +405,20 @@ export const MOCK_STATS_READY = {
 // --- The slicer, in miniature ------------------------------------------
 
 /**
+ * The server's verbatim complaint about a `variant.<name>` whose NAME is not
+ * one (`QueryParams.variant()`), which is the realistic way a page reaches a
+ * 400: a value is never rejected, only a name.
+ * @param {string} name - The offending name, without the `variant.` prefix.
+ * @returns {string} The message the server would answer with.
+ */
+export function invalidVariantMessage(name) {
+  return (
+    `'variant.${name}' is not a variant parameter name; ` +
+    "only letters, digits, '_' and '-' can be used"
+  );
+}
+
+/**
  * @param {Record<string, Array<number>>} map - Family → series.
  * @param {number} start - First period index to keep.
  * @param {number} end - One past the last period index to keep.
@@ -605,8 +621,7 @@ export const MOCK_STATS_PENDING = {
  */
 export const MOCK_STATS_INVALID = {
   status: "invalid",
-  message:
-    "'variant.bad name' is not a variant parameter name; only letters, digits, '_' and '-' can be used",
+  message: invalidVariantMessage("bad name"),
 };
 
 /**

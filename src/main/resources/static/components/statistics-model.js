@@ -20,6 +20,12 @@
  * narrowed. Nothing in this file re-slices a payload.
  */
 
+// The drill-down link lands on the plans listing, so its parameters are that
+// listing's vocabulary, not this page's — `plan-list-filter.js` owns the
+// names, the variant prefix and the order they are written in, and parses
+// them back on the other side. Pure module, no DOM, no cycle.
+import { emptyFilter, toParams as planListParams } from "./plan-list-filter.js";
+
 /**
  * The statistics payload. Every field is declared as present because the
  * server contract guarantees it; the runtime guards throughout this file are
@@ -500,6 +506,124 @@ export function periodBounds(period, granularity) {
   };
 }
 
+// --- Drill-down --------------------------------------------------------
+
+/** The listing the drill-down lands on. Both pages sit at the web root. */
+const PLANS_PAGE = "plans.html";
+
+/**
+ * The separator `StatisticsCube` joins a plan's certification profiles with
+ * when it builds a `certKey`. `GET /api/plan?cert=` matches ONE profile
+ * exactly, so a joined key cannot be forwarded as it stands.
+ */
+const CERT_JOIN = " | ";
+
+/**
+ * What a click on a chart bar identifies, over and above the page's own
+ * filter state.
+ * @typedef {object} DrillDownClick
+ * @property {number} periodIndex - Position in the payload's `periods`, from
+ *   `cts-chart-click`. Out of range (or `-1` for the keyboard route on a chart
+ *   with no period) simply drops the date bounds.
+ * @property {string} [family] - The family the clicked dataset stands for, for
+ *   the charts whose datasets ARE families (runs, plans, certified). Empty for
+ *   the results chart (its datasets are result buckets, which the plans
+ *   listing cannot filter on) and for the keyboard row route.
+ */
+
+/**
+ * The plans-listing URL a chart click drills into: the page's current filters,
+ * narrowed to the clicked family and the clicked period.
+ *
+ * Returns `null` when the click cannot name a listing — the folded "Other"
+ * series and the two synthetic buckets stand for plans that are not in the
+ * registry (or, for "No plan", for runs with no plan at all), and
+ * `GET /api/plan?family=` has no way to express either, so it would answer
+ * with an empty list. The caller says so with a toast instead of navigating.
+ * @param {FilterState} state - The page's filter state.
+ * @param {DrillDownClick} click - What was clicked.
+ * @param {StatisticsData} data - The payload the chart was built from (its
+ *   `periods` and `granularity` turn `periodIndex` into date bounds).
+ * @returns {string|null} A relative `plans.html?…` URL, or `null` when the
+ *   clicked bucket has no plans to list.
+ */
+export function drillDownUrl(state, click, data) {
+  const family = text(state && state.family) || text(click && click.family);
+  if (family === OTHER_LABEL || SYNTHETIC_FAMILIES.has(family)) return null;
+
+  const periods = list(data && data.periods);
+  const index = Number(click && click.periodIndex);
+  const bounds = Number.isInteger(index)
+    ? periodBounds(periods[index], (data && data.granularity) || "month")
+    : null;
+  const cert = text(state && state.cert);
+
+  // Built as the listing's own filter object and serialized by the listing's
+  // own `toParams`, so the two ends of this link cannot drift: the parameter
+  // names, the variant prefix and the order the variants come out in have
+  // exactly one definition, in `plan-list-filter.js`, and `plans.html` parses
+  // back what this produced.
+  const query = planListParams({
+    ...emptyFilter(),
+    family,
+    plan: text(state && state.plan),
+    variant: (state && state.variant) || {},
+    // The cube joins every certification profile of a plan into one key, while
+    // the listing matches a single element of `certificationProfileName`.
+    // Sending the first element is therefore a SUPERSET of the statistics
+    // slice: the listing also shows plans certified for that profile alongside
+    // others. Sending the joined key would match nothing at all.
+    cert: cert ? cert.split(CERT_JOIN)[0] : "",
+    from: bounds ? bounds.from : "",
+    to: bounds ? bounds.to : "",
+  }).toString();
+  return query ? `${PLANS_PAGE}?${query}` : PLANS_PAGE;
+}
+
+/**
+ * The bucket a drill-down click resolved to, for the message shown when
+ * {@link drillDownUrl} declines it.
+ * @param {FilterState} state - The page's filter state.
+ * @param {DrillDownClick} click - What was clicked.
+ * @returns {string} The family name, or `""` when the click named none.
+ */
+export function drillDownFamily(state, click) {
+  return text(state && state.family) || text(click && click.family);
+}
+
+/**
+ * What the toast says when a drill-down click is refused. The two synthetic
+ * buckets get their own words: the filter row may already be set to them, so
+ * "pick a family", the advice that fits a click on the folded "Other" series,
+ * would be telling the reader to do what they have just done. The DECISION to
+ * refuse is the payload's (`syntheticFamilies`); these are only the words for
+ * the two buckets the server has today, and any other synthetic bucket gets the
+ * generic refusal.
+ * @type {Record<string, string>}
+ */
+const NO_DRILL_DOWN_MESSAGES = {
+  "No plan":
+    "Runs without a plan can't be listed: these are standalone test modules, and the plans list only holds plans.",
+  "Other / retired":
+    "Unresolved plan names aren't in the registry — retired, renamed or hidden — so there is no family the listing can be asked for.",
+};
+
+/** The refusal that fits a click on the folded "Other" series, or any other synthetic bucket. */
+const NO_DRILL_DOWN_DEFAULT =
+  "Those runs are not one spec family — pick a family in the filter row to list its plans.";
+
+/**
+ * The words for a drill-down click that {@link drillDownUrl} declined.
+ * @param {FilterState} state - The page's filter state.
+ * @param {DrillDownClick} click - What was clicked.
+ * @returns {{family: string, message: string}} The bucket the click resolved
+ *   to, and the refusal that fits that bucket rather than the filter row.
+ */
+export function drillDownRefusal(state, click) {
+  const family = drillDownFamily(state, click);
+  return { family, message: NO_DRILL_DOWN_MESSAGES[family] || NO_DRILL_DOWN_DEFAULT };
+}
+
 // --- Filter options ----------------------------------------------------
 
 /** @type {FilterOptions} The option lists of a page that has no payload yet. */
@@ -923,17 +1047,23 @@ export function hasAnyData(data) {
 }
 
 /**
- * Families worth offering in the filter select: those with at least one run
- * ever. Call with the same unfiltered, all-time baseline
- * {@link assignFamilySlots} gets — options that vanish when the user narrows
- * the range or picks a plan would make the control feel broken.
+ * Families worth offering in the filter select: those with at least one run,
+ * plan or certified plan ever — a family with plans but zero runs (e.g. every
+ * plan still in progress) is still something a user might filter to. Call
+ * with the same unfiltered, all-time baseline {@link assignFamilySlots} gets
+ * — options that vanish when the user narrows the range or picks a plan
+ * would make the control feel broken.
  * @param {StatisticsData} data - The unfiltered, all-time payload.
  * @returns {Array<string>} Family names in the payload's order.
  */
-export function familiesWithRuns(data) {
+export function familiesWithActivity(data) {
   const families = list(data && data.families);
   const runs = (data && data.testRunsByFamily) || {};
-  return families.filter((family) => total(runs[family]) > 0);
+  const plans = (data && data.plansByFamily) || {};
+  const certified = (data && data.certifiedByFamily) || {};
+  return families.filter(
+    (family) => total(runs[family]) > 0 || total(plans[family]) > 0 || total(certified[family]) > 0,
+  );
 }
 
 // --- Distributions, storage and the activity heatmap -------------------
@@ -1204,15 +1334,35 @@ const HEATMAP_SCALE_POSITIONS = [0.25, 0.5, 0.75, 1];
  *
  * The empty-cell swatch is not in here — it is not on the ramp at all (an
  * empty cell keeps the muted surface), so the component renders it itself.
+ *
+ * Two things happen to the labels on a SMALL scale, where `f² × max` rounds
+ * away: a step never reads "0" (a swatch labeled 0 beside the muted 0 swatch
+ * says the ramp starts at nothing, when in fact its palest step is one run),
+ * so a non-zero step is clamped to 1; and steps that then say the same number
+ * are collapsed onto the DARKEST of them, so a peak of 5 shows three swatches
+ * rather than four, and the one labeled "1" is the shade a cell holding 1
+ * actually gets. The exact inverse of {@link heatmapIntensity} therefore holds
+ * only while the rounding is not clamped — with a peak of 1,600 it does; with
+ * a peak of 5 the "1" swatch is one step darker than a real cell of 1.
  * @param {number} max - The busiest cell, from {@link heatmapMax}.
  * @returns {Array<{mix: number, value: number}>} Percentage of the hue to mix
- *   in, and the count it represents. Empty when there is no scale.
+ *   in, and the count it represents, palest first. Empty when there is no
+ *   scale; never two steps with the same label.
  */
 export function heatmapScaleSteps(max) {
   const top = Number(max) || 0;
   if (top <= 0) return [];
-  return HEATMAP_SCALE_POSITIONS.map((position) => ({
-    mix: Math.round(HEATMAP_MIN_MIX + (100 - HEATMAP_MIN_MIX) * position),
-    value: Math.round(top * position * position),
-  }));
+  /** @type {Array<{mix: number, value: number}>} */
+  const steps = [];
+  for (const position of HEATMAP_SCALE_POSITIONS) {
+    const step = {
+      mix: Math.round(HEATMAP_MIN_MIX + (100 - HEATMAP_MIN_MIX) * position),
+      value: Math.max(1, Math.round(top * position * position)),
+    };
+    // The darkest of the equal steps wins, so the top of the ramp is always
+    // sampled and every swatch is at least as dark as the cells it stands for.
+    if (steps.length > 0 && steps[steps.length - 1].value === step.value) steps.pop();
+    steps.push(step);
+  }
+  return steps;
 }
