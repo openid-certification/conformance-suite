@@ -1505,6 +1505,15 @@ def run_tests():
     runner.check_status("Statistics: private link user cannot read the overview", resp, 403)
     stats_pl_client.close()
 
+    # /statistics.html is gated to ROLE_ADMIN on the OIDC chain. An anonymous request is sent
+    # to login like any other page; the authenticated non-admin 403 needs a browser session,
+    # which this harness cannot make (the page chain ignores bearer tokens), so only the
+    # redirect is proved here.
+    stats_noredirect = httpx.Client(verify=verify_ssl, timeout=20, follow_redirects=False)
+    resp = stats_noredirect.get(f"{base_url}statistics.html")
+    runner.check_status_in("Statistics: anonymous page request is sent to login", resp, {302, 401, 403})
+    stats_noredirect.close()
+
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
     # ===================================================================
