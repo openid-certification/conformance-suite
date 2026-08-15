@@ -1525,6 +1525,25 @@ def run_tests():
     runner.check_status("Statistics: private link user cannot read the overview", resp, 403)
     stats_pl_client.close()
 
+    # nor is a share link JWT sent as a bearer token, for either kind of link
+    stats_plan_bearer = bearer_client(base_url, plan_jwt, verify_ssl)
+    resp = stats_plan_bearer.get(f"{base_url}api/statistics/overview")
+    runner.check_status_in("Statistics: plan JWT bearer cannot read the overview", resp, {401, 403})
+    stats_plan_bearer.close()
+    stats_test_bearer = bearer_client(base_url, test_jwt, verify_ssl)
+    resp = stats_test_bearer.get(f"{base_url}api/statistics/overview")
+    runner.check_status_in("Statistics: test JWT bearer cannot read the overview", resp, {401, 403})
+    stats_test_bearer.close()
+
+    # /statistics.html is gated to ROLE_ADMIN on the OIDC chain. An anonymous request is sent
+    # to login like any other page; the authenticated non-admin 403 needs a browser session,
+    # which this harness cannot make (the page chain ignores bearer tokens), so only the
+    # redirect is proved here.
+    resp = unauthenticated_get(base_url, "statistics.html", verify_ssl)
+    runner.check("Statistics: anonymous page request is sent to login",
+                 resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+                 f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
+
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
     # ===================================================================
