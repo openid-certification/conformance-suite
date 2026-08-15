@@ -99,7 +99,12 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get a list of test plan instances with paging */
+    /**
+     * Get a list of test plan instances with paging
+     * @description Which plans are listed is decided by who is asking: an admin sees every plan, anyone else sees their own, and `public=true` lists the published plans. The optional filters below only narrow that listing - the statistics page drills down with them - so none of them can show a plan that would not have been listed anyway.
+     *
+     *     In addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a plan has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.
+     */
     get: operations["getTestPlansForCurrentUser"];
     put?: never;
     /** Create test plan */
@@ -295,7 +300,9 @@ export interface paths {
     };
     /**
      * Get suite-wide usage statistics across all users (admin only)
-     * @description Served from a snapshot that is recomputed in the background at most every 12 hours, because the underlying aggregations group over the whole test database. While the first snapshot is being computed the response is 202 and the client should poll.
+     * @description Served from a snapshot that is recomputed in the background at most every 12 hours, because the underlying aggregations group over the whole test database. While the first snapshot is being computed the response is 202 and the client should poll. The filters and the range are applied to that snapshot when the request is answered, so they are free to change and never trigger a recomputation.
+     *
+     *     In addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a cell has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.
      */
     get: operations["getOverview"];
     put?: never;
@@ -649,9 +656,9 @@ export interface components {
       /** Format: int64 */
       asLong?: number;
       asBoolean?: boolean;
-      asNumber?: number;
       /** Format: float */
       asFloat?: number;
+      asNumber?: number;
       /** Format: byte */
       asByte?: string;
       /** @deprecated */
@@ -685,10 +692,10 @@ export interface components {
       jsonNull?: boolean;
       asJsonArray?: unknown;
       asJsonPrimitive?: unknown;
-      asJsonNull?: unknown;
-      asNumber?: number;
       /** Format: float */
       asFloat?: number;
+      asJsonNull?: unknown;
+      asNumber?: number;
       /** Format: byte */
       asByte?: string;
       /** @deprecated */
@@ -716,10 +723,10 @@ export interface components {
       jsonNull?: boolean;
       asJsonArray?: components["schemas"]["JsonArray"];
       asJsonPrimitive?: components["schemas"]["JsonPrimitive"];
-      asJsonNull?: components["schemas"]["JsonNull"];
-      asNumber?: number;
       /** Format: float */
       asFloat?: number;
+      asJsonNull?: components["schemas"]["JsonNull"];
+      asNumber?: number;
       /** Format: byte */
       asByte?: string;
       /** @deprecated */
@@ -738,12 +745,10 @@ export interface components {
       /** Format: int64 */
       asLong?: number;
       asBoolean?: boolean;
-      boolean?: boolean;
-      string?: boolean;
       number?: boolean;
-      asNumber?: number;
       /** Format: float */
       asFloat?: number;
+      asNumber?: number;
       /** Format: byte */
       asByte?: string;
       /** @deprecated */
@@ -752,6 +757,8 @@ export interface components {
       asBigInteger?: number;
       /** Format: int32 */
       asShort?: number;
+      boolean?: boolean;
+      string?: boolean;
       asString?: string;
       asJsonObject?: unknown;
       jsonPrimitive?: boolean;
@@ -763,14 +770,43 @@ export interface components {
       asJsonNull?: components["schemas"]["JsonNull"];
     };
     StreamingResponseBody: unknown;
+    StatisticsCertProfile: {
+      name?: string;
+      /** Format: int64 */
+      users?: number;
+      /** Format: int64 */
+      plans?: number;
+    };
+    StatisticsDimensions: {
+      plans?: components["schemas"]["StatisticsPlanDimension"][];
+      variants?: {
+        [key: string]: components["schemas"]["StatisticsVariantValue"][];
+      };
+      certProfiles?: components["schemas"]["StatisticsCertProfile"][];
+      entities?: components["schemas"]["StatisticsEntity"][];
+    };
+    StatisticsEntity: {
+      entity?: string;
+      /** Format: int64 */
+      runs?: number;
+    };
+    StatisticsExternalHost: {
+      host?: string;
+      /** Format: int64 */
+      runs?: number;
+      /** Format: int64 */
+      users?: number;
+      lastSeen?: string;
+    };
     StatisticsLastError: {
       message?: string;
       failedAt?: string;
     };
     StatisticsOverview: {
+      periods?: string[];
+      granularity?: string;
       families?: string[];
       resultBuckets?: string[];
-      months?: string[];
       testRunsByFamily?: {
         [key: string]: number[];
       };
@@ -782,9 +818,24 @@ export interface components {
           [key: string]: number[];
         };
       };
+      certifiedByFamily?: {
+        [key: string]: number[];
+      };
       users?: components["schemas"]["StatisticsUsers"];
       tiles?: components["schemas"]["StatisticsTiles"];
+      storage?: components["schemas"]["StatisticsStorage"][];
+      dimensions?: components["schemas"]["StatisticsDimensions"];
+      heatmap?: number[][];
+      externalHosts?: components["schemas"]["StatisticsExternalHost"][];
       unresolvedPlans?: components["schemas"]["StatisticsUnresolvedPlan"][];
+    };
+    StatisticsPlanDimension: {
+      planName?: string;
+      family?: string;
+      /** Format: int64 */
+      runs?: number;
+      /** Format: int64 */
+      plans?: number;
     };
     StatisticsReady: {
       status?: string;
@@ -794,6 +845,17 @@ export interface components {
       refreshing?: boolean;
       lastError?: components["schemas"]["StatisticsLastError"];
       data?: components["schemas"]["StatisticsOverview"];
+    };
+    StatisticsStorage: {
+      collection?: string;
+      /** Format: int64 */
+      count?: number;
+      /** Format: int64 */
+      size?: number;
+      /** Format: int64 */
+      storageSize?: number;
+      /** Format: int64 */
+      totalIndexSize?: number;
     };
     StatisticsTiles: {
       /** Format: int64 */
@@ -814,6 +876,8 @@ export interface components {
       stuck?: number;
       /** Format: int64 */
       certifiedPlans?: number;
+      /** Format: int64 */
+      publishedPlans?: number;
     };
     StatisticsUnresolvedPlan: {
       planName?: string;
@@ -821,12 +885,23 @@ export interface components {
       runs?: number;
     };
     StatisticsUsers: {
-      activeByMonth?: number[];
-      newByMonth?: number[];
+      activeByPeriod?: number[];
+      newByPeriod?: number[];
+    };
+    StatisticsVariantValue: {
+      value?: string;
+      /** Format: int64 */
+      users?: number;
+      /** Format: int64 */
+      plans?: number;
     };
     StatisticsPending: {
       status?: string;
       startedAt?: string;
+    };
+    StatisticsInvalid: {
+      status?: string;
+      message?: string;
     };
     StatisticsFailed: {
       status?: string;
@@ -1148,6 +1223,16 @@ export interface operations {
         /** @description Published data only */
         public?: boolean;
         page: components["schemas"]["PaginationRequest"];
+        /** @description Only list plans of this spec family, as named on the statistics page. */
+        family?: string;
+        /** @description Only list plans with this exact plan name. */
+        plan?: string;
+        /** @description Only list plans certified against this certification profile; a plan matches if any one of its profiles is exactly this. */
+        cert?: string;
+        /** @description Only list plans started at or after this point in time; a date (`YYYY-MM-DD`, covering the whole of that day) or a timestamp with a time zone. */
+        from?: string;
+        /** @description Only list plans started before this point in time, exclusive, in the same format as `from`, so that the bounds of adjacent periods can be passed straight through. */
+        to?: string;
       };
       header?: never;
       path?: never;
@@ -1157,6 +1242,15 @@ export interface operations {
     responses: {
       /** @description Retrieved successfully */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description A filter parameter could not be used */
+      400: {
         headers: {
           [name: string]: unknown;
         };
@@ -1674,6 +1768,18 @@ export interface operations {
       query?: {
         /** @description Recompute the snapshot even if the current one is still fresh; any existing snapshot keeps being served meanwhile */
         refresh?: boolean;
+        /** @description The time buckets to report in. Monthly covers the whole history; weekly covers the trailing 104 weeks and is keyed by the Monday of each ISO week. */
+        granularity?: "month" | "week";
+        /** @description The first period to report, inclusive; `YYYY-MM` for monthly, `YYYY-MM-DD` for weekly (any day of the week, snapped to its Monday). Defaults to as far back as there is data. */
+        from?: string;
+        /** @description The last period to report, inclusive, in the same format as `from`. Defaults to today. */
+        to?: string;
+        /** @description Only count test plans of this spec family, as named in the `families` list of the response. */
+        family?: string;
+        /** @description Only count this test plan, by name, as listed in `dimensions.plans`. */
+        plan?: string;
+        /** @description Only count test plans whose certification profiles are exactly this, as listed in `dimensions.certProfiles`; several profiles are joined with ' | '. */
+        cert?: string;
       };
       header?: never;
       path?: never;
@@ -1697,6 +1803,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["StatisticsPending"];
+        };
+      };
+      /** @description A filter or range parameter could not be used */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StatisticsInvalid"];
         };
       };
       /** @description You must be an admin to view statistics */

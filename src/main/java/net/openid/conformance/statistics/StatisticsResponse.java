@@ -3,11 +3,12 @@ package net.openid.conformance.statistics;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * The body of {@code GET /api/statistics/overview}, in each of the three states the
- * snapshot cache can be in. Every field is a JSON primitive or the payload itself, so the
- * client never has to parse a Java-specific rendering of a date or a duration.
+ * The body of {@code GET /api/statistics/overview}: one shape per state the snapshot cache
+ * can be in, plus the one for a request that could not be answered at all. Every field is
+ * a JSON primitive or the payload itself, so the client never has to parse a Java-specific
+ * rendering of a date or a duration.
  */
-public sealed interface StatisticsResponse permits StatisticsResponse.Ready, StatisticsResponse.Pending, StatisticsResponse.Failed {
+public sealed interface StatisticsResponse permits StatisticsResponse.Ready, StatisticsResponse.Pending, StatisticsResponse.Failed, StatisticsResponse.Invalid {
 
 	/**
 	 * A snapshot is being served (HTTP 200), possibly while a newer one is computed.
@@ -44,6 +45,20 @@ public sealed interface StatisticsResponse permits StatisticsResponse.Ready, Sta
 	 */
 	@Schema(name = "StatisticsFailed")
 	record Failed(String status, String message, String failedAt) implements StatisticsResponse {
+	}
+
+	/**
+	 * The request asked for something that cannot be shown (HTTP 400) - an unknown
+	 * granularity, a malformed period, a range that runs backwards. Nothing was computed;
+	 * correcting the parameter and asking again is all that is needed.
+	 *
+	 * @param status  always {@code "invalid"}, so that a client switching on {@code status}
+	 *                can tell a request it can fix from the {@code "error"} of a failed
+	 *                computation, which it cannot
+	 * @param message which parameter could not be used and why, meant to be shown as is
+	 */
+	@Schema(name = "StatisticsInvalid")
+	record Invalid(String status, String message) implements StatisticsResponse {
 	}
 
 	/**

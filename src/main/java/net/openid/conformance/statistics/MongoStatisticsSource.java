@@ -1,13 +1,19 @@
 package net.openid.conformance.statistics;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.Sorts;
 import net.openid.conformance.info.DBTestInfoService;
 import net.openid.conformance.info.DBTestPlanService;
+import net.openid.conformance.logging.DBEventLog;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
@@ -26,7 +32,9 @@ import java.util.concurrent.TimeUnit;
  * <p>These pipelines group over every document in {@code TEST_INFO} / {@code TEST_PLAN}
  * and cannot use an index, so they are expensive by construction and must never run on a
  * request thread; {@link DBStatisticsService} runs them on a background thread at most
- * once per TTL.
+ * once per TTL. Each one groups the collection down to at most a few thousand cells
+ * before anything crosses the wire, so what Java receives is small however big the
+ * database is.
  *
  * <p>Deliberately not built on {@code DBTestInfoService} / {@code DBTestPlanService}:
  * those scope every query to the authenticated user, and this computation runs with no
@@ -44,23 +52,52 @@ public class MongoStatisticsSource {
 
 	private static final List<String> NON_TERMINAL_STATUSES = List.of("CREATED", "CONFIGURED", "RUNNING", "WAITING");
 
+	/** The collections the storage tiles report on, in the order they are shown. */
+	private static final List<String> STORAGE_COLLECTIONS =
+		List.of(DBTestInfoService.COLLECTION, DBTestPlanService.COLLECTION, DBEventLog.COLLECTION);
+
+	/** The configuration fields naming the server under test, most specific first. */
+	private static final List<String> TARGET_URL_FIELDS = List.of(
+		"$config.server.discoveryUrl", "$config.server.issuer",
+		"$config.vci.credential_issuer_url", "$config.federation.entity_identifier");
+
+	/** Marks a URL served by this suite's own test endpoints rather than by a real server. */
+	private static final String EMULATED_SERVER_PATH = "/test/a/";
+
+	/** The host part of a URL: everything between the scheme and the port, path or query. */
+	private static final String HOST_OF_URL = "^https?://([^/:?#]+)";
+
+	/** How many external servers are reported, by descending run count. */
+	private static final int MAX_EXTERNAL_HOSTS = 100;
+
+	private static final Logger logger = LoggerFactory.getLogger(MongoStatisticsSource.class);
+
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
 	/**
-	 * Module runs and their result buckets, per month and test plan.
+	 * Module runs and their result buckets, per period, test plan, plan level variant and
+	 * certification profile.
 	 *
-	 * <p>Grouped by plan id first (one bucket per plan ever run, plus one standalone
-	 * bucket per month), then joined to {@code TEST_PLAN} by {@code _id} to pick up the
-	 * plan name - an index seek per bucket, rather than pulling every plan document over
-	 * to Java, and carrying nothing but the plan's name out of the join (see
-	 * {@link #planNameLookup()}) - then projected down immediately so only the counters
-	 * and the plan name reach the second group.
+	 * <p>Grouped by plan id first (one bucket per plan ever run, per period), then joined
+	 * to {@code TEST_PLAN} by {@code _id} to pick up what the plan was - an index seek per
+	 * bucket, rather than pulling every plan document over to Java, and carrying nothing
+	 * but three fields out of the join (see {@link #planLookup()}) - then projected down
+	 * immediately so only the counters and those fields reach the second group, which
+	 * collapses the per-plan-id buckets into one cell per plan configuration.
 	 *
-	 * @return one row per month, plan name and standalone-ness
+	 * <p>The second group keys on the variant sub-document as MongoDB stored it rather than
+	 * on a canonical form of it: field order within one stored document is stable, so two
+	 * plans configured the same way group together unless MongoDB happened to store their
+	 * fields in different orders, and {@link VariantKeys#canonical} plus the roll-up in
+	 * {@link StatisticsCube} merge those in Java.
+	 *
+	 * @return one cell per month, ISO week, plan name, standalone-ness, variant and
+	 *         certification profile
 	 */
-	public List<RunsRow> runsByMonthAndPlan() {
+	public List<RunCell> runs() {
 		Document runsByPlanId = new Document("month", monthExpression())
+			.append("week", weekExpression())
 			// null for a standalone run; explicit so it survives as a group key
 			.append("planId", new Document("$ifNull", Arrays.asList("$planId", null)));
 		List<Bson> pipeline = List.of(
@@ -71,17 +108,24 @@ public class MongoStatisticsSource {
 				Accumulators.sum("warning", isResult("WARNING")),
 				Accumulators.sum("review", isResult("REVIEW")),
 				Accumulators.sum("skipped", isResult("SKIPPED"))),
-			planNameLookup(),
+			planLookup(),
 			Aggregates.project(Projections.fields(
 				Projections.excludeId(),
 				Projections.computed("month", "$_id.month"),
+				Projections.computed("week", "$_id.week"),
 				Projections.computed("standalone", new Document("$eq", Arrays.asList("$_id.planId", null))),
 				// missing if the plan document has been deleted since the run
 				Projections.computed("planName", new Document("$arrayElemAt", List.of("$plan.planName", 0))),
+				Projections.computed("variant", new Document("$arrayElemAt", List.of("$plan.variant", 0))),
+				Projections.computed("cert",
+					new Document("$arrayElemAt", List.of("$plan.certificationProfileName", 0))),
 				Projections.include("runs", "passed", "failed", "warning", "review", "skipped"))),
 			Aggregates.group(new Document("month", "$month")
+					.append("week", "$week")
 					.append("planName", "$planName")
-					.append("standalone", "$standalone"),
+					.append("standalone", "$standalone")
+					.append("variant", "$variant")
+					.append("cert", "$cert"),
 				Accumulators.sum("runs", "$runs"),
 				Accumulators.sum("passed", "$passed"),
 				Accumulators.sum("failed", "$failed"),
@@ -89,63 +133,212 @@ public class MongoStatisticsSource {
 				Accumulators.sum("review", "$review"),
 				Accumulators.sum("skipped", "$skipped")));
 
-		List<RunsRow> rows = new ArrayList<>();
-		for (Document document : aggregate(DBTestInfoService.COLLECTION, pipeline).into(new ArrayList<>())) {
-			Document id = document.get("_id", Document.class);
-			rows.add(new RunsRow(id.getString("month"), id.getString("planName"),
-				Boolean.TRUE.equals(id.getBoolean("standalone")),
-				count(document, "runs"), count(document, "passed"), count(document, "failed"),
-				count(document, "warning"), count(document, "review"), count(document, "skipped")));
+		List<RunCell> cells = new ArrayList<>();
+		for (Document document : aggregate(DBTestInfoService.COLLECTION, pipeline)) {
+			cells.add(runCell(document));
 		}
-		return rows;
+		return cells;
 	}
 
 	/**
-	 * Test plans created per month and plan name, and how many of them were made
-	 * immutable - which is what downloading a certification package does.
-	 *
-	 * @return one row per month and plan name
+	 * @param document one grouped row of {@link #runs()}
+	 * @return the cell it stands for. Where the raw variant sub-document and the raw
+	 *         certification profile list are turned into keys - so a test can feed rows
+	 *         shaped like MongoDB's straight through and see that two plans configured the
+	 *         same way end up in one cell however their fields happened to be ordered
 	 */
-	public List<PlanRow> plansByMonthAndName() {
-		List<Bson> pipeline = List.of(
-			Aggregates.group(new Document("month", monthExpression()).append("planName", "$planName"),
-				Accumulators.sum("plans", 1),
-				Accumulators.sum("certified", ifThenOne(new Document("$eq", List.of("$immutable", true))))));
-
-		List<PlanRow> rows = new ArrayList<>();
-		for (Document document : aggregate(DBTestPlanService.COLLECTION, pipeline).into(new ArrayList<>())) {
-			Document id = document.get("_id", Document.class);
-			rows.add(new PlanRow(id.getString("month"), id.getString("planName"),
-				count(document, "plans"), count(document, "certified")));
-		}
-		return rows;
+	static RunCell runCell(Document document) {
+		Document id = document.get("_id", Document.class);
+		return new RunCell(id.getString("month"), id.getString("week"), id.getString("planName"),
+			Boolean.TRUE.equals(id.getBoolean("standalone")),
+			VariantKeys.canonical(id.get("variant")), CertKeys.canonical(id.get("cert")),
+			count(document, "runs"), count(document, "passed"), count(document, "failed"),
+			count(document, "warning"), count(document, "review"), count(document, "skipped"));
 	}
 
 	/**
-	 * The months each user ran at least one test in. Running a test is the activity signal
-	 * available - logins are not recorded.
+	 * Test plans created per period, plan, plan level variant and certification profile,
+	 * how many of them were made immutable - which is what downloading a certification
+	 * package does - and how many were published.
 	 *
-	 * @return one row per user; only one row per user crosses the wire
+	 * @return one cell per month, ISO week, plan name, variant and certification profile
 	 */
-	public List<UserRow> usersByMonth() {
+	public List<PlanCell> plans() {
 		List<Bson> pipeline = List.of(
 			Aggregates.group(new Document("month", monthExpression())
-				.append("iss", "$owner.iss")
-				.append("sub", "$owner.sub")),
-			Aggregates.group(new Document("iss", "$_id.iss").append("sub", "$_id.sub"),
-				Accumulators.addToSet("months", "$_id.month")));
+					.append("week", weekExpression())
+					.append("planName", "$planName")
+					.append("variant", "$variant")
+					.append("cert", "$certificationProfileName"),
+				Accumulators.sum("plans", 1),
+				Accumulators.sum("certified", ifThenOne(new Document("$eq", List.of("$immutable", true)))),
+				Accumulators.sum("published", ifThenOne(isSet("$publish")))));
 
-		List<UserRow> rows = new ArrayList<>();
-		for (Document document : aggregate(DBTestInfoService.COLLECTION, pipeline).into(new ArrayList<>())) {
+		List<PlanCell> cells = new ArrayList<>();
+		for (Document document : aggregate(DBTestPlanService.COLLECTION, pipeline)) {
+			cells.add(planCell(document));
+		}
+		return cells;
+	}
+
+	/**
+	 * @param document one grouped row of {@link #plans()}
+	 * @return the cell it stands for, keyed exactly as {@link #runCell(Document)} keys a run
+	 *         cell - which is what lets the plan series and the run series be filtered by the
+	 *         same variant and certification profile keys
+	 */
+	static PlanCell planCell(Document document) {
+		Document id = document.get("_id", Document.class);
+		return new PlanCell(id.getString("month"), id.getString("week"), id.getString("planName"),
+			VariantKeys.canonical(id.get("variant")), CertKeys.canonical(id.get("cert")),
+			count(document, "plans"), count(document, "certified"), count(document, "published"));
+	}
+
+	/**
+	 * The periods each user created test plans in, per plan, plan level variant and
+	 * certification profile.
+	 *
+	 * <p>Counted on a plan basis rather than over test runs, which is what lets the users
+	 * series be filtered the same way every other series is: a run only knows which plan
+	 * instance it belonged to, a plan knows what it is.
+	 *
+	 * @return one tuple per user, plan, variant and certification profile. Users are
+	 *         identified by a counter rather than by their {@code iss} and {@code sub},
+	 *         which are never needed beyond counting distinct users and are dropped here.
+	 */
+	public List<UserTuple> users() {
+		List<Bson> pipeline = List.of(
+			Aggregates.group(new Document("planName", "$planName")
+					.append("variant", "$variant")
+					.append("cert", "$certificationProfileName")
+					.append("iss", "$owner.iss")
+					.append("sub", "$owner.sub"),
+				Accumulators.addToSet("months", monthExpression()),
+				Accumulators.addToSet("weeks", weekExpression())));
+
+		List<UserTuple> tuples = new ArrayList<>();
+		OwnerIds owners = new OwnerIds();
+		for (Document document : aggregate(DBTestPlanService.COLLECTION, pipeline)) {
 			Document id = document.get("_id", Document.class);
-			rows.add(new UserRow(id.getString("iss"), id.getString("sub"), months(document)));
+			String iss = id.getString("iss");
+			String sub = id.getString("sub");
+			if (!OwnerIds.isUser(iss, sub)) {
+				// a plan written before authentication completed is not a user
+				continue;
+			}
+			tuples.add(new UserTuple(id.getString("planName"), VariantKeys.canonical(id.get("variant")),
+				CertKeys.canonical(id.get("cert")), owners.idFor(iss, sub),
+				strings(document, "months"), strings(document, "weeks")));
+		}
+		return tuples;
+	}
+
+	/**
+	 * When tests are run: every run bucketed by the UTC day and hour it started in.
+	 *
+	 * <p>Both keys are cut out of the {@code started} string rather than parsed, because
+	 * that is all the heatmap needs; a document whose {@code started} is unusable produces
+	 * keys that do not parse, and {@link StatisticsCube} drops those when it bins the cells.
+	 *
+	 * @return one cell per day and hour that has any runs in it
+	 */
+	public List<HeatCell> heat() {
+		List<Bson> pipeline = List.of(
+			Aggregates.group(new Document("day", new Document("$substrBytes", List.of(startedAsString(), 0, 10)))
+					.append("hour", new Document("$substrBytes", List.of(startedAsString(), 11, 2))),
+				Accumulators.sum("runs", 1)));
+
+		List<HeatCell> cells = new ArrayList<>();
+		for (Document document : aggregate(DBTestInfoService.COLLECTION, pipeline)) {
+			Document id = document.get("_id", Document.class);
+			cells.add(new HeatCell(id.getString("day"), id.getString("hour"), count(document, "runs")));
+		}
+		return cells;
+	}
+
+	/**
+	 * The external servers the suite has been pointed at, over the whole history of the
+	 * database, by descending run count.
+	 *
+	 * <p>The server under test is named by a different configuration field depending on
+	 * what is being tested, so the first field of {@link #TARGET_URL_FIELDS} that is set
+	 * wins. URLs served by this suite's own emulated endpoints are dropped: a run against
+	 * {@code /test/a/...} is the suite testing a client, and the "external server" it names
+	 * is this deployment.
+	 *
+	 * <p>The host is cut out of the URL and lower-cased by MongoDB rather than in Java so
+	 * that the whole thing - including counting distinct users per host, which has to
+	 * happen after several URLs have collapsed onto one host - stays server side, and the
+	 * users' {@code iss} and {@code sub} never leave the database.
+	 *
+	 * @return at most {@value #MAX_EXTERNAL_HOSTS} hosts, most used first
+	 */
+	public List<HostRow> externalHosts() {
+		List<Bson> pipeline = List.of(
+			Aggregates.project(Projections.fields(
+				Projections.excludeId(),
+				Projections.computed("url", targetUrl()),
+				Projections.computed("iss", "$owner.iss"),
+				Projections.computed("sub", "$owner.sub"),
+				Projections.computed("started", startedAsString()))),
+			Aggregates.match(Filters.ne("url", "")),
+			Aggregates.project(Projections.fields(
+				Projections.computed("host", externalHost()),
+				Projections.include("iss", "sub", "started"))),
+			Aggregates.match(Filters.ne("host", null)),
+			Aggregates.group(new Document("host", "$host").append("iss", "$iss").append("sub", "$sub"),
+				Accumulators.sum("runs", 1),
+				Accumulators.max("last", "$started")),
+			Aggregates.group("$_id.host",
+				Accumulators.sum("runs", "$runs"),
+				// the group is one owner, but an unauthenticated run's owner is not a user
+				Accumulators.sum("users", ifThenOne(ownerIsIdentified("$_id.iss", "$_id.sub"))),
+				Accumulators.max("lastSeen", "$last")),
+			// the host breaks ties so the cut is the same list every recomputation:
+			// most of the tail has one run each, and the client sees this list churn
+			Aggregates.sort(Sorts.orderBy(Sorts.descending("runs"), Sorts.ascending("_id"))),
+			Aggregates.limit(MAX_EXTERNAL_HOSTS));
+
+		List<HostRow> hosts = new ArrayList<>();
+		for (Document document : aggregate(DBTestInfoService.COLLECTION, pipeline)) {
+			hosts.add(new HostRow(document.getString("_id"), count(document, "runs"), count(document, "users"),
+				document.getString("lastSeen")));
+		}
+		return hosts;
+	}
+
+	/**
+	 * How much space the test data takes up.
+	 *
+	 * @return one row per collection of {@link #STORAGE_COLLECTIONS}, in that order; a
+	 *         collection that does not exist yet reports zeros rather than being left out,
+	 *         so the tiles do not move around on a fresh deployment
+	 */
+	public List<StorageRow> storage() {
+		List<StorageRow> rows = new ArrayList<>(STORAGE_COLLECTIONS.size());
+		for (String collection : STORAGE_COLLECTIONS) {
+			rows.add(collectionStorage(collection));
 		}
 		return rows;
 	}
 
+	private StorageRow collectionStorage(String collection) {
+		try {
+			Document stats = mongoTemplate.getDb().runCommand(new Document("collStats", collection));
+			return new StorageRow(collection, count(stats, "count"), count(stats, "size"),
+				count(stats, "storageSize"), count(stats, "totalIndexSize"));
+		} catch (MongoException e) {
+			// a collection nothing has been written to yet, or a server that will not say
+			logger.warn("Could not read the storage statistics of {}", collection, e);
+			return new StorageRow(collection, 0, 0, 0, 0);
+		}
+	}
+
 	/**
-	 * The summary tile counters, in one pass over {@code TEST_INFO}. {@code started} is
-	 * stored as an ISO-8601 UTC string, so the recency cutoffs are string comparisons.
+	 * The summary tile counters. One pass over {@code TEST_INFO} for the run counters plus
+	 * a second, much cheaper one for the distinct user count, which cannot be accumulated
+	 * in the same group. {@code started} is stored as an ISO-8601 UTC string, so the
+	 * recency cutoffs are string comparisons.
 	 *
 	 * @param now the instant the "last 24 hours / 7 days / 30 days" windows end at
 	 * @return the counters; all zero if the collection is empty
@@ -168,52 +361,100 @@ public class MongoStatisticsSource {
 					new Document("$in", List.of("$status", NON_TERMINAL_STATUSES)),
 					new Document("$lt", List.of(started, cutoff24h))))))));
 
-		List<Document> results = aggregate(DBTestInfoService.COLLECTION, pipeline).into(new ArrayList<>());
+		List<Document> results = aggregate(DBTestInfoService.COLLECTION, pipeline);
 		if (results.isEmpty()) {
-			return new TileRow(0, 0, 0, 0, 0, 0);
+			return new TileRow(0, 0, 0, 0, 0, 0, 0);
 		}
 		Document document = results.get(0);
-		return new TileRow(count(document, "total"), count(document, "last24h"), count(document, "last7d"),
-			count(document, "last30d"), count(document, "inProgress"), count(document, "stuck"));
+		return new TileRow(count(document, "total"), distinctUsers(), count(document, "last24h"),
+			count(document, "last7d"), count(document, "last30d"), count(document, "inProgress"),
+			count(document, "stuck"));
 	}
 
 	/**
-	 * The plan-name join used by {@link #runsByMonthAndPlan()}, in the concise correlated
-	 * form MongoDB has supported since 5.0 (the suite targets FCV 6.0): the equality match
-	 * on {@code TEST_PLAN._id} still uses the primary key index, but the inner pipeline
-	 * projects every matched plan down to its name <em>inside the server</em>, so the
-	 * plans' {@code config} blobs are never materialised into the {@code plan} array.
-	 * Without it the join streams whole plan documents - configuration included - through
-	 * one bucket per plan ever run, which on production-scale data is most of the
-	 * pipeline's memory and network cost.
+	 * @return how many distinct users have ever run a test. Counted over {@code TEST_INFO}
+	 *         rather than over the test plans, so that users who only ever ran standalone
+	 *         tests are not missing from the tile.
+	 */
+	private long distinctUsers() {
+		List<Bson> pipeline = List.of(
+			// a query - unlike an aggregation expression - does match a missing field
+			// against null, so this drops runs with no owner as well as blank ones
+			Aggregates.match(Filters.and(
+				Filters.nin("owner.iss", Arrays.asList(null, "")),
+				Filters.nin("owner.sub", Arrays.asList(null, "")))),
+			Aggregates.group(new Document("iss", "$owner.iss").append("sub", "$owner.sub")),
+			Aggregates.count("users"));
+
+		List<Document> results = aggregate(DBTestInfoService.COLLECTION, pipeline);
+		return results.isEmpty() ? 0 : count(results.get(0), "users");
+	}
+
+	/**
+	 * The plan join used by {@link #runs()}, in the concise correlated form MongoDB has
+	 * supported since 5.0 (the suite targets FCV 6.0): the equality match on
+	 * {@code TEST_PLAN._id} still uses the primary key index, but the inner pipeline
+	 * projects every matched plan down to the three fields a run cell is keyed by
+	 * <em>inside the server</em>, so the plans' {@code config} blobs are never materialised
+	 * into the {@code plan} array. Without it the join streams whole plan documents -
+	 * configuration included - through one bucket per plan ever run, which on
+	 * production-scale data is most of the pipeline's memory and network cost.
 	 *
 	 * <p>Built as a raw stage because the driver has no {@code Aggregates.lookup} overload
 	 * taking {@code localField} / {@code foreignField} <em>and</em> a pipeline.
 	 *
-	 * @return the {@code $lookup} stage yielding {@code plan: [{planName}]}
+	 * @return the {@code $lookup} stage yielding
+	 *         {@code plan: [{planName, variant, certificationProfileName}]}
 	 */
-	private static Document planNameLookup() {
+	private static Document planLookup() {
+		Document projection = new Document("_id", 0)
+			.append("planName", 1)
+			.append("variant", 1)
+			.append("certificationProfileName", 1);
 		return new Document("$lookup", new Document("from", DBTestPlanService.COLLECTION)
 			.append("localField", "_id.planId")
 			.append("foreignField", "_id")
-			.append("pipeline", List.of(new Document("$project", new Document("_id", 0).append("planName", 1))))
+			.append("pipeline", List.of(new Document("$project", projection)))
 			.append("as", "plan"));
 	}
 
-	private AggregateIterable<Document> aggregate(String collection, List<Bson> pipeline) {
-		return mongoTemplate.getCollection(collection)
+	private List<Document> aggregate(String collection, List<Bson> pipeline) {
+		AggregateIterable<Document> aggregation = mongoTemplate.getCollection(collection)
 			.aggregate(pipeline)
 			.allowDiskUse(true)
 			.maxTime(MAX_TIME_MINUTES, TimeUnit.MINUTES)
 			.comment(COMMENT);
+		return aggregation.into(new ArrayList<>());
 	}
 
 	/**
 	 * @return the {@code YYYY-MM} key of a document's {@code started} field; the empty
-	 *         string - which the assembler drops - if it is missing or not string-like
+	 *         string - which the cube never matches to a period - if it is missing or not
+	 *         string-like
 	 */
 	private static Document monthExpression() {
 		return new Document("$substrBytes", List.of(startedAsString(), 0, 7));
+	}
+
+	/**
+	 * @return the {@code YYYY-MM-DD} Monday of the ISO week a document's {@code started}
+	 *         falls in, in UTC, or null if it cannot be parsed as a date. Needs a real date
+	 *         rather than a substring because a week straddles months and years.
+	 */
+	private static Document weekExpression() {
+		Document date = new Document("$dateFromString", new Document("dateString", startedAsString())
+			.append("onError", null)
+			.append("onNull", null));
+		Document monday = new Document("$dateTrunc", new Document("date", "$$parsed")
+			.append("unit", "week")
+			.append("startOfWeek", "monday"));
+		Document week = new Document("$dateToString", new Document("format", "%Y-%m-%d").append("date", monday));
+		// parsed once, and $dateTrunc is only reached for a date that parsed: an unusable
+		// started must yield null rather than depend on how $dateTrunc handles a null date,
+		// because an error there would fail the whole computation
+		return new Document("$let", new Document("vars", new Document("parsed", date))
+			.append("in", new Document("$cond",
+				Arrays.asList(new Document("$eq", Arrays.asList("$$parsed", null)), null, week))));
 	}
 
 	/** @return {@code started} as a string, tolerating a missing field or a BSON date. */
@@ -222,6 +463,66 @@ public class MongoStatisticsSource {
 			.append("to", "string")
 			.append("onError", "")
 			.append("onNull", ""));
+	}
+
+	/**
+	 * @return the URL of the server under test, trimmed; the empty string if the run names
+	 *         none. The candidates are normalised <em>before</em> the fallback rather than
+	 *         with {@code $ifNull}, because a field that is present but blank - which the
+	 *         configuration form can produce - must not stop a later field being used: a
+	 *         run with an empty {@code discoveryUrl} and a real {@code issuer} names its
+	 *         issuer. Anything that is not a string is skipped for the same reason.
+	 */
+	private static Document targetUrl() {
+		Document normalise = new Document("$cond", List.of(
+			new Document("$eq", List.of(new Document("$type", "$$this"), "string")),
+			new Document("$trim", new Document("input", "$$this")),
+			""));
+		Document candidates = new Document("$map",
+			new Document("input", TARGET_URL_FIELDS).append("in", normalise));
+		Document set = new Document("$filter", new Document("input", candidates)
+			.append("cond", new Document("$gt", List.of("$$this", ""))));
+		return new Document("$ifNull", Arrays.asList(new Document("$first", set), ""));
+	}
+
+	/**
+	 * @return the lower-cased host of the projected {@code url} field, or null (for a URL
+	 *         of this suite's own emulated endpoints) or missing (for anything that is not
+	 *         an http URL) - both of which the following {@code $match} drops
+	 */
+	private static Document externalHost() {
+		Document match = new Document("$regexFind", new Document("input", new Document("$toLower", "$url"))
+			.append("regex", HOST_OF_URL));
+		Document host = new Document("$let", new Document("vars", new Document("match", match))
+			.append("in", new Document("$arrayElemAt",
+				List.of(new Document("$ifNull", Arrays.asList("$$match.captures", List.of())), 0))));
+		Document emulated = new Document("$regexMatch",
+			new Document("input", "$url").append("regex", EMULATED_SERVER_PATH));
+		return new Document("$cond", Arrays.asList(emulated, null, host));
+	}
+
+	/**
+	 * @param issPath the field path of the owner's issuer
+	 * @param subPath the field path of the owner's subject
+	 * @return an expression that is true only for a real identity - the same rule as
+	 *         {@link OwnerIds#isUser}, expressed for MongoDB
+	 */
+	private static Document ownerIsIdentified(String issPath, String subPath) {
+		return new Document("$and", List.of(isSet(issPath), isSet(subPath)));
+	}
+
+	/**
+	 * @param path a field path
+	 * @return an expression that is true when the field holds something. The
+	 *         {@code $ifNull} is not redundant: unlike a query, an aggregation expression
+	 *         does <em>not</em> treat a missing field as null, so {@code {$ne: [path,
+	 *         null]}} on its own is true for a field that is not there at all.
+	 */
+	private static Document isSet(String path) {
+		Document value = new Document("$ifNull", Arrays.asList(path, null));
+		return new Document("$and", List.of(
+			new Document("$ne", Arrays.asList(value, null)),
+			new Document("$ne", List.of(value, ""))));
 	}
 
 	private static Document isResult(String result) {
@@ -233,22 +534,27 @@ public class MongoStatisticsSource {
 		return new Document("$cond", List.of(condition, 1, 0));
 	}
 
-	/** @return the counter, tolerating the driver returning an Integer or a Long. */
+	/**
+	 * @return a numeric field, whichever of the BSON number types the server reported it
+	 *         in - the aggregations return Integer or Long depending on the value, and
+	 *         {@code collStats} may also use a Double
+	 */
 	private static long count(Document document, String key) {
 		Object value = document.get(key);
 		return value instanceof Number number ? number.longValue() : 0;
 	}
 
-	private static List<String> months(Document document) {
-		List<String> months = new ArrayList<>();
-		Object value = document.get("months");
+	/** @return the strings of an {@code $addToSet} result, skipping anything else. */
+	private static List<String> strings(Document document, String key) {
+		List<String> strings = new ArrayList<>();
+		Object value = document.get(key);
 		if (value instanceof List<?> list) {
-			for (Object month : list) {
-				if (month instanceof String string) {
-					months.add(string);
+			for (Object element : list) {
+				if (element instanceof String string) {
+					strings.add(string);
 				}
 			}
 		}
-		return months;
+		return strings;
 	}
 }
