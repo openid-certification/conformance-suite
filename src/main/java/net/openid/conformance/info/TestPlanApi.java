@@ -13,10 +13,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
+import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -63,6 +65,9 @@ public class TestPlanApi implements DataUtils {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
+
+	@Autowired
+	private TestRunnerSupport testRunnerSupport;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Create test plan")
@@ -402,6 +407,29 @@ public class TestPlanApi implements DataUtils {
 		}
 
 		List<String> testIds = testPlan.getModules().stream().map(Plan.Module::getInstances).collect(ArrayList::new, List::addAll, List::addAll);
+
+		// Stop any still-running module first, synchronously: stop() writes its final log
+		// entries, which the deleteTests() below then removes. Stopping in the background (as
+		// cancelTest does), or after deleteTests, would let a running module keep writing
+		// EVENT_LOG rows past the delete and orphan them.
+		for (String testId : testIds) {
+			TestModule runningTest = testRunnerSupport.getRunningTestById(testId);
+			if (runningTest != null) {
+				runningTest.stop("The test was stopped because its test plan was deleted.");
+			}
+		}
+
+		// Known race, deliberately not fixed. testIds is the snapshot taken above, and
+		// createTest() saves TEST_INFO before attaching the instance to the plan (see
+		// DBTestInfoService.createTest), so a concurrent create can either attach after the
+		// snapshot - leaving a test that outlives its plan - or attach before it and still write
+		// its "Test instance created" entry (TestRunner.createTest) after we have deleted,
+		// leaving EVENT_LOG rows with no TEST_INFO row. Reordering the deletes does not fix the
+		// second case: that needs the create serialised against this method, or the plan attach
+		// made the create's last write. Both are out of proportion to the only way to reach this
+		// - a plan's owner deleting it while simultaneously creating a test in it - and the
+		// residue is inert: the module cannot resurrect, since stop() leaves it INTERRUPTED and
+		// both setStatusInternal() and call() refuse to act from a terminal state.
 		infoService.deleteTests(testIds);
 		planService.deleteMutableTestPlan(id);
 
