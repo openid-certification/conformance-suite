@@ -157,6 +157,18 @@ cts-data-table:not(:defined) {
 	min-height: 200px;
 }
 
+/* cts-statistics-page owns the whole body of statistics.html: a KPI row over
+ * four 320px chart frames, all of it behind one API round-trip. Pre-upgrade
+ * the host has no children and would collapse to zero, so the footer would
+ * jump up under the page head and back down again when the snapshot lands.
+ * Reserve enough for the KPI row plus the section heading (roughly the
+ * above-the-fold block) rather than the full chart grid, which is taller
+ * than most viewports anyway. */
+cts-statistics-page:not(:defined) {
+	display: block;
+	min-height: 240px;
+}
+
 /* cts-page-head is the standard page header pattern used by every
  * page-level migration in Phase D (32px title + optional subtitle +
  * actions slot). The post-upgrade footprint is roughly 80px tall (32px

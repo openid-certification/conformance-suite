@@ -22,6 +22,11 @@ import "./cts-icon.js";
 const NAV_LINKS = [
   { page: "plans", label: "Test Plans", href: "plans.html" },
   { page: "logs", label: "Test Logs", href: "logs.html" },
+  // adminOnly links are filtered out for everyone but admins. The page
+  // itself is hard-gated server-side (WebSecurityOidcLoginConfig) and its
+  // API answers 403 to non-admins; hiding the link is the third layer, so a
+  // non-admin never sees a destination they cannot reach.
+  { page: "statistics", label: "Statistics", href: "statistics.html", adminOnly: true },
   { page: "tokens", label: "Tokens", href: "tokens.html" },
   { page: "api-docs", label: "API Docs", href: "api-document.html", external: true },
 ];
@@ -613,7 +618,8 @@ function computeInitials(name) {
  *   HomeController makes the same authenticated/anonymous call with fresh
  *   session state, so a click in the loading window can never misroute.
  * @property {string} currentPage - Key of the active page (e.g. `plans`,
- *   `logs`, `tokens`, `api-docs`); used to highlight the matching link.
+ *   `logs`, `statistics`, `tokens`, `api-docs`); used to highlight the
+ *   matching link.
  *   Reflects the `current-page` attribute.
  */
 class CtsNavbar extends LitElement {
@@ -851,7 +857,9 @@ class CtsNavbar extends LitElement {
     const links = this._user ? NAV_LINKS : PUBLIC_NAV_LINKS;
     const filteredLinks = this._user
       ? links.filter(
-          (link) => link.page !== "tokens" || (!this._user.isAdmin && !this._user.isGuest),
+          (link) =>
+            (link.page !== "tokens" || (!this._user.isAdmin && !this._user.isGuest)) &&
+            (!link.adminOnly || this._user.isAdmin === true),
         )
       : links;
     // Prefix key by list context so `api-docs` (present in both NAV_LINKS and

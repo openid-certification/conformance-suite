@@ -278,6 +278,22 @@ class CtsChart extends LitElement {
     return this;
   }
 
+  /**
+   * The live Chart.js instance, or `null` before the bundle has loaded and
+   * after `disconnectedCallback()` destroyed it.
+   *
+   * Read-only, and the only supported way to reach the chart's RESOLVED
+   * state — the fill a `colorVar` actually resolved to, the data Chart.js is
+   * holding. It exists for tests that must assert on those (the statistics
+   * page proves a family is never repainted by comparing resolved fills);
+   * production callers drive the chart through the reactive properties and
+   * should never touch it.
+   * @returns {any} The Chart.js instance, or null.
+   */
+  get chartInstance() {
+    return this._chart;
+  }
+
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
