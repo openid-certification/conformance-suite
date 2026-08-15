@@ -8,6 +8,8 @@ import {
   MOCK_STATS_PENDING,
   MOCK_STATS_READY,
   MOCK_STATS_REFRESHING,
+  MOCK_STATS_WEEKLY,
+  MOCK_STATS_WEEKS,
 } from "./fixtures/mock-statistics.js";
 
 /**
@@ -20,6 +22,16 @@ import {
  * there is nothing to serve. These specs drive the real page against each of
  * them, so the state machine, the poll cadence, the filters and the navbar
  * gating are all exercised end to end rather than per component.
+ *
+ * Since phase 2 the SERVER slices, so these specs assert on the query the page
+ * SENT rather than on data it re-shaped locally; the routes answer with a fixed
+ * payload. What each control does to the numbers is covered by the Storybook
+ * play functions, which run against a fixture that really slices.
+ *
+ * The page also makes a second, deliberately unfiltered request on load — the
+ * baseline the family colours and the family select come from. It is the only
+ * one with an empty query string, which is how the routes below tell them
+ * apart.
  *
  * Chart.js is NOT stubbed: `<cts-chart>` lazily injects
  * `/vendor/chart.js/chart.umd.js`, which the e2e static server serves for real,
@@ -42,7 +54,7 @@ const POLL_TIMEOUT = 20000;
 const POLLING_TEST_TIMEOUT = 60000;
 
 /**
- * The nine KPI tiles as the page must render them from MOCK_STATS_READY:
+ * The ten KPI tiles as the page must render them from MOCK_STATS_READY:
  * exact grouped figures, never compacted — this is an admin console where the
  * difference between 91,800 and 91,842 is the point.
  * @type {Record<string, string>}
@@ -57,6 +69,7 @@ const READY_TILE_TEXT = {
   inProgress: "3",
   stuck: "7",
   certifiedPlans: "88",
+  publishedPlans: "45",
 };
 
 const CHART_TESTIDS = [
@@ -64,6 +77,7 @@ const CHART_TESTIDS = [
   "stats-chart-plans",
   "stats-chart-results",
   "stats-chart-users",
+  "stats-chart-certified",
 ];
 
 /**
@@ -76,26 +90,33 @@ const CHART_TESTIDS = [
 
 /**
  * Register the statistics endpoint with a per-call responder and record what
- * was asked for. The recorded strings are URL *search* parts (`""` or
- * `"?refresh=true"`), which is what the `?refresh` assertions care about, and
- * their count doubles as the poll counter.
+ * was asked for. The recorded strings are URL *search* parts (`""` for the
+ * baseline request, `"?granularity=month&from=2025-09"` for a real one), and
+ * the count of the non-baseline ones doubles as the poll counter.
  *
  * Responders are module-scope functions rather than inline closures so the
  * `if`s they need stay out of test bodies (`playwright/no-conditional-in-test`).
  *
  * @param {import('@playwright/test').Page} page
  * @param {(callIndex: number, url: URL) => StatsRouteResponse} respond - Called
- *   with the 1-based request number and the parsed request URL.
+ *   with the 1-based number of the FILTERED request and the parsed request URL.
+ * @param {(callIndex: number, url: URL) => StatsRouteResponse} [respondBaseline]
+ *   - Answers the unfiltered baseline request; defaults to a settled snapshot.
  * @returns {Promise<Array<string>>} Search strings, in request order; grows as
  *   the page polls.
  */
-async function setupStatisticsRoute(page, respond) {
+async function setupStatisticsRoute(page, respond, respondBaseline = respondReady) {
   /** @type {Array<string>} */
   const searches = [];
+  let calls = 0;
   await page.route(ENDPOINT_GLOB, (route) => {
     const url = new URL(route.request().url());
     searches.push(url.search);
-    const response = respond(searches.length, url);
+    // The baseline is a fixed extra request, so it must not move the counter
+    // the per-call responders are driven by.
+    const baseline = url.search === "";
+    calls += baseline ? 0 : 1;
+    const response = baseline ? respondBaseline(calls, url) : respond(calls, url);
     if (response.body === undefined) {
       // 403 is documented as having no body at all.
       return route.fulfill({ status: response.status, body: "" });
@@ -110,9 +131,39 @@ async function setupStatisticsRoute(page, respond) {
   return searches;
 }
 
+/**
+ * The queries of the filtered requests — everything the page asked for on
+ * behalf of a control, with the load-time baseline left out.
+ * @param {Array<string>} searches - The recorded search strings.
+ * @returns {Array<string>} The non-empty ones, in request order.
+ */
+function filtered(searches) {
+  return searches.filter((search) => search !== "");
+}
+
 /** @returns {StatsRouteResponse} A settled snapshot, every time. */
 function respondReady() {
   return { status: 200, body: MOCK_STATS_READY };
+}
+
+/**
+ * A settled snapshot at the granularity that was asked for. The server picks
+ * which cells to serve from the same cube, so a weekly request must come back
+ * with a weekly axis or the page has nothing to prove it asked.
+ * @param {number} callIndex - 1-based request number (unused).
+ * @param {URL} url - The request URL.
+ * @returns {StatsRouteResponse} The response for this call.
+ */
+function respondByGranularity(callIndex, url) {
+  return {
+    status: 200,
+    body: url.searchParams.get("granularity") === "week" ? MOCK_STATS_WEEKLY : MOCK_STATS_READY,
+  };
+}
+
+/** @returns {StatsRouteResponse} No snapshot to serve, every time. */
+function respondFailed() {
+  return { status: 500, body: MOCK_STATS_ERROR };
 }
 
 /**
@@ -221,7 +272,7 @@ function chartHeaders(page, testid) {
  * @param {import('@playwright/test').Page} page
  */
 async function expectChartsPainted(page) {
-  await expect(page.locator(".cts-stats-chart figure canvas")).toHaveCount(4, {
+  await expect(page.locator(".cts-stats-chart figure canvas")).toHaveCount(CHART_TESTIDS.length, {
     timeout: POLL_TIMEOUT,
   });
   await expect
@@ -234,7 +285,7 @@ async function expectChartsPainted(page) {
           ),
       { timeout: POLL_TIMEOUT },
     )
-    .toBe(4);
+    .toBe(CHART_TESTIDS.length);
 }
 
 test.describe("statistics.html — admin usage dashboard", () => {
@@ -247,7 +298,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     expectNoPageErrors(page);
   });
 
-  test("polls through 202 responses and then renders tiles and four charts", async ({ page }) => {
+  test("polls through 202 responses and then renders tiles and five charts", async ({ page }) => {
     test.setTimeout(POLLING_TEST_TIMEOUT);
     await setupFailFast(page);
     const searches = await setupStatisticsRoute(page, respondPendingTwiceThenReady);
@@ -265,11 +316,11 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     // The third response carries the snapshot; the loading block goes away.
     const tiles = page.locator('[data-testid="stats-tiles"] .cts-stats-tile');
-    await expect(tiles).toHaveCount(9, { timeout: POLL_TIMEOUT });
+    await expect(tiles).toHaveCount(10, { timeout: POLL_TIMEOUT });
     await expect(loading).toHaveCount(0);
-    expect(searches.length).toBeGreaterThanOrEqual(3);
+    expect(filtered(searches).length).toBeGreaterThanOrEqual(3);
 
-    // Nine tiles, exact grouped figures from the fixture.
+    // Ten tiles, exact grouped figures from the fixture.
     for (const [key, value] of Object.entries(READY_TILE_TEXT)) {
       await expect(
         page.locator(`[data-testid="stat-tile-${key}"] .cts-stats-tile-value`),
@@ -289,13 +340,10 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     await expectChartsPainted(page);
 
-    // Every chart's data table is sliced to the default 12-month range,
-    // oldest kept month first.
+    // Every chart is on the axis the SERVER sent — the page does not slice.
     for (const testid of CHART_TESTIDS) {
-      await expect(chartRows(page, testid)).toHaveCount(12);
-      await expect(chartRows(page, testid).first().locator("th")).toHaveText(
-        MOCK_STATS_MONTHS[MOCK_STATS_MONTHS.length - 12],
-      );
+      await expect(chartRows(page, testid)).toHaveCount(MOCK_STATS_MONTHS.length);
+      await expect(chartRows(page, testid).first().locator("th")).toHaveText(MOCK_STATS_MONTHS[0]);
       await expect(chartHeaders(page, testid).first()).toHaveText("Month");
     }
 
@@ -336,9 +384,14 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     // A `?refresh=true` on load would make every page view kick off a
     // multi-minute whole-collection aggregation.
-    expect(searches[0]).toBe("");
+    expect(searches.every((search) => !search.includes("refresh"))).toBe(true);
+    // Exactly two requests: the unfiltered baseline and the view itself...
+    expect(searches).toHaveLength(2);
+    expect(searches).toContain("");
+    // ...and the view's one carries the default range, resolved to a period key.
+    expect(filtered(searches)[0]).toMatch(/^\?granularity=month&from=\d{4}-\d{2}$/);
     // ...and a settled snapshot (refreshing: false) must not be polled at all.
-    expect(searches).toHaveLength(1);
+    await expect(page).toHaveURL(/\?range=12m$/);
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveAttribute(
       "aria-busy",
       "false",
@@ -361,10 +414,11 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(charts).toHaveAttribute("aria-busy", "false");
     await expect(refresh).toBeEnabled();
 
+    const before = searches.length;
     await refresh.click();
 
-    await expect.poll(() => searches.length, { timeout: POLL_TIMEOUT }).toBeGreaterThan(1);
-    expect(searches[1]).toBe("?refresh=true");
+    await expect.poll(() => searches.length, { timeout: POLL_TIMEOUT }).toBeGreaterThan(before);
+    expect(searches[before]).toMatch(/^\?granularity=month&from=\d{4}-\d{2}&refresh=true$/);
 
     // refreshing: true is stale-while-revalidate — the previous render stays
     // mounted and only dims, so there is no skeleton flash and no layout jump.
@@ -372,12 +426,12 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(charts).toHaveAttribute("aria-busy", "true");
     await expect(page.locator('cts-spinner[label="Refreshing statistics"]')).toHaveCount(1);
     await expect(refresh).toBeDisabled();
-    await expect(page.locator(".cts-stats-chart figure canvas")).toHaveCount(4);
+    await expect(page.locator(".cts-stats-chart figure canvas")).toHaveCount(CHART_TESTIDS.length);
 
     // The poll that follows carries no ?refresh and finds the snapshot
     // settled, which is what clears the busy state.
-    await expect.poll(() => searches.length, { timeout: POLL_TIMEOUT }).toBeGreaterThan(2);
-    expect(searches[2]).toBe("");
+    await expect.poll(() => searches.length, { timeout: POLL_TIMEOUT }).toBeGreaterThan(before + 1);
+    expect(searches[before + 1]).not.toContain("refresh");
     await expect(charts).toHaveAttribute("aria-busy", "false", { timeout: POLL_TIMEOUT });
     await expect(charts).not.toHaveClass(/is-busy/);
     await expect(page.locator("cts-spinner")).toHaveCount(0);
@@ -388,7 +442,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     page,
   }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondForbidden);
+    const searches = await setupStatisticsRoute(page, respondForbidden, respondForbidden);
     await setupCommonRoutes(page, { user: MOCK_USER });
 
     await page.goto("/statistics.html");
@@ -403,8 +457,9 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(page.locator('[data-testid="stats-tiles"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
     await expect(page.locator("canvas")).toHaveCount(0);
-    // ...and a forbidden response is terminal: the page must not poll it.
-    expect(searches).toHaveLength(1);
+    // ...and a forbidden response is terminal: the page must not poll it. Only
+    // the baseline and the view itself were ever asked for.
+    expect(searches).toHaveLength(2);
 
     // The navbar hides the link from non-admins (belt and braces — the 403 is
     // the authoritative check, the link is just discoverability).
@@ -427,31 +482,38 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("a database with no runs shows the empty state and zeroed tiles", async ({ page }) => {
     await setupFailFast(page);
-    await setupStatisticsRoute(page, respondEmpty);
+    await setupStatisticsRoute(page, respondEmpty, respondEmpty);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
 
+    // The default range is 12 months, so the empty state must not claim there
+    // has never been any data — only that there is none in what is on screen.
     const empty = page.locator('[data-testid="stats-empty"]');
     await expect(empty).toBeVisible();
-    await expect(empty).toHaveAttribute("heading", "No test data yet");
-    await expect(empty.locator(".oidf-empty-state-heading")).toHaveText("No test data yet");
+    await expect(empty).toHaveAttribute("heading", "Nothing in this range");
+    await expect(empty.locator(".oidf-empty-state-heading")).toHaveText("Nothing in this range");
 
     // The tiles still render (all zero) — the page is not blank, it is empty.
-    await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(9);
+    await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(10);
     await expect(
       page.locator('[data-testid="stat-tile-totalTests"] .cts-stats-tile-value'),
     ).toHaveText("0");
 
-    // Nothing to chart, so no chart frames and no filter row.
+    // Nothing to chart, so no chart frames...
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
     await expect(page.locator("canvas")).toHaveCount(0);
-    await expect(page.locator('[data-testid="stats-range"]')).toHaveCount(0);
+    // ...but the filter row stays: the range that emptied the view is the very
+    // thing the reader has to be able to widen, and widening it all the way is
+    // what turns "nothing here" into "nothing anywhere".
+    await expect(page.locator('[data-testid="stats-range"]')).toHaveCount(1);
+    await page.locator('[data-testid="stats-range-monthly"] button[data-range="all"]').click();
+    await expect(empty).toHaveAttribute("heading", "No test data yet");
   });
 
   test("a 500 shows the server's message and Retry re-requests the snapshot", async ({ page }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, respondErrorThenReady);
+    const searches = await setupStatisticsRoute(page, respondErrorThenReady, respondFailed);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -463,112 +525,148 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(alert).toContainText("MongoSocketReadException");
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
     // The failure is terminal until the admin acts: no background polling.
-    expect(searches).toHaveLength(1);
+    expect(filtered(searches)).toHaveLength(1);
 
     await page.locator('[data-testid="stats-retry"] button').click();
 
-    await expect.poll(() => searches.length, { timeout: POLL_TIMEOUT }).toBe(2);
+    await expect.poll(() => filtered(searches).length, { timeout: POLL_TIMEOUT }).toBe(2);
     // Retry re-requests the snapshot; it must not force a recompute.
-    expect(searches[1]).toBe("");
+    expect(filtered(searches)[1]).not.toContain("refresh");
     await expectChartsPainted(page);
     await expect(alert).toHaveCount(0);
-    await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(9);
+    await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(10);
   });
 
-  test("the range and family filters rescope the charts but not the tiles", async ({ page }) => {
+  test("every filter goes to the server and into the page URL", async ({ page }) => {
     await setupFailFast(page);
-    await setupStatisticsRoute(page, respondReady);
+    const searches = await setupStatisticsRoute(page, respondByGranularity);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
     await expectChartsPainted(page);
 
-    const runsHeaders = chartHeaders(page, "stats-chart-runs");
-    const usersHeaders = chartHeaders(page, "stats-chart-users");
     const familySelect = page.locator('[data-testid="stats-family"]');
-    const allTime = page.locator('[data-testid="stats-range"] button[data-range="all"]');
-    const twelveMonths = page.locator('[data-testid="stats-range"] button[data-range="12m"]');
-
-    // Default range is 12 months: "OpenID Connect Logout", busy only in the
-    // first two months of the 14-month history, has nothing left in that
-    // window, so only six categorical families plus the folded neutral tail
-    // (OpenID Federation, No plan, Other / retired) render.
-    await expect(twelveMonths).toHaveAttribute("aria-pressed", "true");
-    await expect(allTime).toHaveAttribute("aria-pressed", "false");
-    await expect(chartRows(page, "stats-chart-runs")).toHaveCount(12);
-    await expect(chartRows(page, "stats-chart-runs").first().locator("th")).toHaveText(
-      MOCK_STATS_MONTHS[2],
-    );
-    await expect(runsHeaders).toHaveCount(8);
-    await expect(runsHeaders.last()).toHaveText("Other");
-    await expect(
-      page.locator("[data-testid='stats-chart-runs'] table thead th", {
-        hasText: "OpenID Connect Logout",
-      }),
-    ).toHaveCount(0);
+    const planSelect = page.locator('[data-testid="stats-plan"]');
+    const variantSelect = page.locator('[data-testid="stats-variant-client_auth_type"]');
+    const certSelect = page.locator('[data-testid="stats-cert"]');
+    const last = () => filtered(searches).at(-1);
 
     // Only families that have ever run are offered — "Shared Signals
-    // Framework" never did, so it is not in the list.
+    // Framework" never did, so it is not in the list. The options come from
+    // the unfiltered baseline, so no filter can take them away.
     await expect(familySelect).toHaveAttribute("aria-label", "Spec family");
     await expect(familySelect.locator("option")).toHaveCount(11);
     await expect(familySelect.locator("option").first()).toHaveText("All families");
     await expect(familySelect.locator("option[value='Shared Signals Framework']")).toHaveCount(0);
-    await expect(familySelect.locator("option[value='FAPI2 Security Profile']")).toHaveCount(1);
 
-    await allTime.click();
-
-    // Widening the range brings back four months' worth of rows and the
-    // "OpenID Connect Logout" column...
-    await expect(allTime).toHaveAttribute("aria-pressed", "true");
-    await expect(twelveMonths).toHaveAttribute("aria-pressed", "false");
-    await expect(chartRows(page, "stats-chart-runs")).toHaveCount(14);
+    // A weekly preset is a different granularity, not a shorter range: the
+    // axis, its label and its ticks all come back different.
+    await page.locator('[data-testid="stats-range-weekly"] button[data-range="26w"]').click();
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toMatch(/^\?granularity=week&from=\d{4}-\d{2}-\d{2}$/);
+    await expect(page).toHaveURL(/\?range=26w$/);
+    await expect(chartHeaders(page, "stats-chart-runs").first()).toHaveText("Week starting");
+    await expect(chartRows(page, "stats-chart-runs")).toHaveCount(MOCK_STATS_WEEKS.length);
+    // Compact labels: the day and the month, with the year only where it changes.
     await expect(chartRows(page, "stats-chart-runs").first().locator("th")).toHaveText(
-      MOCK_STATS_MONTHS[0],
+      "8 Dec 2025",
     );
-    await expect(runsHeaders).toHaveCount(9);
-    await expect(
-      page.locator("[data-testid='stats-chart-runs'] table thead th", {
-        hasText: "OpenID Connect Logout",
-      }),
-    ).toHaveCount(1);
 
-    await twelveMonths.click();
-
-    // ...and back to 12 months drops the same four months and the same
-    // column again.
-    await expect(twelveMonths).toHaveAttribute("aria-pressed", "true");
-    await expect(allTime).toHaveAttribute("aria-pressed", "false");
-    await expect(chartRows(page, "stats-chart-runs")).toHaveCount(12);
-    await expect(chartRows(page, "stats-chart-users")).toHaveCount(12);
-    await expect(chartRows(page, "stats-chart-runs").first().locator("th")).toHaveText(
-      MOCK_STATS_MONTHS[2],
-    );
-    await expect(runsHeaders).toHaveCount(8);
-    await expect(
-      page.locator("[data-testid='stats-chart-runs'] table thead th", {
-        hasText: "OpenID Connect Logout",
-      }),
-    ).toHaveCount(0);
+    await page.locator('[data-testid="stats-range-monthly"] button[data-range="12m"]').click();
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toMatch(/^\?granularity=month&from=\d{4}-\d{2}$/);
+    await expect(chartHeaders(page, "stats-chart-runs").first()).toHaveText("Month");
 
     await familySelect.selectOption("FAPI2 Security Profile");
+    await expect.poll(last, { timeout: POLL_TIMEOUT }).toContain("family=FAPI2+Security+Profile");
 
-    // One family selected: charts 1-2 collapse to that single series...
-    await expect(runsHeaders).toHaveText(["Month", "FAPI2 Security Profile"]);
-    await expect(chartHeaders(page, "stats-chart-plans")).toHaveText([
-      "Month",
-      "FAPI2 Security Profile",
-    ]);
-    // ...chart 3 switches to that family's own outcome mix (still by bucket)...
-    await expect(chartHeaders(page, "stats-chart-results").nth(1)).toHaveText("PASSED");
-    // ...and chart 4 ignores the family filter entirely.
-    await expect(usersHeaders).toHaveText(["Month", "Active", "New"]);
-    // The range is still 12 months.
-    await expect(chartRows(page, "stats-chart-runs")).toHaveCount(12);
+    // The plan select is offered from the payload's dimensions; picking one
+    // implies its family, so the two controls can never contradict each other.
+    await expect(planSelect).toHaveAttribute("aria-label", "Test plan");
+    await planSelect.selectOption("fapi2-security-profile-final-test-plan");
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toContain("plan=fapi2-security-profile-final-test-plan");
+    await expect(familySelect).toHaveValue("FAPI2 Security Profile");
+
+    await variantSelect.selectOption("mtls");
+    await expect.poll(last, { timeout: POLL_TIMEOUT }).toContain("variant.client_auth_type=mtls");
+
+    await certSelect.selectOption("FAPI2 Security Profile Final");
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toContain("cert=FAPI2+Security+Profile+Final");
+
+    // Changing the family drops the filters that belonged to the old one:
+    // a plan, a certification profile and the variant parameters all belong
+    // to a family, and carrying them over leaves charts of zeros.
+    await familySelect.selectOption("OID4VP");
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toMatch(/^\?granularity=month&from=\d{4}-\d{2}&family=OID4VP$/);
+    await expect(page).toHaveURL(/\?range=12m&family=OID4VP$/);
+    await expect(certSelect).toHaveValue("");
+    await expect(planSelect).toHaveValue("");
+
+    await familySelect.selectOption("FAPI2 Security Profile");
+    await planSelect.selectOption("fapi2-security-profile-final-test-plan");
+    await variantSelect.selectOption("mtls");
+    await certSelect.selectOption("FAPI2 Security Profile Final");
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toContain("cert=FAPI2+Security+Profile+Final");
+
+    // Everything is in the URL, so the view can be shared as it stands.
+    const url = new URL(page.url());
+    expect(url.searchParams.get("range")).toBe("12m");
+    expect(url.searchParams.get("family")).toBe("FAPI2 Security Profile");
+    expect(url.searchParams.get("plan")).toBe("fapi2-security-profile-final-test-plan");
+    expect(url.searchParams.get("variant.client_auth_type")).toBe("mtls");
+    expect(url.searchParams.get("cert")).toBe("FAPI2 Security Profile Final");
 
     // The tiles are whole-database counters and are deliberately NOT scoped by
-    // either filter.
+    // any of it.
     await expect(
       page.locator('[data-testid="stat-tile-totalTests"] .cts-stats-tile-value'),
     ).toHaveText(READY_TILE_TEXT.totalTests);
+
+    // Clear filters drops all of them and keeps the range.
+    await page.locator('[data-testid="stats-clear-filters"] button').click();
+    await expect
+      .poll(last, { timeout: POLL_TIMEOUT })
+      .toMatch(/^\?granularity=month&from=\d{4}-\d{2}$/);
+    await expect(page).toHaveURL(/\?range=12m$/);
+    await expect(page.locator('[data-testid="stats-clear-filters"]')).toHaveCount(0);
+  });
+
+  test("a deep link opens the view it names", async ({ page }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page, respondByGranularity);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto(
+      "/statistics.html?range=24m&family=OID4VP&plan=oid4vp-1final-verifier-test-plan" +
+        "&variant.fapi_profile=plain_fapi",
+    );
+    await expectChartsPainted(page);
+
+    // The very first request already carries what the link asked for — the
+    // page must not render an unfiltered view and then correct itself.
+    expect(filtered(searches)[0]).toMatch(
+      /^\?granularity=month&from=\d{4}-\d{2}&family=OID4VP&plan=oid4vp-1final-verifier-test-plan&variant\.fapi_profile=plain_fapi$/,
+    );
+    await expect(
+      page.locator('[data-testid="stats-range-monthly"] button[data-range="24m"]'),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('[data-testid="stats-family"]')).toHaveValue("OID4VP");
+    await expect(page.locator('[data-testid="stats-plan"]')).toHaveValue(
+      "oid4vp-1final-verifier-test-plan",
+    );
+    await expect(page.locator('[data-testid="stats-variant-fapi_profile"]')).toHaveValue(
+      "plain_fapi",
+    );
+    await expect(page.locator('[data-testid="stats-clear-filters"]')).toHaveCount(1);
   });
 });

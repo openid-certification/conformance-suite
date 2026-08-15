@@ -6,21 +6,29 @@ import "./cts-chart.js";
 import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-spinner.js";
+import "./cts-statistics-filters.js";
 import "./cts-time.js";
 import {
+  EMPTY_OPTIONS,
   assignFamilySlots,
+  buildChartInputs,
+  defaultFilterState,
   familiesWithRuns,
-  foldOther,
+  hasAnyData,
+  isFiltered,
+  isNarrowed,
+  memoiseByArgs,
   otherBreakdown,
-  plansDatasets,
-  resultsDatasets,
-  runsDatasets,
-  sliceRange,
-  usersDatasets,
+  queryFromState,
+  rememberOptions,
+  sameState,
+  stateFromUrl,
+  urlFromState,
 } from "./statistics-model.js";
 
 /** @typedef {import("./statistics-model.js").StatisticsData} StatisticsData */
 /** @typedef {import("./statistics-model.js").ChartDataset} ChartDataset */
+/** @typedef {import("./statistics-model.js").FilterState} FilterState */
 
 /** Admin-only endpoint backing the whole page; one payload feeds every chart. */
 const ENDPOINT = "/api/statistics/overview";
@@ -38,11 +46,47 @@ const POLL_FAST_WINDOW_MS = 30000;
 const POLL_GIVE_UP_MS = 600000;
 
 /**
+ * How many times the unfiltered baseline is asked for. It is retried because
+ * the first attempt can land while the very first snapshot is still being
+ * computed (202), but it is capped because the page is perfectly usable
+ * without it and a poll loop must not turn into two.
+ */
+const BASELINE_MAX_ATTEMPTS = 3;
+
+/**
  * Lead line for the tooltip footer that names what the folded "Other"
  * segment contains. Without it the family lines read as extra detail about
  * the series the pointer is actually on.
  */
 const OTHER_FOOTER_HEADING = "Other includes:";
+
+/**
+ * The tooltip footer naming what the folded "Other" segment contains for the
+ * hovered period. Built once per payload (not per render) so `<cts-chart>`
+ * is handed the same callback every time.
+ * @param {StatisticsData} data - The payload the chart was built from.
+ * @param {Record<string, string>} slots - Family → colour token.
+ * @param {string} source - `"runs"`, `"plans"` or `"certified"`.
+ * @param {boolean} folded - Whether the chart actually has an "Other" series.
+ * @returns {(hoveredIndex: number) => Array<string>} The footer callback.
+ */
+function footerFor(data, slots, source, folded) {
+  return (hoveredIndex) => {
+    if (!folded) return [];
+    const lines = otherBreakdown(data, slots, hoveredIndex, source);
+    return lines.length === 0 ? [] : [OTHER_FOOTER_HEADING, ...lines];
+  };
+}
+
+/**
+ * @param {Record<string, string>} a - One family → colour mapping.
+ * @param {Record<string, string>} b - Another.
+ * @returns {boolean} True when they say the same thing.
+ */
+function sameSlots(a, b) {
+  const keys = Object.keys(b);
+  return keys.length === Object.keys(a).length && keys.every((family) => a[family] === b[family]);
+}
 
 const GIVE_UP_MESSAGE =
   "Statistics are still being computed after 10 minutes. The server may be busy — try again.";
@@ -52,7 +96,7 @@ const UNEXPECTED_MESSAGE = "The statistics endpoint returned an unexpected respo
 /**
  * The KPI row, in display order. `key` indexes the payload's `tiles` object
  * and also names the tile's `data-testid` (`stat-tile-totalTests`, …).
- * These are whole-database counters: the range and family controls below
+ * These are whole-database counters: the range and the filter row below them
  * deliberately do not scope them.
  * @type {Array<{key: string, label: string, hint: string}>}
  */
@@ -66,19 +110,17 @@ const TILES = [
   { key: "inProgress", label: "In progress", hint: "Running or waiting" },
   { key: "stuck", label: "Stuck / abandoned (>24 h)", hint: "Non-terminal, started over 24 h ago" },
   { key: "certifiedPlans", label: "Certified plans", hint: "Made immutable" },
+  { key: "publishedPlans", label: "Published plans", hint: "Visible to everyone" },
 ];
 
 /**
- * Range presets, date-range-first per the dashboard filter convention.
- * "12 months" is the default because the question this page answers day to
- * day is recent usage; "All time" and "24 months" are one click away.
- * @type {Array<{value: string, label: string}>}
+ * What one period is called on an axis and in a heading, per granularity.
+ * @type {Record<string, {axis: string, unit: string}>}
  */
-const RANGE_PRESETS = [
-  { value: "12m", label: "12 months" },
-  { value: "24m", label: "24 months" },
-  { value: "all", label: "All time" },
-];
+const PERIOD_NAMES = {
+  month: { axis: "Month", unit: "month" },
+  week: { axis: "Week starting", unit: "week" },
+};
 
 /**
  * Exact grouped figures ("91,800"), never compacted. The dashboard
@@ -117,7 +159,7 @@ const STYLE_TEXT = css`
     margin-top: 0;
   }
 
-  /* KPI row. auto-fit keeps nine tiles on one or two rows on a desktop and
+  /* KPI row. auto-fit keeps ten tiles on one or two rows on a desktop and
      collapses to a single column on a phone without a media query. */
   .cts-stats-tiles {
     display: grid;
@@ -164,71 +206,6 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
   }
 
-  /* One filter row above everything it scopes — never per chart. */
-  .cts-stats-filters {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3);
-    margin: var(--space-4) 0;
-  }
-  .cts-stats-range {
-    display: inline-flex;
-    border: 1px solid var(--ink-300);
-    border-radius: var(--radius-2);
-    overflow: hidden;
-  }
-  .cts-stats-range button {
-    padding: 0 var(--space-3);
-    height: var(--control-height);
-    border: 0;
-    border-right: 1px solid var(--ink-300);
-    background: var(--bg-elev);
-    color: var(--fg);
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    line-height: 1;
-    cursor: pointer;
-  }
-  .cts-stats-range button:last-child {
-    border-right: 0;
-  }
-  .cts-stats-range button:hover {
-    background: var(--bg-muted);
-  }
-  .cts-stats-range button[aria-pressed="true"] {
-    background: var(--ink-900);
-    color: var(--ink-0);
-  }
-  .cts-stats-range button:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  /* Mirrors cts-form-field's .oidf-select, which is scoped to
-     .oidf-form-field and so does not reach a bare select on this page. */
-  .cts-stats-filters .oidf-select {
-    height: var(--control-height);
-    padding: 0 36px 0 var(--space-3);
-    border: 1px solid var(--ink-300);
-    border-radius: var(--radius-2);
-    background-color: var(--bg-elev);
-    color: var(--fg);
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    line-height: 1;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-  }
-  .cts-stats-filters .oidf-select:focus {
-    outline: none;
-    border-color: var(--orange-400);
-    box-shadow: var(--focus-ring);
-  }
-
   .cts-stats-charts {
     display: grid;
     /* min() so a viewport narrower than the track floor still gets a
@@ -250,7 +227,7 @@ const STYLE_TEXT = css`
   /* The unresolved-plans disclosure borrows cts-chart's own .cts-chart-data
      / .cts-chart-table rules so it is visually the same object as a chart's
      data table; only its own spacing and hint are declared here. It renders
-     inside the trends section, where four <cts-chart>s have always injected
+     inside the trends section, where five <cts-chart>s have always injected
      those rules. */
   /* Element + class so the spacing wins over .cts-chart-data's own
      margin-top regardless of which component injected its stylesheet
@@ -262,6 +239,13 @@ const STYLE_TEXT = css`
     margin: var(--space-2) 0 0;
     font-size: var(--fs-12);
     color: var(--fg-soft);
+  }
+
+  /* cts-empty-state centres its own content; the action under it has to be
+     centred too, or it reads as belonging to whatever comes next. */
+  .cts-stats-no-match-action {
+    display: flex;
+    justify-content: center;
   }
 
   .cts-stats-chart {
@@ -288,20 +272,41 @@ function injectStyles() {
 }
 
 /**
- * Suite-wide usage dashboard for `statistics.html`: a KPI row over four
- * monthly charts, all fed by one `GET /api/statistics/overview` payload.
+ * Suite-wide usage dashboard for `statistics.html`: a KPI row, a filter row,
+ * and five charts, all fed by `GET /api/statistics/overview`.
  *
  * The endpoint serves a snapshot recomputed in the background at most every
- * 12 hours, so the component has three things to handle beyond a plain
- * fetch: a `202 pending` state it polls through (2 s for the first 30 s,
- * then 5 s, giving up after 10 minutes), a `refreshing: true` flag that
- * means "keep showing this snapshot, a newer one is on the way", and a
- * `lastError` that reports a failed recompute while an older snapshot is
- * still being served.
+ * 12 hours, so the component has four things to handle beyond a plain fetch:
+ * a `202 pending` state it polls through (2 s for the first 30 s, then 5 s,
+ * giving up after 10 minutes), a `refreshing: true` flag that means "keep
+ * showing this snapshot, a newer one is on the way", a `lastError` that
+ * reports a failed recompute while an older snapshot is still being served,
+ * and a `400 invalid` that reports a range or filter the server cannot use.
  *
- * Colour is an identity here: {@link assignFamilySlots} is computed once
- * from the FULL payload, so changing the range or the family filter
- * re-slices the data without ever repainting a family.
+ * Slicing is the server's: the range presets and every filter go out as
+ * request parameters ({@link queryFromState}) and the payload comes back
+ * already narrowed, so a filter change is a refetch. The snapshot is cached,
+ * so that refetch is a cheap slice — the charts merely dim, keeping the
+ * previous render on screen (stale-while-revalidate).
+ *
+ * The whole filter state lives in the page URL (`?range=&family=&plan=
+ * &variant.<k>=&cert=`, written with `history.replaceState`), so a view is
+ * shareable and survives a reload.
+ *
+ * Colour is an identity here: {@link assignFamilySlots} is computed from an
+ * UNFILTERED, all-time baseline payload fetched once on load, so no range or
+ * filter can repaint a family (under a filter every other family is zero,
+ * which would otherwise hand the first hue to whatever was selected).
+ *
+ * DOM hooks for e2e (`data-testid`):
+ * `stats-forbidden`, `stats-error`, `stats-retry`, `stats-reset-filters`,
+ * `stats-last-error`, `stats-loading`, `stats-empty`, `stats-tiles`,
+ * `stat-tile-<key>`, `stats-refresh`, `stats-computed-at`, `stats-filters`,
+ * `stats-range`, `stats-range-weekly`, `stats-range-monthly`, `stats-family`,
+ * `stats-plan`, `stats-variant-<name>`, `stats-cert`, `stats-clear-filters`,
+ * `stats-charts`, `stats-chart-runs`, `stats-chart-plans`,
+ * `stats-chart-results`, `stats-chart-users`, `stats-chart-certified`,
+ * `stats-no-match`, `stats-no-match-clear`, `stats-unresolved`.
  *
  * Light DOM (`createRenderRoot()` returns `this`) so the page's design-system
  * tokens and stylesheet reach the rendered markup.
@@ -310,16 +315,18 @@ function injectStyles() {
  * so the page needs no `is-admin` input.
  * @property {undefined} [noAttributes] - This component has no public
  *   attributes or properties; all state is internal and derived from the
- *   statistics endpoint.
+ *   statistics endpoint and the page URL.
  */
 class CtsStatisticsPage extends LitElement {
   static properties = {
     _status: { state: true },
     _payload: { state: true },
-    _range: { state: true },
-    _family: { state: true },
+    _state: { state: true },
+    _baseline: { state: true },
+    _options: { state: true },
     _busy: { state: true },
     _errorMessage: { state: true },
+    _errorAction: { state: true },
     _dismissedErrorAt: { state: true },
   };
 
@@ -327,30 +334,64 @@ class CtsStatisticsPage extends LitElement {
     super();
     /**
      * The request lifecycle. Whether there is anything to CHART is a
-     * property of the payload, not of this machine — see `_hasMonths()`.
+     * property of the payload, not of this machine — see `_hasPeriods()`.
      * @type {"loading"|"pending"|"ready"|"forbidden"|"error"}
      */
     this._status = "loading";
     /** @type {any} The whole response body, not just `data`. */
     this._payload = null;
-    /** @type {string} One of the RANGE_PRESETS values. Defaults to "12m". */
-    this._range = "12m";
-    /** @type {string} Selected family, `""` for all. */
-    this._family = "";
+    /** @type {FilterState} Range and filters; mirrored in the page URL. */
+    this._state = defaultFilterState();
+    /** @type {StatisticsData|null} Unfiltered, all-time payload: the colour and family-option source. */
+    this._baseline = null;
+    /** @type {import("./statistics-model.js").FilterOptions} What the filter selects offer. */
+    this._options = EMPTY_OPTIONS;
     /** @type {boolean} A request is in flight, or the server is recomputing. */
     this._busy = false;
     /** @type {string} */
     this._errorMessage = "";
+    /** @type {"retry"|"reset"} Which action the error alert offers. */
+    this._errorAction = "retry";
     /** @type {string} `failedAt` of the lastError the user dismissed. */
     this._dismissedErrorAt = "";
-    /** @type {Record<string, string>} Family → colour token, from the FULL payload. */
+    /** @type {Record<string, string>} Family → colour token. */
     this._slots = {};
+    /** @type {"none"|"payload"|"baseline"} Where `_slots` came from. */
+    this._slotSource = "none";
     /** @type {ReturnType<typeof setTimeout>|null} */
     this._pollTimer = null;
     /** @type {number|null} When the current polling episode began. */
     this._pollStartedAt = null;
     /** @type {AbortController|null} */
     this._abort = null;
+    /** @type {AbortController|null} The baseline request's own controller. */
+    this._baselineAbort = null;
+    /** @type {number} How many baseline requests have been made. */
+    this._baselineAttempts = 0;
+    // Everything derived from a payload is memoised on the identity of what
+    // it is derived from: the page re-renders three times per fetch (busy on,
+    // payload, busy off) and <cts-chart> re-plots whenever the array it was
+    // handed is not the same one as last time.
+    this._view = memoiseByArgs(
+      (
+        /** @type {StatisticsData} */ data,
+        /** @type {Record<string, string>} */ slots,
+        /** @type {string} */ family,
+      ) => {
+        const inputs = buildChartInputs(data, slots, family);
+        return {
+          ...inputs,
+          names: PERIOD_NAMES[inputs.granularity],
+          footers: {
+            runs: footerFor(data, slots, "runs", inputs.runs.folded),
+            plans: footerFor(data, slots, "plans", inputs.plans.folded),
+            certified: footerFor(data, slots, "certified", inputs.certified.folded),
+          },
+        };
+      },
+    );
+    this._familyOptions = memoiseByArgs(familiesWithRuns);
+    this._hasAnyData = memoiseByArgs(hasAnyData);
   }
 
   createRenderRoot() {
@@ -360,6 +401,13 @@ class CtsStatisticsPage extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    // The URL is the source of truth for the view, so a shared link opens
+    // exactly what was shared; writing it straight back normalises it.
+    this._state = stateFromUrl(window.location.search);
+    this._syncUrl();
+    // An unfiltered, whole-history view IS the baseline, so asking for it
+    // twice would fetch the same payload twice; _apply adopts it instead.
+    if (isNarrowed(this._state)) this._loadBaseline();
     this._load(false);
   }
 
@@ -370,13 +418,18 @@ class CtsStatisticsPage extends LitElement {
       this._abort.abort();
       this._abort = null;
     }
+    if (this._baselineAbort) {
+      this._baselineAbort.abort();
+      this._baselineAbort = null;
+    }
   }
 
   // --- Data ------------------------------------------------------------
 
   /**
-   * Fetch the snapshot and move the state machine. Any in-flight request is
-   * aborted first, so a Refresh during a poll cannot land out of order.
+   * Fetch the snapshot for the current filter state and move the state
+   * machine. Any in-flight request is aborted first, so a Refresh during a
+   * poll — or a filter change during either — cannot land out of order.
    * @param {boolean} refresh - Ask the server to recompute (`?refresh=true`).
    * @returns {Promise<void>}
    */
@@ -388,8 +441,11 @@ class CtsStatisticsPage extends LitElement {
     this._errorMessage = "";
     if (!this._payload) this._status = "loading";
 
+    const query = queryFromState(this._state);
+    if (refresh) query.set("refresh", "true");
+
     try {
-      const response = await fetch(refresh ? `${ENDPOINT}?refresh=true` : ENDPOINT, {
+      const response = await fetch(`${ENDPOINT}?${query.toString()}`, {
         credentials: "same-origin",
         headers: { Accept: "application/json" },
         signal: controller.signal,
@@ -411,6 +467,65 @@ class CtsStatisticsPage extends LitElement {
       this._settle(controller);
       this._fail(`Could not load statistics: ${this._messageOf(err)}`);
     }
+  }
+
+  /**
+   * Fetch the unfiltered, all-time snapshot that colours the charts and fills
+   * the family select. It is the same cached cube the filtered request slices,
+   * so this costs the server one extra slice and nothing else.
+   *
+   * Deliberately silent: a page whose baseline failed still charts everything
+   * it has, falling back to colouring from the first payload it receives.
+   * @returns {Promise<void>}
+   */
+  async _loadBaseline() {
+    if (this._baseline || this._baselineAbort || this._baselineAttempts >= BASELINE_MAX_ATTEMPTS) {
+      return;
+    }
+    this._baselineAttempts += 1;
+    const controller = new AbortController();
+    this._baselineAbort = controller;
+    try {
+      const response = await fetch(ENDPOINT, {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      const body = await this._readJson(response);
+      if (controller.signal.aborted || !response.ok) return;
+      const data = body && body.data;
+      if (!data || !Array.isArray(data.families)) return;
+      this._baseline = data;
+      this._adoptSlots(data, true);
+    } catch {
+      // Network error, 202 while the first snapshot computes, a 403 — none of
+      // them is worth an alert, because the request the page is really making
+      // reports all three itself.
+    } finally {
+      if (this._baselineAbort === controller) this._baselineAbort = null;
+    }
+  }
+
+  /**
+   * Adopt the family → colour mapping. A filtered payload may only fill in
+   * for a baseline that has not arrived yet, and is never allowed to replace
+   * one: colour is an identity, and a filtered ranking is not one.
+   * @param {StatisticsData} data - The payload to rank families from.
+   * @param {boolean} fromBaseline - True when `data` is the unfiltered baseline.
+   * @returns {void}
+   */
+  _adoptSlots(data, fromBaseline) {
+    if (!fromBaseline && this._slotSource !== "none") return;
+    const slots = assignFamilySlots(data);
+    this._slotSource = fromBaseline ? "baseline" : "payload";
+    // Identity matters: the chart inputs are memoised on it, so replacing an
+    // equal mapping would re-plot all five charts for nothing — which is
+    // exactly what the baseline landing a moment after the first payload
+    // would otherwise do.
+    if (sameSlots(this._slots, slots)) return;
+    this._slots = slots;
+    this.requestUpdate();
   }
 
   /**
@@ -458,6 +573,17 @@ class CtsStatisticsPage extends LitElement {
       return;
     }
 
+    // 400: the range or a filter cannot be used. Nothing was computed, so
+    // retrying the same request is pointless — clearing the filters is the
+    // way out, and the server's message says which one is at fault.
+    if (response.status === 400) {
+      this._fail(
+        (body && body.message) || "The current filters could not be used.",
+        isFiltered(this._state) ? "reset" : "retry",
+      );
+      return;
+    }
+
     if (!response.ok) {
       this._fail((body && body.message) || `The server returned HTTP ${response.status}.`);
       return;
@@ -465,17 +591,26 @@ class CtsStatisticsPage extends LitElement {
 
     // Validate before committing anything: a half-applied payload would
     // leave `_payload` set for `render()` while the error state says
-    // otherwise. `families` and `months` are the two arrays every chart
+    // otherwise. `families` and `periods` are the two arrays every chart
     // indexes, so they are what "this is a snapshot" means here.
     const data = body && body.data;
-    if (!data || !Array.isArray(data.families) || !Array.isArray(data.months)) {
+    if (!data || !Array.isArray(data.families) || !Array.isArray(data.periods)) {
       this._fail(UNEXPECTED_MESSAGE);
       return;
     }
 
-    // From the FULL payload, never the slice — a family keeps its colour
-    // across every range and filter change.
-    this._slots = assignFamilySlots(data);
+    if (!this._baseline && !isNarrowed(this._state)) {
+      // Nothing is filtered and the range is the whole history, so this
+      // payload is the baseline; a second request would fetch it again.
+      this._baseline = data;
+      this._adoptSlots(data, true);
+    } else {
+      this._adoptSlots(data, false);
+      // A baseline that 202'd on load (no snapshot existed yet) can be had
+      // now that one demonstrably does.
+      if (!this._baseline) this._loadBaseline();
+    }
+    this._options = rememberOptions(this._options, data, this._state);
     this._payload = body;
     this._status = "ready";
 
@@ -494,23 +629,25 @@ class CtsStatisticsPage extends LitElement {
    * payload on every render rather than mirrored into `_status`, so the two
    * can never disagree — and so a failed refresh (`_status === "error"`)
    * still shows the charts it has.
-   * @returns {boolean} True when the snapshot covers at least one month.
+   * @returns {boolean} True when the snapshot covers at least one period.
    */
-  _hasMonths() {
-    const months = this._payload && this._payload.data && this._payload.data.months;
-    return Array.isArray(months) && months.length > 0;
+  _hasPeriods() {
+    const periods = this._payload && this._payload.data && this._payload.data.periods;
+    return Array.isArray(periods) && periods.length > 0;
   }
 
   /**
    * Enter the error state: stop polling, surface the message, but keep any
    * snapshot already on screen — a failed refresh must not blank the page.
    * @param {string} message - What to tell the admin.
+   * @param {"retry"|"reset"} [action] - Which way out the alert offers.
    * @returns {void}
    */
-  _fail(message) {
+  _fail(message, action = "retry") {
     this._stopPolling();
     this._busy = false;
     this._errorMessage = message;
+    this._errorAction = action;
     this._status = "error";
   }
 
@@ -592,21 +729,49 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * @param {Event} event - Click on one of the range preset buttons.
+   * The way out of a 400: drop every filter (keeping the range, which is not
+   * one) and ask again.
    * @returns {void}
    */
-  _handleRange(event) {
-    const button = /** @type {HTMLElement} */ (event.currentTarget);
-    const range = button.dataset.range;
-    if (range) this._range = range;
+  _handleResetFilters() {
+    this._applyState({ ...this._state, family: "", plan: "", variant: {}, cert: "" });
   }
 
   /**
-   * @param {Event} event - Change on the family select.
+   * @param {CustomEvent} event - `cts-filters-change` from the filter row,
+   *   carrying the whole next state.
    * @returns {void}
    */
-  _handleFamily(event) {
-    this._family = /** @type {HTMLSelectElement} */ (event.currentTarget).value;
+  _handleFiltersChange(event) {
+    this._applyState(/** @type {FilterState} */ (event.detail));
+  }
+
+  /**
+   * Adopt a new filter state: mirror it into the URL and refetch. A change
+   * that would produce the same request is dropped, so re-picking the value
+   * that is already selected costs nothing.
+   * @param {FilterState} next - The state to move to.
+   * @returns {void}
+   */
+  _applyState(next) {
+    if (sameState(this._state, next)) return;
+    this._state = { ...next, variant: { ...(next.variant || {}) } };
+    this._syncUrl();
+    this._stopPolling();
+    if (this._payload) this._status = "ready";
+    this._load(false);
+  }
+
+  /**
+   * Write the current state into the page URL, leaving any parameter this
+   * page does not own untouched. `replaceState`, not `pushState`: a filter
+   * row is not navigation, and burying the way back to the previous page
+   * under six presses of Back is worse than losing the filter history.
+   * @returns {void}
+   */
+  _syncUrl() {
+    const search = urlFromState(this._state, window.location.search);
+    window.history.replaceState(null, "", window.location.pathname + search + window.location.hash);
   }
 
   /**
@@ -630,13 +795,22 @@ class CtsStatisticsPage extends LitElement {
 
     const data = (this._payload && this._payload.data) || null;
     const isLoading = this._status === "loading" || this._status === "pending";
+    // A filter that matches nothing still comes back with the full axis and a
+    // zero in every cell — the periods are the cube's, not the filter's — so
+    // without this the reader is left interpreting five charts of zeros.
+    const noMatch =
+      Boolean(data) &&
+      this._hasPeriods() &&
+      isFiltered(this._state) &&
+      !this._hasAnyData(/** @type {StatisticsData} */ (data));
 
     return html`
       ${this._renderError()} ${data ? this._renderTiles(data) : nothing}
       ${data ? this._renderToolbar() : nothing} ${this._renderLastError()}
-      ${isLoading ? this._renderLoading() : nothing}
-      ${data && this._hasMonths() ? this._renderTrends(data) : nothing}
-      ${data && !this._hasMonths() ? this._renderEmpty() : nothing}
+      ${data ? this._renderFilters(data) : nothing} ${isLoading ? this._renderLoading() : nothing}
+      ${data && this._hasPeriods() && !noMatch ? this._renderTrends(data) : nothing}
+      ${noMatch ? this._renderNoMatch() : nothing}
+      ${data && !this._hasPeriods() ? this._renderEmpty() : nothing}
     `;
   }
 
@@ -648,12 +822,19 @@ class CtsStatisticsPage extends LitElement {
     return html`
       <cts-alert variant="danger" data-testid="stats-error">
         ${this._errorMessage}
-        <cts-button
-          variant="secondary"
-          label="Retry"
-          data-testid="stats-retry"
-          @cts-click=${this._handleRetry}
-        ></cts-button>
+        ${this._errorAction === "reset"
+          ? html`<cts-button
+              variant="secondary"
+              label="Reset filters"
+              data-testid="stats-reset-filters"
+              @cts-click=${this._handleResetFilters}
+            ></cts-button>`
+          : html`<cts-button
+              variant="secondary"
+              label="Retry"
+              data-testid="stats-retry"
+              @cts-click=${this._handleRetry}
+            ></cts-button>`}
       </cts-alert>
     `;
   }
@@ -701,21 +882,51 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * @returns {unknown} The empty state shown when the database has no runs.
+   * @returns {unknown} The empty state shown when the range covers no data.
    */
   _renderEmpty() {
+    // The filter row stays on screen above this, so "widen the range" is
+    // advice the reader can act on without leaving the page.
+    const narrowed = isNarrowed(this._state);
     return html`
       <cts-empty-state
         icon="chart-bar-vertical-01"
-        heading="No test data yet"
-        body="Run a test and the monthly charts will appear here."
+        heading=${narrowed ? "Nothing in this range" : "No test data yet"}
+        body=${narrowed
+          ? "No test runs were recorded in the selected range. Widen it to look further back."
+          : "Run a test and the charts will appear here."}
         data-testid="stats-empty"
       ></cts-empty-state>
     `;
   }
 
   /**
-   * @param {StatisticsData} data - The full payload.
+   * The filters are valid and the range has data, but nothing in it matches:
+   * five charts of zeros say so much less clearly than one sentence, and the
+   * way out is one click.
+   * @returns {unknown} The no-match state.
+   */
+  _renderNoMatch() {
+    return html`
+      <cts-empty-state
+        icon="filter-off"
+        heading="No test plans match these filters"
+        body="Nothing in the selected range was run with this combination. Clear the filters to see everything again."
+        data-testid="stats-no-match"
+      ></cts-empty-state>
+      <div class="cts-stats-no-match-action">
+        <cts-button
+          variant="secondary"
+          label="Clear filters"
+          data-testid="stats-no-match-clear"
+          @cts-click=${this._handleResetFilters}
+        ></cts-button>
+      </div>
+    `;
+  }
+
+  /**
+   * @param {StatisticsData} data - The current payload.
    * @returns {unknown} The KPI row.
    */
   _renderTiles(data) {
@@ -764,72 +975,48 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * Tooltip footer for the folded "Other" segment: the families inside it
-   * and their counts for the hovered month. Returns an empty list — so
-   * Chart.js draws no footer at all — once a single family is on screen and
-   * nothing is folded.
-   * @param {StatisticsData} sliced - The range-sliced payload the chart was
-   *   built from.
-   * @param {string} source - `"runs"` or `"plans"`.
-   * @returns {(hoveredIndex: number) => Array<string>} The footer callback.
+   * The filter row, above everything it scopes. Rendered as soon as there is
+   * any payload — including one whose range turned out to be empty, so the
+   * range that emptied it can be widened again.
+   *
+   * The family options come from the unfiltered baseline, so narrowing never
+   * removes the option that would widen things back out.
+   * @param {StatisticsData} data - The current payload.
+   * @returns {unknown} The heading and the filter row.
    */
-  _footerFor(sliced, source) {
-    return (hoveredIndex) => {
-      if (this._family) return [];
-      const lines = otherBreakdown(sliced, this._slots, hoveredIndex, source);
-      return lines.length === 0 ? [] : [OTHER_FOOTER_HEADING, ...lines];
-    };
+  _renderFilters(data) {
+    return html`
+      <h2 class="cts-stats-section-heading">Trends</h2>
+      <cts-statistics-filters
+        data-testid="stats-filters"
+        range=${this._state.range}
+        family=${this._state.family}
+        plan=${this._state.plan}
+        cert=${this._state.cert}
+        .variant=${this._state.variant}
+        .families=${this._familyOptions(this._baseline || data)}
+        .options=${this._options}
+        @cts-filters-change=${this._handleFiltersChange}
+      ></cts-statistics-filters>
+    `;
   }
 
   /**
-   * Filter row, the four charts, and the unresolved-plans disclosure. The
-   * filters scope everything below them, so the numbers on every chart
-   * always agree.
-   * @param {StatisticsData} data - The full payload.
-   * @returns {unknown} The trends section.
+   * The five charts and the unresolved-plans disclosure. The filter row above
+   * scopes every one of them, so their numbers always agree.
+   *
+   * Everything the charts are handed comes out of one memo keyed on the
+   * payload, the colour slots and the family filter, so a re-render that
+   * changes none of those (the busy flag going on and off around a fetch)
+   * hands `<cts-chart>` the very same arrays and it does not re-plot.
+   * @param {StatisticsData} data - The current payload.
+   * @returns {unknown} The charts.
    */
   _renderTrends(data) {
-    const sliced = sliceRange(data, this._range);
-    const slots = this._slots;
-    const family = this._family;
-    const months = sliced.months || [];
-    // Fold the neutral tail into one "Other" series only while every family
-    // is on screen. With a family selected there is exactly one dataset, and
-    // that family may itself be a neutral-slot one — folding would rename it
-    // "Other" and drop the name the user just picked from the legend,
-    // tooltip and data table.
-    const fold = (/** @type {Array<ChartDataset>} */ datasets) =>
-      family ? datasets : foldOther(datasets);
+    const view = this._view(data, this._slots, this._state.family);
+    const names = view.names;
 
     return html`
-      <h2 class="cts-stats-section-heading">Trends</h2>
-      <div class="cts-stats-filters">
-        <div class="cts-stats-range" role="group" aria-label="Range" data-testid="stats-range">
-          ${RANGE_PRESETS.map(
-            (preset) => html`
-              <button
-                type="button"
-                data-range=${preset.value}
-                aria-pressed=${aria(this._range === preset.value)}
-                @click=${this._handleRange}
-              >
-                ${preset.label}
-              </button>
-            `,
-          )}
-        </div>
-        <select
-          class="oidf-select"
-          aria-label="Spec family"
-          data-testid="stats-family"
-          .value=${family}
-          @change=${this._handleFamily}
-        >
-          <option value="">All families</option>
-          ${familiesWithRuns(data).map((name) => html`<option value=${name}>${name}</option>`)}
-        </select>
-      </div>
-
       <div
         class=${classMap({ "cts-stats-charts": true, "is-busy": this._busy })}
         data-testid="stats-charts"
@@ -837,39 +1024,49 @@ class CtsStatisticsPage extends LitElement {
       >
         <div class="cts-stats-chart" data-testid="stats-chart-runs">
           <cts-chart
-            heading="Test module runs per month"
-            category-label="Month"
+            heading="Test module runs per ${names.unit}"
+            category-label=${names.axis}
             stacked
-            .labels=${months}
-            .datasets=${fold(runsDatasets(sliced, slots, family))}
-            .tooltipFooter=${this._footerFor(sliced, "runs")}
+            .labels=${view.labels}
+            .datasets=${view.runs.datasets}
+            .tooltipFooter=${view.footers.runs}
           ></cts-chart>
         </div>
         <div class="cts-stats-chart" data-testid="stats-chart-plans">
           <cts-chart
-            heading="Test plans per month"
-            category-label="Month"
+            heading="Test plans per ${names.unit}"
+            category-label=${names.axis}
             stacked
-            .labels=${months}
-            .datasets=${fold(plansDatasets(sliced, slots, family))}
-            .tooltipFooter=${this._footerFor(sliced, "plans")}
+            .labels=${view.labels}
+            .datasets=${view.plans.datasets}
+            .tooltipFooter=${view.footers.plans}
           ></cts-chart>
         </div>
         <div class="cts-stats-chart" data-testid="stats-chart-results">
           <cts-chart
-            heading="Results per month"
-            category-label="Month"
+            heading="Results per ${names.unit}"
+            category-label=${names.axis}
             stacked
-            .labels=${months}
-            .datasets=${resultsDatasets(sliced, family)}
+            .labels=${view.labels}
+            .datasets=${view.results.datasets}
           ></cts-chart>
         </div>
         <div class="cts-stats-chart" data-testid="stats-chart-users">
           <cts-chart
-            heading="Users per month — all families"
-            category-label="Month"
-            .labels=${months}
-            .datasets=${usersDatasets(sliced)}
+            heading="Users per ${names.unit} — by plan owner"
+            category-label=${names.axis}
+            .labels=${view.labels}
+            .datasets=${view.users.datasets}
+          ></cts-chart>
+        </div>
+        <div class="cts-stats-chart" data-testid="stats-chart-certified">
+          <cts-chart
+            heading="Certified plans per ${names.unit}"
+            category-label=${names.axis}
+            stacked
+            .labels=${view.labels}
+            .datasets=${view.certified.datasets}
+            .tooltipFooter=${view.footers.certified}
           ></cts-chart>
         </div>
       </div>
@@ -883,9 +1080,10 @@ class CtsStatisticsPage extends LitElement {
    * is empty: it explains one bar segment, so it must not compete with the
    * charts it sits under.
    *
-   * All-time, like the tiles: the list is not scoped by the range control,
-   * so it is read from the FULL payload rather than the slice.
-   * @param {StatisticsData} data - The full payload.
+   * All-time and unfiltered, like the tiles: the server does not scope this
+   * list by the query, so narrowing the range does not hide the diagnostic
+   * the admin came for.
+   * @param {StatisticsData} data - The current payload.
    * @returns {unknown} The disclosure, or nothing.
    */
   _renderUnresolved(data) {

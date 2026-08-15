@@ -4,33 +4,77 @@ import { delay, http, HttpResponse } from "msw";
 import {
   MOCK_STATS_EMPTY,
   MOCK_STATS_ERROR,
+  MOCK_STATS_INVALID,
   MOCK_STATS_LAST_ERROR,
   MOCK_STATS_MONTHS,
   MOCK_STATS_PENDING,
   MOCK_STATS_READY,
   MOCK_STATS_REFRESHING,
+  MOCK_STATS_WEEKS,
+  statisticsOverviewFor,
 } from "@fixtures/mock-statistics.js";
 import "./cts-statistics-page.js";
 
 export default {
   title: "Pages/cts-statistics-page",
   component: "cts-statistics-page",
+  // The page reads its range and filters from location.search and writes them
+  // back with replaceState, so without a reset one story's filters would
+  // hydrate the next story's page.
+  beforeEach() {
+    history.replaceState(null, "", "/iframe.html");
+    REQUESTS.length = 0;
+  },
 };
 
 const ENDPOINT = "/api/statistics/overview";
 
 /**
- * Query strings the RefreshingSnapshot handler saw, so the play function can
- * assert that `?refresh=true` is sent only by the Refresh button.
+ * Every query string the page asked for, in order — the only place a play
+ * function can prove that a control really went to the server rather than
+ * re-slicing something locally. Reset by the meta `beforeEach`.
  * @type {Array<string>}
  */
-const REFRESH_LOG = [];
+const REQUESTS = [];
 
 /** The page polls at 2 s; give every wait comfortable headroom over that. */
 const POLL_TIMEOUT = { timeout: 10000 };
 
+/** How many charts the page draws. */
+const CHART_COUNT = 5;
+
 /**
- * Wait until the page has painted its four charts.
+ * The page fetches one extra, deliberately unfiltered snapshot on load: it is
+ * where the family colours and the family select's options come from, so that
+ * no filter can repaint a family or hide the option that would widen things
+ * back out. It is the only request with no query string at all.
+ * @param {URL} url - The request URL.
+ * @returns {boolean} True for that baseline request.
+ */
+function isBaseline(url) {
+  return url.search === "";
+}
+
+/**
+ * The default handler: answer every request from the fixture the way the
+ * server would, applying the query. Records what was asked for.
+ * @returns {any} An msw handler for the statistics endpoint.
+ */
+function slicingHandler() {
+  return http.get(ENDPOINT, ({ request }) => {
+    const url = new URL(request.url);
+    REQUESTS.push(url.search);
+    return HttpResponse.json(statisticsOverviewFor(url));
+  });
+}
+
+/** @returns {Array<string>} The query strings of the filtered (non-baseline) requests. */
+function filteredRequests() {
+  return REQUESTS.filter((search) => search !== "");
+}
+
+/**
+ * Wait until the page has painted all of its charts.
  * @param {HTMLElement} canvasElement - The story root.
  * @returns {Promise<void>}
  */
@@ -42,12 +86,12 @@ async function waitForCharts(canvasElement) {
     const charts = /** @type {Array<any>} */ (
       Array.from(canvasElement.querySelectorAll(".cts-stats-chart cts-chart"))
     );
-    expect(charts.length).toBe(4);
-    expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(4);
+    expect(charts.length).toBe(CHART_COUNT);
+    expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(CHART_COUNT);
     // Chart.js is lazy-loaded on first connect, so the <canvas> is in the DOM
     // a beat before anything is painted into it. `chartInstance` is the
     // reliable "the plot exists" signal.
-    expect(charts.filter((el) => el.chartInstance).length).toBe(4);
+    expect(charts.filter((el) => el.chartInstance).length).toBe(CHART_COUNT);
   }, POLL_TIMEOUT);
 }
 
@@ -86,23 +130,52 @@ function runsChartInstance(canvasElement) {
   return host.chartInstance;
 }
 
+/**
+ * One of the page's filter selects.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @param {string} testid - e.g. `stats-family`.
+ * @returns {HTMLSelectElement} The select.
+ */
+function select(canvasElement, testid) {
+  return /** @type {HTMLSelectElement} */ (
+    canvasElement.querySelector(`[data-testid="${testid}"]`)
+  );
+}
+
+/**
+ * Click a range preset by its label and wait for the click to register.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @param {string} label - e.g. "26 weeks".
+ * @returns {Promise<void>}
+ */
+async function pickRange(canvasElement, label) {
+  const button = /** @type {HTMLButtonElement} */ (
+    Array.from(canvasElement.querySelectorAll('[data-testid="stats-range"] button')).find(
+      (btn) => btn.textContent.trim() === label,
+    )
+  );
+  expect(button).toBeTruthy();
+  await userEvent.click(button);
+  await waitFor(() => {
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+  });
+}
+
 // --- Stories ---
 
 /**
- * The ordinary case: a fresh snapshot, nine tiles, four charts.
+ * The ordinary case: a fresh monthly snapshot, ten tiles, five charts.
  */
 export const Ready = {
-  parameters: {
-    msw: { handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_STATS_READY))] },
-  },
+  parameters: { msw: { handlers: [slicingHandler()] } },
   render: () => html`<cts-statistics-page></cts-statistics-page>`,
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForCharts(canvasElement);
 
-    await step("nine unfiltered tiles carry the snapshot's counters", async () => {
+    await step("ten unfiltered tiles carry the snapshot's counters", async () => {
       const tiles = canvasElement.querySelectorAll('[data-testid="stats-tiles"] .cts-stats-tile');
-      expect(tiles.length).toBe(9);
+      expect(tiles.length).toBe(10);
       const value = (/** @type {string} */ key) =>
         canvasElement
           .querySelector(`[data-testid="stat-tile-${key}"] .cts-stats-tile-value`)
@@ -114,7 +187,16 @@ export const Ready = {
       expect(value("inProgress")).toBe("3");
       expect(value("stuck")).toBe("7");
       expect(value("certifiedPlans")).toBe("88");
+      expect(value("publishedPlans")).toBe("45");
       expect(canvas.getByText("Stuck / abandoned (>24 h)")).toBeInTheDocument();
+    });
+
+    await step("the default range is sent to the server, not applied locally", async () => {
+      // 12 months back from the frozen clock (2026-06-01), open-ended at the
+      // top because the server's axis already ends at today.
+      expect(filteredRequests()[0]).toBe("?granularity=month&from=2025-07");
+      // ...and the page URL says the same thing, so the view is shareable.
+      expect(location.search).toBe("?range=12m");
     });
 
     await step("toolbar reports the snapshot age and is not busy", async () => {
@@ -129,22 +211,27 @@ export const Ready = {
       );
     });
 
-    await step('the range group defaults to "12 months"', async () => {
-      const group = canvasElement.querySelector('[data-testid="stats-range"]');
-      expect(group.getAttribute("role")).toBe("group");
-      expect(group.getAttribute("aria-label")).toBe("Range");
-      const pressed = Array.from(group.querySelectorAll("button"))
+    await step('the two range groups default to "12 months"', async () => {
+      const weekly = canvasElement.querySelector('[data-testid="stats-range-weekly"]');
+      const monthly = canvasElement.querySelector('[data-testid="stats-range-monthly"]');
+      expect(weekly.getAttribute("role")).toBe("group");
+      expect(weekly.getAttribute("aria-label")).toBe("Weekly range");
+      expect(monthly.getAttribute("aria-label")).toBe("Monthly range");
+      expect(
+        Array.from(weekly.querySelectorAll("button")).map((b) => b.textContent.trim()),
+      ).toEqual(["12 weeks", "26 weeks", "52 weeks"]);
+      const pressed = Array.from(
+        canvasElement.querySelectorAll('[data-testid="stats-range"] button'),
+      )
         .filter((btn) => btn.getAttribute("aria-pressed") === "true")
         .map((btn) => btn.textContent.trim());
       expect(pressed).toEqual(["12 months"]);
     });
 
     await step("the family select lists only families with runs", async () => {
-      const select = /** @type {HTMLSelectElement} */ (
-        canvasElement.querySelector('[data-testid="stats-family"]')
-      );
-      expect(select.getAttribute("aria-label")).toBe("Spec family");
-      const options = Array.from(select.options).map((option) => option.value);
+      const family = select(canvasElement, "stats-family");
+      expect(family.getAttribute("aria-label")).toBe("Spec family");
+      const options = Array.from(family.options).map((option) => option.value);
       expect(options[0]).toBe("");
       // Shared Signals Framework has never run, so it is not offered.
       expect(options).not.toContain("Shared Signals Framework");
@@ -152,13 +239,25 @@ export const Ready = {
       expect(options.length).toBe(11);
     });
 
-    await step("four charts, each sliced to the default 12-month range in its table", async () => {
+    await step("nothing is filtered, so there is nothing to clear", async () => {
+      expect(canvasElement.querySelector('[data-testid="stats-clear-filters"]')).toBeNull();
+    });
+
+    await step("the variant selects wait until the view is narrowed", async () => {
+      // Unfiltered, the suite mentions getting on for forty plan-level variant
+      // parameters; a row of forty selects is not a filter row.
+      expect(canvasElement.querySelectorAll('[data-testid^="stats-variant-"]').length).toBe(0);
+      expect(select(canvasElement, "stats-cert").options.length).toBe(4);
+    });
+
+    await step("five charts, each on the server's 12-month axis", async () => {
       const firstRowMonth = MOCK_STATS_MONTHS[MOCK_STATS_MONTHS.length - 12];
       for (const id of [
         "stats-chart-runs",
         "stats-chart-plans",
         "stats-chart-results",
         "stats-chart-users",
+        "stats-chart-certified",
       ]) {
         const { rows, headers } = chartTable(canvasElement, id);
         expect(rows.length).toBe(12);
@@ -195,6 +294,18 @@ export const Ready = {
       ]);
     });
 
+    await step("certification activity is charted by family, like the runs", async () => {
+      const heading = /** @type {HTMLElement} */ (
+        canvasElement.querySelector('[data-testid="stats-chart-certified"] h3')
+      );
+      expect(heading.textContent.trim()).toBe("Certified plans per month");
+      const { headers } = chartTable(canvasElement, "stats-chart-certified");
+      expect(headers[0]).toBe("Month");
+      expect(headers).toContain("FAPI2 Security Profile");
+      // Families that never certified anything are not given a dead legend key.
+      expect(headers).not.toContain("OID4VP");
+    });
+
     await step("the plans that fell into Other / retired are listed under the charts", async () => {
       const unresolved = MOCK_STATS_READY.data.unresolvedPlans;
       const details = /** @type {HTMLDetailsElement} */ (
@@ -212,9 +323,6 @@ export const Ready = {
       expect(
         Array.from(details.querySelectorAll("tbody tr th")).map((cell) => cell.textContent.trim()),
       ).toEqual(unresolved.map((plan) => plan.planName));
-      expect(
-        Array.from(details.querySelectorAll("tbody tr td")).map((cell) => cell.textContent.trim()),
-      ).toEqual(unresolved.map((plan) => String(plan.runs)));
     });
 
     await step('the "Other" tooltip footer names what it is listing', async () => {
@@ -234,119 +342,129 @@ export const Ready = {
       }
     });
 
-    await step("the users chart is captioned as unfiltered", async () => {
+    await step("the users chart says whose users it is counting", async () => {
       const { headers } = chartTable(canvasElement, "stats-chart-users");
       expect(headers).toEqual(["Month", "Active", "New"]);
       // The heading, not getByText: cts-chart repeats it in the table caption.
       const heading = /** @type {HTMLElement} */ (
         canvasElement.querySelector('[data-testid="stats-chart-users"] h3')
       );
-      expect(heading.textContent.trim()).toBe("Users per month — all families");
+      expect(heading.textContent.trim()).toBe("Users per month — by plan owner");
     });
   },
 };
 
 /**
- * The filter row scopes charts 1-3 (never the tiles, never the users chart)
- * and — the point of the whole slot mechanism — never repaints a family.
+ * The weekly presets: a different granularity, not just a shorter range, so
+ * the axis, the labels and the headings all change with them.
  */
-export const RangeAndFamilyFilters = {
-  parameters: {
-    msw: { handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_STATS_READY))] },
+export const Weekly = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await waitForCharts(canvasElement);
+
+    await step("26 weeks asks the server for weekly cells", async () => {
+      await pickRange(canvasElement, "26 weeks");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe("?granularity=week&from=2025-12-08");
+      }, POLL_TIMEOUT);
+      expect(location.search).toBe("?range=26w");
+    });
+
+    await step("the axis is Mondays, and it says so", async () => {
+      await waitFor(() => {
+        expect(chartTable(canvasElement, "stats-chart-runs").rows.length).toBe(
+          MOCK_STATS_WEEKS.length,
+        );
+      }, POLL_TIMEOUT);
+      const { headers, rows } = chartTable(canvasElement, "stats-chart-runs");
+      expect(headers[0]).toBe("Week starting");
+      // Compact labels: the day and month, with the year carried only where
+      // it changes — the first label, and the first week of the new year.
+      const labels = rows.map((row) =>
+        /** @type {HTMLElement} */ (row.querySelector("th")).textContent.trim(),
+      );
+      expect(labels[0]).toBe("8 Dec 2025");
+      expect(labels[1]).toBe("15 Dec");
+      expect(labels).toContain("29 Dec");
+      expect(labels).toContain("5 Jan 2026");
+      expect(labels.at(-1)).toBe("1 Jun");
+    });
+
+    await step("every chart follows, headings included", async () => {
+      const heading = (/** @type {string} */ testid) =>
+        /** @type {HTMLElement} */ (
+          canvasElement.querySelector(`[data-testid="${testid}"] h3`)
+        ).textContent.trim();
+      expect(heading("stats-chart-runs")).toBe("Test module runs per week");
+      expect(heading("stats-chart-plans")).toBe("Test plans per week");
+      expect(heading("stats-chart-users")).toBe("Users per week — by plan owner");
+      expect(heading("stats-chart-certified")).toBe("Certified plans per week");
+      expect(chartTable(canvasElement, "stats-chart-users").rows.length).toBe(
+        MOCK_STATS_WEEKS.length,
+      );
+    });
+
+    await step("12 weeks narrows the axis without changing granularity", async () => {
+      await pickRange(canvasElement, "12 weeks");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe("?granularity=week&from=2026-03-16");
+      }, POLL_TIMEOUT);
+      await waitFor(() => {
+        expect(chartTable(canvasElement, "stats-chart-runs").rows.length).toBe(12);
+      }, POLL_TIMEOUT);
+    });
+
+    await step("going back to a monthly preset restores the monthly axis", async () => {
+      await pickRange(canvasElement, "All time");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe("?granularity=month");
+      }, POLL_TIMEOUT);
+      await waitFor(() => {
+        expect(chartTable(canvasElement, "stats-chart-runs").headers[0]).toBe("Month");
+      }, POLL_TIMEOUT);
+      expect(chartTable(canvasElement, "stats-chart-runs").rows.length).toBe(
+        MOCK_STATS_MONTHS.length,
+      );
+    });
   },
+};
+
+/**
+ * The filter cascade: spec family → test plan → plan-level variant →
+ * certification profile. Every step is a request, every step is in the URL,
+ * and no step repaints a family.
+ */
+export const FiltersCascade = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
   render: () => html`<cts-statistics-page></cts-statistics-page>`,
   async play({ canvasElement, step }) {
     await waitForCharts(canvasElement);
 
     /** @type {Record<string, string>} Column → fill, before any filtering. */
     const paintBefore = {};
+    for (const dataset of runsChartInstance(canvasElement).data.datasets) {
+      paintBefore[dataset.label] = dataset.backgroundColor;
+    }
 
-    await step("record each family's colour at the default 12-month range", async () => {
-      for (const dataset of runsChartInstance(canvasElement).data.datasets) {
-        paintBefore[dataset.label] = dataset.backgroundColor;
-      }
-      // Six categorical families plus the folded neutral tail — OpenID
-      // Connect Logout is idle in the last 12 months, so it does not even
-      // reach the default range's chart.
-      expect(Object.keys(paintBefore).length).toBe(7);
-    });
-
-    await step("All time restores the full 14-month history", async () => {
-      const button = Array.from(
-        canvasElement.querySelectorAll('[data-testid="stats-range"] button'),
-      ).find((btn) => btn.textContent.trim() === "All time");
-      await userEvent.click(button);
-      await waitFor(() => {
-        expect(button.getAttribute("aria-pressed")).toBe("true");
-      });
-      expect(chartTable(canvasElement, "stats-chart-runs").rows.length).toBe(14);
-      // The users chart follows the range even though it ignores the family.
-      expect(chartTable(canvasElement, "stats-chart-users").rows.length).toBe(14);
-      // The family idle in the last 12 months is back once the range widens.
-      const { headers } = chartTable(canvasElement, "stats-chart-runs");
-      expect(headers).toContain("OpenID Connect Logout");
-    });
-
-    await step(
-      "...without repainting a family that was already on screen at 12 months",
-      async () => {
-        for (const dataset of runsChartInstance(canvasElement).data.datasets) {
-          if (paintBefore[dataset.label] === undefined) continue;
-          expect(dataset.backgroundColor).toBe(paintBefore[dataset.label]);
-        }
-      },
-    );
-
-    await step("back to 12 months narrows every chart table to 12 rows again", async () => {
-      const button = Array.from(
-        canvasElement.querySelectorAll('[data-testid="stats-range"] button'),
-      ).find((btn) => btn.textContent.trim() === "12 months");
-      await userEvent.click(button);
-      await waitFor(() => {
-        expect(button.getAttribute("aria-pressed")).toBe("true");
-      });
-      expect(chartTable(canvasElement, "stats-chart-runs").rows.length).toBe(12);
-      expect(chartTable(canvasElement, "stats-chart-users").rows.length).toBe(12);
-    });
-
-    await step("a family idle in the last 12 months drops out", async () => {
-      const { headers } = chartTable(canvasElement, "stats-chart-runs");
-      expect(headers).not.toContain("OpenID Connect Logout");
-      expect(headers).toContain("FAPI2 Security Profile");
-    });
-
-    await step("...but nobody is repainted — colour is identity, not rank", async () => {
-      for (const dataset of runsChartInstance(canvasElement).data.datasets) {
-        expect(dataset.backgroundColor).toBe(paintBefore[dataset.label]);
-      }
-    });
-
-    await step("tiles stay unfiltered", async () => {
-      expect(
-        canvasElement
-          .querySelector('[data-testid="stat-tile-totalTests"] .cts-stats-tile-value')
-          .textContent.trim(),
-      ).toBe("91,800");
-    });
-
-    await step("selecting a family reduces charts 1-3 to that family", async () => {
-      const select = /** @type {HTMLSelectElement} */ (
-        canvasElement.querySelector('[data-testid="stats-family"]')
+    await step("picking a family filters on the server", async () => {
+      await userEvent.selectOptions(
+        select(canvasElement, "stats-family"),
+        "FAPI2 Security Profile",
       );
-      await userEvent.selectOptions(select, "FAPI2 Security Profile");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe(
+          "?granularity=month&from=2025-07&family=FAPI2+Security+Profile",
+        );
+      }, POLL_TIMEOUT);
       await waitFor(() => {
         expect(chartTable(canvasElement, "stats-chart-runs").headers).toEqual([
           "Month",
           "FAPI2 Security Profile",
         ]);
-      });
-      expect(chartTable(canvasElement, "stats-chart-plans").headers).toEqual([
-        "Month",
-        "FAPI2 Security Profile",
-      ]);
-      // Chart 3 switches to that family's own outcome mix...
-      expect(chartTable(canvasElement, "stats-chart-results").headers[1]).toBe("PASSED");
-      // ...and chart 4 is untouched by the family filter.
+      }, POLL_TIMEOUT);
+      // ...and the users chart is filtered too now, unlike in phase 1.
       expect(chartTable(canvasElement, "stats-chart-users").headers).toEqual([
         "Month",
         "Active",
@@ -354,41 +472,314 @@ export const RangeAndFamilyFilters = {
       ]);
     });
 
-    await step("a tail family keeps its own name — it is not renamed Other", async () => {
-      // Regression guard: "OpenID Federation" wears --chart-other, so an
-      // unconditional foldOther would relabel its single series "Other" and
-      // lose the name the user just picked.
-      const select = /** @type {HTMLSelectElement} */ (
-        canvasElement.querySelector('[data-testid="stats-family"]')
-      );
-      await userEvent.selectOptions(select, "OpenID Federation");
-      await waitFor(() => {
-        expect(chartTable(canvasElement, "stats-chart-runs").headers).toEqual([
-          "Month",
-          "OpenID Federation",
-        ]);
-      });
-      expect(chartTable(canvasElement, "stats-chart-plans").headers).toEqual([
-        "Month",
-        "OpenID Federation",
-      ]);
-      const datasets = runsChartInstance(canvasElement).data.datasets;
-      expect(datasets.length).toBe(1);
-      expect(datasets[0].label).toBe("OpenID Federation");
-      // ...and it keeps the neutral it has always worn.
-      expect(datasets[0].backgroundColor).toBe(paintBefore["Other"]);
-      await userEvent.selectOptions(select, "FAPI2 Security Profile");
-      await waitFor(() => {
-        expect(chartTable(canvasElement, "stats-chart-runs").headers[1]).toBe(
-          "FAPI2 Security Profile",
-        );
-      });
-    });
-
-    await step("the selected family keeps its own slot colour", async () => {
+    await step("...without repainting the family that was already on screen", async () => {
       const datasets = runsChartInstance(canvasElement).data.datasets;
       expect(datasets.length).toBe(1);
       expect(datasets[0].backgroundColor).toBe(paintBefore["FAPI2 Security Profile"]);
+    });
+
+    await step("the plan select now offers that family's plans", async () => {
+      // The filter row and the charts are separate Lit updates, so the row can
+      // still be a render behind the chart the previous step waited for.
+      await waitFor(() => {
+        expect(
+          Array.from(select(canvasElement, "stats-plan").options).map((option) => option.value),
+        ).toEqual([
+          "",
+          "fapi2-message-signing-final-test-plan",
+          "fapi2-security-profile-final-test-plan",
+        ]);
+      }, POLL_TIMEOUT);
+      expect(select(canvasElement, "stats-plan").getAttribute("aria-label")).toBe("Test plan");
+    });
+
+    await step("picking a plan keeps its siblings selectable", async () => {
+      await userEvent.selectOptions(
+        select(canvasElement, "stats-plan"),
+        "fapi2-security-profile-final-test-plan",
+      );
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toContain("plan=fapi2-security-profile-final-test-plan");
+      }, POLL_TIMEOUT);
+      // The server counts dimensions under the whole query, so the payload
+      // now offers this one plan only. Rendering that straight would make the
+      // choice a dead end, so the page keeps the list it had.
+      await waitFor(() => {
+        expect(select(canvasElement, "stats-plan").options.length).toBe(3);
+      });
+      expect(select(canvasElement, "stats-plan").value).toBe(
+        "fapi2-security-profile-final-test-plan",
+      );
+    });
+
+    await step("a variant parameter narrows it further", async () => {
+      // They appear now, because a family and a plan have narrowed the view.
+      await waitFor(() => {
+        expect(canvasElement.querySelectorAll('[data-testid^="stats-variant-"]').length).toBe(2);
+      }, POLL_TIMEOUT);
+      const variant = select(canvasElement, "stats-variant-client_auth_type");
+      expect(variant.getAttribute("aria-label")).toBe("Variant: client_auth_type");
+      // The "any" option names the parameter, so the collapsed control says
+      // what it filters before anything is picked.
+      expect(variant.options[0].textContent.trim()).toBe("Any client_auth_type");
+      expect(variant.options[1].textContent.trim()).toBe("private_key_jwt (88)");
+      await userEvent.selectOptions(variant, "mtls");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toContain("variant.client_auth_type=mtls");
+      }, POLL_TIMEOUT);
+    });
+
+    await step("and so does a certification profile", async () => {
+      await userEvent.selectOptions(
+        select(canvasElement, "stats-cert"),
+        "FAPI2 Security Profile Final",
+      );
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toContain("cert=FAPI2+Security+Profile+Final");
+      }, POLL_TIMEOUT);
+    });
+
+    await step("every filter is in the URL, so the view can be shared", async () => {
+      const params = new URLSearchParams(location.search);
+      expect(params.get("range")).toBe("12m");
+      expect(params.get("family")).toBe("FAPI2 Security Profile");
+      expect(params.get("plan")).toBe("fapi2-security-profile-final-test-plan");
+      expect(params.get("variant.client_auth_type")).toBe("mtls");
+      expect(params.get("cert")).toBe("FAPI2 Security Profile Final");
+    });
+
+    await step("changing the family drops the filters that belonged to the old one", async () => {
+      // A certification profile and a variant parameter belong to a family;
+      // carrying them into another one leaves five charts of zeros and
+      // nothing on screen to explain why.
+      await userEvent.selectOptions(select(canvasElement, "stats-family"), "OID4VP");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe("?granularity=month&from=2025-07&family=OID4VP");
+      }, POLL_TIMEOUT);
+      expect(location.search).toBe("?range=12m&family=OID4VP");
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="stats-cert"]').value).toBe("");
+      });
+    });
+
+    await step("the tiles never move — they are whole-database counters", async () => {
+      expect(
+        canvasElement
+          .querySelector('[data-testid="stat-tile-totalTests"] .cts-stats-tile-value')
+          .textContent.trim(),
+      ).toBe("91,800");
+    });
+
+    await step("Clear filters drops all of them and keeps the range", async () => {
+      await waitFor(() => {
+        expect(
+          canvasElement.querySelector('[data-testid="stats-clear-filters"] button'),
+        ).toBeTruthy();
+      }, POLL_TIMEOUT);
+      const clear = canvasElement.querySelector('[data-testid="stats-clear-filters"] button');
+      await userEvent.click(clear);
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe("?granularity=month&from=2025-07");
+      }, POLL_TIMEOUT);
+      expect(location.search).toBe("?range=12m");
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="stats-clear-filters"]')).toBeNull();
+      });
+    });
+
+    await step("...and nobody was repainted along the way", async () => {
+      await waitFor(() => {
+        expect(runsChartInstance(canvasElement).data.datasets.length).toBeGreaterThan(1);
+      }, POLL_TIMEOUT);
+      for (const dataset of runsChartInstance(canvasElement).data.datasets) {
+        expect(dataset.backgroundColor).toBe(paintBefore[dataset.label]);
+      }
+    });
+  },
+};
+
+/**
+ * A link into a filtered view: the page must open on exactly what was shared,
+ * including a plan the current payload no longer offers as an option.
+ */
+export const DeepLinkedFilters = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  beforeEach() {
+    history.replaceState(
+      null,
+      "",
+      "/iframe.html?range=24m&family=FAPI1+Advanced&plan=fapi1-advanced-final-test-plan" +
+        "&variant.fapi_profile=openbanking_brazil",
+    );
+    REQUESTS.length = 0;
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await waitForCharts(canvasElement);
+
+    await step("the shared filters are what the first request asks for", async () => {
+      expect(filteredRequests()[0]).toBe(
+        "?granularity=month&from=2024-07&family=FAPI1+Advanced" +
+          "&plan=fapi1-advanced-final-test-plan&variant.fapi_profile=openbanking_brazil",
+      );
+    });
+
+    await step("every control shows the filter it is carrying", async () => {
+      await waitFor(() => {
+        expect(select(canvasElement, "stats-family").value).toBe("FAPI1 Advanced");
+      }, POLL_TIMEOUT);
+      expect(
+        canvasElement
+          .querySelector('[data-testid="stats-range-monthly"] button[data-range="24m"]')
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+      // The payload's dimensions only carry the selected plan, and the page
+      // has nothing remembered on a cold open — it must still be selected.
+      expect(select(canvasElement, "stats-plan").value).toBe("fapi1-advanced-final-test-plan");
+      expect(select(canvasElement, "stats-variant-fapi_profile").value).toBe("openbanking_brazil");
+      expect(canvasElement.querySelector('[data-testid="stats-clear-filters"]')).toBeTruthy();
+    });
+
+    await step("and the charts show that family alone", async () => {
+      expect(chartTable(canvasElement, "stats-chart-runs").headers).toEqual([
+        "Month",
+        "FAPI1 Advanced",
+      ]);
+    });
+  },
+};
+
+/**
+ * A filter combination the data has nothing for. The axis still comes back
+ * full — the periods are the cube's, not the filter's — so without this the
+ * reader would be left interpreting five charts of zeros.
+ */
+export const NoMatch = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  beforeEach() {
+    // A family that has never run: every series comes back zero.
+    history.replaceState(null, "", "/iframe.html?range=12m&family=Shared+Signals+Framework");
+    REQUESTS.length = 0;
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+
+    await step("one sentence stands in for five empty charts", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="stats-no-match"]')).toBeTruthy();
+      }, POLL_TIMEOUT);
+      expect(canvas.getByText("No test plans match these filters")).toBeInTheDocument();
+      expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
+      // Not the same thing as an empty database: the tiles and the filter row
+      // are still there, and this is not the "no data at all" state.
+      expect(canvasElement.querySelector('[data-testid="stats-empty"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="stats-tiles"]')).toBeTruthy();
+      expect(canvasElement.querySelector('[data-testid="stats-filters"]')).toBeTruthy();
+      // The filter that emptied it is selected, even though the select would
+      // not otherwise offer a family with no runs.
+      expect(select(canvasElement, "stats-family").value).toBe("Shared Signals Framework");
+    });
+
+    await step("and the way out is one click", async () => {
+      await userEvent.click(
+        canvasElement.querySelector('[data-testid="stats-no-match-clear"] button'),
+      );
+      await waitForCharts(canvasElement);
+      expect(canvasElement.querySelector('[data-testid="stats-no-match"]')).toBeNull();
+      expect(location.search).toBe("?range=12m");
+    });
+  },
+};
+
+/**
+ * The unfiltered, whole-history view IS the baseline the colours and the
+ * family options come from, so it must not be fetched twice.
+ */
+export const WholeHistoryNeedsNoBaseline = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  beforeEach() {
+    history.replaceState(null, "", "/iframe.html?range=all");
+    REQUESTS.length = 0;
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await waitForCharts(canvasElement);
+
+    await step("exactly one request, and no bare baseline one", async () => {
+      expect(REQUESTS).toEqual(["?granularity=month"]);
+    });
+
+    await step("the family options and the colours come from it all the same", async () => {
+      expect(select(canvasElement, "stats-family").options.length).toBe(11);
+      const labels = runsChartInstance(canvasElement).data.datasets.map((d) => d.label);
+      // Seven categorical families plus the folded tail — the full history, so
+      // the family that retired early is on screen too.
+      expect(labels).toContain("OpenID Connect Logout");
+      expect(labels.at(-1)).toBe("Other");
+    });
+
+    await step("...and narrowing from here does fetch the baseline", async () => {
+      await pickRange(canvasElement, "12 months");
+      await waitFor(() => {
+        expect(filteredRequests().at(-1)).toBe("?granularity=month&from=2025-07");
+      }, POLL_TIMEOUT);
+      // It was already adopted from the first payload, so still no bare one.
+      expect(REQUESTS.filter((search) => search === "")).toHaveLength(0);
+    });
+  },
+};
+
+/**
+ * A range or filter the server cannot use at all: nothing was computed, so
+ * retrying the same request is pointless and the page offers the way out.
+ */
+export const InvalidQuery = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(ENDPOINT, ({ request }) => {
+          const url = new URL(request.url);
+          REQUESTS.push(url.search);
+          // What the server itself rejects: a variant parameter whose name is
+          // not one (QueryParams.variant).
+          const bad = [...url.searchParams.keys()].some(
+            (key) => key.startsWith("variant.") && !/^[A-Za-z0-9_-]+$/.test(key.slice(8)),
+          );
+          return bad
+            ? HttpResponse.json(MOCK_STATS_INVALID, { status: 400 })
+            : HttpResponse.json(statisticsOverviewFor(url));
+        }),
+      ],
+    },
+  },
+  beforeEach() {
+    // A hand-edited or stale link, which is the realistic way to reach a 400.
+    history.replaceState(null, "", "/iframe.html?range=12m&variant.bad%20name=x");
+    REQUESTS.length = 0;
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await step("the server's own message is shown", async () => {
+      await waitFor(() => {
+        const alert = canvasElement.querySelector('[data-testid="stats-error"]');
+        expect(alert).toBeTruthy();
+        expect(alert.textContent).toContain("is not a variant parameter name");
+        expect(alert.querySelector(".oidf-alert-danger")).toBeTruthy();
+      }, POLL_TIMEOUT);
+      // A 400 is terminal: the page must not poll a request the server has
+      // already refused.
+      expect(canvasElement.querySelector('[data-testid="stats-loading"]')).toBeNull();
+    });
+
+    await step("the way out is to reset the filters, not to retry", async () => {
+      expect(canvasElement.querySelector('[data-testid="stats-retry"]')).toBeNull();
+      const reset = canvasElement.querySelector('[data-testid="stats-reset-filters"] button');
+      expect(reset.textContent.trim()).toBe("Reset filters");
+      await userEvent.click(reset);
+      await waitForCharts(canvasElement);
+      expect(canvasElement.querySelector('[data-testid="stats-error"]')).toBeNull();
+      expect(location.search).toBe("?range=12m");
     });
   },
 };
@@ -403,7 +794,15 @@ export const PendingThenReady = {
       handlers: [
         (() => {
           let calls = 0;
-          return http.get(ENDPOINT, () => {
+          return http.get(ENDPOINT, ({ request }) => {
+            const url = new URL(request.url);
+            // The baseline request rides along with the real one and must not
+            // move the counter that drives this story.
+            if (isBaseline(url)) {
+              return calls <= 2
+                ? HttpResponse.json(MOCK_STATS_PENDING, { status: 202 })
+                : HttpResponse.json(statisticsOverviewFor(url));
+            }
             calls += 1;
             if (calls <= 2) {
               return HttpResponse.json(MOCK_STATS_PENDING, {
@@ -411,7 +810,7 @@ export const PendingThenReady = {
                 headers: { "Retry-After": "2" },
               });
             }
-            return HttpResponse.json(MOCK_STATS_READY);
+            return HttpResponse.json(statisticsOverviewFor(url));
           });
         })(),
       ],
@@ -434,7 +833,15 @@ export const PendingThenReady = {
       await waitForCharts(canvasElement);
       expect(canvasElement.querySelector('[data-testid="stats-loading"]')).toBeNull();
       const tiles = canvasElement.querySelectorAll('[data-testid="stats-tiles"] .cts-stats-tile');
-      expect(tiles.length).toBe(9);
+      expect(tiles.length).toBe(10);
+    });
+
+    await step("the baseline that 202'd on load is picked up once one exists", async () => {
+      // Without it the family select would be empty and every family would
+      // wear the neutral.
+      await waitFor(() => {
+        expect(select(canvasElement, "stats-family").options.length).toBe(11);
+      }, POLL_TIMEOUT);
     });
   },
 };
@@ -451,7 +858,9 @@ export const RecomputingOverSnapshot = {
       handlers: [
         (() => {
           let calls = 0;
-          return http.get(ENDPOINT, () => {
+          return http.get(ENDPOINT, ({ request }) => {
+            const url = new URL(request.url);
+            if (isBaseline(url)) return HttpResponse.json(statisticsOverviewFor(url));
             calls += 1;
             // 1: the snapshot. 2: the forced recompute finds no cache at all.
             // 3+: the recompute has landed.
@@ -461,7 +870,7 @@ export const RecomputingOverSnapshot = {
                 headers: { "Retry-After": "2" },
               });
             }
-            return HttpResponse.json(MOCK_STATS_READY);
+            return HttpResponse.json(statisticsOverviewFor(url));
           });
         })(),
       ],
@@ -480,7 +889,7 @@ export const RecomputingOverSnapshot = {
         expect(loading.getAttribute("label")).toBe("Recomputing statistics");
       });
       // The snapshot the label is talking over is still on screen.
-      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(4);
+      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(CHART_COUNT);
       expect(charts.classList.contains("is-busy")).toBe(true);
       expect(canvasElement.querySelector('[data-testid="stats-error"]')).toBeNull();
     });
@@ -490,7 +899,7 @@ export const RecomputingOverSnapshot = {
         expect(canvasElement.querySelector('[data-testid="stats-loading"]')).toBeNull();
       }, POLL_TIMEOUT);
       expect(charts.classList.contains("is-busy")).toBe(false);
-      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(4);
+      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(CHART_COUNT);
     });
   },
 };
@@ -504,15 +913,22 @@ export const RefreshingSnapshot = {
   parameters: {
     msw: {
       handlers: [
-        http.get(ENDPOINT, ({ request }) => {
+        http.get(ENDPOINT, async ({ request }) => {
           const url = new URL(request.url);
-          REFRESH_LOG.push(url.search);
+          REQUESTS.push(url.search);
           // Mirrors the endpoint: a forced refresh while a snapshot exists
           // answers 200 with refreshing:true, and the poll that follows
-          // (which carries no ?refresh) finds the settled snapshot.
-          return HttpResponse.json(
-            url.searchParams.get("refresh") === "true" ? MOCK_STATS_REFRESHING : MOCK_STATS_READY,
-          );
+          // (which carries no ?refresh) finds the settled snapshot. The
+          // refresh is slowed down so the play function can observe the
+          // busy-but-unchanged render on its own.
+          if (url.searchParams.get("refresh") !== "true") {
+            return HttpResponse.json(statisticsOverviewFor(url));
+          }
+          await delay(400);
+          return HttpResponse.json({
+            ...MOCK_STATS_REFRESHING,
+            data: statisticsOverviewFor(url).data,
+          });
         }),
       ],
     },
@@ -523,27 +939,38 @@ export const RefreshingSnapshot = {
     const charts = canvasElement.querySelector('[data-testid="stats-charts"]');
 
     await step("the initial request never asks for a recompute", async () => {
-      // The log is module-scoped, so a re-run (watch mode, a retry) would
-      // otherwise read the previous run's entries. The story's own first
-      // request is already in it, so keep the last entry and drop the rest.
-      REFRESH_LOG.splice(0, REFRESH_LOG.length - 1);
-      expect(REFRESH_LOG[0]).toBe("");
+      expect(REQUESTS.every((search) => !search.includes("refresh"))).toBe(true);
       expect(charts.getAttribute("aria-busy")).toBe("false");
     });
 
     await step("Refresh dims the charts instead of tearing them down", async () => {
-      const before = REFRESH_LOG.length;
+      const before = REQUESTS.length;
       const button = canvasElement.querySelector('[data-testid="stats-refresh"] button');
+      // Count the re-plots across the busy toggle: the data has not changed,
+      // so pushing it into Chart.js again would replay every animation for
+      // nothing. The page hands <cts-chart> the same array instances until a
+      // new payload arrives, and cts-chart only syncs when they change.
+      const chart = runsChartInstance(canvasElement);
+      const realUpdate = chart.update.bind(chart);
+      let plots = 0;
+      chart.update = (/** @type {Array<any>} */ ...args) => {
+        plots += 1;
+        return realUpdate(...args);
+      };
+      // Let the load settle first: the unfiltered baseline lands a moment
+      // after the first payload and may legitimately re-colour the charts.
+      await delay(300);
+      plots = 0;
       await userEvent.click(button);
       await waitFor(() => {
-        expect(REFRESH_LOG.length).toBeGreaterThan(before);
+        expect(REQUESTS.length).toBeGreaterThan(before);
       });
-      expect(REFRESH_LOG[before]).toBe("?refresh=true");
+      expect(REQUESTS[before]).toBe("?granularity=month&from=2025-07&refresh=true");
       await waitFor(() => {
         expect(charts.classList.contains("is-busy")).toBe(true);
       });
       // The previous render is still mounted — no skeleton, no layout jump.
-      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(4);
+      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(CHART_COUNT);
       expect(charts.getAttribute("aria-busy")).toBe("true");
       expect(canvasElement.querySelector("cts-spinner")).toBeTruthy();
       expect(
@@ -551,6 +978,9 @@ export const RefreshingSnapshot = {
           .querySelector('[data-testid="stats-refresh"] button')
           .hasAttribute("disabled"),
       ).toBe(true);
+      // Dimming is a class on the wrapper, not new data for the plots.
+      expect(plots).toBe(0);
+      chart.update = realUpdate;
     });
 
     await step("the poll that finds refreshing:false clears the busy state", async () => {
@@ -578,13 +1008,15 @@ export const RefreshAfterFailedRefresh = {
       handlers: [
         (() => {
           let calls = 0;
-          return http.get(ENDPOINT, async () => {
+          return http.get(ENDPOINT, async ({ request }) => {
+            const url = new URL(request.url);
+            if (isBaseline(url)) return HttpResponse.json(statisticsOverviewFor(url));
             calls += 1;
             // 1: the snapshot. 2: the first Refresh fails. 3: the second
             // Refresh is slow, so the play can observe the interim state.
             if (calls === 2) return HttpResponse.json(MOCK_STATS_ERROR, { status: 500 });
             if (calls === 3) await delay(400);
-            return HttpResponse.json(MOCK_STATS_READY);
+            return HttpResponse.json(statisticsOverviewFor(url));
           });
         })(),
       ],
@@ -607,7 +1039,7 @@ export const RefreshAfterFailedRefresh = {
         expect(alert.textContent).toContain("MongoSocketReadException");
       });
       expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeTruthy();
-      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(4);
+      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(CHART_COUNT);
     });
 
     await step("clicking Refresh again clears the error immediately", async () => {
@@ -618,7 +1050,7 @@ export const RefreshAfterFailedRefresh = {
       // The whole point: no message-less danger alert while the request is
       // away, and the charts are still there behind the dim.
       expect(canvasElement.querySelector('[data-testid="stats-error"]')).toBeNull();
-      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(4);
+      expect(canvasElement.querySelectorAll(".cts-stats-chart canvas").length).toBe(CHART_COUNT);
       expect(canvasElement.querySelector('[data-testid="stats-tiles"]')).toBeTruthy();
     });
 
@@ -637,7 +1069,17 @@ export const RefreshAfterFailedRefresh = {
  */
 export const StaleWithLastError = {
   parameters: {
-    msw: { handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_STATS_LAST_ERROR))] },
+    msw: {
+      handlers: [
+        http.get(ENDPOINT, ({ request }) => {
+          const url = new URL(request.url);
+          return HttpResponse.json({
+            ...MOCK_STATS_LAST_ERROR,
+            data: statisticsOverviewFor(url).data,
+          });
+        }),
+      ],
+    },
   },
   render: () => html`<cts-statistics-page></cts-statistics-page>`,
   async play({ canvasElement, step }) {
@@ -659,14 +1101,9 @@ export const StaleWithLastError = {
       await waitFor(() => {
         expect(canvasElement.querySelector('[data-testid="stats-last-error"]')).toBeNull();
       });
-      // Force another render; the alert must stay dismissed.
-      const button = Array.from(
-        canvasElement.querySelectorAll('[data-testid="stats-range"] button'),
-      ).find((btn) => btn.textContent.trim() === "24 months");
-      await userEvent.click(button);
-      await waitFor(() => {
-        expect(button.getAttribute("aria-pressed")).toBe("true");
-      });
+      // Force another render (and another response carrying the same
+      // lastError); the alert must stay dismissed.
+      await pickRange(canvasElement, "24 months");
       expect(canvasElement.querySelector('[data-testid="stats-last-error"]')).toBeNull();
     });
   },
@@ -690,6 +1127,7 @@ export const Forbidden = {
       });
       expect(canvasElement.querySelector('[data-testid="stats-tiles"]')).toBeNull();
       expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="stats-filters"]')).toBeNull();
       expect(canvasElement.querySelectorAll("canvas").length).toBe(0);
     });
   },
@@ -705,7 +1143,9 @@ export const ErrorState = {
       handlers: [
         (() => {
           let calls = 0;
-          return http.get(ENDPOINT, () => {
+          return http.get(ENDPOINT, ({ request }) => {
+            const url = new URL(request.url);
+            if (isBaseline(url)) return HttpResponse.error();
             calls += 1;
             // 1: the endpoint is unreachable. 2: it answers, but has no
             // snapshot and could not compute one. 3: it answers 200 with a
@@ -716,10 +1156,10 @@ export const ErrorState = {
               return HttpResponse.json({
                 status: "ready",
                 computedAt: "2026-06-01T09:12:33Z",
-                data: { families: "not-a-list", months: ["2026-06"] },
+                data: { families: "not-a-list", periods: ["2026-06"] },
               });
             }
-            return HttpResponse.json(MOCK_STATS_READY);
+            return HttpResponse.json(statisticsOverviewFor(url));
           });
         })(),
       ],
@@ -778,8 +1218,9 @@ export const ErrorState = {
 };
 
 /**
- * A database with no test runs at all: the tiles still render (all zero) and
- * the charts are replaced by an empty state.
+ * A database with no test runs at all: the tiles still render (all zero), the
+ * charts are replaced by an empty state — and the filter row stays, because
+ * the range that emptied the view is the thing that has to be widened.
  */
 export const Empty = {
   parameters: {
@@ -803,9 +1244,19 @@ export const Empty = {
     await step("an empty state stands in for the charts", async () => {
       const empty = canvasElement.querySelector('[data-testid="stats-empty"]');
       expect(empty).toBeTruthy();
-      expect(canvas.getByText("No test data yet")).toBeInTheDocument();
+      // The default range is 12 months, so this is "nothing here", not
+      // "nothing anywhere" — the wording must not claim more than it knows.
+      expect(canvas.getByText("Nothing in this range")).toBeInTheDocument();
       expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
       expect(canvasElement.querySelectorAll("canvas").length).toBe(0);
+    });
+
+    await step("the range control stays, so the view can be widened", async () => {
+      expect(canvasElement.querySelector('[data-testid="stats-range"]')).toBeTruthy();
+      await pickRange(canvasElement, "All time");
+      await waitFor(() => {
+        expect(canvas.getByText("No test data yet")).toBeInTheDocument();
+      }, POLL_TIMEOUT);
     });
   },
 };
