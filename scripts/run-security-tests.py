@@ -9,7 +9,19 @@ authentication. Tests cover:
 - Share-link JWT used directly as Authorization: Bearer on the API chain
 - Unauthenticated access rejection
 - Public access to published plans
+- Cross-user isolation for a second full user (info/plan/log/runner/token)
+- Certification package preparation and immutable-plan rules
+- Runner running-list and cancel, /lastconfig, and plan metadata endpoints
 - API token lifecycle
+
+Not yet covered (the exposed API surface these do NOT touch):
+- POST /token (creating a new token; only listing/deleting is covered)
+- POST /log/{id}/images and /log/{id}/images/{placeholder} (image upload;
+  only GET /log/{id}/images is covered)
+- GET /runner/browser/{id} and POST /runner/browser/{id}/visit
+  (front-channel browser endpoints)
+- GET /jwks and GET /api/ui/spec_links without ?public (intentionally
+  public / low value)
 
 Usage:
     python3 scripts/run-security-tests.py
@@ -265,6 +277,12 @@ def dump_failing_conditions(client, base_url, test_id):
     for entry in (resp.json() if resp.status_code == 200 else []):
         if entry.get("result") in ("FAILURE", "WARNING"):
             print(f"    {entry.get('result')}: {entry.get('src')}: {entry.get('msg')}")
+
+
+def unauthenticated_get(base_url, path, verify_ssl, params=None):
+    """One-shot GET with no Authorization header, for 'requires auth -> 401' probes."""
+    with httpx.Client(verify=verify_ssl, timeout=10) as client:
+        return client.get(f"{base_url}{path}", params=params)
 
 
 def run_tests():
@@ -1034,6 +1052,35 @@ def run_tests():
     if not op_ready:
         dump_failing_conditions(owner_client, base_url, op_test_id)
 
+    # the OP test is now a live WAITING (in-memory) test: use it to cover the running-test
+    # endpoints, which are owner-scoped inside TestRunnerSupport rather than at the URL layer
+    if op_ready:
+        resp = owner_client.get(f"{base_url}api/runner/running")
+        runner.check("Running: owner's running list includes their test",
+                     resp.status_code == 200 and op_test_id in resp.json(),
+                     f"HTTP {resp.status_code}, {resp.text[:120]}")
+
+        if token_2:
+            user_b = bearer_client(base_url, token_2, verify_ssl)
+
+            resp = user_b.get(f"{base_url}api/runner/running")
+            runner.check("Running: another user's running list excludes it",
+                         resp.status_code == 200 and op_test_id not in resp.json(),
+                         f"HTTP {resp.status_code}, {resp.text[:120]}")
+
+            resp = user_b.post(f"{base_url}api/runner/{op_test_id}")
+            runner.check_status("Running: another user cannot start the test", resp, 404)
+
+            resp = user_b.delete(f"{base_url}api/runner/{op_test_id}")
+            runner.check_status("Running: another user cannot cancel the test", resp, 404)
+
+            resp = owner_client.get(f"{base_url}api/runner/running")
+            runner.check("Running: test still running after another user's attempts",
+                         resp.status_code == 200 and op_test_id in resp.json(),
+                         f"HTTP {resp.status_code}")
+
+            user_b.close()
+
     cert_config = json.dumps({
         "description": "security-test certification plan",
         "server": {"discoveryUrl": op_discovery_url},
@@ -1090,6 +1137,71 @@ def run_tests():
     runner.check_status_in("Certification: helper OP test cancelled", resp, {200, 204})
     resp = owner_client.delete(f"{base_url}api/plan/{op_plan_id}")
     runner.check_status("Certification: helper OP plan cleaned up", resp, 204)
+
+    # ===================================================================
+    # 4g. METADATA & LISTING ENDPOINTS
+    # ===================================================================
+    print("\n--- 4g. Metadata & listing endpoints ---")
+
+    # /info (list all) is intentionally disabled for performance
+    resp = owner_client.get(f"{base_url}api/info")
+    runner.check_status("Metadata: bulk test listing is disabled (400)", resp, 400)
+
+    # /lastconfig returns the current user's most recent saved config. Creating a plan
+    # saves its config, so two successive creates prove the endpoint returns the *latest*.
+    marker_a = f"lastconfig-marker-A-{time.time()}"
+    create_test_plan(owner_client, base_url, plan_name,
+                     json.dumps({"description": marker_a,
+                                 "server": {"discoveryUrl": "https://example.com/.well-known/openid-configuration"}}))
+    resp = owner_client.get(f"{base_url}api/lastconfig")
+    runner.check("Lastconfig: returns the just-saved config",
+                 resp.status_code == 200 and marker_a in resp.text,
+                 f"HTTP {resp.status_code}")
+
+    marker_b = f"lastconfig-marker-B-{time.time()}"
+    create_test_plan(owner_client, base_url, plan_name,
+                     json.dumps({"description": marker_b,
+                                 "server": {"discoveryUrl": "https://example.com/.well-known/openid-configuration"}}))
+    resp = owner_client.get(f"{base_url}api/lastconfig")
+    runner.check("Lastconfig: returns the latest config, not the previous one",
+                 resp.status_code == 200 and marker_b in resp.text and marker_a not in resp.text,
+                 f"HTTP {resp.status_code}")
+
+    if token_2:
+        user_b = bearer_client(base_url, token_2, verify_ssl)
+        resp = user_b.get(f"{base_url}api/lastconfig")
+        runner.check("Lastconfig: does not leak another user's config",
+                     resp.status_code == 200 and marker_a not in resp.text and marker_b not in resp.text,
+                     f"HTTP {resp.status_code}")
+        user_b.close()
+
+    resp = unauthenticated_get(base_url, "api/lastconfig", verify_ssl)
+    runner.check_status("Lastconfig: requires authentication", resp, 401)
+
+    # plan metadata endpoints (authenticated, data-bearing)
+    resp = owner_client.get(f"{base_url}api/plan/available")
+    body = resp.json() if resp.status_code == 200 else None
+    runner.check("Metadata: available plans list is non-empty",
+                 isinstance(body, list) and len(body) > 0,
+                 f"HTTP {resp.status_code}")
+
+    resp = unauthenticated_get(base_url, "api/plan/available", verify_ssl)
+    runner.check_status("Metadata: available plans requires authentication", resp, 401)
+
+    resp = owner_client.get(f"{base_url}api/plan/info/{plan_name}")
+    runner.check("Metadata: plan info returns the requested plan",
+                 resp.status_code == 200 and resp.json().get("planName") == plan_name,
+                 f"HTTP {resp.status_code}, {resp.text[:120]}")
+
+    resp = owner_client.get(f"{base_url}api/plan/info/this-plan-does-not-exist")
+    runner.check_status("Metadata: unknown plan name returns 404", resp, 404)
+
+    # spec_links is public only with ?public
+    resp = owner_client.get(f"{base_url}api/ui/spec_links", params={"public": "true"})
+    body = resp.json() if resp.status_code == 200 else None
+    runner.check("Metadata: spec_links returns a mapping",
+                 isinstance(body, dict) and len(body) > 0,
+                 f"HTTP {resp.status_code}")
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
