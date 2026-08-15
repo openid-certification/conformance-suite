@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallPAREndpoint;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
@@ -88,12 +89,12 @@ public class FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails extends Abstra
 	}
 
 	@Override
-	protected void processCallback() {
-		// Error came from authorization endpoint as redirect
-		eventLog.startBlock("Verify invalid_grant_id error in authorization endpoint response");
+	protected void onAuthorizationCallbackResponse() {
+		// Error came from authorization endpoint as redirect; the base class processCallback has already
+		// mapped authorization_endpoint_response to the callback query parameters
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(GrantManagementSupport.EnsureAuthorizationEndpointRejectsInvalidGrantId.class, Condition.ConditionResult.FAILURE, "GM-5.4");
-		eventLog.endBlock();
 		fireTestFinished();
 	}
 }
