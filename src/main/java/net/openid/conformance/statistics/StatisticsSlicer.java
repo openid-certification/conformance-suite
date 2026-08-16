@@ -190,7 +190,12 @@ public final class StatisticsSlicer {
 			tiles.inProgress(), tiles.stuck(), certified, published);
 	}
 
-	/** @return the busiest plan names no longer in the registry, all time and unfiltered */
+	/**
+	 * @return the busiest plan names the statistics cannot attribute to a family, all time and
+	 *         unfiltered. A retired plan name that {@link SpecFamilyResolver}'s alias map knows
+	 *         resolves to its family and so is not listed here: what is left is what nothing in
+	 *         the suite, current or historic, can name.
+	 */
 	private static List<UnresolvedPlan> unresolvedPlans(StatisticsCube cube) {
 		Map<String, Long> runs = new HashMap<>();
 		for (RunCell cell : cube.runs(Granularity.MONTH)) {

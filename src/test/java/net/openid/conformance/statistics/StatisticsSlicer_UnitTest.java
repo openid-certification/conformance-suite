@@ -344,6 +344,24 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
+	void anAliasedPlanIsChartedUnderItsFamilyAndIsNotReportedAsUnresolved() {
+		SpecFamilyResolver resolver = new SpecFamilyResolver(
+			Map.of("fapi1-plan", SpecFamilyNames.fapi1Advanced), Map.of(), Map.of(),
+			Map.of("fapi-rw-id2-test-plan", SpecFamilyNames.fapi1Advanced));
+		StatisticsCube cube = new StatisticsCube(
+			List.of(runs("2026-03", null, "fapi1-plan", 4), runs("2026-03", null, "fapi-rw-id2-test-plan", 6),
+				runs("2026-03", null, "a-plan-nobody-remembers", 2)),
+			List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), NO_TILES, resolver, NOW);
+
+		StatisticsOverview overview = slice(cube, StatisticsQuery.defaults());
+
+		assertThat(overview.testRunsByFamily().get(SpecFamilyNames.fapi1Advanced)).containsExactly(10L);
+		assertThat(overview.testRunsByFamily().get(SpecFamilyResolver.OTHER_RETIRED)).containsExactly(2L);
+		assertThat(overview.unresolvedPlans())
+			.containsExactly(new UnresolvedPlan("a-plan-nobody-remembers", 2));
+	}
+
+	@Test
 	void anEmptyCubeProducesAnEmptyAxisWithEveryFamilyStillPresent() {
 		StatisticsOverview overview = slice(cube(List.of(), List.of(), List.of()), StatisticsQuery.defaults());
 
