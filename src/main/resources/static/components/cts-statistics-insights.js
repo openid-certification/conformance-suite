@@ -2,10 +2,17 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-chart.js";
 import "./cts-heatmap.js";
 import "./cts-time.js";
-import { DISTRIBUTION_LIMIT } from "./statistics-model.js";
+import {
+  DISTRIBUTION_LIMIT,
+  MODULE_LIMIT,
+  NUMBER_FORMAT,
+  formatShare,
+} from "./statistics-model.js";
 
 /** @typedef {import("./statistics-model.js").Distribution} Distribution */
 /** @typedef {import("./statistics-model.js").Distributions} Distributions */
+/** @typedef {import("./statistics-model.js").ModuleChart} ModuleChart */
+/** @typedef {import("./statistics-model.js").ModuleRow} ModuleRow */
 
 /**
  * The heatmap's rows, Monday first — the order `StatisticsOverview.heatmap`
@@ -19,9 +26,6 @@ const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
  * @type {Array<string>}
  */
 const HOUR_LABELS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
-
-/** Grouped figures, so 1,024 does not read as 1024. */
-const NUMBER_FORMAT = new Intl.NumberFormat();
 
 /**
  * Per-distribution tooltip footers, cached on the distribution object's
@@ -51,6 +55,31 @@ function extraFooter(distribution) {
     return [`${NUMBER_FORMAT.format(value)} ${extra.label.toLowerCase()}`];
   };
   EXTRA_FOOTERS.set(distribution, footer);
+  return footer;
+}
+
+/**
+ * Per-chart tooltip footers, cached on the chart object's identity — the same
+ * bargain {@link extraFooter} strikes: the page hands this component the same
+ * memoised `ModuleChart` until the payload changes, so `<cts-chart>` keeps
+ * being handed the same callback and a busy-flag re-render re-plots nothing.
+ * @type {WeakMap<object, (index: number) => Array<string>>}
+ */
+const MODULE_FOOTERS = new WeakMap();
+
+/**
+ * The tooltip footer carrying the measures a module chart does NOT plot — the
+ * user counts behind a run count, the denominator behind a failure count.
+ * {@link moduleDatasets} has already written the lines; this only wraps them
+ * in the callback `<cts-chart>` wants.
+ * @param {ModuleChart} chart - One module chart's inputs.
+ * @returns {(index: number) => Array<string>} The footer callback.
+ */
+function moduleFooter(chart) {
+  const cached = MODULE_FOOTERS.get(chart);
+  if (cached) return cached;
+  const footer = (/** @type {number} */ index) => (chart.footers || [])[index] || [];
+  MODULE_FOOTERS.set(chart, footer);
   return footer;
 }
 
@@ -135,20 +164,38 @@ const STYLE_TEXT = css`
     border-radius: var(--radius-3);
   }
 
+  /* Two charts side by side wherever there is room for them, with the full
+     listing spanning the row underneath: module names are long, so a track
+     narrower than this leaves the axis eliding almost every one of them. */
+  .cts-stats-modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+    gap: var(--space-5);
+  }
+  .cts-stats-modules-full {
+    grid-column: 1 / -1;
+  }
+  /* Module names are long, unspaced and hyphenated; without this the first
+     column sets the table's width and pushes the four counts off the card on
+     a narrow viewport. */
+  .cts-stats-modules-table th[scope="row"] {
+    overflow-wrap: anywhere;
+  }
+
   details.cts-stats-hosts {
     margin-top: var(--space-6);
   }
-  .cts-stats-hosts > summary {
+  .cts-stats-disclosure > summary {
     cursor: pointer;
     font-size: var(--fs-13);
     color: var(--fg-muted);
   }
-  .cts-stats-hosts > summary:focus-visible {
+  .cts-stats-disclosure > summary:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
     border-radius: var(--radius-2);
   }
-  .cts-stats-hosts-hint {
+  .cts-stats-hint {
     margin: var(--space-2) 0 0;
     font-size: var(--fs-12);
     color: var(--fg-soft);
@@ -195,18 +242,22 @@ function injectStyles() {
 /**
  * Everything on the statistics page below the trend charts: the three
  * distributions (variant usage, certification profiles, entity under test),
- * the day × hour activity heatmap, and the external servers the suite has
- * been pointed at.
+ * the most-run and most-failed test modules, the day × hour activity heatmap,
+ * and the external servers the suite has been pointed at.
  *
  * A presentational component — it fetches nothing and owns no state. The page
  * hands it slices of one payload it has already memoised, so a re-render for
  * the busy flag hands `<cts-chart>` the same arrays and nothing re-plots.
  *
- * The three groups are scoped differently on purpose, and the component says
+ * The four groups are scoped differently on purpose, and the component says
  * so rather than letting the reader assume one filter row covers everything:
  *
  * - distributions are counted under the WHOLE query (range and every filter),
  *   so the page withholds them when nothing matches;
+ * - modules are a trailing 24 months narrowed by family and plan ONLY — the
+ *   server does not key them by variant or certification profile — which the
+ *   section's caption states, and the page withholds them alongside the
+ *   distributions when nothing matches (see `_renderInsights` there);
  * - the heatmap is sliced by the RANGE only — the server does not key it by
  *   family — which its caption states;
  * - external hosts are all-time and unfiltered.
@@ -219,6 +270,11 @@ function injectStyles() {
  *   and would report every binding of it as a type mismatch). Null hides the
  *   whole section: the filters match nothing, or there is no snapshot to
  *   count.
+ * @property {object|null} modules - The modules section's inputs, as
+ *   `buildModules` returns them (`{rows, byRuns, byFailingUsers}`; typed
+ *   loosely for the same `lit-analyzer` reason as `distributions`). Null
+ *   hides the whole section; an object with no `rows` renders its empty
+ *   state, because "no module ran in this window" is an answer.
  * @property {Array<Array<number>>} heatmap - 7 rows (Mon-Sun) × 24 UTC hours.
  * @property {string} rangeLabel - The selected range preset's label, for the
  *   heatmap caption ("12 months").
@@ -233,6 +289,7 @@ function injectStyles() {
 class CtsStatisticsInsights extends LitElement {
   static properties = {
     distributions: { attribute: false },
+    modules: { attribute: false },
     heatmap: { attribute: false },
     rangeLabel: { type: String, attribute: "range-label" },
     hosts: { attribute: false },
@@ -245,6 +302,8 @@ class CtsStatisticsInsights extends LitElement {
     super();
     /** @type {import("./statistics-model.js").Distributions|null} */
     this.distributions = null;
+    /** @type {ReturnType<typeof import("./statistics-model.js").buildModules>|null} */
+    this.modules = null;
     /** @type {Array<Array<number>>} */
     this.heatmap = [];
     /** @type {string} */
@@ -277,7 +336,10 @@ class CtsStatisticsInsights extends LitElement {
   }
 
   render() {
-    return html` ${this._renderDistributions()} ${this._renderHeatmap()} ${this._renderHosts()} `;
+    return html`
+      ${this._renderDistributions()} ${this._renderModules()} ${this._renderHeatmap()}
+      ${this._renderHosts()}
+    `;
   }
 
   // --- Distributions ----------------------------------------------------
@@ -396,6 +458,122 @@ class CtsStatisticsInsights extends LitElement {
     `;
   }
 
+  // --- Modules ----------------------------------------------------------
+
+  /**
+   * The two module rankings and the listing behind them.
+   *
+   * Two charts rather than one: "most run" and "most users failed" are
+   * different questions, and a single chart with two series would put a run
+   * count of 1,420 and a user count of 22 on one scale, which reduces the
+   * second measure to a stub against the first.
+   *
+   * Only the top twelve of each ranking is plotted, and — unlike the
+   * distributions — the tail is not left to `<cts-chart max-bars>`: the
+   * disclosure below carries every module the server returned, with the two
+   * measures neither chart plots, so a second per-chart data table of elided
+   * module names would be noise.
+   * @returns {unknown} The section, or nothing when the page is withholding it.
+   */
+  _renderModules() {
+    const modules = this.modules;
+    if (!modules) return nothing;
+    const rows = Array.isArray(modules.rows) ? modules.rows : [];
+    return html`
+      <h2 class="cts-stats-insights-heading">Modules (last 24 months)</h2>
+      <p class="cts-stats-insights-lead">
+        Last 24 months · counts identified users once per module, however many times a module failed
+        for them · family and plan filters apply; variant and certification filters do not
+      </p>
+      <div class="cts-stats-modules" data-testid="stats-modules">
+        ${rows.length === 0
+          ? html`
+              <div class="cts-stats-dist-card cts-stats-modules-full">
+                <p class="cts-stats-insights-lead" data-testid="stats-modules-empty">
+                  No module runs in this window for the current filters.
+                </p>
+              </div>
+            `
+          : html`
+              ${this._renderModuleChart("stats-modules-runs", "Most-run modules", modules.byRuns)}
+              ${this._renderModuleChart(
+                "stats-modules-failing",
+                "Modules most users failed",
+                modules.byFailingUsers,
+              )}
+              ${this._renderModuleTable(rows)}
+            `}
+      </div>
+    `;
+  }
+
+  /**
+   * @param {string} testid - The card's `data-testid`.
+   * @param {string} heading - The chart's title.
+   * @param {ModuleChart} chart - Its inputs, already ranked and cut.
+   * @returns {unknown} One module chart.
+   */
+  _renderModuleChart(testid, heading, chart) {
+    return html`
+      <div class="cts-stats-dist-card" data-testid=${testid}>
+        <cts-chart
+          horizontal
+          heading=${heading}
+          category-label="Module"
+          .labels=${chart.labels}
+          .datasets=${chart.datasets}
+          .tooltipFooter=${moduleFooter(chart)}
+        ></cts-chart>
+      </div>
+    `;
+  }
+
+  /**
+   * Every module the section counted, whichever ranking it did or did not
+   * make — a disclosure, because it can run to a hundred rows and the charts
+   * are the answer most readers came for.
+   * @param {Array<ModuleRow>} rows - The payload's modules, server order.
+   * @returns {unknown} The listing.
+   */
+  _renderModuleTable(rows) {
+    return html`
+      <details
+        class="cts-stats-disclosure cts-stats-modules-full cts-stats-modules-table"
+        data-testid="stats-modules-table"
+      >
+        <summary>All modules (${NUMBER_FORMAT.format(rows.length)})</summary>
+        <p class="cts-stats-hint">
+          Most-run first, the order the server ranks them in. The charts above plot the top
+          ${MODULE_LIMIT} of each ranking; everything past that is only here.
+        </p>
+        <table class="cts-stats-table">
+          <thead>
+            <tr>
+              <th scope="col">Module</th>
+              <th scope="col">Runs</th>
+              <th scope="col">Users</th>
+              <th scope="col">Users who hit a failure</th>
+              <th scope="col">Failing share</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(
+              (row) => html`
+                <tr>
+                  <th scope="row">${row.testName}</th>
+                  <td>${NUMBER_FORMAT.format(Number(row.runs) || 0)}</td>
+                  <td>${NUMBER_FORMAT.format(Number(row.users) || 0)}</td>
+                  <td>${NUMBER_FORMAT.format(Number(row.failingUsers) || 0)}</td>
+                  <td>${formatShare(row.failingShare)}</td>
+                </tr>
+              `,
+            )}
+          </tbody>
+        </table>
+      </details>
+    `;
+  }
+
   // --- Activity ---------------------------------------------------------
 
   /**
@@ -433,9 +611,9 @@ class CtsStatisticsInsights extends LitElement {
     const hosts = Array.isArray(this.hosts) ? this.hosts : [];
     if (hosts.length === 0) return nothing;
     return html`
-      <details class="cts-stats-hosts" data-testid="stats-hosts">
+      <details class="cts-stats-disclosure cts-stats-hosts" data-testid="stats-hosts">
         <summary>External servers under test (${NUMBER_FORMAT.format(hosts.length)})</summary>
-        <p class="cts-stats-hosts-hint">
+        <p class="cts-stats-hint">
           The top 100 by runs, over the whole history of the database — never scoped by the range or
           the filters above. Hosts are read from the server, issuer, credential-issuer and
           entity-identifier URLs in each test's configuration; the suite's own endpoints are

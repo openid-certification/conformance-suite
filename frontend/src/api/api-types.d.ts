@@ -303,6 +303,8 @@ export interface paths {
      * @description Served from a snapshot that is recomputed in the background at most every 12 hours, because the underlying aggregations group over the whole test database. While the first snapshot is being computed the response is 202 and the client should poll. The filters and the range are applied to that snapshot when the request is answered, so they are free to change and never trigger a recomputation.
      *
      *     In addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a cell has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.
+     *
+     *     `data.modules` covers the trailing 24 months only, is clipped to the range by month whatever the granularity, and honours `family` and `plan` as registry membership - a module belongs to every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` counts only runs by an identified user, since the section counts people and a run written before authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.
      */
     get: operations["getOverview"];
     put?: never;
@@ -745,6 +747,8 @@ export interface components {
       /** Format: int64 */
       asLong?: number;
       asBoolean?: boolean;
+      boolean?: boolean;
+      string?: boolean;
       number?: boolean;
       /** Format: float */
       asFloat?: number;
@@ -757,8 +761,6 @@ export interface components {
       asBigInteger?: number;
       /** Format: int32 */
       asShort?: number;
-      boolean?: boolean;
-      string?: boolean;
       asString?: string;
       asJsonObject?: unknown;
       jsonPrimitive?: boolean;
@@ -802,6 +804,17 @@ export interface components {
       message?: string;
       failedAt?: string;
     };
+    StatisticsModule: {
+      testName?: string;
+      /** Format: int64 */
+      runs?: number;
+      /** Format: int64 */
+      users?: number;
+      /** Format: int64 */
+      failingUsers?: number;
+      /** Format: double */
+      failingShare?: number;
+    };
     StatisticsOverview: {
       periods?: string[];
       granularity?: string;
@@ -826,6 +839,7 @@ export interface components {
       storage?: components["schemas"]["StatisticsStorage"][];
       dimensions?: components["schemas"]["StatisticsDimensions"];
       heatmap?: number[][];
+      modules?: components["schemas"]["StatisticsModule"][];
       externalHosts?: components["schemas"]["StatisticsExternalHost"][];
       unresolvedPlans?: components["schemas"]["StatisticsUnresolvedPlan"][];
     };

@@ -48,7 +48,13 @@ public class StatisticsApi {
 			+ "In addition to the parameters below, any number of plan level variant filters may be sent as "
 			+ "`variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; "
 			+ "a cell has to match all of them. They cannot be declared individually here because the "
-			+ "parameter names are the variant parameters of every test plan the suite publishes.")
+			+ "parameter names are the variant parameters of every test plan the suite publishes.\n\n"
+			+ "`data.modules` covers the trailing 24 months only, is clipped to the range by month whatever "
+			+ "the granularity, and honours `family` and `plan` as registry membership - a module belongs to "
+			+ "every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not "
+			+ "apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` "
+			+ "counts only runs by an identified user, since the section counts people and a run written before "
+			+ "authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.")
 	@Parameters({
 		@Parameter(name = "granularity", in = ParameterIn.QUERY,
 			description = "The time buckets to report in. Monthly covers the whole history; weekly covers the "

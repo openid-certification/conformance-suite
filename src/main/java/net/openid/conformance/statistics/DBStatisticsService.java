@@ -66,17 +66,19 @@ public class DBStatisticsService implements StatisticsService {
 	/** Runs on the {@code statistics-compute} thread; may throw, which the cache records. */
 	private StatisticsCube compute() {
 		Instant startedAt = Instant.now();
+		LocalDate today = LocalDate.now(ZoneOffset.UTC);
 		List<RunCell> runs = source.runs();
 		List<PlanCell> plans = source.plans();
 		List<UserTuple> users = source.users();
 		List<HeatCell> heat = source.heat();
+		List<ModuleUserCell> modules = source.modules(today);
 		List<HostRow> hosts = source.externalHosts();
-		StatisticsCube cube = new StatisticsCube(runs, plans, users, heat, hosts, source.storage(),
-			source.tiles(startedAt), resolver, LocalDate.now(ZoneOffset.UTC));
+		StatisticsCube cube = new StatisticsCube(runs, plans, users, heat, modules, hosts, source.storage(),
+			source.tiles(startedAt), resolver, today);
 		logger.info("Computed the statistics cube in {}ms: {} run cells, {} plan cells, {} user tuples, "
-				+ "{} heat cells, {} external hosts; {} months, {} weeks",
+				+ "{} heat cells, {} module cells, {} external hosts; {} months, {} weeks",
 			Duration.between(startedAt, Instant.now()).toMillis(),
-			runs.size(), plans.size(), users.size(), heat.size(), hosts.size(),
+			runs.size(), plans.size(), users.size(), heat.size(), modules.size(), hosts.size(),
 			cube.periods(Granularity.MONTH).size(), cube.periods(Granularity.WEEK).size());
 		return cube;
 	}

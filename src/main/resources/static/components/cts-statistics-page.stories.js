@@ -6,6 +6,7 @@ import {
   MOCK_STATS_ERROR,
   MOCK_STATS_INVALID,
   MOCK_STATS_LAST_ERROR,
+  MOCK_STATS_MODULES,
   MOCK_STATS_MONTHS,
   MOCK_STATS_PENDING,
   MOCK_STATS_READY,
@@ -178,6 +179,50 @@ function runsChartInstance(canvasElement) {
     canvasElement.querySelector('[data-testid="stats-chart-runs"] cts-chart')
   );
   return host.chartInstance;
+}
+
+/**
+ * One of the two module charts, once it has painted.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @param {string} testid - `stats-modules-runs` or `stats-modules-failing`.
+ * @returns {Promise<any>} The `<cts-chart>` element.
+ */
+async function moduleChart(canvasElement, testid) {
+  /** @type {any} */
+  let host = null;
+  await waitFor(() => {
+    host = canvasElement.querySelector(`[data-testid="${testid}"] cts-chart`);
+    expect(host).toBeTruthy();
+    expect(host.chartInstance).toBeTruthy();
+  }, POLL_TIMEOUT);
+  return host;
+}
+
+/**
+ * The modules section's own table — every module, not the twelve either chart
+ * plots. Opened first: it is a disclosure, and a closed one tells a play
+ * function nothing about what it contains.
+ *
+ * NEVER call this from inside a `waitFor` callback. Opening the disclosure is
+ * a DOM mutation, `waitFor` re-runs its callback on every mutation it
+ * observes, and a callback that mutates therefore re-arms itself in a
+ * microtask loop the timeout timer never gets a turn to break.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @returns {{rows: Array<Array<string>>, headers: Array<string>, summary: string}} Its contents.
+ */
+function moduleTable(canvasElement) {
+  const details = /** @type {HTMLDetailsElement} */ (
+    canvasElement.querySelector('[data-testid="stats-modules-table"]')
+  );
+  expect(details).toBeTruthy();
+  details.open = true;
+  return {
+    summary: /** @type {HTMLElement} */ (details.querySelector("summary")).textContent.trim(),
+    headers: [...details.querySelectorAll("thead th")].map((th) => th.textContent.trim()),
+    rows: [...details.querySelectorAll("tbody tr")].map((row) =>
+      [...row.querySelectorAll("th, td")].map((cell) => cell.textContent.trim()),
+    ),
+  };
 }
 
 /**
@@ -401,6 +446,16 @@ export const Ready = {
         canvasElement.querySelector('[data-testid="stats-chart-users"] h3')
       );
       expect(heading.textContent.trim()).toBe("Users per month — by plan owner");
+    });
+
+    await step("the modules section is on the ordinary page too", async () => {
+      // Its own story exercises the rankings; here it only has to be present,
+      // so a regression that drops the section shows up in the default view.
+      expect(canvasElement.querySelector('[data-testid="stats-modules"]')).toBeTruthy();
+      expect(canvasElement.querySelectorAll('[data-testid="stats-modules"] cts-chart').length).toBe(
+        2,
+      );
+      expect(canvasElement.querySelector('[data-testid="stats-modules-table"]')).toBeTruthy();
     });
   },
 };
@@ -764,6 +819,24 @@ export const PhaseTwoSections = {
       ]);
     });
 
+    await step("modules follow the family that was just picked, and say so", async () => {
+      // A family IS selected by the previous step, and modules — unlike the
+      // heatmap below — do follow it.
+      await waitFor(() => {
+        const runs = /** @type {any} */ (
+          canvasElement.querySelector('[data-testid="stats-modules-runs"] cts-chart')
+        );
+        expect(runs.labels.length).toBe(4);
+      }, POLL_TIMEOUT);
+      const { rows } = moduleTable(canvasElement);
+      expect(rows.map((row) => row[0])).toEqual([
+        "fapi2-security-profile-final-ensure-request-object-signature-algorithm-is-not-none",
+        "fapi2-security-profile-final-user-rejects-authentication",
+        "fapi2-message-signing-final-signed-request-object",
+        "fapi2-security-profile-final-par-without-request-uri",
+      ]);
+    });
+
     await step("the heatmap is 7 x 24 and says what it is and is not filtered by", async () => {
       const heatmap = canvasElement.querySelector('[data-testid="stats-heatmap"]');
       expect(heatmap.querySelectorAll(".cts-heatmap-cell").length).toBe(7 * 24);
@@ -800,6 +873,172 @@ export const PhaseTwoSections = {
       expect(
         /** @type {HTMLElement} */ (rows[0].querySelector("time")).getAttribute("datetime"),
       ).toBe("2026-05-31T22:14:02.000Z");
+    });
+  },
+};
+
+/**
+ * The modules section: which test modules the suite runs most, and which ones
+ * most users hit a failure on. Two rankings out of one array, twelve bars
+ * each, and a table carrying every module either of them was taken from.
+ */
+export const Modules = {
+  parameters: { msw: { handlers: [slicingHandler()] } },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForCharts(canvasElement);
+
+    await step("the section says what it counts and which filters it follows", async () => {
+      expect(canvas.getByText("Modules (last 24 months)")).toBeInTheDocument();
+      expect(canvasElement.querySelector('[data-testid="stats-modules"]')).toBeTruthy();
+      const caption = canvas
+        .getByText(/counts identified users once per module/)
+        .textContent.replace(/\s+/g, " ");
+      expect(caption).toContain("Last 24 months");
+      expect(caption).toContain("however many times a module failed for them");
+      expect(caption).toContain("family and plan filters apply");
+      expect(caption).toContain("variant and certification filters do not");
+      expect(canvasElement.querySelector('[data-testid="stats-modules-empty"]')).toBeNull();
+    });
+
+    await step("most-run modules: twelve bars, one hue, no legend", async () => {
+      const chart = await moduleChart(canvasElement, "stats-modules-runs");
+      expect(chart.chartInstance.options.indexAxis).toBe("y");
+      expect(chart.chartInstance.options.plugins.legend.display).toBe(false);
+      expect(chart.chartInstance.data.datasets.length).toBe(1);
+      // Twelve of the fifteen: the tail is the table's job, so the chart is
+      // not left saying "showing the top 12 of 15" as well.
+      expect(chart.labels.length).toBe(12);
+      expect(
+        canvasElement.querySelector('[data-testid="stats-modules"] [data-testid="cts-chart-more"]'),
+      ).toBeNull();
+      expect(chart.labels[0]).toBe(MOCK_STATS_MODULES[0].testName);
+      // The 640-run tie breaks on the name, exactly as the server breaks it.
+      expect(chart.labels.slice(5, 7)).toEqual([
+        "fapi2-message-signing-final-signed-request-object",
+        "fapi2-security-profile-final-par-without-request-uri",
+      ]);
+      // The measures the bar does not carry are one hover away, not only in
+      // the table below.
+      expect(chart.tooltipFooter(0)).toEqual(["38 users", "9 hit a failure (23.7%)"]);
+    });
+
+    await step("...and the failing ranking is re-ranked, not the delivered order", async () => {
+      const chart = await moduleChart(canvasElement, "stats-modules-failing");
+      expect(chart.labels.length).toBe(12);
+      expect(chart.labels.slice(0, 4)).toEqual([
+        "fapi2-message-signing-final-signed-request-object",
+        "fapi2-security-profile-final-user-rejects-authentication",
+        "oidcc-server",
+        "openid-federation-op-fetch-endpoint",
+      ]);
+      // Three modules on nine failing users. The busier one wins the tie, the
+      // way the server's BY_FAILING_USERS breaks it — which here is the exact
+      // reverse of what the name alone would have given.
+      expect(chart.labels.slice(4, 7)).toEqual([
+        "fapi2-security-profile-final-ensure-request-object-signature-algorithm-is-not-none",
+        "fapi-ciba-id1-poll-happy-path",
+        "fapi1-advanced-final-ensure-request-object-signature-algorithm-is-not-none",
+      ]);
+      // A bar of 24 means nothing without the denominator.
+      expect(chart.tooltipFooter(0)).toEqual(["24 of 24 users (100.0%)", "640 runs"]);
+      // The module nobody failed is not on this chart at all.
+      expect(chart.labels).not.toContain("oidcc-discovery-endpoint-verification");
+    });
+
+    await step("the table carries every module, with the share as a percentage", async () => {
+      const { summary, headers, rows } = moduleTable(canvasElement);
+      expect(summary).toBe(`All modules (${MOCK_STATS_MODULES.length})`);
+      expect(headers).toEqual([
+        "Module",
+        "Runs",
+        "Users",
+        "Users who hit a failure",
+        "Failing share",
+      ]);
+      expect(rows.length).toBe(MOCK_STATS_MODULES.length);
+      expect(rows[0]).toEqual([
+        "fapi2-security-profile-final-ensure-request-object-signature-algorithm-is-not-none",
+        "1,420",
+        "38",
+        "9",
+        "23.7%",
+      ]);
+      // Nobody failed it: 0.0%, not a blank, and it is here even though only
+      // one of the two charts would ever have shown it.
+      expect(rows[2]).toEqual(["oidcc-discovery-endpoint-verification", "960", "44", "0", "0.0%"]);
+      // The last three rows are exactly what the runs chart left out.
+      expect(rows[14][0]).toBe("oid4vp-1final-verifier-invalid-nonce");
+    });
+
+    await step("and it follows the family filter", async () => {
+      await userEvent.selectOptions(select(canvasElement, "stats-family"), "OID4VP");
+      await waitFor(() => {
+        expect(
+          canvasElement.querySelectorAll('[data-testid="stats-modules-table"] tbody tr').length,
+        ).toBe(2);
+      }, POLL_TIMEOUT);
+      const chart = await moduleChart(canvasElement, "stats-modules-runs");
+      expect(chart.labels).toEqual([
+        "oid4vp-1final-verifier-happy-path",
+        "oid4vp-1final-verifier-invalid-nonce",
+      ]);
+    });
+
+    await step("a synthetic family has no modules, and the section says so", async () => {
+      // "No plan" is runs that belong to no plan at all, so no module maps to
+      // it — the server answers `[]`. The page is NOT in its no-match state
+      // here (the family has traffic), so the section is on screen and has to
+      // account for itself.
+      await userEvent.selectOptions(select(canvasElement, "stats-family"), "No plan");
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="stats-modules-empty"]')).toBeTruthy();
+      }, POLL_TIMEOUT);
+      expect(canvasElement.querySelector('[data-testid="stats-no-match"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="stats-modules-runs"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="stats-modules-table"]')).toBeNull();
+    });
+  },
+};
+
+/**
+ * A window with no module runs in it — a synthetic family, or a database
+ * quiet for two years. The section stays and says so, rather than leaving the
+ * reader wondering whether it failed to load.
+ */
+export const ModulesEmpty = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(ENDPOINT, ({ request }) => {
+          const url = new URL(request.url);
+          REQUESTS.push(url.search);
+          const body = statisticsOverviewFor(url);
+          body.data.modules = [];
+          return HttpResponse.json(body);
+        }),
+      ],
+    },
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitForCharts(canvasElement);
+
+    await step("one sentence instead of two empty charts and an empty table", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="stats-modules-empty"]')).toBeTruthy();
+      }, POLL_TIMEOUT);
+      expect(
+        canvas.getByText("No module runs in this window for the current filters."),
+      ).toBeInTheDocument();
+      expect(canvasElement.querySelector('[data-testid="stats-modules-runs"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="stats-modules-failing"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="stats-modules-table"]')).toBeNull();
+      // The heading and its caption stay: an empty section still has to say
+      // what it would have counted.
+      expect(canvas.getByText("Modules (last 24 months)")).toBeInTheDocument();
     });
   },
 };
@@ -1075,6 +1314,11 @@ export const NoMatch = {
       // are still there, and this is not the "no data at all" state.
       expect(canvasElement.querySelector('[data-testid="stats-empty"]')).toBeNull();
       expect(canvasElement.querySelector('[data-testid="stats-tiles"]')).toBeTruthy();
+      // Modules are withheld with the distributions: the server does not
+      // narrow them by variant or certification profile, so under some
+      // no-match queries they would otherwise sit full of bars directly under
+      // a banner saying nothing matches.
+      expect(canvasElement.querySelector('[data-testid="stats-modules"]')).toBeNull();
       expect(canvasElement.querySelector('[data-testid="stats-filters"]')).toBeTruthy();
       // The filter that emptied it is selected, even though the select would
       // not otherwise offer a family with no runs.

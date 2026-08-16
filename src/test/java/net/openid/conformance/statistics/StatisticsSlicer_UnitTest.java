@@ -276,7 +276,7 @@ class StatisticsSlicer_UnitTest {
 			List.of(), List.of(),
 			List.of(new HeatCell("2026-03-09", "07", 5), new HeatCell("2026-03-15", "23", 2),
 				new HeatCell("2026-02-23", "07", 8)),
-			List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
 		List<List<Long>> all = slice(cube, StatisticsQuery.defaults()).heatmap();
 		assertThat(all).hasSize(7);
@@ -302,7 +302,7 @@ class StatisticsSlicer_UnitTest {
 		List<StorageRow> storage = List.of(new StorageRow("TEST_INFO", 10, 20, 30, 40));
 		List<HostRow> hosts = List.of(new HostRow("as.example.com", 9, 3, "2026-03-01T00:00:00Z"));
 		StatisticsCube cube = new StatisticsCube(List.of(runs("2026-03", null, "oidcc-plan", 1)), List.of(),
-			List.of(), List.of(), hosts, storage, new TileRow(1000, 42, 10, 40, 120, 5, 2), RESOLVER, NOW);
+			List.of(), List.of(), List.of(), hosts, storage, new TileRow(1000, 42, 10, 40, 120, 5, 2), RESOLVER, NOW);
 
 		StatisticsOverview overview = slice(cube, query("family", SpecFamilyNames.fapi1Advanced));
 
@@ -386,7 +386,7 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	private static StatisticsCube cube(List<RunCell> runCells, List<PlanCell> planCells, List<UserTuple> userTuples) {
-		return new StatisticsCube(runCells, planCells, userTuples, List.of(), List.of(), List.of(),
+		return new StatisticsCube(runCells, planCells, userTuples, List.of(), List.of(), List.of(), List.of(),
 			NO_TILES, RESOLVER, NOW);
 	}
 

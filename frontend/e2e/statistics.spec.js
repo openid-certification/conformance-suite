@@ -10,6 +10,7 @@ import { MOCK_ADMIN_USER, MOCK_USER } from "./fixtures/mock-users.js";
 import {
   MOCK_STATS_EMPTY,
   MOCK_STATS_ERROR,
+  MOCK_STATS_MODULES,
   MOCK_STATS_MONTHS,
   MOCK_STATS_PENDING,
   MOCK_STATS_READY,
@@ -303,6 +304,86 @@ function chartRows(page, testid) {
  */
 function chartHeaders(page, testid) {
   return page.locator(`[data-testid="${testid}"] table thead th`);
+}
+
+/**
+ * The categories one chart is actually plotting, read off the live
+ * `<cts-chart>` rather than off its data table: both module rankings are cut
+ * client-side, so what the component decided to plot is exactly the thing the
+ * ranking rules are about.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} testid - Chart wrapper test id, e.g. `stats-modules-runs`.
+ * @returns {Promise<Array<string>>} The labels, in plotted order.
+ */
+function chartLabels(page, testid) {
+  return page.evaluate((id) => {
+    const host = /** @type {any} */ (document.querySelector(`[data-testid="${id}"] cts-chart`));
+    return host && host.labels ? [...host.labels] : [];
+  }, testid);
+}
+
+/**
+ * One bar's tooltip footer lines — the measures the bar itself does not carry
+ * (a module's user counts and failing share).
+ * @param {import('@playwright/test').Page} page
+ * @param {string} testid - Chart wrapper test id.
+ * @param {number} index - Which bar, in plotted order.
+ * @returns {Promise<Array<string>>} The footer lines.
+ */
+function chartFooter(page, testid, index) {
+  return page.evaluate(
+    ({ id, at }) => {
+      const host = /** @type {any} */ (document.querySelector(`[data-testid="${id}"] cts-chart`));
+      return host.tooltipFooter(at);
+    },
+    { id: testid, at: index },
+  );
+}
+
+/**
+ * Wait until ONE chart has been painted. {@link expectChartsPainted} is about
+ * the five trend charts; the module charts are elsewhere on the page and land
+ * at their own pace.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} testid - Chart wrapper test id.
+ */
+async function expectChartPainted(page, testid) {
+  await expect
+    .poll(
+      () =>
+        page
+          .locator(`[data-testid="${testid}"] cts-chart`)
+          .evaluateAll(
+            (hosts) => hosts.filter((el) => /** @type {any} */ (el).chartInstance).length,
+          ),
+      { timeout: POLL_TIMEOUT },
+    )
+    .toBe(1);
+}
+
+/**
+ * The `<tbody>` rows of a `<details>` listing. Countable while it is still
+ * closed — `toBeVisible()` is not, which is what {@link openDisclosure} is
+ * for.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} testid - The `<details>` test id.
+ * @returns {import('@playwright/test').Locator} The rows.
+ */
+function disclosureRows(page, testid) {
+  return page.locator(`[data-testid="${testid}"] tbody tr`);
+}
+
+/**
+ * Open a `<details>` listing so its rows can be asserted as VISIBLE.
+ *
+ * Never call this from inside an `expect.poll` or `waitFor` callback: opening
+ * the disclosure is a DOM mutation and a polled callback that mutates re-arms
+ * itself on its own mutation.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} testid - The `<details>` test id.
+ */
+async function openDisclosure(page, testid) {
+  await page.locator(`[data-testid="${testid}"] > summary`).click();
 }
 
 /** One day, in milliseconds — the step both range helpers below count in. */
@@ -1135,5 +1216,164 @@ test.describe("statistics.html — admin usage dashboard", () => {
     // Cancelling the event is what keeps the page here; production has no
     // listener, so the same click navigates (see the click-through test).
     await expect(page).toHaveURL(/statistics\.html/);
+  });
+
+  test("the modules section plots two rankings and lists every module", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+
+    // The caption is the section's contract with the reader: which window, how
+    // a user is counted, and which of the filters above reach it.
+    await expect(page.locator('[data-testid="stats-modules"]')).toBeVisible();
+    await expect(page.getByText(/counts identified users once per module/)).toContainText(
+      "family and plan filters apply; variant and certification filters do not",
+    );
+
+    await expectChartPainted(page, "stats-modules-runs");
+    await expectChartPainted(page, "stats-modules-failing");
+    // Twelve of the fifteen in each chart, and the tail is the section's own
+    // table — so neither chart is left saying "showing the top 12 of 15" as
+    // well, which is what the elision note would otherwise do.
+    await expect(
+      page.locator('[data-testid="stats-modules"] [data-testid="cts-chart-more"]'),
+    ).toHaveCount(0);
+
+    const byRuns = await chartLabels(page, "stats-modules-runs");
+    expect(byRuns).toHaveLength(12);
+    expect(byRuns[0]).toBe(MOCK_STATS_MODULES[0].testName);
+    // The chart's own data table is the accessible twin of the canvas, so it
+    // carries the same twelve.
+    await expect(chartRows(page, "stats-modules-runs")).toHaveCount(12);
+    await expect(chartHeaders(page, "stats-modules-runs").first()).toHaveText("Module");
+
+    const byFailing = await chartLabels(page, "stats-modules-failing");
+    expect(byFailing).toHaveLength(12);
+    // Re-ranked, not the delivered order: the payload arrives sorted by runs.
+    expect(byFailing[0]).toBe("fapi2-message-signing-final-signed-request-object");
+    // The module nobody failed is on one chart and not the other.
+    expect(byRuns).toContain("oidcc-discovery-endpoint-verification");
+    expect(byFailing).not.toContain("oidcc-discovery-endpoint-verification");
+    // A bar of 24 means nothing without its denominator, so the share is one
+    // hover away rather than only in the table below.
+    expect(await chartFooter(page, "stats-modules-failing", 0)).toEqual([
+      "24 of 24 users (100.0%)",
+      "640 runs",
+    ]);
+    expect(await chartFooter(page, "stats-modules-runs", 0)).toEqual([
+      "38 users",
+      "9 hit a failure (23.7%)",
+    ]);
+
+    // The full listing is a disclosure: its rows are in the DOM all along, but
+    // only visible once it is opened.
+    const rows = disclosureRows(page, "stats-modules-table");
+    await expect(rows).toHaveCount(MOCK_STATS_MODULES.length);
+    await expect(rows.first()).toBeHidden();
+    await expect(page.locator('[data-testid="stats-modules-table"] > summary')).toHaveText(
+      `All modules (${MOCK_STATS_MODULES.length})`,
+    );
+    await openDisclosure(page, "stats-modules-table");
+    await expect(rows.first()).toBeVisible();
+    await expect(page.locator('[data-testid="stats-modules-table"] thead th')).toHaveText([
+      "Module",
+      "Runs",
+      "Users",
+      "Users who hit a failure",
+      "Failing share",
+    ]);
+    await expect(rows.first().locator("th, td")).toHaveText([
+      "fapi2-security-profile-final-ensure-request-object-signature-algorithm-is-not-none",
+      "1,420",
+      "38",
+      "9",
+      "23.7%",
+    ]);
+    // Nobody failed it: 0.0%, not a blank, and it is listed even though only
+    // one of the two charts would ever have plotted it.
+    await expect(rows.nth(2).locator("th, td")).toHaveText([
+      "oidcc-discovery-endpoint-verification",
+      "960",
+      "44",
+      "0",
+      "0.0%",
+    ]);
+  });
+
+  test("the family filter narrows the modules and a variant filter leaves them alone", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+    const last = () => filtered(searches).at(-1);
+    const rows = disclosureRows(page, "stats-modules-table");
+    await expect(rows).toHaveCount(MOCK_STATS_MODULES.length);
+
+    // Family is registry membership on the server — a module belongs to every
+    // family that has a plan running it — so it does narrow the modules.
+    await page.locator('[data-testid="stats-family"]').selectOption("OID4VP");
+    await expect.poll(last, { timeout: POLL_TIMEOUT }).toContain("family=OID4VP");
+    await expect(rows).toHaveCount(2);
+    expect(await chartLabels(page, "stats-modules-runs")).toEqual([
+      "oid4vp-1final-verifier-happy-path",
+      "oid4vp-1final-verifier-invalid-nonce",
+    ]);
+
+    // The variant selects only appear once a family or plan has narrowed the
+    // view, so the variant filter is added on top of one — which is the case
+    // that matters anyway: the family narrowing must stay, and the variant
+    // must add nothing.
+    await page.locator('[data-testid="stats-family"]').selectOption("FAPI2 Security Profile");
+    await expect.poll(last, { timeout: POLL_TIMEOUT }).toContain("family=FAPI2+Security+Profile");
+    await expect(rows).toHaveCount(4);
+    const beforeVariant = await chartLabels(page, "stats-modules-runs");
+    // Something the variant filter DOES scope, read from the closed data table
+    // (textContent, not innerText — the disclosure is shut), so the payload is
+    // proven to have landed and re-rendered rather than merely been requested.
+    const trendBefore = await chartRows(page, "stats-chart-runs").first().textContent();
+
+    // A test run does not record its variant in a form the module counts can
+    // be keyed by, so the server does not narrow them and the numbers must not
+    // move — which is exactly what the section's caption promises.
+    await page.locator('[data-testid="stats-variant-client_auth_type"]').selectOption("mtls");
+    await expect.poll(last, { timeout: POLL_TIMEOUT }).toContain("variant.client_auth_type=mtls");
+    expect(last()).toContain("family=FAPI2+Security+Profile");
+    await expect
+      .poll(() => chartRows(page, "stats-chart-runs").first().textContent(), {
+        timeout: POLL_TIMEOUT,
+      })
+      .not.toBe(trendBefore);
+    await expect(rows).toHaveCount(4);
+    expect(await chartLabels(page, "stats-modules-runs")).toEqual(beforeVariant);
+  });
+
+  test("a family with no modules gets the section's own empty state", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    // "No plan" is runs that belong to no plan at all, so no module maps to it
+    // and the server answers `[]`. The family HAS traffic, so this is the
+    // section accounting for itself rather than the page's no-match state.
+    await page.goto("/statistics.html?family=No+plan");
+    await expectChartsPainted(page);
+
+    const empty = page.locator('[data-testid="stats-modules-empty"]');
+    await expect(empty).toBeVisible();
+    await expect(empty).toHaveText("No module runs in this window for the current filters.");
+    await expect(page.locator('[data-testid="stats-no-match"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-modules-runs"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-modules-failing"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-modules-table"]')).toHaveCount(0);
+    // The heading and the caption stay: a reader has to be told WHAT is empty.
+    await expect(page.locator('[data-testid="stats-modules"]')).toBeVisible();
+    await expect(page.getByText("Modules (last 24 months)")).toBeVisible();
   });
 });

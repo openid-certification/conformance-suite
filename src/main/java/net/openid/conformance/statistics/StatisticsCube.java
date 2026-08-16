@@ -1,11 +1,13 @@
 package net.openid.conformance.statistics;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -24,6 +26,18 @@ import java.util.TreeSet;
  * {@value #WEEKS_KEPT} weeks. That happens <em>after</em> the monthly rollup, so nothing is
  * lost from the monthly view - the whole history stays available by month, while the weekly
  * view, which is only ever used to look at recent activity, does not grow without bound.</li>
+ * <li><b>The module window.</b> Module cells are keyed by user as well as by month, so
+ * there are far more of them than there are run cells; only the trailing
+ * {@value #MODULE_MONTHS} months of them are kept. The aggregation already asks MongoDB
+ * for that window, and it is enforced again here, at <em>both</em> ends, so that a cell the
+ * database let through cannot widen it: a clock skewed deployment can date a run in the
+ * future, and the month key each cell carries is derived from the same field the window was
+ * matched on, so whatever the match let past is checked once more against the months the
+ * table has room for. What the second bound is <em>not</em> for is a {@code started} that
+ * is not a string: MongoDB's comparisons are bracketed by BSON type, so a run whose
+ * {@code started} was written as a date rather than as the ISO-8601 string
+ * {@code TestInfo} writes matches no {@code $gte} of a string at all and is never counted
+ * in the first place.</li>
  * </ul>
  *
  * <p>Immutable and safe to share between request threads.
@@ -32,6 +46,9 @@ public class StatisticsCube {
 
 	/** How many ISO weeks of weekly cells are kept; older data stays available by month. */
 	public static final int WEEKS_KEPT = 104;
+
+	/** How many months of module cells are kept, the current month included. */
+	public static final int MODULE_MONTHS = 24;
 
 	private final List<RunCell> monthlyRuns;
 
@@ -44,6 +61,8 @@ public class StatisticsCube {
 	private final List<UserTuple> users;
 
 	private final List<HeatBin> heat;
+
+	private final List<ModuleUserCell> modules;
 
 	private final List<HostRow> externalHosts;
 
@@ -64,16 +83,17 @@ public class StatisticsCube {
 	 * @param planCells     plans created per period, plan, variant and certification profile
 	 * @param userTuples    the periods each user was active in, per plan, variant and profile
 	 * @param heatCells     runs per day and hour
+	 * @param moduleCells   runs of each test module per month and user
 	 * @param externalHosts the external servers the suite has been pointed at, all time
 	 * @param storage       per collection storage counters
 	 * @param tiles         the whole-collection counters behind the summary tiles
 	 * @param resolver      maps plan names to their spec family and entity under test
 	 * @param nowUtc        today in UTC: the last period of the axis, and what the weekly
-	 *                      window is measured back from
+	 *                      and module windows are measured back from
 	 */
 	public StatisticsCube(List<RunCell> runCells, List<PlanCell> planCells, List<UserTuple> userTuples,
-			List<HeatCell> heatCells, List<HostRow> externalHosts, List<StorageRow> storage, TileRow tiles,
-			SpecFamilyResolver resolver, LocalDate nowUtc) {
+			List<HeatCell> heatCells, List<ModuleUserCell> moduleCells, List<HostRow> externalHosts,
+			List<StorageRow> storage, TileRow tiles, SpecFamilyResolver resolver, LocalDate nowUtc) {
 		String oldestWeek = LocalDate.parse(Granularity.WEEK.periodOf(nowUtc)).minusWeeks(WEEKS_KEPT - 1L).toString();
 		this.monthlyRuns = rollUpRuns(runCells, Granularity.MONTH, oldestWeek);
 		this.weeklyRuns = rollUpRuns(runCells, Granularity.WEEK, oldestWeek);
@@ -81,6 +101,7 @@ public class StatisticsCube {
 		this.weeklyPlans = rollUpPlans(planCells, Granularity.WEEK, oldestWeek);
 		this.users = normaliseUsers(userTuples, oldestWeek);
 		this.heat = HeatmapBinner.bin(heatCells, oldestWeek);
+		this.modules = inTheModuleWindow(moduleCells, oldestModuleMonth(nowUtc), Granularity.MONTH.periodOf(nowUtc));
 		this.externalHosts = List.copyOf(externalHosts);
 		this.storage = List.copyOf(storage);
 		this.tiles = tiles;
@@ -108,6 +129,43 @@ public class StatisticsCube {
 	/** @return every run binned by day of the week and hour, with its period keys */
 	public List<HeatBin> heat() {
 		return heat;
+	}
+
+	/**
+	 * @return runs of each test module per month and user, over the trailing
+	 *         {@value #MODULE_MONTHS} months. Not rolled up any further and not part of the
+	 *         period axis: the modules table is monthly whatever the axis granularity is.
+	 */
+	public List<ModuleUserCell> modules() {
+		return modules;
+	}
+
+	/**
+	 * @param nowUtc today in UTC
+	 * @return the first month of the module window: the month {@value #MODULE_MONTHS}
+	 *         months long window that ends with the month {@code nowUtc} falls in starts
+	 *         with. Static because the aggregation asks MongoDB for the same window.
+	 */
+	public static String oldestModuleMonth(LocalDate nowUtc) {
+		return YearMonth.from(nowUtc).minusMonths(MODULE_MONTHS - 1L).toString();
+	}
+
+	/**
+	 * @param testName a test module name
+	 * @return the families of the plans that run it; empty for a module the registry no
+	 *         longer has. A module in plans of several families belongs to all of them.
+	 */
+	public Set<String> moduleFamilies(String testName) {
+		return resolver.familiesForModule(testName);
+	}
+
+	/**
+	 * @param testName a test module name
+	 * @return the names of the plans that run it; empty for a module the registry no longer
+	 *         has
+	 */
+	public Set<String> modulePlans(String testName) {
+		return resolver.plansForModule(testName);
 	}
 
 	/** @return the external servers the suite has been pointed at, all time */
@@ -162,6 +220,31 @@ public class StatisticsCube {
 		Map<String, String> parsed = variantsByKey.get(variantKey);
 		// a key that is not in the cube can only come from a filter, so parse it as it comes
 		return parsed == null ? VariantKeys.parse(variantKey) : parsed;
+	}
+
+	/**
+	 * @param cells       the module cells as the aggregation delivered them
+	 * @param oldestMonth the first month of the window
+	 * @param newestMonth the last month of it, the month today falls in: the window is
+	 *                    bounded at both ends, so a run dated in the future - a clock skewed
+	 *                    deployment, or a {@code started} that is not a string and therefore
+	 *                    passed the aggregation's string comparison - cannot show up in a
+	 *                    modules table that was not asked for it
+	 * @return the cells inside it. A cell whose month key is not a usable one - which is
+	 *         what a document with no usable {@code started} produces - is dropped rather
+	 *         than kept the way an undated run cell is: nothing counts unresolved module
+	 *         names, so such a cell could only ever add runs to a month that is not there.
+	 */
+	private static List<ModuleUserCell> inTheModuleWindow(List<ModuleUserCell> cells, String oldestMonth,
+			String newestMonth) {
+		List<ModuleUserCell> kept = new ArrayList<>(cells.size());
+		for (ModuleUserCell cell : cells) {
+			if (Granularity.MONTH.isPeriod(cell.month()) && cell.month().compareTo(oldestMonth) >= 0
+				&& cell.month().compareTo(newestMonth) <= 0) {
+				kept.add(cell);
+			}
+		}
+		return List.copyOf(kept);
 	}
 
 	private static List<RunCell> rollUpRuns(List<RunCell> cells, Granularity granularity, String oldestWeek) {

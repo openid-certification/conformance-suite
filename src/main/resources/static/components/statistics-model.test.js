@@ -14,6 +14,7 @@ import {
   assignFamilySlots,
   buildChartInputs,
   buildDistributions,
+  buildModules,
   certifiedDatasets,
   defaultFilterState,
   distributionDatasets,
@@ -22,6 +23,7 @@ import {
   familiesWithActivity,
   foldOther,
   formatBytes,
+  formatShare,
   hasAnyData,
   heatmapIntensity,
   heatmapMax,
@@ -30,6 +32,7 @@ import {
   isFiltered,
   isNarrowed,
   memoiseByArgs,
+  moduleDatasets,
   otherBreakdown,
   periodBounds,
   periodLabels,
@@ -1491,6 +1494,190 @@ describe("buildDistributions", () => {
 });
 
 // --- Storage -----------------------------------------------------------
+
+describe("formatShare", () => {
+  it("is always one decimal, so a column of shares lines up", () => {
+    expect(formatShare(0)).toBe("0.0%");
+    expect(formatShare(1)).toBe("100.0%");
+    expect(formatShare(0.237)).toBe("23.7%");
+    expect(formatShare(0.5)).toBe("50.0%");
+  });
+
+  it("rounds the server's third decimal away rather than showing noise", () => {
+    expect(formatShare(0.759)).toBe("75.9%");
+    expect(formatShare(0.105)).toBe("10.5%");
+    expect(formatShare(0.563)).toBe("56.3%");
+  });
+
+  it("clamps to the 0–1 the server promises", () => {
+    expect(formatShare(1.4)).toBe("100.0%");
+    expect(formatShare(-0.2)).toBe("0.0%");
+  });
+
+  it("says nothing rather than NaN% when there is no number", () => {
+    expect(formatShare(/** @type {any} */ (undefined))).toBe("—");
+    expect(formatShare(/** @type {any} */ ("x"))).toBe("—");
+  });
+});
+
+describe("moduleDatasets", () => {
+  /**
+   * Server order: by runs descending, ties by name — what `data.modules`
+   * arrives in, so the failing-users chart has to re-rank it. Three modules
+   * share a failing-user count and three share a run count, so both rankings
+   * have to break a tie the way `ModuleRanker` breaks it.
+   * @type {Array<any>}
+   */
+  const modules = [
+    { testName: "b-most-run", runs: 900, users: 30, failingUsers: 3, failingShare: 0.1 },
+    { testName: "e-busy-failer", runs: 700, users: 10, failingUsers: 8, failingShare: 0.8 },
+    { testName: "a-worst", runs: 400, users: 8, failingUsers: 8, failingShare: 1 },
+    { testName: "c-clean", runs: 400, users: 20, failingUsers: 0, failingShare: 0 },
+    { testName: "d-middling", runs: 400, users: 9, failingUsers: 8, failingShare: 0.889 },
+  ];
+
+  it("plots runs, biggest first, as one series in the single categorical hue", () => {
+    const chart = moduleDatasets(modules, "runs");
+    // The 400s tie: the name breaks it, the same way the server breaks it.
+    expect(chart.labels).toEqual([
+      "b-most-run",
+      "e-busy-failer",
+      "a-worst",
+      "c-clean",
+      "d-middling",
+    ]);
+    expect(chart.datasets.length).toBe(1);
+    expect(chart.datasets[0]).toEqual({
+      label: "Runs",
+      data: [900, 700, 400, 400, 400],
+      colorVar: CATEGORY_COLOR_VARS[0],
+    });
+  });
+
+  it("re-ranks for failing users rather than trusting the delivered order", () => {
+    const chart = moduleDatasets(modules, "failingUsers");
+    expect(chart.labels).toEqual([
+      "e-busy-failer",
+      "a-worst",
+      "d-middling",
+      "b-most-run",
+      "c-clean",
+    ]);
+    expect(chart.datasets[0].label).toBe("Users who hit a failure");
+    expect(chart.datasets[0].data).toEqual([8, 8, 8, 3, 0]);
+  });
+
+  it("breaks a failing-users tie on runs before the name, as the server does", () => {
+    // Three modules on eight failing users. The server's BY_FAILING_USERS is
+    // failing users, then RUNS, then the name: without the middle tier
+    // e-busy-failer (700 runs) would come last of the three on its name alone,
+    // and at the twelve-row cut the client would plot a different twelve than
+    // the server ranked.
+    const failing = moduleDatasets(modules, "failingUsers", 3);
+    expect(failing.labels).toEqual(["e-busy-failer", "a-worst", "d-middling"]);
+    // a-worst and d-middling are level on both measures, so the name — the
+    // last tier — settles them, and settles them the same way every time.
+    expect(failing.labels.slice(1)).toEqual(["a-worst", "d-middling"]);
+  });
+
+  it("puts the measures it does not plot in the tooltip footer", () => {
+    const runs = moduleDatasets(modules, "runs");
+    expect(runs.footers[0]).toEqual(["30 users", "3 hit a failure (10.0%)"]);
+    // A module nobody failed still says so, rather than leaving the reader to
+    // infer it from a chart it is not on.
+    expect(runs.footers[3]).toEqual(["20 users", "0 hit a failure (0.0%)"]);
+
+    const failing = moduleDatasets(modules, "failingUsers");
+    // The denominator is the point: 8 of 10 is a module with a problem.
+    expect(failing.footers[0]).toEqual(["8 of 10 users (80.0%)", "700 runs"]);
+    expect(failing.footers[1]).toEqual(["8 of 8 users (100.0%)", "400 runs"]);
+    expect(failing.footers[3]).toEqual(["3 of 30 users (10.0%)", "900 runs"]);
+  });
+
+  it("keeps the footer singular for one user or one run", () => {
+    const chart = moduleDatasets(
+      [{ testName: "solo", runs: 1, users: 1, failingUsers: 1, failingShare: 1 }],
+      "failingUsers",
+    );
+    expect(chart.footers[0]).toEqual(["1 of 1 user (100.0%)", "1 run"]);
+  });
+
+  it("plots at most twelve bars — the tail belongs to the section's table", () => {
+    const many = Array.from({ length: 15 }, (_, i) => ({
+      testName: `module-${String(i).padStart(2, "0")}`,
+      runs: 100 - i,
+      users: 10,
+      failingUsers: i,
+      failingShare: i / 10,
+    }));
+    const chart = moduleDatasets(many, "runs");
+    expect(chart.labels.length).toBe(12);
+    expect(chart.datasets[0].data.length).toBe(12);
+    expect(chart.footers.length).toBe(12);
+    expect(chart.labels[0]).toBe("module-00");
+    expect(chart.labels[11]).toBe("module-11");
+    // ...and the other ranking keeps a different twelve.
+    expect(moduleDatasets(many, "failingUsers").labels[0]).toBe("module-14");
+  });
+
+  it("honours an explicit limit, including zero", () => {
+    expect(moduleDatasets(modules, "runs", 2).labels).toEqual(["b-most-run", "e-busy-failer"]);
+    expect(moduleDatasets(modules, "runs", 0).labels).toEqual([]);
+    expect(moduleDatasets(modules, "runs", -3).labels).toEqual([]);
+  });
+
+  it("falls back to runs for an unknown metric rather than plotting nothing", () => {
+    expect(moduleDatasets(modules, "nonsense").datasets[0].label).toBe("Runs");
+  });
+
+  it("degrades to an empty chart on a missing or malformed list", () => {
+    for (const input of [undefined, null, "not a list"]) {
+      const chart = moduleDatasets(/** @type {any} */ (input), "runs");
+      expect(chart.labels).toEqual([]);
+      expect(chart.datasets[0].data).toEqual([]);
+      expect(chart.footers).toEqual([]);
+    }
+    // A row with nothing in it must not throw inside render().
+    const chart = moduleDatasets([/** @type {any} */ ({})], "runs");
+    expect(chart.labels).toEqual([""]);
+    expect(chart.datasets[0].data).toEqual([0]);
+    expect(chart.footers[0]).toEqual(["No identified users"]);
+  });
+
+  it("does not reorder the caller's array", () => {
+    const delivered = [...modules];
+    moduleDatasets(delivered, "failingUsers");
+    expect(delivered.map((row) => row.testName)).toEqual(modules.map((row) => row.testName));
+  });
+});
+
+describe("buildModules", () => {
+  /** @type {Array<any>} */
+  const modules = [
+    { testName: "b-most-run", runs: 900, users: 30, failingUsers: 3, failingShare: 0.1 },
+    { testName: "a-worst", runs: 400, users: 8, failingUsers: 8, failingShare: 1 },
+  ];
+
+  it("builds both charts and hands the table the payload's own order", () => {
+    const built = buildModules(modules);
+    expect(built.rows).toBe(modules);
+    expect(built.byRuns.labels).toEqual(["b-most-run", "a-worst"]);
+    expect(built.byFailingUsers.labels).toEqual(["a-worst", "b-most-run"]);
+  });
+
+  it("is empty, not absent, when the window has no modules", () => {
+    // The section tells the reader there is nothing here rather than
+    // vanishing; that needs an object with no rows, not a null.
+    const built = buildModules([]);
+    expect(built.rows).toEqual([]);
+    expect(built.byRuns.labels).toEqual([]);
+    expect(built.byFailingUsers.datasets[0].data).toEqual([]);
+  });
+
+  it("survives a payload with no modules field at all", () => {
+    expect(buildModules(/** @type {any} */ (undefined)).rows).toEqual([]);
+  });
+});
 
 describe("formatBytes", () => {
   it("steps through the binary units with one decimal", () => {

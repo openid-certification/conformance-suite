@@ -23,7 +23,9 @@
  * - plans, variants and certification profiles to cascade through, including
  *   a variant parameter with a single value (nothing to choose between, so
  *   neither the filter row nor the distributions section shows it) and one
- *   whose delivered order is by PLANS while the chart plots USERS.
+ *   whose delivered order is by PLANS while the chart plots USERS;
+ * - fifteen test modules — more than either module chart plots — including
+ *   one nobody failed, one everybody failed, and ties in both rankings.
  *
  * Since phase 2 the SERVER slices, so a fixture that ignores the query would
  * make every range and filter look broken. {@link statisticsOverviewFor}
@@ -350,6 +352,194 @@ const EXTERNAL_HOSTS = [
   { host: "op.staging.example", runs: 210, users: 3, lastSeen: "2026-04-30T06:12:19Z" },
 ];
 
+/**
+ * The test modules behind `data.modules`, with the family and the plan each
+ * one belongs to so this fixture can apply the family/plan filters the way
+ * the registry does on the server. Those two keys are stripped on the way
+ * out — the wire shape is `{testName, runs, users, failingUsers,
+ * failingShare}` and nothing else.
+ *
+ * Fifteen of them, deliberately more than the dozen either chart plots, and
+ * shaped so every rule the section has is reachable: a module nobody failed
+ * (`oidcc-discovery-endpoint-verification`), one every user failed
+ * (`fapi2-message-signing-final-signed-request-object`, share 1.0), two with
+ * identical run counts and three with identical failing-user counts, so both
+ * charts have a tie to break on the module name — and a failing-users
+ * ranking that is emphatically not the delivered order, which is by runs.
+ * @type {Array<any>}
+ */
+const MODULE_ROWS = [
+  {
+    testName: "fapi2-security-profile-final-ensure-request-object-signature-algorithm-is-not-none",
+    runs: 1420,
+    users: 38,
+    failingUsers: 9,
+    family: "FAPI2 Security Profile",
+    planName: "fapi2-security-profile-final-test-plan",
+  },
+  {
+    testName: "fapi1-advanced-final-ensure-registered-redirect-uri",
+    runs: 1180,
+    users: 31,
+    failingUsers: 4,
+    family: "FAPI1 Advanced",
+    planName: "fapi1-advanced-final-test-plan",
+  },
+  {
+    // Nobody failed it: the failing-users chart must leave it out, and the
+    // table must still say 0 rather than a blank.
+    testName: "oidcc-discovery-endpoint-verification",
+    runs: 960,
+    users: 44,
+    failingUsers: 0,
+    family: "OpenID Connect Core",
+    planName: "oidcc-basic-certification-test-plan",
+  },
+  {
+    testName: "fapi2-security-profile-final-user-rejects-authentication",
+    runs: 880,
+    users: 29,
+    failingUsers: 22,
+    family: "FAPI2 Security Profile",
+    planName: "fapi2-security-profile-final-test-plan",
+  },
+  {
+    testName: "oidcc-server",
+    runs: 760,
+    users: 40,
+    failingUsers: 12,
+    family: "OpenID Connect Core",
+    planName: "oidcc-basic-certification-test-plan",
+  },
+  {
+    // Every user who ran it hit a failure: share 1.0, the top of the scale.
+    testName: "fapi2-message-signing-final-signed-request-object",
+    runs: 640,
+    users: 24,
+    failingUsers: 24,
+    family: "FAPI2 Security Profile",
+    planName: "fapi2-message-signing-final-test-plan",
+  },
+  {
+    // Same run count as the row above, so the runs chart has a tie to break;
+    // the delivered order is the one the server would deliver (by name).
+    testName: "fapi2-security-profile-final-par-without-request-uri",
+    runs: 640,
+    users: 21,
+    failingUsers: 6,
+    family: "FAPI2 Security Profile",
+    planName: "fapi2-security-profile-final-test-plan",
+  },
+  {
+    testName: "oid4vp-1final-verifier-happy-path",
+    runs: 520,
+    users: 18,
+    failingUsers: 5,
+    family: "OID4VP",
+    planName: "oid4vp-1final-verifier-test-plan",
+  },
+  {
+    testName: "fapi-ciba-id1-poll-happy-path",
+    runs: 460,
+    users: 16,
+    failingUsers: 9,
+    family: "FAPI-CIBA",
+    planName: "fapi-ciba-id1-test-plan",
+  },
+  {
+    testName: "oidcc-refresh-token",
+    runs: 430,
+    users: 27,
+    failingUsers: 3,
+    family: "OpenID Connect Core",
+    planName: "oidcc-basic-certification-test-plan",
+  },
+  {
+    testName: "openid-federation-op-fetch-endpoint",
+    runs: 380,
+    users: 12,
+    failingUsers: 11,
+    family: "OpenID Federation",
+    planName: "openid-federation-op-test-plan",
+  },
+  {
+    // One of the three modules with nine failing users; they are what the
+    // failing chart's name tie-break sorts.
+    testName: "fapi1-advanced-final-ensure-request-object-signature-algorithm-is-not-none",
+    runs: 340,
+    users: 14,
+    failingUsers: 9,
+    family: "FAPI1 Advanced",
+    planName: "fapi1-advanced-final-test-plan",
+  },
+  {
+    testName: "oidcc-claims-essential",
+    runs: 300,
+    users: 19,
+    failingUsers: 2,
+    family: "OpenID Connect Core",
+    planName: "oidcc-basic-certification-test-plan",
+  },
+  {
+    testName: "fapi-ciba-id1-notification-happy-path",
+    runs: 260,
+    users: 9,
+    failingUsers: 7,
+    family: "FAPI-CIBA",
+    planName: "fapi-ciba-id1-test-plan",
+  },
+  {
+    testName: "oid4vp-1final-verifier-invalid-nonce",
+    runs: 210,
+    users: 8,
+    failingUsers: 6,
+    family: "OID4VP",
+    planName: "oid4vp-1final-verifier-test-plan",
+  },
+];
+
+/**
+ * One module row on the wire: the family and plan keys dropped, and
+ * `failingShare` computed the way `ModuleRanker` computes it — three
+ * decimals, 0 when nobody ran it.
+ * @param {any} row - One row of {@link MODULE_ROWS}.
+ * @returns {any} The `StatisticsModule` the server would emit.
+ */
+function moduleRow(row) {
+  return {
+    testName: row.testName,
+    runs: row.runs,
+    users: row.users,
+    failingUsers: row.failingUsers,
+    failingShare: row.users === 0 ? 0 : Math.round((row.failingUsers / row.users) * 1000) / 1000,
+  };
+}
+
+/**
+ * `data.modules` unfiltered, in the server's order (runs descending, ties by
+ * name). Exported so a story or a spec can assert against the whole list
+ * rather than restating it.
+ * @type {Array<any>}
+ */
+export const MOCK_STATS_MODULES = MODULE_ROWS.map(moduleRow);
+
+/**
+ * `data.modules` under one query. Family and plan narrow it — registry
+ * membership on the server, the row's own keys here — and nothing else does:
+ * the variant and certification filters do not reach the module cube, which
+ * is exactly what the section's caption tells the reader. A synthetic family
+ * ("No plan", "Other / retired") has no modules under it at all, so it comes
+ * back empty, which is the section's empty state.
+ * @param {string} family - The family filter, or `""`.
+ * @param {string} plan - The plan filter, or `""`.
+ * @returns {Array<any>} The modules to answer with.
+ */
+function narrowModules(family, plan) {
+  return MODULE_ROWS.filter(
+    (row) => (!family || row.family === family) && (!plan || row.planName === plan),
+  ).map(moduleRow);
+}
+
 /** @type {any} */
 const TILES = {
   totalTests: 91800,
@@ -384,6 +574,7 @@ export const MOCK_STATS_DATA = {
   storage: STORAGE,
   dimensions: DIMENSIONS,
   heatmap: HEATMAP,
+  modules: MOCK_STATS_MODULES,
   externalHosts: EXTERNAL_HOSTS,
   unresolvedPlans: UNRESOLVED_PLANS,
 };
@@ -506,6 +697,7 @@ export function statisticsOverviewFor(requestUrl) {
       storage: STORAGE,
       dimensions: narrowDimensions(family, plan, variant, cert),
       heatmap: HEATMAP,
+      modules: narrowModules(family, plan),
       externalHosts: EXTERNAL_HOSTS,
       unresolvedPlans: UNRESOLVED_PLANS,
     },
@@ -599,6 +791,7 @@ export const MOCK_STATS_EMPTY = {
     storage: [],
     dimensions: { plans: [], variants: {}, certProfiles: [], entities: [] },
     heatmap: Array.from({ length: 7 }, () => new Array(24).fill(0)),
+    modules: [],
     externalHosts: [],
     unresolvedPlans: [],
   },

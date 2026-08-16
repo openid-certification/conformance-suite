@@ -7,6 +7,9 @@ import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -130,6 +133,70 @@ class StatisticsCubeSeam_UnitTest {
 		assertThat(cube.familyOf(null)).isEqualTo(SpecFamilyResolver.OTHER_RETIRED);
 	}
 
+	@Test
+	void aModuleRowCountsAsAUserOfThatModuleOnlyWhenItHasBothATestNameAndAnOwner() {
+		OwnerIds owners = new OwnerIds();
+		Map<String, String> pool = new HashMap<>();
+		List<ModuleUserCell> cells = new ArrayList<>();
+		for (Document row : Arrays.asList(
+				moduleRow("2026-01", "oidcc-server-test", "https://idp", "alice", 3, 1),
+				moduleRow(MONTH, "oidcc-server-test", "https://idp", "alice", 2, 0),
+				moduleRow(MONTH, "oidcc-server-test", "https://idp", "bob", 4, 4),
+				// a run written before authentication completed, or one that lost its owner
+				moduleRow(MONTH, "oidcc-server-test", null, "bob", 9, 9),
+				moduleRow(MONTH, "oidcc-server-test", "https://idp", "", 9, 9),
+				// nothing to name in the table
+				moduleRow(MONTH, null, "https://idp", "alice", 9, 9))) {
+			ModuleUserCell cell = MongoStatisticsSource.moduleCell(row, owners, pool);
+			if (cell != null) {
+				cells.add(cell);
+			}
+		}
+
+		assertThat(cells).extracting(ModuleUserCell::month, ModuleUserCell::testName,
+				ModuleUserCell::runs, ModuleUserCell::failed)
+			.containsExactly(
+				tuple("2026-01", "oidcc-server-test", 3L, 1L),
+				tuple(MONTH, "oidcc-server-test", 2L, 0L),
+				tuple(MONTH, "oidcc-server-test", 4L, 4L));
+		// one person in two months is one user, and another person is another user
+		assertThat(cells.get(1).ownerId()).isEqualTo(cells.get(0).ownerId());
+		assertThat(cells.get(2).ownerId()).isNotEqualTo(cells.get(0).ownerId());
+		// ... and the cells share one instance of each month key and module name: there is
+		// one cell per user, module and month, and the decoder hands out a fresh string for
+		// every row, so the copies would be most of what the cells weigh
+		assertThat(cells.get(1).testName()).isSameAs(cells.get(0).testName());
+		assertThat(cells.get(2).month()).isSameAs(cells.get(1).month());
+	}
+
+	/**
+	 * @param month    the {@code YYYY-MM} key the aggregation derived from {@code started}
+	 * @param testName the test module name, or null on a document that has none
+	 * @param iss      the owner's issuer, or null on a document with no owner
+	 * @param sub      the owner's subject
+	 * @param runs     how many runs the row counts
+	 * @param failed   how many of them failed
+	 * @return one row of the modules aggregation (M)
+	 */
+	private static Document moduleRow(String month, String testName, String iss, String sub, long runs, long failed) {
+		return new Document("_id", new Document("month", fresh(month))
+				.append("testName", fresh(testName))
+				.append("iss", iss)
+				.append("sub", sub))
+			.append("runs", runs)
+			.append("failed", failed);
+	}
+
+	/**
+	 * @param value a string this test wrote as a literal
+	 * @return a fresh instance of it, because that is what the BSON decoder produces for
+	 *         every row - a literal would be the same interned instance in every row and
+	 *         would hide whether the source pools the strings or not
+	 */
+	private static String fresh(String value) {
+		return value == null ? null : new StringBuilder(value).toString();
+	}
+
 	/**
 	 * @param variant a raw {@code variant} field: a sub-document or a legacy plain string
 	 * @param cert    a raw {@code certificationProfileName} field: a list or a bare name
@@ -174,6 +241,6 @@ class StatisticsCubeSeam_UnitTest {
 		return new StatisticsCube(
 			runRows.stream().map(MongoStatisticsSource::runCell).toList(),
 			planRows.stream().map(MongoStatisticsSource::planCell).toList(),
-			List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			List.of(), List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 	}
 }

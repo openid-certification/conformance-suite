@@ -47,6 +47,8 @@ import { emptyFilter, toParams as planListParams } from "./plan-list-filter.js";
  * @property {StatisticsDimensions} dimensions - What the filter selects can offer.
  * @property {Array<object>} storage - Per-collection storage counters.
  * @property {Array<Array<number>>} heatmap - Runs by day of week × hour, UTC.
+ * @property {Array<ModuleRow>} modules - Test modules over the trailing 24
+ *   months, busiest first; narrowed by family and plan only.
  * @property {Array<object>} externalHosts - External servers tested against, all time.
  * @property {Array<{planName: string, runs: number}>} unresolvedPlans - Busiest unresolved plan names.
  */
@@ -1188,6 +1190,240 @@ export function buildDistributions(dimensions) {
             valueLabel: "Runs",
           })
         : null,
+  };
+}
+
+// --- Modules -----------------------------------------------------------
+
+/**
+ * How many modules each of the two module charts plots. The same dozen the
+ * distributions stop at, and for the same reason — but here the tail is not
+ * carried by `<cts-chart max-bars>`: module names are long enough that the
+ * chart's own data table would be a second, worse copy of the section's
+ * table, so the charts are handed the twelve rows they plot and the section
+ * table below them lists every module the server returned.
+ */
+export const MODULE_LIMIT = 12;
+
+/**
+ * One row of `data.modules` — a test module's traffic over the trailing 24
+ * months, under the range and the family/plan filters (variant and
+ * certification filters do not apply to it; the section says so).
+ * @typedef {object} ModuleRow
+ * @property {string} testName - The module's name, e.g. `oidcc-server`.
+ * @property {number} runs - Test runs of it.
+ * @property {number} users - Distinct identified users who ran it.
+ * @property {number} failingUsers - How many of those users had it fail at
+ *   least once; a user who hit a failure ten times still counts once.
+ * @property {number} failingShare - `failingUsers / users`, 0–1, three
+ *   decimals; 0 when `users` is 0.
+ */
+
+/**
+ * A module row's four counts, read off the payload and coerced to numbers.
+ * What a tooltip footer is written from — the name is already the bar's
+ * label, so the footer never needs it.
+ * @typedef {object} ModuleCounts
+ * @property {number} runs - Test runs of the module.
+ * @property {number} users - Distinct identified users who ran it.
+ * @property {number} failingUsers - How many of those it failed for.
+ * @property {number} failingShare - `failingUsers / users`, 0–1.
+ */
+
+/**
+ * One module chart's inputs: a single-series horizontal bar chart, plus the
+ * tooltip lines that carry the measures it does NOT plot.
+ * @typedef {object} ModuleChart
+ * @property {Array<string>} labels - Module names, biggest first — the whole
+ *   of what is plotted, already cut to {@link MODULE_LIMIT}.
+ * @property {Array<ChartDataset>} datasets - Exactly one series, in `--chart-cat-1`.
+ * @property {Array<Array<string>>} footers - Tooltip footer lines, one entry
+ *   per plotted bar, in the same order as `labels`.
+ */
+
+/**
+ * Grouped figures — 1,420 must not read as 1420. Exported so the components
+ * that render these numbers share ONE formatter with the helpers that write
+ * them into tooltip footers, rather than each keeping a copy that could drift
+ * to different options.
+ */
+export const NUMBER_FORMAT = new Intl.NumberFormat();
+
+/**
+ * @param {number} count - How many.
+ * @param {string} noun - Singular noun.
+ * @returns {string} e.g. `"1 user"`, `"38 users"`.
+ */
+function counted(count, noun) {
+  return `${NUMBER_FORMAT.format(count)} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+/**
+ * Order two module rows by name — the last tier of both rankings, and the one
+ * that makes them total: with it, two modules the reader cannot tell apart
+ * still come back in the same order from one recomputation to the next.
+ * Plain `<`, not `localeCompare`, because the server breaks the tie with
+ * Java's `String::compareTo` (UTF-16 code units) and the two must agree.
+ * @param {any} a - One row.
+ * @param {any} b - The other.
+ * @returns {number} Comparator result.
+ */
+function compareModuleNames(a, b) {
+  const nameA = moduleName(a);
+  const nameB = moduleName(b);
+  return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+}
+
+/**
+ * The two measures a module chart can plot, how to rank on each, and what the
+ * tooltip should say about the measures it does not plot. An explicit table
+ * rather than a caller-supplied field name, so a typo cannot reach into the
+ * payload; each key IS the field it reads.
+ *
+ * `compare` mirrors `ModuleRanker.BY_RUNS` / `BY_FAILING_USERS` on the server
+ * exactly — runs then name, failing users then RUNS then name. The middle tier
+ * is not decoration: at the twelve-row cut two modules on the same failing-user
+ * count are not interchangeable, and keeping the alphabetically earlier one
+ * over the busier one would plot a different twelve than the server ranked.
+ * @type {Record<string, {label: string, compare: (a: any, b: any) => number,
+ *   footer: (row: ModuleCounts) => Array<string>}>}
+ */
+const MODULE_METRICS = {
+  runs: {
+    label: "Runs",
+    compare: (a, b) => moduleValue(b, "runs") - moduleValue(a, "runs") || compareModuleNames(a, b),
+    // Runs are what the bar is; the reader's next question is how many people
+    // that was, and how many of them it went wrong for.
+    footer: (row) =>
+      row.users === 0
+        ? ["No identified users"]
+        : [
+            counted(row.users, "user"),
+            `${NUMBER_FORMAT.format(row.failingUsers)} hit a failure ` +
+              `(${formatShare(row.failingShare)})`,
+          ],
+  },
+  failingUsers: {
+    label: "Users who hit a failure",
+    compare: (a, b) =>
+      moduleValue(b, "failingUsers") - moduleValue(a, "failingUsers") ||
+      moduleValue(b, "runs") - moduleValue(a, "runs") ||
+      compareModuleNames(a, b),
+    // A bar of 22 says nothing without the denominator: 22 of 29 is a module
+    // with a problem, 22 of 3,000 is not.
+    footer: (row) =>
+      row.users === 0
+        ? [counted(row.runs, "run")]
+        : [
+            `${NUMBER_FORMAT.format(row.failingUsers)} of ` +
+              `${counted(row.users, "user")} (${formatShare(row.failingShare)})`,
+            counted(row.runs, "run"),
+          ],
+  },
+};
+
+/**
+ * Read one numeric field off a module row, tolerating a malformed one.
+ * @param {any} row - The row.
+ * @param {string} field - Field name.
+ * @returns {number} The value, or 0.
+ */
+function moduleValue(row, field) {
+  return Number(row && row[field]) || 0;
+}
+
+/**
+ * @param {any} row - A module row.
+ * @returns {string} Its name, or `""`.
+ */
+function moduleName(row) {
+  return String((row && row.testName) ?? "");
+}
+
+/**
+ * A module's share of users who hit a failure, as a percentage.
+ *
+ * Always one decimal, including for 0 and 1: a column of "0%", "100%" and
+ * "23.7%" does not line up, and the third place the server rounds to is
+ * noise at this width.
+ * @param {number} share - `failingUsers / users`, 0–1.
+ * @returns {string} e.g. `"23.7%"`, `"0.0%"`, `"100.0%"`; `"—"` for a value
+ *   that is not a number at all.
+ */
+export function formatShare(share) {
+  const value = Number(share);
+  if (!Number.isFinite(value)) return "—";
+  return `${(Math.min(1, Math.max(0, value)) * 100).toFixed(1)}%`;
+}
+
+/**
+ * Rank `data.modules` on one of its two measures and turn the leading
+ * {@link MODULE_LIMIT} into a horizontal bar chart's inputs.
+ *
+ * The list is ranked here rather than trusted: the server delivers ONE array
+ * sorted by runs (the union of its two top-50 lists), so the failing-users
+ * chart has to re-rank it — a "top 12" taken off a list ordered by something
+ * else is not a top 12. Each ranking uses the server's own comparator, tier
+ * for tier (see {@link MODULE_METRICS}), so the twelve plotted here are the
+ * twelve the server would have picked, in the same order, every time.
+ *
+ * One series, so every bar wears the same hue (`--chart-cat-1`) and the chart
+ * needs no legend: these are nominal categories, and colouring them by their
+ * own value would re-encode what bar length already shows.
+ * @param {Array<ModuleRow>} modules - The payload's `data.modules`.
+ * @param {string} metric - `"runs"` or `"failingUsers"`.
+ * @param {number} [limit] - How many bars to keep.
+ * @returns {ModuleChart} The chart inputs.
+ */
+export function moduleDatasets(modules, metric, limit = MODULE_LIMIT) {
+  // An unrecognised metric plots runs rather than nothing; the key is also the
+  // field, so there is one name to get wrong instead of two.
+  const key = MODULE_METRICS[metric] ? metric : "runs";
+  const spec = MODULE_METRICS[key];
+  const rows = list(modules).slice().sort(spec.compare).slice(0, Math.max(0, limit));
+  return {
+    labels: rows.map(moduleName),
+    datasets: [
+      {
+        label: spec.label,
+        data: rows.map((row) => moduleValue(row, key)),
+        colorVar: CATEGORY_COLOR_VARS[0],
+      },
+    ],
+    footers: rows.map((row) =>
+      spec.footer({
+        runs: moduleValue(row, "runs"),
+        users: moduleValue(row, "users"),
+        failingUsers: moduleValue(row, "failingUsers"),
+        failingShare: Number(row && row.failingShare),
+      }),
+    ),
+  };
+}
+
+/**
+ * Everything the modules section renders: the two charts and the rows behind
+ * the table under them.
+ *
+ * `rows` is the payload's array untouched — server order, which is by runs —
+ * because the table is the complete listing the charts' top twelve are taken
+ * out of, and re-sorting it would leave the reader without the order the
+ * server ranked on.
+ *
+ * Pure, and meant to be called through {@link memoiseByArgs}: what it returns
+ * goes straight to `<cts-chart>`, which re-plots whenever the identity of an
+ * array it was handed changes.
+ * @param {Array<ModuleRow>} modules - The payload's `data.modules`.
+ * @returns {{rows: Array<ModuleRow>, byRuns: ModuleChart, byFailingUsers: ModuleChart}}
+ *   The section's inputs; `rows` empty means "nothing in this window", which
+ *   the section renders as its empty state.
+ */
+export function buildModules(modules) {
+  const rows = list(modules);
+  return {
+    rows,
+    byRuns: moduleDatasets(rows, "runs"),
+    byFailingUsers: moduleDatasets(rows, "failingUsers"),
   };
 }
 

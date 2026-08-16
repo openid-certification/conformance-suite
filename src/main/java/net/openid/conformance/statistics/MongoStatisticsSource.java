@@ -20,9 +20,12 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -231,6 +234,80 @@ public class MongoStatisticsSource {
 				strings(document, "months"), strings(document, "weeks")));
 		}
 		return tuples;
+	}
+
+	/**
+	 * Runs of each test module, per month and user, over the trailing
+	 * {@value StatisticsCube#MODULE_MONTHS} months.
+	 *
+	 * <p>The user is part of the group key because the modules table counts people rather
+	 * than runs: a user who failed the same module twenty times is one user who hit a
+	 * failure on it. Grouping that out in the database keeps what crosses the wire to one
+	 * row per month, module and user, and leaves the {@code iss} and {@code sub} behind.
+	 *
+	 * <p>The window is a string comparison on {@code started}, which {@code TestInfo} writes
+	 * as an ISO-8601 UTC string; it is the only pipeline here with a {@code $match} in front
+	 * of the group, because it is the only one that does not want the whole history.
+	 *
+	 * @param nowUtc today in UTC; the window ends with the month it falls in
+	 * @return one cell per month, test module and user. Rows with no test module name, and
+	 *         rows whose owner is not a real identity, are dropped: neither can be counted
+	 *         as a user of a named module.
+	 */
+	public List<ModuleUserCell> modules(LocalDate nowUtc) {
+		List<Bson> pipeline = List.of(
+			Aggregates.match(Filters.gte("started", StatisticsCube.oldestModuleMonth(nowUtc))),
+			Aggregates.group(new Document("month", monthExpression())
+					.append("testName", "$testName")
+					.append("iss", "$owner.iss")
+					.append("sub", "$owner.sub"),
+				Accumulators.sum("runs", 1),
+				Accumulators.sum("failed", isResult("FAILED"))));
+
+		List<ModuleUserCell> cells = new ArrayList<>();
+		OwnerIds owners = new OwnerIds();
+		Map<String, String> pool = new HashMap<>();
+		for (Document document : aggregate(DBTestInfoService.COLLECTION, pipeline)) {
+			ModuleUserCell cell = moduleCell(document, owners, pool);
+			if (cell != null) {
+				cells.add(cell);
+			}
+		}
+		return cells;
+	}
+
+	/**
+	 * @param document one grouped row of {@link #modules(LocalDate)}
+	 * @param owners   the ids handed out to this pipeline's users
+	 * @param pool     the month keys and module names already seen, shared by every cell
+	 * @return the cell it stands for, or null if the row cannot be counted: a run written
+	 *         before authentication completed has no user to count, and a run with no
+	 *         {@code testName} has no module to count it against
+	 */
+	static ModuleUserCell moduleCell(Document document, OwnerIds owners, Map<String, String> pool) {
+		Document id = document.get("_id", Document.class);
+		String iss = id.getString("iss");
+		String sub = id.getString("sub");
+		String testName = id.getString("testName");
+		if (!OwnerIds.isUser(iss, sub) || testName == null || testName.isBlank()) {
+			return null;
+		}
+		return new ModuleUserCell(pooled(pool, id.getString("month")), pooled(pool, testName),
+			owners.idFor(iss, sub), count(document, "runs"), count(document, "failed"));
+	}
+
+	/**
+	 * @param pool  the strings this pipeline has already seen
+	 * @param value one of the two strings a module cell carries
+	 * @return the one instance of it. There is a cell per user, module and month, and the
+	 *         driver decodes a fresh String for every row, so without this the cells hold
+	 *         one copy of the same two dozen month keys and few hundred module names each -
+	 *         which on a production sized database is most of what the cells weigh. The pool
+	 *         is local to the computation and thrown away with it; {@link String#intern()}
+	 *         would put the same strings somewhere they can never be collected from.
+	 */
+	private static String pooled(Map<String, String> pool, String value) {
+		return value == null ? null : pool.computeIfAbsent(value, string -> string);
 	}
 
 	/**
