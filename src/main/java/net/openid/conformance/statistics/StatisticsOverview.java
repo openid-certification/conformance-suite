@@ -30,6 +30,9 @@ import java.util.Map;
  * @param heatmap          runs by day of the week (Monday first) and hour of the day, in
  *                         UTC: 7 rows of 24 counts, filtered by the range but not by
  *                         family, plan, variant or certification profile
+ * @param modules          the most run test modules and the ones the most users hit a
+ *                         failure on, over the trailing
+ *                         {@value StatisticsCube#MODULE_MONTHS} months
  * @param externalHosts    the external servers the suite has been pointed at, all time
  * @param unresolvedPlans  the busiest plan names that could not be resolved to a family,
  *                         all time
@@ -39,7 +42,7 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	List<String> resultBuckets, Map<String, List<Long>> testRunsByFamily, Map<String, List<Long>> plansByFamily,
 	Map<String, Map<String, List<Long>>> resultsByFamily, Map<String, List<Long>> certifiedByFamily,
 	Users users, Tiles tiles, List<StorageRow> storage, Dimensions dimensions, List<List<Long>> heatmap,
-	List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
+	List<Module> modules, List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
 
 	/**
 	 * Users on a plan basis: a user is active in the period they created a test plan, which
@@ -119,6 +122,34 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	 */
 	@Schema(name = "StatisticsEntity")
 	public record Entity(String entity, long runs) {
+	}
+
+	/**
+	 * One test module, over the trailing {@value StatisticsCube#MODULE_MONTHS} months.
+	 *
+	 * <p>Both user counts are <b>distinct users</b>: someone who ran the module a hundred
+	 * times, failing it every time, is one user and one failing user. That is the whole
+	 * point of the second chart - "how many people got stuck here", not "how many runs went
+	 * wrong", which one determined implementer retrying can otherwise dominate.
+	 *
+	 * <p>Modules are filtered by family and plan through the registry - a module belongs to
+	 * every family that has a plan running it - and are <em>not</em> filtered by variant or
+	 * certification profile, which a test run does not record in a form these cells carry.
+	 *
+	 * <p>Every count here is over runs by an identified user: a run with no owner - one
+	 * written before authentication completed - cannot be attributed to anybody, so it is
+	 * left out of {@link #runs()} as well as of the user counts. These runs therefore do
+	 * <em>not</em> reconcile exactly with the runs charts, which count every run.
+	 *
+	 * @param testName     the test module name, as {@code TEST_INFO.testName} stores it
+	 * @param runs         runs of the module in the window, by users who can be identified
+	 * @param users        distinct users who ran it
+	 * @param failingUsers distinct users at least one of whose runs FAILED
+	 * @param failingShare {@code failingUsers / users}, 0 to 1, rounded to three decimals;
+	 *                     0 when nobody ran it
+	 */
+	@Schema(name = "StatisticsModule")
+	public record Module(String testName, long runs, long users, long failingUsers, double failingShare) {
 	}
 
 	/**

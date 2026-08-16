@@ -29,6 +29,9 @@ import java.util.Set;
  * <li>the heatmap is clipped to the range but not to the family, plan, variant or
  * certification profile - it answers "when do people run tests", and splitting it further
  * leaves too little in each of its 168 cells to read;</li>
+ * <li>the modules table is clipped to the range, by month, and filtered by family and
+ * plan, but not by variant or certification profile: a test run records neither in a form
+ * the module cells carry - see {@link ModuleRanker};</li>
  * <li>the external hosts and the unresolved plan names are all time, so that narrowing the
  * range does not hide the diagnostics an admin came for.</li>
  * </ul>
@@ -104,7 +107,7 @@ public final class StatisticsSlicer {
 			freeze(runsByFamily), freeze(plansByFamily), freezeBuckets(resultsByFamily), freeze(certifiedByFamily),
 			users(cube, filter, granularity, index, periods.size()), tiles(cube), cube.storage(),
 			DimensionCounter.count(cube, filter, granularity, onTheAxis),
-			HeatmapBinner.heatmap(cube.heat(), granularity, onTheAxis),
+			HeatmapBinner.heatmap(cube.heat(), granularity, onTheAxis), ModuleRanker.rank(cube, query),
 			cube.externalHosts(), unresolvedPlans(cube));
 	}
 

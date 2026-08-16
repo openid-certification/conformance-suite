@@ -16,6 +16,7 @@ import {
   assignFamilySlots,
   buildChartInputs,
   buildDistributions,
+  buildModules,
   defaultFilterState,
   drillDownRefusal,
   drillDownUrl,
@@ -299,8 +300,9 @@ function injectStyles() {
 /**
  * Suite-wide usage dashboard for `statistics.html`: a KPI row, a storage row,
  * a filter row, five trend charts and — in a sibling
- * `<cts-statistics-insights>` — the distributions, the activity heatmap and
- * the external servers, all fed by one `GET /api/statistics/overview`.
+ * `<cts-statistics-insights>` — the distributions, the module rankings, the
+ * activity heatmap and the external servers, all fed by one
+ * `GET /api/statistics/overview`.
  *
  * The endpoint serves a snapshot recomputed in the background at most every
  * 12 hours, so the component has four things to handle beyond a plain fetch:
@@ -347,7 +349,9 @@ function injectStyles() {
  * `stats-no-match`, `stats-no-match-clear`, `stats-unresolved`,
  * `stats-insights` and, inside it (`cts-statistics-insights.js`),
  * `stats-distributions`, `stats-dist-variants`, `stats-dist-variant-<key>`,
- * `stats-dist-certs`, `stats-dist-entities`, `stats-heatmap`, `stats-hosts`;
+ * `stats-dist-certs`, `stats-dist-entities`, `stats-modules`,
+ * `stats-modules-runs`, `stats-modules-failing`, `stats-modules-table`,
+ * `stats-modules-empty`, `stats-heatmap`, `stats-hosts`;
  * plus `cts-chart-more` / `cts-heatmap-empty` from the two primitives and,
  * on the four drillable charts, `<cts-chart>`'s own `.cts-chart-row-link`
  * buttons — one per data-table row, the keyboard route into a period.
@@ -443,6 +447,7 @@ class CtsStatisticsPage extends LitElement {
     this._familyOptions = memoizeByArgs(familiesWithActivity);
     this._hasAnyData = memoizeByArgs(hasAnyData);
     this._distributions = memoizeByArgs(buildDistributions);
+    this._modules = memoizeByArgs(buildModules);
   }
 
   createRenderRoot() {
@@ -1308,8 +1313,8 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * The phase-2 extras under the trends: the three distributions, the
-   * activity heatmap and the external servers.
+   * The sections under the trends: the three distributions, the module
+   * rankings, the activity heatmap and the external servers.
    *
    * They are scoped differently from each other and the component says so:
    * the distributions are counted under the whole query, so they are withheld
@@ -1318,6 +1323,14 @@ class CtsStatisticsPage extends LitElement {
    * the hosts not at all, so both stay on screen in every state that has a
    * payload — including the one where the filters match nothing, which is
    * exactly when an admin wants to know the database is not empty.
+   *
+   * Modules are withheld under no-match with the distributions, and for a
+   * sharper reason than symmetry: the server narrows them by family and plan
+   * but NOT by variant or certification profile, so a variant filter that
+   * matched nothing would still come back with a full dozen bars — a section
+   * of traffic sitting directly under a banner saying no runs match these
+   * filters. Their own empty state is for the case the server really did
+   * return nothing (a synthetic family, or a quiet 24 months).
    * @param {StatisticsData} data - The current payload.
    * @param {boolean} noMatch - Whether the filters matched nothing.
    * @returns {unknown} The insights block.
@@ -1325,6 +1338,7 @@ class CtsStatisticsPage extends LitElement {
   _renderInsights(data, noMatch) {
     /** @type {Distributions|null} */
     const distributions = noMatch ? null : this._distributions(data.dimensions);
+    const modules = noMatch ? null : this._modules(data.modules);
     return html`
       <cts-statistics-insights
         data-testid="stats-insights"
@@ -1332,6 +1346,7 @@ class CtsStatisticsPage extends LitElement {
         ?narrowed=${Boolean(this._state.family || this._state.plan)}
         ?busy=${this._busy}
         .distributions=${distributions}
+        .modules=${modules}
         .heatmap=${data.heatmap}
         .hosts=${data.externalHosts}
       ></cts-statistics-insights>
