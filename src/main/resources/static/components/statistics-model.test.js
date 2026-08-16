@@ -19,7 +19,7 @@ import {
   distributionDatasets,
   drillDownFamily,
   drillDownUrl,
-  familiesWithRuns,
+  familiesWithActivity,
   foldOther,
   formatBytes,
   hasAnyData,
@@ -1008,7 +1008,7 @@ describe("assignFamilySlots", () => {
     expect(certifiedDatasets(broken, {}, "")).toEqual([]);
     expect(resultsDatasets(broken, "")).toEqual([]);
     expect(otherBreakdown(broken, {}, 0)).toEqual([]);
-    expect(familiesWithRuns(broken)).toEqual([]);
+    expect(familiesWithActivity(broken)).toEqual([]);
     expect(periodLabels(broken.periods, "week")).toEqual([]);
   });
 });
@@ -1284,9 +1284,9 @@ describe("usersDatasets", () => {
   });
 });
 
-describe("familiesWithRuns", () => {
-  it("lists only families with runs, in the payload's order", () => {
-    expect(familiesWithRuns(makeData())).toEqual([
+describe("familiesWithActivity", () => {
+  it("lists families with runs, plans or certified plans, in the payload's order", () => {
+    expect(familiesWithActivity(makeData())).toEqual([
       "FAPI2 Security Profile",
       "FAPI1 Advanced",
       "OpenID Connect Core",
@@ -1300,15 +1300,39 @@ describe("familiesWithRuns", () => {
     ]);
   });
 
+  it("offers a family with plans but zero runs", () => {
+    // "Shared Signals Framework" is zero everywhere in the base fixture; give
+    // it plans only, so this proves inclusion does not require a run.
+    const data = makeData();
+    data.plansByFamily["Shared Signals Framework"] = data.plansByFamily[
+      "Shared Signals Framework"
+    ].map((_value, index) => (index === 0 ? 2 : 0));
+    expect(familiesWithActivity(data)).toContain("Shared Signals Framework");
+  });
+
+  it("offers a family with only certified plans and no runs or plans", () => {
+    const data = makeData();
+    data.certifiedByFamily["Shared Signals Framework"] = data.certifiedByFamily[
+      "Shared Signals Framework"
+    ].map((_value, index) => (index === 0 ? 1 : 0));
+    expect(familiesWithActivity(data)).toContain("Shared Signals Framework");
+  });
+
+  it("does not offer a family that is zero everywhere", () => {
+    // Runs, plans AND certified are all-zero for "Shared Signals Framework"
+    // in the base fixture.
+    expect(familiesWithActivity(makeData())).not.toContain("Shared Signals Framework");
+  });
+
   it("is meant for the all-time baseline: a narrowed payload loses options", () => {
     // The select must not lose options when the user narrows the range or
     // picks a filter, so the caller passes the baseline — proven by contrast.
-    expect(familiesWithRuns(makeData())).toContain("eKYC & Identity Assurance");
-    expect(familiesWithRuns(makeRecent())).not.toContain("eKYC & Identity Assurance");
+    expect(familiesWithActivity(makeData())).toContain("eKYC & Identity Assurance");
+    expect(familiesWithActivity(makeRecent())).not.toContain("eKYC & Identity Assurance");
   });
 
   it("tolerates an empty payload", () => {
-    expect(familiesWithRuns(/** @type {any} */ ({}))).toEqual([]);
+    expect(familiesWithActivity(/** @type {any} */ ({}))).toEqual([]);
   });
 });
 

@@ -20,7 +20,7 @@ import {
   defaultFilterState,
   drillDownFamily,
   drillDownUrl,
-  familiesWithRuns,
+  familiesWithActivity,
   formatBytes,
   hasAnyData,
   isFiltered,
@@ -471,7 +471,7 @@ class CtsStatisticsPage extends LitElement {
         };
       },
     );
-    this._familyOptions = memoiseByArgs(familiesWithRuns);
+    this._familyOptions = memoiseByArgs(familiesWithActivity);
     this._hasAnyData = memoiseByArgs(hasAnyData);
     this._distributions = memoiseByArgs(buildDistributions);
   }

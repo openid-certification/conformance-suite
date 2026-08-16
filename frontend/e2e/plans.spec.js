@@ -4,6 +4,7 @@ import {
   setupFailFast,
   setupTestInfoRoute,
   expectNoUnmockedCalls,
+  wrapDataTablesResponse,
 } from "./helpers/routes.js";
 import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
@@ -1126,5 +1127,72 @@ test.describe("plans.html — drill-down filters", () => {
     await expect(page.locator(CARD).first()).toBeVisible();
     await expect(alert).toHaveCount(0);
     await expect(filters.locator("cts-badge")).toHaveCount(2);
+  });
+});
+
+/**
+ * `/api/plan?length=1000` is the backend's hard cap
+ * (`PaginationRequest.setLength`). When there is a next page beyond it, the
+ * server's `recordsTotal` is a SYNTHETIC start+length+1
+ * (`PaginationRequest.getSliceResponse`) — one row more than the 1000-row
+ * page it actually returned — which is the only signal the listing has that
+ * it is not showing everything.
+ */
+test.describe("plans.html — truncated listing (1000-plan cap)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("the 1000-plan cap surfaces a notice above the list and a '+' footer count", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // 1001 rows: cts-plan-list always requests length=1000, so
+    // wrapDataTablesResponse's slice returns exactly 1000 of them while its
+    // recordsTotal reports the full array length — reproducing the server's
+    // synthetic "one past the cap" total without hand-building the envelope.
+    const rows = Array.from({ length: 1001 }, (_, i) => ({
+      _id: `plan-${String(i).padStart(4, "0")}`,
+      planName: `plan-${String(i).padStart(4, "0")}-name`,
+      description: "",
+      variant: {},
+      started: new Date(Date.now() - i * 1000).toISOString(),
+      modules: [],
+      config: {},
+      publish: null,
+      immutable: false,
+    }));
+    await page.route("**/api/plan*", (route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(wrapDataTablesResponse(rows, route.request().url())),
+      });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    const notice = page.locator("[data-testid='plan-list-truncated']");
+    await expect(notice).toBeVisible();
+    await expect(notice).toContainText(
+      "Showing the newest 1,000 matching plans — narrow the filters or the date range",
+    );
+
+    const showMore = page.locator("[data-testid='plan-list-show-more']");
+    await expect(showMore).toContainText("Show more (25 of 1,000+)");
+  });
+
+  test("a normal listing under the cap shows no truncation notice", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(page.locator(CARD).first()).toBeVisible();
+
+    await expect(page.locator("[data-testid='plan-list-truncated']")).toHaveCount(0);
+    await expect(page.locator("[data-testid='plan-list-show-more']")).toHaveCount(0);
   });
 });

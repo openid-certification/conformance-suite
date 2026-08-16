@@ -956,6 +956,64 @@ export const ShowMorePagination = {
 };
 
 /**
+ * The backend caps `/api/plan?length=` at 1000
+ * (`PaginationRequest.setLength`); when there is a next page beyond the cap,
+ * `PaginationRequest.getSliceResponse` answers with a SYNTHETIC
+ * `recordsTotal` one row past what it returned (start+length+1), which is
+ * how a plain-array response (every other story here) is told apart from a
+ * truncated one. The listing must not present those 1000 rows as complete.
+ */
+export const TruncatedListing = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () =>
+          HttpResponse.json({
+            draw: 1,
+            recordsTotal: 1001,
+            recordsFiltered: 1001,
+            data: Array.from({ length: 1000 }, (_, i) => ({
+              _id: `plan-${String(i).padStart(4, "0")}`,
+              planName: `plan-${String(i).padStart(4, "0")}-name`,
+              description: "",
+              variant: {},
+              started: new Date(Date.now() - i * 1000).toISOString(),
+              owner: { sub: "12345", iss: "https://accounts.google.com" },
+              modules: [],
+              config: {},
+              publish: null,
+              immutable: false,
+            })),
+          }),
+        ),
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForPlansToLoad(canvasElement);
+
+    await waitFor(() => {
+      const notice = canvasElement.querySelector('[data-testid="plan-list-truncated"]');
+      expect(notice).toBeTruthy();
+    });
+    expect(
+      canvas.getByText(
+        "Showing the newest 1,000 matching plans — narrow the filters or the date range " +
+          "(for example use a weekly view) to see all of them.",
+      ),
+    ).toBeInTheDocument();
+
+    // The "Show more" footer count carries the same "there may be more"
+    // caveat as the notice above the list.
+    const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
+    expect(showMore).toBeTruthy();
+    expect(innerButton(showMore).textContent).toContain("Show more (25 of 1,000+)");
+  },
+};
+
+/**
  * U8 — the Published view, when empty, shows orienting placeholder copy AND
  * offers a Schedule-test action, so the persistent entry point to start a test
  * is present here too (R11/R18). The body copy uses the same "Published test

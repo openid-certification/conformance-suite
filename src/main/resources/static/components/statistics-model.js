@@ -1014,17 +1014,23 @@ export function hasAnyData(data) {
 }
 
 /**
- * Families worth offering in the filter select: those with at least one run
- * ever. Call with the same unfiltered, all-time baseline
- * {@link assignFamilySlots} gets — options that vanish when the user narrows
- * the range or picks a plan would make the control feel broken.
+ * Families worth offering in the filter select: those with at least one run,
+ * plan or certified plan ever — a family with plans but zero runs (e.g. every
+ * plan still in progress) is still something a user might filter to. Call
+ * with the same unfiltered, all-time baseline {@link assignFamilySlots} gets
+ * — options that vanish when the user narrows the range or picks a plan
+ * would make the control feel broken.
  * @param {StatisticsData} data - The unfiltered, all-time payload.
  * @returns {Array<string>} Family names in the payload's order.
  */
-export function familiesWithRuns(data) {
+export function familiesWithActivity(data) {
   const families = list(data && data.families);
   const runs = (data && data.testRunsByFamily) || {};
-  return families.filter((family) => total(runs[family]) > 0);
+  const plans = (data && data.plansByFamily) || {};
+  const certified = (data && data.certifiedByFamily) || {};
+  return families.filter(
+    (family) => total(runs[family]) > 0 || total(plans[family]) > 0 || total(certified[family]) > 0,
+  );
 }
 
 // --- Distributions, storage and the activity heatmap -------------------
