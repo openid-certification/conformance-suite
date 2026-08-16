@@ -10,6 +10,7 @@ import "./cts-statistics-filters.js";
 import "./cts-statistics-insights.js";
 import "./cts-time.js";
 import { ctsToast } from "../js/cts-toast-api.js";
+import { SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
   NO_PLAN_FAMILY,
@@ -43,18 +44,6 @@ import {
 
 /** Admin-only endpoint backing the whole page; one payload feeds every chart. */
 const ENDPOINT = "/api/statistics/overview";
-
-/**
- * Poll cadence while the server is computing a snapshot. Fast for the first
- * half-minute (a warm database answers in seconds and the admin is watching
- * a spinner), then slower, because past that point this is a multi-minute
- * whole-collection aggregation and there is no point hammering it.
- */
-const POLL_FAST_MS = 2000;
-const POLL_SLOW_MS = 5000;
-const POLL_FAST_WINDOW_MS = 30000;
-/** Stop polling and offer a Retry rather than spinning forever. */
-const POLL_GIVE_UP_MS = 600000;
 
 /**
  * How many times the unfiltered baseline is asked for. It is retried because
@@ -441,10 +430,15 @@ class CtsStatisticsPage extends LitElement {
     this._slots = {};
     /** @type {"none"|"payload"|"baseline"} Where `_slots` came from. */
     this._slotSource = "none";
-    /** @type {ReturnType<typeof setTimeout>|null} */
-    this._pollTimer = null;
-    /** @type {number|null} When the current polling episode began. */
-    this._pollStartedAt = null;
+    /**
+     * The 202/refreshing poll loop: 2 s for the first 30 s, then 5 s, giving
+     * up after 10 minutes.
+     * @type {SnapshotPoll}
+     */
+    this._poll = new SnapshotPoll(
+      () => this._load(false),
+      () => this._fail(GIVE_UP_MESSAGE),
+    );
     /** @type {AbortController|null} */
     this._abort = null;
     /** @type {AbortController|null} The baseline request's own controller. */
@@ -500,7 +494,7 @@ class CtsStatisticsPage extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._stopPolling();
+    this._poll.stop();
     if (this._abort) {
       this._abort.abort();
       this._abort = null;
@@ -674,7 +668,7 @@ class CtsStatisticsPage extends LitElement {
    */
   _apply(response, body) {
     if (response.status === 401 || response.status === 403) {
-      this._stopPolling();
+      this._poll.stop();
       this._busy = false;
       this._status = "forbidden";
       return;
@@ -682,7 +676,7 @@ class CtsStatisticsPage extends LitElement {
 
     if (response.status === 202) {
       this._status = "pending";
-      this._schedulePoll();
+      this._poll.schedule();
       return;
     }
 
@@ -730,10 +724,10 @@ class CtsStatisticsPage extends LitElement {
     if (body.refreshing === true) {
       // Stale-while-revalidate: keep this snapshot on screen (dimmed) and
       // poll for the newer one.
-      this._schedulePoll();
+      this._poll.schedule();
       return;
     }
-    this._stopPolling();
+    this._poll.stop();
     this._busy = false;
   }
 
@@ -757,45 +751,11 @@ class CtsStatisticsPage extends LitElement {
    * @returns {void}
    */
   _fail(message, action = "retry") {
-    this._stopPolling();
+    this._poll.stop();
     this._busy = false;
     this._errorMessage = message;
     this._errorAction = action;
     this._status = "error";
-  }
-
-  /**
-   * Schedule the next poll, or give up. The cadence is measured from the
-   * start of the polling episode, not from the last request, so a slow
-   * response cannot stretch the fast window.
-   * @returns {void}
-   */
-  _schedulePoll() {
-    this._clearTimer();
-    if (this._pollStartedAt === null) this._pollStartedAt = Date.now();
-    const elapsed = Date.now() - this._pollStartedAt;
-    if (elapsed >= POLL_GIVE_UP_MS) {
-      this._fail(GIVE_UP_MESSAGE);
-      return;
-    }
-    const delay = elapsed < POLL_FAST_WINDOW_MS ? POLL_FAST_MS : POLL_SLOW_MS;
-    this._pollTimer = setTimeout(() => {
-      this._pollTimer = null;
-      this._load(false);
-    }, delay);
-  }
-
-  /** @returns {void} */
-  _clearTimer() {
-    if (this._pollTimer === null) return;
-    clearTimeout(this._pollTimer);
-    this._pollTimer = null;
-  }
-
-  /** @returns {void} */
-  _stopPolling() {
-    this._clearTimer();
-    this._pollStartedAt = null;
   }
 
   /** @returns {void} */
@@ -822,7 +782,7 @@ class CtsStatisticsPage extends LitElement {
    * @returns {void}
    */
   _handleRefresh() {
-    this._stopPolling();
+    this._poll.stop();
     // A Refresh clicked while an earlier refresh's error is on screen must
     // clear that error, not leave a message-less danger alert hanging over
     // the charts until the response lands. Mirrors _handleRetry.
@@ -836,7 +796,7 @@ class CtsStatisticsPage extends LitElement {
    * @returns {void}
    */
   _handleRetry() {
-    this._stopPolling();
+    this._poll.stop();
     if (this._payload) this._status = "ready";
     this._load(false);
   }
@@ -870,7 +830,7 @@ class CtsStatisticsPage extends LitElement {
     if (sameState(this._state, next)) return;
     this._state = { ...next, variant: { ...(next.variant || {}) } };
     this._syncUrl();
-    this._stopPolling();
+    this._poll.stop();
     if (this._payload) this._status = "ready";
     this._load(false);
   }
