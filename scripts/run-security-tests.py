@@ -427,6 +427,11 @@ def run_tests():
     resp = pl_client.get(f"{base_url}api/token")
     runner.check_status("Plan share: cannot list tokens", resp, 403)
 
+    # Favorite-plans API denied for private link users (not in the small
+    # allowlist above; the same denyAll branch that blocks /api/token).
+    resp = pl_client.get(f"{base_url}api/favorite-plans")
+    runner.check_status("Plan share: cannot list favorite plans", resp, 403)
+
     # Invalid tokens
     print("\n--- 1. Plan sharing: invalid tokens ---")
     tampered = list(plan_jwt)
@@ -565,6 +570,9 @@ def run_tests():
 
     resp = plan_bearer.get(f"{base_url}api/token")
     runner.check_status("Plan JWT Bearer: cannot list tokens", resp, 403)
+
+    resp = plan_bearer.get(f"{base_url}api/favorite-plans")
+    runner.check_status("Plan JWT Bearer: cannot list favorite plans", resp, 403)
 
     # Collection endpoints are not in the private-link allow-list
     resp = plan_bearer.get(f"{base_url}api/log")
@@ -736,6 +744,17 @@ def run_tests():
     resp = noauth_client.get(f"{base_url}api/token")
     runner.check_status("Unauth: token list rejected", resp, 401)
 
+    resp = noauth_client.get(f"{base_url}api/favorite-plans")
+    runner.check_status("Unauth: favorite plans list rejected", resp, 401)
+
+    resp = noauth_client.post(f"{base_url}api/favorite-plans",
+                              content=json.dumps({"plan": plan_name}),
+                              headers={"Content-Type": "application/json"})
+    runner.check_status("Unauth: add favorite plan rejected", resp, 401)
+
+    resp = noauth_client.delete(f"{base_url}api/favorite-plans/{plan_name}")
+    runner.check_status("Unauth: remove favorite plan rejected", resp, 401)
+
     noauth_client.close()
 
     # ===================================================================
@@ -863,6 +882,32 @@ def run_tests():
         token_list = resp.json()
         runner.check("Token: list contains the auth token", len(token_list) > 0,
                      f"got {len(token_list)} tokens")
+
+    # ===================================================================
+    # 6. FAVORITE PLANS (owner access)
+    # ===================================================================
+    print("\n--- 6. Favorite plans (owner access) ---")
+
+    fav_plan_name = "security-test-favorite-plan"
+
+    resp = admin_client.get(f"{base_url}api/favorite-plans")
+    runner.check_status("Favorites: owner can list favorites", resp, 200)
+
+    resp = admin_client.post(f"{base_url}api/favorite-plans",
+                             content=json.dumps({"plan": fav_plan_name}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status("Favorites: owner can add a favorite", resp, 200)
+    if resp.status_code == 200:
+        runner.check("Favorites: added plan appears in the list",
+                     fav_plan_name in resp.json().get("plans", []),
+                     f"got {resp.json()}")
+
+    resp = admin_client.delete(f"{base_url}api/favorite-plans/{fav_plan_name}")
+    runner.check_status("Favorites: owner can remove a favorite", resp, 200)
+    if resp.status_code == 200:
+        runner.check("Favorites: removed plan no longer in the list",
+                     fav_plan_name not in resp.json().get("plans", []),
+                     f"got {resp.json()}")
 
     admin_client.close()
 
