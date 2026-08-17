@@ -96,7 +96,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 		condition.execute(env);
 
 		verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), argThat(request -> {
-			assertThat(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)).isFalse();
+			assertThat(request.getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)).isFalse();
 			assertThat(request.getBody()).isEqualTo("{\"auth_req_id\":\"auth-req-id\"}");
 			return true;
 		}), eq(String.class));
