@@ -463,10 +463,7 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     await setupCommonRoutes(page);
 
     await page.goto("/schedule-test.html");
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     const createBtn = page.locator("#createPlanBtn");
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
@@ -479,7 +476,9 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
 
     // The user is still on the page with their selections intact.
     await expect(page).toHaveURL(/\/schedule-test\.html/);
-    await expect(entitySelect).toHaveValue("client-basic");
+    await expect(
+      page.locator('#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]'),
+    ).toHaveClass(/is-active/);
   });
 
   /**
@@ -528,10 +527,7 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     await setupCommonRoutes(page);
 
     await page.goto("/schedule-test.html");
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     const createBtn = page.locator("#createPlanBtn");
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
