@@ -3625,9 +3625,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   // query string to the entry's submitUrl.
 
   /**
-   * Register the /api/info, /api/log, /api/runner and /api/uploaded-images
-   * routes shared by every URI-input test. The runner payload advertises a
-   * single uriInputRequests entry pointing at `submitUrl`.
+   * Register the /api/info, /api/log and /api/runner routes shared by every
+   * URI-input test. The runner payload advertises a single uriInputRequests
+   * entry pointing at `submitUrl`.
    *
    * @param {import("@playwright/test").Page} page
    * @param {string} testIdLocal
@@ -3667,9 +3667,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         }),
       });
     });
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-    );
   }
 
   test("URI input: pasted URI's query string is GET to submitUrl", async ({ page }) => {
