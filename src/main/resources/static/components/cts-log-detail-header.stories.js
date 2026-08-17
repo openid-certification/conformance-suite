@@ -1766,12 +1766,17 @@ const WAITING_TEST_WITH_RESULTS = {
   results: MOCK_RESULTS,
 };
 
-const STALE_STATUS_WAITING_RESULT_PASSED = {
+// A live test that already carries a verdict. `updateResultFromConditionFailure`
+// writes `result` on the first failing condition, long before the run ends, so
+// WAITING+FAILED is an ordinary long-lived state (#1895). WAITING+PASSED is the
+// narrower polling-lag window between `setResult(PASSED)` and the FINISHED
+// status landing. Both must render as live, not finished.
+const WAITING_WITH_PASSED_RESULT = {
   ...COMPLETED_TEST,
   status: "WAITING",
 };
 
-const STALE_STATUS_WAITING_RESULT_FAILED = {
+const WAITING_WITH_FAILED_RESULT = {
   ...FAILED_TEST,
   status: "WAITING",
 };
@@ -1911,54 +1916,68 @@ export const NoTerminalBannerWhileWaiting = {
   },
 };
 
-export const StaleStatusBarReadsTerminalWhenResultIsSet = {
+export const LiveWaitingStatusWinsOverSettledResult = {
   render: () =>
-    html`<cts-log-detail-header
-      .testInfo=${STALE_STATUS_WAITING_RESULT_PASSED}
-    ></cts-log-detail-header>`,
+    html`<cts-log-detail-header .testInfo=${WAITING_WITH_PASSED_RESULT}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
-    // A1 (MR 1998): the previous behaviour branched on `status` alone,
-    // so polling lag (status=WAITING, result=PASSED) kept Start visible
-    // on a test that had already passed. The new phase derivation
-    // routes (status=WAITING, result=PASSED) through the FINISHED bar
-    // and renders the Repeat Test primary instead.
+    // #1895: a live status beats whatever verdict has been written so far.
+    // (Supersedes MR 1998 finding A1, which routed WAITING+result through
+    // the FINISHED bar to stop a stale Start button appearing. #1862 later
+    // removed Start from the WAITING bar outright, so the A1 symptom is
+    // structurally impossible now and the verdict no longer has to
+    // override the status to prevent it.)
     const bar = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar"]');
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
 
-    await step("stale WAITING+PASSED bar renders Repeat Test, not Start", async () => {
-      expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
-      expect(within(bar).getByText(/Repeat Test/)).toBeInTheDocument();
-      // The Start button must not leak through: querying by label leaves
-      // no room for the regression to come back.
+    await step("WAITING+PASSED keeps the WAITING bar, offers no Start", async () => {
+      expect(bar.querySelector('cts-badge[variant="warn"][label="WAITING"]')).toBeTruthy();
+      expect(bar.querySelector('cts-badge[label="PASSED"]')).toBeNull();
+      // The A1 regression guard survives the reorder: Start must never
+      // leak into a WAITING bar, whatever the result says.
       expect(within(bar).queryByText(/Start Test/)).toBeNull();
     });
 
-    await step("the terminal banner also picks up the verdict", async () => {
-      const banner = canvasElement.querySelector('[data-testid="terminal-banner"]');
-      expect(banner).toBeTruthy();
-      expect(banner.getAttribute("data-phase")).toBe("finished-pass");
+    await step("no terminal banner announces a verdict for a live test", async () => {
+      expect(canvasElement.querySelector('[data-testid="terminal-banner"]')).toBeNull();
     });
   },
 };
 
-export const StaleStatusRoutesHeroToFailureWhenResultFailed = {
+export const WaitingWithFailedResultKeepsWaitingHero = {
   render: () =>
-    html`<cts-log-detail-header
-      .testInfo=${STALE_STATUS_WAITING_RESULT_FAILED}
-    ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
-    // Hero side of A1: the failure list, not the WAITING hero, must
-    // render when result=FAILED — even if status is still WAITING.
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
-      if (!el) throw new Error("terminal-banner not yet rendered");
+    html`<cts-log-detail-header .testInfo=${WAITING_WITH_FAILED_RESULT}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    // #1895 / #1896 — the reported bug. OID4VP browser-API tests routinely
+    // sit at status=WAITING with result=FAILED (an early condition failed,
+    // the test keeps waiting for the wallet). Rendering the finished-fail
+    // hero there dropped [data-slot="browser"], so log-detail.js's
+    // renderBrowserSlot() bailed on `if (!slot) return` and the "Proceed
+    // with test via browser API" button silently vanished — which read as
+    // "the test aborted and I can do nothing".
+    const waitingHero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
+      if (!el) throw new Error("hero-waiting not yet rendered");
       return el;
     });
-    expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-testid="hero-waiting"]')).toBeNull();
+
+    await step("the waiting hero renders, not the failure hero", async () => {
+      expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="terminal-banner"]')).toBeNull();
+      expect(waitingHero.textContent).toContain("Test waiting");
+    });
+
+    await step("the browser slot survives, so the visit-URL prompt can land", async () => {
+      // Open MR !2116 renders its paste-URI box into this same slot.
+      expect(waitingHero.querySelector('[data-slot="browser"]')).toBeTruthy();
+    });
+
+    await step("a rerun affordance is reachable (#1903)", async () => {
+      const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+      expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeTruthy();
+    });
   },
 };
 
@@ -2111,5 +2130,181 @@ export const VariantRendersAsDefinitionList = {
       const cell = list.parentElement;
       expect(cell.textContent).not.toContain("client_auth_type: client_secret_basic, ");
     });
+  },
+};
+
+// --- #1903: a rerun affordance in every phase that can offer one ---
+// Before this, "Repeat Test" existed only on the finished bar, and
+// cts-test-nav-controls drops its own copy in `slim` mode expecting the
+// header to carry it — so a test that timed out waiting for an incoming
+// request had no rerun affordance anywhere on the page.
+
+export const RepeatTestAvailableWhileWaiting = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${WAITING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    await step("the WAITING bar carries Repeat Test at secondary prominence", async () => {
+      const repeat = bar.querySelector('[data-testid="status-bar-repeat"]');
+      expect(repeat).toBeTruthy();
+      expect(repeat.getAttribute("variant")).toBe("secondary");
+      // #1862 still holds: Repeat is not Start.
+      expect(within(bar).queryByText(/Start Test/)).toBeNull();
+    });
+
+    await step("clicking it dispatches cts-repeat-test", async () => {
+      const repeatHandler = fn();
+      canvasElement.addEventListener("cts-repeat-test", repeatHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-repeat"));
+      expect(repeatHandler).toHaveBeenCalledOnce();
+      expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST_WITH_RESULTS.testId);
+    });
+  },
+};
+
+export const RepeatTestAvailableWhileRunning = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${RUNNING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    await step("Stop stays the bar's own action; Repeat sits beside it", async () => {
+      expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeTruthy();
+      expect(bar.textContent).toContain("Stop");
+      expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeTruthy();
+    });
+
+    await step("clicking Repeat dispatches cts-repeat-test, not cts-stop-test", async () => {
+      const repeatHandler = fn();
+      const stopHandler = fn();
+      canvasElement.addEventListener("cts-repeat-test", repeatHandler);
+      canvasElement.addEventListener("cts-stop-test", stopHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-repeat"));
+      expect(repeatHandler).toHaveBeenCalledOnce();
+      expect(stopHandler).not.toHaveBeenCalled();
+    });
+  },
+};
+
+export const PublicViewStillHidesRepeatWhileWaiting = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${WAITING_TEST_WITH_RESULTS}
+      is-public
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    // A read-only viewer cannot launch runs, in any phase.
+    expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeNull();
+  },
+};
+
+// --- #1866: REVIEW findings + honest empty-state copy ---
+
+const MOCK_RESULTS_REVIEW_ONLY = [
+  { _id: "rv1", result: "SUCCESS", src: "CheckConfig", msg: "Config valid" },
+  {
+    _id: "rv2",
+    result: "REVIEW",
+    src: "ExpectRedirectPage",
+    msg: "Upload a screenshot of the error page",
+    requirements: ["OIDCC-3.1.2.6"],
+  },
+  {
+    _id: "rv3",
+    result: "REVIEW",
+    src: "ExpectLoginPage",
+    msg: "Check the login page rendered correctly",
+  },
+];
+
+const REVIEW_FINDINGS_TEST = {
+  ...MOCK_TEST_STATUS,
+  result: "REVIEW",
+  results: MOCK_RESULTS_REVIEW_ONLY,
+};
+
+const NO_FINDINGS_TEST = {
+  ...MOCK_TEST_FAILED,
+  results: [{ _id: "n1", result: "SUCCESS", src: "CheckConfig", msg: "Config valid" }],
+};
+
+export const ReviewFindingsRenderInTheHero = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${REVIEW_FINDINGS_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    // #1866: the findings filter listed FAILURE / WARNING / SKIPPED /
+    // INTERRUPTED but not REVIEW, so a review-only test produced an empty
+    // list and fell through to the hero's empty-state copy — even though
+    // _countFailureSeverities already buckets `review` and
+    // _formatFailureCountHeadline can say "N need review".
+    const hero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-failures"]');
+      if (!el) throw new Error("hero-failures not yet rendered");
+      return el;
+    });
+
+    await step("the headline counts the review findings", async () => {
+      expect(hero.textContent).toContain("2 need review");
+      expect(hero.querySelector('[data-testid="hero-findings-placeholder"]')).toBeNull();
+    });
+
+    await step("each review row renders in the failure summary", async () => {
+      const summary = hero.querySelector('[data-testid="header-failure-summary"]');
+      expect(summary).toBeTruthy();
+      expect(summary.textContent).toContain("Upload a screenshot of the error page");
+      expect(summary.textContent).toContain("Check the login page rendered correctly");
+      expect(summary.querySelector('cts-badge[variant="review"]')).toBeTruthy();
+    });
+  },
+};
+
+export const EmptyFindingsPlaceholderDoesNotClaimNothingRan = {
+  render: () => html`<cts-log-detail-header .testInfo=${NO_FINDINGS_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // An empty *filtered* list says nothing about whether conditions ran —
+    // the old "No conditions ran before the test ended." read as a bug to
+    // the maintainer who filed #1866 while looking at a full log below it.
+    const placeholder = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-findings-placeholder"]');
+      if (!el) throw new Error("placeholder not yet rendered");
+      return el;
+    });
+    expect(placeholder.textContent).toContain("No findings were recorded for this test.");
+    expect(canvasElement.textContent).not.toContain("No conditions ran");
+  },
+};
+
+export const FindingsPropertyOverridesTestInfoResults = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${NO_FINDINGS_TEST}
+      .findings=${MOCK_RESULTS_WITH_FAILURES}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // In production /api/info carries no `results` array at all (TestInfo
+    // has a singular `result`), so log-detail.js feeds the findings from
+    // the /api/log stream the cts-log-viewer already loaded (#1866).
+    const hero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-failures"]');
+      if (!el) throw new Error("hero-failures not yet rendered");
+      return el;
+    });
+    expect(hero.textContent).toContain("2 failures");
+    expect(hero.querySelector('[data-testid="hero-findings-placeholder"]')).toBeNull();
+    expect(hero.textContent).toContain("Signature invalid");
   },
 };

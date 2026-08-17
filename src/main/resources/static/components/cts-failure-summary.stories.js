@@ -360,3 +360,56 @@ export const KeyboardActivation = {
     }
   },
 };
+
+/**
+ * `msg` is optional on a real log entry: the no-arg
+ * `AbstractCondition.createBrowserInteractionPlaceholder()` logs
+ * `args("upload", <id>, "result", REVIEW)` with no message, and
+ * `DBImageService.fillPlaceholder` later unsets `upload`, sets the image
+ * fields, and keeps `result: REVIEW` — the certification team still reviews the
+ * screenshot. Both states surface here now that REVIEW counts as a finding
+ * (#1866), and interpolating the absent message rendered a dangling
+ * "SomeCondition: " with nothing after the colon.
+ */
+export const RowsWithoutAMessage = {
+  render: () =>
+    html`<cts-failure-summary
+      .failures=${[
+        { _id: "n-1", result: "REVIEW", src: "ExpectLoginPage", upload: true },
+        { _id: "n-2", result: "REVIEW", src: "ExpectErrorPage", msg: "   " },
+        { _id: "n-3", result: "FAILURE", src: "ValidateIdToken" },
+        { _id: "n-4", result: "FAILURE", src: "CheckClaims", msg: "Missing sub claim" },
+      ]}
+    ></cts-failure-summary>`,
+  async play({ canvasElement, step }) {
+    const rows = await waitFor(() => {
+      const found = canvasElement.querySelectorAll(".failureText");
+      if (found.length !== 4) throw new Error("failure rows not yet rendered");
+      return found;
+    });
+
+    await step("an upload placeholder says what it is waiting for", async () => {
+      expect(rows[0].textContent.trim()).toBe("ExpectLoginPage: awaiting manual review");
+    });
+
+    await step("a whitespace-only message is treated as absent", async () => {
+      expect(rows[1].textContent.trim()).toBe("ExpectErrorPage");
+    });
+
+    await step("a non-upload row with no message shows the source alone", async () => {
+      // The defect: this used to render "ValidateIdToken: " — a label ending in
+      // a colon with nothing after it.
+      expect(rows[2].textContent.trim()).toBe("ValidateIdToken");
+    });
+
+    await step("a normal row still reads `src: msg`", async () => {
+      expect(rows[3].textContent.trim()).toBe("CheckClaims: Missing sub claim");
+    });
+
+    await step("no row renders a dangling trailing colon", async () => {
+      for (const row of rows) {
+        expect(row.textContent.trim().endsWith(":")).toBe(false);
+      }
+    });
+  },
+};
