@@ -392,9 +392,12 @@ class CtsStatisticsInsights extends LitElement {
         ${entities
           ? this._renderDistributionCard(
               "stats-dist-entities",
-              "Entity under test — runs",
+              // Four orders of magnitude between an OP run count and an AuthZEN one:
+              // on a linear axis every entity below the top two is an invisible sliver.
+              "Entity under test — runs (log scale)",
               "Entity",
               entities,
+              true,
             )
           : nothing}
       </div>
@@ -458,13 +461,17 @@ class CtsStatisticsInsights extends LitElement {
    * @param {string} heading - The chart's title.
    * @param {string} categoryLabel - What one bar is, for the table's first column.
    * @param {Distribution} distribution - Its inputs.
+   * @param {boolean} [logScale] - Put the value axis on a log scale, for a distribution
+   *   spanning orders of magnitude. The heading has to say so: on a log axis bar length
+   *   is not proportional to the value.
    * @returns {unknown} One distribution card.
    */
-  _renderDistributionCard(testid, heading, categoryLabel, distribution) {
+  _renderDistributionCard(testid, heading, categoryLabel, distribution, logScale = false) {
     return html`
       <div class="cts-stats-dist-card" data-testid=${testid}>
         <cts-chart
           horizontal
+          ?log-scale=${logScale}
           max-bars=${DISTRIBUTION_LIMIT}
           heading=${heading}
           category-label=${categoryLabel}

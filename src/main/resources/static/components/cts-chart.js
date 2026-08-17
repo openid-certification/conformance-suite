@@ -39,6 +39,26 @@ const MAX_BAR_THICKNESS = 24;
 const SURFACE_GAP_PX = 2;
 /** Rounded data-end on bars. */
 const BAR_RADIUS_PX = 4;
+
+/**
+ * Scriptable bar `borderWidth`: the surface gap on the side facing the next
+ * stacked segment, and no border at all on a segment without a value.
+ * @param {{raw: unknown}} context - Chart.js's per-element scripting context.
+ * @returns {{top: number, bottom: number, left: number, right: number}} Border widths.
+ */
+function gapAfterVertical(context) {
+  const gap = Number(context.raw) > 0 ? SURFACE_GAP_PX : 0;
+  return { top: gap, bottom: 0, left: 0, right: 0 };
+}
+
+/**
+ * @param {{raw: unknown}} context - Chart.js's per-element scripting context.
+ * @returns {{top: number, bottom: number, left: number, right: number}} Border widths.
+ */
+function gapAfterHorizontal(context) {
+  const gap = Number(context.raw) > 0 ? SURFACE_GAP_PX : 0;
+  return { top: 0, bottom: 0, left: 0, right: gap };
+}
 /** Line stroke width. */
 const LINE_WIDTH_PX = 2;
 /** Point radius — an 8px marker, per the mark spec. */
@@ -69,6 +89,7 @@ const PLOT_PROPS = [
   "datasets",
   "stacked",
   "horizontal",
+  "logScale",
   "maxBars",
   "clickable",
   "_status",
@@ -312,6 +333,11 @@ function token(cs, name, fallback) {
  *   includes the leading `--` (e.g. `"--chart-cat-1"`), resolved off
  *   `:root`; unresolvable names fall back to `--ink-400`.
  * @property {boolean} stacked - Stack the series on both axes (bar charts).
+ * @property {boolean} logScale - Put the value axis on a logarithmic scale, for a
+ *   distribution whose categories are orders of magnitude apart and would otherwise
+ *   render every small one as an invisible sliver. A bar's LENGTH is no longer
+ *   proportional to its value when this is set, so the caller must say "log scale"
+ *   where the reader can see it; exact values stay in the tooltip and data table.
  * @property {boolean} horizontal - Lay bars out along the x axis, one
  *   category per row (`indexAxis: "y"`). The frame's height then follows the
  *   category count. Use it whenever the category names are long enough to be
@@ -359,6 +385,7 @@ class CtsChart extends LitElement {
     datasets: { type: Array },
     stacked: { type: Boolean },
     horizontal: { type: Boolean },
+    logScale: { type: Boolean, attribute: "log-scale" },
     maxBars: { type: Number, attribute: "max-bars" },
     tableExtras: { attribute: false },
     heading: { type: String },
@@ -381,6 +408,7 @@ class CtsChart extends LitElement {
     this.stacked = false;
     /** @type {boolean} */
     this.horizontal = false;
+    this.logScale = false;
     /** @type {number} */
     this.maxBars = 0;
     /** @type {Array<{label: string, data: Array<number>}>} */
@@ -560,10 +588,18 @@ class CtsChart extends LitElement {
           ...base,
           backgroundColor: color,
           // The "border" is painted in the surface colour: it IS the 2px gap
-          // that separates stacked segments and adjacent bars, not a stroke
-          // adding non-data ink.
+          // that separates stacked segments, not a stroke adding non-data ink.
+          // It sits on the side facing the NEXT segment only, and only on a
+          // segment that has a value: a border is painted whatever the
+          // segment's height, so a zero-valued segment with a border is a
+          // solid surface-coloured band across the bar (which is what a
+          // results chart with an empty WARNING bucket every month showed),
+          // and a gap on both sides costs each segment twice the ink for the
+          // same separation. Never on the category sides: Chart.js already
+          // spaces categories, and at 90 monthly bars a bar is about 4px wide,
+          // narrower than two 2px borders, so the plot looked empty.
           borderColor: surface,
-          borderWidth: SURFACE_GAP_PX,
+          borderWidth: this.horizontal === true ? gapAfterHorizontal : gapAfterVertical,
           borderSkipped: false,
           borderRadius: BAR_RADIUS_PX,
           maxBarThickness: MAX_BAR_THICKNESS,
@@ -624,9 +660,11 @@ class CtsChart extends LitElement {
       border: { color: gridColor },
       ticks: categoryTicks,
     };
+    const logarithmic = this.logScale === true;
     const valueAxis = {
       stacked,
-      beginAtZero: true,
+      // A log axis has no zero to begin at, and Chart.js drops non-positive values on it.
+      ...(logarithmic ? { type: "logarithmic", min: 1 } : { beginAtZero: true }),
       grid: { color: gridColor, drawTicks: false },
       border: { display: false },
       // Everything this component plots is a count of something, so a scale

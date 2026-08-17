@@ -153,7 +153,15 @@ export const Default = {
       // Bar borders are painted in the surface colour: they ARE the 2px gap
       // separating stacked segments, not a stroke around the mark.
       expect(chart.data.datasets[0].borderColor).toBe("#FFFFFF");
-      expect(chart.data.datasets[0].borderWidth).toBe(2);
+      // Regression guard: the gap sits on the side facing the next segment
+      // only, never on the category sides (Chart.js already spaces categories,
+      // and at 90 monthly bars a bar is about 4px wide, so two 2px side
+      // borders painted the whole plot surface-on-surface) - and a segment
+      // with no value gets no border at all, or an empty bucket would paint a
+      // solid surface-coloured band across every bar.
+      const borderWidth = chart.data.datasets[0].borderWidth;
+      expect(borderWidth({ raw: 120 })).toEqual({ top: 2, bottom: 0, left: 0, right: 0 });
+      expect(borderWidth({ raw: 0 })).toEqual({ top: 0, bottom: 0, left: 0, right: 0 });
     });
 
     await step("the category axis renders the labels, not row numbers", async () => {
@@ -289,6 +297,55 @@ export const Line = {
  * rather than the thing being compared, so it belongs in the table and not in
  * the plot).
  */
+/**
+ * A distribution whose categories are orders of magnitude apart: on a linear axis
+ * everything below the top one or two is an invisible sliver, so the value axis goes
+ * logarithmic and the heading says so.
+ */
+export const LogScale = {
+  args: {
+    heading: "Entity under test — runs (log scale)",
+    categoryLabel: "Entity",
+  },
+  render: ({ heading, categoryLabel }) => html`
+    <cts-chart
+      horizontal
+      log-scale
+      max-bars="12"
+      heading=${heading}
+      category-label=${categoryLabel}
+      .labels=${["Provider", "Relying party", "VCI issuer", "AuthZEN PDP"]}
+      .datasets=${[
+        {
+          label: "Runs",
+          colorVar: "--chart-cat-1",
+          data: [4379734, 2341305, 11988, 810],
+        },
+      ]}
+    ></cts-chart>
+  `,
+
+  async play({ canvasElement, step }) {
+    const { chart } = await waitForChart(canvasElement);
+
+    await step("the value axis is logarithmic and starts at one", async () => {
+      expect(chart.options.scales.x.type).toBe("logarithmic");
+      // A log axis has no zero to begin at; Chart.js drops non-positive values,
+      // so the floor is one. (beginAtZero is not asserted: Chart.js resolves it
+      // to its own default whatever we configure, and ignores it on a log axis.)
+      expect(chart.options.scales.x.min).toBe(1);
+    });
+
+    await step("every category is still plotted, four decades apart", async () => {
+      expect(chart.data.labels).toHaveLength(4);
+      // The smallest bar is 1/5000th of the largest: on a linear axis it would
+      // round to nothing, which is what the log scale exists to avoid.
+      const rows = canvasElement.querySelectorAll(".cts-chart-table tbody tr");
+      expect(rows).toHaveLength(4);
+    });
+  },
+};
+
 export const Horizontal = {
   args: {
     heading: "Certification profiles — distinct users",
@@ -320,6 +377,10 @@ export const Horizontal = {
       // ink without carrying a value.
       expect(chart.options.scales.y.grid.display).toBe(false);
       expect(chart.options.scales.x.beginAtZero).toBe(true);
+      // The surface gap follows the stacking axis, which flips with the bars.
+      const borderWidth = chart.data.datasets[0].borderWidth;
+      expect(borderWidth({ raw: 120 })).toEqual({ left: 0, right: 2, top: 0, bottom: 0 });
+      expect(borderWidth({ raw: 0 })).toEqual({ left: 0, right: 0, top: 0, bottom: 0 });
       // Every row is named: the frame is sized from the row count precisely
       // so Chart.js never has to thin them out.
       expect(chart.options.scales.y.ticks.autoSkip).toBe(false);
