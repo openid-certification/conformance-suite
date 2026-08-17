@@ -143,11 +143,6 @@ test.describe("Cross-page journeys", () => {
         planId: "plan-journey-001",
       },
     });
-    // log-detail.html calls /api/uploaded-images on load; mock empty so
-    // fail-fast doesn't trip when the journey lands there.
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-    );
     await setupCommonRoutes(page);
 
     // === Step 1: schedule-test.html — pick a plan and create it ===
@@ -253,11 +248,6 @@ test.describe("Cross-page journeys", () => {
         planId: "plan-abc-123",
       },
     });
-    // log-detail.html calls /api/uploaded-images on load; mock empty so
-    // fail-fast doesn't trip when the journey lands there.
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-    );
     await setupCommonRoutes(page);
 
     // === Step 1: plan-detail.html ===

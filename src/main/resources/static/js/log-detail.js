@@ -270,9 +270,9 @@ function applyFindings() {
 
 /**
  * Push a fresh `testInfo` to the header and refresh every failure summary.
- * Single update site so any future re-fetch path (uploaded-images stamping,
- * runner-poll state changes, etc.) keeps all instances in sync without
- * duplicating the filter.
+ * Single update site so any future re-fetch path (runner-poll state
+ * changes, etc.) keeps all instances in sync without duplicating the
+ * filter.
  *
  * @param {any} testInfo
  */
@@ -709,32 +709,6 @@ function syncCurrentSegmentStatus(testInfo) {
   // Fresh array so cts-plan-status observes the change (Lit's default hasChanged
   // is reference equality) and repaints the segment — mirrors resolveSegmentStatuses.
   header.planModules = modules.slice();
-}
-
-/** ──────────── /api/uploaded-images ──────────── */
-
-async function fetchUploadedImageCount(testInfo) {
-  if (isPublic) return; // Public viewers don't see upload affordances.
-  try {
-    const response = await fetch("/api/uploaded-images");
-    if (!response.ok) return;
-    const images = await response.json();
-    if (!Array.isArray(images)) return;
-    const count = images.filter((img) => img && img.testId === testInfo.testId).length;
-    if (count > 0 && testInfo.results) {
-      // Stamp each result entry with `upload: true` for the count we've
-      // observed. The header's _getUploadCount() reads that bit. This
-      // keeps the API contract compatible with the existing component
-      // without introducing a new property.
-      const stamped = testInfo.results.slice();
-      for (let i = 0; i < count && i < stamped.length; i++) {
-        stamped[i] = { ...stamped[i], upload: true };
-      }
-      applyTestInfo({ ...testInfo, results: stamped });
-    }
-  } catch (err) {
-    console.warn("[log-detail] /api/uploaded-images failed:", err);
-  }
 }
 
 /** ──────────── /api/runner — running-test card slot rendering ──────────── */
@@ -1923,8 +1897,7 @@ async function bootstrap() {
     viewer.testId = testId;
   }
 
-  // Plan + uploaded-images run in parallel — neither blocks the other.
-  await Promise.all([fetchAndApplyPlanState(testInfo), fetchUploadedImageCount(testInfo)]);
+  await fetchAndApplyPlanState(testInfo);
 
   startRunnerPolling(testInfo);
 }

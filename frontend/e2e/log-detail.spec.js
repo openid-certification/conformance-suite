@@ -131,7 +131,7 @@ async function installScrollIntoViewSpy(page) {
  * Register all routes the new bootstrap depends on. Mirror of
  * setupLogDetailRoutes from log-detail.spec.js but trimmed to the
  * surface the new bootstrap actually fires (no /api/runner poll for
- * a FINISHED test, no /api/uploaded-images multi-shape variants, etc.).
+ * a FINISHED test, etc.).
  *
  * @param {import('@playwright/test').Page} page
  * @param {{ testInfo: any, logEntries: any, planModules?: any[] }} options
@@ -190,10 +190,6 @@ async function setupV2Routes(page, { testInfo, logEntries, planModules }) {
   // here; specs that need that path will register a more specific
   // route before calling this helper.
   await page.route(`**/api/runner/${testId}`, (route) => route.fulfill({ status: 404, body: "" }));
-
-  await page.route("**/api/uploaded-images*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-  );
 }
 
 /**
@@ -1551,9 +1547,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     );
     await page.route(`**/api/runner/${MOCK_TEST_STATUS.testId}`, (route) =>
       route.fulfill({ status: 404, body: "" }),
-    );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
     await setupCommonRoutes(page);
 
@@ -3400,9 +3393,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await page.route(`**/api/runner/${testIdLocal}`, (route) =>
       route.fulfill({ status: 404, body: "" }),
     );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-    );
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
@@ -3458,9 +3448,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
           browser: { browserApiRequests: [{ request: browserApiRequest, submitUrl }] },
         }),
       }),
-    );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
 
     /** @type {{ url: string, body: string }[]} */
@@ -3534,9 +3521,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         }),
       }),
     );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-    );
 
     /** @type {{ body: string }[]} */
     const captured = [];
@@ -3602,9 +3586,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
           browser: { browserApiRequests: [{ request: { foo: "bar" }, submitUrl }] },
         }),
       }),
-    );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
 
     /** @type {{ body: string }[]} */
@@ -3981,9 +3962,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
           },
         }),
       }),
-    );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
     await setupCommonRoutes(page);
 
