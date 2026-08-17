@@ -217,15 +217,18 @@ public class DBTestInfoService implements TestInfoService {
 	@Override
 	public boolean deleteTests(List<String> ids) {
 
-		Criteria criteria = Criteria.where("testId").in(ids);
+		Criteria testInfoCriteria = Criteria.where("testId").in(ids);
+		Criteria eventLogCriteria = Criteria.where("testId").in(ids);
 
 		if (!authenticationFacade.isAdmin()) {
-			criteria.and("owner").is(authenticationFacade.getPrincipal());
+			// TEST_INFO stores the owner under 'owner', EVENT_LOG entries under 'testOwner';
+			// filtering EVENT_LOG on 'owner' matches nothing and orphans the log entries
+			testInfoCriteria.and("owner").is(authenticationFacade.getPrincipal());
+			eventLogCriteria.and("testOwner").is(authenticationFacade.getPrincipal());
 		}
 
-		Query query = new Query(criteria);
-		DeleteResult testInfoDeleteResult = mongoTemplate.remove(query, COLLECTION);
-		DeleteResult logDeleteResult = mongoTemplate.remove(query, DBEventLog.COLLECTION);
+		DeleteResult testInfoDeleteResult = mongoTemplate.remove(new Query(testInfoCriteria), COLLECTION);
+		DeleteResult logDeleteResult = mongoTemplate.remove(new Query(eventLogCriteria), DBEventLog.COLLECTION);
 
 		return testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged();
 	}
