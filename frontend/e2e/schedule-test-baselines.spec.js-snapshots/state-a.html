@@ -116,6 +116,13 @@
                 </div>
             </div>
 
+            <!-- Plans-load-failure banner (KTD5). Hidden by default; revealed
+                 from loadAvailablePlans()'s catch when /api/plan/available
+                 fails. A successful-but-empty response is left to the picker's
+                 own empty state — only a fetch failure shows this. Replaces
+                 the deleted cts-spec-cascade's `spec-cascade-error` banner. -->
+            <cts-alert id="plansLoadError" variant="danger" data-testid="plans-load-error" hidden=""><div class="oidf-alert oidf-alert-danger" role="alert"><div class="oidf-alert-body">Unable to load test plans — please reload the page.</div></div></cts-alert>
+
             <cts-test-selector id="planSearch"><!---->
       <div class="oidf-test-selector">
         <div class="oidf-test-selector__rail">
@@ -155,116 +162,221 @@
             <input type="search" class="oidf-test-selector__search" placeholder="Search test plans..." aria-label="Search test plans" autocomplete="off" spellcheck="false">
             <!--?lit$NNNN$-->
           </div>
-          <select class="oidf-test-selector__family" size="14" aria-label="Filter test plans by specification family">
-            <option value="" selected="">All specifications</option>
-            <!--?lit$NNNN$--><!----><option value="FAPI"><!--?lit$NNNN$-->FAPI</option><!----><!----><option value="FAPI-CIBA"><!--?lit$NNNN$-->FAPI-CIBA</option><!----><!----><option value="OIDCC"><!--?lit$NNNN$-->OIDCC</option><!---->
+          <select class="oidf-test-selector__family" size="16" aria-label="Filter test plans by specification family">
+            <option class="oidf-test-selector__family-view" value="__cts_favorites_view__">
+              ★ Favorites (<!--?lit$NNNN$-->0)
+            </option>
+            <hr class="oidf-test-selector__family-divider">
+            <option value="" selected="">
+              All specifications
+            </option>
+            <!--?lit$NNNN$--><!----><option value="FAPI"> <!--?lit$NNNN$-->FAPI </option><!----><!----><option value="FAPI-CIBA"> <!--?lit$NNNN$-->FAPI-CIBA </option><!----><!----><option value="OIDCC"> <!--?lit$NNNN$-->OIDCC </option><!---->
           </select>
         </div>
-        <div class="oidf-test-selector__list" role="list">
-          <!--?lit$NNNN$--><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="4 test modules"><!--?lit$NNNN$-->4</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
-                  </button>
-                <!----><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="fapi2-security-profile-final-test-plan" data-index="1" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
-                  </button>
-                <!----><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="fapi-ciba-id1-test-plan" data-index="2" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI-CIBA-ID1: Authorization server test</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI-CIBA</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI-CIBA authorization server test plan</span>
-                  </button>
-                <!----><!---->
-                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="3" tabindex="-1">
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
-                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
-                      </span>
-                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="1 test module"><!--?lit$NNNN$-->1</span></cts-tooltip>
-                    </span>
-                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
-                  </button>
-                <!---->
+        <div class="oidf-test-selector__main">
+          <div class="oidf-test-selector__list" role="list">
+            <!--?lit$NNNN$-->
+                  <!--?lit$NNNN$--><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="4 test modules"><!--?lit$NNNN$-->4</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
+        </button>
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: OpenID Connect Core: Basic Certification Profile" data-favorite-plan="oidcc-basic-certification-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
+      </div>
+    <!----><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="fapi2-security-profile-final-test-plan" data-index="1" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
+        </button>
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: FAPI 2.0 Security Profile" data-favorite-plan="fapi2-security-profile-final-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
+      </div>
+    <!----><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="fapi-ciba-id1-test-plan" data-index="2" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI-CIBA-ID1: Authorization server test</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI-CIBA</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI-CIBA authorization server test plan</span>
+        </button>
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: FAPI-CIBA-ID1: Authorization server test" data-favorite-plan="fapi-ciba-id1-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
+      </div>
+    <!----><!---->
+      <div class="oidf-test-selector__item" role="listitem">
+        <button type="button" class=" oidf-test-selector__row " data-plan-name="oidcc-client-basic-certification-test-plan" data-index="3" tabindex="-1">
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
+              <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+            </span>
+            <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="left"><span class="oidf-test-selector__row-count" aria-label="1 test module"><!--?lit$NNNN$-->1</span></cts-tooltip>
+          </span>
+          <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
+        </button>
+        <!--?lit$NNNN$--><button type="button" class=" oidf-test-selector__fav " aria-pressed="false" aria-label="Add favorite: OpenID Connect Client: Basic Certification" data-favorite-plan="oidcc-client-basic-certification-test-plan" tabindex="-1">
+      <cts-icon size="20" name="star"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/star.svg#i"></use>
+      </svg></cts-icon>
+    </button>
+      </div>
+    <!---->
+                  <!--?lit$NNNN$-->
+                
+          </div>
+          <!--?lit$NNNN$-->
         </div>
       </div>
     </cts-test-selector>
-            <!-- Wrap the cascade + variant selectors so the scroll-in flash
-                 wash (fired after a search-list plan pick) covers both as one
-                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <!-- Wrap the variant selectors so the scroll-in flash wash (fired
+                 after a search-list plan pick) covers the selection group. It
+                 is the scroll + flash target for revealPlanSelection(). See
+                 cts-flash-highlight + the cts-plan-select handler. -->
             <cts-flash-highlight id="selectionFlash">
-                <cts-spec-cascade id="specCascade"><!---->
-      <div class="oidf-spec-cascade">
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="specFamilySelect-field" style="">
-        <label class="oidf-spec-cascade__label" for="specFamilySelect"><!--?lit$NNNN$-->Specification</label>
-        <select class="oidf-spec-cascade__select" id="specFamilySelect">
-          <option value=""><!--?lit$NNNN$-->--- Select a Specification ---</option>
-          <!--?lit$NNNN$--><!---->
-        <option value="FAPI">
-          <!--?lit$NNNN$-->FAPI
-        </option>
-      <!----><!---->
-        <option value="FAPI-CIBA">
-          <!--?lit$NNNN$-->FAPI-CIBA
-        </option>
-      <!----><!---->
-        <option value="OIDCC">
-          <!--?lit$NNNN$-->OIDCC
-        </option>
-      <!---->
-        </select>
-      </div>
-    
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="entitySelect-field" style="display:none">
-        <label class="oidf-spec-cascade__label" for="entitySelect"><!--?lit$NNNN$-->Entity Under Test</label>
-        <select class="oidf-spec-cascade__select" id="entitySelect">
-          <option value=""><!--?lit$NNNN$-->--- Select Entity ---</option>
-          <!--?lit$NNNN$-->
-        </select>
-      </div>
-    
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="specVersionSelect-field" style="display:none">
-        <label class="oidf-spec-cascade__label" for="specVersionSelect"><!--?lit$NNNN$-->Version</label>
-        <select class="oidf-spec-cascade__select" id="specVersionSelect">
-          <option value=""><!--?lit$NNNN$-->--- Select Version ---</option>
-          <!--?lit$NNNN$-->
-        </select>
-      </div>
-    
-        <!--?lit$NNNN$-->
-      <div class="oidf-spec-cascade__field" data-testid="planSelect-field" style="display:none">
-        <label class="oidf-spec-cascade__label" for="planSelect"><!--?lit$NNNN$-->Test Type</label>
-        <select class="oidf-spec-cascade__select" id="planSelect">
-          <option value=""><!--?lit$NNNN$-->--- Select A Test Type ----</option>
-          <!--?lit$NNNN$-->
-        </select>
-      </div>
-    
-      </div>
-    </cts-spec-cascade>
                 <form id="variantSelectors" style="display: none;"></form>
             </cts-flash-highlight>
 

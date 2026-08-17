@@ -5,6 +5,7 @@ import {
   setupTestInfoRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
+import { selectPlanViaSearch } from "./helpers/pick-plan.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
 import { MOCK_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
@@ -149,13 +150,10 @@ test.describe("Cross-page journeys", () => {
     );
     await setupCommonRoutes(page);
 
-    // === Step 1: schedule-test.html — navigate cascade and create plan ===
+    // === Step 1: schedule-test.html — pick a plan and create it ===
     await page.goto("/schedule-test.html");
 
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await expect(page.locator("#entitySelect")).toBeVisible();
-    await page.locator("#entitySelect").selectOption("client-basic");
-    await expect(page.locator("#planSelect")).toBeVisible();
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     const createBtn = page.locator("#createPlanBtn");
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
@@ -286,9 +284,9 @@ test.describe("Cross-page journeys", () => {
 
   /**
    * Cross-page journey for the error path: schedule-test → POST /api/plan 400
-   * → user stays on schedule-test, #errorModal shown, cascade state intact.
-   * Complements the single-page error-branch spec in error-paths.spec.js
-   * with the full user-journey framing.
+   * → user stays on schedule-test, #errorModal shown, the plan selection
+   * preserved. Complements the single-page error-branch spec in
+   * error-paths.spec.js with the full user-journey framing.
    */
   test("plan creation fails → user stays on schedule-test with error (R22)", async ({ page }) => {
     await setupFailFast(page);
@@ -325,11 +323,8 @@ test.describe("Cross-page journeys", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Fill the cascade to a submittable state using the no-variants plan.
-    await page.locator("#specFamilySelect").selectOption("OIDCC");
-    const entitySelect = page.locator("#entitySelect");
-    await expect(entitySelect).toBeVisible();
-    await entitySelect.selectOption("client-basic");
+    // Pick the no-variants plan to reach a submittable state.
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
 
     const createBtn = page.locator("#createPlanBtn");
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
@@ -340,9 +335,11 @@ test.describe("Cross-page journeys", () => {
     await expect(errorModal).toBeVisible();
     await expect(page).toHaveURL(/\/schedule-test\.html/);
 
-    // Cascade state is preserved so the user can fix + retry.
-    await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
-    await expect(entitySelect).toHaveValue("client-basic");
+    // The selection is preserved so the user can fix + retry — the picker's
+    // row stays highlighted.
+    await expect(
+      page.locator('#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]'),
+    ).toHaveClass(/is-active/);
 
     // Dismissing the modal leaves the page functional.
     await errorModal.locator(".oidf-modal-close").first().click();

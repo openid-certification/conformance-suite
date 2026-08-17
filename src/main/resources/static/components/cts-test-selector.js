@@ -6,8 +6,9 @@ import "./cts-tooltip.js";
 import "./cts-loading-state.js";
 
 /**
- * Searchable, family-filterable list of test plans. Caller supplies the
- * `plans` array and reacts to selection events.
+ * Searchable, family-filterable list of test plans with an always-on
+ * favorites surface. Caller supplies the `plans` array and the controlled
+ * `favorites` list, and reacts to selection / favorite-toggle events.
  *
  * Light DOM. Scoped CSS lives in a single `<style>` element injected into
  * `<head>` on first connect (gated by a module-level flag). Styling uses
@@ -20,9 +21,24 @@ import "./cts-loading-state.js";
  * Keyboard navigation: from the search input, ArrowDown moves focus into
  * the first visible row. From a row, ArrowDown/ArrowUp roves across rows;
  * ArrowUp on the first row returns focus to the search input. Enter (or
- * Space) on a focused row commits the selection. Rows use roving
- * tabindex so Tab escapes the list cleanly rather than cycling every row.
+ * Space) on a focused row commits the selection. "f" toggles the focused
+ * row's favorite. Rows use roving tabindex so Tab escapes the list cleanly
+ * rather than cycling every row.
  *
+ * Favorites are surfaced as a "★ Favorites" saved view at the top of the
+ * family listbox (selecting it filters the plan list to favorites only) plus
+ * a per-row star toggle. The component never mutates `favorites` — the caller
+ * owns persistence and updates the array optimistically in response to
+ * `cts-favorite-toggle`. In production that caller is schedule-test.html
+ * driving the favorites-store module against the auth-gated
+ * `/api/favorite-plans` API, which keys the list on the logged-in principal;
+ * the stories drive the same wiring with an in-memory fake controller, since
+ * `fetch` has no server to talk to in Storybook.
+ *
+ * The selected filter choice (a spec family or the ★ Favorites view) is
+ * persisted component-internally to `localStorage["cts:test-selector-filter"]`
+ * and restored on connect — this is ephemeral UI preference, distinct from the
+ * caller-owned favorites list, so it stays inside the component.
  * @property {Array} plans - Test plans to list; each has `planName`,
  *   `displayName`, `specFamily`, `modules`, `summary`.
  * @property {string} selected - Currently selected `planName`; the matching
@@ -32,12 +48,71 @@ import "./cts-loading-state.js";
  *   caller (schedule-test.html) sets it while `/api/plan/available` is in
  *   flight and clears it once `plans` is populated, so the page chrome stays
  *   visible instead of being hidden behind a full-page modal.
+ * @property {Array} favorites - Controlled list of favorited `planName`s, in
+ *   caller order (most-recently-added last). The component renders these as
+ *   starred but never mutates the array itself — exactly like `selected`. The
+ *   caller owns persistence: it listens for `cts-favorite-toggle`, updates the
+ *   array optimistically, and reverts on a backend failure. Server-persisted
+ *   per principal via `/api/favorite-plans`, so the list follows the user
+ *   across browsers; a name that is no longer in `plans` renders as a
+ *   removable "No longer available" row rather than vanishing.
+ * @property {boolean} favoritesLoading - When set, the "★ Favorites" view
+ *   count shows an ellipsis placeholder while the caller's first favorites
+ *   fetch is in flight. Distinct from `loading`, which governs the whole
+ *   plan list.
+ * @property {boolean} canFavorite - Whether the current user can save
+ *   favorites. Defaults to `true`. The caller sets it to `false` only when the
+ *   API answers that there is no principal (401/403) — a server fault or a
+ *   dropped connection leaves the stars enabled, since neither says anything
+ *   about who the user is. When `false` the per-row stars render disabled with
+ *   a "Sign in to save favorites" tooltip rather than vanishing — the
+ *   affordance stays discoverable — and the ★ Favorites view explains why it
+ *   is empty.
  * @fires cts-plan-select - When a list item is selected, with
  *   `{ detail: { plan, via } }` where `via` is `'click'` or `'keyboard'`;
  *   bubbles.
+ * @fires cts-favorite-toggle - When a plan's star is toggled, with
+ *   `{ detail: { plan, favorite, via } }` where `plan` is the `planName`,
+ *   `favorite` is the requested next state (`true` = add, `false` = remove),
+ *   and `via` is `'click'` or `'keyboard'`; bubbles. The component does not
+ *   update `favorites` in response — the caller does (optimistically), which
+ *   is what lets the same event drive the real `/api/favorite-plans` store and
+ *   the stories' in-memory fake through identical wiring.
  */
 
 const STYLE_ID = "cts-test-selector-styles";
+
+// Sentinel <option> value for the "★ Favorites" saved view. Namespaced so it
+// can never collide with a real spec-family name.
+const FAVORITES_VIEW_VALUE = "__cts_favorites_view__";
+
+// localStorage key for the component-internal filter preference (which listbox
+// option is active). This is the ONLY thing the component persists: which view
+// you were last looking at is a per-browser UI preference, whereas the
+// favorites list itself is account data the caller stores server-side under the
+// logged-in principal. Different lifecycle, different owner. Value schema is a
+// single JSON object `{ filter }` where `filter` is `""` (All specifications),
+// a spec-family name, or `"favorites"` (the ★ Favorites view).
+const FILTER_STORAGE_KEY = "cts:test-selector-filter";
+const FAVORITES_FILTER_SENTINEL = "favorites";
+
+/**
+ * Probe localStorage, returning null when it is unavailable (private mode,
+ * disabled storage, quota). Kept local so the component does not couple to the
+ * guided-wizard feature module's `tryGetStorage` export.
+ * @returns {Storage | null} A working localStorage, or null when unavailable.
+ */
+function safeLocalStorage() {
+  try {
+    const storage = window.localStorage;
+    const probe = "__cts_test_selector_probe__";
+    storage.setItem(probe, probe);
+    storage.removeItem(probe);
+    return storage;
+  } catch {
+    return null;
+  }
+}
 
 const STYLE_TEXT = css`
   .oidf-test-selector {
@@ -96,12 +171,35 @@ const STYLE_TEXT = css`
     text-wrap: pretty;
     line-height: var(--lh-snug);
   }
+  /* Saved-view option: an orange accent sets the "★ Favorites" entry apart
+     from the real spec families below it. (Native <option> styling is limited,
+     but color and weight are honored in sized listboxes across the supported
+     modern browsers.) */
+  .oidf-test-selector__family-view {
+    color: var(--orange-700);
+    font-weight: var(--fw-medium);
+  }
+  /* Divider under the saved-view entry. It is a real <hr> in the listbox flow
+     (supported in <select> across the modern browser floor), NOT a border on
+     either adjacent option: an option's orange :checked fill covers its padding
+     box up to its border, so a border-divider on either option would be abutted
+     by that option's fill when selected (★ in the favorites view, "All
+     specifications" by default). The <hr> floats in the inter-option gap with
+     4px of white above and below it in BOTH states. Native <option>s render
+     neither ::after nor a free-floating border, so the <hr> is the only way to
+     get symmetric breathing room here. */
+  .oidf-test-selector__family-divider {
+    height: 0;
+    margin: var(--space-1) var(--space-3);
+    border: none;
+    border-top: 1px solid var(--divider);
+  }
   .oidf-test-selector__family option:checked {
     /* Under appearance:none the OS still paints the selected row via
      background-color, which a plain background-color cannot override. A
      background-image (a flat gradient) layers on top and wins, so the
      active family reads in the design-system orange rather than the
-     browser's blue/grey system highlight — matching the .is-active row. */
+     browser's blue/gray system highlight — matching the .is-active row. */
     background: var(--orange-50) linear-gradient(0deg, var(--orange-50), var(--orange-50));
     color: var(--fg);
     font-weight: var(--fw-medium);
@@ -178,6 +276,40 @@ const STYLE_TEXT = css`
     outline: none;
     box-shadow: var(--focus-ring);
   }
+  /* Escape hatch: a prose line in the rail, shown only when a non-"All"
+     filter is active, whose "Search all specifications" is a <button> styled
+     as a link (it clears the filter + focuses search — an in-page action, not
+     navigation). Underline is shown at rest for a discoverable affordance;
+     hover/focus shifts the color (mirrors the oidf-tokens prose-link palette
+     without its hide-at-rest behavior). */
+  .oidf-test-selector__escape {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+  }
+  .oidf-test-selector__escape-link {
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: var(--fg-link);
+    cursor: pointer;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-test-selector__escape-link:hover,
+  .oidf-test-selector__escape-link:focus-visible {
+    color: var(--orange-600);
+  }
+  .oidf-test-selector__escape-link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
   .oidf-test-selector__list {
     display: flex;
     flex-direction: column;
@@ -186,23 +318,47 @@ const STYLE_TEXT = css`
     background: var(--bg-elev);
     overflow: hidden;
   }
+  /* Row container. The single-button row was split into a select button +
+     a sibling favorite button (button-in-button is invalid and fails
+     a11y), so the divider/background that used to live on the row now live
+     on this flex wrapper. role="listitem" sits here; the inner controls are
+     plain buttons. */
+  .oidf-test-selector__item {
+    display: flex;
+    align-items: stretch;
+    border-top: 1px solid var(--divider);
+    background: var(--bg-elev);
+  }
+  .oidf-test-selector__item:first-child {
+    border-top: none;
+  }
+  /* The whole item follows the select button's hover/active state so the
+     star strip never reads as a separate, lighter column. :has() keeps the
+     background rules single-sourced on the row (where the
+     RowHoverStyleRegistered story still asserts them) instead of
+     duplicating them here. */
+  .oidf-test-selector__item:has(.oidf-test-selector__row:hover) {
+    background: var(--ink-50);
+  }
+  .oidf-test-selector__item:has(.oidf-test-selector__row.is-active) {
+    background: var(--orange-50);
+  }
   .oidf-test-selector__row {
-    display: block;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     text-align: left;
     padding: var(--space-3) var(--space-4);
     border: none;
-    border-top: 1px solid var(--divider);
-    background: var(--bg-elev);
+    /* Transparent so the item container's background (and its hover/active
+       variants) shows through; the row's own hover/active rules below layer
+       the same token on top, so the column reads uniformly either way. */
+    background: transparent;
     color: var(--fg);
     font-family: var(--font-sans);
     font-size: var(--fs-13);
     line-height: var(--lh-base);
     cursor: pointer;
     transition: background var(--dur-1) var(--ease-standard);
-  }
-  .oidf-test-selector__row:first-child {
-    border-top: none;
   }
   .oidf-test-selector__row:hover {
     background: var(--ink-50);
@@ -217,6 +373,53 @@ const STYLE_TEXT = css`
     background: var(--orange-50);
     color: var(--fg);
     font-weight: var(--fw-bold);
+  }
+  /* Secondary favorite toggle, sibling of the select button. A roving
+     tabindex (mirroring the select button's) keeps Tab from cycling every
+     star; the focused row exposes both its select and star as tab stops,
+     and the "f" shortcut toggles the focused row's star without leaving the
+     keyboard roving model. The stale row's remove control reuses this class
+     for a matching hit area. */
+  .oidf-test-selector__fav {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+    border: none;
+    border-left: 1px solid var(--divider);
+    background: transparent;
+    color: var(--fg-faint);
+    cursor: pointer;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-test-selector__fav:hover {
+    background: var(--ink-100);
+    color: var(--fg-soft);
+  }
+  .oidf-test-selector__fav:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    position: relative;
+    z-index: 1;
+  }
+  .oidf-test-selector__fav.is-favorited {
+    color: var(--orange-500);
+  }
+  /* canFavorite=false: the star is a no-op, explanatory affordance (the user
+     is not signed in / favorites failed to load). aria-disabled rather than
+     the disabled attribute so it stays in the tab order and the tooltip is
+     reachable. */
+  .oidf-test-selector__fav[aria-disabled="true"] {
+    color: var(--fg-faint);
+    cursor: not-allowed;
+  }
+  .oidf-test-selector__fav[aria-disabled="true"]:hover {
+    background: transparent;
+    color: var(--fg-faint);
   }
   .oidf-test-selector__row-head {
     display: flex;
@@ -268,8 +471,42 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     line-height: var(--lh-base);
   }
+  .oidf-test-selector__empty strong {
+    color: var(--fg);
+    font-weight: var(--fw-medium);
+  }
+  /* Second grid column wrapper for the list. min-width:0 keeps a long plan
+     name from blowing the grid wider than its track. */
+  .oidf-test-selector__main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  /* Stale favorite: a favorited plan that has dropped out of the plans list.
+     The body is a non-interactive span (it carries no .oidf-test-selector__row,
+     so it stays out of the arrow-roving index and the "f" shortcut); only the
+     remove control is actionable. */
+  .oidf-test-selector__stale {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    color: var(--fg-faint);
+  }
+  .oidf-test-selector__stale .oidf-test-selector__row-name {
+    text-decoration: line-through;
+    color: var(--fg-soft);
+  }
+  .oidf-test-selector__item--stale:hover {
+    background: var(--bg-elev);
+  }
 `;
 
+/**
+ * Inject the component's scoped stylesheet into `<head>` once per document.
+ * @returns {void}
+ */
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
@@ -286,8 +523,15 @@ class CtsTestSelector extends LitElement {
     // cleared from the DOM when the page sets `loading = false` after the
     // plans fetch — otherwise the stale attribute lingers on the element.
     loading: { type: Boolean, reflect: true },
+    favorites: { type: Array },
+    favoritesLoading: { type: Boolean, attribute: "favorites-loading" },
+    canFavorite: { type: Boolean, attribute: "can-favorite" },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
+    // The synthetic "★ Favorites" saved view is selected in the family
+    // listbox. Kept distinct from _selectedFamily (a real spec family); the
+    // two are mutually exclusive.
+    _favoritesView: { state: true },
     _focusedRowIndex: { state: true },
   };
 
@@ -300,8 +544,12 @@ class CtsTestSelector extends LitElement {
     this.plans = [];
     this.selected = "";
     this.loading = false;
+    this.favorites = [];
+    this.favoritesLoading = false;
+    this.canFavorite = true;
     this._searchTerm = "";
     this._selectedFamily = "";
+    this._favoritesView = false;
     // -1 means "no row focused — search input owns focus (or focus is
     // elsewhere on the page)". A non-negative value names the row that
     // should receive focus on the next render-completion tick.
@@ -314,11 +562,22 @@ class CtsTestSelector extends LitElement {
     // BEFORE keyup, so a keyup-driven dispatch would land after the
     // click handler already ran). Cleared after each click dispatch.
     this._activationVia = null;
+    // Pre-render snapshot of the list, captured in willUpdate() whenever
+    // `favorites` changes, so updated() can tell a favorites-driven shrink
+    // from any other re-render and put focus somewhere sensible. Plain fields,
+    // not reactive state — they describe the render that just happened.
+    this._rowCountBeforeUpdate = 0;
+    this._focusedRowIndexBeforeUpdate = -1;
   }
 
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    // Restore the persisted filter preference (component-internal UI state).
+    // Setting reactive state here is fine: Lit batches it into the first
+    // render. Restoring a filter is NOT a plan pick — `selected` is untouched
+    // and no `cts-plan-select` fires.
+    this._restoreFilter();
   }
 
   get _families() {
@@ -327,9 +586,18 @@ class CtsTestSelector extends LitElement {
   }
 
   get _filteredPlans() {
-    let filtered = this.plans;
-    if (this._selectedFamily) {
-      filtered = filtered.filter((p) => p.specFamily === this._selectedFamily);
+    let filtered;
+    if (this._favoritesView) {
+      // Live favorited plans in caller (favorites) order — most-recently-added
+      // last (the store appends). Stale favorites (a starred name absent from
+      // `plans`) are rendered separately as stale rows, not here.
+      filtered = this.favorites
+        .map((name) => this.plans.find((p) => p.planName === name))
+        .filter((p) => p !== undefined);
+    } else if (this._selectedFamily) {
+      filtered = this.plans.filter((p) => p.specFamily === this._selectedFamily);
+    } else {
+      filtered = this.plans;
     }
     if (this._searchTerm) {
       const term = this._searchTerm.toLowerCase();
@@ -340,6 +608,38 @@ class CtsTestSelector extends LitElement {
       );
     }
     return filtered;
+  }
+
+  // The count shown in the "★ Favorites (n)" saved-view label: an ellipsis
+  // placeholder while the caller's first favorites fetch is in flight, else
+  // the favorites count. Kept short so the visible label renders on one line.
+  get _favoritesViewLabel() {
+    return this.favoritesLoading ? "…" : this.favorites.length;
+  }
+
+  // True when the ★ Favorites view is active AND at least one favorite is a
+  // live plan. Distinguishes "you have favorites, some still exist" from
+  // "every favorite has retired" (the all-unavailable empty state).
+  get _hasLiveFavorites() {
+    return (
+      this._favoritesView &&
+      this.favorites.some((name) => this.plans.some((p) => p.planName === name))
+    );
+  }
+
+  // Stale favorited names to render as minimal stale rows in the ★ Favorites
+  // view. Shown only alongside ≥1 live favorite — when every favorite has
+  // retired the view shows the "all unavailable" empty copy instead of a list
+  // of only-removable dead rows (see _renderListEmpty). Search-filtered on the
+  // raw planName (a stale pin has no plan object to match display text).
+  get _staleFavorites() {
+    if (!this._hasLiveFavorites) return [];
+    let stale = this.favorites.filter((name) => !this.plans.some((p) => p.planName === name));
+    if (this._searchTerm) {
+      const term = this._searchTerm.toLowerCase();
+      stale = stale.filter((name) => name.toLowerCase().includes(term));
+    }
+    return stale;
   }
 
   _handleSearch(e) {
@@ -370,9 +670,42 @@ class CtsTestSelector extends LitElement {
     );
     if (input) input.focus();
   }
+
   _handleFamilyFilter(e) {
-    this._selectedFamily = e.target.value;
+    const value = e.target.value;
+    if (value === FAVORITES_VIEW_VALUE) {
+      // Entering the saved view; a real family and the favorites view are
+      // mutually exclusive.
+      this._favoritesView = true;
+      this._selectedFamily = "";
+    } else {
+      // Picking any real family (or "All specifications") leaves the view.
+      this._favoritesView = false;
+      this._selectedFamily = value;
+    }
     this._focusedRowIndex = -1;
+    this._persistFilter();
+  }
+
+  // Escape hatch: clear any non-"All" filter, persist the cleared state, and
+  // drop focus into the search input. Falls back to the family listbox, then
+  // a no-op, mirroring the search-clear null-guard.
+  _handleEscapeToAll() {
+    this._selectedFamily = "";
+    this._favoritesView = false;
+    this._focusedRowIndex = -1;
+    this._persistFilter();
+    const input = /** @type {HTMLInputElement | null} */ (
+      this.querySelector(".oidf-test-selector__search")
+    );
+    if (input) {
+      input.focus();
+      return;
+    }
+    const select = /** @type {HTMLSelectElement | null} */ (
+      this.querySelector(".oidf-test-selector__family")
+    );
+    if (select) select.focus();
   }
 
   // Read the row's position from data-index. Closing over `index` in the
@@ -410,6 +743,19 @@ class CtsTestSelector extends LitElement {
       }
       return;
     }
+    if ((key === "f" || key === "F") && this.canFavorite) {
+      // Focused-row shortcut: toggle this row's favorite without leaving the
+      // roving model or reaching for the star with Tab. The star is also a
+      // real tab stop on the focused row, so both affordances coexist. Stale
+      // rows have no select button, so they never receive this keydown. Gated
+      // on canFavorite so it stays a no-op when favorites can't be saved.
+      e.preventDefault();
+      const plan = this._filteredPlans[index];
+      if (plan) {
+        this._emitFavoriteToggle(plan.planName, !this._isFavorite(plan.planName), "keyboard");
+      }
+      return;
+    }
     if (key === "Enter" || key === " ") {
       // Tag the activation modality so the click event that follows
       // (native <button> Enter/Space activation fires a click) reports
@@ -420,9 +766,10 @@ class CtsTestSelector extends LitElement {
   }
 
   _handleRowClick(e) {
-    const index = this._rowIndexFromEvent(e);
-    if (index < 0) return;
-    const plan = this._filteredPlans[index];
+    // Resolve by plan name rather than the roving index so a future caller
+    // re-ordering the list can't desync the click target.
+    const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.planName;
+    const plan = this.plans.find((p) => p.planName === planName);
     if (!plan) return;
     // Read and clear the intent flag in one step. If keydown(Enter|Space)
     // marked the activation as keyboard-driven, honor that; otherwise the
@@ -435,19 +782,177 @@ class CtsTestSelector extends LitElement {
   _handleSelectPlan(plan, via) {
     this.selected = plan.planName;
     this.dispatchEvent(
-      new CustomEvent("cts-plan-select", { bubbles: true, detail: { plan, via } }),
+      new CustomEvent("cts-plan-select", {
+        bubbles: true,
+        detail: { plan, via },
+      }),
     );
+  }
+
+  _isFavorite(planName) {
+    return this.favorites.includes(planName);
+  }
+
+  // Announce the user's intent to toggle a favorite. Crucially this does NOT
+  // touch `this.favorites` — the caller owns that array and updates it
+  // optimistically, so the same event drives the real `/api/favorite-plans`
+  // store and the stories' in-memory fake with no template change.
+  _emitFavoriteToggle(planName, favorite, via) {
+    this.dispatchEvent(
+      new CustomEvent("cts-favorite-toggle", {
+        bubbles: true,
+        detail: { plan: planName, favorite, via },
+      }),
+    );
+  }
+
+  // Persist the active filter preference (component-internal UI state). The
+  // persisted value is the *last active* filter: the ★ Favorites sentinel, a
+  // spec-family name, or "" (All specifications). Best-effort — a failed write
+  // (quota / private mode) leaves the prior value and does not affect the UI.
+  _persistFilter() {
+    const storage = safeLocalStorage();
+    if (!storage) return;
+    const filter = this._favoritesView ? FAVORITES_FILTER_SENTINEL : this._selectedFamily;
+    try {
+      storage.setItem(FILTER_STORAGE_KEY, JSON.stringify({ filter }));
+    } catch {
+      // Ignore: the preference simply isn't remembered this session.
+    }
+  }
+
+  // Restore the persisted filter preference. Tolerates a missing/corrupt value
+  // as "All specifications". A restored family that no longer exists in
+  // `plans` is corrected to "All" in updated() once real plans arrive (the
+  // connect-time seed runs before the page feeds `plans`).
+  _restoreFilter() {
+    const storage = safeLocalStorage();
+    if (!storage) return;
+    let filter = "";
+    try {
+      const raw = storage.getItem(FILTER_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && typeof parsed.filter === "string") filter = parsed.filter;
+    } catch {
+      filter = "";
+    }
+    if (filter === FAVORITES_FILTER_SENTINEL) {
+      this._favoritesView = true;
+      this._selectedFamily = "";
+    } else {
+      this._favoritesView = false;
+      this._selectedFamily = filter;
+    }
+  }
+
+  // Snapshot where focus sits in the currently-rendered list, before the
+  // incoming `favorites` value re-renders it. Unstarring inside the ★ Favorites
+  // view drops the row the user is standing on, and rows are keyed by position
+  // (a plain .map, not repeat()), so without this the focused button silently
+  // comes to represent a *different* plan — or, if the last row went, focus
+  // falls to <body> and Tab cannot get back in (rows are tabindex="-1").
+  willUpdate(changed) {
+    if (!changed.has("favorites")) return;
+    const list = this.querySelector(".oidf-test-selector__list");
+    const active = this.ownerDocument ? this.ownerDocument.activeElement : null;
+    if (!list || !active || !list.contains(active)) {
+      this._rowCountBeforeUpdate = 0;
+      this._focusedRowIndexBeforeUpdate = -1;
+      return;
+    }
+    const rows = list.querySelectorAll(".oidf-test-selector__row");
+    this._rowCountBeforeUpdate = rows.length;
+    // Focus may be on the row itself or on its sibling star; both live inside
+    // the same item wrapper. A stale-favorite item has no row, and stale rows
+    // render after the live ones, so treat it as sitting past the last row —
+    // the clamp below then lands focus on the last live row.
+    const item = active.closest(".oidf-test-selector__item");
+    const row = item ? item.querySelector(".oidf-test-selector__row") : null;
+    const index = row ? Number(row.getAttribute("data-index")) : rows.length;
+    this._focusedRowIndexBeforeUpdate = Number.isFinite(index) ? index : -1;
+  }
+
+  // Focus repair for a favorites-driven shrink: land on the row that now
+  // occupies the vacated position (clamped to the last row), which is the row
+  // that visually slid up under the user's cursor. When the list empties there
+  // is no row left, so fall back to the escape hatch, then the search input —
+  // both are real tab stops, unlike the rows.
+  _restoreFocusAfterFavoritesShrink() {
+    const list = this.querySelector(".oidf-test-selector__list");
+    if (!list) return;
+    const rows = list.querySelectorAll(".oidf-test-selector__row");
+    if (rows.length === 0) {
+      const escapeHatch = /** @type {HTMLElement | null} */ (
+        this.querySelector(".oidf-test-selector__escape-link")
+      );
+      const search = /** @type {HTMLElement | null} */ (
+        this.querySelector(".oidf-test-selector__search")
+      );
+      this._focusedRowIndex = -1;
+      if (escapeHatch) escapeHatch.focus();
+      else if (search) search.focus();
+      return;
+    }
+    const index = Math.min(Math.max(this._focusedRowIndexBeforeUpdate, 0), rows.length - 1);
+    // Keep the roving tabindex in step with where focus actually is, then move
+    // focus explicitly: the index often has not changed (the row at position i
+    // was replaced, not renumbered), so the _focusedRowIndex branch above would
+    // not re-run on its own.
+    this._focusedRowIndex = index;
+    /** @type {HTMLElement} */ (rows[index]).focus();
   }
 
   updated(changed) {
     // After the post-render commit, move real DOM focus to the row that
     // the index now points at. Running here (not inside the keydown
     // handler) ensures the new tabindex="0" / -1 mapping is already in
-    // the DOM before .focus() is called.
+    // the DOM before .focus() is called. Stale rows carry no
+    // .oidf-test-selector__row, so the query naturally indexes live rows only.
     if (changed.has("_focusedRowIndex") && this._focusedRowIndex >= 0) {
-      const rows = this.querySelectorAll(".oidf-test-selector__row");
+      const list = this.querySelector(".oidf-test-selector__list");
+      const rows = list ? list.querySelectorAll(".oidf-test-selector__row") : [];
       const target = /** @type {HTMLElement | undefined} */ (rows[this._focusedRowIndex]);
       if (target) target.focus();
+    }
+    // A favorites change that removed rows the user was standing in: repair
+    // focus before the next keystroke acts on whatever slid into place. Gated
+    // on the shrink, so starring from another view (where the row count is
+    // unchanged) never steals focus.
+    if (changed.has("favorites") && this._focusedRowIndexBeforeUpdate >= 0) {
+      const list = this.querySelector(".oidf-test-selector__list");
+      const rowCount = list ? list.querySelectorAll(".oidf-test-selector__row").length : 0;
+      if (rowCount < this._rowCountBeforeUpdate) {
+        this._restoreFocusAfterFavoritesShrink();
+      }
+      this._focusedRowIndexBeforeUpdate = -1;
+      this._rowCountBeforeUpdate = 0;
+    }
+    // A restored family filter that no longer matches the (now-loaded) plans
+    // falls back to "All specifications". Guarded on a non-empty `plans` so
+    // the connect-time seed survives the initial empty `plans = []` before the
+    // page feeds the real catalog.
+    if (
+      changed.has("plans") &&
+      this.plans.length > 0 &&
+      this._selectedFamily !== "" &&
+      !this._families.includes(this._selectedFamily)
+    ) {
+      this._selectedFamily = "";
+      this._persistFilter();
+    }
+    // Reflect the component's filter state in the native listbox selection.
+    // A `?selected` option binding does not reliably move the native
+    // selectedIndex on programmatic changes (the escape hatch clearing the
+    // filter, or restoring a persisted filter on mount), so set `value`
+    // explicitly. Re-runs on `plans` too, so the selection re-syncs once a
+    // restored family's <option> has rendered.
+    if (changed.has("_selectedFamily") || changed.has("_favoritesView") || changed.has("plans")) {
+      const select = /** @type {HTMLSelectElement | null} */ (
+        this.querySelector(".oidf-test-selector__family")
+      );
+      if (select) {
+        select.value = this._favoritesView ? FAVORITES_VIEW_VALUE : this._selectedFamily;
+      }
     }
   }
 
@@ -486,76 +991,208 @@ class CtsTestSelector extends LitElement {
           </div>
           <select
             class="oidf-test-selector__family"
-            size="14"
+            size="16"
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
-            <option value="" ?selected=${this._selectedFamily === ""}>All specifications</option>
+            <option
+              value="${FAVORITES_VIEW_VALUE}"
+              class="oidf-test-selector__family-view"
+              ?selected=${this._favoritesView}
+            >
+              ★ Favorites (${this._favoritesViewLabel})
+            </option>
+            <hr class="oidf-test-selector__family-divider" />
+            <option value="" ?selected=${this._selectedFamily === "" && !this._favoritesView}>
+              All specifications
+            </option>
             ${this._renderFamilyOptions()}
           </select>
         </div>
-        <div class="oidf-test-selector__list" role="list">
-          ${this._filteredPlans.length > 0
-            ? this._filteredPlans.map(
-                (plan, index) => html`
-                  <button
-                    type="button"
-                    role="listitem"
-                    class=${classMap({
-                      "oidf-test-selector__row": true,
-                      "is-active": this.selected === plan.planName,
-                    })}
-                    data-plan-name="${plan.planName}"
-                    data-index="${index}"
-                    tabindex="${this._focusedRowIndex === index ? 0 : -1}"
-                    @click=${this._handleRowClick}
-                    @keydown=${this._handleRowKeydown}
-                  >
-                    <span class="oidf-test-selector__row-head">
-                      <span class="oidf-test-selector__row-title">
-                        <strong class="oidf-test-selector__row-name"
-                          >${plan.displayName || plan.planName}</strong
-                        >
-                        ${plan.specFamily
-                          ? html`<span class="oidf-test-selector__row-family"
-                              >${plan.specFamily}</span
-                            >`
-                          : nothing}
-                      </span>
-                      ${plan.modules
-                        ? html`<cts-tooltip
-                            content="Number of test modules in this plan"
-                            placement="left"
-                            ><span
-                              class="oidf-test-selector__row-count"
-                              aria-label="${plan.modules.length} test ${plan.modules.length === 1
-                                ? "module"
-                                : "modules"}"
-                              >${plan.modules.length}</span
-                            ></cts-tooltip
-                          >`
-                        : nothing}
-                    </span>
-                    ${plan.summary
-                      ? html`<span class="oidf-test-selector__row-summary"
-                          >${formatSummaryPreview(plan.summary)}</span
-                        >`
-                      : nothing}
-                  </button>
-                `,
-              )
-            : this.loading
-              ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
-              : html`<div class="oidf-test-selector__empty">No plans match your search</div>`}
+        <div class="oidf-test-selector__main">
+          <div class="oidf-test-selector__list" role="list">
+            ${this._filteredPlans.length > 0 || this._staleFavorites.length > 0
+              ? html`
+                  ${this._filteredPlans.map((plan, index) => this._renderRow(plan, index))}
+                  ${this._staleFavorites.map((name) => this._renderStaleFavorite(name))}
+                `
+              : this.loading
+                ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
+                : this._renderListEmpty()}
+          </div>
+          ${this._selectedFamily !== "" || this._favoritesView
+            ? html`<p class="oidf-test-selector__escape">
+                Can't find a spec here?
+                <button
+                  type="button"
+                  class="oidf-test-selector__escape-link"
+                  @click=${this._handleEscapeToAll}
+                >
+                  Search all specifications
+                </button>
+              </p>`
+            : nothing}
         </div>
       </div>
     `;
   }
 
+  // Render one plan row: a role="listitem" container holding the primary
+  // select <button> (roving tabindex) and a sibling favorite <button>.
+  _renderRow(plan, index) {
+    const rowTabindex = this._focusedRowIndex === index ? 0 : -1;
+    return html`
+      <div class="oidf-test-selector__item" role="listitem">
+        <button
+          type="button"
+          class=${classMap({
+            "oidf-test-selector__row": true,
+            "is-active": this.selected === plan.planName,
+          })}
+          data-plan-name="${plan.planName}"
+          data-index="${index}"
+          tabindex="${rowTabindex}"
+          @click=${this._handleRowClick}
+          @keydown=${this._handleRowKeydown}
+        >
+          <span class="oidf-test-selector__row-head">
+            <span class="oidf-test-selector__row-title">
+              <strong class="oidf-test-selector__row-name"
+                >${plan.displayName || plan.planName}</strong
+              >
+              ${plan.specFamily
+                ? html`<span class="oidf-test-selector__row-family">${plan.specFamily}</span>`
+                : nothing}
+            </span>
+            ${plan.modules
+              ? html`<cts-tooltip content="Number of test modules in this plan" placement="left"
+                  ><span
+                    class="oidf-test-selector__row-count"
+                    aria-label="${plan.modules.length} test ${plan.modules.length === 1
+                      ? "module"
+                      : "modules"}"
+                    >${plan.modules.length}</span
+                  ></cts-tooltip
+                >`
+              : nothing}
+          </span>
+          ${plan.summary
+            ? html`<span class="oidf-test-selector__row-summary"
+                >${formatSummaryPreview(plan.summary)}</span
+              >`
+            : nothing}
+        </button>
+        ${this._renderFavoriteButton(plan, rowTabindex)}
+      </div>
+    `;
+  }
+
+  // The per-row star. aria-pressed is the source of truth for the favorited
+  // state (the filled/outline icon swap is the matching visual cue). The
+  // tabindex roves in lockstep with its row's select button, so Tab visits
+  // "select then star" on the focused row and skips the rest of the list.
+  // When favorites can't be saved (canFavorite=false — no signed-in principal /
+  // the favorites API failed to load) the star renders as an aria-disabled,
+  // no-op affordance with an explanatory tooltip rather than disappearing.
+  _renderFavoriteButton(plan, tabindex) {
+    const planName = plan.planName;
+    const name = plan.displayName || planName;
+    if (!this.canFavorite) {
+      return html`<cts-tooltip content="Sign in to save favorites" placement="left"
+        ><button
+          type="button"
+          class="oidf-test-selector__fav"
+          aria-disabled="true"
+          aria-label="Sign in to save favorites: ${name}"
+          tabindex="${tabindex}"
+        >
+          <cts-icon name="star" size="20"></cts-icon></button
+      ></cts-tooltip>`;
+    }
+    const fav = this._isFavorite(planName);
+    return html`<button
+      type="button"
+      class=${classMap({
+        "oidf-test-selector__fav": true,
+        "is-favorited": fav,
+      })}
+      aria-pressed="${fav ? "true" : "false"}"
+      aria-label="${fav ? "Remove favorite" : "Add favorite"}: ${name}"
+      data-favorite-plan="${planName}"
+      tabindex="${tabindex}"
+      @click=${this._handleFavoriteClick}
+    >
+      <cts-icon name="${fav ? "star-fill" : "star"}" size="20"></cts-icon>
+    </button>`;
+  }
+
+  // A favorited planName that is no longer in `plans`. Rendered as a
+  // non-interactive crossed-out row with an explicit remove control so the
+  // user understands why a favorite vanished rather than seeing it silently
+  // disappear. The body carries no .oidf-test-selector__row, so it sits
+  // outside the arrow-roving index and the "f" shortcut; only the remove
+  // control is actionable.
+  _renderStaleFavorite(name) {
+    return html`<div
+      class="oidf-test-selector__item oidf-test-selector__item--stale"
+      role="listitem"
+    >
+      <span class="oidf-test-selector__stale">
+        <span class="oidf-test-selector__row-head">
+          <span class="oidf-test-selector__row-title">
+            <strong class="oidf-test-selector__row-name">${name}</strong>
+            <span class="oidf-test-selector__row-family">No longer available</span>
+          </span>
+        </span>
+      </span>
+      <button
+        type="button"
+        class="oidf-test-selector__fav"
+        aria-label="Remove favorite: ${name}"
+        data-favorite-plan="${name}"
+        @click=${this._handleFavoriteClick}
+      >
+        <cts-icon name="close-md" size="20"></cts-icon>
+      </button>
+    </div>`;
+  }
+
+  _handleFavoriteClick(e) {
+    // The favorite + stale-remove buttons carry the plan in `data-favorite-plan`
+    // (NOT `data-plan-name`, which is the row's selection identity) so a
+    // `[data-plan-name="X"]` query unambiguously resolves to the row.
+    const planName = /** @type {HTMLElement} */ (e.currentTarget).dataset.favoritePlan;
+    if (!planName) return;
+    // Request the opposite of the current state; the caller flips the prop.
+    this._emitFavoriteToggle(planName, !this._isFavorite(planName), "click");
+  }
+
   _renderFamilyOptions() {
     return this._families.map(
-      (f) => html`<option value="${f}" ?selected=${this._selectedFamily === f}>${f}</option>`,
+      (f) => html`<option value="${f}" ?selected=${this._selectedFamily === f}> ${f} </option>`,
     );
+  }
+
+  // Empty-list copy. In the ★ Favorites view the message is favorites-specific
+  // (never the generic search-miss line, so an empty view never reads as "no
+  // plans exist"): zero favorites, all-retired, or a search miss within a
+  // non-empty favorites set.
+  _renderListEmpty() {
+    if (this._favoritesView) {
+      let message;
+      if (!this.canFavorite) {
+        message = html`<strong>Sign in to save favorites</strong> — your favorites are stored with
+          your account.`;
+      } else if (this.favorites.length === 0) {
+        message = html`<strong>No favorites yet</strong> — star a plan to add it here.`;
+      } else if (!this._hasLiveFavorites) {
+        message = html`All your favorites are unavailable.`;
+      } else {
+        message = html`No favorites match your search.`;
+      }
+      return html`<div class="oidf-test-selector__empty"> ${message} </div>`;
+    }
+    return html`<div class="oidf-test-selector__empty"> No plans match your search </div>`;
   }
 }
 customElements.define("cts-test-selector", CtsTestSelector);

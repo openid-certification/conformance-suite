@@ -69,6 +69,23 @@ export async function setupCommonRoutes(page, options = {}) {
       }),
     }),
   );
+
+  // The favorites picker (schedule-test.html) seeds its list from
+  // /api/favorite-plans. Default to an empty authenticated set so the stars
+  // render normally; an anonymous user (user === null) gets 401, which the page
+  // treats as "can't favorite" (disabled stars). Toggle-specific tests register
+  // a stateful override after this (later registration wins). The trailing `**`
+  // also covers the DELETE /api/favorite-plans/{plan} sub-path.
+  await page.route("**/api/favorite-plans**", (route) => {
+    if (user === null) {
+      return route.fulfill({ status: 401, body: "" });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ plans: [] }),
+    });
+  });
 }
 
 /**

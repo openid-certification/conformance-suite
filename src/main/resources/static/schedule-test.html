@@ -40,7 +40,6 @@
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
-    <script type="module" src="/components/cts-spec-cascade.js"></script>
     <script type="module" src="/components/cts-flash-highlight.js"></script>
     <script type="module" src="/components/cts-test-selector.js"></script>
     <script type="module" src="/components/cts-form-field.js"></script>
@@ -86,6 +85,32 @@
         window.__guidedModeReady = new Promise(function (resolve) {
             window.__resolveGuidedModeReady = resolve;
         });
+    </script>
+
+    <script>
+        // Promise-shim for the favorites store module (same pattern as
+        // __configFormAdapterReady / __guidedModeReady above): the inline init
+        // chain awaits this before seeding planSearch.favorites and wiring the
+        // optimistic cts-favorite-toggle persistence, because the module
+        // script that creates the controller runs async relative to inline
+        // scripts.
+        window.__favoritesReady = new Promise(function (resolve) {
+            window.__resolveFavoritesReady = resolve;
+        });
+    </script>
+    <script type="module">
+        // Favorites persistence: the favorites list is account data, stored
+        // server-side per principal via the auth-gated /api/favorite-plans API.
+        // Re-expose the controller + attachFavorites on window so the inline
+        // <script> chain below (which cannot use ES imports) can seed favorites
+        // and wire optimistic persistence once the plans load.
+        import {
+            createFavoritesController,
+            attachFavorites,
+        } from "/components/cts-test-selector.favorites-store.js";
+        window.__favoritesController = createFavoritesController();
+        window.__attachFavorites = attachFavorites;
+        window.__resolveFavoritesReady();
     </script>
 
     <style>
@@ -149,11 +174,11 @@
         #guidedIsland:focus,
         #scheduleTestPage:focus { outline: none; }
 
-        /* revealPlanSelection() scrolls the cascade to block:start; land it
-           16px shy of the viewport top so the selection (and the flash wash
+        /* revealPlanSelection() scrolls #selectionFlash to block:start; land
+           it 16px shy of the viewport top so the selection (and the flash wash
            around it) gets breathing room. scroll-margin offsets the scroll
            target position only — unlike padding, the box doesn't change. */
-        #specCascade { scroll-margin-top: var(--space-4); }
+        #selectionFlash { scroll-margin-top: var(--space-4); }
 
         .sr-only { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
 
@@ -615,12 +640,24 @@
                 </div>
             </div>
 
+            <!-- Plans-load-failure banner (KTD5). Hidden by default; revealed
+                 from loadAvailablePlans()'s catch when /api/plan/available
+                 fails. A successful-but-empty response is left to the picker's
+                 own empty state — only a fetch failure shows this. Replaces
+                 the deleted cts-spec-cascade's `spec-cascade-error` banner. -->
+            <cts-alert
+                id="plansLoadError"
+                variant="danger"
+                data-testid="plans-load-error"
+                hidden
+            >Unable to load test plans — please reload the page.</cts-alert>
+
             <cts-test-selector id="planSearch" loading></cts-test-selector>
-            <!-- Wrap the cascade + variant selectors so the scroll-in flash
-                 wash (fired after a search-list plan pick) covers both as one
-                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <!-- Wrap the variant selectors so the scroll-in flash wash (fired
+                 after a search-list plan pick) covers the selection group. It
+                 is the scroll + flash target for revealPlanSelection(). See
+                 cts-flash-highlight + the cts-plan-select handler. -->
             <cts-flash-highlight id="selectionFlash">
-                <cts-spec-cascade id="specCascade"></cts-spec-cascade>
                 <form id="variantSelectors">
                     <!-- render variant selectors here -->
                 </form>
@@ -724,34 +761,44 @@
         }
 
         // Shared arrival cue for the user-pick paths (clicking a search
-        // result, accepting the guided prefill bridge): scroll the cascade
-        // into view, then — once the smooth scroll has *settled* — flash the
-        // cascade + variant selectors group and drop focus into the first
-        // variant <select> (falling back to the cascade's first <select> for
-        // plans with no variants) so the user can carry straight on to
-        // configuring. The flash fires post-settle so the wash reads as
-        // "you've arrived" rather than playing mid-flight; reduced-motion
-        // handling lives inside flashHighlight(). Deliberately NOT called on
-        // the non-scrolling deep-link / edit-plan / last-config restore
-        // paths. The rAF defers until the post-selection render (variants +
+        // result, accepting the guided prefill bridge): scroll the selection
+        // group into view, then — once the smooth scroll has *settled* —
+        // flash the variant-selectors group and drop focus into the first
+        // variant <select> (falling back to the Create button for plans with
+        // no variants) so the user can carry straight on to configuring. The
+        // flash fires post-settle so the wash reads as "you've arrived"
+        // rather than playing mid-flight; reduced-motion handling lives
+        // inside flashHighlight(). Deliberately NOT called on the
+        // non-scrolling deep-link / edit-plan / last-config restore paths.
+        // The rAF defers until the post-selection render (variants +
         // config-form mutations) has laid out, so the scroll target reflects
         // the final layout — call it synchronously after selecting the plan.
         function revealPlanSelection() {
             requestAnimationFrame(function() {
-                var cascadeEl = document.getElementById('specCascade');
-                if (!cascadeEl) return;
-                cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // #selectionFlash wraps the variant selectors (it used to wrap
+                // the now-deleted cascade too); it is the scroll + flash
+                // target and carries the scroll-margin-top rule.
+                var flashEl = document.getElementById('selectionFlash');
+                if (!flashEl) return;
+                flashEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 whenScrollSettles(function() {
-                    var flashEl = document.getElementById('selectionFlash');
-                    if (flashEl && typeof flashEl.flashHighlight === 'function') {
+                    if (typeof flashEl.flashHighlight === 'function') {
                         flashEl.flashHighlight();
                     }
                     // No preventScroll: the scroll has already rested, so
                     // letting .focus() nudge an off-screen control into view
                     // is desirable here, not a conflict.
                     var variantForm = document.getElementById('variantSelectors');
-                    var firstField = (variantForm && variantForm.querySelector('select'))
-                        || cascadeEl.querySelector('select');
+                    var firstField = variantForm && variantForm.querySelector('select');
+                    if (!firstField) {
+                        // No-variant plan: #variantSelectors is empty. Don't
+                        // strand focus back in the search list — advance to the
+                        // primary action. cts-button renders a native <button>
+                        // in its light DOM (createRenderRoot returns `this`), so
+                        // focus that; the host element itself isn't focusable.
+                        var createBtn = document.getElementById('createPlanBtn');
+                        firstField = (createBtn && createBtn.querySelector('button')) || createBtn;
+                    }
                     if (firstField) firstField.focus();
                 });
             });
@@ -781,9 +828,8 @@
             }
 
             // No full-page "Loading available tests..." modal: the test
-            // selector (#planSearch) boots with its own in-list loader and the
-            // cts-spec-cascade self-fetches with its own loading state, so the
-            // page chrome stays visible and only the list areas show spinners.
+            // selector (#planSearch) boots with its own in-list loader, so the
+            // page chrome stays visible and only the list area shows a spinner.
             // The selector's loader is cleared in the chain's .finally below.
             FAPI_UI.loadScheduleTestPageTemplates()
             .then(function() {
@@ -823,6 +869,20 @@
                             createPlan: postCreatePlan,
                             normalizeCreateError: normalizeCreateError,
                             revealPlanSelection: revealPlanSelection,
+                            // acceptBridge drives the page's plan selection with
+                            // user-pick semantics: dispatchPlanSelection() leaves
+                            // isSystemSelectingPlan at 0 so the bridge prefill
+                            // clears the in-flight config (matching the old
+                            // cascade.selectPlanByName path). The dep key matches
+                            // the function name on purpose — it is the counter-0
+                            // core, NOT the counter-bumping page selectPlanByName
+                            // wrapper. It is synchronous — updateVariants()
+                            // renders the variant <select>s before it returns, so
+                            // the variant overlay lands.
+                            dispatchPlanSelection: dispatchPlanSelection,
+                            // maybeOfferBridge reads the current-plan source of
+                            // truth to dedup an already-applied prefill.
+                            getSelectedPlanName: getSelectedPlanName,
                         });
                     }
                     if (guidedCtl && guidedCtl.initialMode === 'guided') {
@@ -840,7 +900,7 @@
                 // page is wired and interactive (the cts-plan-select handler is
                 // installed by loadScheduleTestPage in the chain above). On a
                 // failed plans fetch the rows fall back to the empty message
-                // and cts-spec-cascade surfaces the error banner.
+                // and loadAvailablePlans()'s catch reveals #plansLoadError.
                 var planSearch = document.getElementById('planSearch');
                 if (planSearch) {
                     planSearch.loading = false;
@@ -866,8 +926,8 @@
                 console.warn('[schedule-test] invalid configJson URL param', e);
                 return;
             }
-            const planSelectEl = document.getElementById('planSelect');
-            if (planSelectEl && planSelectEl.value && planSelectEl.value !== 'select') {
+            const selectedPlanName = getSelectedPlanName();
+            if (selectedPlanName && selectedPlanName !== 'select') {
                 applyConfigToForm(parsed);
                 return;
             }
@@ -1000,15 +1060,29 @@
             onSecurityProfileChange();
         }
 
+        // Lay the user's still-unresolved star presses back over a server list.
+        // Used when the seed GET lands after the user has already toggled
+        // something: the server list is the baseline, and each decision whose
+        // write has not settled yet is re-applied on top so the optimistic UI
+        // survives. A pending unstar drops the plan; a pending star appends it
+        // (insertion order, matching the store).
+        function applyPendingToggles(serverPlans, pendingToggles) {
+            var next = serverPlans.filter(function (name) {
+                return pendingToggles.get(name) !== false;
+            });
+            pendingToggles.forEach(function (wanted, plan) {
+                if (wanted && next.indexOf(plan) === -1) next.push(plan);
+            });
+            return next;
+        }
+
         function loadAvailablePlans() {
             return fetch('/api/plan/available')
                 .then((response) => {
-                    // Mirror the response.ok guard in cts-spec-cascade.js
-                    // _fetchPlans. On 5xx, calling .json() on a JSON error
-                    // body would coerce to [] later and silently route the
-                    // cascade to the empty-state banner instead of the
-                    // error banner. Reject here so the component's own
-                    // failed fetch can set _error.
+                    // On 5xx, calling .json() on a JSON error body would
+                    // coerce to [] later and silently route to the empty
+                    // state instead of the load-failure banner. Reject here
+                    // so the catch reveals #plansLoadError (KTD5).
                     if (!response.ok) {
                         throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                     }
@@ -1019,38 +1093,129 @@
                     // consumers: `applyConfigPreset`, `updateVariants`,
                     // `updateConfigFieldVisibility`, the create-plan submit
                     // path, and the variant-options renderer all key into it
-                    // by planName. The cts-spec-cascade component owns the
-                    // cascade rendering and its own internal plan index;
-                    // hand it the same dataset so it doesn't refetch.
-                    // Defensive: coerce non-array payloads to an empty
-                    // array so the keyBy doesn't choke on a malformed 200
-                    // body and the cascade routes to its empty-state UI.
+                    // by planName.
+                    // Defensive: coerce non-array payloads to an empty array
+                    // so the keyBy doesn't choke on a malformed 200 body and
+                    // the picker routes to its empty-state UI.
                     var planList = Array.isArray(data) ? data : [];
                     FAPI_UI.availablePlans = _.keyBy(planList, 'planName');
-                    var cascade = document.getElementById('specCascade');
-                    if (cascade) {
-                        cascade.plans = planList;
-                    }
-                    // Same dataset feeds the search-mode entry point. The
-                    // selector is a peer to the cascade: typing filters the
-                    // list; clicking a result routes through
-                    // cascade.selectPlanByName so downstream listeners
-                    // (clearConfigForNewPlan, updateVariants,
-                    // updateConfigFieldVisibility) fire exactly as if the
-                    // user had used the cascade dropdown.
+                    // The same dataset feeds the search picker (the sole
+                    // plan-entry point): typing filters the list; clicking a
+                    // result fires cts-plan-select, which the page handler
+                    // routes through dispatchPlanSelection so downstream
+                    // listeners (clearConfigForNewPlan, updateVariants,
+                    // updateConfigFieldVisibility) fire on every pick.
                     var planSearch = document.getElementById('planSearch');
                     if (planSearch) {
                         planSearch.plans = planList;
+                        // Favorites: seed the saved list from the server
+                        // (/api/favorite-plans) and wire the optimistic
+                        // cts-favorite-toggle persistence. This is fully
+                        // independent of plan selection — favoriting changes no
+                        // selected plan, so it never routes through
+                        // selectPlanByName / clearConfigForNewPlan and never
+                        // touches the isSystemSelectingPlan suppression counter.
+                        if (window.__favoritesReady) {
+                            window.__favoritesReady.then(function () {
+                                var favController = window.__favoritesController;
+                                var attachFav = window.__attachFavorites;
+                                if (!favController || !attachFav) return;
+                                // Reconciling the seed GET against stars the
+                                // user presses while it is still open. Two
+                                // facts decide whether the seed's answer is
+                                // still worth applying when it lands:
+                                //
+                                //  - a write that SUCCEEDED returned the full
+                                //    updated set, which is newer than anything
+                                //    the seed can say, so the seed is dropped;
+                                //  - a write still IN FLIGHT is showing
+                                //    optimistically, so the seed supplies the
+                                //    baseline underneath it and the pending
+                                //    decision is re-applied on top.
+                                //
+                                // A write that FAILED makes the seed neither
+                                // stale nor overlaid: attachFavorites reverted
+                                // it against whatever `favorites` held at page
+                                // load — a placeholder, not the truth — so the
+                                // seed's answer is exactly what should be
+                                // shown. (Discarding it there was the bug: a
+                                // failed star during the seed window hid every
+                                // real favorite behind "No favorites yet" for
+                                // the rest of the page-load.)
+                                var pendingToggles = new Map();
+                                var seedSuperseded = false;
+                                planSearch.addEventListener('cts-favorite-toggle', function (e) {
+                                    pendingToggles.set(e.detail.plan, e.detail.favorite);
+                                });
+                                // Show "★ Favorites (…)" rather than a
+                                // confident "(0)" while the seed is open —
+                                // the count is unknown until it lands, and
+                                // this is exactly the window in which a click
+                                // races the seed.
+                                planSearch.favoritesLoading = true;
+                                favController.get().then(function (res) {
+                                    if (!seedSuperseded) {
+                                        planSearch.favorites = applyPendingToggles(
+                                            (res && res.plans) || [], pendingToggles);
+                                    }
+                                    planSearch.canFavorite = true;
+                                }).catch(function (err) {
+                                    if (!seedSuperseded) {
+                                        planSearch.favorites =
+                                            applyPendingToggles([], pendingToggles);
+                                    }
+                                    // Only an auth answer means "not signed
+                                    // in": the stars then render as a
+                                    // "Sign in to save favorites" affordance
+                                    // rather than offering toggles that would
+                                    // fail. A 5xx, or a rejected fetch (which
+                                    // carries no status at all), is transient
+                                    // — leave the stars enabled so a retry is
+                                    // one click away instead of stranding the
+                                    // user on a false "signed out" until they
+                                    // reload. A failed toggle has its own
+                                    // revert + error toast in the store.
+                                    if (err && (err.status === 401 || err.status === 403)) {
+                                        planSearch.canFavorite = false;
+                                    }
+                                }).finally(function () {
+                                    planSearch.favoritesLoading = false;
+                                });
+                                attachFav(planSearch, favController, {
+                                    onSettled: function (plan, favorite, ok) {
+                                        // Retire only the decision this write
+                                        // carried. Toggling the same plan twice
+                                        // before the first write returns leaves
+                                        // a NEWER intent recorded here, and an
+                                        // unconditional delete would erase it.
+                                        // Compared strictly, never for
+                                        // truthiness: an unstar records `false`
+                                        // and a missing entry reads `undefined`,
+                                        // so the two can't be confused.
+                                        if (pendingToggles.get(plan) === favorite) {
+                                            pendingToggles.delete(plan);
+                                        }
+                                        // Only a successful write outranks the
+                                        // seed; a failed one leaves the server
+                                        // exactly as the seed described it.
+                                        if (ok) seedSuperseded = true;
+                                    }
+                                });
+                            });
+                        }
                     }
                 })
                 .catch((err) => {
-                    // Swallow fetch / response.ok failures here so the init
-                    // chain proceeds. The component's own _fetchPlans (run
-                    // from connectedCallback) sees the same error and
-                    // renders the error banner. Downstream readers index
-                    // `FAPI_UI.availablePlans[planName]` and guard on
+                    // Reveal the page-level load-failure banner (KTD5). The
+                    // page owns the fetch, so this catch is the one place that
+                    // can distinguish a real fetch failure (-> banner) from a
+                    // successful-but-empty response (-> the picker's own empty
+                    // state). The init chain still proceeds: downstream readers
+                    // index `FAPI_UI.availablePlans[planName]` and guard on
                     // truthiness, so an empty object is a safe fallback.
                     FAPI_UI.availablePlans = {};
+                    var loadError = document.getElementById('plansLoadError');
+                    if (loadError) loadError.hidden = false;
                     console.warn('[schedule-test] /api/plan/available fetch failed:', err);
                 });
         }
@@ -1061,23 +1226,59 @@
         // saved/edited config" (keep the config we just put there).
         let isSystemSelectingPlan = 0;
 
-        async function selectPlanByName(planName) {
-            var cascade = document.getElementById('specCascade');
-            if (!cascade) return false;
-            if (!FAPI_UI.availablePlans || !FAPI_UI.availablePlans[planName]) {
+        // KTD2: the page-owned current-plan source of truth. Replaces the
+        // former `#planSelect.value` read — that <select> lived inside
+        // cts-spec-cascade's light DOM, which is now deleted. Every consumer
+        // that needs "which plan is selected" reads it via
+        // getSelectedPlanName() instead of poking at a component's light DOM.
+        let currentPlanName = '';
+
+        function getSelectedPlanName() {
+            return currentPlanName;
+        }
+
+        // Core plan selection (KTD1): resolve planName -> plan via
+        // FAPI_UI.availablePlans, set the current-plan source of truth, then
+        // dispatch `cts-plan-selected` ourselves (cts-spec-cascade used to own
+        // this dispatch). Deliberately does NOT touch isSystemSelectingPlan:
+        // the cts-plan-selected listener reads that counter to decide
+        // clear-vs-preserve, and the two entry points differ only in it. User
+        // picks (search-list click, guided accept-bridge) call this directly
+        // with the counter at 0 -> config cleared; programmatic restores wrap
+        // it in selectPlanByName() with the counter bumped -> config preserved.
+        //
+        // KTD4: currentPlanName is set BEFORE the dispatch so the synchronous
+        // listener (which runs updateVariants() / updateConfigFieldVisibility())
+        // reads the new plan. The updateComplete deferral the cascade needed
+        // (to sync #planSelect.value before listeners ran) is gone — a plain
+        // variable is in sync the instant we assign it.
+        //
+        // Returns true if the plan resolved and was dispatched, false for a
+        // falsy or unknown plan name (no dispatch, no crash).
+        function dispatchPlanSelection(planName) {
+            if (!planName || !FAPI_UI.availablePlans || !FAPI_UI.availablePlans[planName]) {
                 return false;
             }
+            currentPlanName = planName;
+            document.dispatchEvent(new CustomEvent('cts-plan-selected', {
+                bubbles: true,
+                detail: { plan: FAPI_UI.availablePlans[planName] },
+            }));
+            return true;
+        }
 
+        // Programmatic-select wrapper (KTD3): bumps the suppression counter
+        // around the dispatch so the cts-plan-selected listener preserves the
+        // config the caller is about to apply (?test_plan=, edit-plan,
+        // "Load last configuration"). Stays async so existing
+        // `await selectPlanByName(...)` callers keep their sequencing; the
+        // dispatch and the synchronous updateVariants() the listener runs both
+        // complete before this resolves, so callers that immediately overlay
+        // variant values see rendered <select>s.
+        async function selectPlanByName(planName) {
             isSystemSelectingPlan++;
             try {
-                var result = cascade.selectPlanByName(planName);
-                // cts-spec-cascade defers `cts-plan-selected` until after
-                // Lit propagates state to the DOM (so #planSelect.value is
-                // in sync when listeners read it). Wait for that here so
-                // the cts-plan-selected listener still sees
-                // isSystemSelectingPlan > 0 and skips clearConfigForNewPlan.
-                await cascade.updateComplete;
-                return result;
+                return dispatchPlanSelection(planName);
             } finally {
                 isSystemSelectingPlan--;
             }
@@ -1132,7 +1333,7 @@
                 .then(async (data) => {
                     FAPI_UI.loadedPlanName = data.planName;
                     if (data.config) {
-                        // Order matters: await the cascade so the listener
+                        // Order matters: await the selection so the listener
                         // fires updateConfigFieldVisibility (which binds
                         // ctsConfigForm.schema/uiSchema/hiddenFields) BEFORE
                         // we hand the config to the component. Otherwise the
@@ -1158,7 +1359,7 @@
                 .then((response) => response.json())
                 .then(async (data) => {
                     if (data.config) {
-                        // See loadPlanConfig for the cascade-before-config
+                        // See loadPlanConfig for the select-before-config
                         // ordering rationale.
                         await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
@@ -1209,7 +1410,7 @@
                         error: "Could not restore your last submitted configuration — the stored data was invalid and has been cleared.",
                     });
                 }
-                // Same cascade-before-config ordering as loadPlanConfig:
+                // Same select-before-config ordering as loadPlanConfig:
                 // bind the schema first, then hand the data to the component.
                 await updateSelectedTestSelector(localSavedConfig.planName);
                 if (localSavedConfig.variant) {
@@ -1255,7 +1456,7 @@
 
         // R13: explicit "Load last configuration" action. Mirrors the prior
         // auto-fetch behavior but is now triggered only by the user clicking
-        // the toolbar button. updateSelectedTestSelector flips the cascade
+        // the toolbar button. updateSelectedTestSelector selects the plan
         // through selectPlanByName (which trips isSystemSelectingPlan), so
         // the cts-plan-selected listener skips clearing the config we are
         // about to apply.
@@ -1271,7 +1472,7 @@
                 .then((response) => response.json())
                 .then(async (data) => {
                     if (data.config) {
-                        // U12 (B4): after the cascade dispatches
+                        // U12 (B4): after selectPlanByName dispatches
                         // cts-plan-selected, the listener calls
                         // updateVariants() (which renders the variant
                         // <select>s) and updateConfigFieldVisibility()
@@ -1315,8 +1516,9 @@
         }
 
         function updateSelectedTestSelector(planName) {
-            // Returns the promise from the cascade's deferred selection so
-            // callers in async chains can await DOM-sync before continuing.
+            // Returns the selectPlanByName promise so callers in async chains
+            // can await the dispatch (and its synchronous variant render)
+            // before continuing.
             return selectPlanByName(planName);
         }
 
@@ -1338,7 +1540,7 @@
 
         function createTestPlanParameterUrl() {
             let pageUrl = window.location.origin + window.location.pathname;
-            let testPlan = document.getElementById("planSelect").value;
+            let testPlan = getSelectedPlanName();
             let url = pageUrl + "?test_plan=" + testPlan;
             let dataVariantParameters = collectFormParametersToParameterObject("data-variant-parameter", "select");
 
@@ -1445,11 +1647,9 @@
 
             document.getElementById('createPlanBtn').onclick = function(evt) {
 
-                // `#planSelect` lives inside cts-spec-cascade's light DOM
-                // and is only present once a plan tier is reachable. Treat
-                // a missing element as "no plan picked" and bail.
-                const planSelectEl = document.getElementById('planSelect');
-                const planName = planSelectEl ? planSelectEl.value : '';
+                // The page owns the current-plan source of truth; an empty
+                // string means no plan has been picked yet.
+                const planName = getSelectedPlanName();
 
                 // if the user hasn't picked anything, just bail
                 if (!planName || planName == 'select') {
@@ -1539,21 +1739,20 @@
                 });
             }
 
-            // cts-spec-cascade dispatches `cts-plan-selected` whenever a
-            // plan is chosen (user click OR programmatic `selectPlanByName`).
-            // R13: clear the carried-over config when the user picks a new
-            // plan. The inline selectPlanByName wrapper bumps
-            // isSystemSelectingPlan around its delegated cascade call, so
-            // programmatic flows (edit-plan, edit-test, "Load last
-            // configuration") preserve the config they just applied.
+            // The page dispatches `cts-plan-selected` whenever a plan is
+            // chosen — user pick (dispatchPlanSelection) OR programmatic
+            // selectPlanByName. R13: clear the carried-over config when the
+            // user picks a new plan. The selectPlanByName wrapper bumps
+            // isSystemSelectingPlan around its dispatch, so programmatic flows
+            // (edit-plan, edit-test, "Load last configuration") preserve the
+            // config they just applied.
             document.addEventListener('cts-plan-selected', function(e) {
                 if (isSystemSelectingPlan === 0) {
                     clearConfigForNewPlan();
                 }
-                // Keep the search selector in sync with whatever the cascade
-                // settled on, regardless of the trigger source (user click,
-                // deep-link, edit-plan, load-last-config, or the test
-                // selector itself routing back through the cascade).
+                // Keep the search picker's selected-row marker in sync with
+                // the chosen plan, regardless of the trigger source (user
+                // pick, deep-link, edit-plan, load-last-config).
                 var planSearch = document.getElementById('planSearch');
                 if (planSearch && e.detail && e.detail.plan) {
                     planSearch.selected = e.detail.plan.planName;
@@ -1563,20 +1762,20 @@
             });
 
             // cts-test-selector fires `cts-plan-select` when the user clicks
-            // a search result. Route through the cascade so its dispatched
+            // a search result. Drive the page's own selection so its dispatched
             // `cts-plan-selected` runs the same downstream listeners — no
-            // separate config-load codepath. With a long plan list the
-            // cascade auto-fills below the fold; revealPlanSelection()
+            // separate config-load codepath. dispatchPlanSelection() leaves
+            // isSystemSelectingPlan at 0, so this user pick clears any
+            // carried-over config (user-pick semantics). With a long plan list
+            // the variant region renders below the fold; revealPlanSelection()
             // scrolls it into view, flashes the selection group, and drops
             // focus into the first variant <select> — on every selection,
             // mouse or keyboard.
             var planSearch = document.getElementById('planSearch');
             if (planSearch) {
                 planSearch.addEventListener('cts-plan-select', function(evt) {
-                    var cascade = document.getElementById('specCascade');
-                    if (!cascade) return;
                     var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
-                    if (planName) cascade.selectPlanByName(planName);
+                    if (planName) dispatchPlanSelection(planName);
                     revealPlanSelection();
                 });
             }
@@ -1628,10 +1827,8 @@
          * may need to be hidden based on the current selection of other variant parameters.
          */
         function updateVariantOptionsVisibility() {
-            // `#planSelect` may not be rendered yet (cascade still loading or
-            // in error state) — treat missing element as "no plan picked".
-            var planSelectEl = document.getElementById('planSelect');
-            var planName = planSelectEl ? planSelectEl.value : '';
+            // Empty string until a plan is picked — treat that as "no plan".
+            var planName = getSelectedPlanName();
             if (!planName || planName === 'select' || !FAPI_UI.availablePlans[planName]) {
                 return;
             }
@@ -1765,8 +1962,7 @@
 
             configFormEl.style.display = 'none';
 
-            const planSelectEl = document.getElementById('planSelect');
-            const planName = planSelectEl ? planSelectEl.value : '';
+            const planName = getSelectedPlanName();
             const planInfo = FAPI_UI.availablePlans[planName];
 
             if (!planName || planName === 'select' || !planInfo) {
@@ -1857,11 +2053,8 @@
 
         function updateVariants() {
             var map = FAPI_UI.availablePlans;
-            // The cascade renders `#planSelect` in its light DOM only when a
-            // plan tier is reachable; in loading/error/empty states the
-            // element doesn't exist. Treat absent select as "no plan picked".
-            var planSelectEl = document.getElementById('planSelect');
-            var itemSelected = planSelectEl ? planSelectEl.value : '';
+            // Empty string until a plan is picked — treat that as "no plan".
+            var itemSelected = getSelectedPlanName();
 
             // Merge current selections into persistent store so they survive
             // intermediate states where no plan is selected (e.g. changing

@@ -4,6 +4,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import jakarta.annotation.PostConstruct;
+import net.openid.conformance.info.FavoritePlansService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
@@ -41,6 +42,9 @@ public class Application {
 
 	@Autowired
 	private TokenService tokenService;
+
+	@Autowired
+	private FavoritePlansService favoritePlansService;
 
 	@Autowired
 	private EventLog eventLog;
@@ -148,6 +152,7 @@ public class Application {
 		testInfoService.createIndexes();
 		testPlanService.createIndexes();
 		tokenService.createIndexes();
+		favoritePlansService.createIndexes();
 		eventLog.createIndexes();
 	}
 }
