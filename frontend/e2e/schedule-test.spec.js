@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { selectPlanViaSearch, selectedPlanRow } from "./helpers/pick-plan.js";
-import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
+import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
 
 /** All available plans including the no-variants plan */
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
@@ -1246,6 +1246,59 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // is shown. The button is a cts-button — target the inner native button
     // for :disabled, matching the existing test patterns above.
     await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
+  });
+
+  // --- conditional variant exclusions (@VariantNotApplicableWhen) ---
+
+  test("a variant left with a single applicable value is auto-selected and its row hidden", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    // MOCK_GUIDED_PLANS carries the FAPI2 plan whose grant_management variant declares
+    // notApplicableWhen against fapi_profile, mirroring the real @VariantNotApplicableWhen pair.
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_GUIDED_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    await selectPlanViaSearch(page, "fapi2-message-signing-final-test-plan");
+
+    const grantManagement = page.locator("#vp_grant_management");
+
+    // Generic FAPI keeps grant management a real opt-in, so the row is shown with both values.
+    await page.locator("#vp_fapi_profile").selectOption("plain_fapi");
+    await expect(grantManagement).toBeVisible();
+
+    // Chile forces grant management on: "disabled" is excluded, leaving one value. The user has no
+    // choice left to make, so the whole row goes away and the value is applied for them.
+    await page.locator("#vp_fapi_profile").selectOption("openbanking_chile");
+    await expect(grantManagement).toBeHidden();
+    await expect(grantManagement).toHaveValue("enabled");
+
+    // KSA is the mirror image: "enabled" is excluded, so the row hides on "disabled" instead.
+    await page.locator("#vp_fapi_profile").selectOption("ksa");
+    await expect(grantManagement).toBeHidden();
+    await expect(grantManagement).toHaveValue("disabled");
+
+    // Back to generic FAPI: the row comes back with both values selectable.
+    await page.locator("#vp_fapi_profile").selectOption("plain_fapi");
+    await expect(grantManagement).toBeVisible();
+    await expect(grantManagement.locator("option:not([disabled])")).toHaveCount(3);
   });
 
   test("click on a plan row smooth-scrolls #selectionFlash into view AND focuses the first variant select", async ({

@@ -13,6 +13,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedC
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -23,6 +24,8 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.GrantManagement;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -38,8 +41,26 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class,
-	FAPIOpenIDConnect.class
+	FAPIOpenIDConnect.class,
+	GrantManagement.class
 })
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability, and for
+// Chile, whose profile requires it. Every other profile - including the client credentials grant, which
+// has no authorization flow to produce a grant at all - must not offer the choice.
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"enabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
+		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
+// Grant management is part of the Chile profile, so it is not something the tester can turn off there
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"disabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"openbanking_chile"}
+)
 public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFinalDiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> oidcChecks;
@@ -47,6 +68,8 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	protected Boolean signedRequest;
 
 	protected boolean brazil = false;
+
+	protected boolean isGrantManagement = false;
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
 	public void setupFapiClientCredentialsGrant() {
@@ -104,6 +127,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
+		isGrantManagement = getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
@@ -141,6 +165,21 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		call(sequence(profileBehavior.getProfileSpecificDiscoveryChecks()));
 		if (oidcChecks != null) {
 			call(sequence(oidcChecks));
+		}
+
+		if (isGrantManagement) {
+			// Both metadata members below are OPTIONAL in GM 7.1, but they are not treated the same way here.
+			// grant_management_endpoint is FAILURE because GM 6.2/6.3 give the client no other way to learn the
+			// grant resource URL: without it no grant can be queried or revoked, so an OP being tested for grant
+			// management support that omits it cannot be conformant regardless of the metadata member's OPTIONAL
+			// status (it is OPTIONAL only for an OP that does not implement grant management at all).
+			callAndContinueOnFailure(GrantManagementSupport.CheckDiscoveryForGrantManagementEndpoint.class, Condition.ConditionResult.FAILURE, "GM-6.2", "GM-7.1");
+			// grant_management_actions_supported is also OPTIONAL in GM 7.1, but the same section says that
+			// omitting it means "the AS does not support any grant management actions" - which contradicts
+			// the plan this server is being tested under, so its absence is a failure too.
+			callAndContinueOnFailure(GrantManagementSupport.CheckDiscoveryForGrantManagementActionsSupported.class, Condition.ConditionResult.FAILURE, "GM-7.1");
+			skipIfElementMissing("server", "grant_management_actions_supported", Condition.ConditionResult.INFO,
+				GrantManagementSupport.CheckDiscoveryForGrantManagementActionsSupportedContainsRequiredActions.class, Condition.ConditionResult.FAILURE, "GM-7.1");
 		}
 	}
 

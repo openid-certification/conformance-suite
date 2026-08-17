@@ -1920,7 +1920,12 @@
                     selectElement.value = 'select';
                 }
 
-                // Also update visibility of the entire variant selector if ALL options are hidden
+                // Also update visibility of the entire variant selector when the exclusions leave the
+                // user no actual choice to make. That covers two cases:
+                //  - every option hidden: nothing applies, pick the first so validation passes;
+                //  - exactly one option left: the value is forced by the other variants already
+                //    selected (e.g. grant_management under the Chile profile), so asking the user to
+                //    pick the single remaining item from a one-item dropdown is pure noise.
                 var visibleOptions = Array.from(options).filter(function(opt) {
                     return opt.value !== 'select' && opt.style.display !== 'none';
                 });
@@ -1936,6 +1941,9 @@
                         if (firstRealOption) {
                             selectElement.value = firstRealOption.value;
                         }
+                    } else if (visibleOptions.length === 1) {
+                        variantRow.style.display = 'none';
+                        selectElement.value = visibleOptions[0].value;
                     } else {
                         variantRow.style.display = '';
                     }

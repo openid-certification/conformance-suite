@@ -247,6 +247,7 @@ const VALUE_LABELS = {
     consumerdataright_au: "CDR Australia",
     connectid_au: "ConnectID Australia",
     cbuae: "CBUAE (UAE)",
+    openbanking_chile: "Finanzas Abiertas Chile",
   },
   fapi_ciba_profile: {
     plain_fapi: "Plain FAPI",
@@ -266,6 +267,7 @@ const VALUE_LABELS = {
   sender_constrain: { mtls: "Mutual TLS (mTLS)", dpop: "DPoP" },
   authorization_request_type: { simple: "Simple", rar: "Rich Authorization Requests (RAR)" },
   ciba_mode: { ping: "Ping", poll: "Poll" },
+  grant_management: { enabled: "Enabled", disabled: "Disabled" },
   client_registration: {
     static_client: "Static (pre-registered) client",
     dynamic_client: "Dynamic client registration",
@@ -297,6 +299,8 @@ const ECOSYSTEM_DESC = {
   connectid_au: "ConnectID Australia — FAPI2 Message Signing and CIBA.",
   cbuae: "Central Bank of the UAE — FAPI2 Message Signing.",
   ksa: "Saudi Central Bank (SAMA) — FAPI1 (v1) or FAPI2 (v2).",
+  open_finance_chile:
+    "Finanzas Abiertas Chile — CMF APIs (FAPI2 message signing with Grant Management).",
 };
 
 // ════════════════════════════════════════════════════════════════════

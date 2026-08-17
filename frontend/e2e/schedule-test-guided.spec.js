@@ -151,6 +151,30 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(consoleErrors).toEqual([]);
   });
 
+  test("Chile → OP resolves to FAPI2 message signing with Grant Management enabled", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "open_finance_chile");
+    await expect(page.locator("#guidedStage h1")).toHaveText("What is your role?");
+    await pickChoice(page, "op");
+    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
+
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "fapi2-message-signing-final-test-plan",
+    );
+
+    // Chile pins Grant Management on, and the review table renders it in plain language
+    // rather than as the raw enum value.
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table).toContainText("Grant Management");
+    await expect(table).toContainText("Enabled");
+    await expect(table).toContainText("Rich Authorization Requests (RAR)");
+    await expect(table).not.toContainText("openbanking_chile");
+  });
+
   test("happy path: KSA → OP → Private Key JWT → SAMA v2 → review", async ({ page }) => {
     await setupScheduleTestRoutes(page);
     await page.goto("/schedule-test.html");

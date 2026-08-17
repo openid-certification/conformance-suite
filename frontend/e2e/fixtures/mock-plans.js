@@ -135,7 +135,7 @@ export const MOCK_PLANS = [
  * one of them to exercise the dead-end.
  *
  * - fapi2-message-signing-final-test-plan: KSA → OP → private_key_jwt →
- *   SAMA v2 resolution target.
+ *   SAMA v2 resolution target, and the Chile → OP leaf (mTLS + Grant Management).
  * - fapi-ciba-id1-client-test-plan / fapi-ciba-id1-test-plan: Brazil and
  *   ConnectID CIBA guided leaves.
  * - fapi1-advanced-final-test-plan: Brazil OP FAPI leaf (carries the
@@ -216,6 +216,27 @@ export const MOCK_GUIDED_PLANS = [
           plain_fapi: { configurationFields: [] },
           ksa: { configurationFields: [] },
           connectid_au: { configurationFields: [] },
+          openbanking_chile: { configurationFields: ["mtls.cert", "mtls.key"] },
+        },
+      },
+      grant_management: {
+        variantInfo: {
+          displayName: "Grant Management",
+          description: "Whether Grant Management support is required.",
+        },
+        variantValues: {
+          disabled: { configurationFields: [] },
+          enabled: { configurationFields: [] },
+        },
+        // Mirrors the @VariantNotApplicableWhen pair on the FAPI2 bases: grant management is forced on
+        // for Chile and unavailable for the other non-generic profiles, so in both cases the dropdown
+        // is left with a single value and should not be shown at all.
+        notApplicableWhen: {
+          fapi_profile: {
+            openbanking_chile: ["disabled"],
+            ksa: ["enabled"],
+            connectid_au: ["enabled"],
+          },
         },
       },
       fapi_response_mode: {

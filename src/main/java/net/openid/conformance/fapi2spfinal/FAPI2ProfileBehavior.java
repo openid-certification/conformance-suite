@@ -28,6 +28,7 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.GrantManagement;
 
 import java.util.function.Supplier;
 
@@ -389,6 +390,7 @@ public class FAPI2ProfileBehavior {
 		module.clientCredentialsGrant = isClientCredentialsGrantOnly();
 		module.useDpopAuthCodeBinding = false;
 		module.profileRequiresMtlsEverywhere = requiresMtlsEverywhere();
+		module.isGrantManagement = module.getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 	}
 
 	/**

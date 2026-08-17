@@ -1,11 +1,16 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.util.http.WwwAuthenticateHeaderValueParser;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class WwwAuthenticateParserTest {
@@ -115,5 +120,86 @@ public class WwwAuthenticateParserTest {
 		var mutualMap = mutual.get("Mutual");
 		assertEquals("secure", mutualMap.get("realm"));
 		assertTrue(mutualMap.containsKey("token68"));
+	}
+
+	private static JsonObject headersWithWwwAuthenticate(JsonElement value) {
+		JsonObject headers = new JsonObject();
+		headers.add("www-authenticate", value);
+		return headers;
+	}
+
+	private static JsonObject headersWithWwwAuthenticate(String value) {
+		return headersWithWwwAuthenticate(new JsonPrimitive(value));
+	}
+
+	@Test
+	public void hasUseDpopNonceChallengeWithNoHeaders() {
+		assertFalse(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(null));
+		assertFalse(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(new JsonObject()));
+	}
+
+	@Test
+	public void hasUseDpopNonceChallengeFromSingleHeaderValue() {
+		assertTrue(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("DPoP error=\"use_dpop_nonce\", error_description=\"nonce required\"")));
+	}
+
+	/**
+	 * Servers that combine every challenge into one header value: the DPoP challenge is not the first one.
+	 */
+	@Test
+	public void hasUseDpopNonceChallengeFromCombinedMultiChallengeHeader() {
+		assertTrue(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("Bearer realm=\"\", DPoP algs=\"ES256\", error=\"use_dpop_nonce\", error_description=\"Authorization server requires nonce in DPoP proof\"")));
+	}
+
+	/**
+	 * Servers that send the header more than once, which the environment stores as a JSON array.
+	 */
+	@Test
+	public void hasUseDpopNonceChallengeFromHeaderArray() {
+		JsonArray values = new JsonArray();
+		values.add("Bearer realm=\"example\", error=\"invalid_token\"");
+		values.add("DPoP algs=\"ES256\", error=\"use_dpop_nonce\"");
+
+		assertTrue(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(headersWithWwwAuthenticate(values)));
+	}
+
+	/**
+	 * Auth schemes are case insensitive per RFC9110 section 11.1.
+	 */
+	@Test
+	public void hasUseDpopNonceChallengeIsCaseInsensitiveForTheScheme() {
+		assertTrue(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("dpop error=\"use_dpop_nonce\"")));
+		assertTrue(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("DPOP error=\"use_dpop_nonce\"")));
+	}
+
+	@Test
+	public void hasUseDpopNonceChallengeIgnoresOtherErrorsAndSchemes() {
+		// a DPoP challenge, but not the nonce one
+		assertFalse(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("DPoP algs=\"ES256\", error=\"invalid_token\"")));
+		// the right error, but on the wrong scheme
+		assertFalse(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("Bearer error=\"use_dpop_nonce\"")));
+		// a DPoP challenge with no error at all
+		assertFalse(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate("DPoP algs=\"ES256 PS256\"")));
+	}
+
+	/**
+	 * The environment is not guaranteed to hold a string here, and a non-string entry must not blow up.
+	 */
+	@Test
+	public void hasUseDpopNonceChallengeIgnoresNonStringHeaderValues() {
+		assertFalse(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(
+			headersWithWwwAuthenticate(new JsonObject())));
+
+		JsonArray values = new JsonArray();
+		values.add(new JsonObject());
+		values.add("DPoP error=\"use_dpop_nonce\"");
+		assertTrue(WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(headersWithWwwAuthenticate(values)));
 	}
 }

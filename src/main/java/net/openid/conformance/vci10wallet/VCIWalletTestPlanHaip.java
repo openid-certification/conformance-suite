@@ -10,6 +10,9 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestEnsureJarmWithI
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestEnsureJarmWithoutAudFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestEnsureJarmWithoutExpFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestEnsureJarmWithoutIssFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementHappyPath;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementQueryAndRevoke;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidAlternateAlg;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidAud;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidExpiredExp;
@@ -164,6 +167,11 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 		// Profile-incompatible
 		modules.remove(FAPI2SPFinalClientTestInvalidOpenBankingIntentId.class); // openbanking_uk only
 		modules.remove(FAPI2SPFinalClientRefreshTokenTest.class);               // openbanking_brazil / cbuae only
+
+		// Grant management is not offered for the VCI profiles, so these can never generate here
+		modules.remove(FAPI2SPFinalClientTestGrantManagementHappyPath.class);
+		modules.remove(FAPI2SPFinalClientTestGrantManagementQueryAndRevoke.class);
+		modules.remove(FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails.class);
 
 		return modules;
 	}

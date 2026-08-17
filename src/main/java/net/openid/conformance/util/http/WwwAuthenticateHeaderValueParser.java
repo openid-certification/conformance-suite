@@ -1,5 +1,9 @@
 package net.openid.conformance.util.http;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.openid.conformance.testmodule.OIDFJSON;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -91,6 +95,41 @@ public class WwwAuthenticateHeaderValueParser {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Whether the response carries a DPoP {@code use_dpop_nonce} challenge, i.e. the server is asking for
+	 * the request to be repeated with a nonce (RFC9449 section 8/9).
+	 *
+	 * <p>Some servers combine all their challenges into a single header value while others send the header
+	 * more than once, in which case the environment holds a JSON array, so both shapes are handled here.
+	 * Auth schemes are case insensitive per RFC9110 section 11.1.
+	 *
+	 * @param responseHeaders the response headers as stored in the environment, with lowercased names
+	 */
+	public static boolean hasUseDpopNonceChallenge(JsonObject responseHeaders) {
+		if (responseHeaders == null || !responseHeaders.has("www-authenticate")) {
+			return false;
+		}
+
+		JsonElement header = responseHeaders.get("www-authenticate");
+		List<JsonElement> headerValues = header.isJsonArray()
+			? header.getAsJsonArray().asList()
+			: List.of(header);
+
+		for (JsonElement headerValue : headerValues) {
+			if (!OIDFJSON.isString(headerValue)) {
+				continue;
+			}
+			for (Map.Entry<String, Map<String, String>> challenge : parse(OIDFJSON.getString(headerValue)).entrySet()) {
+				if ("dpop".equalsIgnoreCase(challenge.getKey())
+					&& "use_dpop_nonce".equals(challenge.getValue().get("error"))) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	private static List<String> splitChallenges(String header) {

@@ -3,6 +3,9 @@ package net.openid.conformance.fapi2spfinal.brazil;
 
 import net.openid.conformance.fapi2spfinal.FAPI2MessageSigningFinalClientTestPlan;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalBrazilClientDCRHappyPathTest;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementHappyPath;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementQueryAndRevoke;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidOpenBankingIntentId;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -75,6 +78,12 @@ public class BrazilOBClientTestPlan implements TestPlan {
 
 		// this is marked with VariantNotApplicable for Brazil, we must remove it otherwise we get a startup error
 		modules.remove(FAPI2SPFinalClientTestInvalidOpenBankingIntentId.class);
+
+		// grant management is only offered for generic FAPI and Chile, so these are marked with
+		// VariantNotApplicable for Brazil too
+		modules.remove(FAPI2SPFinalClientTestGrantManagementHappyPath.class);
+		modules.remove(FAPI2SPFinalClientTestGrantManagementQueryAndRevoke.class);
+		modules.remove(FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails.class);
 
 		modules.add(FAPI2SPFinalBrazilClientDCRHappyPathTest.class);
 
