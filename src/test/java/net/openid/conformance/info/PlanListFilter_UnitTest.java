@@ -190,6 +190,36 @@ class PlanListFilter_UnitTest {
 	}
 
 	@Test
+	void immutableTrueMatchesOnlyThePlansACertificationPackageWasDownloadedFor() {
+		assertThat(criteriaOf("immutable", "true")).isEqualTo(new Document("immutable", true));
+	}
+
+	@Test
+	void immutableFalseAlsoMatchesThePlansThatHaveNoSuchFieldAtAll() {
+		// the field is only written when a certification package is downloaded, so every plan
+		// before that has none; $eq false would list none of them
+		assertThat(criteriaOf("immutable", "false"))
+			.isEqualTo(new Document("immutable", new Document("$ne", true)));
+	}
+
+	@Test
+	void immutableIsReadWhateverCaseItIsSentIn() {
+		assertThat(criteriaOf("immutable", "TRUE")).isEqualTo(new Document("immutable", true));
+		assertThat(criteriaOf("immutable", "False"))
+			.isEqualTo(new Document("immutable", new Document("$ne", true)));
+	}
+
+	@Test
+	void anImmutableThatIsNeitherTrueNorFalseIsRejected() {
+		// rather than reading anything that is not "true" as false, which would quietly turn a
+		// typo into a filter that lists the opposite of what was asked for
+		assertThatThrownBy(() -> PlanListFilter.parse(params("immutable", "yes"), families))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("immutable")
+			.hasMessageContaining("yes");
+	}
+
+	@Test
 	void fromAndToAreAHalfOpenRangeOnStarted() {
 		assertThat(criteriaOf("from", "2026-06-01", "to", "2026-07-01"))
 			.isEqualTo(new Document("started", new Document("$gte", "2026-06-01").append("$lt", "2026-07-01")));
@@ -257,6 +287,7 @@ class PlanListFilter_UnitTest {
 			"plan", cibaPlan,
 			"variant.fapi_profile", "openbanking_brazil",
 			"cert", "a profile",
+			"immutable", "true",
 			"from", "2026-06-01",
 			"to", "2026-07-01");
 
@@ -264,6 +295,7 @@ class PlanListFilter_UnitTest {
 			.append("planName", cibaPlan)
 			.append("variant.fapi_profile", "openbanking_brazil")
 			.append("certificationProfileName", "a profile")
+			.append("immutable", true)
 			.append("started", new Document("$gte", "2026-06-01").append("$lt", "2026-07-01")));
 	}
 
