@@ -491,6 +491,12 @@ public class DBTestPlanService implements TestPlanService {
 		// Drill-down listing filters: plans of one plan name over a period, and by period alone.
 		collection.createIndex(new Document("planName", 1).append("started", -1));
 		collection.createIndex(new Document("started", -1));
+
+		// Listing (and deleting) one account's plans over a period. Measured against a copy of
+		// production, where one owner has 57,845 plans older than a year: counting them went from
+		// 7.4 seconds to 16 milliseconds, and the whole bulk-delete preview from 12.2 seconds to
+		// 1.4. Costs 18 MB on a 2.5 GB collection.
+		collection.createIndex(new Document("owner.sub", 1).append("started", -1));
 	}
 
 	@Override

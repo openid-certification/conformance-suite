@@ -26,6 +26,12 @@ function periodChip(from, to) {
 /** The filter a drill-down from a monthly bar produces. */
 function drillDownFilter() {
   return {
+    // a drill-down narrows nobody's plans in particular, but the fixture is a
+    // whole filter: `without` normalises what it is given, so a partial one
+    // would differ from its own result by the keys it left out
+    search: "",
+    owner: "",
+    immutable: "",
     family: "FAPI-CIBA",
     plan: "fapi-ciba-id1-test-plan",
     variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
@@ -105,7 +111,16 @@ describe("urlFromFilter", () => {
   });
 
   it("names every parameter this module owns", () => {
-    expect(FILTER_PARAMS).toEqual(["family", "plan", "cert", "from", "to"]);
+    expect(FILTER_PARAMS).toEqual([
+      "search",
+      "owner",
+      "immutable",
+      "family",
+      "plan",
+      "cert",
+      "from",
+      "to",
+    ]);
   });
 });
 
@@ -133,6 +148,23 @@ describe("without", () => {
 });
 
 describe("toChips", () => {
+  it("orders the chips owner, family, plan, variants, cert, immutable, period", () => {
+    expect(
+      toChips({ ...drillDownFilter(), owner: "developer", immutable: "false" }).map(
+        (chip) => chip.key,
+      ),
+    ).toEqual([
+      "owner",
+      "family",
+      "plan",
+      "variant-client_auth_type",
+      "variant-fapi_profile",
+      "cert",
+      "immutable",
+      "from",
+    ]);
+  });
+
   it("orders the chips family, plan, variants, cert, period", () => {
     expect(toChips(drillDownFilter()).map((chip) => chip.key)).toEqual([
       "family",
@@ -190,5 +222,68 @@ describe("toChips", () => {
   it("has nothing to show for an empty filter", () => {
     expect(toChips(emptyFilter())).toEqual([]);
     expect(toChips(NOTHING)).toEqual([]);
+  });
+});
+
+describe("owner and immutable", () => {
+  it("reads both from a URL and sends them back as parameters", () => {
+    const filter = planListFilterFromUrl("?owner=104383237143811096540&immutable=true");
+
+    expect(filter.owner).toBe("104383237143811096540");
+    expect(filter.immutable).toBe("true");
+    expect(toParams(filter).toString()).toBe("owner=104383237143811096540&immutable=true");
+  });
+
+  it("accepts immutable in any case, as the server does", () => {
+    expect(planListFilterFromUrl("?immutable=TRUE").immutable).toBe("true");
+    expect(planListFilterFromUrl("?immutable=False").immutable).toBe("false");
+  });
+
+  it("drops an immutable that is neither true nor false", () => {
+    // the server rejects it with a 400, so sending it on would break the page
+    // for a hand-edited link rather than just ignoring the unusable bit
+    expect(planListFilterFromUrl("?immutable=yes").immutable).toBe("");
+    expect(hasFilters(planListFilterFromUrl("?immutable=yes"))).toBe(false);
+  });
+
+  it("counts each of them as narrowing the listing", () => {
+    expect(hasFilters({ ...emptyFilter(), owner: "developer" })).toBe(true);
+    expect(hasFilters({ ...emptyFilter(), immutable: "false" })).toBe(true);
+  });
+
+  it("removes either one on its own", () => {
+    const filter = { ...emptyFilter(), owner: "developer", immutable: "true" };
+
+    expect(without(filter, "owner")).toEqual({ ...filter, owner: "" });
+    expect(without(filter, "immutable")).toEqual({ ...filter, immutable: "" });
+  });
+
+  it("says yes or no rather than true or false on the chip", () => {
+    expect(toChips({ ...emptyFilter(), immutable: "true" })[0].label).toBe("Immutable: yes");
+    expect(toChips({ ...emptyFilter(), immutable: "false" })[0].label).toBe("Immutable: no");
+    expect(toChips({ ...emptyFilter(), owner: "developer" })[0].label).toBe("Owner: developer");
+  });
+});
+
+describe("server-side search", () => {
+  it("round-trips as a filter of its own", () => {
+    const filter = planListFilterFromUrl("?search=ciba");
+
+    expect(filter.search).toBe("ciba");
+    expect(hasFilters(filter)).toBe(true);
+    expect(toParams(filter).toString()).toBe("search=ciba");
+  });
+
+  it("is the first chip, and reads as a search", () => {
+    const chips = toChips({ ...emptyFilter(), search: "ciba", owner: "developer" });
+
+    expect(chips.map((chip) => chip.key)).toEqual(["search", "owner"]);
+    expect(chips[0].label).toBe("Search: ciba");
+  });
+
+  it("can be removed on its own", () => {
+    const filter = { ...emptyFilter(), search: "ciba", owner: "developer" };
+
+    expect(without(filter, "search")).toEqual({ ...filter, search: "" });
   });
 });

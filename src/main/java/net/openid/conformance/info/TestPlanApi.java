@@ -38,6 +38,7 @@ import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +87,9 @@ public class TestPlanApi implements DataUtils {
 
 	@Autowired
 	private SpecFamilyResolver specFamilyResolver;
+
+	@Autowired
+	private BulkPlanDeleter bulkPlanDeleter;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "createTestPlan", summary = "Create test plan")
@@ -465,6 +469,166 @@ public class TestPlanApi implements DataUtils {
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
+	}
+
+	// a literal path, like /plan/delete-status: no plan id can contain a hyphen
+	@GetMapping(value = "/plan/delete-preview", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(operationId = "previewBulkPlanDelete", summary = "How many plans a bulk delete would remove, without removing any (admin only)",
+		description = "Takes the same parameters as `DELETE /api/plan` and answers what it would do: how "
+			+ "many plans the listing shows, how many of those may be deleted, how many are kept because "
+			+ "they are immutable or published, and the number to send back as `confirm`.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "400", description = "A filter parameter could not be used"),
+		@ApiResponse(responseCode = "403", description = "You must be an admin")
+	})
+	public ResponseEntity<Object> bulkDeletePreview(
+		@Parameter(description = "Delete at most this many plans, oldest first")
+		@RequestParam(required = false) Integer limit,
+		@Parameter(hidden = true) HttpServletRequest request) {
+
+		if (!authenticationFacade.isAdmin()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		PlanListFilter filter;
+		try {
+			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
+		} catch (IllegalArgumentException e) {
+			return badRequest(e.getMessage());
+		}
+
+		String owner = QueryParams.first(request.getParameterMap(), "owner");
+		// the same refusals as the delete itself: a preview of a request that could never run is
+		// worse than useless, and a negative limit would otherwise report a negative target
+		ResponseEntity<Object> refusal = refuseUnusableBulkRequest(filter, owner, limit);
+		if (refusal != null) {
+			return refusal;
+		}
+
+		Criteria scope = DBTestPlanService.ownerScope(null, owner);
+		String search = PaginationRequest.searchTerm(QueryParams.first(request.getParameterMap(), "search"));
+
+		return new ResponseEntity<>(bulkPlanDeleter.preview(scope, filter, search, limit), HttpStatus.OK);
+	}
+
+	/**
+	 * The rules {@code DELETE /api/plan} and its preview both hold to.
+	 *
+	 * @param filter the narrowing the caller asked for
+	 * @param owner  the owner they asked to narrow to, or null
+	 * @param limit  the most plans to delete, or null
+	 * @return the 400 to send, or null when the request can be acted on
+	 */
+	private static ResponseEntity<Object> refuseUnusableBulkRequest(PlanListFilter filter, String owner,
+																	Integer limit) {
+		if (filter.isEmpty() && owner == null) {
+			return badRequest("a bulk delete needs a filter: send at least one of owner, family, plan, "
+				+ "cert, immutable, variant.<parameter>, from or to");
+		}
+		if (limit != null && limit <= 0) {
+			return badRequest("limit must be a positive number of plans, not " + limit);
+		}
+		return null;
+	}
+
+	@DeleteMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(operationId = "bulkDeleteTestPlans", summary = "Delete every plan a filtered listing shows, and their tests and logs (admin only)",
+		description = "Takes exactly the parameters `GET /api/plan` takes and deletes what that listing "
+			+ "would show, so the way to see what this will do is to list it first. Deleting millions of "
+			+ "documents is far too long for a request, so the work runs in the background: this returns "
+			+ "202 and `GET /api/plan/delete-status` reports progress.\n\n"
+			+ "Two kinds of plan are never deleted, whatever is asked for: one a certification package has "
+			+ "been downloaded for (`immutable`), and one that has been published, since a link to it may "
+			+ "be in circulation. They are left out of the count as well as of the deleting.\n\n"
+			+ "Refused unless at least one filter is present - there is no way to ask this to delete "
+			+ "everything - and unless `confirm` is the number of plans it is about to delete, so that a "
+			+ "listing that has changed since it was looked at stops the request rather than deleting "
+			+ "something else.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "202", description = "Deleting has started; poll /api/plan/delete-status"),
+		@ApiResponse(responseCode = "400", description = "No filter was sent, a parameter could not be used, "
+			+ "or `confirm` is not what would be deleted"),
+		@ApiResponse(responseCode = "403", description = "You must be an admin to delete plans in bulk"),
+		@ApiResponse(responseCode = "409", description = "A bulk delete is already running")
+	})
+	public ResponseEntity<Object> deletePlans(
+		@Parameter(description = "Delete at most this many plans, oldest first. Omit to delete all of them.")
+		@RequestParam(required = false) Integer limit,
+		@Parameter(description = "The number of plans this will delete, as a check that it is what was seen")
+		@RequestParam(required = false) Long confirm,
+		@Parameter(hidden = true) HttpServletRequest request) {
+
+		if (!authenticationFacade.isAdmin()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		PlanListFilter filter;
+		try {
+			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
+		} catch (IllegalArgumentException e) {
+			return badRequest(e.getMessage());
+		}
+
+		String owner = QueryParams.first(request.getParameterMap(), "owner");
+		ResponseEntity<Object> refusal = refuseUnusableBulkRequest(filter, owner, limit);
+		if (refusal != null) {
+			return refusal;
+		}
+
+		// null principal: only an admin gets this far, and an admin may see every plan
+		Criteria scope = DBTestPlanService.ownerScope(null, owner);
+		// quoted by the same helper the listing uses, so a delete removes what was listed
+		String search = PaginationRequest.searchTerm(QueryParams.first(request.getParameterMap(), "search"));
+		long target = bulkPlanDeleter.preview(scope, filter, search, limit).target();
+
+		if (confirm == null || confirm.longValue() != target) {
+			return badRequest(("confirm must be the number of plans this would delete, which is %d"
+				+ " (immutable and published plans are already left out of that)").formatted(target));
+		}
+
+		try {
+			return new ResponseEntity<>(bulkPlanDeleter.start(scope, filter, search, target), HttpStatus.ACCEPTED);
+		} catch (IllegalStateException e) {
+			return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.CONFLICT);
+		}
+	}
+
+	// a literal path rather than a plan id: ids are alphanumeric, so no plan can ever be called
+	// "delete-status", and Spring matches the literal ahead of the /plan/{id} template anyway
+	@GetMapping(value = "/plan/delete-status", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(operationId = "getBulkPlanDeleteStatus", summary = "How far the running (or last) bulk plan delete has got (admin only)")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "403", description = "You must be an admin")
+	})
+	public ResponseEntity<Object> bulkDeleteStatus() {
+
+		if (!authenticationFacade.isAdmin()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		return new ResponseEntity<>(bulkPlanDeleter.progress(), HttpStatus.OK);
+	}
+
+	@PostMapping(value = "/plan/delete-cancel", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(operationId = "cancelBulkPlanDelete", summary = "Stop the running bulk plan delete (admin only)",
+		description = "The job stops at the end of the batch it is in; what it has already deleted stays "
+			+ "deleted. Re-running the same request carries on from where it stopped.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Asked it to stop"),
+		@ApiResponse(responseCode = "403", description = "You must be an admin")
+	})
+	public ResponseEntity<Object> bulkDeleteCancel() {
+
+		if (!authenticationFacade.isAdmin()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		bulkPlanDeleter.cancel();
+		return new ResponseEntity<>(bulkPlanDeleter.progress(), HttpStatus.OK);
+	}
+
+	private static ResponseEntity<Object> badRequest(String message) {
+		return new ResponseEntity<>(Map.of("error", message), HttpStatus.BAD_REQUEST);
 	}
 
 	@DeleteMapping(value = "/plan/{id}")
