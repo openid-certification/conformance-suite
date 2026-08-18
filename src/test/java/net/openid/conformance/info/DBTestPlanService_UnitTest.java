@@ -131,4 +131,32 @@ class DBTestPlanService_UnitTest {
 
 		assertThat(query.getQueryObject()).isEqualTo(new Document("planName", new Document("$in", List.of())));
 	}
+
+	@Test
+	void anAdminWhoNarrowsToNoOwnerSeesEveryPlan() {
+		assertThat(DBTestPlanService.ownerScope(null, null)).isNull();
+	}
+
+	@Test
+	void anAdminCanNarrowAListingToOneOwner() {
+		assertThat(DBTestPlanService.ownerScope(null, "developer").getCriteriaObject())
+			.isEqualTo(new Document("owner.sub", "developer"));
+	}
+
+	@Test
+	void anyoneElseIsScopedToTheirOwnPlansAsBefore() {
+		assertThat(DBTestPlanService.ownerScope(OWNER, null).getCriteriaObject())
+			.isEqualTo(new Document("owner", new Document(OWNER)));
+	}
+
+	@Test
+	void namingAnOwnerCannotWidenWhatAnyoneElseMaySee() {
+		// both clauses survive, so asking for someone else's plans lists nothing at all rather
+		// than listing theirs; merging them into one document would drop the caller's own
+		Document criteria = DBTestPlanService.ownerScope(OWNER, "somebody-else").getCriteriaObject();
+
+		assertThat(criteria).isEqualTo(new Document("$and", List.of(
+			new Document("owner", new Document(OWNER)),
+			new Document("owner.sub", "somebody-else"))));
+	}
 }

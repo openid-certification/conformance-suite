@@ -28,6 +28,7 @@ import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
+import net.openid.conformance.statistics.QueryParams;
 import net.openid.conformance.statistics.SpecFamilyResolver;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -218,6 +219,11 @@ public class TestPlanApi implements DataUtils {
 			description = "Only list plans certified against this certification profile; a plan matches "
 				+ "if any one of its profiles is exactly this.",
 			schema = @Schema(type = "string", example = "FAPI-CIBA: Poll w/ MTLS")),
+		@Parameter(name = "owner", in = ParameterIn.QUERY,
+			description = "Only list plans belonging to this user, by the `sub` of their account. "
+				+ "Narrows the listing and can never widen it: anyone but an admin still sees only "
+				+ "their own plans, so naming another owner lists nothing.",
+			schema = @Schema(type = "string")),
 		@Parameter(name = "immutable", in = ParameterIn.QUERY,
 			description = "Only list plans a certification package has been downloaded for (`true`), "
 				+ "or only those it has not (`false`). Omit for both.",
@@ -251,9 +257,13 @@ public class TestPlanApi implements DataUtils {
 			return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 
+		// not part of the filter: owner is what scopes a listing, which a filter may never
+		// touch, so DBTestPlanService applies it to the scope instead
+		String owner = QueryParams.first(request.getParameterMap(), "owner");
+
 		PaginationResponse<?> response = publicOnly
-				? planService.getPaginatedPublicPlans(page, filter)
-				: planService.getPaginatedPlansForCurrentUser(page, filter);
+				? planService.getPaginatedPublicPlans(page, filter, owner)
+				: planService.getPaginatedPlansForCurrentUser(page, filter, owner);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
