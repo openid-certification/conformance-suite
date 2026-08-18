@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
@@ -216,6 +217,13 @@ public class DBTestInfoService implements TestInfoService {
 
 	@Override
 	public boolean deleteTests(List<String> ids) {
+		// an admin may delete anyone's; everybody else only their own
+		return deleteTests(ids, authenticationFacade.isAdmin() ? null : authenticationFacade.getPrincipal())
+			.acknowledged();
+	}
+
+	@Override
+	public Deleted deleteTests(List<String> ids, Map<String, String> owner) {
 
 		// TEST_INFO is keyed by '_id' (TestInfo sets 'testId' to the same value, but only '_id'
 		// is indexed, so filtering on 'testId' collection-scans). EVENT_LOG entries have their
@@ -224,11 +232,11 @@ public class DBTestInfoService implements TestInfoService {
 		Criteria testInfoCriteria = Criteria.where("_id").in(ids);
 		Criteria eventLogCriteria = Criteria.where("testId").in(ids);
 
-		if (!authenticationFacade.isAdmin()) {
+		if (owner != null) {
 			// TEST_INFO stores the owner under 'owner', EVENT_LOG entries under 'testOwner';
 			// filtering EVENT_LOG on 'owner' matches nothing and orphans the log entries
-			testInfoCriteria.and("owner").is(authenticationFacade.getPrincipal());
-			eventLogCriteria.and("testOwner").is(authenticationFacade.getPrincipal());
+			testInfoCriteria.and("owner").is(owner);
+			eventLogCriteria.and("testOwner").is(owner);
 		}
 
 		DeleteResult testInfoDeleteResult = mongoTemplate.remove(new Query(testInfoCriteria), COLLECTION);
@@ -239,6 +247,7 @@ public class DBTestInfoService implements TestInfoService {
 		// lets them re-create orphaned EVENT_LOG rows against the now-deleted test id.
 		ids.forEach(testOwnerCache::invalidate);
 
-		return testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged();
+		return new Deleted(testInfoDeleteResult.getDeletedCount(), logDeleteResult.getDeletedCount(),
+			testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged());
 	}
 }

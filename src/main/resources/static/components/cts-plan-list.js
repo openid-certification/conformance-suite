@@ -10,6 +10,7 @@ import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-json-view.js";
+import "./cts-spinner.js";
 import "./cts-badge.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import "./cts-plan-status.js";
@@ -27,6 +28,36 @@ const PAGE_SIZE = 25;
 // The backend's hard cap on `/api/plan?length=`, matching MAX_FILTERED_LOGS
 // in cts-log-list. `PaginationRequest.setLength` rejects anything higher.
 const MAX_PLANS = 1000;
+
+/** How often to ask how far a running bulk delete has got. */
+const BULK_POLL_MS = 2000;
+
+/** What the dialog says while the two slow server round-trips are happening. */
+const COUNTING = "Counting the plans this would delete.";
+const STARTING = "Checking that count still holds, then starting.";
+
+/**
+ * The ages the listing can be narrowed to, as whole years back from today. Age
+ * is the one thing an operator pruning a database actually filters on, and it
+ * is otherwise only expressible by editing `to=` into the URL by hand.
+ * @type {Array<{value: string, label: string, years: number}>}
+ */
+const AGE_PRESETS = [
+  { value: "1y", label: "Over 1 year ago", years: 1 },
+  { value: "2y", label: "Over 2 years ago", years: 2 },
+  { value: "3y", label: "Over 3 years ago", years: 3 },
+  { value: "5y", label: "Over 5 years ago", years: 5 },
+];
+
+/**
+ * @param {number} years - How many whole years back.
+ * @returns {string} That date as `YYYY-MM-DD`, which is what `to` takes.
+ */
+function yearsAgo(years) {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - years);
+  return date.toISOString().slice(0, 10);
+}
 
 const STYLE_ID = "cts-plan-list-styles";
 
@@ -50,6 +81,26 @@ const STYLE_TEXT = css`
     display: block;
     font-family: var(--font-sans);
     color: var(--fg);
+  }
+  /* The owner pill is the link; it carries its own chip affordance, so the
+     anchor adds none of its own. */
+  .cts-plan-card-owner-link {
+    text-decoration: none;
+    color: inherit;
+  }
+  .cts-plan-card-owner-link:hover .ownerSub,
+  .cts-plan-card-owner-link:hover .ownerIss {
+    text-decoration: underline;
+  }
+  .cts-plan-list-bulk-limit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+  }
+  .cts-plan-list-bulk-limit input {
+    width: 7ch;
   }
   .cts-plan-list-toolbar {
     display: flex;
@@ -133,7 +184,31 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     color: var(--fg-soft);
   }
+  .cts-plan-list-age {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-13);
+    color: var(--fg-soft);
+  }
   .cts-plan-list-sort select {
+    box-sizing: border-box;
+    height: var(--control-height);
+    padding: 0 36px 0 var(--space-3);
+    background: var(--bg-elev);
+    color: var(--fg);
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: ${unsafeCSS(SELECT_CHEVRON)};
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .cts-plan-list-age select {
     box-sizing: border-box;
     height: var(--control-height);
     padding: 0 36px 0 var(--space-3);
@@ -418,6 +493,27 @@ async function failureMessage(response) {
     : `Failed to load test plans (HTTP ${response.status})`;
 }
 
+/**
+ * The same idea as {@link failureMessage}, worded for the bulk delete: its 400
+ * says which parameter is wrong or what `confirm` should have been, and its 409
+ * says a delete is already running — all of it worth showing verbatim.
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string>} The message for the alert.
+ */
+async function bulkFailureMessage(response) {
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    // not JSON at all; the status code is all there is
+  }
+  const detail = body && typeof body === "object" ? body.error || body.message : null;
+  if (detail) return detail;
+  return response.status === 403
+    ? "Only an admin can delete plans in bulk"
+    : `Deleting failed (HTTP ${response.status})`;
+}
+
 function formatVariant(variant) {
   if (!variant) return "";
   if (typeof variant === "string") return variant;
@@ -487,6 +583,12 @@ class CtsPlanList extends LitElement {
     _visibleCount: { state: true },
     _selectedConfig: { state: true },
     _selectedPlanId: { state: true },
+    _bulkPreview: { state: true },
+    _bulkLimit: { state: true },
+    _bulkProgress: { state: true },
+    _bulkError: { state: true },
+    _bulkBusy: { state: true },
+    _bulkBusyLabel: { state: true },
   };
 
   createRenderRoot() {
@@ -510,6 +612,22 @@ class CtsPlanList extends LitElement {
     this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedPlanId = "";
+    /** @type {{listed: number, deletable: number, kept: number, target: number}|null} */
+    this._bulkPreview = null;
+    // A limit by default, because the first thing anyone should do with this is
+    // delete a small batch and look at the result
+    this._bulkLimit = "100";
+    /** @type {{state: string, plans: number, tests: number, logEntries: number, target: number|null}|null} */
+    this._bulkProgress = null;
+    this._bulkError = null;
+    this._bulkBusy = false;
+    this._bulkBusyLabel = COUNTING;
+    // set when a finished job means the listing is out of date, acted on when
+    // the dialog closes
+    this._bulkNeedsRefresh = false;
+    // Non-reactive: the handle of the status poll, cleared on disconnect
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    this._bulkPollTimer = undefined;
     // In-flight `/api/info/<instance>` set so repeated renders (search, sort,
     // show-more, and the re-render the resolution itself triggers) don't fan
     // out duplicate requests for the same instance. Non-reactive — never read
@@ -568,6 +686,18 @@ class CtsPlanList extends LitElement {
   }
 
   updated(changedProperties) {
+    // A <select> whose options are rendered by the same template cannot be set
+    // through `.value`: Lit commits the property before the <option> children
+    // exist, so the assignment is dropped and the control falls back to its
+    // first option - which would leave the age control reading "Any time" while
+    // the listing is narrowed to a period, and the chip beside it saying so.
+    // Setting it here, after the children are in place, is what makes the
+    // control reflect the filter it is showing.
+    const age = this.querySelector("[data-testid='plan-age-filter']");
+    if (age instanceof HTMLSelectElement) {
+      age.value = this._agePreset();
+    }
+
     // After a render that changed the visible set, fetch the latest result
     // for the modules of the currently-visible cards. Gating to visible cards
     // (rather than every loaded plan) bounds the fan-out: a listing can hold
@@ -686,6 +816,213 @@ class CtsPlanList extends LitElement {
       );
       if (modal && typeof modal.show === "function") modal.show();
     });
+  }
+
+  /**
+   * The parameters that say WHICH plans a bulk delete is about: the same ones
+   * the listing itself was fetched with, so what is deleted is what is on
+   * screen, plus the limit.
+   * @returns {URLSearchParams} Those parameters.
+   */
+  _bulkParams() {
+    const params = new URLSearchParams();
+    for (const [key, value] of toParams(this.filters).entries()) params.set(key, value);
+    const limit = Number.parseInt(this._bulkLimit, 10);
+    if (Number.isFinite(limit) && limit > 0) params.set("limit", String(limit));
+    return params;
+  }
+
+  /**
+   * Ask what deleting would do, then open the confirmation. Nothing is deleted
+   * until the button in the dialog is pressed.
+   * @returns {Promise<void>} When the dialog is open.
+   */
+  async _openBulkDelete() {
+    this._bulkError = null;
+    this._bulkProgress = null;
+    this._bulkPreview = null;
+    this._bulkBusy = true;
+    this._bulkBusyLabel = COUNTING;
+    await this.updateComplete;
+    // the element may not have upgraded yet on a quick click, and an un-upgraded
+    // one has no show(): waiting for the definition is what stops the button
+    // doing nothing at all
+    await customElements.whenDefined("cts-modal");
+    const modal = /** @type {HTMLElement & { show?: () => void }} */ (
+      this.querySelector("#planBulkDeleteModal")
+    );
+    if (modal && typeof modal.show === "function") modal.show();
+    await this._loadBulkPreview();
+  }
+
+  /** @returns {Promise<void>} When the count is in, or the error is shown. */
+  async _loadBulkPreview() {
+    this._bulkBusy = true;
+    this._bulkBusyLabel = COUNTING;
+    this._bulkError = null;
+    try {
+      const response = await fetch(`/api/plan/delete-preview?${this._bulkParams()}`);
+      if (!response.ok) throw new Error(await bulkFailureMessage(response));
+      this._bulkPreview = await response.json();
+    } catch (err) {
+      this._bulkPreview = null;
+      this._bulkError = err instanceof Error ? err.message : String(err);
+    } finally {
+      this._bulkBusy = false;
+    }
+  }
+
+  /**
+   * @param {Event} event - The input event from the limit box.
+   * @returns {void}
+   */
+  _handleBulkLimitInput(event) {
+    this._bulkLimit = /** @type {HTMLInputElement} */ (event.target).value;
+  }
+
+  /**
+   * How many plans the delete would remove: what the preview said is deletable,
+   * capped by the limit. Derived rather than re-counted, because neither
+   * `listed` nor `deletable` depends on the limit - only this does - and the
+   * count behind them is a scan of every plan, which is far too slow to repeat
+   * on a keystroke. The server recomputes the same number and refuses the
+   * delete if it disagrees.
+   * @returns {number} The number to confirm, and to put on the button.
+   */
+  _bulkTarget() {
+    if (!this._bulkPreview) return 0;
+    const limit = Number.parseInt(this._bulkLimit, 10);
+    return Number.isFinite(limit) && limit > 0
+      ? Math.min(this._bulkPreview.deletable, limit)
+      : this._bulkPreview.deletable;
+  }
+
+  /**
+   * Start deleting. `confirm` is the number the dialog just showed, so a
+   * listing that moved since then stops the request instead of deleting
+   * something else.
+   * @returns {Promise<void>} When the job has started, or the error is shown.
+   */
+  async _confirmBulkDelete() {
+    if (!this._bulkPreview) return;
+    this._bulkBusy = true;
+    // the server counts again before it accepts the confirmation, which on a big
+    // database is another wait - so this must not look like nothing is happening
+    this._bulkBusyLabel = STARTING;
+    this._bulkError = null;
+    try {
+      const params = this._bulkParams();
+      params.set("confirm", String(this._bulkTarget()));
+      const response = await fetch(`/api/plan?${params}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(await bulkFailureMessage(response));
+      this._bulkProgress = await response.json();
+      this._pollBulkStatus();
+    } catch (err) {
+      this._bulkError = err instanceof Error ? err.message : String(err);
+    } finally {
+      this._bulkBusy = false;
+    }
+  }
+
+  /**
+   * Poll until the job stops, then reload the listing so the page shows what
+   * is left.
+   * @returns {void}
+   */
+  _pollBulkStatus() {
+    clearTimeout(this._bulkPollTimer);
+    this._bulkPollTimer = setTimeout(async () => {
+      try {
+        const response = await fetch("/api/plan/delete-status");
+        if (!response.ok) throw new Error(await bulkFailureMessage(response));
+        this._bulkProgress = await response.json();
+      } catch (err) {
+        this._bulkError = err instanceof Error ? err.message : String(err);
+        return;
+      }
+      if (this._bulkProgress && this._bulkProgress.state === "RUNNING") {
+        this._pollBulkStatus();
+      } else {
+        // NOT _fetchPlans() here: it flips the component into its loading state,
+        // which unmounts this dialog mid-sentence and loses the only report of
+        // what was deleted. The listing is refreshed when the dialog is closed.
+        this._bulkNeedsRefresh = true;
+      }
+    }, BULK_POLL_MS);
+  }
+
+  /** @returns {Promise<void>} When the job has been asked to stop. */
+  async _cancelBulkDelete() {
+    try {
+      const response = await fetch("/api/plan/delete-cancel", { method: "POST" });
+      if (response.ok) this._bulkProgress = await response.json();
+    } catch {
+      // the poll reports what actually happened; a failed cancel is not worth
+      // an error of its own
+    }
+  }
+
+  disconnectedCallback() {
+    clearTimeout(this._bulkPollTimer);
+    super.disconnectedCallback();
+  }
+
+  /**
+   * Move what is in the search box into the SERVER's filter, so the listing,
+   * the count and the delete all mean the same set of plans.
+   *
+   * The two searches are not the same search: the box matches any substring of
+   * a plan's name, id, description or variant in rows already fetched, while
+   * the server runs a MongoDB `$text` phrase over the name, description and
+   * certification profile, which matches whole words only. Handing over a
+   * half-typed word therefore finds nothing, which is why this is offered
+   * rather than done automatically.
+   * @returns {void}
+   */
+  _useServerSearch() {
+    const term = this._searchText.trim();
+    if (!term) return;
+    this._searchText = "";
+    this._applyFilters({ ...this.filters, search: term });
+  }
+
+  /**
+   * Which age preset the current `to` bound corresponds to, so the select shows
+   * what the listing is actually narrowed to after a reload or a drill-down.
+   * @returns {string} A preset value, `"custom"` for a bound that is none of
+   *   them, or `""` when the listing is not narrowed by age.
+   */
+  _agePreset() {
+    const to = (this.filters && this.filters.to) || "";
+    if (!to) return "";
+    const match = AGE_PRESETS.find((preset) => yearsAgo(preset.years) === to);
+    return match ? match.value : "custom";
+  }
+
+  /**
+   * @param {Event} event - The change event from the age select.
+   * @returns {void}
+   */
+  _handleAgeChange(event) {
+    const value = /** @type {HTMLSelectElement} */ (event.target).value;
+    const preset = AGE_PRESETS.find((candidate) => candidate.value === value);
+    // "Custom period" is only ever shown for a bound that came from a URL, so
+    // choosing it changes nothing; anything else sets or clears the bound
+    if (value === "custom") return;
+    this._applyFilters({ ...this.filters, to: preset ? yearsAgo(preset.years) : "" });
+  }
+
+  /**
+   * The dialog has been closed, so the listing can be brought up to date now
+   * without taking the result off the screen while it is still being read.
+   * @returns {void}
+   */
+  _handleBulkDeleteClosed() {
+    if (!this._bulkNeedsRefresh) return;
+    this._bulkNeedsRefresh = false;
+    this._bulkProgress = null;
+    this._bulkPreview = null;
+    this._fetchPlans();
   }
 
   _handleConfigButtonClick(event) {
@@ -959,7 +1296,16 @@ class CtsPlanList extends LitElement {
             ? html`
                 <span class="cts-plan-card-meta-item">
                   <span class="cts-plan-card-meta-key">Owner</span>
-                  ${this._renderOwner(plan.owner)}
+                  <a
+                    class="cts-plan-card-owner-link"
+                    href="plans.html${urlFromFilter(
+                      { ...this.filters, owner: plan.owner.sub || "" },
+                      window.location.search,
+                    )}"
+                    title="Show only this owner's plans"
+                    data-testid="plan-owner-link"
+                    >${this._renderOwner(plan.owner)}</a
+                  >
                 </span>
               `
             : nothing}
@@ -1027,7 +1373,134 @@ class CtsPlanList extends LitElement {
               Clear all
             </button>`
           : nothing}
+        ${this.isAdmin && !this.isPublic
+          ? html`<cts-button
+                variant="danger"
+                size="sm"
+                icon="trash-empty"
+                label="Delete these plans..."
+                data-testid="plan-bulk-delete"
+                ?disabled=${Boolean(this._searchText)}
+                title=${this._searchText
+                  ? "The search box narrows only what is shown here, not what a delete would " +
+                    "remove. Search on the server instead, or clear the box."
+                  : "Delete every plan these filters match"}
+                @cts-click=${this._openBulkDelete}
+              ></cts-button>
+              ${this._searchText
+                ? html`<button
+                    type="button"
+                    class="cts-plan-list-filters-clear"
+                    data-testid="plan-bulk-delete-server-search"
+                    title="Ask the server for the plans matching this term, so it becomes part of
+                      the listing - and of what a delete would remove. Whole words only."
+                    @click=${this._useServerSearch}
+                  >
+                    Search on the server instead
+                  </button>`
+                : nothing}`
+          : nothing}
       </div>
+    `;
+  }
+
+  /**
+   * The confirmation, and then the progress of the job it starts. Only ever
+   * reachable with a filter active, because the button that opens it lives in
+   * the row of filter chips - which is also what the server insists on.
+   * @returns {unknown} The dialog.
+   */
+  _renderBulkDeleteModal() {
+    const preview = this._bulkPreview;
+    const progress = this._bulkProgress;
+    const running = progress?.state === "RUNNING";
+    return html`
+      <cts-modal
+        id="planBulkDeleteModal"
+        heading="Delete these test plans?"
+        size="md"
+        @cts-modal-close=${this._handleBulkDeleteClosed}
+      >
+        ${this._bulkError
+          ? html`<cts-alert variant="danger" data-testid="plan-bulk-delete-error"
+              >${this._bulkError}</cts-alert
+            >`
+          : nothing}
+        ${progress
+          ? html`
+              <p data-testid="plan-bulk-delete-progress">
+                <strong>${progress.state === "RUNNING" ? "Deleting" : progress.state}</strong>
+                — ${progress.plans.toLocaleString()} of ${(progress.target ?? 0).toLocaleString()}
+                plans, ${progress.tests.toLocaleString()} test runs and
+                ${progress.logEntries.toLocaleString()} log entries removed.
+              </p>
+              ${running
+                ? html`<cts-button
+                    variant="secondary"
+                    label="Stop"
+                    data-testid="plan-bulk-delete-stop"
+                    @cts-click=${this._cancelBulkDelete}
+                  ></cts-button>`
+                : nothing}
+            `
+          : html`
+              <p>
+                This deletes every plan matching the filters below - not just the ones on this page
+                - along with every test run in them and every log entry of those runs. It cannot be
+                undone.
+              </p>
+              <ul>
+                ${repeat(
+                  toChips(this.filters),
+                  (chip) => chip.key,
+                  (chip) => html`<li>${chip.label}</li>`,
+                )}
+              </ul>
+              <label class="cts-plan-list-bulk-limit">
+                <span>Delete at most</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  aria-label="Most plans to delete"
+                  data-testid="plan-bulk-delete-limit"
+                  .value=${this._bulkLimit}
+                  @input=${this._handleBulkLimitInput}
+                />
+                <span>plans, oldest first. Leave empty for all of them.</span>
+              </label>
+              ${this._bulkBusy && !this._bulkError
+                ? html`<p data-testid="plan-bulk-delete-counting">
+                    <cts-spinner
+                      size="sm"
+                      label="Counting the plans this would delete"
+                    ></cts-spinner>
+                    Counting the plans this would delete. On a large database this takes a few
+                    seconds.
+                  </p>`
+                : nothing}
+              ${preview && !this._bulkBusy
+                ? html`<p data-testid="plan-bulk-delete-counts">
+                    ${preview.listed.toLocaleString()} plans match.
+                    <strong>${this._bulkTarget().toLocaleString()} will be deleted.</strong>
+                    ${preview.kept > 0
+                      ? html`${preview.kept.toLocaleString()} are kept because they are immutable or
+                        published.`
+                      : nothing}
+                  </p>`
+                : nothing}
+              <cts-button
+                variant="danger"
+                icon="trash-empty"
+                label=${preview && !this._bulkBusy
+                  ? `Delete ${this._bulkTarget().toLocaleString()} plans`
+                  : "Delete"}
+                ?disabled=${this._bulkBusy || !preview || this._bulkTarget() === 0}
+                data-testid="plan-bulk-delete-confirm"
+                @cts-click=${this._confirmBulkDelete}
+              ></cts-button>
+            `}
+      </cts-modal>
     `;
   }
 
@@ -1043,6 +1516,25 @@ class CtsPlanList extends LitElement {
             .value=${this._searchText}
             @input=${this._handleSearchInput}
           />
+        </label>
+        <label class="cts-plan-list-age">
+          <span>Started</span>
+          <select
+            aria-label="Only show plans older than"
+            data-testid="plan-age-filter"
+            .value=${this._agePreset()}
+            @change=${this._handleAgeChange}
+          >
+            <option value="">Any time</option>
+            ${repeat(
+              AGE_PRESETS,
+              (preset) => preset.value,
+              (preset) => html`<option value=${preset.value}>${preset.label}</option>`,
+            )}
+            ${this._agePreset() === "custom"
+              ? html`<option value="custom">Custom period</option>`
+              : nothing}
+          </select>
         </label>
         <label class="cts-plan-list-sort">
           <span>Sort</span>
@@ -1182,6 +1674,23 @@ class CtsPlanList extends LitElement {
   }
 
   render() {
+    return html`
+      ${this._renderBody()}
+      ${this.isAdmin && !this.isPublic ? this._renderBulkDeleteModal() : nothing}
+    `;
+  }
+
+  /**
+   * The listing itself, in whichever of its three states it is in.
+   *
+   * Kept apart from {@link render} so the bulk-delete dialog can sit OUTSIDE
+   * it: this returns early while a fetch is in flight, and a dialog rendered in
+   * here would not exist to be opened during a refetch, and would be torn down
+   * mid-sentence by the refetch that follows a delete - taking the only report
+   * of what was deleted off the screen with it.
+   * @returns {unknown} The body.
+   */
+  _renderBody() {
     if (this._loading) {
       // The filter row is part of the page's scope, not of the result: it
       // must not flash out and back in around every refetch.

@@ -72,6 +72,21 @@ public class PaginationRequest {
 		this.order = order;
 	}
 
+	/**
+	 * How a searched-for term is handed to a listing query: quoted, so that it is one phrase
+	 * rather than a set of words any of which would do.
+	 *
+	 * <p>Public and static because a bulk delete has to search for exactly what the listing it
+	 * is deleting searched for. Two spellings of this would mean a delete that removes a
+	 * different set from the one that was shown.
+	 *
+	 * @param search what the caller typed, or null
+	 * @return that as a phrase, or null when nothing was searched for
+	 */
+	public static String searchTerm(String search) {
+		return Strings.isNullOrEmpty(search) ? null : '"' + search + '"';
+	}
+
 	public <T> PaginationResponse<T> getSliceResponse(
 			Function<Pageable, Slice<T>> queryAll,
 			BiFunction<String, Pageable, Slice<T>> querySearch) {
@@ -88,9 +103,7 @@ public class PaginationRequest {
 	 */
 	public <T> PaginationResponse<T> getSliceResponse(BiFunction<String, Pageable, Slice<T>> query) {
 
-		Slice<T> results = query.apply(
-				Strings.isNullOrEmpty(search) ? null : '\"' + search + '\"',
-				getPageable());
+		Slice<T> results = query.apply(searchTerm(search), getPageable());
 
 		int pageLength = length == 0 ? 10 : length;
 		long syntheticCount = results.hasNext()

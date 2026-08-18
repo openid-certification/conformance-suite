@@ -18,6 +18,22 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-view-tabs.js"></script>
+    <script type="module">
+      // A link into this page can carry the listing filters (owner / immutable
+      // / family / plan / variant.<k> / cert / from / to) in the query string.
+      // They are resolved here and handed to the component as a property,
+      // because they are an object and cannot be an attribute.
+      //
+      // This block MUST stay ABOVE the cts-plan-list module: deferred module
+      // scripts run in document order after parsing, so running first is what
+      // puts the property on the element BEFORE customElements.define()
+      // upgrades it — Lit re-applies own properties it finds at upgrade, so
+      // the connect-time /api/plan fetch already carries the filter and the
+      // listing never paints an unfiltered set it then has to correct.
+      import { planListFilterFromUrl } from "/components/plan-list-filter.js";
+      const listing = document.getElementById("plansListing");
+      if (listing) listing.filters = planListFilterFromUrl(window.location.search);
+    </script>
     <script type="module" src="/components/cts-plan-list.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>

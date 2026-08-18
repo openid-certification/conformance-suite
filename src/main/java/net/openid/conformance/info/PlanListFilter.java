@@ -210,14 +210,6 @@ public record PlanListFilter(Set<String> planNames, Map<String, String> variant,
 
 	/**
 	 * @param parameter the request parameter the value came from, for the error message
-	 * @param value     a date or a timestamp with a time zone
-	 * @return a prefix of every stored {@code started} the bound covers: a date as it stands,
-	 *         a timestamp in UTC - so an offset does not break the comparison - truncated to
-	 *         its second and without the trailing 'Z'
-	 * @throws IllegalArgumentException if it is neither
-	 */
-	/**
-	 * @param parameter the request parameter the value came from, for the error message
 	 * @param value     {@code true} or {@code false}, in any case, or null
 	 * @return that as a {@link Boolean}, or null if it was not sent
 	 * @throws IllegalArgumentException if it is neither, rather than silently reading anything
@@ -236,6 +228,14 @@ public record PlanListFilter(Set<String> planNames, Map<String, String> variant,
 		throw new IllegalArgumentException("%s must be true or false, not '%s'".formatted(parameter, value));
 	}
 
+	/**
+	 * @param parameter the request parameter the value came from, for the error message
+	 * @param value     a date or a timestamp with a time zone
+	 * @return a prefix of every stored {@code started} the bound covers: a date as it stands,
+	 *         a timestamp in UTC - so an offset does not break the comparison - truncated to
+	 *         its second and without the trailing 'Z'
+	 * @throws IllegalArgumentException if it is neither
+	 */
 	private static String bound(String parameter, String value) {
 		if (value == null) {
 			return null;

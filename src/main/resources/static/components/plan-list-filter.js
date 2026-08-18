@@ -1,7 +1,7 @@
 /**
- * The plans-listing filter: the `family` / `plan` / `variant.<k>` / `cert` /
- * `from` / `to` parameters `GET /api/plan` accepts, as they travel through
- * `plans.html`.
+ * The plans-listing filter: the `search` / `owner` / `immutable` / `family` /
+ * `plan` / `variant.<k>` / `cert` / `from` / `to` parameters `GET /api/plan`
+ * accepts, as they travel through `plans.html`.
  *
  * Pure functions only — no DOM, no fetch, no history. `plans.html` reads them
  * out of `location.search` and hands the result to `<cts-plan-list>`, which
@@ -23,6 +23,9 @@ const DAY_MS = 86400000;
 /** Matches `QueryParams.VARIANT_PREFIX` on the server. */
 const VARIANT_PREFIX = "variant.";
 
+const SEARCH_PARAM = "search";
+const OWNER_PARAM = "owner";
+const IMMUTABLE_PARAM = "immutable";
 const FAMILY_PARAM = "family";
 const PLAN_PARAM = "plan";
 const CERT_PARAM = "cert";
@@ -34,7 +37,16 @@ const TO_PARAM = "to";
  * without knowing their names.
  * @type {Array<string>}
  */
-export const FILTER_PARAMS = [FAMILY_PARAM, PLAN_PARAM, CERT_PARAM, FROM_PARAM, TO_PARAM];
+export const FILTER_PARAMS = [
+  SEARCH_PARAM,
+  OWNER_PARAM,
+  IMMUTABLE_PARAM,
+  FAMILY_PARAM,
+  PLAN_PARAM,
+  CERT_PARAM,
+  FROM_PARAM,
+  TO_PARAM,
+];
 
 /** A `YYYY-MM-DD` date, the form both bounds take when the drill-down builds them. */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -58,6 +70,14 @@ const SHORT_MONTHS = [
 /**
  * What the plans listing is narrowed to.
  * @typedef {object} PlanListFilter
+ * @property {string} search - A term the SERVER matches, or `""`. Not the same
+ *   thing as the search box on the page, which narrows only the rows already
+ *   fetched: this one is a MongoDB `$text` phrase over the plan name,
+ *   description and certification profile, so it matches whole words only.
+ * @property {string} owner - The `sub` of the account whose plans to list, or
+ *   `""`. Admin-only in effect: anyone else sees only their own plans anyway.
+ * @property {string} immutable - `"true"` for only the plans a certification
+ *   package was downloaded for, `"false"` for only the rest, or `""` for both.
  * @property {string} family - Spec family display name, or `""`.
  * @property {string} plan - Exact plan name, or `""`.
  * @property {Record<string, string>} variant - Plan-level variant parameter → value.
@@ -70,8 +90,9 @@ const SHORT_MONTHS = [
  * One removable filter chip.
  * @typedef {object} PlanListChip
  * @property {string} key - Chip identity, and the argument {@link without}
- *   takes: `family`, `plan`, `cert`, `from` (the whole period, both bounds) or
- *   `variant-<name>`. Also the chip's `data-testid` suffix.
+ *   takes: `search`, `owner`, `immutable`, `family`, `plan`, `cert`, `from` (the whole
+ *   period, both bounds) or `variant-<name>`. Also the chip's `data-testid`
+ *   suffix.
  * @property {string} label - What the chip reads.
  * @property {string} removeLabel - The accessible name of the remove action.
  */
@@ -84,9 +105,32 @@ function text(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/**
+ * `immutable` is the one filter with a fixed set of values. Anything that is
+ * neither is dropped rather than passed on, because the server rejects it with
+ * a 400 — a hand-edited link should open the listing unfiltered, as every other
+ * unusable value here does.
+ * @param {string|null|undefined} value - A raw parameter value.
+ * @returns {string} `"true"`, `"false"` or `""`.
+ */
+function flag(value) {
+  const flagged = text(value).toLowerCase();
+  return flagged === "true" || flagged === "false" ? flagged : "";
+}
+
 /** @returns {PlanListFilter} A filter that narrows nothing. */
 export function emptyFilter() {
-  return { family: "", plan: "", variant: {}, cert: "", from: "", to: "" };
+  return {
+    search: "",
+    owner: "",
+    immutable: "",
+    family: "",
+    plan: "",
+    variant: {},
+    cert: "",
+    from: "",
+    to: "",
+  };
 }
 
 /**
@@ -106,6 +150,9 @@ export function planListFilterFromUrl(search) {
     if (name && text(value)) variant[name] = text(value);
   }
   return {
+    search: text(params.get(SEARCH_PARAM)),
+    owner: text(params.get(OWNER_PARAM)),
+    immutable: flag(params.get(IMMUTABLE_PARAM)),
     family: text(params.get(FAMILY_PARAM)),
     plan: text(params.get(PLAN_PARAM)),
     variant,
@@ -135,6 +182,9 @@ function variantEntries(filter) {
 export function hasFilters(filter) {
   if (!filter) return false;
   return Boolean(
+    text(filter.search) ||
+    text(filter.owner) ||
+    text(filter.immutable) ||
     text(filter.family) ||
     text(filter.plan) ||
     text(filter.cert) ||
@@ -152,6 +202,9 @@ export function hasFilters(filter) {
  */
 export function toParams(filter) {
   const params = new URLSearchParams();
+  if (text(filter && filter.search)) params.set(SEARCH_PARAM, text(filter.search));
+  if (text(filter && filter.owner)) params.set(OWNER_PARAM, text(filter.owner));
+  if (text(filter && filter.immutable)) params.set(IMMUTABLE_PARAM, text(filter.immutable));
   if (text(filter && filter.family)) params.set(FAMILY_PARAM, text(filter.family));
   if (text(filter && filter.plan)) params.set(PLAN_PARAM, text(filter.plan));
   for (const [name, value] of variantEntries(filter)) {
@@ -193,7 +246,10 @@ export function urlFromFilter(filter, search = "") {
 export function without(filter, key) {
   const next = { ...emptyFilter(), ...(filter || {}) };
   next.variant = { ...(next.variant || {}) };
-  if (key === "family") next.family = "";
+  if (key === "search") next.search = "";
+  else if (key === "owner") next.owner = "";
+  else if (key === "immutable") next.immutable = "";
+  else if (key === "family") next.family = "";
   else if (key === "plan") next.plan = "";
   else if (key === "cert") next.cert = "";
   else if (key === "from") {
@@ -248,8 +304,9 @@ function periodValue(from, to) {
 }
 
 /**
- * One chip per active filter, in a fixed order (family, plan, variants, cert,
- * period) so the row does not reshuffle as filters are removed.
+ * One chip per active filter, in a fixed order (search, owner, family, plan,
+ * variants, cert, immutable, period) so the row does not reshuffle as filters
+ * are removed.
  * @param {PlanListFilter} filter - The filter.
  * @returns {Array<PlanListChip>} The chips.
  */
@@ -275,10 +332,14 @@ export function toChips(filter) {
     });
   };
 
+  if (text(filter && filter.search)) add("search", "Search", text(filter.search));
+  if (text(filter && filter.owner)) add("owner", "Owner", text(filter.owner));
   if (text(filter && filter.family)) add("family", "Family", text(filter.family));
   if (text(filter && filter.plan)) add("plan", "Plan", text(filter.plan));
   for (const [name, value] of variantEntries(filter)) add(`variant-${name}`, name, value);
   if (text(filter && filter.cert)) add("cert", "Certification profile", text(filter.cert));
+  const immutable = text(filter && filter.immutable);
+  if (immutable) add("immutable", "Immutable", immutable === "true" ? "yes" : "no");
   const from = text(filter && filter.from);
   const to = text(filter && filter.to);
   if (from || to) add("from", "Started", periodValue(from, to), " ");
