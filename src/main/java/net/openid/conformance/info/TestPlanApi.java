@@ -8,12 +8,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.apidoc.ErrorResponse;
@@ -25,6 +28,7 @@ import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
+import net.openid.conformance.statistics.SpecFamilyResolver;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestModule;
@@ -78,6 +82,9 @@ public class TestPlanApi implements DataUtils {
 
 	@Autowired
 	private TestRunnerSupport testRunnerSupport;
+
+	@Autowired
+	private SpecFamilyResolver specFamilyResolver;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "createTestPlan", summary = "Create test plan")
@@ -190,18 +197,59 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(operationId = "listTestPlans", summary = "Get a list of test plan instances with paging")
+	@Operation(operationId = "listTestPlans", summary = "Get a list of test plan instances with paging",
+		description = "Which plans are listed is decided by who is asking: an admin sees every plan, "
+			+ "anyone else sees their own, and `public=true` lists the published plans. The optional "
+			+ "filters below only narrow that listing - the statistics page drills down with them - so "
+			+ "none of them can show a plan that would not have been listed anyway.\n\n"
+			+ "In addition to the parameters below, any number of plan level variant filters may be sent "
+			+ "as `variant.<parameter>=<value>`, e.g. "
+			+ "`variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a plan has to "
+			+ "match all of them. They cannot be declared individually here because the parameter names "
+			+ "are the variant parameters of every test plan the suite publishes.")
+	@Parameters({
+		@Parameter(name = "family", in = ParameterIn.QUERY,
+			description = "Only list plans of this spec family, as named on the statistics page.",
+			schema = @Schema(type = "string", example = "FAPI-CIBA")),
+		@Parameter(name = "plan", in = ParameterIn.QUERY,
+			description = "Only list plans with this exact plan name.",
+			schema = @Schema(type = "string", example = "fapi-ciba-id1-test-plan")),
+		@Parameter(name = "cert", in = ParameterIn.QUERY,
+			description = "Only list plans certified against this certification profile; a plan matches "
+				+ "if any one of its profiles is exactly this.",
+			schema = @Schema(type = "string", example = "FAPI-CIBA: Poll w/ MTLS")),
+		@Parameter(name = "from", in = ParameterIn.QUERY,
+			description = "Only list plans started at or after this point in time; a date (`YYYY-MM-DD`, "
+				+ "covering the whole of that day) or a timestamp with a time zone.",
+			schema = @Schema(type = "string", example = "2026-06-01")),
+		@Parameter(name = "to", in = ParameterIn.QUERY,
+			description = "Only list plans started before this point in time, exclusive, in the same "
+				+ "format as `from`, so that the bounds of adjacent periods can be passed straight through.",
+			schema = @Schema(type = "string", example = "2026-07-01"))
+	})
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully; 'data' contains test plan documents (the public projection when public=true)",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaginationResponse.class)))
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaginationResponse.class))),
+		@ApiResponse(responseCode = "400", description = "A filter parameter could not be used",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Object> getTestPlansForCurrentUser(
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
-		@ParameterObject PaginationRequest page) {
+		@ParameterObject PaginationRequest page,
+		// the filters are read from the raw parameter map because variant.<parameter> is an
+		// open set of names that no @RequestParam can declare
+		@Parameter(hidden = true) HttpServletRequest request) {
+
+		PlanListFilter filter;
+		try {
+			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+		}
 
 		PaginationResponse<?> response = publicOnly
-				? planService.getPaginatedPublicPlans(page)
-				: planService.getPaginatedPlansForCurrentUser(page);
+				? planService.getPaginatedPublicPlans(page, filter)
+				: planService.getPaginatedPlansForCurrentUser(page, filter);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
