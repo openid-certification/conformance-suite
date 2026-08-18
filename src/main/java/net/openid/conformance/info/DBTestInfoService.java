@@ -217,7 +217,11 @@ public class DBTestInfoService implements TestInfoService {
 	@Override
 	public boolean deleteTests(List<String> ids) {
 
-		Criteria testInfoCriteria = Criteria.where("testId").in(ids);
+		// TEST_INFO is keyed by '_id' (TestInfo sets 'testId' to the same value, but only '_id'
+		// is indexed, so filtering on 'testId' collection-scans). EVENT_LOG entries have their
+		// own '_id' of testId + '-' + random, so they have to be matched on the (indexed)
+		// 'testId' field instead.
+		Criteria testInfoCriteria = Criteria.where("_id").in(ids);
 		Criteria eventLogCriteria = Criteria.where("testId").in(ids);
 
 		if (!authenticationFacade.isAdmin()) {
