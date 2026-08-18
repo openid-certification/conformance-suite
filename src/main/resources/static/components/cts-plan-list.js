@@ -10,10 +10,23 @@ import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-json-view.js";
+import "./cts-badge.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import "./cts-plan-status.js";
+import {
+  emptyFilter,
+  hasFilters,
+  toChips,
+  toParams,
+  urlFromFilter,
+  without,
+} from "./plan-list-filter.js";
 
 const PAGE_SIZE = 25;
+
+// The backend's hard cap on `/api/plan?length=`, matching MAX_FILTERED_LOGS
+// in cts-log-list. `PaginationRequest.setLength` rejects anything higher.
+const MAX_PLANS = 1000;
 
 const STYLE_ID = "cts-plan-list-styles";
 
@@ -44,6 +57,41 @@ const STYLE_TEXT = css`
     gap: var(--space-3);
     align-items: center;
     margin-bottom: var(--space-4);
+  }
+  /* What the listing has been narrowed to (a drill-down from the statistics
+     charts, or a shared link). Above the search box, because it scopes the
+     dataset the search then searches. */
+  .cts-plan-list-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+  .cts-plan-list-filters-label {
+    font-size: var(--fs-13);
+    color: var(--fg-soft);
+  }
+  .cts-plan-list-filters-clear {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--fs-13);
+    color: var(--fg-link);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--link-decoration-color);
+    cursor: pointer;
+  }
+  .cts-plan-list-filters-clear:hover {
+    text-decoration-color: currentColor;
+  }
+  .cts-plan-list-filters-clear:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-2);
   }
   .cts-plan-list-search {
     position: relative;
@@ -283,6 +331,14 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-2);
   }
+  /* Sits above the list (or the empty state), so it reads as a caveat on the
+     WHOLE dataset the search/filter row is scoped to, not as a per-card note.
+     cts-alert is an undeclared custom element (inline by default absent this
+     rule), so display: block is needed for margin-bottom to take effect. */
+  .cts-plan-list-truncation {
+    display: block;
+    margin-bottom: var(--space-3);
+  }
   .cts-plan-list-footer {
     display: flex;
     flex-direction: column;
@@ -337,6 +393,31 @@ function hasNonEmptyConfig(config) {
   return !!config && typeof config === "object" && Object.keys(config).length > 0;
 }
 
+/**
+ * What to tell the reader about a listing request the server refused.
+ *
+ * `TestPlanApi` answers a filter it cannot use with 400 and
+ * `{"error": "<which parameter and why>"}` — the only thing that says WHICH
+ * chip to remove — so that message is preferred over the bare status code.
+ * `message` is accepted alongside it because the statistics endpoint words its
+ * own 400 that way and a mock may do either. Anything else (an empty body, a
+ * proxy's HTML error page, a 500) falls back to the status.
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string>} The message for the alert.
+ */
+async function failureMessage(response) {
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    // not JSON at all; the status code is all there is
+  }
+  const detail = body && typeof body === "object" ? body.error || body.message : null;
+  return detail
+    ? `Failed to load test plans: ${detail}`
+    : `Failed to load test plans (HTTP ${response.status})`;
+}
+
 function formatVariant(variant) {
   if (!variant) return "";
   if (typeof variant === "string") return variant;
@@ -372,6 +453,22 @@ function formatVariant(variant) {
  *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
  *   default (My for authed, Published for anon) before fetching, then trigger
  *   it via `fetchPlans()`. Reflects the `defer-initial-fetch` attribute (KTD3).
+ * @property {import("./plan-list-filter.js").PlanListFilter} filters - What
+ *   the listing is narrowed to: `family`, `plan`, plan-level `variant`
+ *   values, `cert` and the `from`/`to` bounds on `started`. Forwarded to
+ *   `GET /api/plan` (the SERVER applies them — this is not the client-side
+ *   search) and rendered as one removable chip each above the toolbar.
+ *   Property-only, because it is an object: `plans.html` reads it out of
+ *   `location.search` with `planListFilterFromUrl()` and assigns it
+ *   BEFORE the element upgrades, exactly as it sets `is-public`, so the
+ *   connect-time fetch already carries the filter. Removing a chip rewrites
+ *   the page URL (`replaceState`) and refetches.
+ *
+ * DOM hooks for e2e (`data-testid`): `plan-list-item`, `plan-list-link`,
+ * `plan-list-items`, `plan-list-empty`, `plan-list-show-more`,
+ * `plan-list-truncated`, plus the filter row's `plan-filters`,
+ * `plan-filter-<key>` (`family`, `plan`, `cert`, `from`, `variant-<name>`)
+ * and `plan-filters-clear`.
  * @fires cts-plan-navigate - When a plan name is clicked, with
  *   `{ detail: { planId } }`; bubbles and is composed.
  */
@@ -380,9 +477,11 @@ class CtsPlanList extends LitElement {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     deferInitialFetch: { type: Boolean, attribute: "defer-initial-fetch" },
+    filters: { attribute: false },
     _plans: { state: true },
     _loading: { state: true },
     _error: { state: true },
+    _truncated: { state: true },
     _searchText: { state: true },
     _sortKey: { state: true },
     _visibleCount: { state: true },
@@ -400,9 +499,12 @@ class CtsPlanList extends LitElement {
     this.isAdmin = false;
     this.isPublic = false;
     this.deferInitialFetch = false;
+    /** @type {import("./plan-list-filter.js").PlanListFilter} */
+    this.filters = emptyFilter();
     this._plans = [];
     this._loading = true;
     this._error = null;
+    this._truncated = false;
     this._searchText = "";
     this._sortKey = "started-desc";
     this._visibleCount = PAGE_SIZE;
@@ -418,6 +520,11 @@ class CtsPlanList extends LitElement {
     // so the search→sort→slice work happens once per render, not twice.
     // Non-reactive — never read from render itself.
     this._currentView = null;
+    // Monotonic id of the most recent listing request. Two filter changes in
+    // quick succession (a chip removed, then another) are two fetches with no
+    // ordering guarantee between them, and the loser must not overwrite the
+    // winner's rows — or clear its loading state. Non-reactive.
+    this._fetchSeq = 0;
     // Pre-bind handlers wired through Lit EventParts on rendered cards. Lit
     // dispatches with `this` set to the host element of the listener; these
     // must retain this component as `this`.
@@ -427,6 +534,8 @@ class CtsPlanList extends LitElement {
     this._handlePlanLinkClick = this._handlePlanLinkClick.bind(this);
     this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
     this._handleCopyConfig = this._handleCopyConfig.bind(this);
+    this._handleChipRemove = this._handleChipRemove.bind(this);
+    this._handleClearFilters = this._handleClearFilters.bind(this);
   }
 
   connectedCallback() {
@@ -477,8 +586,10 @@ class CtsPlanList extends LitElement {
   }
 
   async _fetchPlans() {
+    const seq = ++this._fetchSeq;
     this._loading = true;
     this._error = null;
+    this._truncated = false;
     try {
       // This component fetches the whole listing once and does search / sort /
       // "Show more" entirely client-side, so it must ask the backend for the
@@ -492,28 +603,56 @@ class CtsPlanList extends LitElement {
       // newest-first so that, when the cap truncates, it keeps the newest plans
       // rather than the oldest. The client-side `_sortedPlans` (default
       // `started-desc`) then refines ordering within that set.
-      const params = new URLSearchParams({ length: "1000", order: "started,desc" });
+      const params = new URLSearchParams({ length: String(MAX_PLANS), order: "started,desc" });
       if (this.isPublic) params.set("public", "true");
+      // The drill-down filters are applied by the SERVER, inside the same
+      // owner/admin/public scoping as an unfiltered listing — they can only
+      // narrow what this user could already see. They also matter for the cap
+      // above: filtering server-side is what keeps a 1000-row page from
+      // truncating away the very plans the filter asked for.
+      for (const [key, value] of toParams(this.filters).entries()) params.set(key, value);
       const url = `/api/plan?${params}`;
       const response = await fetch(url);
+      // A later request has already been made, so this answer is stale
+      // whatever it says: dropping it here is what keeps two quick chip
+      // removals from landing out of order.
+      if (seq !== this._fetchSeq) return;
       if (!response.ok) {
-        throw new Error(`Failed to load test plans (HTTP ${response.status})`);
+        throw new Error(await failureMessage(response));
       }
       // Real backend (TestPlanApi.getTestPlansForCurrentUser) returns a
       // PaginationResponse envelope: { draw, recordsTotal, recordsFiltered,
       // data: [...] }. Some test mocks and the storybook MSW handlers
       // return a plain array. Accept both.
       const payload = await response.json();
-      this._plans = Array.isArray(payload)
+      if (seq !== this._fetchSeq) return;
+      const data = Array.isArray(payload)
         ? payload
         : Array.isArray(payload?.data)
           ? payload.data
           : [];
+      this._plans = data;
+      // PaginationRequest.getSliceResponse (server) hands back a SYNTHETIC
+      // recordsTotal — start+length+1 when a next page beyond the 1000-row
+      // cap exists, exactly start+numberOfElements otherwise — so
+      // `recordsTotal > data.length` is precisely "there was more than the
+      // cap could return". A plain array (test mocks / storybook, see above)
+      // carries no such signal and is treated as complete: reaching exactly
+      // MAX_PLANS rows by coincidence is not evidence of truncation the way
+      // it is in cts-log-list, where every consumer is expected to send the
+      // envelope in practice too, but a false positive here would put a
+      // permanent, unremovable warning on any fixture or test double that
+      // returns a bare array.
+      const hasTotal = typeof payload?.recordsTotal === "number";
+      this._truncated = hasTotal && payload.recordsTotal > data.length;
     } catch (err) {
+      if (seq !== this._fetchSeq) return;
       this._error = err instanceof Error ? err.message : String(err);
       this._plans = [];
     } finally {
-      this._loading = false;
+      // A superseded request must not clear the loading state the request that
+      // superseded it set.
+      if (seq === this._fetchSeq) this._loading = false;
     }
   }
 
@@ -581,6 +720,44 @@ class CtsPlanList extends LitElement {
 
   _handleShowMoreClick() {
     this._visibleCount += PAGE_SIZE;
+  }
+
+  /**
+   * Remove one filter: the chip that was clicked names it.
+   * @param {Event} event - `cts-badge-click` from the chip.
+   * @returns {void}
+   */
+  _handleChipRemove(event) {
+    const key = /** @type {HTMLElement} */ (event.currentTarget).dataset.filterKey;
+    if (!key) return;
+    this._applyFilters(without(this.filters, key));
+  }
+
+  /**
+   * Drop every filter at once.
+   * @returns {void}
+   */
+  _handleClearFilters() {
+    this._applyFilters(emptyFilter());
+  }
+
+  /**
+   * Adopt a narrower (or wider) filter: mirror it into the page URL and
+   * refetch, because the server is what applies it.
+   *
+   * `replaceState`, not `pushState`: removing a chip is a change to the view,
+   * not navigation, and the way back to the statistics page that linked here
+   * must stay one press of Back away. The rewrite preserves `?public`, so
+   * clearing a filter cannot silently switch the Published tab back to My.
+   * @param {import("./plan-list-filter.js").PlanListFilter} next - The filter to move to.
+   * @returns {void}
+   */
+  _applyFilters(next) {
+    this.filters = next;
+    this._visibleCount = PAGE_SIZE;
+    const search = urlFromFilter(next, window.location.search);
+    window.history.replaceState(null, "", window.location.pathname + search + window.location.hash);
+    this._fetchPlans();
   }
 
   _searchedPlans(rows) {
@@ -808,6 +985,52 @@ class CtsPlanList extends LitElement {
     `;
   }
 
+  /**
+   * The "Filtered by" row: one removable chip per active filter, and a Clear
+   * all shortcut once there is more than one to remove.
+   *
+   * Each chip is `clickable` (not merely `interactive`): the badge IS the
+   * click target and nothing wraps it, so it carries `role="button"`,
+   * keyboard activation and the stronger affordance ring — per the badge
+   * affordance rule in CLAUDE.md.
+   * @returns {unknown} The row, or nothing when the listing is unfiltered.
+   */
+  _renderFilters() {
+    const chips = toChips(this.filters);
+    if (chips.length === 0) return nothing;
+    return html`
+      <div class="cts-plan-list-filters" data-testid="plan-filters">
+        <span class="cts-plan-list-filters-label">Filtered by</span>
+        ${repeat(
+          chips,
+          (chip) => chip.key,
+          (chip) => html`
+            <cts-badge
+              variant="secondary"
+              clickable
+              icon="close-md"
+              label=${chip.label}
+              aria-label=${chip.removeLabel}
+              data-testid="plan-filter-${chip.key}"
+              data-filter-key=${chip.key}
+              @cts-badge-click=${this._handleChipRemove}
+            ></cts-badge>
+          `,
+        )}
+        ${chips.length > 1
+          ? html`<button
+              type="button"
+              class="cts-plan-list-filters-clear"
+              data-testid="plan-filters-clear"
+              @click=${this._handleClearFilters}
+            >
+              Clear all
+            </button>`
+          : nothing}
+      </div>
+    `;
+  }
+
   _renderSearchAndSort() {
     return html`
       <div class="cts-plan-list-toolbar">
@@ -867,6 +1090,29 @@ class CtsPlanList extends LitElement {
   }
 
   /**
+   * The fetch hit the backend's 1000-plan cap: the listing is not everything
+   * that matches, just the newest 1000. Rendered above the list (and above
+   * the empty state, since a search can legitimately narrow a truncated
+   * fetch down to zero visible rows without the underlying dataset stopping
+   * being incomplete) so it reads as a caveat on the whole result, in both
+   * the filtered and the unfiltered case.
+   * @returns {unknown} The notice, or nothing when the listing is complete.
+   */
+  _renderTruncationNotice() {
+    if (!this._truncated) return nothing;
+    return html`
+      <cts-alert
+        variant="warning"
+        class="cts-plan-list-truncation"
+        data-testid="plan-list-truncated"
+      >
+        Showing the newest ${MAX_PLANS.toLocaleString()} matching plans — narrow the filters or the
+        date range (for example use a weekly view) to see all of them.
+      </cts-alert>
+    `;
+  }
+
+  /**
    * Render the empty state, branched by why the list is empty so the copy
    * matches the user's situation (R18). Every non-search empty state offers a
    * "Schedule test" action — on the My view, on the Published view, and for
@@ -882,6 +1128,11 @@ class CtsPlanList extends LitElement {
    *   universal entry point, not a fix for this specific emptiness (scheduling a
    *   test starts a private run, not a published plan); that copy/CTA seam is
    *   deliberate;
+   * - the listing is filtered (a drill-down from the statistics charts, or a
+   *   shared link) → say the filters are what emptied it and offer the way
+   *   out. The action is a real link to the same listing without them, so it
+   *   works with the keyboard, the middle button and JavaScript turned off,
+   *   and it preserves `?public`;
    * - otherwise (the My view, or an anonymous / unknown-auth visitor) → guide
    *   the user to schedule their first test, with the Schedule-test action,
    *   plus a secondary "View published plans" action so an empty personal
@@ -897,6 +1148,18 @@ class CtsPlanList extends LitElement {
           icon="folder"
           heading="No plans match your search"
           body="Try a different search term to widen the results."
+          data-testid="plan-list-empty"
+        ></cts-empty-state>
+      `;
+    }
+    if (hasFilters(this.filters)) {
+      return html`
+        <cts-empty-state
+          icon="folder"
+          heading="No plans match these filters"
+          body="No test plan in this view was started in that period, or matches that family, plan, variant or certification profile."
+          cta-label="Clear filters"
+          cta-href="plans.html${urlFromFilter(emptyFilter(), window.location.search)}"
           data-testid="plan-list-empty"
         ></cts-empty-state>
       `;
@@ -920,11 +1183,18 @@ class CtsPlanList extends LitElement {
 
   render() {
     if (this._loading) {
-      return html`${this._renderSearchAndSort()} ${this._renderLoading()}`;
+      // The filter row is part of the page's scope, not of the result: it
+      // must not flash out and back in around every refetch.
+      return html`${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderLoading()}`;
     }
 
     if (this._error) {
+      // The filter row survives a failed fetch too: a filter is what can CAUSE
+      // the failure (a hand-edited `variant.<bad>` is a 400), so hiding the
+      // chips would leave the reader an error with no way to see what was
+      // asked for, let alone clear it.
       return html`
+        ${this._renderFilters()}
         <cts-alert variant="danger" role="alert">
           <strong>Error:</strong> ${this._error}
         </cts-alert>
@@ -936,9 +1206,18 @@ class CtsPlanList extends LitElement {
     const { sorted, visible } = view;
     const hasMore = sorted.length > visible.length;
     const hasSearch = this._searchText.trim().length > 0;
+    // Once truncated, `sorted.length` is a lower bound, not an exact count,
+    // for as long as it still reflects the untouched, cap-sized fetch — a
+    // local search narrowing it below the cap IS an exact count of the (still
+    // possibly incomplete) fetched set, so the "+" only applies while nothing
+    // has trimmed it below the cap yet, mirroring cts-log-list's marker rule.
+    const sortedCountLabel =
+      this._truncated && sorted.length >= MAX_PLANS
+        ? `${sorted.length.toLocaleString()}+`
+        : `${sorted.length.toLocaleString()}`;
 
     return html`
-      ${this._renderSearchAndSort()}
+      ${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderTruncationNotice()}
       ${sorted.length === 0
         ? this._renderEmpty(hasSearch)
         : html`
@@ -957,7 +1236,7 @@ class CtsPlanList extends LitElement {
                 variant="secondary"
                 size="md"
                 data-testid="plan-list-show-more"
-                label="Show more (${visible.length} of ${sorted.length})"
+                label="Show more (${visible.length} of ${sortedCountLabel})"
                 @cts-click=${this._handleShowMoreClick}
               ></cts-button>
             `
