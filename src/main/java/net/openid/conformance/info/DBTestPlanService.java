@@ -192,34 +192,65 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter) {
+	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter,
+																	String owner) {
 
-		if (!authenticationFacade.isAdmin()) {
-			Map<String, String> owner = authenticationFacade.getPrincipal();
-			if (!filter.isEmpty()) {
-				return page.getSliceResponse((search, pageable) ->
-						findSlice(Criteria.where("owner").is(owner), filter, search, pageable, Plan.class));
-			}
-			return page.getSliceResponse(
-					p -> plans.findAllByOwnerAsSlice(owner, p),
-					(s, p) -> plans.findAllByOwnerSearchAsSlice(owner, s, p));
-		} else {
-			if (!filter.isEmpty()) {
-				return page.getSliceResponse((search, pageable) ->
-						findSlice(null, filter, search, pageable, Plan.class));
-			}
-			return page.getSliceResponse(
-					p -> plans.findAllAsSlice(p),
-					(s, p) -> plans.findAllSearchAsSlice(s, p));
+		Map<String, String> principal = authenticationFacade.isAdmin() ? null : authenticationFacade.getPrincipal();
+
+		if (!filter.isEmpty() || owner != null) {
+			Criteria scope = ownerScope(principal, owner);
+			return page.getSliceResponse((search, pageable) ->
+					findSlice(scope, filter, search, pageable, Plan.class));
 		}
+		if (principal != null) {
+			return page.getSliceResponse(
+					p -> plans.findAllByOwnerAsSlice(principal, p),
+					(s, p) -> plans.findAllByOwnerSearchAsSlice(principal, s, p));
+		}
+		return page.getSliceResponse(
+				p -> plans.findAllAsSlice(p),
+				(s, p) -> plans.findAllSearchAsSlice(s, p));
+	}
+
+	/**
+	 * The criteria that decide which plans a listing may show at all. Narrowing to an
+	 * {@code owner} is expressed <b>here</b> rather than in {@link PlanListFilter}, because
+	 * {@code owner} is one of the {@link #SCOPING_FIELDS} a filter may never touch - see
+	 * {@link #rejectScopingFields}. Doing it here also means it cannot widen anything: for
+	 * anyone but an admin the caller's own principal is still required, so naming another
+	 * owner lists nothing rather than that owner's plans.
+	 *
+	 * @param principal whose plans the caller may see at all, or null for an admin, who may
+	 *                  see everyone's
+	 * @param owner     the {@code owner.sub} the caller asked to narrow to, or null
+	 * @return those criteria, or null when an admin asked for no narrowing and so may see
+	 *         every plan
+	 */
+	static Criteria ownerScope(Map<String, String> principal, String owner) {
+
+		Criteria mine = principal == null ? null : Criteria.where("owner").is(principal);
+		Criteria asked = owner == null ? null : Criteria.where("owner.sub").is(owner);
+
+		if (mine == null) {
+			return asked;
+		}
+		if (asked == null) {
+			return mine;
+		}
+		// $and rather than one document, because both clauses are about the owner field and
+		// merging them would silently drop one
+		return new Criteria().andOperator(mine, asked);
 	}
 
 	@Override
-	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter) {
+	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter,
+																	String owner) {
 
-		if (!filter.isEmpty()) {
+		if (!filter.isEmpty() || owner != null) {
+			Criteria scope = owner == null ? published()
+					: new Criteria().andOperator(published(), Criteria.where("owner.sub").is(owner));
 			return page.getSliceResponse((search, pageable) ->
-					findSlice(published(), filter, search, pageable, PublicPlan.class));
+					findSlice(scope, filter, search, pageable, PublicPlan.class));
 		}
 		return page.getSliceResponse(
 				p -> plans.findAllPublicAsSlice(p),
