@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class DBTestPlanService_UnitTest {
 
-	private static final PlanListFilter NO_FILTER = new PlanListFilter(null, Map.of(), null, null, null);
+	private static final PlanListFilter NO_FILTER = new PlanListFilter(null, Map.of(), null, null, null, null);
 
 	private static final Map<String, String> OWNER = Map.of("sub", "developer", "iss", "https://developer.com");
 
@@ -54,7 +54,7 @@ class DBTestPlanService_UnitTest {
 	@Test
 	void theFilterNarrowsWithinTheScoping() {
 		PlanListFilter filter = new PlanListFilter(Set.of("fapi-ciba-id1-test-plan"),
-			Map.of("fapi_profile", "openbanking_brazil"), null, "2026-06-01", "2026-07-01");
+			Map.of("fapi_profile", "openbanking_brazil"), null, null, "2026-06-01", "2026-07-01");
 
 		Query query = DBTestPlanService.listingQuery(Criteria.where("owner").is(OWNER), filter, null, SECOND_PAGE);
 
@@ -67,7 +67,7 @@ class DBTestPlanService_UnitTest {
 
 	@Test
 	void searchingIsTheSameTextSearchTheUnfilteredListingUses() {
-		PlanListFilter filter = new PlanListFilter(null, Map.of(), "FAPI-CIBA: Poll w/ MTLS", null, null);
+		PlanListFilter filter = new PlanListFilter(null, Map.of(), "FAPI-CIBA: Poll w/ MTLS", null, null, null);
 
 		Query query = DBTestPlanService.listingQuery(DBTestPlanService.published(), filter, "\"ciba\"", SECOND_PAGE);
 
@@ -82,7 +82,7 @@ class DBTestPlanService_UnitTest {
 		// no PlanListFilter can produce an owner or publish clause, so the collision is staged
 		// on the one field both can name: the scoping is added last, so the scoping is what
 		// the merged query document keeps
-		PlanListFilter filter = new PlanListFilter(Set.of("some-other-plan"), Map.of(), null, null, null);
+		PlanListFilter filter = new PlanListFilter(Set.of("some-other-plan"), Map.of(), null, null, null, null);
 
 		Query query = DBTestPlanService.listingQuery(
 			Criteria.where("planName").is("the-only-plan-you-may-see"), filter, null, SECOND_PAGE);
@@ -100,7 +100,7 @@ class DBTestPlanService_UnitTest {
 			.hasMessageContaining("publish");
 
 		assertThatCode(() -> DBTestPlanService.rejectScopingFields(new PlanListFilter(Set.of("a-plan"),
-			Map.of("fapi_profile", "plain"), "a profile", "2026-06-01", "2026-07-01").toCriteria().getCriteriaObject()))
+			Map.of("fapi_profile", "plain"), "a profile", true, "2026-06-01", "2026-07-01").toCriteria().getCriteriaObject()))
 			.doesNotThrowAnyException();
 	}
 
@@ -125,7 +125,7 @@ class DBTestPlanService_UnitTest {
 
 	@Test
 	void aFamilyWithoutAnyPlansListsNothing() {
-		PlanListFilter filter = new PlanListFilter(Set.of(), Map.of(), null, null, null);
+		PlanListFilter filter = new PlanListFilter(Set.of(), Map.of(), null, null, null, null);
 
 		Query query = DBTestPlanService.listingQuery(null, filter, null, SECOND_PAGE);
 

@@ -218,6 +218,10 @@ public class TestPlanApi implements DataUtils {
 			description = "Only list plans certified against this certification profile; a plan matches "
 				+ "if any one of its profiles is exactly this.",
 			schema = @Schema(type = "string", example = "FAPI-CIBA: Poll w/ MTLS")),
+		@Parameter(name = "immutable", in = ParameterIn.QUERY,
+			description = "Only list plans a certification package has been downloaded for (`true`), "
+				+ "or only those it has not (`false`). Omit for both.",
+			schema = @Schema(type = "boolean")),
 		@Parameter(name = "from", in = ParameterIn.QUERY,
 			description = "Only list plans started at or after this point in time; a date (`YYYY-MM-DD`, "
 				+ "covering the whole of that day) or a timestamp with a time zone.",

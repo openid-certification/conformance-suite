@@ -47,10 +47,14 @@ import java.util.regex.Pattern;
  *                  which is what an unrecognised spec family resolves to
  * @param variant   plan level variant parameters that all have to be set to these values
  * @param cert      one certification profile the plan has to be certified against, or null
+ * @param immutable whether to list only the plans a certification package has been downloaded
+ *                  for ({@code true}) or only those it has not ({@code false}), or null for
+ *                  both
  * @param from      the earliest {@code started} to include, inclusive, or null
  * @param to        the {@code started} to stop before, exclusive, or null
  */
-public record PlanListFilter(Set<String> planNames, Map<String, String> variant, String cert, String from, String to) {
+public record PlanListFilter(Set<String> planNames, Map<String, String> variant, String cert, Boolean immutable,
+							 String from, String to) {
 
 	private static final Pattern DATE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
 
@@ -81,13 +85,15 @@ public record PlanListFilter(Set<String> planNames, Map<String, String> variant,
 			planNames(QueryParams.first(params, "family"), QueryParams.first(params, "plan"), families),
 			QueryParams.variant(params),
 			QueryParams.first(params, "cert"),
+			flag("immutable", QueryParams.first(params, "immutable")),
 			bound("from", QueryParams.first(params, "from")),
 			bound("to", QueryParams.first(params, "to")));
 	}
 
 	/** @return true if this narrows nothing, so the listing can be left exactly as it was */
 	public boolean isEmpty() {
-		return planNames == null && variant.isEmpty() && cert == null && from == null && to == null;
+		return planNames == null && variant.isEmpty() && cert == null && immutable == null
+			&& from == null && to == null;
 	}
 
 	/** @return a clause per active filter, to be added to the criteria that scope the listing */
@@ -116,6 +122,17 @@ public record PlanListFilter(Set<String> planNames, Map<String, String> variant,
 		if (cert != null) {
 			// certificationProfileName is an array; equality matches any one of its elements
 			criteria.and("certificationProfileName").is(cert);
+		}
+		if (immutable != null) {
+			// a plan is immutable only when the field is there and true: it is written when a
+			// certification package is downloaded and is absent on every plan before that, so
+			// "not immutable" is $ne rather than $eq false, which matches a missing field too
+			Criteria clause = criteria.and("immutable");
+			if (immutable) {
+				clause.is(true);
+			} else {
+				clause.ne(true);
+			}
 		}
 		if (from != null || to != null) {
 			Criteria started = criteria.and("started");
@@ -199,6 +216,26 @@ public record PlanListFilter(Set<String> planNames, Map<String, String> variant,
 	 *         its second and without the trailing 'Z'
 	 * @throws IllegalArgumentException if it is neither
 	 */
+	/**
+	 * @param parameter the request parameter the value came from, for the error message
+	 * @param value     {@code true} or {@code false}, in any case, or null
+	 * @return that as a {@link Boolean}, or null if it was not sent
+	 * @throws IllegalArgumentException if it is neither, rather than silently reading anything
+	 *                                  that is not "true" as false
+	 */
+	private static Boolean flag(String parameter, String value) {
+		if (value == null) {
+			return null;
+		}
+		if ("true".equalsIgnoreCase(value)) {
+			return Boolean.TRUE;
+		}
+		if ("false".equalsIgnoreCase(value)) {
+			return Boolean.FALSE;
+		}
+		throw new IllegalArgumentException("%s must be true or false, not '%s'".formatted(parameter, value));
+	}
+
 	private static String bound(String parameter, String value) {
 		if (value == null) {
 			return null;
