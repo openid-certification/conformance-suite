@@ -16,10 +16,14 @@ import net.openid.conformance.variant.VariantSelection;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -36,6 +41,9 @@ import java.util.TreeMap;
 public class DBTestPlanService implements TestPlanService {
 
 	public static final String COLLECTION = "TEST_PLAN";
+
+	/** The fields the scoping of a listing is expressed with, which a filter may not touch. */
+	private static final Set<String> SCOPING_FIELDS = Set.of("owner", "publish");
 
 	@Value("${fintechlabs.version}")
 	private String version;
@@ -184,14 +192,22 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page) {
+	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter) {
 
 		if (!authenticationFacade.isAdmin()) {
 			Map<String, String> owner = authenticationFacade.getPrincipal();
+			if (!filter.isEmpty()) {
+				return page.getSliceResponse((search, pageable) ->
+						findSlice(Criteria.where("owner").is(owner), filter, search, pageable, Plan.class));
+			}
 			return page.getSliceResponse(
 					p -> plans.findAllByOwnerAsSlice(owner, p),
 					(s, p) -> plans.findAllByOwnerSearchAsSlice(owner, s, p));
 		} else {
+			if (!filter.isEmpty()) {
+				return page.getSliceResponse((search, pageable) ->
+						findSlice(null, filter, search, pageable, Plan.class));
+			}
 			return page.getSliceResponse(
 					p -> plans.findAllAsSlice(p),
 					(s, p) -> plans.findAllSearchAsSlice(s, p));
@@ -199,11 +215,111 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page) {
+	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter) {
 
+		if (!filter.isEmpty()) {
+			return page.getSliceResponse((search, pageable) ->
+					findSlice(published(), filter, search, pageable, PublicPlan.class));
+		}
 		return page.getSliceResponse(
 				p -> plans.findAllPublicAsSlice(p),
 				(s, p) -> plans.findAllPublicSearchAsSlice(s, p));
+	}
+
+	/**
+	 * Runs a filtered listing. Results are read through {@code Plan} as {@code type}, so a
+	 * listing is projected in the database to the fields that listing may show - a public
+	 * listing asks for {@link PublicPlan}, which has no owner and no configuration, exactly as
+	 * the repository query it stands in for.
+	 *
+	 * @param scope    the criteria that decide what the caller may see at all, or null for an
+	 *                 admin, who may see everything
+	 * @param filter   the narrowing the caller asked for
+	 * @param search   the quoted term to text search for, or null
+	 * @param pageable the page to return
+	 * @param type     the projection to read the results as
+	 * @return that page, knowing whether there is another one after it
+	 */
+	private <T> Slice<T> findSlice(Criteria scope, PlanListFilter filter, String search, Pageable pageable, Class<T> type) {
+
+		List<T> results = mongoTemplate.query(Plan.class)
+				.inCollection(COLLECTION)
+				.as(type)
+				.matching(listingQuery(scope, filter, search, pageable))
+				.all();
+
+		return slice(results, pageable);
+	}
+
+	/**
+	 * @param results  one page of results, plus the one extra entry {@link #listingQuery} asked
+	 *                 for
+	 * @param pageable the page they were fetched for
+	 * @return the page itself, knowing whether there is another one after it - which is how
+	 *         Spring Data builds a slice too, so that no count query is ever run
+	 */
+	static <T> Slice<T> slice(List<T> results, Pageable pageable) {
+
+		boolean hasNext = results.size() > pageable.getPageSize();
+
+		return new SliceImpl<>(hasNext ? results.subList(0, pageable.getPageSize()) : results, pageable, hasNext);
+	}
+
+	/**
+	 * @return criteria matching the plans anyone may see, published either as a summary or in
+	 *         full; a new instance every time, because criteria are mutable
+	 */
+	static Criteria published() {
+		return Criteria.where("publish").in("summary", "everything");
+	}
+
+	/**
+	 * @return the query of a filtered listing: the filter, the text search, and the scoping
+	 *         criteria last, ordered and paged as asked, fetching one entry more than the page
+	 */
+	static Query listingQuery(Criteria scope, PlanListFilter filter, String search, Pageable pageable) {
+
+		Query query = new Query();
+
+		if (!filter.isEmpty()) {
+			Criteria criteria = filter.toCriteria();
+			rejectScopingFields(criteria.getCriteriaObject());
+			query.addCriteria(criteria);
+		}
+		if (search != null) {
+			// the term arrives quoted, so this is the same $text search the unfiltered
+			// listing runs through PlanRepository
+			query.addCriteria(TextCriteria.forDefaultLanguage().matching(search));
+		}
+		if (scope != null) {
+			// last, because Query.getQueryObject() merges the criteria documents in the order
+			// they were added: whatever decides what the caller may see has to be the winner
+			// of any collision, not the filter the caller sent
+			query.addCriteria(scope);
+		}
+
+		query.with(pageable);
+		query.limit(pageable.getPageSize() + 1);
+
+		return query;
+	}
+
+	/**
+	 * A listing filter narrows a listing; it may never have an opinion on the fields that
+	 * decide whose plans are listed. No {@link PlanListFilter} can produce one today - this is
+	 * here so that a filter that grows a new field can never quietly become a way to widen a
+	 * listing, given that the merge of criteria documents cannot report a collision itself.
+	 *
+	 * @param criteria the filter's criteria
+	 * @throws IllegalStateException if it touches a field the scoping is expressed with
+	 */
+	static void rejectScopingFields(Document criteria) {
+		for (String field : SCOPING_FIELDS) {
+			if (criteria.containsKey(field)) {
+				throw new IllegalStateException(
+						"a plan listing filter must not filter on '" + field + "', which is what scopes the listing");
+			}
+		}
 	}
 
 	@Override
@@ -340,6 +456,10 @@ public class DBTestPlanService implements TestPlanService {
 		sortedMap.put("certificationProfileName", "text");
 
 		collection.createIndex(new Document(sortedMap));
+
+		// Drill-down listing filters: plans of one plan name over a period, and by period alone.
+		collection.createIndex(new Document("planName", 1).append("started", -1));
+		collection.createIndex(new Document("started", -1));
 	}
 
 	@Override

@@ -76,9 +76,21 @@ public class PaginationRequest {
 			Function<Pageable, Slice<T>> queryAll,
 			BiFunction<String, Pageable, Slice<T>> querySearch) {
 
-		Slice<T> results = Strings.isNullOrEmpty(search)
-				? queryAll.apply(getPageable())
-				: querySearch.apply('\"' + search + '\"', getPageable());
+		return getSliceResponse((term, pageable) -> term == null
+				? queryAll.apply(pageable)
+				: querySearch.apply(term, pageable));
+	}
+
+	/**
+	 * @param query is given the term to search for - quoted, so that it is one phrase, or null
+	 *              when nothing was searched for - and the page to return
+	 * @return what it returned, in the paging envelope the listing endpoints answer with
+	 */
+	public <T> PaginationResponse<T> getSliceResponse(BiFunction<String, Pageable, Slice<T>> query) {
+
+		Slice<T> results = query.apply(
+				Strings.isNullOrEmpty(search) ? null : '\"' + search + '\"',
+				getPageable());
 
 		int pageLength = length == 0 ? 10 : length;
 		long syntheticCount = results.hasNext()
