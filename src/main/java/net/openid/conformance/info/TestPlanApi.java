@@ -482,7 +482,10 @@ public class TestPlanApi implements DataUtils {
 			+ "listing of old plans is mostly made of those, and they are exactly what somebody clearing "
 			+ "a database out is looking for - each marked `retired`.\n\n"
 			+ "Deliberately not `/api/plan/available`, which answers the same question but carries every "
-			+ "plan's modules, variants and configuration fields with it: 680 KB against this one's few.")
+			+ "plan's modules, variants and configuration fields with it: 680 KB against this one's few.\n\n"
+			+ "Readable on a public request (`?public=true`) as well as by a logged in user: this is the "
+			+ "plan registry, the same material `/api/plan/available` already answers with on one, and "
+			+ "holds nothing about anybody's data. Pinned by `scripts/run-security-tests.py`.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
