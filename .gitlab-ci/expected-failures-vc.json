@@ -171,6 +171,28 @@
         "comment": "The test suite warns about unexpected parameters in credential requests, which are deliberately sent by the issuer test."
     },
     {
+        "test-name": "fapi2-security-profile-final-client-test-happy-path",
+        "variant": {
+            "vci_authorization_code_flow_variant": "issuer_initiated"
+        },
+        "configuration-filename": "*vci-wallet-test-config*.json",
+        "current-block": "Credential endpoint",
+        "condition": "CheckForUnexpectedParametersInCredentialRequest",
+        "expected-result": "warning",
+        "comment": "The issuer-initiated FAPI2SP client test in the VCI wallet plan is paired with oid4vci-1_0-issuer-happy-flow, which deliberately adds unexpected parameters to the credential request."
+    },
+    {
+        "test-name": "fapi2-security-profile-final-client-test-happy-path",
+        "variant": {
+            "vci_authorization_code_flow_variant": "issuer_initiated"
+        },
+        "configuration-filename": "*vci-wallet-test-config*.json",
+        "current-block": "Notification endpoint",
+        "condition": "VCICheckForUnknownFieldsInNotificationRequest",
+        "expected-result": "warning",
+        "comment": "The issuer-initiated FAPI2SP client test in the VCI wallet plan is paired with oid4vci-1_0-issuer-happy-flow, which deliberately adds unknown fields to the notification request."
+    },
+    {
         "test-name": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
         "variant": "*",
         "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt.json",

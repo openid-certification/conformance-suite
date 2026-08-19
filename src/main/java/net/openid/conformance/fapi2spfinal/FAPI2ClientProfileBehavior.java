@@ -150,6 +150,21 @@ public class FAPI2ClientProfileBehavior {
 		return true;
 	}
 
+	// --- Test start ---
+
+	/**
+	 * Hook invoked from {@code AbstractFAPI2SPFinalClientTest.start()} once the module is
+	 * {@code RUNNING} and before it goes back to {@code WAITING} for the client's first
+	 * request. The default does nothing: a plain FAPI2 client test is entirely client
+	 * driven — the relying party under test starts the flow against our emulated AS.
+	 *
+	 * <p>VCI overrides this for the issuer-initiated authorization code flow, where the
+	 * issuer (us) has to make the first move: create a credential offer and hand it to the
+	 * front-end (URL / QR code) so the wallet under test can scan it.
+	 */
+	public void onStart() {
+	}
+
 	// --- Endpoint exposure ---
 
 	/**
