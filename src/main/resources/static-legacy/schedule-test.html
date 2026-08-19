@@ -2538,7 +2538,31 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             return paramObject;
         }
 
-        function createTestPlanParameterUrl() {
+        // Share-link config codec (js/config-url-codec.js — same module as the
+        // current UI, copied into static-legacy/ because the legacy-ui profile
+        // serves only this tree). It is an ES module, so load it lazily via
+        // dynamic import() and cache the promise; resolves to null if the load
+        // fails, in which case callers fall back to the legacy uncompressed
+        // ?configJson= handling.
+        let configUrlCodecPromise = null;
+        function getConfigUrlCodec() {
+            if (!configUrlCodecPromise) {
+                configUrlCodecPromise = import("/js/config-url-codec.js").catch(function (e) {
+                    console.warn('[schedule-test] config-url-codec module failed to load; using uncompressed configJson', e);
+                    return null;
+                });
+            }
+            return configUrlCodecPromise;
+        }
+
+        // Builds the "Share Test Plan Configuration" link. The config rides in
+        // the query string — compressed as ?configJsonZ= (base64url/deflate)
+        // when the browser and codec module allow it, else as the legacy
+        // ?configJson=. Compression roughly halves the link for key/cert
+        // heavy configs, which matters because the nginx proxy forwards the
+        // full URL a second time (X-Forwarded-Uri) and Tomcat charges both
+        // copies against server.max-http-request-header-size.
+        async function createTestPlanParameterUrl() {
             let pageUrl = window.location.origin + window.location.pathname;
             let testPlan = document.getElementById("planSelect").value;
             let url = pageUrl + "?test_plan=" + testPlan;
@@ -2549,10 +2573,36 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }
             let jsonConfig = document.getElementById("config").value;
             if (jsonConfig) {
-                let normalizedJsonConfig = JSON.stringify(JSON.parse(jsonConfig))
-                url += "&configJson=" + encodeURIComponent(normalizedJsonConfig);
+                const config = JSON.parse(jsonConfig);
+                const codec = await getConfigUrlCodec();
+                const param = codec
+                    ? await codec.buildConfigUrlParam(config)
+                    : { name: "configJson", value: JSON.stringify(config) };
+                url += "&" + param.name + "=" + encodeURIComponent(param.value);
             }
             return url;
+        }
+
+        // Hydrate the config textarea from a compressed ?configJsonZ= share
+        // link. The legacy ?configJson= is applied synchronously in
+        // loadScheduleTestPage(); this async counterpart runs in the same init
+        // chain slot so the config is in place before applyConfigPreset().
+        function applyCompressedConfigJsonParam(searchParams) {
+            if (!searchParams.get("configJsonZ")) {
+                return Promise.resolve();
+            }
+            return getConfigUrlCodec().then(function (codec) {
+                if (!codec) {
+                    throw new Error("cannot decode compressed configJsonZ URL param without the codec module");
+                }
+                return codec.readConfigFromUrlParams(searchParams);
+            }).then(function (config) {
+                if (!config) return;
+                document.getElementById("config").value = JSON.stringify(config);
+                updateFormElementsFromJSON();
+            }).catch(function (e) {
+                console.warn('[schedule-test] invalid configJsonZ URL param', e);
+            });
         }
 
         function loadScheduleTestPage() {
@@ -2682,10 +2732,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             };
 
             let copyPlanUrlBtn = document.getElementById('copyPlanUrlBtn');
-            copyPlanUrlBtn.onclick = function(evt)  {
+            copyPlanUrlBtn.onclick = async function(evt)  {
                 // sync json with current form
                 updateJSONFromFormElements();
-                let url = createTestPlanParameterUrl();
+                // The await (a few ms of deflate) stays inside the browser's
+                // transient user-activation window, so the clipboard write is
+                // still treated as user-initiated.
+                let url = await createTestPlanParameterUrl();
                 navigator.clipboard.writeText(url);
                 // console.log("Copied Testplan URL: %s", url);
             }
@@ -2756,6 +2809,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             FAPI_UI.hideBusy();
 
+            // Compressed share links (?configJsonZ=) need the async codec; the
+            // returned promise keeps the init chain waiting so the config is
+            // applied before applyConfigPreset(), like ?configJson= above.
+            return applyCompressedConfigJsonParam(searchParams);
         }
 
         function registerFormValidationForFields() {
