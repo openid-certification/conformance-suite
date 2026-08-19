@@ -190,7 +190,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		env.mapKey("server", "pdp");
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
 		if (serverSupportsDiscovery) {
-			callAndContinueOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, ConditionResult.FAILURE, "AUTHZEN-9.2.3");
+			// §9.2.3: "If these values are not identical, the data contained in the response MUST NOT
+			// be used." Everything after this point runs against the endpoints that response names, so
+			// this is stop-on-failure, matching how ValidateDiscoverySignedMetadata treats a
+			// signed_metadata JWT whose values must not be applied.
+			callAndStopOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, "AUTHZEN-9.2.3");
 			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
