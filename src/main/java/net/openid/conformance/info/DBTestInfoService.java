@@ -217,7 +217,11 @@ public class DBTestInfoService implements TestInfoService {
 	@Override
 	public boolean deleteTests(List<String> ids) {
 
-		Criteria testInfoCriteria = Criteria.where("testId").in(ids);
+		// TEST_INFO is keyed by '_id' (TestInfo sets 'testId' to the same value, but only '_id'
+		// is indexed, so filtering on 'testId' collection-scans). EVENT_LOG entries have their
+		// own '_id' of testId + '-' + random, so they have to be matched on the (indexed)
+		// 'testId' field instead.
+		Criteria testInfoCriteria = Criteria.where("_id").in(ids);
 		Criteria eventLogCriteria = Criteria.where("testId").in(ids);
 
 		if (!authenticationFacade.isAdmin()) {
@@ -229,6 +233,11 @@ public class DBTestInfoService implements TestInfoService {
 
 		DeleteResult testInfoDeleteResult = mongoTemplate.remove(new Query(testInfoCriteria), COLLECTION);
 		DeleteResult logDeleteResult = mongoTemplate.remove(new Query(eventLogCriteria), DBEventLog.COLLECTION);
+
+		// Drop any cached owner for the deleted tests, otherwise a warm cache (e.g. from an
+		// earlier image-endpoint call) keeps authorising the owner for up to 30 minutes and
+		// lets them re-create orphaned EVENT_LOG rows against the now-deleted test id.
+		ids.forEach(testOwnerCache::invalidate);
 
 		return testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged();
 	}

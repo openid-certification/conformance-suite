@@ -1,8 +1,11 @@
 package net.openid.conformance.info;
 
+import net.openid.conformance.runner.TestRunnerSupport;
+import net.openid.conformance.testmodule.TestModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,7 @@ public class TestPlanApi_UnitTest {
 
 	TestPlanService planService;
 	TestInfoService infoService;
+	TestRunnerSupport testRunnerSupport;
 	Plan plan;
 	TestPlanApi api;
 
@@ -31,10 +35,12 @@ public class TestPlanApi_UnitTest {
 	public void setUp() throws Exception {
 		planService = Mockito.mock(TestPlanService.class);
 		infoService = Mockito.mock(TestInfoService.class);
+		testRunnerSupport = Mockito.mock(TestRunnerSupport.class);
 		plan = Mockito.mock(Plan.class);
 		api = new TestPlanApi();
 		ReflectionTestUtils.setField(api, "planService", planService);
 		ReflectionTestUtils.setField(api, "infoService", infoService);
+		ReflectionTestUtils.setField(api, "testRunnerSupport", testRunnerSupport);
 	}
 
 	@Test
@@ -98,6 +104,26 @@ public class TestPlanApi_UnitTest {
 
 		verify(planService, times(1)).deleteMutableTestPlan("abc");
 		verify(infoService, times(1)).deleteTests(testIds);
+	}
+
+	@Test
+	public void a_running_test_is_stopped_before_its_log_entries_are_deleted() {
+		List<String> testIds = Arrays.asList("testId0");
+		Plan.Module module = Mockito.mock(Plan.Module.class);
+		Mockito.when(module.getInstances()).thenReturn(testIds);
+		Mockito.when(plan.getModules()).thenReturn(Arrays.asList(module));
+		Mockito.when(plan.getImmutable()).thenReturn(null);
+		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
+
+		TestModule runningTest = Mockito.mock(TestModule.class);
+		Mockito.when(testRunnerSupport.getRunningTestById("testId0")).thenReturn(runningTest);
+
+		api.deleteMutableTestPlan("abc");
+
+		// stop() writes the module's final log entries, so it has to run before they are deleted
+		InOrder inOrder = Mockito.inOrder(runningTest, infoService);
+		inOrder.verify(runningTest).stop(anyString());
+		inOrder.verify(infoService).deleteTests(testIds);
 	}
 
 }

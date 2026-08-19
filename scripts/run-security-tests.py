@@ -9,6 +9,8 @@ authentication. Tests cover:
 - Share-link JWT used directly as Authorization: Bearer on the API chain
 - Unauthenticated access rejection
 - Public access to published plans
+- Plan deletion: cross-user rejection, the EVENT_LOG delete cascade, and
+  that deleting a plan stops any still-running module (no re-orphaning)
 - Cross-user isolation for a second full user (info/plan/log/runner/token)
 - Certification package: owner success, immutable-plan rules, and that
   unauthenticated / another user cannot prepare a package
@@ -978,6 +980,78 @@ def run_tests():
     runner.check_status("Publish: non-admin cannot lower publish level", resp, 403)
 
     # ===================================================================
+    # 4d. PLAN DELETION & EVENT_LOG CASCADE
+    # ===================================================================
+    # Deleting a plan must remove the plan, its tests AND their EVENT_LOG
+    # entries. The log delete silently matched nothing for non-admin users
+    # until the owner/testOwner field fix, orphaning every log entry.
+    # /api/log/{id} reads EVENT_LOG directly (no TEST_INFO gating), so
+    # orphans stay visible to their owner after a broken delete - making
+    # the post-delete log check a true discriminator for the cascade.
+    print("\n--- 4d. Plan deletion & EVENT_LOG cascade ---")
+
+    del_plan_id, del_module = create_test_plan(owner_client, base_url, plan_name, config)
+    del_test_id = create_test_from_plan(owner_client, base_url, del_plan_id, del_module)
+
+    # a still-running test keeps writing log entries, which would race the counts below
+    wait_for_test_finished(owner_client, base_url, del_test_id)
+
+    resp = owner_client.get(f"{base_url}api/log/{del_test_id}")
+    runner.check_status("Delete: owner can read log entries before delete", resp, 200)
+    entries_before = _json_len(resp)
+    runner.check("Delete: test has log entries before delete", entries_before > 0,
+                 f"got {entries_before} entries")
+
+    if token_2:
+        user_b = second_user_client()
+
+        resp = user_b.get(f"{base_url}api/currentuser")
+        runner.check_status("Delete: second user's token is accepted", resp, 200)
+
+        resp = user_b.get(f"{base_url}api/plan/{del_plan_id}")
+        runner.check_status("Delete: another user cannot see the plan", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/log/{del_test_id}")
+        n = _json_len(resp)
+        runner.check("Delete: another user sees no log entries",
+                     resp.status_code == 200 and n == 0,
+                     f"HTTP {resp.status_code}, {n} entries")
+
+        resp = user_b.delete(f"{base_url}api/plan/{del_plan_id}")
+        runner.check_status("Delete: another user cannot delete the plan", resp, 404)
+
+        resp = owner_client.get(f"{base_url}api/plan/{del_plan_id}")
+        runner.check_status("Delete: plan still present after another user's attempt", resp, 200)
+
+        resp = owner_client.get(f"{base_url}api/log/{del_test_id}")
+        n = _json_len(resp)
+        runner.check("Delete: log entries still present after another user's attempt",
+                     resp.status_code == 200 and n > 0,
+                     f"HTTP {resp.status_code}, {n} entries")
+
+        user_b.close()
+    else:
+        print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping second-user delete checks")
+
+    resp = owner_client.delete(f"{base_url}api/plan/{del_plan_id}")
+    runner.check_status("Delete: owner can delete their own plan", resp, 204)
+
+    resp = owner_client.get(f"{base_url}api/plan/{del_plan_id}")
+    runner.check_status("Delete: plan is gone after delete", resp, 404)
+
+    resp = owner_client.get(f"{base_url}api/info/{del_test_id}")
+    runner.check_status("Delete: test info is gone after delete", resp, 404)
+
+    resp = owner_client.get(f"{base_url}api/log/{del_test_id}")
+    n = _json_len(resp)
+    runner.check("Delete: no orphaned EVENT_LOG entries after delete",
+                 resp.status_code == 200 and n == 0,
+                 f"HTTP {resp.status_code}, {n} entries")
+
+    resp = owner_client.delete(f"{base_url}api/plan/{del_plan_id}")
+    runner.check_status("Delete: deleting an already-deleted plan returns 404", resp, 404)
+
+    # ===================================================================
     # 4e. CROSS-USER ISOLATION (two full users)
     # ===================================================================
     # Share-link principals are rejected by the URL allowlist layer before the
@@ -1182,11 +1256,39 @@ def run_tests():
     runner.check_status("Certification: even the owner cannot make the plan mutable", resp, 403)
     owner_form.close()
 
-    # clean up the helper OP test and its (still mutable) plan
-    resp = owner_client.delete(f"{base_url}api/runner/{op_test_id}")
-    runner.check_status_in("Certification: helper OP test cancelled", resp, {200, 204})
+    # stop-on-delete: the helper OP test is still WAITING (running). Deleting its plan must
+    # stop the module, otherwise it would keep writing EVENT_LOG rows after its logs are
+    # deleted and re-orphan them. The runner status is served from the in-memory module, so
+    # it is still readable right after the plan (and TEST_INFO) are gone.
+    resp = owner_client.get(f"{base_url}api/runner/{op_test_id}")
+    updated_before = resp.json().get("updated") if resp.status_code == 200 else None
+    runner.check("Stop-on-delete: helper OP is running before delete",
+                 resp.status_code == 200 and updated_before is not None,
+                 f"HTTP {resp.status_code}")
+
     resp = owner_client.delete(f"{base_url}api/plan/{op_plan_id}")
-    runner.check_status("Certification: helper OP plan cleaned up", resp, 204)
+    runner.check_status("Stop-on-delete: can delete the plan of a running test", resp, 204)
+
+    # stop() moves the module to INTERRUPTED, bumping its status-updated timestamp; had the
+    # delete not stopped it, the still-WAITING module's timestamp would be unchanged. (The
+    # runner status map exposes no 'status' field, so the timestamp is the observable here.)
+    resp = owner_client.get(f"{base_url}api/runner/{op_test_id}")
+    updated_after = resp.json().get("updated") if resp.status_code == 200 else None
+    runner.check("Stop-on-delete: deleting the plan stopped the running module",
+                 updated_after is not None and updated_after != updated_before,
+                 f"before={updated_before}, after={updated_after}")
+
+    # no re-orphaning: because the module was stopped BEFORE its logs were deleted, nothing
+    # remains to read. A regression that stopped it after deleteTests would leave the stop
+    # log here as an orphan, which the timestamp check above would not catch.
+    resp = owner_client.get(f"{base_url}api/log/{op_test_id}")
+    n = _json_len(resp)
+    runner.check("Stop-on-delete: no orphaned log entries remain after delete",
+                 resp.status_code == 200 and n == 0,
+                 f"HTTP {resp.status_code}, {n} entries")
+
+    resp = owner_client.get(f"{base_url}api/info/{op_test_id}")
+    runner.check_status("Stop-on-delete: test info is gone after delete", resp, 404)
 
     # ===================================================================
     # 4g. METADATA & LISTING ENDPOINTS
