@@ -1043,24 +1043,49 @@
             });
         });
 
-        // Handle the ?configJson= URL param. Runs AFTER applyConfigPreset
-        // so any ?test_plan= has already selected the plan and bound the
-        // schema; configJson can apply directly. If no plan is selected
-        // yet (standalone ?configJson= URL), defer the apply until the
-        // user picks a plan — a one-shot cts-plan-selected listener
-        // bumps isSystemSelectingPlan around the apply so the regular
-        // listener does not wipe the just-applied config.
-        function applyConfigJsonParam() {
+        // The share-link config codec (/js/config-url-codec.js) is an ES
+        // module; this inline script cannot `import` it, so load it lazily
+        // via dynamic import() and cache the promise. Resolves to null if the
+        // module fails to load — callers then fall back to the legacy
+        // uncompressed ?configJson= handling so sharing keeps working.
+        let configUrlCodecPromise = null;
+        function getConfigUrlCodec() {
+            if (!configUrlCodecPromise) {
+                configUrlCodecPromise = import("/js/config-url-codec.js").catch(function (e) {
+                    console.warn('[schedule-test] config-url-codec module failed to load; using uncompressed configJson', e);
+                    return null;
+                });
+            }
+            return configUrlCodecPromise;
+        }
+
+        // Handle the ?configJsonZ= (compressed) / ?configJson= (legacy) URL
+        // params. Runs AFTER applyConfigPreset so any ?test_plan= has
+        // already selected the plan and bound the schema; the config can
+        // apply directly. If no plan is selected yet (standalone config
+        // URL), defer the apply until the user picks a plan — a one-shot
+        // cts-plan-selected listener bumps isSystemSelectingPlan around the
+        // apply so the regular listener does not wipe the just-applied
+        // config.
+        async function applyConfigJsonParam() {
             const searchParams = new URLSearchParams(window.location.search);
-            const configJsonParam = searchParams.get("configJson");
-            if (!configJsonParam) return;
+            if (!searchParams.get("configJsonZ") && !searchParams.get("configJson")) return;
             let parsed;
             try {
-                parsed = JSON.parse(configJsonParam);
+                const codec = await getConfigUrlCodec();
+                if (codec) {
+                    parsed = await codec.readConfigFromUrlParams(searchParams);
+                } else if (searchParams.get("configJson")) {
+                    parsed = JSON.parse(searchParams.get("configJson"));
+                } else {
+                    console.warn('[schedule-test] cannot decode compressed configJsonZ URL param without the codec module');
+                    return;
+                }
             } catch (e) {
-                console.warn('[schedule-test] invalid configJson URL param', e);
+                console.warn('[schedule-test] invalid configJson/configJsonZ URL param', e);
                 return;
             }
+            if (!parsed) return;
             const selectedPlanName = getSelectedPlanName();
             if (selectedPlanName && selectedPlanName !== 'select') {
                 applyConfigToForm(parsed);
@@ -1726,7 +1751,14 @@
             return paramObject;
         }
 
-        function createTestPlanParameterUrl() {
+        // Builds the "Share Test Plan Configuration" link. The config rides in
+        // the query string — compressed as ?configJsonZ= (base64url/deflate)
+        // when the browser and codec module allow it, else as the legacy
+        // ?configJson=. Compression roughly halves the link for key/cert
+        // heavy configs, which matters because the nginx proxy forwards the
+        // full URL a second time (X-Forwarded-Uri) and Tomcat charges both
+        // copies against server.max-http-request-header-size.
+        async function createTestPlanParameterUrl() {
             let pageUrl = window.location.origin + window.location.pathname;
             let testPlan = getSelectedPlanName();
             let url = pageUrl + "?test_plan=" + testPlan;
@@ -1736,8 +1768,11 @@
                 url += "&" + new URLSearchParams(dataVariantParameters).toString();
             }
             if (currentConfig && Object.keys(currentConfig).length > 0) {
-                let normalizedJsonConfig = JSON.stringify(currentConfig);
-                url += "&configJson=" + encodeURIComponent(normalizedJsonConfig);
+                const codec = await getConfigUrlCodec();
+                const param = codec
+                    ? await codec.buildConfigUrlParam(currentConfig)
+                    : { name: "configJson", value: JSON.stringify(currentConfig) };
+                url += "&" + param.name + "=" + encodeURIComponent(param.value);
             }
             return url;
         }
@@ -1891,7 +1926,10 @@
 
             let copyPlanUrlBtn = document.getElementById('copyPlanUrlBtn');
             copyPlanUrlBtn.onclick = async function(evt)  {
-                let url = createTestPlanParameterUrl();
+                // The await below (a few ms of deflate) stays well inside the
+                // browser's transient user-activation window, so the
+                // clipboard write is still treated as user-initiated.
+                let url = await createTestPlanParameterUrl();
                 try {
                     await navigator.clipboard.writeText(url);
                 } catch (err) {
@@ -1914,7 +1952,7 @@
             let copyAgainBtn = document.getElementById('copyPlanUrlAgainBtn');
             if (copyAgainBtn) {
                 copyAgainBtn.addEventListener('click', async function() {
-                    let url = createTestPlanParameterUrl();
+                    let url = await createTestPlanParameterUrl();
                     try {
                         await navigator.clipboard.writeText(url);
                     } catch (err) {

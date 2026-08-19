@@ -66,6 +66,11 @@ describe("resolveMode", () => {
       { mode: "advanced", source: "configJson" },
     ],
     [
+      "?configJsonZ= (compressed share link) → advanced",
+      { search: "?configJsonZ=eJyrVkrMyUxXslJQqgUAEvgDUA" },
+      { mode: "advanced", source: "configJson" },
+    ],
+    [
       "?edit-plan= → advanced",
       { search: "?edit-plan=p1" },
       { mode: "advanced", source: "edit-plan" },
@@ -88,7 +93,8 @@ describe("resolveMode", () => {
     [
       "empty-string params count as absent (matches the page's truthiness checks)",
       {
-        search: "?edit-plan=&from-plan=&edit-test=&configJson=&test_plan=&wizard_preset=",
+        search:
+          "?edit-plan=&from-plan=&edit-test=&configJson=&configJsonZ=&test_plan=&wizard_preset=",
         storedMode: "advanced",
       },
       { mode: "advanced", source: "preference" },
