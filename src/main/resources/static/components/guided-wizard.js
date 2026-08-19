@@ -113,6 +113,8 @@ export function resolveMode({ params, storedMode = null, hasRecoveryRecord = fal
   if (params.get("edit-plan")) return { mode: "advanced", source: "edit-plan" };
   if (params.get("from-plan")) return { mode: "advanced", source: "edit-plan" };
   if (params.get("edit-test")) return { mode: "advanced", source: "edit-test" };
+  // Both wire formats of a share link (see /js/config-url-codec.js).
+  if (params.get("configJsonZ")) return { mode: "advanced", source: "configJson" };
   if (params.get("configJson")) return { mode: "advanced", source: "configJson" };
   if (params.get("test_plan")) return { mode: "advanced", source: "test_plan" };
   if (hasRecoveryRecord) return { mode: "guided", source: "recovery" };
