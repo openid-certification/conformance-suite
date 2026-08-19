@@ -109,9 +109,11 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 			),
 			// FAPI2SP client tests — same as FAPI2SPFinalClientTestPlan minus id_token /
 			// JARM / OB-intent / Brazil-CBUAE-only refresh token modules. The wallet under
-			// test is configured with the AS URL exposed by the suite; VCI-specific
-			// metadata exposure (credential issuer metadata, credential / nonce / deferred
-			// / notification endpoints) is exercised by the VCIWalletTest* modules above.
+			// test is configured with the AS URL exposed by the suite (wallet_initiated) or
+			// scans the credential offer the suite presents on start (issuer_initiated, see
+			// VCIClientProfileBehavior.onStart); VCI-specific metadata exposure (credential
+			// issuer metadata, credential / nonce / deferred / notification endpoints) is
+			// exercised by the VCIWalletTest* modules above.
 			new ModuleListEntry(
 				vciFapi2SPFinalClientTestModules(),
 				List.of(
