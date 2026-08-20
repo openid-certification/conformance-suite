@@ -57,8 +57,11 @@ public class TestInfoApi {
  	@Autowired
 	private TestPlanService planService;
 
+	private static final String INFO_API_DISABLED_MESSAGE = "This API has been disabled due to performance concerns."
+		+ " If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL;
+
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(operationId = "listAllTestInfo", summary = "Get information of all test module instances", deprecated = true, description = "This API is disabled due to performance concerns and always returns 400. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
+	@Operation(operationId = "listAllTestInfo", summary = "Get information of all test module instances", deprecated = true, description = INFO_API_DISABLED_MESSAGE + " Always returns 400.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "400", description = "Always returned: the API is disabled",
 				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "string", description = "Explanatory message (a JSON string)")))
@@ -75,7 +78,7 @@ public class TestInfoApi {
 //		}
 //		return new ResponseEntity<>(testInfo, HttpStatus.OK);
 
-		return new ResponseEntity<Object>("This API has been disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<Object>(INFO_API_DISABLED_MESSAGE, HttpStatus.BAD_REQUEST);
 	}
 
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -120,7 +123,7 @@ public class TestInfoApi {
 
 	@PostMapping("/info/{testId}/share")
 	@Operation(operationId = "shareTest", summary = "Get private link to share test information",
-		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
+		description = SwaggerConfig.DESC_SHARE_LINK)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
@@ -129,7 +132,7 @@ public class TestInfoApi {
 	})
 	public ResponseEntity<?> shareLink(
 		@Parameter(description = "Id of the test to share") @PathVariable String testId,
-		@Parameter(description = "Number of days until the link expires", example = "30") @RequestParam(name = "exp", required = true) String exp
+		@Parameter(description = SwaggerConfig.DESC_SHARE_EXPIRY, example = "30") @RequestParam(name = "exp", required = true) String exp
 
 	) {
 
@@ -168,8 +171,8 @@ public class TestInfoApi {
 	})
 	public ResponseEntity<Object> publishTestInfo(
 			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
-			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Object with a 'publish' field: 'summary' or 'everything'",
-				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"publish\": \"summary\"}")))
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerConfig.DESC_PUBLISH_BODY,
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_PUBLISH_BODY)))
 			@RequestBody JsonObject config) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {

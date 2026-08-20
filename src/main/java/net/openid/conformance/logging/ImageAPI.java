@@ -45,6 +45,13 @@ import java.util.Map;
 @RequestMapping(value = "/api")
 public class ImageAPI {
 
+	static final int UPLOAD_SIZE_LIMIT = 500 * 1024;
+	static final int MAX_IMAGES_PER_TEST = 2;
+
+	private static final String IMAGE_BODY_DESCRIPTION = "The image as a data URI string"
+		+ " ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most "
+		+ (UPLOAD_SIZE_LIMIT / 1024) + "KB decoded and at most " + MAX_IMAGES_PER_TEST + " images per test";
+
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
@@ -70,7 +77,7 @@ public class ImageAPI {
 		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image")
 	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(
-		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test",
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = IMAGE_BODY_DESCRIPTION,
 			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, examples = @ExampleObject("data:image/png;base64,iVBORw0KGgo...")))
 		@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
@@ -123,7 +130,7 @@ public class ImageAPI {
 		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image")
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
-		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test",
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = IMAGE_BODY_DESCRIPTION,
 			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, examples = @ExampleObject("data:image/png;base64,iVBORw0KGgo...")))
 		@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
@@ -207,8 +214,8 @@ public class ImageAPI {
 		query.addCriteria(Criteria.where("testId").is(testId));
 		query.addCriteria(Criteria.where("img").exists(true));
 
-		if (mongoTemplate.find(query, Document.class, DBEventLog.COLLECTION).size() >= 2) {
-			return new ResponseEntity<Object>("Only 2 image uploads permitted per test", HttpStatus.BAD_REQUEST);
+		if (mongoTemplate.find(query, Document.class, DBEventLog.COLLECTION).size() >= MAX_IMAGES_PER_TEST) {
+			return new ResponseEntity<Object>("Only " + MAX_IMAGES_PER_TEST + " image uploads permitted per test", HttpStatus.BAD_REQUEST);
 		}
 
 		// Limit the accepted file types.
@@ -230,9 +237,6 @@ public class ImageAPI {
 			return new ResponseEntity<Object>("Only jpeg/png files accepted", HttpStatus.BAD_REQUEST);
 		}
 
-		// Impose as 550KB file size limit.
-		final int UPLOAD_SIZE_LIMIT = 500 * 1024;
-
 		// Impose the limit on the file before encoding.
 		final String encodingMarker = "base64,";
 		int index = encoded.indexOf(encodingMarker);
@@ -243,7 +247,7 @@ public class ImageAPI {
 
 			byte[] decodedBytes = Base64.getDecoder().decode(encodedData);
 			if (decodedBytes.length > UPLOAD_SIZE_LIMIT) {
-				return new ResponseEntity<Object>("File size exceeds the 500KB limit", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<Object>("File size exceeds the " + (UPLOAD_SIZE_LIMIT / 1024) + "KB limit", HttpStatus.BAD_REQUEST);
 			}
 		}
 		else {

@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Publish the public keys this server uses for signing.
@@ -41,7 +40,6 @@ public class JwksEndpoint {
 	})
 	// empty @SecurityRequirements clears the document-wide bearerAuth requirement: this endpoint is permitAll
 	@SecurityRequirements
-	@ResponseBody
 	public ResponseEntity<JsonObject> getJwkSet() {
 		JsonObject jwks = JsonParser.parseString(keyManager.getPublicKeys().toString()).getAsJsonObject(); // put it into a GSON object
 
