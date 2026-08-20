@@ -1,7 +1,10 @@
 package net.openid.conformance.apidoc;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import net.openid.conformance.info.Plan;
+import net.openid.conformance.info.TestInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -15,12 +18,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -86,5 +94,35 @@ public class ApiDocumentationConventions_UnitTest {
 
 		assertTrue(documentedControllers >= 12, "expected to find the API controllers, found " + documentedControllers);
 		assertTrue(problems.isEmpty(), String.join("\n", problems));
+	}
+
+	/**
+	 * The doc-only records that shadow real (Gson-serialized) model classes must list exactly the
+	 * model's fields, in order — Gson emits fields, so the fields ARE the wire shape. A component
+	 * renamed via @JsonProperty is compared under its wire name.
+	 */
+	@Test
+	public void docOnlyRecordsMatchTheModelClassesTheyDocument() {
+		assertRecordMatchesModelFields(TestInfoResponse.class, TestInfo.class);
+		assertRecordMatchesModelFields(PlanCreatedResponse.ModuleEntry.class, Plan.Module.class);
+	}
+
+	private static void assertRecordMatchesModelFields(Class<?> record, Class<?> model) {
+		List<String> wireNames = new ArrayList<>();
+		for (RecordComponent component : record.getRecordComponents()) {
+			JsonProperty rename;
+			try {
+				rename = record.getDeclaredField(component.getName()).getAnnotation(JsonProperty.class);
+			} catch (NoSuchFieldException e) {
+				throw new AssertionError(e);
+			}
+			wireNames.add(rename != null ? rename.value() : component.getName());
+		}
+		List<String> modelFields = Arrays.stream(model.getDeclaredFields())
+			.filter(field -> !Modifier.isStatic(field.getModifiers()) && !field.isSynthetic())
+			.map(Field::getName)
+			.toList();
+		assertEquals(modelFields, wireNames,
+			record.getSimpleName() + " must document exactly the fields Gson serializes from " + model.getSimpleName());
 	}
 }
