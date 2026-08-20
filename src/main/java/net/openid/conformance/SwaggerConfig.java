@@ -12,6 +12,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,14 @@ import java.util.List;
 public class SwaggerConfig {
 
 	private static final String BEARER_AUTH_SCHEME = "bearerAuth";
+
+	public static final String TAG_TEST_PLANS = "Test Plans";
+	public static final String TAG_TEST_RUNNER = "Test Runner";
+	public static final String TAG_TEST_INFORMATION = "Test Information";
+	public static final String TAG_TEST_LOGS = "Test Logs";
+	public static final String TAG_API_TOKENS = "API Tokens";
+	public static final String TAG_USER_AND_PREFERENCES = "User & Preferences";
+	public static final String TAG_SERVER = "Server";
 
 	static {
 		// Request/response bodies typed as Gson classes are opaque JSON, not the Gson object
@@ -46,6 +55,16 @@ public class SwaggerConfig {
 				// No servers entry: springdoc then generates an absolute server URL from the
 				// incoming request, which is what swagger-ui's "Try it out" needs — a relative
 				// URL here makes it issue page-relative requests (/swagger-ui/api/...).
+				// Tag descriptions live here (not in the controllers' @Tag annotations) so each
+				// tag has one source of truth; the list order is the display order in swagger-ui.
+				.tags(List.of(
+					new Tag().name(TAG_TEST_PLANS).description("Create and manage test plan instances, and discover the available test plans"),
+					new Tag().name(TAG_TEST_RUNNER).description("Create, start, monitor, and cancel running test module instances"),
+					new Tag().name(TAG_TEST_INFORMATION).description("Per-test metadata: status, results, publishing and sharing"),
+					new Tag().name(TAG_TEST_LOGS).description("Test log entries, exports, and screenshot/image attachments"),
+					new Tag().name(TAG_API_TOKENS).description("Manage API tokens for authenticating to this API"),
+					new Tag().name(TAG_USER_AND_PREFERENCES).description("The current user and their saved preferences"),
+					new Tag().name(TAG_SERVER).description("Information about this conformance suite deployment")))
 				.info(new Info().title("OpenID Conformance Suite REST APIs")
 						.description("This page lists the REST APIs for the OpenID Conformance suite."
 							+ " To call APIs you must supply a bearer token, which can be either:"

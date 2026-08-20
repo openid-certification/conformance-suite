@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_API_TOKENS)
 @RequestMapping(value = "/api")
 public class TokenApi {
 

@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.runner.TestRunnerSupport;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 @RequestMapping(value = "/api")
 public class ImageAPI {
 

@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.runner.TestRunnerSupport;
@@ -45,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 @RequestMapping(value = "/api")
 public class TestPlanApi implements DataUtils {
 
