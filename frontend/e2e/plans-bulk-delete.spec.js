@@ -23,7 +23,9 @@ import { MOCK_ADMIN_USER, MOCK_USER } from "./fixtures/mock-users.js";
  * which is what stops a listing that moved from being deleted by mistake.
  */
 
-const FILTERED_URL = "/plans.html?owner=104383237143811096540&to=2025-08-17";
+const FILTERED_URL =
+  "/plans.html?owner=104383237143811096540" +
+  "&owner_iss=https%3A%2F%2Faccounts.google.com&to=2025-08-17";
 const DELETE_BUTTON = "[data-testid='plan-bulk-delete']";
 const CONFIRM_BUTTON = "[data-testid='plan-bulk-delete-confirm']";
 const SERVER_SEARCH = "[data-testid='plan-bulk-delete-server-search']";
@@ -146,6 +148,9 @@ test.describe("plans.html — bulk delete", () => {
     await expect.poll(() => deleteUrls.length).toBe(1);
     const sent = new URL(deleteUrls[0]);
     expect(sent.searchParams.get("owner")).toBe("104383237143811096540");
+    // both halves of the account, always: a sub names one only within its issuer, and a
+    // bare sub would aim the delete at every issuer's user who happens to share it
+    expect(sent.searchParams.get("owner_iss")).toBe("https://accounts.google.com");
     expect(sent.searchParams.get("to")).toBe("2025-08-17");
     expect(sent.searchParams.get("limit")).toBe("100");
     expect(sent.searchParams.get("confirm")).toBe("100");
@@ -161,6 +166,70 @@ test.describe("plans.html — bulk delete", () => {
     await page.waitForTimeout(1000);
     await expect(progress).toBeVisible();
     await expect(progress).toContainText("DONE");
+  });
+
+  test("a search on its own is enough to delete by, and reaches both endpoints", async ({
+    page,
+  }) => {
+    // the page offers to move the search box's term into the listing so that what it finds can
+    // be deleted; if the term did not reach the server, or did not count as narrowing there,
+    // this listing would offer a delete button whose request is refused
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    /** @type {Array<string>} */
+    const previewUrls = [];
+    await page.route("**/api/plan/delete-preview*", (route) => {
+      previewUrls.push(route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ listed: 12, deletable: 12, kept: 0, target: 12 }),
+      });
+    });
+
+    /** @type {Array<string>} */
+    const deleteUrls = [];
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() !== "DELETE") return route.fallback();
+      deleteUrls.push(route.request().url());
+      return route.fulfill({
+        status: 202,
+        contentType: "application/json",
+        body: JSON.stringify({ state: "DONE", plans: 12, tests: 0, logEntries: 0, target: 12 }),
+      });
+    });
+    await page.route("**/api/plan/delete-status", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ state: "DONE", plans: 12, tests: 0, logEntries: 0, target: 12 }),
+      }),
+    );
+
+    await page.goto("/plans.html?search=ciba");
+
+    // a search alone narrows the listing, so it is offered like any other filter
+    await expect(page.locator("[data-testid='plan-filter-search']")).toHaveAttribute(
+      "label",
+      "Search: ciba",
+    );
+    await expect(page.locator(`${DELETE_BUTTON} button`)).toBeEnabled();
+
+    await page.locator(DELETE_BUTTON).click();
+    await expect
+      .poll(() => previewUrls.some((url) => new URL(url).searchParams.get("search") === "ciba"))
+      .toBe(true);
+    await expect(page.locator("[data-testid='plan-bulk-delete-counts']")).toContainText(
+      "12 plans match",
+    );
+
+    await page.locator(CONFIRM_BUTTON).click();
+    await expect.poll(() => deleteUrls.length).toBe(1);
+    const sent = new URL(deleteUrls[0]);
+    expect(sent.searchParams.get("search")).toBe("ciba");
+    expect(sent.searchParams.get("confirm")).toBe("12");
   });
 
   test("shows the reason when the server refuses", async ({ page }) => {
@@ -283,15 +352,37 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     await page.goto("/plans.html");
 
     const link = page.locator("[data-testid='plan-owner-link']").first();
-    const owner = MOCK_PLAN_LIST.find((plan) => plan.owner)?.owner?.sub;
+    const account = MOCK_PLAN_LIST.find((plan) => plan.owner)?.owner;
+    const owner = account?.sub;
     await expect(link).toHaveAttribute("href", new RegExp(`owner=${owner}`));
+    // the issuer travels with the sub, or the listing it opens is "everyone with that sub"
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(`owner_iss=${encodeURIComponent(account?.iss ?? "")}`),
+    );
 
     await link.click();
     await expect(page).toHaveURL(new RegExp(`owner=${owner}`));
+    await expect(page).toHaveURL(new RegExp("owner_iss="));
     await expect(page.locator("[data-testid='plan-filter-owner']")).toHaveAttribute(
       "label",
       `Owner: ${owner}`,
     );
+  });
+
+  test("a sub with no issuer opens the listing unfiltered rather than half filtered", async ({
+    page,
+  }) => {
+    // the server answers a half pair with a 400; the page must not send one, and a
+    // hand-edited link must still open the listing
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    await page.goto("/plans.html?owner=104383237143811096540");
+
+    await expect(page.locator("[data-testid='plan-filter-owner']")).toHaveCount(0);
+    await expect(page.locator(DELETE_BUTTON)).toHaveCount(0);
   });
 
   test("the Started control narrows the listing to an age", async ({ page }) => {

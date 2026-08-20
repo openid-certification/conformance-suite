@@ -31,6 +31,7 @@ function drillDownFilter() {
     // would differ from its own result by the keys it left out
     search: "",
     owner: "",
+    owner_iss: "",
     immutable: "",
     family: "FAPI-CIBA",
     plan: "fapi-ciba-id1-test-plan",
@@ -114,6 +115,7 @@ describe("urlFromFilter", () => {
     expect(FILTER_PARAMS).toEqual([
       "search",
       "owner",
+      "owner_iss",
       "immutable",
       "family",
       "plan",
@@ -227,11 +229,25 @@ describe("toChips", () => {
 
 describe("owner and immutable", () => {
   it("reads both from a URL and sends them back as parameters", () => {
-    const filter = planListFilterFromUrl("?owner=104383237143811096540&immutable=true");
+    const filter = planListFilterFromUrl(
+      "?owner=104383237143811096540&owner_iss=https%3A%2F%2Faccounts.google.com&immutable=true",
+    );
 
     expect(filter.owner).toBe("104383237143811096540");
+    expect(filter.owner_iss).toBe("https://accounts.google.com");
     expect(filter.immutable).toBe("true");
-    expect(toParams(filter).toString()).toBe("owner=104383237143811096540&immutable=true");
+    expect(toParams(filter).toString()).toBe(
+      "owner=104383237143811096540&owner_iss=https%3A%2F%2Faccounts.google.com&immutable=true",
+    );
+  });
+
+  it("drops a sub with no issuer, and an issuer with no sub", () => {
+    // a sub names an account only within the issuer that minted it, and this same narrowing
+    // is what aims a bulk delete; the server answers a half pair with a 400, so sending one
+    // would break the page for a hand-edited link rather than just ignoring the unusable bit
+    expect(planListFilterFromUrl("?owner=104383237143811096540").owner).toBe("");
+    expect(planListFilterFromUrl("?owner_iss=https://gitlab.com").owner_iss).toBe("");
+    expect(hasFilters(planListFilterFromUrl("?owner=104383237143811096540"))).toBe(false);
   });
 
   it("accepts immutable in any case, as the server does", () => {
@@ -247,14 +263,23 @@ describe("owner and immutable", () => {
   });
 
   it("counts each of them as narrowing the listing", () => {
-    expect(hasFilters({ ...emptyFilter(), owner: "developer" })).toBe(true);
+    expect(
+      hasFilters({ ...emptyFilter(), owner: "developer", owner_iss: "https://developer.com" }),
+    ).toBe(true);
     expect(hasFilters({ ...emptyFilter(), immutable: "false" })).toBe(true);
   });
 
   it("removes either one on its own", () => {
-    const filter = { ...emptyFilter(), owner: "developer", immutable: "true" };
+    const filter = {
+      ...emptyFilter(),
+      owner: "developer",
+      owner_iss: "https://developer.com",
+      immutable: "true",
+    };
 
-    expect(without(filter, "owner")).toEqual({ ...filter, owner: "" });
+    // one chip covers the whole account, so removing it takes the issuer with it - leaving
+    // the issuer behind would send a half pair the server refuses
+    expect(without(filter, "owner")).toEqual({ ...filter, owner: "", owner_iss: "" });
     expect(without(filter, "immutable")).toEqual({ ...filter, immutable: "" });
   });
 

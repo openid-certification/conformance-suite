@@ -44,7 +44,7 @@ public interface TestPlanService {
 	 * @param page   the page to return
 	 * @param filter the narrowing asked for within that scoping
 	 */
-	PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter, String owner);
+	PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter, PlanOwner owner);
 
 	/**
 	 * Lists the published plans, which anyone may see.
@@ -52,7 +52,7 @@ public interface TestPlanService {
 	 * @param page   the page to return
 	 * @param filter the narrowing asked for within that scoping
 	 */
-	PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter, String owner);
+	PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter, PlanOwner owner);
 
 	/**
 	 * @param id

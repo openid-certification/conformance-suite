@@ -177,13 +177,7 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
     pointer-events: none;
   }
-  .cts-plan-list-sort {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--fs-13);
-    color: var(--fg-soft);
-  }
+  .cts-plan-list-sort,
   .cts-plan-list-age {
     display: inline-flex;
     align-items: center;
@@ -191,23 +185,7 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     color: var(--fg-soft);
   }
-  .cts-plan-list-sort select {
-    box-sizing: border-box;
-    height: var(--control-height);
-    padding: 0 36px 0 var(--space-3);
-    background: var(--bg-elev);
-    color: var(--fg);
-    border: 1px solid var(--ink-300);
-    border-radius: var(--radius-2);
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    line-height: 1;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: ${unsafeCSS(SELECT_CHEVRON)};
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-  }
+  .cts-plan-list-sort select,
   .cts-plan-list-age select {
     box-sizing: border-box;
     height: var(--control-height);
@@ -225,7 +203,10 @@ const STYLE_TEXT = css`
     background-repeat: no-repeat;
     background-position: right 12px center;
   }
-  .cts-plan-list-sort select:focus {
+  /* the copy of these rules for the filter selects dropped this one, so they had no focus ring
+     while Sort had one */
+  .cts-plan-list-sort select:focus,
+  .cts-plan-list-age select:focus {
     outline: none;
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
@@ -480,34 +461,42 @@ function hasNonEmptyConfig(config) {
  * @param {Response} response - The failed response.
  * @returns {Promise<string>} The message for the alert.
  */
-async function failureMessage(response) {
+/**
+ * The message a failed response carries, if it carries one: the API answers `{"error": "..."}`
+ * — the only thing that says WHICH parameter is wrong — and `message` is accepted alongside it
+ * because the statistics endpoint words its own 400 that way.
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string|null>} That message, or null when there is none to show.
+ */
+async function serverMessage(response) {
   let body = null;
   try {
     body = await response.json();
   } catch {
     // not JSON at all; the status code is all there is
   }
-  const detail = body && typeof body === "object" ? body.error || body.message : null;
+  return body && typeof body === "object" ? body.error || body.message || null : null;
+}
+
+/**
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string>} The message for the listing's alert.
+ */
+async function failureMessage(response) {
+  const detail = await serverMessage(response);
   return detail
     ? `Failed to load test plans: ${detail}`
     : `Failed to load test plans (HTTP ${response.status})`;
 }
 
 /**
- * The same idea as {@link failureMessage}, worded for the bulk delete: its 400
- * says which parameter is wrong or what `confirm` should have been, and its 409
- * says a delete is already running — all of it worth showing verbatim.
+ * The bulk delete's 400 says which parameter is wrong or what `confirm` should have been, and
+ * its 409 says a delete is already running — all worth showing verbatim.
  * @param {Response} response - The failed response.
- * @returns {Promise<string>} The message for the alert.
+ * @returns {Promise<string>} The message for the dialog's alert.
  */
 async function bulkFailureMessage(response) {
-  let body = null;
-  try {
-    body = await response.json();
-  } catch {
-    // not JSON at all; the status code is all there is
-  }
-  const detail = body && typeof body === "object" ? body.error || body.message : null;
+  const detail = await serverMessage(response);
   if (detail) return detail;
   return response.status === 403
     ? "Only an admin can delete plans in bulk"
@@ -696,26 +685,11 @@ class CtsPlanList extends LitElement {
   }
 
   updated(changedProperties) {
-    // A <select> whose options are rendered by the same template cannot be set
-    // through `.value`: Lit commits the property before the <option> children
-    // exist, so the assignment is dropped and the control falls back to its
-    // first option - which would leave the age control reading "Any time" while
-    // the listing is narrowed to a period, and the chip beside it saying so.
-    // Setting it here, after the children are in place, is what makes the
-    // control reflect the filter it is showing.
-    for (const [testid, value] of [
-      ["plan-age-filter", this._agePreset()],
-      ["plan-family-filter", (this.filters && this.filters.family) || ""],
-      ["plan-name-filter", (this.filters && this.filters.plan) || ""],
-      ["plan-immutable-filter", (this.filters && this.filters.immutable) || ""],
-      ...this._variantsToOffer().map((variant) => [
-        `plan-variant-${variant.name}`,
-        (this.filters.variant || {})[variant.name] || "",
-      ]),
-    ]) {
-      const select = this.querySelector(`[data-testid='${testid}']`);
+    // Every filter control carries the value it should show as `data-value`; it is applied
+    // here because a <select> cannot be set before its options exist (see _renderFilterSelect).
+    for (const select of this.querySelectorAll("select[data-value]")) {
       if (select instanceof HTMLSelectElement) {
-        select.value = value;
+        select.value = select.dataset.value ?? "";
       }
     }
 
@@ -846,8 +820,8 @@ class CtsPlanList extends LitElement {
    * @returns {URLSearchParams} Those parameters.
    */
   _bulkParams() {
-    const params = new URLSearchParams();
-    for (const [key, value] of toParams(this.filters).entries()) params.set(key, value);
+    // toParams already returns a fresh URLSearchParams, so there is nothing to copy
+    const params = toParams(this.filters);
     const limit = Number.parseInt(this._bulkLimit, 10);
     if (Number.isFinite(limit) && limit > 0) params.set("limit", String(limit));
     return params;
@@ -1443,7 +1417,13 @@ class CtsPlanList extends LitElement {
                   <a
                     class="cts-plan-card-owner-link"
                     href="plans.html${urlFromFilter(
-                      { ...this.filters, owner: plan.owner.sub || "" },
+                      {
+                        ...this.filters,
+                        // both halves: a sub names an account only within its issuer, and
+                        // this same narrowing is what a bulk delete is aimed with
+                        owner: plan.owner.sub || "",
+                        owner_iss: plan.owner.iss || "",
+                      },
                       window.location.search,
                     )}"
                     title="Show only this owner's plans"
@@ -1615,12 +1595,8 @@ class CtsPlanList extends LitElement {
               </label>
               ${this._bulkBusy && !this._bulkError
                 ? html`<p data-testid="plan-bulk-delete-counting">
-                    <cts-spinner
-                      size="sm"
-                      label="Counting the plans this would delete"
-                    ></cts-spinner>
-                    Counting the plans this would delete. On a large database this takes a few
-                    seconds.
+                    <cts-spinner size="sm" label=${this._bulkBusyLabel}></cts-spinner>
+                    ${this._bulkBusyLabel} On a large database this takes a few seconds.
                   </p>`
                 : nothing}
               ${preview && !this._bulkBusy
@@ -1649,42 +1625,92 @@ class CtsPlanList extends LitElement {
   }
 
   /**
-   * One control per variant parameter of the chosen plan, on their own row: a
-   * plan can define a dozen, which would not fit beside the other controls.
+   * One control per variant parameter of the chosen plan, on their own row: a plan can define a
+   * dozen, which would not fit beside the other controls.
    * @returns {unknown} The row, or nothing when no plan is chosen.
    */
   _renderVariantControls() {
     const variants = this._variantsToOffer();
     if (variants.length === 0) return nothing;
+    const chosen = (this.filters && this.filters.variant) || {};
     return html`
       <div class="cts-plan-list-toolbar" data-testid="plan-variant-controls">
         ${repeat(
           variants,
           (variant) => variant.name,
-          (variant) => html`
-            <label class="cts-plan-list-age">
-              <span>${variant.name}</span>
-              <select
-                aria-label="Only show plans with this ${variant.name}"
-                data-testid="plan-variant-${variant.name}"
-                data-variant=${variant.name}
-                @change=${this._handleVariantChange}
-              >
-                <option value="">Any</option>
-                ${repeat(
-                  variant.values,
-                  (value) => value,
-                  (value) => html`<option value=${value}>${value}</option>`,
-                )}
-              </select>
-            </label>
-          `,
+          (variant) =>
+            this._renderFilterSelect({
+              label: variant.name,
+              aria: `Only show plans with this ${variant.name}`,
+              testid: `plan-variant-${variant.name}`,
+              variant: variant.name,
+              value: chosen[variant.name] || "",
+              options: [
+                { value: "", label: "Any" },
+                ...variant.values.map((value) => ({ value, label: value })),
+              ],
+              onChange: this._handleVariantChange,
+            }),
         )}
       </div>
     `;
   }
 
+  /**
+   * One filter control: a labelled `<select>` carrying the value it should show.
+   *
+   * That value is applied in {@link updated}, after the options exist, because neither obvious
+   * alternative works. `.value` on the `<select>` is committed by Lit before its `<option>`
+   * children are created, so the assignment is dropped and the control falls back to its first
+   * option — reading "Any" beside a chip that says otherwise. Marking the option instead does
+   * not survive either: the browser selects the first as they are appended. Naming the element
+   * by `data-value` keeps production behaviour off the e2e hooks and means a new control needs
+   * no edit in `updated`.
+   * @param {object} control - The control to render.
+   * @param {string} control.label - The visible label.
+   * @param {string} control.aria - The select's accessible name.
+   * @param {string} control.testid - Its `data-testid`.
+   * @param {string} control.value - The value currently selected.
+   * @param {Array<{value: string, label: string}>} control.options - Its options, "any" first.
+   * @param {(event: Event) => void} control.onChange - The change handler.
+   * @param {string} [control.variant] - The variant parameter, for the variant controls.
+   * @returns {unknown} The control.
+   */
+  _renderFilterSelect({ label, aria, testid, value, options, onChange, variant = undefined }) {
+    return html`
+      <label class="cts-plan-list-age">
+        <span>${label}</span>
+        <select
+          aria-label=${aria}
+          data-testid=${testid}
+          data-variant=${ifDefined(variant)}
+          data-value=${value}
+          @change=${onChange}
+        >
+          ${repeat(
+            options,
+            (option) => option.value,
+            (option) => html`<option value=${option.value}>${option.label}</option>`,
+          )}
+        </select>
+      </label>
+    `;
+  }
+
+  /** @returns {Array<{value: string, label: string}>} The age options, "Any time" first. */
+  _ageOptions() {
+    const options = [
+      { value: "", label: "Any time" },
+      ...AGE_PRESETS.map((preset) => ({ value: preset.value, label: preset.label })),
+    ];
+    // a bound that is none of the presets came from a hand-edited URL or a drill-down; it is
+    // offered so the control can show it rather than claiming the listing spans any time
+    if (this._agePreset() === "custom") options.push({ value: "custom", label: "Custom period" });
+    return options;
+  }
+
   _renderSearchAndSort() {
+    const filters = this.filters || emptyFilter();
     return html`
       <div class="cts-plan-list-toolbar">
         <label class="cts-plan-list-search">
@@ -1699,72 +1725,56 @@ class CtsPlanList extends LitElement {
         </label>
         ${this._filterOptions
           ? html`
-              <label class="cts-plan-list-age">
-                <span>Family</span>
-                <select
-                  aria-label="Only show plans of this spec family"
-                  data-testid="plan-family-filter"
-                  @change=${this._handleFamilyChange}
-                >
-                  <option value="">Any family</option>
-                  ${repeat(
-                    this._filterOptions.families,
-                    (family) => family,
-                    (family) => html`<option value=${family}>${family}</option>`,
-                  )}
-                </select>
-              </label>
-              <label class="cts-plan-list-age">
-                <span>Plan</span>
-                <select
-                  aria-label="Only show plans with this name"
-                  data-testid="plan-name-filter"
-                  @change=${this._handlePlanChange}
-                >
-                  <option value="">Any plan</option>
-                  ${repeat(
-                    this._plansToOffer(),
-                    (plan) => plan.name,
-                    (plan) =>
-                      html`<option value=${plan.name}>
-                        ${plan.name}${plan.retired ? " (retired)" : ""}
-                      </option>`,
-                  )}
-                </select>
-              </label>
+              ${this._renderFilterSelect({
+                label: "Family",
+                aria: "Only show plans of this spec family",
+                testid: "plan-family-filter",
+                value: filters.family || "",
+                options: [
+                  { value: "", label: "Any family" },
+                  ...this._filterOptions.families.map((family) => ({
+                    value: family,
+                    label: family,
+                  })),
+                ],
+                onChange: this._handleFamilyChange,
+              })}
+              ${this._renderFilterSelect({
+                label: "Plan",
+                aria: "Only show plans with this name",
+                testid: "plan-name-filter",
+                value: filters.plan || "",
+                options: [
+                  { value: "", label: "Any plan" },
+                  ...this._plansToOffer().map((plan) => ({
+                    value: plan.name,
+                    label: plan.retired ? `${plan.name} (retired)` : plan.name,
+                  })),
+                ],
+                onChange: this._handlePlanChange,
+              })}
             `
           : nothing}
-        <label class="cts-plan-list-age">
-          <span>Immutable</span>
-          <select
-            aria-label="Only show plans that are immutable, or only those that are not"
-            data-testid="plan-immutable-filter"
-            @change=${this._handleImmutableChange}
-          >
-            <option value="">Any</option>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </label>
-        <label class="cts-plan-list-age">
-          <span>Started</span>
-          <select
-            aria-label="Only show plans older than"
-            data-testid="plan-age-filter"
-            .value=${this._agePreset()}
-            @change=${this._handleAgeChange}
-          >
-            <option value="">Any time</option>
-            ${repeat(
-              AGE_PRESETS,
-              (preset) => preset.value,
-              (preset) => html`<option value=${preset.value}>${preset.label}</option>`,
-            )}
-            ${this._agePreset() === "custom"
-              ? html`<option value="custom">Custom period</option>`
-              : nothing}
-          </select>
-        </label>
+        ${this._renderFilterSelect({
+          label: "Immutable",
+          aria: "Only show plans that are immutable, or only those that are not",
+          testid: "plan-immutable-filter",
+          value: filters.immutable || "",
+          options: [
+            { value: "", label: "Any" },
+            { value: "true", label: "Yes" },
+            { value: "false", label: "No" },
+          ],
+          onChange: this._handleImmutableChange,
+        })}
+        ${this._renderFilterSelect({
+          label: "Started",
+          aria: "Only show plans older than",
+          testid: "plan-age-filter",
+          value: this._agePreset(),
+          options: this._ageOptions(),
+          onChange: this._handleAgeChange,
+        })}
         <label class="cts-plan-list-sort">
           <span>Sort</span>
           <select

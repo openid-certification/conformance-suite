@@ -1,7 +1,7 @@
 /**
- * The plans-listing filter: the `search` / `owner` / `immutable` / `family` /
- * `plan` / `variant.<k>` / `cert` / `from` / `to` parameters `GET /api/plan`
- * accepts, as they travel through `plans.html`.
+ * The plans-listing filter: the `search` / `owner` + `owner_iss` / `immutable` /
+ * `family` / `plan` / `variant.<k>` / `cert` / `from` / `to` parameters
+ * `GET /api/plan` accepts, as they travel through `plans.html`.
  *
  * Pure functions only — no DOM, no fetch, no history. `plans.html` reads them
  * out of `location.search` and hands the result to `<cts-plan-list>`, which
@@ -25,6 +25,9 @@ const VARIANT_PREFIX = "variant.";
 
 const SEARCH_PARAM = "search";
 const OWNER_PARAM = "owner";
+/** The issuer half of the owner. A `sub` names an account only within it, so the two go
+ * together or not at all — the server refuses a half pair with a 400. */
+const OWNER_ISS_PARAM = "owner_iss";
 const IMMUTABLE_PARAM = "immutable";
 const FAMILY_PARAM = "family";
 const PLAN_PARAM = "plan";
@@ -37,16 +40,25 @@ const TO_PARAM = "to";
  * without knowing their names.
  * @type {Array<string>}
  */
-export const FILTER_PARAMS = [
+/**
+ * The parameters that come before the `variant.<k>` ones, and those that come after, in the
+ * order a request carries them. Split rather than one list because the variants sit between
+ * them, and kept as the single enumeration of what a filter is made of: adding one used to mean
+ * editing six places, and missing one of them failed silently — a filter that could not be
+ * removed, or an empty state that stopped appearing.
+ * @type {Array<string>}
+ */
+const PARAMS_BEFORE_VARIANTS = [
   SEARCH_PARAM,
   OWNER_PARAM,
+  OWNER_ISS_PARAM,
   IMMUTABLE_PARAM,
   FAMILY_PARAM,
   PLAN_PARAM,
-  CERT_PARAM,
-  FROM_PARAM,
-  TO_PARAM,
 ];
+const PARAMS_AFTER_VARIANTS = [CERT_PARAM, FROM_PARAM, TO_PARAM];
+
+export const FILTER_PARAMS = [...PARAMS_BEFORE_VARIANTS, ...PARAMS_AFTER_VARIANTS];
 
 /** A `YYYY-MM-DD` date, the form both bounds take when the drill-down builds them. */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -76,6 +88,9 @@ const SHORT_MONTHS = [
  *   description and certification profile, so it matches whole words only.
  * @property {string} owner - The `sub` of the account whose plans to list, or
  *   `""`. Admin-only in effect: anyone else sees only their own plans anyway.
+ *   Never set without `owner_iss`.
+ * @property {string} owner_iss - The issuer that minted that `sub`, or `""`.
+ *   Never set without `owner`.
  * @property {string} immutable - `"true"` for only the plans a certification
  *   package was downloaded for, `"false"` for only the rest, or `""` for both.
  * @property {string} family - Spec family display name, or `""`.
@@ -120,9 +135,12 @@ function flag(value) {
 
 /** @returns {PlanListFilter} A filter that narrows nothing. */
 export function emptyFilter() {
+  // spelled out rather than built from FILTER_PARAMS: this is what tells the type checker what
+  // a filter is, and every other enumeration of the keys has been collapsed into that list
   return {
     search: "",
     owner: "",
+    owner_iss: "",
     immutable: "",
     family: "",
     plan: "",
@@ -149,9 +167,15 @@ export function planListFilterFromUrl(search) {
     const name = text(key.slice(VARIANT_PREFIX.length));
     if (name && text(value)) variant[name] = text(value);
   }
+  // both halves of the owner or neither: a lone one is what the server answers with a 400,
+  // and a hand-edited link must still open the listing
+  const ownerSub = text(params.get(OWNER_PARAM));
+  const ownerIss = text(params.get(OWNER_ISS_PARAM));
+  const ownerPair = ownerSub && ownerIss;
   return {
     search: text(params.get(SEARCH_PARAM)),
-    owner: text(params.get(OWNER_PARAM)),
+    owner: ownerPair ? ownerSub : "",
+    owner_iss: ownerPair ? ownerIss : "",
     immutable: flag(params.get(IMMUTABLE_PARAM)),
     family: text(params.get(FAMILY_PARAM)),
     plan: text(params.get(PLAN_PARAM)),
@@ -181,17 +205,7 @@ function variantEntries(filter) {
  */
 export function hasFilters(filter) {
   if (!filter) return false;
-  return Boolean(
-    text(filter.search) ||
-    text(filter.owner) ||
-    text(filter.immutable) ||
-    text(filter.family) ||
-    text(filter.plan) ||
-    text(filter.cert) ||
-    text(filter.from) ||
-    text(filter.to) ||
-    variantEntries(filter).length > 0,
-  );
+  return FILTER_PARAMS.some((key) => text(filter[key]) !== "") || variantEntries(filter).length > 0;
 }
 
 /**
@@ -202,17 +216,15 @@ export function hasFilters(filter) {
  */
 export function toParams(filter) {
   const params = new URLSearchParams();
-  if (text(filter && filter.search)) params.set(SEARCH_PARAM, text(filter.search));
-  if (text(filter && filter.owner)) params.set(OWNER_PARAM, text(filter.owner));
-  if (text(filter && filter.immutable)) params.set(IMMUTABLE_PARAM, text(filter.immutable));
-  if (text(filter && filter.family)) params.set(FAMILY_PARAM, text(filter.family));
-  if (text(filter && filter.plan)) params.set(PLAN_PARAM, text(filter.plan));
+  const set = (key) => {
+    const value = text(filter && filter[key]);
+    if (value) params.set(key, value);
+  };
+  PARAMS_BEFORE_VARIANTS.forEach(set);
   for (const [name, value] of variantEntries(filter)) {
     params.set(VARIANT_PREFIX + text(name), text(value));
   }
-  if (text(filter && filter.cert)) params.set(CERT_PARAM, text(filter.cert));
-  if (text(filter && filter.from)) params.set(FROM_PARAM, text(filter.from));
-  if (text(filter && filter.to)) params.set(TO_PARAM, text(filter.to));
+  PARAMS_AFTER_VARIANTS.forEach(set);
   return params;
 }
 
@@ -246,16 +258,19 @@ export function urlFromFilter(filter, search = "") {
 export function without(filter, key) {
   const next = { ...emptyFilter(), ...(filter || {}) };
   next.variant = { ...(next.variant || {}) };
-  if (key === "search") next.search = "";
-  else if (key === "owner") next.owner = "";
-  else if (key === "immutable") next.immutable = "";
-  else if (key === "family") next.family = "";
-  else if (key === "plan") next.plan = "";
-  else if (key === "cert") next.cert = "";
-  else if (key === "from") {
+  if (key === "from") {
+    // one chip covers the whole period: half of it is not a filter anyone asked for
     next.from = "";
     next.to = "";
-  } else if (key.startsWith("variant-")) delete next.variant[key.slice("variant-".length)];
+  } else if (key === "owner") {
+    // likewise: the issuer is half of the account's identity, not a filter of its own
+    next.owner = "";
+    next.owner_iss = "";
+  } else if (key.startsWith("variant-")) {
+    delete next.variant[key.slice("variant-".length)];
+  } else if (FILTER_PARAMS.includes(key)) {
+    next[key] = "";
+  }
   return next;
 }
 

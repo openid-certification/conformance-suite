@@ -67,6 +67,10 @@ public class BulkPlanDeleter {
 	/** How long to wait between batches, so that a delete of millions does not starve the app. */
 	private static final long PAUSE_MS = 200;
 
+	/** Why a running module is stopped; the single-plan delete stops them for the same reason. */
+	static final String STOPPED_BECAUSE_PLAN_DELETED =
+		"The test was stopped because its test plan was deleted.";
+
 	public enum State { IDLE, RUNNING, DONE, CANCELLED, FAILED }
 
 	/**
@@ -87,8 +91,9 @@ public class BulkPlanDeleter {
 		}
 
 		Progress with(State newState, String error) {
+			// only ever called to finish a job; the running state is built directly in start()
 			return new Progress(newState, plans, tests, logEntries, target, startedAt,
-				newState == State.RUNNING ? null : Instant.now().toString(), error);
+				Instant.now().toString(), error);
 		}
 
 		Progress plus(long morePlans, long moreTests, long moreLogEntries) {
@@ -146,16 +151,20 @@ public class BulkPlanDeleter {
 	 * @return the query document, which is also what the count is taken with
 	 */
 	static Document selection(Criteria scope, PlanListFilter filter, String search) {
+		return deletableAmong(DBTestPlanService.listingDocument(scope, filter, search));
+	}
 
-		Document listed = DBTestPlanService.listingQuery(scope, filter, search, page()).getQueryObject();
+	/**
+	 * @param listed what the listing matches, from
+	 *               {@link DBTestPlanService#listingCriteria}
+	 * @return those of them that may be deleted: one chained criteria, so both are required.
+	 *         {@code $ne} rather than {@code $eq false} because {@code immutable} is absent on
+	 *         every plan no certification package was ever downloaded for
+	 */
+	private static Document deletableAmong(Document listed) {
 
-		// one document, so both are required; $ne rather than $eq false because the field is
-		// absent on every plan no package was ever downloaded for
-		Document keep = new Document("immutable", new Document("$ne", true)).append("publish", null);
+		Document keep = Criteria.where("immutable").ne(true).and("publish").is(null).getCriteriaObject();
 
-		// combined as a document rather than by adding another Criteria to the query: two
-		// criteria that are not about a single field both key on null, and Query.addCriteria
-		// refuses the second one
 		return listed.isEmpty() ? keep : new Document("$and", List.of(listed, keep));
 	}
 
@@ -184,13 +193,33 @@ public class BulkPlanDeleter {
 	 */
 	public Preview preview(Criteria scope, PlanListFilter filter, String search, Integer limit) {
 
+		Document listedDocument = DBTestPlanService.listingDocument(scope, filter, search);
 		var plans = mongoTemplate.getCollection(DBTestPlanService.COLLECTION);
-		long listed = plans.countDocuments(DBTestPlanService.listingQuery(scope, filter, search, page())
-			.getQueryObject());
-		long deletable = plans.countDocuments(selection(scope, filter, search));
 
-		return new Preview(listed, deletable, listed - deletable,
-			Math.min(deletable, limit == null ? Long.MAX_VALUE : limit));
+		long listed = plans.countDocuments(listedDocument);
+		long deletable = plans.countDocuments(deletableAmong(listedDocument));
+
+		return new Preview(listed, deletable, listed - deletable, capped(deletable, limit));
+	}
+
+	/**
+	 * How many plans a run would delete, without counting how many the listing shows: the delete
+	 * itself needs only this number, and the count it leaves out is a second pass over every
+	 * plan the filter matches.
+	 *
+	 * @param scope  what the caller may see at all, or null for an admin
+	 * @param filter the narrowing the caller asked for
+	 * @param search the quoted term the listing was searched for, or null
+	 * @param limit  the most plans to delete, or null for all of them
+	 * @return the number to confirm
+	 */
+	public long target(Criteria scope, PlanListFilter filter, String search, Integer limit) {
+		return capped(mongoTemplate.getCollection(DBTestPlanService.COLLECTION)
+			.countDocuments(selection(scope, filter, search)), limit);
+	}
+
+	private static long capped(long deletable, Integer limit) {
+		return Math.min(deletable, limit == null ? Long.MAX_VALUE : limit);
 	}
 
 	/** @return what the running or last job has done */
@@ -222,11 +251,15 @@ public class BulkPlanDeleter {
 
 		cancelled = false;
 		progress = new Progress(State.RUNNING, 0, 0, 0, target, Instant.now().toString(), null, null);
-		logger.info("Bulk plan delete starting: up to {} plans, selection {}",
-			target, selection(scope, filter, search).toJson());
 
-		// assigned, because an ignored future would swallow anything thrown outside run()
-		inFlight = CompletableFuture.runAsync(() -> run(scope, filter, search, target), executor);
+		// nothing in it varies between batches, so it is built once here and logged as the
+		// record of what this run was authorised to remove
+		Document selection = selection(scope, filter, search);
+		logger.info("Bulk plan delete starting: up to {} plans, selection {}", target, selection.toJson());
+
+		// the field is the "a job is already running" guard; it also survives an Error that
+		// would otherwise leave progress stuck at RUNNING
+		inFlight = CompletableFuture.runAsync(() -> run(selection, target), executor);
 
 		return progress;
 	}
@@ -238,11 +271,11 @@ public class BulkPlanDeleter {
 	 * later run - which they get to confirm - rather than deleted by a run that was authorised
 	 * for something smaller.
 	 */
-	private void run(Criteria scope, PlanListFilter filter, String search, long target) {
+	private void run(Document selection, long target) {
 		try {
 			while (!cancelled && progress.plans() < target) {
 				int room = (int) Math.min(BATCH, target - progress.plans());
-				if (deleteBatch(scope, filter, search, room) == 0) {
+				if (deleteBatch(selection, room) == 0) {
 					break;
 				}
 				Thread.sleep(PAUSE_MS);
@@ -266,9 +299,9 @@ public class BulkPlanDeleter {
 	 *
 	 * @return how many plans were deleted, 0 when there is nothing left to do
 	 */
-	private int deleteBatch(Criteria scope, PlanListFilter filter, String search, int room) {
+	private int deleteBatch(Document selection, int room) {
 
-		Query query = new BasicQuery(selection(scope, filter, search)).with(page()).limit(room);
+		Query query = new BasicQuery(selection).with(page()).limit(room);
 		query.fields().include("modules.instances");
 
 		List<Document> batch = mongoTemplate.find(query, Document.class, DBTestPlanService.COLLECTION);
@@ -317,12 +350,18 @@ public class BulkPlanDeleter {
 	 *
 	 * @param testIds the tests about to be deleted
 	 */
-	private void stopAnyRunning(List<String> testIds) {
+	void stopAnyRunning(List<String> testIds) {
+
+		// Deliberately one lookup per test rather than one getAllRunningTestIds() and an
+		// intersection, which would take the shared monitor once instead of once per test: that
+		// method scopes its answer to the caller's principal and expires stale tests as a side
+		// effect, and this runs both from a request thread and from a background one that has no
+		// principal at all. The contention it costs is not worth depending on that.
 		for (String testId : testIds) {
 			TestModule runningTest = testRunnerSupport.getRunningTestById(testId);
 			if (runningTest != null) {
-				logger.info("Bulk plan delete: stopping {}, which is still running", testId);
-				runningTest.stop("The test was stopped because its test plan was deleted.");
+				logger.info("Stopping {}, which is still running, before its plan is deleted", testId);
+				runningTest.stop(STOPPED_BECAUSE_PLAN_DELETED);
 			}
 		}
 	}

@@ -25,14 +25,12 @@ import net.openid.conformance.apidoc.PublishResponse;
 import net.openid.conformance.apidoc.ShareLinkResponse;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
-import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
 import net.openid.conformance.statistics.QueryParams;
 import net.openid.conformance.statistics.SpecFamilyResolver;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -84,13 +82,13 @@ public class TestPlanApi implements DataUtils {
 	private AuthenticationFacade authenticationFacade;
 
 	@Autowired
-	private TestRunnerSupport testRunnerSupport;
-
-	@Autowired
 	private SpecFamilyResolver specFamilyResolver;
 
 	@Autowired
 	private BulkPlanDeleter bulkPlanDeleter;
+
+	/** {@link #filterOptions()}, built on first use; the registry it describes never changes. */
+	private volatile Map<String, Object> planFilterOptions;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "createTestPlan", summary = "Create test plan")
@@ -225,10 +223,14 @@ public class TestPlanApi implements DataUtils {
 				+ "if any one of its profiles is exactly this.",
 			schema = @Schema(type = "string", example = "FAPI-CIBA: Poll w/ MTLS")),
 		@Parameter(name = "owner", in = ParameterIn.QUERY,
-			description = "Only list plans belonging to this user, by the `sub` of their account. "
-				+ "Narrows the listing and can never widen it: anyone but an admin still sees only "
-				+ "their own plans, so naming another owner lists nothing.",
+			description = "Only list plans belonging to this user, by the `sub` of their account. Has "
+				+ "to be sent with `owner_iss`, since a `sub` names an account only within the issuer "
+				+ "that minted it. Narrows the listing and can never widen it: anyone but an admin "
+				+ "still sees only their own plans, so naming another owner lists nothing.",
 			schema = @Schema(type = "string")),
+		@Parameter(name = "owner_iss", in = ParameterIn.QUERY,
+			description = "The issuer that minted the `owner` sub, as the account was logged in with.",
+			schema = @Schema(type = "string", example = "https://accounts.google.com")),
 		@Parameter(name = "immutable", in = ParameterIn.QUERY,
 			description = "Only list plans a certification package has been downloaded for (`true`), "
 				+ "or only those it has not (`false`). Omit for both.",
@@ -256,15 +258,15 @@ public class TestPlanApi implements DataUtils {
 		@Parameter(hidden = true) HttpServletRequest request) {
 
 		PlanListFilter filter;
+		PlanOwner owner;
 		try {
 			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
+			// not part of the filter: owner is what scopes a listing, which a filter may never
+			// touch, so DBTestPlanService applies it to the scope instead
+			owner = PlanOwner.parse(request.getParameterMap());
 		} catch (IllegalArgumentException e) {
 			return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
-
-		// not part of the filter: owner is what scopes a listing, which a filter may never
-		// touch, so DBTestPlanService applies it to the scope instead
-		String owner = QueryParams.first(request.getParameterMap(), "owner");
 
 		PaginationResponse<?> response = publicOnly
 				? planService.getPaginatedPublicPlans(page, filter, owner)
@@ -485,6 +487,21 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<Object> getPlanFilterOptions() {
+		return new ResponseEntity<>(filterOptions(), HttpStatus.OK);
+	}
+
+	/**
+	 * @return the filter options, computed once. The registry cannot change while the process
+	 *         runs, and building this walks every plan's variant summary - five stream
+	 *         collections per plan over its modules and parameters - which is far too much to
+	 *         repeat on every plans.html load, for every user, which is when it is asked for.
+	 */
+	private Map<String, Object> filterOptions() {
+
+		Map<String, Object> cached = planFilterOptions;
+		if (cached != null) {
+			return cached;
+		}
 
 		List<String> families = new ArrayList<>();
 		List<Map<String, Object>> plans = new ArrayList<>();
@@ -516,8 +533,10 @@ public class TestPlanApi implements DataUtils {
 			}
 		}
 
-		return new ResponseEntity<>(
-			Map.of("families", families, "plans", plans, "variants", variants), HttpStatus.OK);
+		Map<String, Object> options = Map.of("families", families, "plans", plans, "variants", variants);
+		// benign race: two callers may both build it, and either answer is the same
+		planFilterOptions = options;
+		return options;
 	}
 
 	/**
@@ -565,39 +584,44 @@ public class TestPlanApi implements DataUtils {
 		}
 
 		PlanListFilter filter;
+		PlanOwner owner;
 		try {
 			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
+			owner = PlanOwner.parse(request.getParameterMap());
 		} catch (IllegalArgumentException e) {
 			return badRequest(e.getMessage());
 		}
 
-		String owner = QueryParams.first(request.getParameterMap(), "owner");
+		String search = PaginationRequest.searchTerm(QueryParams.first(request.getParameterMap(), "search"));
+
 		// the same refusals as the delete itself: a preview of a request that could never run is
 		// worse than useless, and a negative limit would otherwise report a negative target
-		ResponseEntity<Object> refusal = refuseUnusableBulkRequest(filter, owner, limit);
+		ResponseEntity<Object> refusal = refuseUnusableBulkRequest(filter, owner, search, limit);
 		if (refusal != null) {
 			return refusal;
 		}
 
-		Criteria scope = DBTestPlanService.ownerScope(null, owner);
-		String search = PaginationRequest.searchTerm(QueryParams.first(request.getParameterMap(), "search"));
-
-		return new ResponseEntity<>(bulkPlanDeleter.preview(scope, filter, search, limit), HttpStatus.OK);
+		return new ResponseEntity<>(
+			bulkPlanDeleter.preview(DBTestPlanService.ownerScope(null, owner), filter, search, limit),
+			HttpStatus.OK);
 	}
 
 	/**
 	 * The rules {@code DELETE /api/plan} and its preview both hold to.
 	 *
 	 * @param filter the narrowing the caller asked for
-	 * @param owner  the owner they asked to narrow to, or null
+	 * @param owner  the account they asked to narrow to, or null
+	 * @param search the quoted term they asked to search for, or null
 	 * @param limit  the most plans to delete, or null
 	 * @return the 400 to send, or null when the request can be acted on
 	 */
-	private static ResponseEntity<Object> refuseUnusableBulkRequest(PlanListFilter filter, String owner,
-																	Integer limit) {
-		if (filter.isEmpty() && owner == null) {
-			return badRequest("a bulk delete needs a filter: send at least one of owner, family, plan, "
-				+ "cert, immutable, variant.<parameter>, from or to");
+	static ResponseEntity<Object> refuseUnusableBulkRequest(PlanListFilter filter, PlanOwner owner,
+																	String search, Integer limit) {
+		// a search narrows a listing as much as any filter does, and the page offers to move the
+		// search box's term into the listing precisely so that what it finds can be deleted
+		if (filter.isEmpty() && owner == null && search == null) {
+			return badRequest("a bulk delete needs a filter: send at least one of owner, search, family, "
+				+ "plan, cert, immutable, variant.<parameter>, from or to");
 		}
 		if (limit != null && limit <= 0) {
 			return badRequest("limit must be a positive number of plans, not " + limit);
@@ -637,23 +661,27 @@ public class TestPlanApi implements DataUtils {
 		}
 
 		PlanListFilter filter;
+		PlanOwner owner;
 		try {
 			filter = PlanListFilter.parse(request.getParameterMap(), specFamilyResolver);
+			owner = PlanOwner.parse(request.getParameterMap());
 		} catch (IllegalArgumentException e) {
 			return badRequest(e.getMessage());
 		}
 
-		String owner = QueryParams.first(request.getParameterMap(), "owner");
-		ResponseEntity<Object> refusal = refuseUnusableBulkRequest(filter, owner, limit);
+		// quoted by the same helper the listing uses, so a delete removes what was listed
+		String search = PaginationRequest.searchTerm(QueryParams.first(request.getParameterMap(), "search"));
+
+		ResponseEntity<Object> refusal = refuseUnusableBulkRequest(filter, owner, search, limit);
 		if (refusal != null) {
 			return refusal;
 		}
 
 		// null principal: only an admin gets this far, and an admin may see every plan
 		Criteria scope = DBTestPlanService.ownerScope(null, owner);
-		// quoted by the same helper the listing uses, so a delete removes what was listed
-		String search = PaginationRequest.searchTerm(QueryParams.first(request.getParameterMap(), "search"));
-		long target = bulkPlanDeleter.preview(scope, filter, search, limit).target();
+		// target() rather than preview(): the delete needs one number, and the count it leaves
+		// out is a second pass over every plan the filter matches
+		long target = bulkPlanDeleter.target(scope, filter, search, limit);
 
 		if (confirm == null || confirm.longValue() != target) {
 			return badRequest(("confirm must be the number of plans this would delete, which is %d"
@@ -733,13 +761,9 @@ public class TestPlanApi implements DataUtils {
 		// Stop any still-running module first, synchronously: stop() writes its final log
 		// entries, which the deleteTests() below then removes. Stopping in the background (as
 		// cancelTest does), or after deleteTests, would let a running module keep writing
-		// EVENT_LOG rows past the delete and orphan them.
-		for (String testId : testIds) {
-			TestModule runningTest = testRunnerSupport.getRunningTestById(testId);
-			if (runningTest != null) {
-				runningTest.stop("The test was stopped because its test plan was deleted.");
-			}
-		}
+		// EVENT_LOG rows past the delete and orphan them. Shared with the bulk delete, which
+		// has to do exactly this for the same reason.
+		bulkPlanDeleter.stopAnyRunning(testIds);
 
 		// Known race, deliberately not fixed. testIds is the snapshot taken above, and
 		// createTest() saves TEST_INFO before attaching the instance to the plan (see
