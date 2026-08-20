@@ -212,7 +212,7 @@ export function buildConfigFormSchema(planInfo, fieldCatalog, selectedVariant) {
   const applicable = computeApplicableFields(planInfo, selectedVariant);
   /** @type {Record<string, any>} */
   const properties = {};
-  /** @type {Array<{ key: string, title: string, fields: string[] }>} */
+  /** @type {Array<{ key: string, title: string, intro?: string, fields: string[] }>} */
   const sections = [];
   const seen = new Set();
 
@@ -226,7 +226,12 @@ export function buildConfigFormSchema(planInfo, fieldCatalog, selectedVariant) {
       seen.add(field.key);
     }
     if (sectionFields.length > 0) {
-      sections.push({ key: section.key, title: section.title, fields: sectionFields });
+      sections.push({
+        key: section.key,
+        title: section.title,
+        ...(section.intro ? { intro: section.intro } : {}),
+        fields: sectionFields,
+      });
     }
   }
 

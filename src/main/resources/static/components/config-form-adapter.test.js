@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import CATALOG_REAL from "../js/config-field-catalog.json";
 import {
   ALWAYS_ON_FIELDS,
   buildConfigFormSchema,
@@ -251,6 +252,46 @@ describe("buildConfigFormSchema", () => {
       { key: "_root", title: "Test Information", fields: ["alias", "description", "publish"] },
       { key: "client", title: "Client", fields: ["client.client_id"] },
     ]);
+  });
+
+  it("copies a section's intro through to the uiSchema (and omits it when absent)", () => {
+    const catalogWithIntro = {
+      sections: [
+        {
+          key: "test_information",
+          title: "Test Information",
+          fields: [{ key: "alias", label: "alias", type: "string" }],
+        },
+        {
+          key: "credential_issuer",
+          title: "Credential Issuer",
+          intro: "See the [mdoc IACA root](/mdoc-iaca-root.pem).",
+          fields: [{ key: "credential.signing_jwk", label: "signing_jwk", type: "object" }],
+        },
+      ],
+    };
+    const plan = { configurationFields: ["alias", "credential.signing_jwk"] };
+    const { uiSchema } = buildConfigFormSchema(plan, catalogWithIntro);
+    const byKey = Object.fromEntries(uiSchema.sections.map((s) => [s.key, s]));
+    expect(byKey.credential_issuer).toEqual({
+      key: "credential_issuer",
+      title: "Credential Issuer",
+      intro: "See the [mdoc IACA root](/mdoc-iaca-root.pem).",
+      fields: ["credential.signing_jwk"],
+    });
+    // no intro in the catalog section -> no intro key in the uiSchema section
+    expect(byKey.test_information).toEqual({
+      key: "test_information",
+      title: "Test Information",
+      fields: ["alias"],
+    });
+  });
+
+  it("carries the real catalog's Credential Issuer intro (mdoc IACA root link) through", () => {
+    const plan = { configurationFields: ["credential.signing_jwk"] };
+    const { uiSchema } = buildConfigFormSchema(plan, CATALOG_REAL);
+    const section = uiSchema.sections.find((s) => s.key === "credential_issuer");
+    expect(section.intro).toContain("/mdoc-iaca-root.pem");
   });
 
   it("omits sections whose catalog fields are all outside the applicable set", () => {
