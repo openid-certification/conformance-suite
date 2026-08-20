@@ -25,6 +25,8 @@ import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
+import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
+import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -168,12 +170,19 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 				if(signedMetadataElement != null && !signedMetadataElement.isJsonNull()) {
 					eventLog.startBlock("Verify signed metadata");
 					callAndStopOnFailure(EnsurePDPJwksConfigured.class, "RFC7517-4");
+					// Check the expected issuer before it is compared against the JWT, so a malformed
+					// value is reported as the configuration error it is rather than as a PDP mismatch.
+					callAndStopOnFailure(ValidatePDPMetadataIssuer.class, "AUTHZEN-9.1.3", "AUTHZEN-11.8", "RFC7519-4.1.1");
 					// Validate PDP keys and disallow asymmetrical private key, symmetrical key signatures are allowed by spec but will get warning
 					call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
 						.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2")));
 					call(sequence(ValidateDiscoverySignedMetadata.class));
 					callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
 					eventLog.endBlock();
+				} else {
+					// A 'Signed Metadata Issuer' only applies to a signed_metadata JWT. Ignoring it in
+					// silence would leave a tester who expected signed metadata reading a clean log.
+					callAndContinueOnFailure(WarnUnusedSignedMetadataIssuer.class, ConditionResult.WARNING, "AUTHZEN-9.1.3");
 				}
 				break;
 			case STATIC:
