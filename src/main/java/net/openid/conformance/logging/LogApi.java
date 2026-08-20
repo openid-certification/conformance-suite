@@ -34,6 +34,7 @@ import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.bson.Document;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -116,7 +117,7 @@ public class LogApi {
 	})
 	public ResponseEntity<Object> getAllTests(
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
-		PaginationRequest page) {
+		@ParameterObject PaginationRequest page) {
 
 		PaginationResponse<?> response;
 

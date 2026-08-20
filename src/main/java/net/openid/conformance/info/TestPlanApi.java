@@ -24,6 +24,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -184,7 +185,7 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<Object> getTestPlansForCurrentUser(
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
-		PaginationRequest page) {
+		@ParameterObject PaginationRequest page) {
 
 		PaginationResponse<?> response = publicOnly
 				? planService.getPaginatedPublicPlans(page)
