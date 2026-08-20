@@ -29,6 +29,8 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends Ab
 		ensureMatchesRequest(request, client, "token_endpoint_auth_method");
 		ensureMatchesRequestIfRequested(request, client, "token_endpoint_auth_signing_alg");
 		ensureMatchesRequest(request, client, "id_token_signed_response_alg");
+		ensureMatchesRequest(request, client, "id_token_encrypted_response_alg");
+		ensureMatchesRequest(request, client, "id_token_encrypted_response_enc");
 		ensureMatchesRequest(request, client, "tls_client_certificate_bound_access_tokens");
 		ensurePingMode(client);
 		ensureHttpsNotificationEndpoint(client);
