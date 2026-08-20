@@ -2,6 +2,7 @@ package org.multipaz.testapp
 
 import kotlinx.io.bytestring.ByteString
 import com.nimbusds.jose.jwk.ECKey
+import net.openid.conformance.util.TestKeysAndCerts
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
 import kotlin.time.Clock
@@ -22,47 +23,6 @@ import kotlin.time.Duration.Companion.days
  * This creates an IssuerSigned structure (not a DeviceResponse like in VP flow).
  */
 object VciMdocUtils {
-
-	private val documentSignerKeyPub = EcPublicKey.fromPem(
-		"""-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
-JHgq8RYzJvraMj5QZSh94CL/nlEi3vikGxDP34HjxZcjzGEimGg03sB6Ng==
------END PUBLIC KEY-----"""
-	)
-
-	private val documentSignerKey = EcPrivateKey.fromPem(
-		"""-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg/ANvinTxJAdR8nQ0
-NoUdBMcRJz+xLsb0kmhyMk+lkkGhRANCAASeaJYAwYh6jYTe6xZEsv8Q9+HUHDkk
-eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
------END PRIVATE KEY-----""",
-		documentSignerKeyPub
-	)
-
-	// Self-signed with the document signer key above. This is the same key/cert
-	// material as com.android.identity.testapp.TestAppUtils; regenerated 2026-08-03
-	// (existing key kept, 1-year validity) to replace the certificate that expired
-	// 2026-07-30. See TestAppUtils for the openssl regeneration command.
-	// Parameterizing this key material is tracked in issue #1663.
-	private val documentSignerCert = X509Cert.fromPem(
-		"""-----BEGIN CERTIFICATE-----
-MIICqzCCAlCgAwIBAgIULSsWFZgeqNOj8G3xd228JGgWiOUwCgYIKoZIzj0EAwIw
-gYcxCzAJBgNVBAYTAlVTMRgwFgYDVQQIDA9TdGF0ZSBvZiBVdG9waWExEjAQBgNV
-BAcMCVNhbiBSYW1vbjEaMBgGA1UECgwRT3BlbklEIEZvdW5kYXRpb24xCzAJBgNV
-BAsMAklUMSEwHwYDVQQDDBhjZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXQwHhcNMjYw
-ODAzMTYxMjAxWhcNMjcwODAzMTYxMjAxWjCBhzELMAkGA1UEBhMCVVMxGDAWBgNV
-BAgMD1N0YXRlIG9mIFV0b3BpYTESMBAGA1UEBwwJU2FuIFJhbW9uMRowGAYDVQQK
-DBFPcGVuSUQgRm91bmRhdGlvbjELMAkGA1UECwwCSVQxITAfBgNVBAMMGGNlcnRp
-ZmljYXRpb24ub3BlbmlkLm5ldDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJ5o
-lgDBiHqNhN7rFkSy/xD34dQcOSR4KvEWMyb62jI+UGUofeAi/55RIt74pBsQz9+B
-48WXI8xhIphoNN7AejajgZcwgZQwHQYDVR0OBBYEFHhk9LVVH8Gt9ZgfxgyhSl92
-1XOhMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMCEGA1UdEgQa
-MBiBFmNlcnRpZmljYXRpb25Ab2lkZi5vcmcwLAYDVR0fBCUwIzAhoB+gHYYbaHR0
-cDovL2V4YW1wbGUuY29tL215Y2EuY3JsMAoGCCqGSM49BAMCA0kAMEYCIQCB7MlD
-X8n8PDNoXfVpnHwQRfLC3bZzAs3zkGrHt7X2LwIhAJPQaIyvIb4LJIa0R4HQSvk0
-4OnujikkVHszNwSbyFlZ
------END CERTIFICATE-----"""
-	)
 
 	/**
 	 * Creates an mdoc credential (IssuerSigned structure) for VCI issuance.
@@ -99,11 +59,11 @@ X8n8PDNoXfVpnHwQRfLC3bZzAs3zkGrHt7X2LwIhAJPQaIyvIb4LJIa0R4HQSvk0
 			val cert = if (issuerJwk.x509CertChain != null && issuerJwk.x509CertChain.isNotEmpty()) {
 				X509Cert(ByteString(issuerJwk.x509CertChain[0].decode()))
 			} else {
-				documentSignerCert
+				TestKeysAndCerts.documentSignerCert
 			}
 			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(cert)), privateKey)
 		} else {
-			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(documentSignerCert)), documentSignerKey)
+			TestKeysAndCerts.documentSignerKey
 		}
 
 		val now = Clock.System.now().truncateToWholeSeconds()

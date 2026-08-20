@@ -197,9 +197,12 @@ JsonObject obj = getJsonObjectFromEnvironment(env, "object", "path");
 
 ### Kotlin Sources
 
-The project is primarily Java but contains Kotlin source files for multipaz library integration:
-- `src/main/java/com/android/identity/testapp/` - VP test credential provisioning (TestAppUtils.kt)
-- `src/main/java/org/multipaz/testapp/` - VCI mdoc credential creation (VciMdocUtils.kt)
+The project is primarily Java but contains Kotlin source files (under `src/main/kotlin/`) for multipaz library integration:
+- `com/android/identity/testapp/` - VP test credential provisioning (TestAppUtils.kt)
+- `org/multipaz/testapp/` - VCI mdoc credential creation (VciMdocUtils.kt)
+- `net/openid/conformance/util/` - suite-owned Kotlin such as TestKeysAndCerts.kt (the mdoc
+  IACA root and the runtime-minted, daily-rotated document signer certificate — the file to
+  edit when the suite's mdoc trust anchor changes)
 
 These use the [multipaz](https://github.com/openwallet-foundation/multipaz) library for mdoc/SD-JWT credential operations.
 
