@@ -6,6 +6,7 @@ import com.vdurmont.semver4j.Semver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -200,9 +201,10 @@ public class TestRunner implements DataUtils {
 		executorService.submit(futureWatcher);
 	}
 
-	@Operation(operationId = "listAvailableTestModules", summary = "Get list of available TestModule names")
+	@Operation(operationId = "listAvailableTestModules", summary = "Get the available test modules and their attributes")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "array", description = "One entry per test module: testName, displayName, profile, configurationFields, variants, summary")))
 	})
 	@GetMapping(value = "/runner/available", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
@@ -236,8 +238,10 @@ public class TestRunner implements DataUtils {
 	@PostMapping(value = "/runner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@Parameter(description = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
 														  @Parameter(description = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
-														  @Parameter(description = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
-														  @Parameter(description = "Configuration for running test") @RequestBody(required = false) JsonObject testConfig,
+														  @Parameter(description = "Variant selection: a JSON object mapping variant parameter names to values; only allowed when creating a standalone test (not from a plan)", example = "{\"server_metadata\": \"discovery\", \"client_registration\": \"dynamic_client\"}") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
+														  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The test configuration JSON; required when creating a standalone test, must be omitted when creating from a plan",
+														  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"alias\": \"example\", \"server\": {\"discoveryUrl\": \"https://as.example.com/.well-known/openid-configuration\"}}")))
+														  @RequestBody(required = false) JsonObject testConfig,
 														  Model m) {
 		final JsonObject config;
 		final VariantSelection testVariant;
@@ -728,7 +732,7 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(testIds, HttpStatus.OK);
 	}
 
-	@Operation(operationId = "getBrowserStatus", summary = "Get front-channel external URLs exposed to the [BrowserControl] for a given test")
+	@Operation(operationId = "getBrowserStatus", summary = "Get the front-channel external URL state for a given test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BrowserStatusResponse.class))),

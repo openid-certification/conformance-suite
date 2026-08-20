@@ -9,6 +9,7 @@ import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -91,8 +92,10 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<Map<String, Object>> createTestPlan(
 		@Parameter(description = "Plan name") @RequestParam String planName,
-		@Parameter(description = "Kind of test variation") @RequestParam(required = false) VariantSelection variant,
-		@Parameter(description = "Configuration json") @RequestBody JsonObject config,
+		@Parameter(description = "Variant selection: a JSON object mapping variant parameter names to values", example = "{\"server_metadata\": \"discovery\", \"client_registration\": \"dynamic_client\"}") @RequestParam(required = false) VariantSelection variant,
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The test configuration JSON; may include 'description', 'alias' and 'publish' fields alongside the server/client configuration",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"description\": \"my first plan\", \"alias\": \"example\", \"server\": {\"discoveryUrl\": \"https://as.example.com/.well-known/openid-configuration\"}}")))
+		@RequestBody JsonObject config,
 		Model m) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
@@ -214,7 +217,7 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<?> shareLink(
 		@Parameter(description = "Id of test plan") @PathVariable String id,
-		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+		@Parameter(description = "Number of days until the link expires", example = "30") @RequestParam(name = "exp", required = true) String exp
 	) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
@@ -231,9 +234,11 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(operationId = "getTestPlan", summary = "Get test plan information by plan id")
+	@Operation(operationId = "getTestPlan", summary = "Get test plan information by plan id",
+		description = "Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The plan document"))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
 	})
 	public ResponseEntity<Object> getTestPlan(
@@ -299,8 +304,10 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
 		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id")
 	})
-	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of test plan that you want publish") @PathVariable String id,
-												  @Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
+	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of the test plan to publish") @PathVariable String id,
+												  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Object with a 'publish' field: 'summary' or 'everything'",
+													  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"publish\": \"summary\"}")))
+												  @RequestBody JsonObject config) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -331,7 +338,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "403", description = "Not authorized, or the plan could not be found", content = @Content)
 	})
 	public ResponseEntity<Object> makeTestPlanMutable(
-			@Parameter(description = "Id of test plan that you want make mutable again") @PathVariable String id) {
+			@Parameter(description = "Id of the test plan to make mutable again") @PathVariable String id) {
 		if (authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
@@ -349,7 +356,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name", content = @Content)
 	})
 	public ResponseEntity<Object> getTestPlanInfo(
-			@Parameter(description = "Plan name, use to identify a specific TestPlan ") @PathVariable String planName) {
+			@Parameter(description = "Plan name, used to identify a specific test plan") @PathVariable String planName) {
 		VariantService.TestPlanHolder holder = variantService.getTestPlan(planName);
 
 		if (holder != null) {

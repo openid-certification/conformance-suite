@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -68,7 +69,8 @@ public class FavoritePlansApi {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Object> addFavoritePlan(
-			@Parameter(description = "An object containing the plan name to favorite, e.g. {\"plan\":\"planName\"}")
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "An object containing the plan name to favorite",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"plan\": \"oidcc-basic-certification-test-plan\"}")))
 			@RequestBody JsonObject request) {
 
 		JsonElement plan = request.get("plan");

@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -66,9 +67,12 @@ public class ImageAPI {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
 		@ApiResponse(responseCode = "400", description = "Image validation failure",
 			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
-		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image")
 	})
-	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
+	public ResponseEntity<Object> uploadImageToNewLogEntry(
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test",
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, examples = @ExampleObject("data:image/png;base64,iVBORw0KGgo...")))
+		@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
 		@Parameter(description = "Description for image") @RequestParam(required = false) String description) throws IOException {
 
@@ -116,12 +120,14 @@ public class ImageAPI {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
 		@ApiResponse(responseCode = "400", description = "Image validation failure",
 			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
-		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image")
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
-		@Parameter(description = "Image should be encoded as a string") @RequestBody String encoded,
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test",
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, examples = @ExampleObject("data:image/png;base64,iVBORw0KGgo...")))
+		@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
-		@Parameter(description = "Placeholder which created when the test run") @PathVariable String placeholder) throws IOException {
+		@Parameter(description = "Id of the image placeholder created while the test ran") @PathVariable String placeholder) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -154,9 +160,9 @@ public class ImageAPI {
 	@Operation(operationId = "listTestImages", summary = "Get all the images for a test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to list a test's images")
 	})
-	public ResponseEntity<Object> getAllImages(@Parameter(description = "ID of test") @PathVariable(name = "id") String testId) {
+	public ResponseEntity<Object> getAllImages(@Parameter(description = "Id of test") @PathVariable(name = "id") String testId) {
 
 		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
 

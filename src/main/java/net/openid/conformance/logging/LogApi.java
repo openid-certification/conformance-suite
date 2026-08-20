@@ -146,13 +146,15 @@ public class LogApi {
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(operationId = "getTestLog", summary = "Get test log of given testId")
+	@Operation(operationId = "getTestLog", summary = "Get test log of given testId",
+		description = "Returns the raw log entries sorted by time. Every entry has _id, testId, testOwner, src (the logging component, e.g. a condition class name) and time (milliseconds since the epoch); most carry msg, and common further keys include result (SUCCESS/FAILURE/WARNING/INFO/REVIEW), requirements (spec references), blockId, img/upload (screenshots) plus arbitrary condition-specific data. For a test published as 'summary' and requested with public=true, entries are restricted to result, testName, testId, src and time. An unknown test id yields an empty array, not a 404.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "array", description = "Log entry documents")))
 	})
 	public ResponseEntity<List<Document>> getLogResults(
 		@Parameter(description = "Id of test") @PathVariable String id,
-		@Parameter(description = "Since when test created") @RequestParam(required = false) Long since,
+		@Parameter(description = "Only return log entries with 'time' greater than this value (milliseconds since the epoch); allows incremental fetching") @RequestParam(required = false) Long since,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, since, publicOnly);
 
@@ -617,7 +619,10 @@ public class LogApi {
 
 	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
+	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.",
+		description = "The multipart request may also carry a 'certificationOfConformancePdf' part (the signed certification of conformance)"
+			+ " — the CI tooling sends one — but the current implementation does not read it; the PDF is not included in the produced zip."
+			+ " The 200 response carries a Content-Disposition attachment header with the package filename.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully",
 			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
