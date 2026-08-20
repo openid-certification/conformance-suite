@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -56,7 +57,10 @@ public class TokenApi {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TokenCreatedResponse.class))),
 		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin")
 	})
-	public ResponseEntity<Object> createToken(@Parameter(description = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {
+	public ResponseEntity<Object> createToken(
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Pass {\"permanent\": true} for a token that never expires; anything else (including omitting the field) creates a token valid for 24 hours",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"permanent\": true}")))
+		@RequestBody JsonObject request) {
 
 		if (authenticationFacade.isAdmin() || authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);

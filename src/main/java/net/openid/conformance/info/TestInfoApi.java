@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -124,11 +125,11 @@ public class TestInfoApi {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
 		@ApiResponse(responseCode = "403", description = "Not permitted for private-link (guest) users", content = @Content),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
+		@ApiResponse(responseCode = "404", description = "Couldn't find the test (or its plan) for the provided test id", content = @Content)
 	})
 	public ResponseEntity<?> shareLink(
-		@Parameter(description = "Id of test that you want to publish") @PathVariable String testId,
-		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+		@Parameter(description = "Id of the test to share") @PathVariable String testId,
+		@Parameter(description = "Number of days until the link expires", example = "30") @RequestParam(name = "exp", required = true) String exp
 
 	) {
 
@@ -167,7 +168,9 @@ public class TestInfoApi {
 	})
 	public ResponseEntity<Object> publishTestInfo(
 			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
-			@Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Object with a 'publish' field: 'summary' or 'everything'",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"publish\": \"summary\"}")))
+			@RequestBody JsonObject config) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
