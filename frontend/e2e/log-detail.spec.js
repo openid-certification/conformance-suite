@@ -245,6 +245,68 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
+  test("#1915 — sticky bar's result pills count the live /api/log stream, not the never-served testInfo.results", async ({
+    page,
+  }) => {
+    // MOCK_LOG_ENTRIES: 3 SUCCESS (entry-1, entry-4, entry-7), 1 WARNING
+    // (entry-6), plus two startBlock rows and one http-only row that carry
+    // no `result` at all — those must not inflate any bucket. MOCK_TEST_STATUS
+    // carries no `results` field (the real /api/info shape), so a pass here
+    // is only possible via cts-log-viewer's resultCounts, not the dead field.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const pills = page.locator('[data-testid="status-bar-pills"]');
+    await expect(pills.locator('[data-testid="status-bar-pill-success"]')).toHaveAttribute(
+      "label",
+      "✓ 3",
+    );
+    await expect(pills.locator('[data-testid="status-bar-pill-warning"]')).toHaveAttribute(
+      "label",
+      "⚠ 1",
+    );
+    // Zero-count types render no pill at all (_renderResultPills filters them).
+    await expect(pills.locator('[data-testid="status-bar-pill-failure"]')).toHaveCount(0);
+    await expect(pills.locator('[data-testid="status-bar-pill-review"]')).toHaveCount(0);
+    await expect(pills.locator('[data-testid="status-bar-pill-info"]')).toHaveCount(0);
+  });
+
+  test("#1915 — overflow menu's upload count tallies the live /api/log stream, not the never-served testInfo.results", async ({
+    page,
+  }) => {
+    // One upload on a WARNING entry and one on a SUCCESS entry — the SUCCESS
+    // one proves the count is NOT routed through selectFindings (which
+    // deliberately excludes SUCCESS/INFO), matching the real case of a proof
+    // screenshot attached to a passing manual step. MOCK_TEST_STATUS carries
+    // no `results` field, so a pass here is only possible via
+    // cts-log-viewer's uploadCount, not the dead field.
+    const entriesWithUploads = [
+      { ...MOCK_LOG_ENTRIES[0], upload: "upload-1" },
+      ...MOCK_LOG_ENTRIES.slice(1, 5),
+      { ...MOCK_LOG_ENTRIES[5], upload: "upload-2" },
+      MOCK_LOG_ENTRIES[6],
+    ];
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: entriesWithUploads,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await expect(page.locator('button[data-action-id="upload-images"]')).toHaveText(
+      "Upload Images (2)",
+    );
+  });
+
   test("log entry More panel renders schema_link and JWT with rich affordances; img renders once", async ({
     page,
   }) => {
@@ -989,6 +1051,18 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // The click below navigates for real (full page load), landing on s-0's
+    // OWN log-detail page — which fires its own /api/log and /api/runner
+    // bootstrap fetches for "s-0", distinct from the /api/info/s-* fan-out
+    // mock above (which only covers the ORIGIN page's sibling colouring).
+    // Without these, whether those fetches land before or after afterEach's
+    // synchronous expectNoUnmockedCalls check is a timing race that flakes
+    // under parallel-worker load (#1916), sharpened by #1915's extra
+    // synchronous work per applyFindings() call.
+    await page.route("**/api/log/s-*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    );
+    await page.route("**/api/runner/s-*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -1127,6 +1201,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // Mock the sibling's own post-navigation bootstrap fetches too — see the
+    // identical block in the "U6/R15" test above for why (#1916, #1915).
+    await page.route("**/api/log/s-*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    );
+    await page.route("**/api/runner/s-*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page, { user: null }); // anonymous viewer
 
     await page.goto(
