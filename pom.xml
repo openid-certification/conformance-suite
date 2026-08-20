@@ -517,7 +517,8 @@
 					</execution>
 					<execution>
 						<id>test-compile</id>
-						<phase>test-compile</phase>
+						<!-- before maven-compiler's testCompile so Java tests can reference Kotlin test utils -->
+						<phase>process-test-sources</phase>
 						<goals>
 							<goal>test-compile</goal>
 						</goals>
