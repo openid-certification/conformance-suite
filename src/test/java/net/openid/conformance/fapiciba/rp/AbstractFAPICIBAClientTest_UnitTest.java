@@ -14,6 +14,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class AbstractFAPICIBAClientTest_UnitTest {
 
 	@Test
+	public void pingModeRetainsPollingFallbackForGenericProfiles() {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+		test.setCibaMode(CIBAMode.PING);
+
+		assertThat(test.shouldIssueFinalTokenResponse(2)).isFalse();
+		assertThat(test.shouldIssueFinalTokenResponse(3)).isTrue();
+	}
+
+	@Test
+	public void pingModeIssuesFinalResponseAfterSuccessfulNotification() {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+		test.setCibaMode(CIBAMode.PING);
+		test.getEnv().putBoolean("client_was_pinged", true);
+
+		assertThat(test.shouldIssueFinalTokenResponse(1)).isTrue();
+	}
+
+	@Test
+	public void pingModeIssuesFinalResponseDuringBrazilNotificationAttempt() {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+		test.setCibaMode(CIBAMode.PING);
+		test.getEnv().putBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED, true);
+
+		assertThat(test.shouldIssueFinalTokenResponse(1)).isTrue();
+	}
+
+	@Test
 	public void defersResourceEndpointCompletionUntilPingResponseIsValidated() {
 		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
 		test.setCibaMode(CIBAMode.PING);
@@ -109,6 +136,10 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 
 		private boolean pingNotificationShouldBeSent() {
 			return shouldSendPingNotification();
+		}
+
+		private boolean shouldIssueFinalTokenResponse(int tokenPollCount) {
+			return shouldIssueFinalCibaTokenResponse(tokenPollCount);
 		}
 
 		@Override

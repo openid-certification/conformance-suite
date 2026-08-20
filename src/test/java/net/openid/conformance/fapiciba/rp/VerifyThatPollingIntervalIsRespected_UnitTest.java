@@ -42,9 +42,9 @@ public class VerifyThatPollingIntervalIsRespected_UnitTest {
 	}
 
 	@Test
-	public void legacyPingFlagDoesNotUnlockFallbackPolling() {
+	public void permitsTokenRedemptionAfterSuccessfulPingNotification() {
 		env.putBoolean("client_was_pinged", true);
 
-		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
+		assertThatNoException().isThrownBy(() -> condition.execute(env));
 	}
 }

@@ -47,6 +47,11 @@ public class FAPICIBAClientPingModePollFallbackTest extends AbstractFAPICIBAClie
 	}
 
 	@Override
+	protected boolean shouldIssueFinalCibaTokenResponse(int tokenPollCount) {
+		return false;
+	}
+
+	@Override
 	protected void tokenEndpointCallComplete() {
 		int tokenPollCount = env.getInteger("token_poll_count");
 		if (tokenPollCount == TERMINAL_POLL_COUNT) {

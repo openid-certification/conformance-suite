@@ -44,8 +44,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 			HttpEntity<String> request = new HttpEntity<>(pingRequestObject.toString(), headers);
 
 			String clientNotificationEndpoint = env.getString("client","backchannel_client_notification_endpoint");
-			env.putBoolean(CLIENT_PING_ATTEMPTED, true);
-			env.putBoolean("client_was_pinged", true);
+			markPingAttemptStarted(env);
 			int attempt = 1;
 
 			while (true) {
@@ -53,6 +52,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 					ResponseEntity<String> response = restTemplate.exchange(clientNotificationEndpoint, HttpMethod.POST, request, String.class);
 
 					env.putInteger("client_notification_endpoint_response_http_status", response.getStatusCode().value());
+					env.putBoolean("client_was_pinged", true);
 
 					logSuccess("Received client notification endpoint response:" + response.getBody());
 					return env;
@@ -86,6 +86,10 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 	protected boolean shouldRetry(RestClientException e) {
 		return false;
+	}
+
+	protected void markPingAttemptStarted(Environment env) {
+		// Most profiles only consider the client pinged after a successful HTTP response.
 	}
 
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
