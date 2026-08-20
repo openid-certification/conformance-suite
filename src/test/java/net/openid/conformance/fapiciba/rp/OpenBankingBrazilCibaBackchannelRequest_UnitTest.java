@@ -9,9 +9,15 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OpenBankingBrazilCibaBackchannelRequest_UnitTest {
@@ -85,6 +91,30 @@ public class OpenBankingBrazilCibaBackchannelRequest_UnitTest {
 		assertThatThrownBy(() -> bindingMessageCondition.evaluate(env))
 			.isInstanceOf(ConditionError.class)
 			.hasMessageContaining("must not contain URLs");
+	}
+
+	@Test
+	public void bindingMessageCheckLogsPrivacySafeUrlDiagnostic() {
+		String url = "example.test/consent?account=customer-42";
+		when(env.getElementFromObject("backchannel_request_object", "claims.binding_message"))
+			.thenReturn(new JsonPrimitive("Review " + url));
+		TestInstanceEventLog diagnosticLog = mock(TestInstanceEventLog.class);
+		EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl diagnosticCondition =
+			new EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl();
+		diagnosticCondition.setProperties("testId", diagnosticLog, Condition.ConditionResult.FAILURE);
+
+		assertThatThrownBy(() -> diagnosticCondition.evaluate(env)).isInstanceOf(ConditionError.class);
+
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+		verify(diagnosticLog).log(anyString(), captor.capture());
+		assertThat(captor.getValue())
+			.containsEntry("binding_message_url_match_type", "host_path")
+			.containsEntry("binding_message_url_match", "example.test/[redacted]")
+			.containsEntry("binding_message_url_match_start", 7)
+			.containsEntry("binding_message_url_match_length", url.length());
+		assertThat(captor.getValue().toString())
+			.doesNotContain("consent", "customer-42");
 	}
 
 	@Test
