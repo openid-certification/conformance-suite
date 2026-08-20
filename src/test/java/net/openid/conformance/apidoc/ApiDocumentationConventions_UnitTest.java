@@ -27,10 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Conventions for the springdoc-generated API documentation. No Spring context is started; the
  * controllers are located by classpath scanning and inspected by reflection.
  *
- * <p>A controller participates in the API documentation once any of its handler methods carries
- * {@code @Operation}; from then on every handler in it must be documented. Controllers with no
- * {@code @Operation} at all (the test dispatcher, error/home controllers) are internal endpoints
- * that springdoc does not document, and are left alone.
+ * <p>Every controller with mapped handler methods must either be {@code @Hidden} (internal
+ * endpoints such as the test dispatcher and error/home controllers) or document every handler
+ * with an {@code @Operation} carrying a non-empty, globally unique operationId — so a new
+ * controller cannot silently ship undocumented.
  */
 public class ApiDocumentationConventions_UnitTest {
 
@@ -54,16 +54,14 @@ public class ApiDocumentationConventions_UnitTest {
 			}
 
 			List<Method> handlers = new ArrayList<>();
-			boolean anyOperation = false;
 			for (Method method : controller.getDeclaredMethods()) {
 				if (MAPPING_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent)
 						&& !method.isAnnotationPresent(Hidden.class)) {
 					handlers.add(method);
-					anyOperation |= method.isAnnotationPresent(Operation.class);
 				}
 			}
-			if (!anyOperation) {
-				continue; // not part of the documented API
+			if (handlers.isEmpty()) {
+				continue;
 			}
 			documentedControllers++;
 
@@ -71,7 +69,7 @@ public class ApiDocumentationConventions_UnitTest {
 				String where = controller.getSimpleName() + "." + handler.getName();
 				Operation operation = handler.getAnnotation(Operation.class);
 				if (operation == null) {
-					problems.add(where + " has no @Operation");
+					problems.add(where + " has no @Operation (document it, or mark the controller/method @Hidden if internal)");
 					continue;
 				}
 				String operationId = operation.operationId();
