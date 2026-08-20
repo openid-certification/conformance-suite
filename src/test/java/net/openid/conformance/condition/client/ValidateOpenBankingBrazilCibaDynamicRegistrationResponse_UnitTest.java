@@ -37,6 +37,8 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 			  "token_endpoint_auth_method": "private_key_jwt",
 			  "token_endpoint_auth_signing_alg": "PS256",
 			  "id_token_signed_response_alg": "PS256",
+			  "id_token_encrypted_response_alg": "RSA-OAEP",
+			  "id_token_encrypted_response_enc": "A256GCM",
 			  "tls_client_certificate_bound_access_tokens": true
 			}
 			""").getAsJsonObject();
@@ -103,6 +105,20 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	@Test
 	public void rejectsChangedAuthenticationMetadata() {
 		response.addProperty("token_endpoint_auth_method", "tls_client_auth");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsChangedIdTokenEncryptionAlgorithm() {
+		response.addProperty("id_token_encrypted_response_alg", "RSA-OAEP-256");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsMissingIdTokenEncryptionMethod() {
+		response.remove("id_token_encrypted_response_enc");
 
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}

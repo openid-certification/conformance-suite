@@ -3,7 +3,6 @@ package net.openid.conformance.fapiciba;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
-import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
@@ -20,6 +19,7 @@ import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfig
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
+import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilAddSoftwareStatementRedirectUrisToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
@@ -146,7 +146,19 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	}
 
 	@Test
-	public void brazilValidatesRegistrationResponseAndEffectiveEncryptionConfiguration() {
+	public void brazilDynamicRegistrationRequestsRequiredIdTokenEncryption()
+		throws ReflectiveOperationException {
+		Class<? extends ConditionSequence> additionalStepsClass =
+			behavior.getAdditionalClientRegistrationSteps();
+
+		assertThat(additionalStepsClass).isNotNull();
+		ConditionSequence additionalSteps = additionalStepsClass.getDeclaredConstructor().newInstance();
+		assertThat(getConditionClasses(additionalSteps)).containsExactly(
+			FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest.class);
+	}
+
+	@Test
+	public void brazilValidatesRegistrationResponseAndNegotiatedEncryptionConfiguration() {
 		List<Class<? extends Condition>> responseValidation = getConditionClasses(
 			behavior.getClientRegistrationResponseValidationSteps());
 
@@ -154,7 +166,6 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			ClientManagementEndpointAndAccessTokenRequired.class,
 			ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
 			CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class,
-			FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
 			FAPIEnsureClientJwksContainsAnEncryptionKey.class);
 	}
 
