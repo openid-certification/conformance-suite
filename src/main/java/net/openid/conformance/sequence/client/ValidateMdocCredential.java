@@ -2,6 +2,8 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
@@ -41,6 +43,12 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			callAndContinueOnFailure(EnsureMdocDocTypeMatchesCredentialConfiguration.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.2");
 		}
+		// ISO 18013-5 Annex B DS certificate profile checks on the x5chain leaf; warnings, as
+		// they are ISO profile conformance rather than OID4VP/OID4VCI normative requirements
+		callAndContinueOnFailure(ValidateMdocDsCertificateKeyUsage.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.4");
+		callAndContinueOnFailure(ValidateMdocDsCertificateProfile.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.4");
 		if (haip) {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
