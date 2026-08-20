@@ -1368,6 +1368,12 @@ def run_tests():
     resp = unauthenticated_get(base_url, "api/ui/spec_links", verify_ssl)
     runner.check_status("Metadata: spec_links without ?public is denied", resp, 401)
 
+    # the mdoc IACA root is deliberately public: testers configure it as a trust anchor
+    resp = unauthenticated_get(base_url, "mdoc-iaca-root.pem", verify_ssl)
+    runner.check("Metadata: mdoc IACA root cert is publicly reachable as PEM",
+                 resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
+                 f"HTTP {resp.status_code}")
+
     # ===================================================================
     # 5. API TOKEN LIFECYCLE
     # ===================================================================
