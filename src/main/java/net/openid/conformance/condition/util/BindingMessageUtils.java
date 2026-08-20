@@ -6,7 +6,8 @@ public final class BindingMessageUtils {
 
 	private static final Pattern URL_PATTERN = Pattern.compile(
 		"(?i)(?:\\b(?:https?|ftp)://\\S+|\\bmailto:\\S+|\\bwww\\.[a-z0-9][a-z0-9.-]*\\.[a-z]{2,}(?:/\\S*)?|"
-			+ "\\b[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+/\\S*)");
+			+ "\\b[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*"
+			+ "\\.[a-z]{2,}/\\S*)");
 
 	private BindingMessageUtils() {
 	}
