@@ -9,8 +9,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
@@ -107,6 +109,7 @@ public class LogApi {
 	private String[] certificationPackageFailedTestExceptionList;
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 	@Operation(summary = "Get all test logs with paging", description = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
@@ -137,6 +140,7 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 	@Operation(summary = "Get test log of given testId")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
@@ -151,6 +155,7 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/log/export/{id}", produces = "application/zip")
+	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 	@Operation(summary = "Export test log by test id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
@@ -211,6 +216,7 @@ public class LogApi {
 	// — the only plan-wide download button (plan-detail "Download all Logs") targets
 	// the HTML-zip variant /api/plan/exporthtml/{id}. Kept for direct API callers.
 	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
+	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(summary = "Export all test logs of plan by plan id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
@@ -603,6 +609,7 @@ public class LogApi {
 
 
 	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/zip")
+	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully"),
@@ -733,6 +740,7 @@ public class LogApi {
 	// URL (the "Public link" preview of an everything-published plan) and clicks
 	// "Download all Logs" — the JS appends ?public=true in that mode.
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
+	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(summary = "Export the full results for this plan as both html and json in a zip")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
@@ -990,6 +998,7 @@ public class LogApi {
 	// everything-published test) and clicks "Download Logs" — the JS appends
 	// ?public=true in that mode.
 	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
+	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 	@Operation(summary = "Export test logs as html by test id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),

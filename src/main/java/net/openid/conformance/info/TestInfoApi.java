@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
@@ -30,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_TEST_INFORMATION)
 @RequestMapping(value = "/api")
 public class TestInfoApi {
 
