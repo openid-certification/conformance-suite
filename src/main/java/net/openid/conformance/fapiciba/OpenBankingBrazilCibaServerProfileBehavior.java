@@ -3,13 +3,13 @@ package net.openid.conformance.fapiciba;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
-import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
+import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckUserCodeParameterNotSupported;
@@ -51,6 +51,19 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
+	public Class<? extends ConditionSequence> getAdditionalClientRegistrationSteps() {
+		return OpenBankingBrazilClientRegistrationSteps.class;
+	}
+
+	public static class OpenBankingBrazilClientRegistrationSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest.class,
+				"BrazilOB-5.1.1-1");
+		}
+	}
+
+	@Override
 	public ConditionSequence getClientRegistrationResponseValidationSteps() {
 		return new AbstractConditionSequence() {
 			@Override
@@ -60,8 +73,6 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 				callAndContinueOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
 					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.4", "BrazilOBDCR-7.1");
 				callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
-				callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
-					"BrazilOB-5.1.1-1");
 				callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class,
 					"FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
 			}
