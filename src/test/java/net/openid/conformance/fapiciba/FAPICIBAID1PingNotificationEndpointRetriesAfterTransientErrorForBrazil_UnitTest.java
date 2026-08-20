@@ -14,11 +14,15 @@ import org.springframework.http.ResponseEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
@@ -26,20 +30,54 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 
 	private TestExecutionManager executionManager;
 	private TestablePingRetryModule module;
+	private AtomicReference<Callable<?>> retryTimeoutTask;
+	private AtomicLong retryTimeoutSeconds;
 
 	@BeforeEach
 	public void setUp() {
 		executionManager = mock(TestExecutionManager.class);
+		retryTimeoutTask = new AtomicReference<>();
+		retryTimeoutSeconds = new AtomicLong();
 		doAnswer(invocation -> {
 			Callable<?> task = invocation.getArgument(0);
 			task.call();
 			return null;
 		}).when(executionManager).runInBackground(any());
+		doAnswer(invocation -> {
+			retryTimeoutTask.set(invocation.getArgument(0));
+			retryTimeoutSeconds.set(invocation.getArgument(1));
+			return null;
+		}).when(executionManager).scheduleInBackground(any(), anyLong(), eq(TimeUnit.SECONDS));
 		module = new TestablePingRetryModule(executionManager);
 	}
 
 	@Test
-	public void returnsTransientFailureOnceAndProcessesTheRetry() {
+	public void invokesTargetedRetryAssertionWhenAuthenticationRequestExpires() throws Exception {
+		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
+			"{\"expires_in\":300}");
+		module.performValidateAuthorizationResponse();
+		module.conditionClasses.clear();
+		module.conditionRequirements.clear();
+
+		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
+
+		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+		assertThat(retryTimeoutSeconds).hasValue(300);
+		assertThat(retryTimeoutTask).doesNotHaveNullValue();
+
+		retryTimeoutTask.get().call();
+
+		assertThat(module.getEnv().getInteger("notification_endpoint_call_count")).isEqualTo(1);
+		assertThat(module.conditionClasses).containsExactly(EnsureNotificationEndpointWasRetried.class);
+		assertThat(module.conditionRequirements).containsExactly(List.of("BrazilCIBA-6.2.8"));
+		assertThat(module.statuses).containsExactly(
+			TestModule.Status.RUNNING,
+			TestModule.Status.WAITING,
+			TestModule.Status.RUNNING);
+	}
+
+	@Test
+	public void returnsTransientFailureOnceAndProcessesTheRetry() throws Exception {
 		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
 
 		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
@@ -47,6 +85,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		assertThat(module.processedCallbacks).isZero();
 
 		ResponseEntity<?> secondResponse = asResponse(module.handlePingCallback(new JsonObject()));
+		retryTimeoutTask.get().call();
 
 		assertThat(secondResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 		assertThat(module.getEnv().getInteger("notification_endpoint_call_count")).isEqualTo(2);
@@ -93,6 +132,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		private final List<Class<? extends Condition>> conditionClasses = new ArrayList<>();
 		private final List<List<String>> conditionRequirements = new ArrayList<>();
 		private final List<TestModule.Status> statuses = new ArrayList<>();
+		private TestModule.Status currentStatus = TestModule.Status.RUNNING;
 		private int verifiedCallbacks;
 		private int processedCallbacks;
 		private int successfulResponses;
@@ -108,7 +148,13 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		}
 
 		@Override
+		public TestModule.Status getStatus() {
+			return currentStatus;
+		}
+
+		@Override
 		protected void setStatus(TestModule.Status newStatus) {
+			currentStatus = newStatus;
 			statuses.add(newStatus);
 		}
 
@@ -130,6 +176,13 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 
 		@Override
 		protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
+			conditionClasses.add(conditionClass);
+			conditionRequirements.add(List.of(requirements));
+		}
+
+		@Override
+		protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass,
+			Condition.ConditionResult onFail, String... requirements) {
 			conditionClasses.add(conditionClass);
 			conditionRequirements.add(List.of(requirements));
 		}
