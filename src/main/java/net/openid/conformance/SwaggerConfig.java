@@ -5,23 +5,29 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.tags.Tag;
-import net.openid.conformance.security.JwksEndpoint;
+import net.openid.conformance.security.WebSecurityResourceServerConfig;
 import org.springdoc.core.customizers.GlobalOperationCustomizer;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.PathContainer;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.List;
-import java.util.Set;
 
 @Configuration
 public class SwaggerConfig {
@@ -39,8 +45,9 @@ public class SwaggerConfig {
 	static {
 		// Request/response bodies typed as Gson classes are opaque JSON, not the Gson object
 		// model — without this springdoc introspects JsonObject etc. and emits schemas full of
-		// asDouble/asJsonArray properties. replaceWithClass is exact-class-keyed, so each Gson
-		// type must be registered individually.
+		// asDouble/asJsonArray properties. Only JsonObject currently appears in handler
+		// signatures, but any Gson type would leak its object model the same way, so the whole
+		// family is registered (replaceWithClass is exact-class-keyed and does not cover subtypes).
 		SpringDocUtils.getConfig()
 			.replaceWithClass(JsonElement.class, Object.class)
 			.replaceWithClass(JsonObject.class, Object.class)
@@ -110,35 +117,17 @@ public class SwaggerConfig {
 	}
 
 	/**
-	 * The GET operations WebSecurityResourceServerConfig's public matcher permits without
-	 * authentication when ?public=true requests published data. Must be kept in sync with
-	 * {@code WebSecurityResourceServerConfig.getPublicMatcher()}.
-	 */
-	private static final Set<String> OPTIONAL_AUTH_OPERATION_IDS = Set.of(
-		"getSpecLinks", "getTestInfo", "listTestLogs", "getTestLog", "exportTestLog",
-		"listTestPlans", "getTestPlan", "exportPlanLogs");
-
-	/**
-	 * Document the authentication-layer 401 on every operation, and correct the security
-	 * requirement where the document-wide bearerAuth default is wrong: the operations behind
-	 * the ?public=true matcher accept anonymous requests for published data (bearer auth OR
-	 * nothing). The 401 is merged into an operation's own 401 where one is declared
-	 * (POST /api/runner uses 401 for an immutable plan). /jwks is excluded: it is permitAll
-	 * and clears its security requirement via an empty @SecurityRequirements.
+	 * Document the authentication-layer 401 on every operation, merged into an operation's own
+	 * 401 where one is declared (POST /api/runner uses 401 for an immutable plan). Operations
+	 * that clear the document-wide security requirement with an empty @SecurityRequirements
+	 * (permitAll endpoints such as /jwks) are skipped.
 	 */
 	@Bean
 	public GlobalOperationCustomizer documentAuthenticationResponses() {
-		String authDescription = "Missing or invalid bearer token / login session"
-			+ " (for endpoints with a 'public' parameter, only when not requesting published data)";
+		String authDescription = "Missing or invalid bearer token / login session";
 		return (operation, handlerMethod) -> {
-			if (handlerMethod.getBeanType() == JwksEndpoint.class) {
+			if (declaresNoSecurity(handlerMethod)) {
 				return operation;
-			}
-			if (OPTIONAL_AUTH_OPERATION_IDS.contains(operation.getOperationId())) {
-				// [{bearerAuth}, {}]: authentication is optional — anonymous callers may request published data
-				operation.setSecurity(List.of(
-					new SecurityRequirement().addList(BEARER_AUTH_SCHEME),
-					new SecurityRequirement()));
 			}
 			ApiResponse existing = operation.getResponses().get("401");
 			if (existing != null) {
@@ -148,6 +137,47 @@ public class SwaggerConfig {
 			}
 			return operation;
 		};
+	}
+
+	private static boolean declaresNoSecurity(HandlerMethod handlerMethod) {
+		SecurityRequirements requirements = handlerMethod.getMethodAnnotation(SecurityRequirements.class);
+		if (requirements == null) {
+			requirements = handlerMethod.getBeanType().getAnnotation(SecurityRequirements.class);
+		}
+		return requirements != null && requirements.value().length == 0;
+	}
+
+	/**
+	 * The GET operations behind the security configuration's public matcher accept anonymous
+	 * requests when ?public=true requests published data: relax their security requirement to
+	 * bearer-or-nothing and say so on their 401. Driven by the same path patterns the security
+	 * configuration uses, so the two cannot drift.
+	 */
+	@Bean
+	public OpenApiCustomizer documentAnonymousPublicAccess() {
+		PathPatternParser parser = new PathPatternParser();
+		List<PathPattern> publicPatterns = WebSecurityResourceServerConfig.PUBLIC_GET_PATHS.stream()
+			.map(parser::parse)
+			.toList();
+		return openApi -> openApi.getPaths().forEach((path, pathItem) -> {
+			Operation get = pathItem.getGet();
+			if (get == null) {
+				return;
+			}
+			PathContainer pathContainer = PathContainer.parsePath(path);
+			if (publicPatterns.stream().noneMatch(pattern -> pattern.matches(pathContainer))) {
+				return;
+			}
+			// [{bearerAuth}, {}]: authentication is optional — anonymous callers may request published data
+			get.setSecurity(List.of(
+				new SecurityRequirement().addList(BEARER_AUTH_SCHEME),
+				new SecurityRequirement()));
+			ApiResponse unauthorized = get.getResponses() == null ? null : get.getResponses().get("401");
+			if (unauthorized != null) {
+				unauthorized.setDescription(unauthorized.getDescription()
+					+ "; anonymous requests are accepted when public=true requests published data");
+			}
+		});
 	}
 
 }
