@@ -92,9 +92,9 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<Map<String, Object>> createTestPlan(
 		@Parameter(description = "Plan name") @RequestParam String planName,
-		@Parameter(description = "Variant selection: a JSON object mapping variant parameter names to values", example = "{\"server_metadata\": \"discovery\", \"client_registration\": \"dynamic_client\"}") @RequestParam(required = false) VariantSelection variant,
+		@Parameter(description = SwaggerConfig.DESC_VARIANT_SELECTION, example = SwaggerConfig.EXAMPLE_VARIANT_SELECTION) @RequestParam(required = false) VariantSelection variant,
 		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The test configuration JSON; may include 'description', 'alias' and 'publish' fields alongside the server/client configuration",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"description\": \"my first plan\", \"alias\": \"example\", \"server\": {\"discoveryUrl\": \"https://as.example.com/.well-known/openid-configuration\"}}")))
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_TEST_CONFIGURATION)))
 		@RequestBody JsonObject config,
 		Model m) {
 
@@ -208,7 +208,7 @@ public class TestPlanApi implements DataUtils {
 
 	@PostMapping("/plan/{id}/share")
 	@Operation(operationId = "shareTestPlan", summary = "Get private link to share test plan",
-		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
+		description = SwaggerConfig.DESC_SHARE_LINK)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
@@ -217,7 +217,7 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<?> shareLink(
 		@Parameter(description = "Id of test plan") @PathVariable String id,
-		@Parameter(description = "Number of days until the link expires", example = "30") @RequestParam(name = "exp", required = true) String exp
+		@Parameter(description = SwaggerConfig.DESC_SHARE_EXPIRY, example = "30") @RequestParam(name = "exp", required = true) String exp
 	) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
@@ -305,8 +305,8 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id")
 	})
 	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of the test plan to publish") @PathVariable String id,
-												  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Object with a 'publish' field: 'summary' or 'everything'",
-													  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"publish\": \"summary\"}")))
+												  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerConfig.DESC_PUBLISH_BODY,
+													  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_PUBLISH_BODY)))
 												  @RequestBody JsonObject config) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {

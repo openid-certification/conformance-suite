@@ -104,7 +104,12 @@ public class LogApi {
 
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
-	private static final MediaType APPLICATION_ZIP = MediaType.parseMediaType("application/zip");
+	static final String APPLICATION_ZIP_VALUE = "application/zip";
+
+	private static final MediaType APPLICATION_ZIP = MediaType.parseMediaType(APPLICATION_ZIP_VALUE);
+
+	private static final String DESC_TEST_LOG_FILENAME = "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".";
+	private static final String DESC_PLAN_LOG_FILENAME = "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".";
 
 	@Autowired
 	private TestPlanService planService;
@@ -161,12 +166,12 @@ public class LogApi {
 		return ResponseEntity.ok().body(results);
 	}
 
-	@GetMapping(value = "/log/export/{id}", produces = "application/zip")
+	@GetMapping(value = "/log/export/{id}", produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(operationId = "exportTestLog", summary = "Export test log by test id", description = "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".")
+	@Operation(operationId = "exportTestLog", summary = "Export test log by test id", description = DESC_TEST_LOG_FILENAME)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully",
-			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+			content = @Content(mediaType = APPLICATION_ZIP_VALUE, schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> export(
@@ -223,12 +228,12 @@ public class LogApi {
 	// (/api/plan/export/?* with ?public=true), but no rendered UI page links to it
 	// — the only plan-wide download button (plan-detail "Download all Logs") targets
 	// the HTML-zip variant /api/plan/exporthtml/{id}. Kept for direct API callers.
-	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
+	@GetMapping(value = "/plan/export/{id}", produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(operationId = "exportPlanLogs", summary = "Export all test logs of plan by plan id", description = "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".")
+	@Operation(operationId = "exportPlanLogs", summary = "Export all test logs of plan by plan id", description = DESC_PLAN_LOG_FILENAME)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully",
-			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+			content = @Content(mediaType = APPLICATION_ZIP_VALUE, schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> exportLogsOfPlan(
@@ -617,7 +622,7 @@ public class LogApi {
 	}
 
 
-	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/zip")
+	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.",
 		description = "The multipart request may also carry a 'certificationOfConformancePdf' part (the signed certification of conformance)"
@@ -625,7 +630,7 @@ public class LogApi {
 			+ " The 200 response carries a Content-Disposition attachment header with the package filename.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully",
-			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+			content = @Content(mediaType = APPLICATION_ZIP_VALUE, schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "403", description = "Could not publish plan", content = @Content),
 		@ApiResponse(responseCode = "422", description = "Tests failed/incomplete or plan id unknown (JSON body), or the plan could not be marked immutable (empty body)",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CertificationPackageErrorResponse.class)))
@@ -752,12 +757,12 @@ public class LogApi {
 	// flows that happens when an admin views plan-detail with public=true on the
 	// URL (the "Public link" preview of an everything-published plan) and clicks
 	// "Download all Logs" — the JS appends ?public=true in that mode.
-	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
+	@GetMapping(value = "/plan/exporthtml/{id}", produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(operationId = "exportPlanLogsHtml", summary = "Export the full results for this plan as both html and json in a zip", description = "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".")
+	@Operation(operationId = "exportPlanLogsHtml", summary = "Export the full results for this plan as both html and json in a zip", description = DESC_PLAN_LOG_FILENAME)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully",
-			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+			content = @Content(mediaType = APPLICATION_ZIP_VALUE, schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> exportPlanAsHTML(
@@ -1011,12 +1016,12 @@ public class LogApi {
 	// log-detail with public=true on the URL (the "Public link" preview of an
 	// everything-published test) and clicks "Download Logs" — the JS appends
 	// ?public=true in that mode.
-	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
+	@GetMapping(value = "/log/exporthtml/{id}", produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(operationId = "exportTestLogHtml", summary = "Export test logs as html by test id", description = "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".")
+	@Operation(operationId = "exportTestLogHtml", summary = "Export test logs as html by test id", description = DESC_TEST_LOG_FILENAME)
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully",
-			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+			content = @Content(mediaType = APPLICATION_ZIP_VALUE, schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> exportTestHtml(

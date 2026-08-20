@@ -226,20 +226,20 @@ public class TestRunner implements DataUtils {
 		@ApiResponse(responseCode = "201", description = "Created test successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestCreatedResponse.class))),
 		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
+		@ApiResponse(responseCode = "401", description = "The plan is immutable, so new tests cannot be created in it (note this condition uses 401)", content = @Content),
 		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find configuration of plan Id you provided"),
-		@ApiResponse(responseCode = "401", description = "The plan is immutable, so new tests cannot be created in it (note this condition uses 401)", content = @Content),
 		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
 		@ApiResponse(responseCode = "500", description = "Test creation failed",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PostMapping(value = "/runner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@Parameter(description = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
 														  @Parameter(description = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
-														  @Parameter(description = "Variant selection: a JSON object mapping variant parameter names to values; only allowed when creating a standalone test (not from a plan)", example = "{\"server_metadata\": \"discovery\", \"client_registration\": \"dynamic_client\"}") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
+														  @Parameter(description = SwaggerConfig.DESC_VARIANT_SELECTION + "; only allowed when creating a standalone test (not from a plan)", example = SwaggerConfig.EXAMPLE_VARIANT_SELECTION) @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
 														  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The test configuration JSON; required when creating a standalone test, must be omitted when creating from a plan",
-														  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"alias\": \"example\", \"server\": {\"discoveryUrl\": \"https://as.example.com/.well-known/openid-configuration\"}}")))
+														  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_TEST_CONFIGURATION)))
 														  @RequestBody(required = false) JsonObject testConfig,
 														  Model m) {
 		final JsonObject config;

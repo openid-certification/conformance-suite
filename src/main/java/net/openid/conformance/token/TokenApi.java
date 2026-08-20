@@ -58,7 +58,8 @@ public class TokenApi {
 		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin")
 	})
 	public ResponseEntity<Object> createToken(
-		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Pass {\"permanent\": true} for a token that never expires; anything else (including omitting the field) creates a token valid for 24 hours",
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Pass {\"permanent\": true} for a token that never expires; anything else (including omitting the field) creates a token valid for "
+			+ (DBTokenService.DEFAULT_TTL_MS / (60 * 60 * 1000)) + " hours",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"permanent\": true}")))
 		@RequestBody JsonObject request) {
 

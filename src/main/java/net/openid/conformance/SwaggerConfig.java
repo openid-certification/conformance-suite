@@ -42,6 +42,16 @@ public class SwaggerConfig {
 	public static final String TAG_USER_AND_PREFERENCES = "User & Preferences";
 	public static final String TAG_SERVER = "Server";
 
+	// Descriptions and examples shared by more than one operation, kept here so they cannot drift.
+	public static final String DESC_PUBLISH_BODY = "Object with a 'publish' field: 'summary' or 'everything'";
+	public static final String EXAMPLE_PUBLISH_BODY = "{\"publish\": \"summary\"}";
+	public static final String DESC_SHARE_EXPIRY = "Number of days until the link expires";
+	public static final String DESC_SHARE_LINK = "The returned token can be used directly as 'Authorization: Bearer <token>'"
+		+ " on the read-only endpoints GET /api/plan/{id}, GET /api/info/{id}, GET /api/log/{id} and GET /api/currentuser.";
+	public static final String DESC_VARIANT_SELECTION = "Variant selection: a JSON object mapping variant parameter names to values";
+	public static final String EXAMPLE_VARIANT_SELECTION = "{\"server_metadata\": \"discovery\", \"client_registration\": \"dynamic_client\"}";
+	public static final String EXAMPLE_TEST_CONFIGURATION = "{\"alias\": \"example\", \"server\": {\"discoveryUrl\": \"https://as.example.com/.well-known/openid-configuration\"}}";
+
 	static {
 		// Request/response bodies typed as Gson classes are opaque JSON, not the Gson object
 		// model — without this springdoc introspects JsonObject etc. and emits schemas full of
