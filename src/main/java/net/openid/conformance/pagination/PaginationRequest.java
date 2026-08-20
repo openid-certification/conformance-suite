@@ -2,6 +2,7 @@ package net.openid.conformance.pagination;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -13,14 +14,19 @@ import java.util.function.Function;
 
 public class PaginationRequest {
 
+	@Schema(description = "DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests")
 	private int draw;
 
+	@Schema(description = "0-based index of the first record to return")
 	private int start;
 
+	@Schema(description = "Page size; 0 (or unset) means 10, values above 1000 are rejected")
 	private int length;
 
+	@Schema(description = "Free-text search term, matched with a MongoDB text search")
 	private String search;
 
+	@Schema(description = "Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.", example = "started,desc")
 	private String order;
 
 	public int getDraw() {
