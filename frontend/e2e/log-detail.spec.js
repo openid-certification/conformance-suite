@@ -989,6 +989,17 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // The click below navigates for real (full page load), landing on s-0's
+    // OWN log-detail page — which fires its own /api/log and /api/runner
+    // bootstrap fetches for "s-0", distinct from the /api/info/s-* fan-out
+    // mock above (which only covers the ORIGIN page's sibling colouring).
+    // Without these, whether those fetches land before or after afterEach's
+    // synchronous expectNoUnmockedCalls check is a timing race that flakes
+    // under parallel-worker load (#1916) despite passing in isolation.
+    await page.route("**/api/log/s-*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    );
+    await page.route("**/api/runner/s-*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -1127,6 +1138,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
       }),
     );
+    // Mock the sibling's own post-navigation bootstrap fetches too — see the
+    // identical block in the "U6/R15" test above for why (#1916).
+    await page.route("**/api/log/s-*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    );
+    await page.route("**/api/runner/s-*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page, { user: null }); // anonymous viewer
 
     await page.goto(
