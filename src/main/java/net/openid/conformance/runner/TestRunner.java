@@ -5,10 +5,18 @@ import com.google.gson.JsonObject;
 import com.vdurmont.semver4j.Semver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.BrowserStatusResponse;
+import net.openid.conformance.apidoc.ErrorResponse;
+import net.openid.conformance.apidoc.TestCreatedResponse;
+import net.openid.conformance.apidoc.TestStatusResponse;
+import net.openid.conformance.apidoc.WaitStateReached;
+import net.openid.conformance.apidoc.WaitStateTimeout;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
@@ -213,12 +221,15 @@ public class TestRunner implements DataUtils {
 
 	@Operation(operationId = "createTest", summary = "Create test module instance", description = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "Created test successfully"),
+		@ApiResponse(responseCode = "201", description = "Created test successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestCreatedResponse.class))),
 		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
 		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find configuration of plan Id you provided"),
-		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias"),
-		@ApiResponse(responseCode = "500", description = "Created test failed"),
+		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "500", description = "Test creation failed",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
 	})
 	@PostMapping(value = "/runner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@Parameter(description = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
@@ -509,7 +520,8 @@ public class TestRunner implements DataUtils {
 
 	@Operation(operationId = "startTest", summary = "Start test by id")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Started test successfully"),
+		@ApiResponse(responseCode = "200", description = "Started test successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found")
 	})
 	@PostMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -550,7 +562,8 @@ public class TestRunner implements DataUtils {
 
 	@Operation(operationId = "getTestStatus", summary = "Get test status, results, and exposed strings")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found")
 	})
 	@GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -603,8 +616,10 @@ public class TestRunner implements DataUtils {
 	 */
 	@Operation(operationId = "waitForTestState", summary = "Long-poll wait until the test's status is one of the requested states")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Status reached one of the requested states, or timeout fired"),
-		@ApiResponse(responseCode = "404", description = "The test is unknown or you are not authorized")
+		@ApiResponse(responseCode = "200", description = "Status reached one of the requested states ({\"state\": ...}), or the timeout fired ({\"timeout\": true})",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(oneOf = {WaitStateReached.class, WaitStateTimeout.class}))),
+		@ApiResponse(responseCode = "404", description = "The test is unknown or you are not authorized",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@GetMapping(value = "/runner/{id}/wait-state", produces = MediaType.APPLICATION_JSON_VALUE)
 	public DeferredResult<ResponseEntity<Map<String, Object>>> waitForState(
@@ -672,7 +687,8 @@ public class TestRunner implements DataUtils {
 
 	@Operation(operationId = "cancelTest", summary = "Cancel test by Id")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Cancelled test successfully"),
+		@ApiResponse(responseCode = "200", description = "Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to cancel is not found")
 	})
 	@DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -710,7 +726,8 @@ public class TestRunner implements DataUtils {
 
 	@Operation(operationId = "getBrowserStatus", summary = "Get front-channel external URLs exposed to the [BrowserControl] for a given test")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BrowserStatusResponse.class))),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
 		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
 	})

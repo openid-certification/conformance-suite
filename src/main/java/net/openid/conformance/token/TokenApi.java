@@ -4,10 +4,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.TokenCreatedResponse;
+import net.openid.conformance.apidoc.TokenSummary;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +41,8 @@ public class TokenApi {
 	@GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "listTokens", summary = "Get a list of existing tokens")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = TokenSummary.class))))
 	})
 	public ResponseEntity<Object> getAllTokens() {
 
@@ -46,7 +52,8 @@ public class TokenApi {
 	@PostMapping(value = "/token", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "createToken", summary = "Create new token")
 	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Created token successfully"),
+		@ApiResponse(responseCode = "201", description = "Created token successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TokenCreatedResponse.class))),
 		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin")
 	})
 	public ResponseEntity<Object> createToken(@Parameter(description = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {

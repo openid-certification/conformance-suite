@@ -5,10 +5,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.ErrorResponse;
+import net.openid.conformance.apidoc.FavoritePlansResponse;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,7 +48,8 @@ public class FavoritePlansApi {
 	@GetMapping(value = "/favorite-plans", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "listFavoritePlans", summary = "Get the favorited test plans of the current user")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = FavoritePlansResponse.class)))
 	})
 	public ResponseEntity<Object> getFavoritePlans() {
 		List<String> plans = favoritePlansService.getFavoritePlansForCurrentUser();
@@ -56,9 +61,11 @@ public class FavoritePlansApi {
 		produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "addFavoritePlan", summary = "Add a test plan to the current user's favorites")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Added successfully (idempotent)"),
+		@ApiResponse(responseCode = "200", description = "Added successfully (idempotent)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = FavoritePlansResponse.class))),
 		@ApiResponse(responseCode = "400",
-			description = "Missing or invalid plan name, or the per-user favorites limit is reached")
+			description = "Missing or invalid plan name, or the per-user favorites limit is reached",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Object> addFavoritePlan(
 			@Parameter(description = "An object containing the plan name to favorite, e.g. {\"plan\":\"planName\"}")
@@ -95,7 +102,8 @@ public class FavoritePlansApi {
 	@DeleteMapping(value = "/favorite-plans/{planName}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "removeFavoritePlan", summary = "Remove a test plan from the current user's favorites")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Removed successfully (no-op if not favorited)")
+		@ApiResponse(responseCode = "200", description = "Removed successfully (no-op if not favorited)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = FavoritePlansResponse.class)))
 	})
 	public ResponseEntity<Object> removeFavoritePlan(
 			@Parameter(description = "Name of the test plan to remove from favorites")
