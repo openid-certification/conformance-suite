@@ -10,9 +10,12 @@ import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.tags.Tag;
+import net.openid.conformance.security.JwksEndpoint;
+import org.springdoc.core.customizers.GlobalOperationCustomizer;
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -85,6 +88,29 @@ public class SwaggerConfig {
 						.description("Either an API token from <a href='/tokens.html'>the token management page</a>"
 							+ " or a share-link JWT from a <code>/share</code> endpoint.")))
 				.addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH_SCHEME));
+	}
+
+	/**
+	 * Document the authentication-layer 401 on every operation. Merged into an operation's own
+	 * 401 where one is declared (POST /api/runner uses 401 for an immutable plan). /jwks is
+	 * excluded: it is permitAll in the security configuration.
+	 */
+	@Bean
+	public GlobalOperationCustomizer documentAuthenticationResponses() {
+		String authDescription = "Missing or invalid bearer token / login session"
+			+ " (for endpoints with a 'public' parameter, only when not requesting published data)";
+		return (operation, handlerMethod) -> {
+			if (handlerMethod.getBeanType() == JwksEndpoint.class) {
+				return operation;
+			}
+			ApiResponse existing = operation.getResponses().get("401");
+			if (existing != null) {
+				existing.setDescription(existing.getDescription() + " / " + authDescription);
+			} else {
+				operation.getResponses().addApiResponse("401", new ApiResponse().description(authDescription));
+			}
+			return operation;
+		};
 	}
 
 }

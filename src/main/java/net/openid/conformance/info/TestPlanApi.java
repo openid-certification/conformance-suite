@@ -328,8 +328,7 @@ public class TestPlanApi implements DataUtils {
 	@Operation(operationId = "makeTestPlanMutable", summary = "Make a test plan mutable again (requires administrator privileges)")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Made the test plan mutable again successfully", content = @Content),
-		@ApiResponse(responseCode = "400", description = "Could not find plan"),
-		@ApiResponse(responseCode = "403", description = "Not authorized")
+		@ApiResponse(responseCode = "403", description = "Not authorized, or the plan could not be found", content = @Content)
 	})
 	public ResponseEntity<Object> makeTestPlanMutable(
 			@Parameter(description = "Id of test plan that you want make mutable again") @PathVariable String id) {
