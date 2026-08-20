@@ -41,7 +41,7 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 			@Override
 			public void evaluate() {
 				callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-6.3.4");
-				callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
+				callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB22-6.2");
 				callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 				callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 			}
@@ -91,8 +91,10 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class, "BrazilOB-5.1.1-1");
-				callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
+				callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
+					"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
+				callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class,
+					"FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1", "BrazilOB22-5.1.1-2");
 			}
 		};
 	}
@@ -185,7 +187,8 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6", "BrazilOB-5.1.1-1");
+				callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6",
+					"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 			}
 		};
 	}

@@ -58,12 +58,14 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 
 	@Test
 	public void validatesTokenEndpointIdTokenIsEncrypted() {
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
 			behavior.validateTokenEndpointIdToken());
 
-		assertThat(conditionClasses).containsExactly(
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass).containsExactly(
 			ValidateIdTokenEncrypted.class,
 			FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM.class);
+		assertThat(conditionCalls.get(0).getRequirements()).containsExactly("BrazilOB22-5.1.1-1");
+		assertThat(conditionCalls.get(1).getRequirements()).containsExactly("BrazilOB22-6.3");
 	}
 
 	@Test
@@ -72,9 +74,11 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			.getDeclaredConstructor()
 			.newInstance();
 
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(sequence);
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(sequence);
 
-		assertThat(conditionClasses).containsExactly(FAPIBrazilValidateIdTokenSigningAlg.class);
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass)
+			.containsExactly(FAPIBrazilValidateIdTokenSigningAlg.class);
+		assertThat(conditionCalls.getFirst().getRequirements()).containsExactly("BrazilOB22-6.2");
 	}
 
 	@Test
@@ -153,20 +157,33 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 
 		assertThat(additionalStepsClass).isNotNull();
 		ConditionSequence additionalSteps = additionalStepsClass.getDeclaredConstructor().newInstance();
-		assertThat(getConditionClasses(additionalSteps)).containsExactly(
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(additionalSteps);
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass).containsExactly(
 			FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest.class);
+		assertThat(conditionCalls.getFirst().getRequirements()).containsExactly(
+			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 	}
 
 	@Test
 	public void brazilValidatesRegistrationResponseAndNegotiatedEncryptionConfiguration() {
-		List<Class<? extends Condition>> responseValidation = getConditionClasses(
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
 			behavior.getClientRegistrationResponseValidationSteps());
 
-		assertThat(responseValidation).containsExactly(
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass).containsExactly(
 			ClientManagementEndpointAndAccessTokenRequired.class,
 			ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
 			CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class,
 			FAPIEnsureClientJwksContainsAnEncryptionKey.class);
+		assertThat(conditionCalls.get(1).getRequirements()).containsExactly(
+			"CIBA-4",
+			"BrazilCIBA-6.2.2",
+			"BrazilCIBA-6.2.4",
+			"BrazilOB22-5.1.1-1",
+			"BrazilOB22-6.2",
+			"BrazilOB22-6.3",
+			"BrazilOBDCR-7.1");
+		assertThat(conditionCalls.get(3).getRequirements()).contains(
+			"BrazilOB22-5.1.1-2");
 	}
 
 	@Test
