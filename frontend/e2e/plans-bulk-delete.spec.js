@@ -308,6 +308,124 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     await expect(page.locator("[data-testid='plan-filter-from']")).toBeVisible();
   });
 
+  test("the Family and Plan controls narrow the listing, retired names included", async ({
+    page,
+  }) => {
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    await page.goto("/plans.html");
+
+    // every family and plan name the suite has, not just those of the plans on
+    // this page - including the ones it no longer publishes, which is most of
+    // what an old listing is made of
+    const plan = page.locator("[data-testid='plan-name-filter']");
+    await expect(plan.locator("option")).toContainText([
+      "Any plan",
+      "fapi-ciba-id1-test-plan",
+      "fapi-ciba-test-plan (retired)",
+      "oidcc-basic-certification-test-plan",
+    ]);
+
+    await page.locator("[data-testid='plan-family-filter']").selectOption("FAPI-CIBA");
+    await expect(page).toHaveURL(/family=FAPI-CIBA/);
+    await expect(page.locator("[data-testid='plan-filter-family']")).toHaveAttribute(
+      "label",
+      "Family: FAPI-CIBA",
+    );
+
+    // and the plan control now offers only that family's names
+    await expect(plan.locator("option")).toHaveCount(3);
+
+    await plan.selectOption("fapi-ciba-test-plan");
+    await expect(page).toHaveURL(/plan=fapi-ciba-test-plan/);
+    await expect(page.locator("[data-testid='plan-filter-plan']")).toHaveAttribute(
+      "label",
+      "Plan: fapi-ciba-test-plan",
+    );
+  });
+
+  test("the Family and Plan controls show what the listing is already narrowed to", async ({
+    page,
+  }) => {
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    await page.goto("/plans.html?family=FAPI-CIBA&plan=fapi-ciba-id1-test-plan");
+
+    await expect(page.locator("[data-testid='plan-family-filter']")).toHaveValue("FAPI-CIBA");
+    await expect(page.locator("[data-testid='plan-name-filter']")).toHaveValue(
+      "fapi-ciba-id1-test-plan",
+    );
+  });
+
+  test("Immutable narrows the listing, and shows what it is narrowed to", async ({ page }) => {
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    await page.goto("/plans.html");
+    await page.locator("[data-testid='plan-immutable-filter']").selectOption("true");
+
+    await expect(page).toHaveURL(/immutable=true/);
+    await expect(page.locator("[data-testid='plan-filter-immutable']")).toHaveAttribute(
+      "label",
+      "Immutable: yes",
+    );
+
+    await page.goto("/plans.html?immutable=false");
+    await expect(page.locator("[data-testid='plan-immutable-filter']")).toHaveValue("false");
+  });
+
+  test("a plan's variants are offered once that plan is chosen, and not before", async ({
+    page,
+  }) => {
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    await page.goto("/plans.html");
+    // a variant parameter belongs to a plan, so there is nothing to offer yet
+    await expect(page.locator("[data-testid='plan-variant-controls']")).toHaveCount(0);
+
+    await page.locator("[data-testid='plan-name-filter']").selectOption("fapi-ciba-id1-test-plan");
+    await expect(page.locator("[data-testid='plan-variant-controls']")).toBeVisible();
+    await expect(page.locator("[data-testid='plan-variant-ciba_mode']")).toBeVisible();
+    await expect(page.locator("[data-testid='plan-variant-client_auth_type']")).toBeVisible();
+    // and only that plan's
+    await expect(page.locator("[data-testid='plan-variant-server_metadata']")).toHaveCount(0);
+
+    await page.locator("[data-testid='plan-variant-ciba_mode']").selectOption("poll");
+    await expect(page).toHaveURL(/variant\.ciba_mode=poll/);
+    await expect(page.locator("[data-testid='plan-filter-variant-ciba_mode']")).toHaveAttribute(
+      "label",
+      "ciba_mode: poll",
+    );
+
+    // moving to a plan that does not define it drops it rather than filtering on
+    // something that plan can never match
+    await page
+      .locator("[data-testid='plan-name-filter']")
+      .selectOption("oidcc-basic-certification-test-plan");
+    await expect(page).not.toHaveURL(/ciba_mode/);
+    await expect(page.locator("[data-testid='plan-variant-server_metadata']")).toBeVisible();
+  });
+
+  test("a retired plan offers no variants, the registry not knowing it", async ({ page }) => {
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await mockPlanRoute(page);
+
+    await page.goto("/plans.html?plan=fapi-ciba-test-plan");
+
+    await expect(page.locator("[data-testid='plan-name-filter']")).toHaveValue(
+      "fapi-ciba-test-plan",
+    );
+    await expect(page.locator("[data-testid='plan-variant-controls']")).toHaveCount(0);
+  });
+
   test("the Started control shows the age the listing is already narrowed to", async ({ page }) => {
     // a <select> cannot be set through Lit's `.value`: the property is committed
     // before its <option> children exist, so without setting it after render the

@@ -576,3 +576,29 @@ export const MOCK_PLAN_INFO = {
   "inst-003": { status: "FINISHED", result: "PASSED" },
   "inst-005": { status: "FINISHED", result: "PASSED" },
 };
+
+/**
+ * What `GET /api/plan/filter-options` answers: the families and plan names the
+ * listing's Family and Plan controls offer. Includes a retired name, because
+ * most of what an old listing is made of is names the suite no longer
+ * publishes, and the control marks them.
+ */
+export const MOCK_PLAN_FILTER_OPTIONS = {
+  families: ["FAPI-CIBA", "OpenID Connect Core"],
+  plans: [
+    { name: "fapi-ciba-id1-test-plan", family: "FAPI-CIBA", retired: false },
+    { name: "fapi-ciba-test-plan", family: "FAPI-CIBA", retired: true },
+    { name: "oidcc-basic-certification-test-plan", family: "OpenID Connect Core", retired: false },
+  ],
+  // per plan, because a variant parameter means nothing without the plan that
+  // defines it; a retired plan has no entry, since the registry is the source
+  variants: {
+    "fapi-ciba-id1-test-plan": {
+      ciba_mode: ["ping", "poll"],
+      client_auth_type: ["mtls", "private_key_jwt"],
+    },
+    "oidcc-basic-certification-test-plan": {
+      server_metadata: ["discovery", "static"],
+    },
+  },
+};

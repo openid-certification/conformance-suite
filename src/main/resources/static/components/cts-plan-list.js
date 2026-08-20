@@ -589,6 +589,7 @@ class CtsPlanList extends LitElement {
     _bulkError: { state: true },
     _bulkBusy: { state: true },
     _bulkBusyLabel: { state: true },
+    _filterOptions: { state: true },
   };
 
   createRenderRoot() {
@@ -625,6 +626,14 @@ class CtsPlanList extends LitElement {
     // set when a finished job means the listing is out of date, acted on when
     // the dialog closes
     this._bulkNeedsRefresh = false;
+    /**
+     * @type {{
+     *   families: Array<string>,
+     *   plans: Array<{name: string, family: string, retired: boolean}>,
+     *   variants?: Record<string, Record<string, Array<string>>>,
+     * }|null}
+     */
+    this._filterOptions = null;
     // Non-reactive: the handle of the status poll, cleared on disconnect
     /** @type {ReturnType<typeof setTimeout>|undefined} */
     this._bulkPollTimer = undefined;
@@ -664,6 +673,7 @@ class CtsPlanList extends LitElement {
     // (R17/R19). The list region is supplementary, so a polite live region is
     // appropriate.
     this.setAttribute("aria-live", "polite");
+    this._loadFilterOptions();
     // KTD3: on the no-`public`-param path the page sets `defer-initial-fetch`
     // synchronously so the auth-dependent default resolves before fetching.
     // The list still renders its loading state (`_loading` defaults true) in
@@ -693,9 +703,20 @@ class CtsPlanList extends LitElement {
     // the listing is narrowed to a period, and the chip beside it saying so.
     // Setting it here, after the children are in place, is what makes the
     // control reflect the filter it is showing.
-    const age = this.querySelector("[data-testid='plan-age-filter']");
-    if (age instanceof HTMLSelectElement) {
-      age.value = this._agePreset();
+    for (const [testid, value] of [
+      ["plan-age-filter", this._agePreset()],
+      ["plan-family-filter", (this.filters && this.filters.family) || ""],
+      ["plan-name-filter", (this.filters && this.filters.plan) || ""],
+      ["plan-immutable-filter", (this.filters && this.filters.immutable) || ""],
+      ...this._variantsToOffer().map((variant) => [
+        `plan-variant-${variant.name}`,
+        (this.filters.variant || {})[variant.name] || "",
+      ]),
+    ]) {
+      const select = this.querySelector(`[data-testid='${testid}']`);
+      if (select instanceof HTMLSelectElement) {
+        select.value = value;
+      }
     }
 
     // After a render that changed the visible set, fetch the latest result
@@ -1023,6 +1044,129 @@ class CtsPlanList extends LitElement {
     this._bulkProgress = null;
     this._bulkPreview = null;
     this._fetchPlans();
+  }
+
+  /**
+   * The families and plan names the listing can be narrowed to.
+   *
+   * A listing cannot offer these from what it has fetched: it holds at most a
+   * thousand plans, while the values worth offering are every family the suite
+   * has and every plan name it has ever published - most of a pruning listing
+   * is made of names it no longer publishes at all. So they come from the
+   * registry, through an endpoint that carries only the names.
+   *
+   * Asked for with `public=true` on the published listing, where the viewer
+   * may not be logged in: the endpoint answers a public request with the same
+   * registry data. Failure is still not an error: the two controls simply
+   * stay hidden.
+   * @returns {Promise<void>} When they are loaded, or given up on.
+   */
+  async _loadFilterOptions() {
+    try {
+      const response = await fetch(
+        `/api/plan/filter-options${this.isPublic ? "?public=true" : ""}`,
+      );
+      if (!response.ok) return;
+      const options = await response.json();
+      if (Array.isArray(options?.families) && Array.isArray(options?.plans)) {
+        this._filterOptions = options;
+      }
+    } catch {
+      // offline, or an endpoint that is not there: the controls stay hidden
+    }
+  }
+
+  /**
+   * @returns {Array<{name: string, family: string, retired: boolean}>} The plan
+   *   names worth offering: those of the chosen family, or all of them.
+   */
+  _plansToOffer() {
+    const plans = this._filterOptions?.plans ?? [];
+    const family = (this.filters && this.filters.family) || "";
+    return family ? plans.filter((plan) => plan.family === family) : plans;
+  }
+
+  /**
+   * @param {Event} event - The change event from the family select.
+   * @returns {void}
+   */
+  _handleFamilyChange(event) {
+    const family = /** @type {HTMLSelectElement} */ (event.target).value;
+    const next = { ...this.filters, family };
+    // a plan of another family would leave the two contradicting each other,
+    // which the server answers with an empty listing rather than an error
+    if (
+      next.plan &&
+      family &&
+      !this._filterOptions?.plans.some((plan) => plan.name === next.plan && plan.family === family)
+    ) {
+      next.plan = "";
+    }
+    this._applyFilters(next);
+  }
+
+  /**
+   * @param {Event} event - The change event from the immutable select.
+   * @returns {void}
+   */
+  _handleImmutableChange(event) {
+    const immutable = /** @type {HTMLSelectElement} */ (event.target).value;
+    this._applyFilters({ ...this.filters, immutable });
+  }
+
+  /**
+   * The variant parameters of the plan the listing is narrowed to, and the
+   * values each may take.
+   *
+   * Only ever for ONE plan: a variant parameter means nothing without the plan
+   * that defines it - `client_auth_type` belongs to a dozen plans and
+   * `ciba_mode` to four - so these controls appear once a plan is chosen and
+   * not before. A plan the suite no longer publishes has no entry, because the
+   * registry is where the values come from; its variant chips still show if
+   * the URL carries them.
+   * @returns {Array<{name: string, values: Array<string>}>} Those parameters.
+   */
+  _variantsToOffer() {
+    const plan = (this.filters && this.filters.plan) || "";
+    const forPlan = plan ? this._filterOptions?.variants?.[plan] : null;
+    if (!forPlan) return [];
+    return Object.keys(forPlan)
+      .sort()
+      .map((name) => ({ name, values: forPlan[name] }));
+  }
+
+  /**
+   * @param {Event} event - The change event from one of the variant selects.
+   * @returns {void}
+   */
+  _handleVariantChange(event) {
+    const select = /** @type {HTMLSelectElement} */ (event.target);
+    const name = select.dataset.variant;
+    if (!name) return;
+    const variant = { ...(this.filters.variant || {}) };
+    if (select.value) {
+      variant[name] = select.value;
+    } else {
+      delete variant[name];
+    }
+    this._applyFilters({ ...this.filters, variant });
+  }
+
+  /**
+   * @param {Event} event - The change event from the plan select.
+   * @returns {void}
+   */
+  _handlePlanChange(event) {
+    const plan = /** @type {HTMLSelectElement} */ (event.target).value;
+    // a variant chosen for the previous plan may not exist on this one, and
+    // would then match nothing at all
+    const keep = plan ? (this._filterOptions?.variants?.[plan] ?? {}) : {};
+    const variant = Object.fromEntries(
+      Object.entries(this.filters.variant || {}).filter(([name, value]) =>
+        (keep[name] || []).includes(value),
+      ),
+    );
+    this._applyFilters({ ...this.filters, plan, variant });
   }
 
   _handleConfigButtonClick(event) {
@@ -1504,6 +1648,42 @@ class CtsPlanList extends LitElement {
     `;
   }
 
+  /**
+   * One control per variant parameter of the chosen plan, on their own row: a
+   * plan can define a dozen, which would not fit beside the other controls.
+   * @returns {unknown} The row, or nothing when no plan is chosen.
+   */
+  _renderVariantControls() {
+    const variants = this._variantsToOffer();
+    if (variants.length === 0) return nothing;
+    return html`
+      <div class="cts-plan-list-toolbar" data-testid="plan-variant-controls">
+        ${repeat(
+          variants,
+          (variant) => variant.name,
+          (variant) => html`
+            <label class="cts-plan-list-age">
+              <span>${variant.name}</span>
+              <select
+                aria-label="Only show plans with this ${variant.name}"
+                data-testid="plan-variant-${variant.name}"
+                data-variant=${variant.name}
+                @change=${this._handleVariantChange}
+              >
+                <option value="">Any</option>
+                ${repeat(
+                  variant.values,
+                  (value) => value,
+                  (value) => html`<option value=${value}>${value}</option>`,
+                )}
+              </select>
+            </label>
+          `,
+        )}
+      </div>
+    `;
+  }
+
   _renderSearchAndSort() {
     return html`
       <div class="cts-plan-list-toolbar">
@@ -1516,6 +1696,55 @@ class CtsPlanList extends LitElement {
             .value=${this._searchText}
             @input=${this._handleSearchInput}
           />
+        </label>
+        ${this._filterOptions
+          ? html`
+              <label class="cts-plan-list-age">
+                <span>Family</span>
+                <select
+                  aria-label="Only show plans of this spec family"
+                  data-testid="plan-family-filter"
+                  @change=${this._handleFamilyChange}
+                >
+                  <option value="">Any family</option>
+                  ${repeat(
+                    this._filterOptions.families,
+                    (family) => family,
+                    (family) => html`<option value=${family}>${family}</option>`,
+                  )}
+                </select>
+              </label>
+              <label class="cts-plan-list-age">
+                <span>Plan</span>
+                <select
+                  aria-label="Only show plans with this name"
+                  data-testid="plan-name-filter"
+                  @change=${this._handlePlanChange}
+                >
+                  <option value="">Any plan</option>
+                  ${repeat(
+                    this._plansToOffer(),
+                    (plan) => plan.name,
+                    (plan) =>
+                      html`<option value=${plan.name}>
+                        ${plan.name}${plan.retired ? " (retired)" : ""}
+                      </option>`,
+                  )}
+                </select>
+              </label>
+            `
+          : nothing}
+        <label class="cts-plan-list-age">
+          <span>Immutable</span>
+          <select
+            aria-label="Only show plans that are immutable, or only those that are not"
+            data-testid="plan-immutable-filter"
+            @change=${this._handleImmutableChange}
+          >
+            <option value="">Any</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
         </label>
         <label class="cts-plan-list-age">
           <span>Started</span>
@@ -1694,7 +1923,8 @@ class CtsPlanList extends LitElement {
     if (this._loading) {
       // The filter row is part of the page's scope, not of the result: it
       // must not flash out and back in around every refetch.
-      return html`${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderLoading()}`;
+      return html`${this._renderFilters()} ${this._renderSearchAndSort()}
+      ${this._renderVariantControls()} ${this._renderLoading()}`;
     }
 
     if (this._error) {
@@ -1726,7 +1956,8 @@ class CtsPlanList extends LitElement {
         : `${sorted.length.toLocaleString()}`;
 
     return html`
-      ${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderTruncationNotice()}
+      ${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderVariantControls()}
+      ${this._renderTruncationNotice()}
       ${sorted.length === 0
         ? this._renderEmpty(hasSearch)
         : html`
