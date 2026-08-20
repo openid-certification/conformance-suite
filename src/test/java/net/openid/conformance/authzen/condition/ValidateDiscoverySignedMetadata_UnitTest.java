@@ -1,9 +1,12 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -61,23 +64,34 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		TestInstanceEventLog eventLog = mock(TestInstanceEventLog.class);
 		TestInfoService infoService = mock(TestInfoService.class);
 		module.setProperties("UNIT-TEST", Map.of("sub", "unit-test"), eventLog, null, infoService, null, null);
-		// config carries the trusted PDP identifier; no 'pdp.jwks' is configured, so the signature verification
-		// sub-condition is skipped and the structural checks (alg / iss / claims) are what's under test here.
-		JsonObject config = new JsonObject();
-		JsonObject pdpCfg = new JsonObject();
-		pdpCfg.addProperty("policy_decision_point", PDP_ISSUER);
-		config.add("pdp", pdpCfg);
-		module.putObject("config", config);
+		putConfig(null);
 	}
 
 	/** Declare a third-party attester as the expected `signed_metadata` issuer. */
 	private void configureMetadataIssuer(String issuer) {
+		putConfig(issuer);
+	}
+
+	/**
+	 * Test configuration: the trusted PDP identifier, the key the metadata below is MACed with (the
+	 * sequence fails without one, since a signature it cannot check is no evidence of a valid one),
+	 * and optionally a third-party 'Signed Metadata Issuer'.
+	 */
+	private void putConfig(String metadataIssuer) {
 		JsonObject config = new JsonObject();
 		JsonObject pdpCfg = new JsonObject();
 		pdpCfg.addProperty("policy_decision_point", PDP_ISSUER);
-		pdpCfg.addProperty("metadata_issuer", issuer);
+		pdpCfg.add("jwks", hmacJwks());
+		if (metadataIssuer != null) {
+			pdpCfg.addProperty("metadata_issuer", metadataIssuer);
+		}
 		config.add("pdp", pdpCfg);
 		module.putObject("config", config);
+	}
+
+	private static JsonObject hmacJwks() {
+		JWKSet jwks = new JWKSet(new OctetSequenceKey.Builder(HMAC_SECRET).build());
+		return JsonParser.parseString(jwks.toString(false)).getAsJsonObject();
 	}
 
 	private void putSignedMetadata(String token) {
