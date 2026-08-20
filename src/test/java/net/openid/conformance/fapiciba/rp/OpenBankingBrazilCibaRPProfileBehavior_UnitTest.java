@@ -15,6 +15,7 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
+import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
@@ -75,6 +76,12 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 			.findFirst()
 			.orElseThrow();
 		assertThat(pingModeCall.getRequirements()).containsExactly("BrazilCIBA-6.3.4");
+
+		ConditionCallBuilder signingAlgorithmCall = conditionCalls.stream()
+			.filter(call -> call.getConditionClass().equals(SetServerSigningAlgToPS256.class))
+			.findFirst()
+			.orElseThrow();
+		assertThat(signingAlgorithmCall.getRequirements()).containsExactly("BrazilOB22-6.2");
 	}
 
 	@Test
@@ -151,18 +158,26 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 
 	@Test
 	public void validatesIdTokenEncryptionConfiguration() {
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificClientConfigurationValidation());
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
+			behavior.applyProfileSpecificClientConfigurationValidation());
 
-		assertThat(conditionClasses).containsExactly(
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass).containsExactly(
 			FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
 			FAPIEnsureClientJwksContainsAnEncryptionKey.class);
+		assertThat(conditionCalls.get(0).getRequirements()).containsExactly(
+			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
+		assertThat(conditionCalls.get(1).getRequirements()).contains(
+			"BrazilOB22-5.1.1-2");
 	}
 
 	@Test
 	public void encryptsIdToken() {
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificIdTokenEncryption());
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(behavior.applyProfileSpecificIdTokenEncryption());
 
-		assertThat(conditionClasses).containsExactly(EncryptIdToken.class);
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass)
+			.containsExactly(EncryptIdToken.class);
+		assertThat(conditionCalls.getFirst().getRequirements()).contains(
+			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {

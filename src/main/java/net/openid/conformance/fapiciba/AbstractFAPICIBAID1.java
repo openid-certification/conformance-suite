@@ -358,7 +358,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
+			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-6.2");
 		}
 	}
 

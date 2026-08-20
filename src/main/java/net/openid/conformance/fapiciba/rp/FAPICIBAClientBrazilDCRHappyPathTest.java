@@ -151,7 +151,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		env.mapKey("client", "dynamic_registration_request");
 		validateClientRegistrationMetadata();
 		callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
-			"BrazilOB-5.1.1-1");
+			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 		env.unmapKey("client");
 
 		validateBrazilRegistrationMetadata();
@@ -248,7 +248,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestNotificationEndpointIsHttps.class,
 			"CIBA-4");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestSigningAlgIsPS256.class,
-			"BrazilCIBA-6.2.4");
+			"BrazilOB22-6.2");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestUserCodeIsAbsentOrFalse.class,
 			"BrazilCIBA-6.2.4");
 	}

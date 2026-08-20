@@ -59,7 +59,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest.class,
-				"BrazilOB-5.1.1-1");
+				"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 		}
 	}
 
@@ -71,10 +71,17 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class,
 					Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
 				callAndContinueOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
-					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.4", "BrazilOBDCR-7.1");
+					Condition.ConditionResult.FAILURE,
+					"CIBA-4",
+					"BrazilCIBA-6.2.2",
+					"BrazilCIBA-6.2.4",
+					"BrazilOB22-5.1.1-1",
+					"BrazilOB22-6.2",
+					"BrazilOB22-6.3",
+					"BrazilOBDCR-7.1");
 				callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
 				callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class,
-					"FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
+					"FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1", "BrazilOB22-5.1.1-2");
 			}
 		};
 	}
@@ -172,9 +179,9 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ValidateIdTokenEncrypted.class,
-					Condition.ConditionResult.FAILURE, "BrazilOB-5.1.1-1");
+					Condition.ConditionResult.FAILURE, "BrazilOB22-5.1.1-1");
 				callAndContinueOnFailure(FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM.class,
-					Condition.ConditionResult.FAILURE, "BrazilOB-5.1.1-1");
+					Condition.ConditionResult.FAILURE, "BrazilOB22-6.3");
 			}
 		};
 	}
