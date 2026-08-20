@@ -132,7 +132,7 @@ describe("replayAnswers", () => {
   it("ignores trailing ids past a leaf", () => {
     const replay = replayAnswers("cbuae", ["op", "extra", "ids"]);
     expect(replay?.path.map((a) => a.choice.id)).toEqual(["op"]);
-    expect(replay?.result?.plan_name).toBe("fapi2-message-signing-final-test-plan");
+    expect(replay?.result?.plan_name).toBe("fapi2-message-signing-id1-test-plan");
   });
 
   it("replays a partial trail to the next unanswered question", () => {
