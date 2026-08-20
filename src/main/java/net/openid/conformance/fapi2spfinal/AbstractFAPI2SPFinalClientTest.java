@@ -714,8 +714,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			try {
 				FAPI2ClientProfileBehavior.PathDispatch dispatch = profileBehavior.getProfileSpecificPathDispatch(requestId, path);
 				if (dispatch != null) {
-					call(dispatch.sequence());
-					return dispatch.responseBuilder().apply(this);
+					return runPathDispatch(dispatch, requestId);
 				}
 				return profileBehavior.handleProfileSpecificPath(requestId, path);
 			} finally {
@@ -723,6 +722,24 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			}
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	/**
+	 * Drive a profile-behavior {@link FAPI2ClientProfileBehavior.PathDispatch}: open its
+	 * log block, map {@code incoming_request} to the raw request, run the sequence, build
+	 * the response while the mapping is still live (so the builder can read the raw
+	 * request and everything the sequence's conditions produced, in order), then close
+	 * the block. Cleanup runs in a finally so a failing sequence or builder still unmaps
+	 * and closes the block in the failure log. Does not manage test status — callers do.
+	 */
+	protected Object runPathDispatch(FAPI2ClientProfileBehavior.PathDispatch dispatch, String requestId) {
+		call(exec().startBlock(dispatch.blockName()).mapKey("incoming_request", requestId));
+		try {
+			call(dispatch.sequence());
+			return dispatch.responseBuilder().apply(this);
+		} finally {
+			call(exec().unmapKey("incoming_request").endBlock());
+		}
 	}
 
 	@Override

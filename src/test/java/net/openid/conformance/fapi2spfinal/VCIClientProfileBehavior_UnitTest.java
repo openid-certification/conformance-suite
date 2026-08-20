@@ -1,6 +1,9 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.TestExecutionUnit;
@@ -14,6 +17,7 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
+import net.openid.conformance.vci10wallet.condition.VCIVerifyCredentialOfferRequestId;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import org.junit.jupiter.api.Test;
 
@@ -183,19 +187,35 @@ public class VCIClientProfileBehavior_UnitTest {
 		offer.addProperty("credential_issuer", "https://issuer.example/");
 		module.getEnv().putObject("vci", "credential_offer", offer);
 
-		FAPI2ClientProfileBehavior.PathDispatch match = behavior.getProfileSpecificPathDispatch("req1", "credential_offer/abc123");
-		assertThat(match).isNotNull();
-		Object matchResponse = match.responseBuilder().apply(module);
+		// The 200-vs-404 decision is made by VCIVerifyCredentialOfferRequestId (covered by
+		// its own unit test), which writes vci.credential_offer_id_matched; the response
+		// builder just honors the sentinel.
+		FAPI2ClientProfileBehavior.PathDispatch dispatch = behavior.getProfileSpecificPathDispatch("req1", "credential_offer/abc123");
+		assertThat(dispatch).isNotNull();
+		assertThat(dispatch.blockName()).isEqualTo("Credential offer endpoint");
+
+		module.getEnv().putString("vci", "credential_offer_id_matched", "abc123");
+		Object matchResponse = dispatch.responseBuilder().apply(module);
 		assertThat(matchResponse).isInstanceOf(org.springframework.http.ResponseEntity.class);
 		org.springframework.http.ResponseEntity<?> matchEntity = (org.springframework.http.ResponseEntity<?>) matchResponse;
 		assertThat(matchEntity.getStatusCode().value()).isEqualTo(200);
 		assertThat(matchEntity.getHeaders().getCacheControl()).isEqualTo("no-cache");
 		assertThat(matchEntity.getBody()).isEqualTo(offer);
 
-		FAPI2ClientProfileBehavior.PathDispatch miss = behavior.getProfileSpecificPathDispatch("req2", "credential_offer/other");
-		assertThat(miss).isNotNull();
-		org.springframework.http.ResponseEntity<?> missEntity = (org.springframework.http.ResponseEntity<?>) miss.responseBuilder().apply(module);
+		module.getEnv().getObject("vci").remove("credential_offer_id_matched");
+		org.springframework.http.ResponseEntity<?> missEntity = (org.springframework.http.ResponseEntity<?>) dispatch.responseBuilder().apply(module);
 		assertThat(missEntity.getStatusCode().value()).isEqualTo(404);
+	}
+
+	@Test
+	public void credentialOfferDispatchSequenceValidatesRequestMethodAndOfferId() {
+		VCIClientProfileBehavior behavior = behaviorFor(VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED,
+			VCICredentialOfferParameterVariant.BY_REFERENCE);
+
+		FAPI2ClientProfileBehavior.PathDispatch dispatch = behavior.getProfileSpecificPathDispatch("req1", "credential_offer/abc123");
+		assertThat(getConditionClasses(dispatch.sequence()))
+			.containsExactly(EnsureIncomingRequestMethodIsGet.class, EnsureIncomingUrlQueryIsEmpty.class,
+				EnsureIncomingRequestBodyIsEmpty.class, VCIVerifyCredentialOfferRequestId.class);
 	}
 
 	private List<Class<? extends Condition>> getConditionClasses(ConditionSequence sequence) {
