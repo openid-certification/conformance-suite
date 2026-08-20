@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.CertificationPackageErrorResponse;
 import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
@@ -160,10 +161,11 @@ public class LogApi {
 
 	@GetMapping(value = "/log/export/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(operationId = "exportTestLog", summary = "Export test log by test id")
+	@Operation(operationId = "exportTestLog", summary = "Export test log by test id", description = "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Exported successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully",
+			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> export(
 		@Parameter(description = "Id of test") @PathVariable String id,
@@ -221,10 +223,11 @@ public class LogApi {
 	// the HTML-zip variant /api/plan/exporthtml/{id}. Kept for direct API callers.
 	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(operationId = "exportPlanLogs", summary = "Export all test logs of plan by plan id")
+	@Operation(operationId = "exportPlanLogs", summary = "Export all test logs of plan by plan id", description = "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Exported successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully",
+			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> exportLogsOfPlan(
 		@Parameter(description = "Id of plan") @PathVariable String id,
@@ -616,10 +619,12 @@ public class LogApi {
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Prepared successfully"),
-		@ApiResponse(responseCode = "403", description = "Could not publish plan"),
-		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id"),
-		@ApiResponse(responseCode = "422", description = "Could not mark the plan as immutable")
+		@ApiResponse(responseCode = "200", description = "Prepared successfully",
+			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+		@ApiResponse(responseCode = "403", description = "Could not publish plan", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id", content = @Content),
+		@ApiResponse(responseCode = "422", description = "Tests failed/incomplete or plan id unknown (JSON body), or the plan could not be marked immutable (empty body)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CertificationPackageErrorResponse.class)))
 	})
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
 		@Parameter(description = "Id of test plan")
@@ -745,10 +750,11 @@ public class LogApi {
 	// "Download all Logs" — the JS appends ?public=true in that mode.
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(operationId = "exportPlanLogsHtml", summary = "Export the full results for this plan as both html and json in a zip")
+	@Operation(operationId = "exportPlanLogsHtml", summary = "Export the full results for this plan as both html and json in a zip", description = "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Exported successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully",
+			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> exportPlanAsHTML(
 		HttpServletRequest httpRequest,
@@ -1003,10 +1009,11 @@ public class LogApi {
 	// ?public=true in that mode.
 	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(operationId = "exportTestLogHtml", summary = "Export test logs as html by test id")
+	@Operation(operationId = "exportTestLogHtml", summary = "Export test logs as html by test id", description = "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Exported successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully",
+			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id", content = @Content)
 	})
 	public ResponseEntity<StreamingResponseBody> exportTestHtml(
 		@Parameter(description = "Id of test") @PathVariable String id,

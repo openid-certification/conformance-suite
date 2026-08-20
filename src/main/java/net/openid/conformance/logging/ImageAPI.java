@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,8 +62,10 @@ public class ImageAPI {
 	@PostMapping(path = "/log/{id}/images")
 	@Operation(operationId = "uploadTestImage", summary = "Upload image for a test log")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
-		@ApiResponse(responseCode = "400", description = "Image validation failure"),
+		@ApiResponse(responseCode = "200", description = "Uploaded image successfully; returns the new log entry",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
+		@ApiResponse(responseCode = "400", description = "Image validation failure",
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
 		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
 	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
@@ -108,8 +112,10 @@ public class ImageAPI {
 	@PostMapping(path = "/log/{id}/images/{placeholder}")
 	@Operation(operationId = "uploadTestImageToPlaceholder", summary = "Upload the image to existing log entry")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
-		@ApiResponse(responseCode = "400", description = "Image validation failure"),
+		@ApiResponse(responseCode = "200", description = "Uploaded image successfully; returns the updated log entry (empty if no matching unfilled placeholder exists)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
+		@ApiResponse(responseCode = "400", description = "Image validation failure",
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
 		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(

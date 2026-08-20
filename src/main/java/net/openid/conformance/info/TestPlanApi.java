@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -210,8 +209,8 @@ public class TestPlanApi implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to share plan"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to share plan", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
 	})
 	public ResponseEntity<?> shareLink(
 		@Parameter(description = "Id of test plan") @PathVariable String id,
@@ -325,10 +324,10 @@ public class TestPlanApi implements DataUtils {
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 
-	@PostMapping(value = "/plan/{id}/makemutable", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.TEXT_HTML_VALUE)
+	@PostMapping(value = "/plan/{id}/makemutable", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	@Operation(operationId = "makeTestPlanMutable", summary = "Make a test plan mutable again (requires administrator privileges)")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Made the test plan mutable again successfully"),
+		@ApiResponse(responseCode = "200", description = "Made the test plan mutable again successfully", content = @Content),
 		@ApiResponse(responseCode = "400", description = "Could not find plan"),
 		@ApiResponse(responseCode = "403", description = "Not authorized")
 	})
@@ -346,8 +345,9 @@ public class TestPlanApi implements DataUtils {
 	@GetMapping(value = "plan/info/{planName}")
 	@Operation(operationId = "getTestPlanInfo", summary = "Get information for one test plan by name")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "Plan definition: planName, displayName, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name", content = @Content)
 	})
 	public ResponseEntity<Object> getTestPlanInfo(
 			@Parameter(description = "Plan name, use to identify a specific TestPlan ") @PathVariable String planName) {
@@ -377,7 +377,8 @@ public class TestPlanApi implements DataUtils {
 	@GetMapping(value = "plan/available")
 	@Operation(operationId = "listAvailableTestPlans", summary = "Get a list of available test plans and their attributes")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "array", description = "One entry per available plan, shaped as GET /api/plan/info/{planName} except each module entry also lists its configurationFields")))
 	})
 	public ResponseEntity<Object> getAvailableTestPlans() {
 		Set<Map<String, ?>> available = variantService.getTestPlans().stream()
@@ -401,12 +402,12 @@ public class TestPlanApi implements DataUtils {
 	@DeleteMapping(value = "/plan/{id}")
 	@Operation(operationId = "deleteTestPlan", summary = "Delete a test plan and related configuration. Requires the plan to be mutable.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "204", description = "Deleted successfully"),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to delete test plan"),
-		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id, belonging to the user"),
-		@ApiResponse(responseCode = "405", description = "The plan is immutable and cannot be deleted")
+		@ApiResponse(responseCode = "204", description = "Deleted successfully", content = @Content),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to delete test plan", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id, belonging to the user", content = @Content),
+		@ApiResponse(responseCode = "405", description = "The plan is immutable and cannot be deleted", content = @Content)
 	})
-	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
+	public ResponseEntity<Void> deleteMutableTestPlan(
 		@Parameter(description = "Id of test plan") @PathVariable String id
 	) {
 		if (authenticationFacade != null && authenticationFacade.isPrivateLinkUser()) {
