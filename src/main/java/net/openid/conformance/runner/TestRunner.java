@@ -191,7 +191,7 @@ public class TestRunner implements DataUtils {
 		executorService.submit(futureWatcher);
 	}
 
-	@Operation(summary = "Get list of available TestModule names")
+	@Operation(operationId = "listAvailableTestModules", summary = "Get list of available TestModule names")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -211,7 +211,7 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
 
-	@Operation(summary = "Create test module instance", description = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
+	@Operation(operationId = "createTest", summary = "Create test module instance", description = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Created test successfully"),
 		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
@@ -507,7 +507,7 @@ public class TestRunner implements DataUtils {
 		support.addAlias(alias, id);
 	}
 
-	@Operation(summary = "Start test by id")
+	@Operation(operationId = "startTest", summary = "Start test by id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Started test successfully"),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found")
@@ -548,7 +548,7 @@ public class TestRunner implements DataUtils {
 
 	}
 
-	@Operation(summary = "Get test status, results, and exposed strings")
+	@Operation(operationId = "getTestStatus", summary = "Get test status, results, and exposed strings")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found")
@@ -601,7 +601,7 @@ public class TestRunner implements DataUtils {
 	 *                  call then runs until it times out.
 	 * @param timeoutMs wall-clock budget in ms, clamped to [1, 30000].
 	 */
-	@Operation(summary = "Long-poll wait until the test's status is one of the requested states")
+	@Operation(operationId = "waitForTestState", summary = "Long-poll wait until the test's status is one of the requested states")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Status reached one of the requested states, or timeout fired"),
 		@ApiResponse(responseCode = "404", description = "The test is unknown or you are not authorized")
@@ -670,7 +670,7 @@ public class TestRunner implements DataUtils {
 		return deferred;
 	}
 
-	@Operation(summary = "Cancel test by Id")
+	@Operation(operationId = "cancelTest", summary = "Cancel test by Id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Cancelled test successfully"),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to cancel is not found")
@@ -697,7 +697,7 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	@Operation(summary = "Get list of running testIDs")
+	@Operation(operationId = "listRunningTestIds", summary = "Get list of running testIDs")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -708,7 +708,7 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(testIds, HttpStatus.OK);
 	}
 
-	@Operation(summary = "Get front-channel external URLs exposed to the [BrowserControl] for a given test")
+	@Operation(operationId = "getBrowserStatus", summary = "Get front-channel external URLs exposed to the [BrowserControl] for a given test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
@@ -739,7 +739,7 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	@Operation(summary = "Mark front-channel external URL as visited")
+	@Operation(operationId = "visitBrowserUrl", summary = "Mark front-channel external URL as visited")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "204", description = "Visited url successfully"),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),

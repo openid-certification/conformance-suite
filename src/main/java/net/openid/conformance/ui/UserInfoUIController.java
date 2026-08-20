@@ -31,7 +31,7 @@ public class UserInfoUIController {
 	 * @return
 	 */
 	@GetMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get current user information")
+	@Operation(operationId = "getCurrentUser", summary = "Get current user information")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})

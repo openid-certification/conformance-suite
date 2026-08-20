@@ -24,7 +24,7 @@ public class SavedConfigurationApi {
 	private SavedConfigurationService savedConfigurationService;
 
 	@GetMapping(value = "/lastconfig", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get last configuration of current user")
+	@Operation(operationId = "getLastConfig", summary = "Get last configuration of current user")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})

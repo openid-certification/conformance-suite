@@ -24,7 +24,7 @@ class UIController {
 	 * @return
 	 */
 	@GetMapping(value = "/spec_links", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get Spec Links")
+	@Operation(operationId = "getSpecLinks", summary = "Get Spec Links")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})

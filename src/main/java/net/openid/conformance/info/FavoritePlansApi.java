@@ -42,7 +42,7 @@ public class FavoritePlansApi {
 	private FavoritePlansService favoritePlansService;
 
 	@GetMapping(value = "/favorite-plans", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get the favorited test plans of the current user")
+	@Operation(operationId = "listFavoritePlans", summary = "Get the favorited test plans of the current user")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -54,7 +54,7 @@ public class FavoritePlansApi {
 	@PostMapping(value = "/favorite-plans",
 		consumes = MediaType.APPLICATION_JSON_VALUE,
 		produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Add a test plan to the current user's favorites")
+	@Operation(operationId = "addFavoritePlan", summary = "Add a test plan to the current user's favorites")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Added successfully (idempotent)"),
 		@ApiResponse(responseCode = "400",
@@ -93,7 +93,7 @@ public class FavoritePlansApi {
 	}
 
 	@DeleteMapping(value = "/favorite-plans/{planName}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Remove a test plan from the current user's favorites")
+	@Operation(operationId = "removeFavoritePlan", summary = "Remove a test plan from the current user's favorites")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Removed successfully (no-op if not favorited)")
 	})
