@@ -166,6 +166,23 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		return parameter.cast(value);
 	}
 
+	/**
+	 * Like {@link #getVariant(Class)}, but returns {@code defaultValue} instead of throwing
+	 * when no value is set for {@code parameter}.
+	 *
+	 * <p>Intended for plan-level context variants that a module does not declare itself:
+	 * when a module runs inside a test plan, {@code VariantService} also injects the variant
+	 * values the plan's <em>other</em> modules declare (see
+	 * {@code TestModuleHolder.newInstance(VariantSelection, Map)}), but when the same module
+	 * runs outside that plan those values are simply absent.
+	 */
+	public <T extends Enum<T>> T getVariantOrDefault(Class<T> parameter, T defaultValue) {
+		if (variant == null || !variant.containsKey(parameter)) {
+			return defaultValue;
+		}
+		return getVariant(parameter);
+	}
+
 	@Override
 	public Map<String, String> getOwner() {
 		return owner;

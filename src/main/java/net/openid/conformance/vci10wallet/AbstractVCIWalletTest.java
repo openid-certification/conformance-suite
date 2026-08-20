@@ -81,7 +81,6 @@ import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeCh
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
-import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
@@ -148,9 +147,6 @@ import net.openid.conformance.vci10wallet.condition.VCICheckForUnknownFieldsInNo
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
-import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
-import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
-import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
@@ -169,7 +165,6 @@ import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigura
 import net.openid.conformance.vci10wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
 import net.openid.conformance.vci10wallet.condition.VCIInjectRequestScopePreAuthorizedCodeFlow;
 import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
-import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateOpenidCredentialAuthorizationDetailsInIncomingRequest;
@@ -468,10 +463,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected String getDefaultCredentialConfigurationId() {
-		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
-			return "eu.europa.ec.eudi.pid.mdoc.1";
-		}
-		return "eu.europa.ec.eudi.pid.1";
+		return VCIClientProfileBehavior.defaultCredentialConfigurationId(vciCredentialFormat);
 	}
 
 	protected void configureOauthAuthorizationServerMetadata() {
@@ -714,28 +706,10 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected void prepareCredentialOffer() {
-
-		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIPreparePreAuthorizationCode.class, "OID4VCI-1FINAL-3.5", "OID4VCI-1FINAL-4.1");
-		}
-
-		callAndStopOnFailure(new VCICreateCredentialOffer(vciGrantType), "OID4VCI-1FINAL-4.1");
-
-		if (vciCredentialOfferParameterVariantType == VCICredentialOfferParameterVariant.BY_REFERENCE) {
-			callAndStopOnFailure(VCICreateCredentialOfferUri.class, "OID4VCI-1FINAL-4.1.3");
-		}
-
-		callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(vciCredentialOfferParameterVariantType), "OID4VCI-1FINAL-4.1");
-		browser.setShowQrCodes(true);
-
-		if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
-			callAndStopOnFailure(BuildVCIDCAPIRequest.class);
-			JsonObject request = env.getObject("browser_api_request");
-			browser.requestCredential(request, ""); // FIXME for now, no submitUrl === it's a VCI request, not VP
-		} else {
-			String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
-			browser.goToUrl(credentialOfferRedirectUrl, null, "GET", 10);
-		}
+		// Shared with the FAPI2SP client tests in the VCI wallet plan (VCIClientProfileBehavior.onStart);
+		// called statically because configure() swapped profileBehavior to PlainFAPIClientProfileBehavior.
+		VCIClientProfileBehavior.prepareCredentialOffer(this, vciGrantType, vciAuthorizationCodeFlowVariant,
+			vciCredentialOfferParameterVariantType);
 	}
 
 	@Override
@@ -883,20 +857,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		env.getString("incoming_request", "request_url");
-
-		ResponseEntity<Object> responseEntity;
-		String credentialOfferId = path.substring(path.lastIndexOf("/") + 1);
-		String expectedCredentialOfferId = env.getString("vci", "credential_offer_id");
-		if (expectedCredentialOfferId.equals(credentialOfferId)) {
-			JsonElement credentialOfferObject = env.getElementFromObject("vci", "credential_offer");
-			responseEntity = ResponseEntity.status(HttpStatus.OK)
-				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.CACHE_CONTROL, "no-cache")
-				.body(credentialOfferObject);
-		} else {
-			responseEntity = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		ResponseEntity<Object> responseEntity = VCIClientProfileBehavior.buildCredentialOfferResponse(env, path);
 
 		call(exec().unmapKey("incoming_request").endBlock());
 

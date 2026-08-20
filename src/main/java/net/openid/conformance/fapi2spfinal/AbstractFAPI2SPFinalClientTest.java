@@ -601,7 +601,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		// nothing to do here
+		// Plain FAPI2 client tests are client driven, so there is nothing to do here by
+		// default; profiles where the server makes the first move (VCI issuer-initiated
+		// credential offer) hook in via onStart().
+		profileBehavior.onStart();
 		setStatus(Status.WAITING);
 	}
 

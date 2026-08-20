@@ -9,24 +9,36 @@ import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
+import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
+import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
+import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import net.openid.conformance.vci10wallet.VCICredentialIssuerMetadataBuilder;
 import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIAddNotificationIdToCredentialEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCICheckForUnknownFieldsInNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
+import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
+import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
+import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCISetCredentialFormatFlag;
 import net.openid.conformance.vci10wallet.condition.VCISetProofTypeFlag;
@@ -36,6 +48,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequest
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationRequest;
+import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
@@ -65,7 +78,21 @@ import java.util.Map;
  *   <li>JWT and attestation proof types (di_vp passes through to the existing condition)</li>
  *   <li>Both mso_mdoc and SD-JWT VC formats</li>
  *   <li>HAIP-style status list claim included in SD-JWT credentials</li>
+ *   <li>Wallet-initiated and issuer-initiated authorization code flow. For the
+ *       issuer-initiated flow ({@code vci_authorization_code_flow_variant=issuer_initiated})
+ *       we generate an {@code issuer_state}, create a credential offer (by value or by
+ *       reference, per {@code vci_credential_offer_variant}), hand it to the front-end as
+ *       URL / QR code in {@link #onStart()}, serve the offer from
+ *       {@code credential_offer/{id}} for the by-reference case, and verify the
+ *       {@code issuer_state} the wallet echoes back in its authorization request.</li>
  * </ul>
+ *
+ * <p>The VCI wallet variants ({@code VCIWalletAuthorizationCodeFlowVariant},
+ * {@code VCICredentialOfferParameterVariant}, {@code VCI1FinalCredentialFormat}, ...) are not
+ * declared by the FAPI2SP client modules themselves: {@code VCIWalletTestPlanHaip} marks them
+ * as plan-level context and {@code VariantService} injects the user's selection into the
+ * module's variant map, so they are read via {@code getVariantOrDefault} here and fall back
+ * to the variant's default when the module runs outside that plan.
  *
  * <p>End-to-end credential issuance with encryption / deferred issuance lives on
  * {@code AbstractVCIWalletTest}'s own modules ({@code oid4vci-1_0-wallet-test-credential-issuance}).
@@ -73,6 +100,7 @@ import java.util.Map;
 public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	private static final String CREDENTIAL_PATH = "credential";
+	private static final String CREDENTIAL_OFFER_PATH = "credential_offer";
 	private static final String NONCE_PATH = "nonce";
 	private static final String NOTIFICATION_PATH = "notification";
 	private static final String STATUSLISTS_PATH = "statuslists";
@@ -88,30 +116,31 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	@Override
 	public ConditionSequence additionalServerConfiguration() {
-		if (module.clientAuthType != ClientAuthType.CLIENT_ATTESTATION) {
-			return null;
-		}
-
 		Environment env = module.getEnv();
+		boolean clientAttestation = module.clientAuthType == ClientAuthType.CLIENT_ATTESTATION;
 
-		// Validate the wallet test config has the client_attestation fields populated.
-		// The fields are declared via @VariantConfigurationFields on AbstractFAPI2SPFinalClientTest
-		// so the schedule-test UI prompts for them; this catches the case where they're left blank.
-		// Each check accepts either the new client_attestation.* key or the legacy vci.* key
-		// during the transition window.
-		if (env.getString("config", "client_attestation.issuer") == null
-			&& env.getString("config", "vci.client_attestation_issuer") == null) {
-			throw new TestFailureException(module.getId(),
-				"'Client Attestation Issuer' field is missing from the 'Client Attestation' section in the test configuration");
-		}
-		if (env.getString("config", "client_attestation.trust_anchor") == null
-			&& env.getString("config", "vci.client_attestation_trust_anchor") == null) {
-			throw new TestFailureException(module.getId(),
-				"'Client Attestation Trust Anchor' field is missing from the 'Client Attestation' section in the test configuration");
+		if (clientAttestation) {
+			// Validate the wallet test config has the client_attestation fields populated.
+			// The fields are declared via @VariantConfigurationFields on AbstractFAPI2SPFinalClientTest
+			// so the schedule-test UI prompts for them; this catches the case where they're left blank.
+			// Each check accepts either the new client_attestation.* key or the legacy vci.* key
+			// during the transition window.
+			if (env.getString("config", "client_attestation.issuer") == null
+				&& env.getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(module.getId(),
+					"'Client Attestation Issuer' field is missing from the 'Client Attestation' section in the test configuration");
+			}
+			if (env.getString("config", "client_attestation.trust_anchor") == null
+				&& env.getString("config", "vci.client_attestation_trust_anchor") == null) {
+				throw new TestFailureException(module.getId(),
+					"'Client Attestation Trust Anchor' field is missing from the 'Client Attestation' section in the test configuration");
+			}
 		}
 
 		// Pre-populate credential_issuer_metadata + credential_configurations_supported
-		// so the VCI conditions invoked from the credential / nonce endpoints find them.
+		// so the VCI conditions invoked from the credential / nonce endpoints (and the
+		// issuer-initiated credential offer) find them. This is independent of the client
+		// authentication method.
 		JsonObject metadata;
 		try {
 			metadata = VCICredentialIssuerMetadataBuilder.buildCredentialIssuerMetadata(env,
@@ -132,14 +161,185 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		VCICredentialIssuerMetadataBuilder.configureSupportedCredentialConfigurations(env, metadata,
 			VCICredentialConfigurations.getDefault(module.getId()));
 
+		ConditionSequence issuerInitiatedSetup = issuerInitiatedSetupSteps();
+
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
-				callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
+				if (clientAttestation) {
+					callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
+					callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
+				}
 				// signing JWK required so we can issue real mdoc / SD-JWT credentials
 				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
 				callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
+				if (issuerInitiatedSetup != null) {
+					call(issuerInitiatedSetup);
+				}
+			}
+		};
+	}
+
+	// --- Issuer-initiated authorization code flow (credential offer) ---
+
+	/**
+	 * The authorization code flow variant selected for the wallet plan this module runs in.
+	 * Falls back to {@code wallet_initiated} (the variant's default) when the module runs
+	 * outside the VCI wallet plan and so has no plan-level VCI context at all.
+	 */
+	private VCIWalletAuthorizationCodeFlowVariant authorizationCodeFlowVariant() {
+		return module.getVariantOrDefault(VCIWalletAuthorizationCodeFlowVariant.class,
+			VCIWalletAuthorizationCodeFlowVariant.WALLET_INITIATED);
+	}
+
+	/**
+	 * Whether the issuer (us) has to make the first move by presenting a credential offer
+	 * to the wallet, rather than the wallet starting the flow on its own.
+	 */
+	public boolean isIssuerInitiated() {
+		return authorizationCodeFlowVariant() != VCIWalletAuthorizationCodeFlowVariant.WALLET_INITIATED;
+	}
+
+	/**
+	 * Configure-time setup for the issuer-initiated flow, or {@code null} for
+	 * wallet-initiated: generate the {@code issuer_state} that goes into the credential offer
+	 * (and that the wallet must echo back in its authorization request, see
+	 * {@link #additionalAuthorizationRequestChecks()}) and resolve the
+	 * {@code credential_configuration_id} to offer ({@code vci.credential_configuration_id}
+	 * from the test configuration, else the default for the selected credential format).
+	 * The wallet modules do the equivalent in {@code AbstractVCIWalletTest.configure}.
+	 */
+	public ConditionSequence issuerInitiatedSetupSteps() {
+		if (!isIssuerInitiated()) {
+			return null;
+		}
+		VCIGrantType grantType = module.getVariantOrDefault(VCIGrantType.class, VCIGrantType.AUTHORIZATION_CODE);
+		if (grantType != VCIGrantType.AUTHORIZATION_CODE) {
+			// The FAPI2SP token endpoint only implements the authorization_code grant; the
+			// pre-authorized code grant is exercised by AbstractVCIWalletTest's own modules.
+			throw new TestFailureException(module.getId(),
+				"The FAPI2 security profile client tests only support the authorization_code grant type; "
+					+ "'" + grantType + "' is not supported in combination with the issuer-initiated flow here.");
+		}
+		VCI1FinalCredentialFormat credentialFormat = module.getVariantOrDefault(VCI1FinalCredentialFormat.class, null);
+		String fallbackCredentialConfigurationId = defaultCredentialConfigurationId(credentialFormat);
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
+				callAndStopOnFailure(new VCIInjectCredentialConfigurationIdHint(fallbackCredentialConfigurationId));
+			}
+		};
+	}
+
+	/**
+	 * The {@code credential_configuration_id} offered / expected when the test configuration
+	 * doesn't pin one via {@code vci.credential_configuration_id}. Shared with
+	 * {@code AbstractVCIWalletTest.getDefaultCredentialConfigurationId()}.
+	 */
+	public static String defaultCredentialConfigurationId(VCI1FinalCredentialFormat credentialFormat) {
+		if (credentialFormat == VCI1FinalCredentialFormat.MDOC) {
+			return "eu.europa.ec.eudi.pid.mdoc.1";
+		}
+		return "eu.europa.ec.eudi.pid.1";
+	}
+
+	/**
+	 * Credential offer creation for the issuer-initiated flow — the single implementation
+	 * shared by the wallet modules ({@code AbstractVCIWalletTest.prepareCredentialOffer}) and
+	 * the FAPI2SP client tests ({@link #onStart()}). Static + explicit arguments because the
+	 * wallet overwrites {@code profileBehavior} with {@code PlainFAPIClientProfileBehavior} in
+	 * its {@code configure} and so can't reach an instance of this class.
+	 *
+	 * <p>Steps: for the pre-authorized code grant mint the pre-authorized code + tx_code
+	 * (OID4VCI 1.0 Final 3.5); create the offer itself (4.1); for {@code by_reference} a
+	 * {@code credential_offer_uri} pointing at our {@code credential_offer/{id}} endpoint
+	 * (4.1.3); and finally the redirect URL built from the configured
+	 * {@code vci.credential_offer_endpoint} (the wallet's custom URL scheme / universal link)
+	 * carrying either {@code credential_offer} or {@code credential_offer_uri}.
+	 */
+	public static ConditionSequence credentialOfferSteps(VCIGrantType grantType,
+			VCICredentialOfferParameterVariant offerVariant) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				if (grantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+					callAndStopOnFailure(VCIPreparePreAuthorizationCode.class, "OID4VCI-1FINAL-3.5", "OID4VCI-1FINAL-4.1");
+				}
+				callAndStopOnFailure(new VCICreateCredentialOffer(grantType), "OID4VCI-1FINAL-4.1");
+				if (offerVariant == VCICredentialOfferParameterVariant.BY_REFERENCE) {
+					callAndStopOnFailure(VCICreateCredentialOfferUri.class, "OID4VCI-1FINAL-4.1.3");
+				}
+				callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(offerVariant), "OID4VCI-1FINAL-4.1");
+			}
+		};
+	}
+
+	/**
+	 * Create the credential offer ({@link #credentialOfferSteps}) and hand it to the wallet
+	 * via the front-end: as a URL / QR code for {@code issuer_initiated}, or as a Digital
+	 * Credentials API request for {@code issuer_initiated_dc_api}. Shared by the wallet
+	 * modules and the FAPI2SP client tests (see {@link #credentialOfferSteps} for why this
+	 * is static). Does not manage test status — the caller does.
+	 */
+	public static void prepareCredentialOffer(AbstractFAPI2SPFinalClientTest module, VCIGrantType grantType,
+			VCIWalletAuthorizationCodeFlowVariant flowVariant, VCICredentialOfferParameterVariant offerVariant) {
+		module.doCall(credentialOfferSteps(grantType, offerVariant));
+
+		BrowserControl browser = module.getBrowser();
+		browser.setShowQrCodes(true);
+
+		if (flowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
+			module.doCallAndStopOnFailure(BuildVCIDCAPIRequest.class);
+			JsonObject request = module.getEnv().getObject("browser_api_request");
+			browser.requestCredential(request, ""); // FIXME for now, no submitUrl === it's a VCI request, not VP
+		} else {
+			String credentialOfferRedirectUrl = module.getEnv().getString("vci", "credential_offer_redirect_url");
+			browser.goToUrl(credentialOfferRedirectUrl, null, "GET", 10);
+		}
+	}
+
+	/**
+	 * The credential offer steps for this module's plan-level variant selection; see
+	 * {@link #credentialOfferSteps(VCIGrantType, VCICredentialOfferParameterVariant)}.
+	 */
+	public ConditionSequence credentialOfferSteps() {
+		return credentialOfferSteps(
+			module.getVariantOrDefault(VCIGrantType.class, VCIGrantType.AUTHORIZATION_CODE),
+			module.getVariantOrDefault(VCICredentialOfferParameterVariant.class, VCICredentialOfferParameterVariant.BY_VALUE));
+	}
+
+	/**
+	 * Issuer-initiated flow: present the credential offer to the wallet as soon as the test
+	 * starts. Without this the FAPI2SP client tests in the VCI wallet plan just sat in
+	 * WAITING with nothing for the wallet to scan (GitLab #1901).
+	 */
+	@Override
+	public void onStart() {
+		if (!isIssuerInitiated()) {
+			return;
+		}
+		prepareCredentialOffer(module,
+			module.getVariantOrDefault(VCIGrantType.class, VCIGrantType.AUTHORIZATION_CODE),
+			authorizationCodeFlowVariant(),
+			module.getVariantOrDefault(VCICredentialOfferParameterVariant.class, VCICredentialOfferParameterVariant.BY_VALUE));
+	}
+
+	/**
+	 * Issuer-initiated flow: the wallet MUST echo the {@code issuer_state} from the credential
+	 * offer in its authorization request (OID4VCI 1.0 Final 5.1.3). The FAPI2SP client tests
+	 * always use PAR, so the parameters are read from {@code par_endpoint_http_request_params}
+	 * just like {@code AbstractVCIWalletTest.authorizationEndpoint} does.
+	 */
+	@Override
+	public ConditionSequence additionalAuthorizationRequestChecks() {
+		if (!isIssuerInitiated()) {
+			return null;
+		}
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(VCIVerifyIssuerStateInAuthorizationRequest.class, "OID4VCI-1FINAL-5.1.3");
 			}
 		};
 	}
@@ -168,6 +368,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		return CREDENTIAL_PATH.equals(path)
 			|| NONCE_PATH.equals(path)
 			|| NOTIFICATION_PATH.equals(path)
+			|| isCredentialOfferPath(path)
 			|| isStatusListsPath(path);
 	}
 
@@ -178,6 +379,9 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		}
 		if (NOTIFICATION_PATH.equals(path)) {
 			return buildNotificationDispatch(requestId);
+		}
+		if (isCredentialOfferPath(path)) {
+			return buildCredentialOfferDispatch(requestId, path);
 		}
 		if (isStatusListsPath(path)) {
 			// statuslists is served imperatively below — the response shape branches on
@@ -199,6 +403,46 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	public static boolean isStatusListsPath(String path) {
 		return path.equals(STATUSLISTS_PATH) || path.startsWith(STATUSLISTS_PATH + "/");
+	}
+
+	/** {@code credential_offer/{id}} — the by-reference credential offer endpoint. */
+	private static boolean isCredentialOfferPath(String path) {
+		return path.startsWith(CREDENTIAL_OFFER_PATH + "/");
+	}
+
+	/**
+	 * OID4VCI 1.0 Final 4.1.3 credential offer endpoint (by reference): the wallet
+	 * dereferences the {@code credential_offer_uri} we handed it in {@link #onStart()}.
+	 * Block bookkeeping here, response via {@link #buildCredentialOfferResponse}.
+	 */
+	private PathDispatch buildCredentialOfferDispatch(String requestId, String path) {
+		ConditionSequence sequence = new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(exec().startBlock("Credential offer endpoint").mapKey("incoming_request", requestId));
+				call(exec().unmapKey("incoming_request").endBlock());
+			}
+		};
+		return new PathDispatch(sequence, m -> buildCredentialOfferResponse(m.getEnv(), path));
+	}
+
+	/**
+	 * Response for a {@code credential_offer/{id}} request: the stored offer (JSON,
+	 * {@code Cache-Control: no-cache}) when the id in the path matches the one minted by
+	 * {@link VCICreateCredentialOfferUri}, 404 otherwise. Shared by the wallet modules
+	 * ({@code AbstractVCIWalletTest.credentialOfferEndpoint}) and the FAPI2SP client tests.
+	 */
+	public static ResponseEntity<Object> buildCredentialOfferResponse(Environment env, String path) {
+		String credentialOfferId = path.substring(path.lastIndexOf('/') + 1);
+		String expectedCredentialOfferId = env.getString("vci", "credential_offer_id");
+		if (expectedCredentialOfferId != null && expectedCredentialOfferId.equals(credentialOfferId)) {
+			JsonElement credentialOffer = env.getElementFromObject("vci", "credential_offer");
+			return ResponseEntity.status(HttpStatus.OK)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.CACHE_CONTROL, "no-cache")
+				.body(credentialOffer);
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 
 	/**
