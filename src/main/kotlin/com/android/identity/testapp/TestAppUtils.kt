@@ -1,5 +1,6 @@
 package org.multipaz.testapp
 
+import net.openid.conformance.util.TestKeysAndCerts
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Clock
@@ -211,84 +212,9 @@ object TestAppUtils {
 			secureAreaRepository = secureAreaRepository
 		) {}
 
-		val documentSignerKeyPub = EcPublicKey.fromPem(
-			"""-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
-JHgq8RYzJvraMj5QZSh94CL/nlEi3vikGxDP34HjxZcjzGEimGg03sB6Ng==
------END PUBLIC KEY-----"""
-		)
-		val documentSignerKey = EcPrivateKey.fromPem(
-			"""-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg/ANvinTxJAdR8nQ0
-NoUdBMcRJz+xLsb0kmhyMk+lkkGhRANCAASeaJYAwYh6jYTe6xZEsv8Q9+HUHDkk
-eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
------END PRIVATE KEY-----""",
-			documentSignerKeyPub
-		)
-
-		// The following certificate is self-signed with the document signer key above.
-		// Regenerated 2026-08-03 (existing key kept, 1-year validity) to replace the
-		// previous certificate which expired 2026-07-30. Parameterizing this key
-		// material is tracked in issue #1663.
-/*
-# Regenerate the self-signed certificate (keeps the existing key, 1 year validity).
-# ds-private-key.pem must contain the "BEGIN PRIVATE KEY" block above.
-openssl req -new -x509 -key ds-private-key.pem -out ds-certificate.pem -days 365 \
-  -config <(cat <<'EOF'
-[ req ]
-default_bits       = 256
-distinguished_name = dn
-x509_extensions    = v3_ca
-prompt             = no
-
-[ dn ]
-C  = US
-ST = State of Utopia
-L  = San Ramon
-O  = OpenID Foundation
-OU = IT
-CN = certification.openid.net
-
-[ v3_ca ]
-subjectKeyIdentifier = hash
-basicConstraints = critical,CA:true,pathlen:0
-keyUsage = critical, keyCertSign, cRLSign
-issuerAltName = email:certification@oidf.org
-crlDistributionPoints = URI:http://example.com/myca.crl
-EOF
-)
-
-There is also a tool to generate the certs in the multipaz identity-credential library which could be used instead.
-
-Any new cert should be checked with the mattr checker tool:
-
-https://tools.mattrlabs.com/pem
-
-*/
-		val documentSignerCert = X509Cert.fromPem(
-			"""-----BEGIN CERTIFICATE-----
-MIICqzCCAlCgAwIBAgIULSsWFZgeqNOj8G3xd228JGgWiOUwCgYIKoZIzj0EAwIw
-gYcxCzAJBgNVBAYTAlVTMRgwFgYDVQQIDA9TdGF0ZSBvZiBVdG9waWExEjAQBgNV
-BAcMCVNhbiBSYW1vbjEaMBgGA1UECgwRT3BlbklEIEZvdW5kYXRpb24xCzAJBgNV
-BAsMAklUMSEwHwYDVQQDDBhjZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXQwHhcNMjYw
-ODAzMTYxMjAxWhcNMjcwODAzMTYxMjAxWjCBhzELMAkGA1UEBhMCVVMxGDAWBgNV
-BAgMD1N0YXRlIG9mIFV0b3BpYTESMBAGA1UEBwwJU2FuIFJhbW9uMRowGAYDVQQK
-DBFPcGVuSUQgRm91bmRhdGlvbjELMAkGA1UECwwCSVQxITAfBgNVBAMMGGNlcnRp
-ZmljYXRpb24ub3BlbmlkLm5ldDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJ5o
-lgDBiHqNhN7rFkSy/xD34dQcOSR4KvEWMyb62jI+UGUofeAi/55RIt74pBsQz9+B
-48WXI8xhIphoNN7AejajgZcwgZQwHQYDVR0OBBYEFHhk9LVVH8Gt9ZgfxgyhSl92
-1XOhMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMCEGA1UdEgQa
-MBiBFmNlcnRpZmljYXRpb25Ab2lkZi5vcmcwLAYDVR0fBCUwIzAhoB+gHYYbaHR0
-cDovL2V4YW1wbGUuY29tL215Y2EuY3JsMAoGCCqGSM49BAMCA0kAMEYCIQCB7MlD
-X8n8PDNoXfVpnHwQRfLC3bZzAs3zkGrHt7X2LwIhAJPQaIyvIb4LJIa0R4HQSvk0
-4OnujikkVHszNwSbyFlZ
------END CERTIFICATE-----""""
-		)
-
-		val dsKey = AsymmetricKey.X509CertifiedExplicit(
-			X509CertChain(listOf(documentSignerCert)),
-			documentSignerKey,
-		)
+		// Document signer key with a runtime-minted DS certificate issued by the checked-in
+		// IACA root — see TestKeysAndCerts for the ISO/IEC 18013-5 Annex B profile details.
+		val dsKey = TestKeysAndCerts.documentSignerKey
 		provisionTestDocuments(
 			documentStore = documentStore!!,
 			secureArea = softwareSecureArea,
