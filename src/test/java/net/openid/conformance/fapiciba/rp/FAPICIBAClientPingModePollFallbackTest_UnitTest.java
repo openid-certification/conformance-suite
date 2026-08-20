@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.TestModule.Status;
+import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -45,6 +46,14 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 	}
 
 	@Test
+	public void controlledFallbackNeverIssuesTheFinalTokenResponse() {
+		TestableFallbackTest test = new TestableFallbackTest();
+
+		assertThat(test.shouldIssueFinalTokenResponse(1)).isFalse();
+		assertThat(test.shouldIssueFinalTokenResponse(3)).isFalse();
+	}
+
+	@Test
 	public void updatesIntervalBeforeTerminalResponseAndThenRejectsFurtherPolling() {
 		TestableFallbackTest test = new TestableFallbackTest();
 
@@ -66,6 +75,10 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 		private boolean startedWaitingForTimeout;
 		private Status lastStatus;
 
+		private TestableFallbackTest() {
+			cibaMode = CIBAMode.PING;
+		}
+
 		private boolean pingNotificationShouldBeSent() {
 			return shouldSendPingNotification();
 		}
@@ -86,6 +99,10 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 
 		private void clearConditionCalls() {
 			conditionCalls.clear();
+		}
+
+		private boolean shouldIssueFinalTokenResponse(int tokenPollCount) {
+			return shouldIssueFinalCibaTokenResponse(tokenPollCount);
 		}
 
 		@Override

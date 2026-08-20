@@ -673,16 +673,19 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected boolean shouldIssueFinalCibaTokenResponse(int tokenPollCount) {
-		if (CIBAMode.PING.equals(cibaMode)) {
-			return clientPingAttempted();
-		}
-
-		return clientHasPolledEnough(tokenPollCount);
+		return clientPingAttempted()
+			|| clientWasPinged()
+			|| clientHasPolledEnough(tokenPollCount);
 	}
 
 	private boolean clientPingAttempted() {
 		Boolean clientPingAttempted = env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED);
 		return CIBAMode.PING.equals(cibaMode) && clientPingAttempted != null && clientPingAttempted;
+	}
+
+	private boolean clientWasPinged() {
+		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
+		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
 	}
 
 	protected boolean clientPingResponseValidated() {

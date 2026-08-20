@@ -1,5 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
+import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
@@ -11,6 +12,11 @@ public class PingClientNotificationEndpointWithRetriesForBrazil extends PingClie
 	@Override
 	protected int getMaximumAttempts() {
 		return MAXIMUM_ATTEMPTS;
+	}
+
+	@Override
+	protected void markPingAttemptStarted(Environment env) {
+		env.putBoolean(CLIENT_PING_ATTEMPTED, true);
 	}
 
 	@Override
