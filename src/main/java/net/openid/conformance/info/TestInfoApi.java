@@ -5,10 +5,15 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.PublishResponse;
+import net.openid.conformance.apidoc.ShareLinkResponse;
+import net.openid.conformance.apidoc.TestInfoResponse;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
@@ -74,7 +79,8 @@ public class TestInfoApi {
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "getTestInfo", summary = "Get test information by test id")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+			@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestInfoResponse.class))),
 			@ApiResponse(responseCode = "404", description = "Couldn't find test information for provided testId")
 	})
 	public ResponseEntity<Object> getTestInfo(
@@ -114,7 +120,8 @@ public class TestInfoApi {
 	@Operation(operationId = "shareTest", summary = "Get private link to share test information",
 		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
 	})
 	public ResponseEntity<?> shareLink(
@@ -151,7 +158,8 @@ public class TestInfoApi {
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "publishTest", summary = "Publish a test information")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Published successfully"),
+			@ApiResponse(responseCode = "200", description = "Published successfully",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublishResponse.class))),
 			@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
 			@ApiResponse(responseCode = "403", description = "'publish' value is not valid")
 	})
