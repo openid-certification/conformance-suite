@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cose.Cose;
@@ -67,23 +68,12 @@ public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 			throw error("Failed to parse issuerAuth as COSE_Sign1", e);
 		}
 
-		// Extract X.509 certificate chain from unprotected headers
-		Map<CoseLabel, DataItem> unprotectedHeaders = coseSign1.getUnprotectedHeaders();
-		CoseNumberLabel x5chainLabel = new CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN);
-		DataItem x5chainItem = unprotectedHeaders.get(x5chainLabel);
-		if (x5chainItem == null) {
-			throw error("COSE_Sign1 unprotected headers missing x5chain (label 33)");
-		}
-
+		// Extract X.509 certificate chain from the issuerAuth unprotected headers
 		X509CertChain certChain;
 		try {
-			certChain = x5chainItem.getAsX509CertChain();
-		} catch (Exception e) {
-			throw error("Failed to parse x5chain from COSE_Sign1 unprotected headers", e);
-		}
-
-		if (certChain.getCertificates().isEmpty()) {
-			throw error("x5chain certificate chain is empty");
+			certChain = MdocUtil.extractX5chain(issuerSignedItem);
+		} catch (MdocUtil.MdocParseException e) {
+			throw error(e.getMessage(), e);
 		}
 
 		// Extract algorithm from protected headers
