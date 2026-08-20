@@ -89,6 +89,7 @@ import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
+import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
@@ -187,6 +188,13 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
 	"credential.trust_anchor_pem",
 	"credential.status_list_trust_anchor_pem"
+})
+// The VICAL-based issuer trust checks only apply to mdoc format credentials; the credential
+// trust anchor also serves as the mdoc IACA trust anchor when no VICAL is configured
+@VariantConfigurationFields(parameter = VP1FinalWalletCredentialFormat.class, value = "iso_mdl", configurationFields = {
+	"credential.vical",
+	"credential.vical_url",
+	"credential.trust_anchor_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletRequestMethod.class, value = "request_uri_multisigned", configurationFields = {
 	"client2.jwks",
@@ -317,6 +325,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		if (getVariant(VP1FinalWalletCredentialFormat.class) == VP1FinalWalletCredentialFormat.ISO_MDL) {
+			// register and validate the optionally configured VICAL used by the mdoc issuer
+			// trust checks in ValidateMdocCredential
+			call(sequence(SetupVicalFromConfiguration.class));
+		}
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
 			callAndContinueOnFailure(EnsureStatusListTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");

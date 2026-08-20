@@ -6,11 +6,13 @@ import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateMatchesIssuingCountry;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateProfile;
+import net.openid.conformance.condition.client.ValidateMdocIssuerChainAgainstVical;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
 import net.openid.conformance.condition.client.ValidateMdocTrustAnchorIacaCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 
 /**
  * Shared mdoc credential validation checks.
@@ -57,11 +59,33 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateMdocTrustAnchorIacaCertificateProfile.class,
 			ConditionResult.WARNING, "ISO18013-5-B.1.2");
 		if (haip) {
-			// mirrors the SD-JWT VC x5c chain validation; HAIP requires a configured trust anchor
-			callAndContinueOnFailure(ValidateMdocDsCertificateChain.class,
-				ConditionResult.FAILURE, "HAIP-6.1.1", "ISO18013-5-9.3.1");
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}
+		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
+		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
+		// responsible for its credentials' provenance, so it is only a WARNING.
+		call(condition(ValidateMdocIssuerChainAgainstVical.class)
+			.skipIfObjectsMissing("vical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-C.1.7.1"));
+		// PKIX-validate the issuerAuth x5chain against the 'Credential Trust Anchor' as the IACA
+		// root (the same config field the SD-JWT x5c check uses), mirroring the SD-JWT VC x5c
+		// chain validation. A configured VICAL supersedes the trust anchor, in which case the
+		// condition only performs the trust-anchor-independent chain checks. HAIP requires a
+		// configured trust anchor, so outside HAIP this is skipped when none is configured.
+		ConditionCallBuilder chainValidation = condition(ValidateMdocDsCertificateChain.class)
+			.onFail(haip || isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements(haip
+				? new String[] { "HAIP-6.1.1", "ISO18013-5-9.3.1" }
+				: new String[] { "ISO18013-5-9.3.1" });
+		if (!haip) {
+			chainValidation.skipIfStringsMissing("credential_trust_anchor_pem")
+				.onSkip(ConditionResult.INFO);
+		}
+		call(chainValidation);
 	}
 }

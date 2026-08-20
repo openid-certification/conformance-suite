@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.multipaz.documenttype.knowntypes.DrivingLicense;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,6 +58,21 @@ public class ValidateMdocDsCertificateChain_UnitTest {
 
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("self-signed"), e.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_ignoresTrustAnchorWhenVicalConfigured() throws Exception {
+		// a configured VICAL takes precedence over the trust anchor as the source of issuer
+		// trust, so even a non-matching anchor must not fail this condition
+		VicalTestFixtures.IssuerPki pki = VicalTestFixtures.generateIssuerPki();
+		MdocCredentialTestUtil.putCredential(env,
+			VicalTestFixtures.issuerSignedFromPki(pki, DrivingLicense.MDL_DOCTYPE));
+		env.putString("credential_trust_anchor_pem",
+			MdocDsCertificateTestFixtures.selfSignedCertPem("CN=Unrelated Trust Anchor"));
+		VicalTestFixtures.putVical(env,
+			VicalTestFixtures.goodSignedVical(List.of(pki.getIacaCert())));
+
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test

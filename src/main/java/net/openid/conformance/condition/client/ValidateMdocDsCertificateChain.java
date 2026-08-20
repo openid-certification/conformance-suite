@@ -23,7 +23,10 @@ import java.util.List;
  * clause 9.1.2.4 the IACA root certificate itself must not be included in the x5chain.
  * When a trust anchor is configured ('Trust anchor PEM' in the 'Credential Issuer' section
  * of the test configuration) full PKIX path validation is performed; otherwise only the
- * reduced checks (leaf validity, leaf not self-signed, parent-signature walk) run.
+ * reduced checks (leaf validity, leaf not self-signed, parent-signature walk) run. A
+ * configured VICAL takes precedence over the trust anchor: the chain is then validated
+ * against the VICAL's IACA list by ValidateMdocIssuerChainAgainstVical, and only the reduced
+ * checks run here.
  */
 public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertificateChain {
 
@@ -56,8 +59,16 @@ public class ValidateMdocDsCertificateChain extends AbstractValidateX5cCertifica
 		}
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(base64Certs);
 
-		String trustAnchorPem = env.getString("credential_trust_anchor_pem");
-		X509Certificate trustAnchor = parseTrustAnchorPem(trustAnchorPem);
+		// A configured VICAL takes precedence as the source of mdoc issuer trust; the chain is
+		// then evaluated against the VICAL's IACA list by ValidateMdocIssuerChainAgainstVical,
+		// and only the trust-anchor-independent chain checks are performed here.
+		X509Certificate trustAnchor = null;
+		if (env.getObject("vical") != null) {
+			log("A VICAL is configured, so the mdoc issuer certificate chain is evaluated against the"
+				+ " VICAL rather than the configured credential trust anchor");
+		} else {
+			trustAnchor = parseTrustAnchorPem(env.getString("credential_trust_anchor_pem"));
+		}
 		validateX5cCertificateChain(certs, trustAnchor);
 
 		logSuccess("Validated the mdoc x5chain document signer certificate chain",
