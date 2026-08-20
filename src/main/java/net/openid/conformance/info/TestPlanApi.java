@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -469,6 +470,78 @@ public class TestPlanApi implements DataUtils {
 			.collect(Collectors.toSet());
 
 		return new ResponseEntity<>(available, HttpStatus.OK);
+	}
+
+	// a literal path, like /plan/delete-status: no plan id can contain a hyphen
+	@GetMapping(value = "/plan/filter-options", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(operationId = "getPlanFilterOptions", summary = "The families and plan names a listing can be narrowed to",
+		description = "What `GET /api/plan`'s `family` and `plan` parameters accept, so that they can be "
+			+ "offered rather than typed. Plan names include the ones the suite no longer publishes - a "
+			+ "listing of old plans is mostly made of those, and they are exactly what somebody clearing "
+			+ "a database out is looking for - each marked `retired`.\n\n"
+			+ "Deliberately not `/api/plan/available`, which answers the same question but carries every "
+			+ "plan's modules, variants and configuration fields with it: 680 KB against this one's few.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+	})
+	public ResponseEntity<Object> getPlanFilterOptions() {
+
+		List<String> families = new ArrayList<>();
+		List<Map<String, Object>> plans = new ArrayList<>();
+
+		for (String family : specFamilyResolver.familyOrder()) {
+			// familyOrder ends with the two buckets a plan can fall into rather than families of
+			// their own ("No plan", "Other / retired"); neither has any plan name to offer, so
+			// both drop out here rather than being listed as a filter that matches nothing
+			Set<String> names = specFamilyResolver.plansEverIn(family);
+			if (names.isEmpty()) {
+				continue;
+			}
+			families.add(family);
+			names.stream().sorted().forEach(name -> plans.add(Map.of(
+				"name", name,
+				"family", family,
+				"retired", !specFamilyResolver.isKnownPlan(name))));
+		}
+
+		// parameter -> the values it may take, per plan: 25 KB for all of them, which is worth
+		// carrying here so that choosing a plan needs no second request. Only the names; the
+		// registry's own summary also holds display names, descriptions and the configuration
+		// fields each value shows or hides, which is 200 KB of what a filter has no use for.
+		Map<String, Map<String, List<String>>> variants = new TreeMap<>();
+		for (VariantService.TestPlanHolder holder : variantService.getTestPlans()) {
+			Map<String, List<String>> values = variantValues(holder.getVariantSummary());
+			if (!values.isEmpty()) {
+				variants.put(holder.info.testPlanName(), values);
+			}
+		}
+
+		return new ResponseEntity<>(
+			Map.of("families", families, "plans", plans, "variants", variants), HttpStatus.OK);
+	}
+
+	/**
+	 * @param summary what {@code TestPlanHolder.getVariantSummary()} answers: each plan level
+	 *                variant parameter mapped to its {@code variantInfo} and its
+	 *                {@code variantValues}
+	 * @return each of those parameters mapped to the value names alone, sorted; empty when the
+	 *         summary is not the shape this expects, so a change there narrows the filter
+	 *         controls rather than breaking the endpoint
+	 */
+	static Map<String, List<String>> variantValues(Object summary) {
+
+		if (!(summary instanceof Map<?, ?> parameters)) {
+			return Map.of();
+		}
+		Map<String, List<String>> values = new TreeMap<>();
+		for (Map.Entry<?, ?> parameter : parameters.entrySet()) {
+			if (parameter.getValue() instanceof Map<?, ?> details
+				&& details.get("variantValues") instanceof Map<?, ?> allowed) {
+				values.put(String.valueOf(parameter.getKey()),
+					allowed.keySet().stream().map(String::valueOf).sorted().toList());
+			}
+		}
+		return values;
 	}
 
 	// a literal path, like /plan/delete-status: no plan id can contain a hyphen

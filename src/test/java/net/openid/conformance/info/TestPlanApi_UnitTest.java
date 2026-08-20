@@ -14,8 +14,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -123,6 +126,51 @@ public class TestPlanApi_UnitTest {
 		InOrder inOrder = Mockito.inOrder(runningTest, infoService);
 		inOrder.verify(runningTest).stop(anyString());
 		inOrder.verify(infoService).deleteTests(testIds);
+	}
+
+	/** The shape {@code TestPlanHolder.getVariantSummary()} answers with. */
+	private static Map<String, Object> variantSummary(String parameter, String... values) {
+		Map<String, Object> allowed = new LinkedHashMap<>();
+		for (String value : values) {
+			allowed.put(value, Map.of("configurationFields", List.of(), "hidesConfigurationFields", List.of()));
+		}
+		return Map.of(parameter, Map.of(
+			"variantInfo", Map.of("displayName", "Client Authentication Type", "description", "..."),
+			"variantValues", allowed));
+	}
+
+	/**
+	 * What the filter controls are offered: the value names alone, out of a summary that also
+	 * carries display names, descriptions and the configuration fields each value shows or hides.
+	 */
+	@Test
+	public void variant_values_takes_the_value_names_and_nothing_else() {
+		assertThat(TestPlanApi.variantValues(variantSummary("client_auth_type", "private_key_jwt", "mtls")))
+			.isEqualTo(Map.of("client_auth_type", List.of("mtls", "private_key_jwt")));
+	}
+
+	@Test
+	public void variant_values_sorts_both_the_parameters_and_their_values() {
+		Map<String, Object> both = new LinkedHashMap<>();
+		both.putAll(variantSummary("client_auth_type", "private_key_jwt", "mtls"));
+		both.putAll(variantSummary("ciba_mode", "poll", "ping"));
+
+		assertThat(TestPlanApi.variantValues(both).keySet())
+			.containsExactly("ciba_mode", "client_auth_type");
+		assertThat(TestPlanApi.variantValues(both).get("ciba_mode")).containsExactly("ping", "poll");
+	}
+
+	/**
+	 * It walks a structure it is handed as {@code Object}, so a change to that shape must leave a
+	 * filter control with no options rather than an endpoint that fails.
+	 */
+	@Test
+	public void variant_values_yields_no_options_when_the_summary_is_not_the_expected_shape() {
+		assertThat(TestPlanApi.variantValues(null)).isEmpty();
+		assertThat(TestPlanApi.variantValues("not a map")).isEmpty();
+		assertThat(TestPlanApi.variantValues(Map.of("client_auth_type", "not a map either"))).isEmpty();
+		assertThat(TestPlanApi.variantValues(Map.of("client_auth_type", Map.of("variantInfo", Map.of()))))
+			.isEmpty();
 	}
 
 }
