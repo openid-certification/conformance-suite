@@ -2,6 +2,8 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.ValidateMdocIssuerChainAgainstTrustAnchor;
+import net.openid.conformance.condition.client.ValidateMdocIssuerChainAgainstVical;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
@@ -33,6 +35,12 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {
+		// Register and validate the optionally configured VICAL. Invoked here rather than at
+		// configure time so it only runs when an mdoc credential is actually validated (the
+		// FAPI2SP VCI modules don't know the credential format statically); the sequence is
+		// idempotent so repeated validation (e.g. batch issuance) doesn't repeat the work.
+		call(sequence(SetupVicalFromConfiguration.class));
+
 		if (isIssuance) {
 			callAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
@@ -45,5 +53,23 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}
+		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
+		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
+		// responsible for its credentials' provenance, so it is only a WARNING.
+		call(condition(ValidateMdocIssuerChainAgainstVical.class)
+			.skipIfObjectsMissing("vical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-C.1.7.1"));
+		// Fallback when no VICAL is configured: PKIX-validate the issuerAuth x5chain against
+		// the 'Credential Trust Anchor' as the IACA root (the same config field the SD-JWT
+		// x5c check uses; the condition does nothing when a VICAL is registered).
+		call(condition(ValidateMdocIssuerChainAgainstTrustAnchor.class)
+			.skipIfStringsMissing("credential_trust_anchor_pem")
+			.onSkip(ConditionResult.INFO)
+			.onFail(isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-9.3.1"));
 	}
 }

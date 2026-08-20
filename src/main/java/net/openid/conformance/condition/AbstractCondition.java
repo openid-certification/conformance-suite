@@ -866,6 +866,19 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return responseInfo;
 	}
 
+	/**
+	 * Variant of {@link #convertResponseForEnvironment(String, ResponseEntity)} for binary
+	 * responses: same shape (status, endpoint_name, headers) with the binary body omitted.
+	 * (A separate name as generic type erasure prevents a true overload.)
+	 */
+	protected JsonObject convertBinaryResponseForEnvironment(String endpointName, ResponseEntity<byte[]> response) {
+		JsonObject responseInfo = new JsonObject();
+		responseInfo.addProperty("status", response.getStatusCode().value());
+		responseInfo.addProperty("endpoint_name", endpointName); // for use in further logging
+		responseInfo.add("headers", mapToJsonObject(response.getHeaders(), true));
+		return responseInfo;
+	}
+
 	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response) {
 		return convertJsonResponseForEnvironment(endpointName, response, false);
 	}

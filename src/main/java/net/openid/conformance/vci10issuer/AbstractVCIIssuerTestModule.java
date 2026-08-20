@@ -134,6 +134,11 @@ import java.util.List;
 	"client2.scope",
 	"resource.resourceUrl"
 })
+// The VICAL-based issuer trust checks only apply to mdoc format credentials. Declared here
+// (not on the FAPI2SP base, which cannot scope by credential format) - the plans mixing
+// FAPI2SP modules with these modules aggregate this declaration for the whole plan.
+@VariantConfigurationFields(parameter = VCI1FinalCredentialFormat.class, value = "mdoc",
+	configurationFields = {"credential.vical", "credential.vical_url", "credential.trust_anchor_pem"})
 // VCI grant type configuration
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code",
 	configurationFields = {"vci.static_tx_code"})

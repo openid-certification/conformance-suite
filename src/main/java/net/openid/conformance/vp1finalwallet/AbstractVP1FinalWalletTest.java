@@ -188,6 +188,13 @@ import java.util.concurrent.TimeUnit;
 	"credential.trust_anchor_pem",
 	"credential.status_list_trust_anchor_pem"
 })
+// The VICAL-based issuer trust checks only apply to mdoc format credentials; the credential
+// trust anchor also serves as the mdoc IACA trust anchor when no VICAL is configured
+@VariantConfigurationFields(parameter = VP1FinalWalletCredentialFormat.class, value = "iso_mdl", configurationFields = {
+	"credential.vical",
+	"credential.vical_url",
+	"credential.trust_anchor_pem"
+})
 @VariantConfigurationFields(parameter = VP1FinalWalletRequestMethod.class, value = "request_uri_multisigned", configurationFields = {
 	"client2.jwks",
 	"client2.client_id"
