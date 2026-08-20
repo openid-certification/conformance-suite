@@ -193,7 +193,7 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Override
 	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter,
-																	String owner) {
+																	PlanOwner owner) {
 
 		Map<String, String> principal = authenticationFacade.isAdmin() ? null : authenticationFacade.getPrincipal();
 
@@ -222,14 +222,16 @@ public class DBTestPlanService implements TestPlanService {
 	 *
 	 * @param principal whose plans the caller may see at all, or null for an admin, who may
 	 *                  see everyone's
-	 * @param owner     the {@code owner.sub} the caller asked to narrow to, or null
+	 * @param owner     the account the caller asked to narrow to, or null. Both halves of it
+	 *                  are matched, because a {@code sub} names an account only within the
+	 *                  issuer that minted it - see {@link PlanOwner}
 	 * @return those criteria, or null when an admin asked for no narrowing and so may see
 	 *         every plan
 	 */
-	static Criteria ownerScope(Map<String, String> principal, String owner) {
+	static Criteria ownerScope(Map<String, String> principal, PlanOwner owner) {
 
 		Criteria mine = principal == null ? null : Criteria.where("owner").is(principal);
-		Criteria asked = owner == null ? null : Criteria.where("owner.sub").is(owner);
+		Criteria asked = owner == null ? null : owner.toCriteria();
 
 		if (mine == null) {
 			return asked;
@@ -244,11 +246,11 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Override
 	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter,
-																	String owner) {
+																	PlanOwner owner) {
 
 		if (!filter.isEmpty() || owner != null) {
 			Criteria scope = owner == null ? published()
-					: new Criteria().andOperator(published(), Criteria.where("owner.sub").is(owner));
+					: new Criteria().andOperator(published(), owner.toCriteria());
 			return page.getSliceResponse((search, pageable) ->
 					findSlice(scope, filter, search, pageable, PublicPlan.class));
 		}
@@ -310,29 +312,78 @@ public class DBTestPlanService implements TestPlanService {
 	 */
 	static Query listingQuery(Criteria scope, PlanListFilter filter, String search, Pageable pageable) {
 
-		Query query = new Query();
+		Query query = new Query(listingCriteria(scope, filter));
 
-		if (!filter.isEmpty()) {
-			Criteria criteria = filter.toCriteria();
-			rejectScopingFields(criteria.getCriteriaObject());
-			query.addCriteria(criteria);
-		}
 		if (search != null) {
-			// the term arrives quoted, so this is the same $text search the unfiltered
-			// listing runs through PlanRepository
+			// the term arrives quoted, so this is the same $text search the unfiltered listing
+			// runs through PlanRepository. Added to the query rather than composed above,
+			// because TextCriteria is not a Criteria and andOperator takes only those
 			query.addCriteria(TextCriteria.forDefaultLanguage().matching(search));
-		}
-		if (scope != null) {
-			// last, because Query.getQueryObject() merges the criteria documents in the order
-			// they were added: whatever decides what the caller may see has to be the winner
-			// of any collision, not the filter the caller sent
-			query.addCriteria(scope);
 		}
 
 		query.with(pageable);
 		query.limit(pageable.getPageSize() + 1);
 
 		return query;
+	}
+
+	/**
+	 * What the caller may see at all, narrowed by what they asked for.
+	 *
+	 * <p>Composed with {@code $and} rather than by adding each part to a {@link Query}. Adding
+	 * them merges their documents, which cannot express two clauses about one field and refuses
+	 * outright when two parts are about no single field: a filter's criteria and the two-clause
+	 * scope of somebody asking for another owner's plans are both keyed on null, so a listing
+	 * that had both threw {@code InvalidMongoDbApiUsageException} - a 500 for anyone but an
+	 * admin following a filtered link that names an owner. {@code $and} composes anything with
+	 * anything, and can only narrow, so scoping still wins whatever a filter asks for.
+	 *
+	 * @param scope  what the caller may see at all, or null for an admin who may see everything
+	 * @param filter the narrowing the caller asked for
+	 * @return those criteria; matches everything when there is nothing to narrow by
+	 */
+	static Criteria listingCriteria(Criteria scope, PlanListFilter filter) {
+
+		List<Criteria> parts = new ArrayList<>();
+
+		if (!filter.isEmpty()) {
+			Criteria criteria = filter.toCriteria();
+			rejectScopingFields(criteria.getCriteriaObject());
+			parts.add(criteria);
+		}
+		if (scope != null) {
+			parts.add(scope);
+		}
+
+		// one part on its own, so an ordinary listing keeps the plain query shape it always had
+		return switch (parts.size()) {
+			case 0 -> new Criteria();
+			case 1 -> parts.get(0);
+			default -> new Criteria().andOperator(parts.toArray(new Criteria[0]));
+		};
+	}
+
+	/**
+	 * The same thing as a query document, for a caller that wants the set of plans rather than a
+	 * page of them - the bulk delete counts and deletes them - and so has nothing to do with the
+	 * sorting, skipping and limiting {@link #listingQuery} applies.
+	 *
+	 * @param scope  what the caller may see at all, or null for an admin
+	 * @param filter the narrowing the caller asked for
+	 * @param search the quoted term to text search for, or null
+	 * @return that document
+	 */
+	static Document listingDocument(Criteria scope, PlanListFilter filter, String search) {
+
+		Document document = new Document(listingCriteria(scope, filter).getCriteriaObject());
+
+		if (search != null) {
+			// $text is only allowed at the top level of a query (or directly inside an $and),
+			// so it is merged in here rather than composed into the criteria above
+			document.putAll(TextCriteria.forDefaultLanguage().matching(search).getCriteriaObject());
+		}
+
+		return document;
 	}
 
 	/**
@@ -492,10 +543,14 @@ public class DBTestPlanService implements TestPlanService {
 		collection.createIndex(new Document("planName", 1).append("started", -1));
 		collection.createIndex(new Document("started", -1));
 
-		// Listing (and deleting) one account's plans over a period. Measured against a copy of
-		// production, where one owner has 57,845 plans older than a year: counting them went from
-		// 7.4 seconds to 16 milliseconds, and the whole bulk-delete preview from 12.2 seconds to
-		// 1.4. Costs 18 MB on a 2.5 GB collection.
+		// An ADMIN listing (or deleting) one account's plans over a period - `?owner=<sub>`.
+		// Measured against a copy of production, where one owner has 57,845 plans older than a
+		// year: counting them went from 7.4 seconds to 16 milliseconds, and the whole bulk-delete
+		// preview from 12.2 seconds to 1.4. Costs 18 MB on a 2.5 GB collection.
+		//
+		// It does NOT serve the ordinary "my plans" listing, which scopes on the whole `owner`
+		// sub-document rather than on `owner.sub` (see ownerScope) and so cannot use this index;
+		// that listing rides `started` and stops at a page, which is why it has never needed one.
 		collection.createIndex(new Document("owner.sub", 1).append("started", -1));
 	}
 

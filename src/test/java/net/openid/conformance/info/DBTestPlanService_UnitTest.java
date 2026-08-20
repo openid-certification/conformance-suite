@@ -28,6 +28,9 @@ class DBTestPlanService_UnitTest {
 
 	private static final Map<String, String> OWNER = Map.of("sub", "developer", "iss", "https://developer.com");
 
+	/** Another account entirely, as {@code ?owner=&owner_iss=} names one. */
+	private static final PlanOwner ASKED = new PlanOwner("somebody-else", "https://gitlab.com");
+
 	private static final Pageable SECOND_PAGE = PageRequest.of(1, 10, Sort.by(Sort.Order.desc("started")));
 
 	@Test
@@ -58,11 +61,14 @@ class DBTestPlanService_UnitTest {
 
 		Query query = DBTestPlanService.listingQuery(Criteria.where("owner").is(OWNER), filter, null, SECOND_PAGE);
 
-		assertThat(query.getQueryObject()).isEqualTo(new Document()
-			.append("owner", OWNER)
-			.append("planName", "fapi-ciba-id1-test-plan")
-			.append("variant.fapi_profile", "openbanking_brazil")
-			.append("started", new Document("$gte", "2026-06-01").append("$lt", "2026-07-01")));
+		// $and, not one merged document: two parts that are each about no single field cannot
+		// be merged, and $and can only ever narrow
+		assertThat(query.getQueryObject()).isEqualTo(new Document("$and", List.of(
+			new Document()
+				.append("planName", "fapi-ciba-id1-test-plan")
+				.append("variant.fapi_profile", "openbanking_brazil")
+				.append("started", new Document("$gte", "2026-06-01").append("$lt", "2026-07-01")),
+			new Document("owner", OWNER))));
 	}
 
 	@Test
@@ -71,23 +77,28 @@ class DBTestPlanService_UnitTest {
 
 		Query query = DBTestPlanService.listingQuery(DBTestPlanService.published(), filter, "\"ciba\"", SECOND_PAGE);
 
+		// $text stays at the top level, where it is the only place Mongo allows it outside an $and
 		assertThat(query.getQueryObject()).isEqualTo(new Document()
-			.append("publish", new Document("$in", List.of("summary", "everything")))
-			.append("certificationProfileName", "FAPI-CIBA: Poll w/ MTLS")
+			.append("$and", List.of(
+				new Document("certificationProfileName", "FAPI-CIBA: Poll w/ MTLS"),
+				new Document("publish", new Document("$in", List.of("summary", "everything")))))
 			.append("$text", new Document("$search", "\"ciba\"")));
 	}
 
 	@Test
-	void theScopingWinsIfAFilterEverCollidesWithIt() {
-		// no PlanListFilter can produce an owner or publish clause, so the collision is staged
-		// on the one field both can name: the scoping is added last, so the scoping is what
-		// the merged query document keeps
+	void aFilterCollidingWithTheScopingListsNothingRatherThanTheOtherOne() {
+		// no PlanListFilter can produce an owner or publish clause, so the collision is staged on
+		// the one field both can name. Both clauses survive, so the listing is empty: asking for
+		// a plan the scoping forbids answers nothing, rather than quietly answering with the
+		// plan the scoping does allow, which is what merging the documents used to do
 		PlanListFilter filter = new PlanListFilter(Set.of("some-other-plan"), Map.of(), null, null, null, null);
 
 		Query query = DBTestPlanService.listingQuery(
 			Criteria.where("planName").is("the-only-plan-you-may-see"), filter, null, SECOND_PAGE);
 
-		assertThat(query.getQueryObject()).isEqualTo(new Document("planName", "the-only-plan-you-may-see"));
+		assertThat(query.getQueryObject()).isEqualTo(new Document("$and", List.of(
+			new Document("planName", "some-other-plan"),
+			new Document("planName", "the-only-plan-you-may-see"))));
 	}
 
 	@Test
@@ -139,8 +150,18 @@ class DBTestPlanService_UnitTest {
 
 	@Test
 	void anAdminCanNarrowAListingToOneOwner() {
-		assertThat(DBTestPlanService.ownerScope(null, "developer").getCriteriaObject())
-			.isEqualTo(new Document("owner.sub", "developer"));
+		assertThat(DBTestPlanService.ownerScope(null, ASKED).getCriteriaObject())
+			.isEqualTo(new Document("owner.sub", "somebody-else").append("owner.iss", "https://gitlab.com"));
+	}
+
+	@Test
+	void narrowingToAnOwnerMatchesTheIssuerAsWellAsTheSub() {
+		// a sub names an account only within the issuer that minted it, and this suite has
+		// sixteen of them in production; the same scope drives the bulk delete, so a bare sub
+		// would be the wrong account's plans being deleted
+		Document criteria = DBTestPlanService.ownerScope(null, ASKED).getCriteriaObject();
+
+		assertThat(criteria.keySet()).containsExactlyInAnyOrder("owner.sub", "owner.iss");
 	}
 
 	@Test
@@ -153,10 +174,26 @@ class DBTestPlanService_UnitTest {
 	void namingAnOwnerCannotWidenWhatAnyoneElseMaySee() {
 		// both clauses survive, so asking for someone else's plans lists nothing at all rather
 		// than listing theirs; merging them into one document would drop the caller's own
-		Document criteria = DBTestPlanService.ownerScope(OWNER, "somebody-else").getCriteriaObject();
+		Document criteria = DBTestPlanService.ownerScope(OWNER, ASKED).getCriteriaObject();
 
 		assertThat(criteria).isEqualTo(new Document("$and", List.of(
 			new Document("owner", new Document(OWNER)),
-			new Document("owner.sub", "somebody-else"))));
+			new Document("owner.sub", "somebody-else").append("owner.iss", "https://gitlab.com"))));
+	}
+
+	@Test
+	void anotherUserAskingForAnOwnerAlongsideAFilterIsStillJustAnEmptyListing() {
+		// both ownerScope's two-clause form and a filter's criteria are keyed on null, and
+		// Query.addCriteria refuses a second null key - so composing them has to be an $and
+		PlanListFilter filter = new PlanListFilter(Set.of("a-plan"), Map.of(), null, null, null, null);
+
+		Query query = DBTestPlanService.listingQuery(
+			DBTestPlanService.ownerScope(OWNER, ASKED), filter, null, SECOND_PAGE);
+
+		assertThat(query.getQueryObject()).isEqualTo(new Document("$and", List.of(
+			new Document("planName", "a-plan"),
+			new Document("$and", List.of(
+				new Document("owner", new Document(OWNER)),
+				new Document("owner.sub", "somebody-else").append("owner.iss", "https://gitlab.com"))))));
 	}
 }
