@@ -1,6 +1,7 @@
 package net.openid.conformance.errorhandling;
 
 import com.google.common.base.Strings;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.webmvc.autoconfigure.error.AbstractErrorController;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
 
+@Hidden // internal endpoint, not part of the documented REST API
 @Controller
 public class FAPIErrorController extends AbstractErrorController {
 

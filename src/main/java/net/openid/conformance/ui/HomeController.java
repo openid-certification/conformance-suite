@@ -1,5 +1,6 @@
 package net.openid.conformance.ui;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import net.openid.conformance.security.AuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -46,6 +47,7 @@ import java.net.URI;
 // Absent under the `legacy-ui` profile: with no @GetMapping("/") in the context, Spring Boot's
 // WelcomePageHandlerMapping serves static-legacy/index.html at `/`, restoring the pre-redesign
 // root behaviour (the old UI had no `/` redirect — it relied on the static welcome page).
+@Hidden // internal endpoint, not part of the documented REST API
 @Controller
 @Profile("!legacy-ui")
 public class HomeController {
