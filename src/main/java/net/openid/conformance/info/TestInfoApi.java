@@ -122,7 +122,7 @@ public class TestInfoApi {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
 	})
 	public ResponseEntity<?> shareLink(
 		@Parameter(description = "Id of test that you want to publish") @PathVariable String testId,

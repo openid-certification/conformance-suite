@@ -758,12 +758,12 @@ public class TestRunner implements DataUtils {
 
 	@Operation(operationId = "visitBrowserUrl", summary = "Mark front-channel external URL as visited")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "204", description = "Visited url successfully"),
-		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
-		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
+		@ApiResponse(responseCode = "204", description = "Visited url successfully", content = @Content),
+		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found", content = @Content),
+		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information", content = @Content)
 	})
 	@PostMapping("/runner/browser/{id}/visit")
-	public ResponseEntity<String> visitBrowserUrl(@Parameter(description = "Id of test") @PathVariable("id") String testId,
+	public ResponseEntity<Void> visitBrowserUrl(@Parameter(description = "Id of test") @PathVariable("id") String testId,
 												  @Parameter(description = "Url which you want to visit") @RequestParam String url, Model m) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
