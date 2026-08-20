@@ -1,0 +1,68 @@
+---
+# AuthZEN Authorization API 1.0 — Certification Scenario fixture policy.
+# https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html
+#
+# Cerbos' AuthZEN adapter maps an AccessEvaluation request to the engine as:
+#   principal.id    <- subject.id
+#   principal.roles <- subject.properties.roles (list), else [subject.type]
+#   principal.attr  <- all of subject.properties
+#   resource.kind   <- resource.type            (no prefix)
+#   resource.id     <- resource.id
+#   resource.attr   <- all of resource.properties
+#   action          <- action.name              (action.properties are NOT forwarded)
+#
+# Consequently every fixture subject has the single Cerbos role "user" (from
+# subject.type); the admin is recognised via principal.attr.role, because the
+# fixture sends properties.role ("admin"), not the properties.roles list.
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: "default"
+  resource: "record"
+  rules:
+    # Rules 1 & 3: any user may read a record.
+    - name: read-any-user
+      actions: ["read"]
+      roles: ["user"]
+      effect: EFFECT_ALLOW
+
+    # Rule 6: an admin may write any record, including archived ones.
+    - name: write-admin-any
+      actions: ["write"]
+      roles: ["user"]
+      effect: EFFECT_ALLOW
+      condition:
+        match:
+          expr: >
+            has(request.principal.attr.role) &&
+            request.principal.attr.role == "admin"
+
+    # Rules 2 & 5: the owner (alice) may write a record unless it is archived.
+    # Rule 4 falls through to the default deny: bob is neither owner nor admin.
+    - name: write-owner-unless-archived
+      actions: ["write"]
+      roles: ["user"]
+      effect: EFFECT_ALLOW
+      condition:
+        match:
+          all:
+            of:
+              - expr: request.principal.id == "alice"
+              - expr: >
+                  !has(request.resource.attr.status) ||
+                  request.resource.attr.status != "archived"
+
+    # Rules 7 & 8: the owner (alice) may soft-delete but not hard-delete.
+    # `soft` is carried on the resource attributes because the AuthZEN adapter
+    # in Cerbos 0.55.0 does not forward action.properties to the engine.
+    - name: soft-delete-owner
+      actions: ["delete"]
+      roles: ["user"]
+      effect: EFFECT_ALLOW
+      condition:
+        match:
+          all:
+            of:
+              - expr: request.principal.id == "alice"
+              - expr: >
+                  has(request.resource.attr.soft) &&
+                  request.resource.attr.soft == true

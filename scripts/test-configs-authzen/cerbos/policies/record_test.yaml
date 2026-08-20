@@ -1,0 +1,136 @@
+---
+# The eight decision values the AuthZEN certification harness validates
+# (Section 4.4 of the certification scenario). Each principal/resource below is
+# expressed exactly as Cerbos' AuthZEN adapter would build it from the fixture
+# AccessEvaluation requests.
+name: AuthZENCertificationFixture
+description: AuthZEN Authorization API 1.0 certification fixture decisions (rules 1-8)
+
+principals:
+  # subject {type: user, id: alice}
+  alice:
+    id: alice
+    roles: ["user"]
+  # subject {type: user, id: bob}
+  bob:
+    id: bob
+    roles: ["user"]
+  # subject {type: user, id: bob, properties: {role: admin}}
+  bob_admin:
+    id: bob
+    roles: ["user"]
+    attr:
+      role: "admin"
+
+resources:
+  # resource {type: record, id: record-1} — no properties sent
+  record_1:
+    kind: record
+    id: record-1
+  # resource {type: record, id: record-2, properties: {status: archived}}
+  record_2_archived:
+    kind: record
+    id: record-2
+    attr:
+      status: "archived"
+  # record-1 with action.properties.soft=true routed onto the resource attr
+  record_1_soft_delete:
+    kind: record
+    id: record-1
+    attr:
+      soft: true
+  # record-1 with action.properties.soft=false routed onto the resource attr
+  record_1_hard_delete:
+    kind: record
+    id: record-1
+    attr:
+      soft: false
+
+tests:
+  - name: rule 1 — alice read record-1 is allowed
+    input:
+      principals: ["alice"]
+      resources: ["record_1"]
+      actions: ["read"]
+    expected:
+      - principal: alice
+        resource: record_1
+        actions:
+          read: EFFECT_ALLOW
+
+  - name: rule 2 — alice write record-1 is allowed
+    input:
+      principals: ["alice"]
+      resources: ["record_1"]
+      actions: ["write"]
+    expected:
+      - principal: alice
+        resource: record_1
+        actions:
+          write: EFFECT_ALLOW
+
+  - name: rule 3 — bob read record-1 is allowed
+    input:
+      principals: ["bob"]
+      resources: ["record_1"]
+      actions: ["read"]
+    expected:
+      - principal: bob
+        resource: record_1
+        actions:
+          read: EFFECT_ALLOW
+
+  - name: rule 4 — bob write record-1 is denied
+    input:
+      principals: ["bob"]
+      resources: ["record_1"]
+      actions: ["write"]
+    expected:
+      - principal: bob
+        resource: record_1
+        actions:
+          write: EFFECT_DENY
+
+  - name: rule 5 — alice write archived record-2 is denied
+    input:
+      principals: ["alice"]
+      resources: ["record_2_archived"]
+      actions: ["write"]
+    expected:
+      - principal: alice
+        resource: record_2_archived
+        actions:
+          write: EFFECT_DENY
+
+  - name: rule 6 — admin write archived record-2 is allowed
+    input:
+      principals: ["bob_admin"]
+      resources: ["record_2_archived"]
+      actions: ["write"]
+    expected:
+      - principal: bob_admin
+        resource: record_2_archived
+        actions:
+          write: EFFECT_ALLOW
+
+  - name: rule 7 — alice soft-delete record-1 is allowed
+    input:
+      principals: ["alice"]
+      resources: ["record_1_soft_delete"]
+      actions: ["delete"]
+    expected:
+      - principal: alice
+        resource: record_1_soft_delete
+        actions:
+          delete: EFFECT_ALLOW
+
+  - name: rule 8 — alice hard-delete record-1 is denied
+    input:
+      principals: ["alice"]
+      resources: ["record_1_hard_delete"]
+      actions: ["delete"]
+    expected:
+      - principal: alice
+        resource: record_1_hard_delete
+        actions:
+          delete: EFFECT_DENY

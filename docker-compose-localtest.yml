@@ -30,6 +30,44 @@ services:
      - "8445:8445"
     depends_on:
      - server
+
+  cerbos:
+    # Cerbos PDP server used for AuthZEN evaluation(s) endpoint tests
+    image: ghcr.io/cerbos/cerbos:0.55.0
+    volumes:
+      - ./scripts/test-configs-authzen/cerbos/policies:/policies
+    ports:
+      - "3592:3592"
+
+  cerbos-authzen-adapter:
+    # The image bundles the adapter script and generates its own self-signed TLS
+    # pair at build time, so no cert/key is kept in the repository. Rebuild after
+    # editing cerbos-authzen-adapter.js:
+    #   docker compose -f docker-compose-localtest.yml build cerbos-authzen-adapter
+    build:
+      context: ./scripts/test-configs-authzen/cerbos-authzen-adapter
+    environment:
+      CERBOS_URL: http://cerbos:3592
+      LISTEN_PORT: "9090"
+      # Serve HTTPS with the self-signed pair baked into the image (see its
+      # Dockerfile); unset either one to fall back to plain HTTP.
+      TLS_CERT: /certs/cert.pem
+      TLS_KEY: /certs/key.pem
+      # Advertise where clients actually reach the PDP: the adapter itself, on
+      # HTTP or HTTPS at localhost:9090. Behind a real TLS-terminating proxy set these to
+      # the external scheme/host, e.g. FORWARDED_PROTO=https and
+      # FORWARDED_HOST=cerbos.example.com:9443 (the port must be in the host).
+      FORWARDED_PROTO: https
+      FORWARDED_HOST: cerbos-authzen-adapter:9090
+      # Set true when another reverse proxy in front already sets
+      # X-Forwarded-Proto/Host, so its values are preserved (config becomes a
+      # fallback used only when the inbound header is absent).
+      TRUST_FORWARDED_HEADERS: "false"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - cerbos
+
   server:
     build:
       context: ./server-dev
