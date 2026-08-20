@@ -9,6 +9,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build --stats-json",
     "test-storybook": "vitest --project=storybook --run",
+    "test:unit": "vitest run --project=unit",
     "chromatic": "chromatic",
     "lint:jsdoc": "bash scripts/lint-jsdoc-properties.sh",
     "lint:icons": "bash scripts/lint-icon-names.sh",
@@ -21,7 +22,7 @@
     "codegen": "bash scripts/codegen.sh",
     "codegen:offline": "bash scripts/codegen.sh --offline",
     "codegen:check": "bash scripts/codegen.sh --check",
-    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:icons && npm run lint:lit-analyzer && npm run codegen:check",
+    "test:ci": "npm run format:check && npm run lint && npm run test:unit && npm run type-check && npm run lint:jsdoc && npm run lint:icons && npm run lint:lit-analyzer && npm run codegen:check",
     "test": "npm run test:ci && npm run test-storybook"
   },
   "engines": {

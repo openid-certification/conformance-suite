@@ -78,8 +78,14 @@ frontend_e2e_test:
   <<: *frontend-rules
 
 # frontend_lint: runs the same `npm run test:ci` chain contributors run locally
-# (format:check + lint + type-check + lint:jsdoc). Parallel to `build` (needs: []);
+# (format:check + lint + test:unit + type-check + lint:jsdoc + lint:icons +
+# lint:lit-analyzer + codegen:check). Parallel to `build` (needs: []);
 # conceptually a peer of `check-trailing-whitespace` in the build stage.
+#
+# test:unit (vitest --project=unit) is included here specifically because no
+# other job runs it — frontend_e2e_test only runs the Storybook/Playwright
+# projects, so a plain-JS unit-test regression would otherwise go unnoticed
+# by CI until someone ran it locally (see #1917).
 #
 # Blocking since 2026-08-13 (the R22/R23 sunset): two weeks green on master,
 # legacy-override tier in eslint.config.js empty, and the a11y gate's
