@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 public class SwaggerConfig {
@@ -113,9 +114,21 @@ public class SwaggerConfig {
 	}
 
 	/**
-	 * Document the authentication-layer 401 on every operation. Merged into an operation's own
-	 * 401 where one is declared (POST /api/runner uses 401 for an immutable plan). /jwks is
-	 * excluded: it is permitAll in the security configuration.
+	 * The GET operations WebSecurityResourceServerConfig's public matcher permits without
+	 * authentication when ?public=true requests published data. Must be kept in sync with
+	 * {@code WebSecurityResourceServerConfig.getPublicMatcher()}.
+	 */
+	private static final Set<String> OPTIONAL_AUTH_OPERATION_IDS = Set.of(
+		"getSpecLinks", "getTestInfo", "listTestLogs", "getTestLog", "exportTestLog",
+		"listTestPlans", "getTestPlan", "exportPlanLogs");
+
+	/**
+	 * Document the authentication-layer 401 on every operation, and correct the security
+	 * requirement where the document-wide bearerAuth default is wrong: the operations behind
+	 * the ?public=true matcher accept anonymous requests for published data (bearer auth OR
+	 * nothing). The 401 is merged into an operation's own 401 where one is declared
+	 * (POST /api/runner uses 401 for an immutable plan). /jwks is excluded: it is permitAll
+	 * and clears its security requirement via an empty @SecurityRequirements.
 	 */
 	@Bean
 	public GlobalOperationCustomizer documentAuthenticationResponses() {
@@ -124,6 +137,12 @@ public class SwaggerConfig {
 		return (operation, handlerMethod) -> {
 			if (handlerMethod.getBeanType() == JwksEndpoint.class) {
 				return operation;
+			}
+			if (OPTIONAL_AUTH_OPERATION_IDS.contains(operation.getOperationId())) {
+				// [{bearerAuth}, {}]: authentication is optional — anonymous callers may request published data
+				operation.setSecurity(List.of(
+					new SecurityRequirement().addList(BEARER_AUTH_SCHEME),
+					new SecurityRequirement()));
 			}
 			ApiResponse existing = operation.getResponses().get("401");
 			if (existing != null) {
