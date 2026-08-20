@@ -73,7 +73,7 @@ public class TestPlanApi implements DataUtils {
 	private TestRunnerSupport testRunnerSupport;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Create test plan")
+	@Operation(operationId = "createTestPlan", summary = "Create test plan")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Created test plan successfully"),
 		@ApiResponse(responseCode = "400", description = "Unknown variant parameter(s) for the plan"),
@@ -178,7 +178,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get a list of test plan instances with paging")
+	@Operation(operationId = "listTestPlans", summary = "Get a list of test plan instances with paging")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -194,7 +194,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@PostMapping("/plan/{id}/share")
-	@Operation(summary = "Get private link to share test plan",
+	@Operation(operationId = "shareTestPlan", summary = "Get private link to share test plan",
 		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
@@ -220,7 +220,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get test plan information by plan id")
+	@Operation(operationId = "getTestPlan", summary = "Get test plan information by plan id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
@@ -281,7 +281,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@PostMapping(value = "/plan/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Publish a test plan by plan Id")
+	@Operation(operationId = "publishTestPlan", summary = "Publish a test plan by plan Id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Published test plan successfully"),
 		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
@@ -313,7 +313,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@PostMapping(value = "/plan/{id}/makemutable", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.TEXT_HTML_VALUE)
-	@Operation(summary = "Make a test plan mutable again (requires administrator privileges)")
+	@Operation(operationId = "makeTestPlanMutable", summary = "Make a test plan mutable again (requires administrator privileges)")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Made the test plan mutable again successfully"),
 		@ApiResponse(responseCode = "400", description = "Could not find plan"),
@@ -331,7 +331,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/info/{planName}")
-	@Operation(summary = "Get information for one test plan by name")
+	@Operation(operationId = "getTestPlanInfo", summary = "Get information for one test plan by name")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
@@ -362,7 +362,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/available")
-	@Operation(summary = "Get a list of available test plans and their attributes")
+	@Operation(operationId = "listAvailableTestPlans", summary = "Get a list of available test plans and their attributes")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -386,7 +386,7 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@DeleteMapping(value = "/plan/{id}")
-	@Operation(summary = "Delete a test plan and related configuration. Requires the plan to be mutable.")
+	@Operation(operationId = "deleteTestPlan", summary = "Delete a test plan and related configuration. Requires the plan to be mutable.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "204", description = "Deleted successfully"),
 		@ApiResponse(responseCode = "403", description = "Insufficient permissions to delete test plan"),

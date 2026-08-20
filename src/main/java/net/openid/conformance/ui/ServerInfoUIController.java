@@ -24,7 +24,7 @@ public class ServerInfoUIController {
 	 * @return the info of server
 	 */
 	@GetMapping(value = "/api/server", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get server information")
+	@Operation(operationId = "getServerInfo", summary = "Get server information")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})

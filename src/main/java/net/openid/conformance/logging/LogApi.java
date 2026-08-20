@@ -110,7 +110,7 @@ public class LogApi {
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(summary = "Get all test logs with paging", description = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
+	@Operation(operationId = "listTestLogs", summary = "Get all test logs with paging", description = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -141,7 +141,7 @@ public class LogApi {
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(summary = "Get test log of given testId")
+	@Operation(operationId = "getTestLog", summary = "Get test log of given testId")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -156,7 +156,7 @@ public class LogApi {
 
 	@GetMapping(value = "/log/export/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(summary = "Export test log by test id")
+	@Operation(operationId = "exportTestLog", summary = "Export test log by test id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
@@ -217,7 +217,7 @@ public class LogApi {
 	// the HTML-zip variant /api/plan/exporthtml/{id}. Kept for direct API callers.
 	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(summary = "Export all test logs of plan by plan id")
+	@Operation(operationId = "exportPlanLogs", summary = "Export all test logs of plan by plan id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
@@ -610,7 +610,7 @@ public class LogApi {
 
 	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
+	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully"),
 		@ApiResponse(responseCode = "403", description = "Could not publish plan"),
@@ -741,7 +741,7 @@ public class LogApi {
 	// "Download all Logs" — the JS appends ?public=true in that mode.
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
-	@Operation(summary = "Export the full results for this plan as both html and json in a zip")
+	@Operation(operationId = "exportPlanLogsHtml", summary = "Export the full results for this plan as both html and json in a zip")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
@@ -999,7 +999,7 @@ public class LogApi {
 	// ?public=true in that mode.
 	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
 	@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
-	@Operation(summary = "Export test logs as html by test id")
+	@Operation(operationId = "exportTestLogHtml", summary = "Export test logs as html by test id")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Exported successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")

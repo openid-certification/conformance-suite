@@ -58,7 +58,7 @@ public class ImageAPI {
 	private ImageService imageService;
 
 	@PostMapping(path = "/log/{id}/images")
-	@Operation(summary = "Upload image for a test log")
+	@Operation(operationId = "uploadTestImage", summary = "Upload image for a test log")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
 		@ApiResponse(responseCode = "400", description = "Image validation failure"),
@@ -106,7 +106,7 @@ public class ImageAPI {
 	}
 
 	@PostMapping(path = "/log/{id}/images/{placeholder}")
-	@Operation(summary = "Upload the image to existing log entry")
+	@Operation(operationId = "uploadTestImageToPlaceholder", summary = "Upload the image to existing log entry")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
 		@ApiResponse(responseCode = "400", description = "Image validation failure"),
@@ -145,7 +145,7 @@ public class ImageAPI {
 	}
 
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get all the images for a test")
+	@Operation(operationId = "listTestImages", summary = "Get all the images for a test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
 		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")

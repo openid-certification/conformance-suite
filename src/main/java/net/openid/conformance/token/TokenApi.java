@@ -34,7 +34,7 @@ public class TokenApi {
 	private AuthenticationFacade authenticationFacade;
 
 	@GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get a list of existing tokens")
+	@Operation(operationId = "listTokens", summary = "Get a list of existing tokens")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
@@ -44,7 +44,7 @@ public class TokenApi {
 	}
 
 	@PostMapping(value = "/token", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Create new token")
+	@Operation(operationId = "createToken", summary = "Create new token")
 	@ApiResponses({
 		@ApiResponse(responseCode = "201", description = "Created token successfully"),
 		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin")
@@ -69,7 +69,7 @@ public class TokenApi {
 	}
 
 	@DeleteMapping(value = "/token/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Delete existing token by token Id")
+	@Operation(operationId = "deleteToken", summary = "Delete existing token by token Id")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Deleted token successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find provided token Id")
