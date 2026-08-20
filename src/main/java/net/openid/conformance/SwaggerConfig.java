@@ -9,7 +9,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -69,18 +68,41 @@ public class SwaggerConfig {
 					new Tag().name(TAG_USER_AND_PREFERENCES).description("The current user and their saved preferences"),
 					new Tag().name(TAG_SERVER).description("Information about this conformance suite deployment")))
 				.info(new Info().title("OpenID Conformance Suite REST APIs")
-						.description("This page lists the REST APIs for the OpenID Conformance suite."
-							+ " To call APIs you must supply a bearer token, which can be either:"
+						.description("The REST APIs for driving the OpenID Conformance Suite."
+							+ " <h3>Authentication</h3>"
+							+ " To call the APIs supply a bearer token, which can be either:"
 							+ " <ul>"
 							+ "   <li>an API token obtained from the <a href='/tokens.html'>token management page</a> (full access, scoped to the token's owner), or</li>"
 							+ "   <li>a share-link JWT issued by <code>POST /api/info/{testId}/share</code> or <code>POST /api/plan/{id}/share</code> (read-only access scoped to the shared plan and its tests).</li>"
 							+ " </ul>"
-							+ " There is a <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>python script that drives the API</a> available, which is used in our own CI and provides functionality like allowing known failures to be suppressed.")
-						.version(version)
-						.license(new License().name("MIT License").url("https://gitlab.com/openid/conformance-suite/-/blob/master/LICENSE.txt")))
+							+ " <h3>Typical workflow</h3>"
+							+ " Most users want to run a test plan and collect its results:"
+							+ " <ol>"
+							+ "   <li>Find the plan to run, its variants and its configuration fields:"
+							+ " <a href='#/Test%20Plans/listAvailableTestPlans'><code>GET /api/plan/available</code></a>."
+							+ " (Tip: after creating the plan once in the <a href='/schedule-test.html'>web UI</a>,"
+							+ " <a href='#/User%20&amp;%20Preferences/getLastConfig'><code>GET /api/lastconfig</code></a> returns the"
+							+ " plan name, variant selection and configuration JSON needed for the next step.)</li>"
+							+ "   <li>Create a plan instance: <a href='#/Test%20Plans/createTestPlan'><code>POST /api/plan?planName=...&amp;variant=...</code></a> with the configuration JSON."
+							+ " The response contains the plan <code>id</code> and the list of <code>modules</code> to run.</li>"
+							+ "   <li>For each module, create a test instance with <a href='#/Test%20Runner/createTest'><code>POST /api/runner?test={testModule}&amp;plan={planId}</code></a>,"
+							+ " then wait for it to finish with <a href='#/Test%20Runner/waitForTestState'><code>GET /api/runner/{id}/wait-state</code></a>"
+							+ " (or by polling <a href='#/Test%20Information/getTestInfo'><code>GET /api/info/{id}</code></a>)."
+							+ " A test in the <code>WAITING</code> state needs interaction: <a href='#/Test%20Runner/getTestStatus'><code>GET /api/runner/{id}</code></a> lists any front-channel URLs to visit.</li>"
+							+ "   <li>Read the outcome from <a href='#/Test%20Information/getTestInfo'><code>GET /api/info/{id}</code></a> (<code>status</code> and <code>result</code>)"
+							+ " and the detailed log from <a href='#/Test%20Logs/getTestLog'><code>GET /api/log/{id}</code></a>.</li>"
+							+ "   <li>Download the plan's results with <a href='#/Test%20Plans/exportPlanLogsHtml'><code>GET /api/plan/exporthtml/{id}</code></a>,"
+							+ " or prepare a certification package with <a href='#/Test%20Plans/prepareCertificationPackage'><code>POST /api/plan/{id}/certificationpackage</code></a>.</li>"
+							+ " </ol>"
+							+ " The <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>run-test-plan.py script</a>"
+							+ " implements this whole flow (it is what our own CI uses) and adds functionality like suppressing known failures;"
+							+ " the tutorial linked below shows how to use it."
+							+ " <p>The raw OpenAPI document behind this page is available at the <code>/v3/api-docs</code> link under the title above,"
+							+ " and can be fed to an OpenAPI client generator.</p>")
+						.version(version))
 				.externalDocs(new ExternalDocumentation()
-						.description("OpenID Conformance Wiki Documentation")
-						.url("https://gitlab.com/openid/conformance-suite/-/wikis/home"))
+						.description("Step-by-step tutorial: automated conformance testing and certification package creation")
+						.url("https://gitlab.com/openid/conformance-suite-automated-testing-tutorial"))
 				.components(new Components().addSecuritySchemes(BEARER_AUTH_SCHEME,
 					new SecurityScheme()
 						.type(SecurityScheme.Type.HTTP)
