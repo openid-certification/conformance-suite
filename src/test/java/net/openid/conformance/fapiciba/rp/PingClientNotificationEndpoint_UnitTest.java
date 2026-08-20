@@ -70,19 +70,45 @@ public class PingClientNotificationEndpoint_UnitTest {
 	}
 
 	@Test
-	public void recordsPingBeforeCallingClientNotificationEndpoint() {
+	public void recordsGenericPingOnlyAfterClientNotificationEndpointSucceeds() {
 		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
 			.thenAnswer(invocation -> {
-				assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isTrue();
-				assertThat(env.getBoolean("client_was_pinged")).isTrue();
+				assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isNull();
+				assertThat(env.getBoolean("client_was_pinged")).isNull();
 				return new ResponseEntity<>("{}", HttpStatus.NO_CONTENT);
 			});
 
 		cond.execute(env);
 
 		assertThat(env.getInteger("client_notification_endpoint_response_http_status")).isEqualTo(HttpStatus.NO_CONTENT.value());
+		assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isNull();
+		assertThat(env.getBoolean("client_was_pinged")).isTrue();
+	}
+
+	@Test
+	public void recordsBrazilPingAttemptBeforeClientNotificationEndpointSucceeds() {
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenAnswer(invocation -> {
+				assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isTrue();
+				assertThat(env.getBoolean("client_was_pinged")).isNull();
+				return new ResponseEntity<>("{}", HttpStatus.NO_CONTENT);
+			});
+
+		retryCond.execute(env);
+
 		assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isTrue();
 		assertThat(env.getBoolean("client_was_pinged")).isTrue();
+	}
+
+	@Test
+	public void doesNotRecordFailedGenericPingAsDelivered() {
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+
+		assertThatThrownBy(() -> cond.execute(env)).isInstanceOf(ConditionError.class);
+
+		assertThat(env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED)).isNull();
+		assertThat(env.getBoolean("client_was_pinged")).isNull();
 	}
 
 	@Test
