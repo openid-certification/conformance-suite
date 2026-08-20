@@ -57,9 +57,10 @@ public class TestInfoApi {
 	private TestPlanService planService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(operationId = "listAllTestInfo", summary = "Get information of all test module instances", description = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
+	@Operation(operationId = "listAllTestInfo", summary = "Get information of all test module instances", deprecated = true, description = "This API is disabled due to performance concerns and always returns 400. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+			@ApiResponse(responseCode = "400", description = "Always returned: the API is disabled",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "string", description = "Explanatory message (a JSON string)")))
 	})
 	public ResponseEntity<Object> getAllTests() {
 //		List<TestInfo> testInfo = null;
@@ -122,6 +123,7 @@ public class TestInfoApi {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
+		@ApiResponse(responseCode = "403", description = "Not permitted for private-link (guest) users", content = @Content),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
 	})
 	public ResponseEntity<?> shareLink(

@@ -622,7 +622,6 @@ public class LogApi {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully",
 			content = @Content(mediaType = "application/zip", schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "403", description = "Could not publish plan", content = @Content),
-		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id", content = @Content),
 		@ApiResponse(responseCode = "422", description = "Tests failed/incomplete or plan id unknown (JSON body), or the plan could not be marked immutable (empty body)",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CertificationPackageErrorResponse.class)))
 	})
