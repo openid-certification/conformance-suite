@@ -74,7 +74,7 @@ public class ImageAPI {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
 		@ApiResponse(responseCode = "400", description = "Image validation failure",
 			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
-		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image", content = @Content)
 	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(
 		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = IMAGE_BODY_DESCRIPTION,
@@ -127,7 +127,7 @@ public class ImageAPI {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
 		@ApiResponse(responseCode = "400", description = "Image validation failure",
 			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
-		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image", content = @Content)
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
 		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = IMAGE_BODY_DESCRIPTION,
@@ -167,7 +167,7 @@ public class ImageAPI {
 	@Operation(operationId = "listTestImages", summary = "Get all the images for a test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to list a test's images")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to list a test's images", content = @Content)
 	})
 	public ResponseEntity<Object> getAllImages(@Parameter(description = "Id of test") @PathVariable(name = "id") String testId) {
 

@@ -86,7 +86,7 @@ public class TestPlanApi implements DataUtils {
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PlanCreatedResponse.class))),
 		@ApiResponse(responseCode = "400", description = "Unknown variant parameter(s), invalid alias, or no applicable test modules for the variant",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test plan"),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test plan", content = @Content),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
@@ -239,7 +239,7 @@ public class TestPlanApi implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The plan document"))),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
 	})
 	public ResponseEntity<Object> getTestPlan(
 		@Parameter(description = "Id of test plan") @PathVariable String id,
@@ -301,8 +301,8 @@ public class TestPlanApi implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Published test plan successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublishResponse.class))),
-		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
-		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id")
+		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive", content = @Content),
+		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id", content = @Content)
 	})
 	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of the test plan to publish") @PathVariable String id,
 												  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerConfig.DESC_PUBLISH_BODY,

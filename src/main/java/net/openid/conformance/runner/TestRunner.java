@@ -225,10 +225,10 @@ public class TestRunner implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Created test successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestCreatedResponse.class))),
-		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
+		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module", content = @Content),
 		@ApiResponse(responseCode = "401", description = "The plan is immutable, so new tests cannot be created in it (note this condition uses 401)", content = @Content),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find configuration of plan Id you provided"),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find configuration of plan Id you provided", content = @Content),
 		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
 		@ApiResponse(responseCode = "500", description = "Test creation failed",
@@ -527,7 +527,7 @@ public class TestRunner implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Started test successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
-		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found")
+		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found", content = @Content)
 	})
 	@PostMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> startTest(@Parameter(description = "Id of test that you want to run") @PathVariable("id") String testId) {
@@ -569,7 +569,7 @@ public class TestRunner implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
-		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found")
+		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found", content = @Content)
 	})
 	@GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> getTestStatus(@Parameter(description = "Id of test that you want to get status") @PathVariable("id") String testId, Model m) {
@@ -694,7 +694,7 @@ public class TestRunner implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background)",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
-		@ApiResponse(responseCode = "404", description = "The test you were trying to cancel is not found")
+		@ApiResponse(responseCode = "404", description = "The test you were trying to cancel is not found", content = @Content)
 	})
 	@DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> cancelTest(@Parameter(description = "Id of test that you want to cancel") @PathVariable("id") String testId) {
@@ -733,8 +733,8 @@ public class TestRunner implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BrowserStatusResponse.class))),
-		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
-		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
+		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found", content = @Content),
+		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information", content = @Content)
 	})
 	@GetMapping(value = "/runner/browser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> getBrowserStatus(@Parameter(description = "Id of test") @PathVariable("id") String testId,

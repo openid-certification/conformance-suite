@@ -55,7 +55,7 @@ public class TokenApi {
 	@ApiResponses({
 		@ApiResponse(responseCode = "201", description = "Created token successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TokenCreatedResponse.class))),
-		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin")
+		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin", content = @Content)
 	})
 	public ResponseEntity<Object> createToken(
 		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Pass {\"permanent\": true} for a token that never expires; anything else (including omitting the field) creates a token valid for "
@@ -83,8 +83,8 @@ public class TokenApi {
 	@DeleteMapping(value = "/token/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "deleteToken", summary = "Delete existing token by token Id")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Deleted token successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find provided token Id")
+		@ApiResponse(responseCode = "200", description = "Deleted token successfully", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find provided token Id", content = @Content)
 	})
 	public ResponseEntity<Object> deleteToken(@Parameter(description = "Id of token, use to identify a specific token") @PathVariable String id) {
 

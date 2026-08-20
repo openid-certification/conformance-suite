@@ -86,7 +86,7 @@ public class TestInfoApi {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestInfoResponse.class))),
-			@ApiResponse(responseCode = "404", description = "Couldn't find test information for provided testId")
+			@ApiResponse(responseCode = "404", description = "Couldn't find test information for provided testId", content = @Content)
 	})
 	public ResponseEntity<Object> getTestInfo(
 			@Parameter(description = "Id of test") @PathVariable String id,
@@ -166,8 +166,8 @@ public class TestInfoApi {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Published successfully",
 				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublishResponse.class))),
-			@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
-			@ApiResponse(responseCode = "403", description = "'publish' value is not valid")
+			@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive", content = @Content),
+			@ApiResponse(responseCode = "403", description = "'publish' value is not valid", content = @Content)
 	})
 	public ResponseEntity<Object> publishTestInfo(
 			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
