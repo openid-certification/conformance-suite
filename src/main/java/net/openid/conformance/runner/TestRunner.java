@@ -15,7 +15,6 @@ import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.apidoc.BrowserStatusResponse;
 import net.openid.conformance.apidoc.ErrorResponse;
 import net.openid.conformance.apidoc.TestCreatedResponse;
-import net.openid.conformance.apidoc.TestInterruptedErrorResponse;
 import net.openid.conformance.apidoc.TestStatusResponse;
 import net.openid.conformance.apidoc.WaitStateReached;
 import net.openid.conformance.apidoc.WaitStateTimeout;
@@ -222,7 +221,7 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
 
-	@Operation(operationId = "createTest", summary = "Create test module instance", description = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
+	@Operation(operationId = "createTest", summary = "Create test module instance", description = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test. Configuration and startup run in a background task: failures there are not returned from this call — they surface as status INTERRUPTED and in the result field via GET /api/info/{id}, with details in the test log.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Created test successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestCreatedResponse.class))),
@@ -232,8 +231,8 @@ public class TestRunner implements DataUtils {
 		@ApiResponse(responseCode = "401", description = "The plan is immutable, so new tests cannot be created in it (note this condition uses 401)", content = @Content),
 		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
-		@ApiResponse(responseCode = "500", description = "Test creation failed, or the test failed while starting",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(oneOf = {ErrorResponse.class, TestInterruptedErrorResponse.class}))),
+		@ApiResponse(responseCode = "500", description = "Test creation failed",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
 	})
 	@PostMapping(value = "/runner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@Parameter(description = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
@@ -524,13 +523,11 @@ public class TestRunner implements DataUtils {
 		support.addAlias(alias, id);
 	}
 
-	@Operation(operationId = "startTest", summary = "Start test by id")
+	@Operation(operationId = "startTest", summary = "Start test by id", description = "The start happens in a background task: startup failures are not returned from this call — they surface via GET /api/info/{id} and the test log.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Started test successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestStatusResponse.class))),
-		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found"),
-		@ApiResponse(responseCode = "500", description = "The test failed while starting",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestInterruptedErrorResponse.class)))
+		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found")
 	})
 	@PostMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> startTest(@Parameter(description = "Id of test that you want to run") @PathVariable("id") String testId) {
