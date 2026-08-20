@@ -764,6 +764,38 @@ class CtsLogViewer extends LitElement {
   }
 
   /**
+   * Total per-result-type counts across the whole stream, unscoped to any
+   * block. Powers the sticky status bar's pill cluster (#1915) the same way
+   * `findings` powers the failure hero: `/api/info` never serializes a
+   * per-condition breakdown, so this is the only place the data exists in
+   * production. `startBlock` marker rows have no `result` of their own and
+   * fall out of every bucket without special-casing.
+   * @returns {{success: number, failure: number, warning: number, review: number, info: number}} Counts keyed by lowercase result type.
+   */
+  get resultCounts() {
+    const counts = { success: 0, failure: 0, warning: 0, review: 0, info: 0 };
+    for (const entry of this._entries) {
+      const key = (entry.result || "").toLowerCase();
+      if (key in counts) counts[key] += 1;
+    }
+    return counts;
+  }
+
+  /**
+   * Count of entries carrying an `upload` placeholder id across the whole
+   * stream. Powers the overflow menu's "Upload Images (N)" count (#1915)
+   * for the same reason `resultCounts` exists: `/api/info` never serializes
+   * `testInfo.results`, so a count derived from it was always zero in
+   * production. Deliberately NOT filtered through `selectFindings` first —
+   * an upload can land on a SUCCESS entry (e.g. a proof screenshot on a
+   * passing manual step), which `selectFindings` excludes.
+   * @returns {number} Number of entries with a truthy `upload` field.
+   */
+  get uploadCount() {
+    return this._entries.filter((entry) => entry.upload).length;
+  }
+
+  /**
    * Walk `_entries` once and bucket each entry's `result` under its
    * `blockId`. Trusts the backend's chronological-with-`blockId`
    * contract: a `startBlock` entry seeds an empty bucket; subsequent
