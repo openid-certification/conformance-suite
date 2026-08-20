@@ -169,6 +169,7 @@ class WebSecurityOidcLoginConfig {
 					"/test-mtls/**",  //
 					"/test/**",  //
 					"/jwks**",  //
+					"/mdoc-iaca-root.pem", // mdoc IACA root trust anchor for verifiers/wallets under test
 					"/logout.html", //
 					"/robots.txt",  //
 					"/.well-known/**", //
