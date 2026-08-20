@@ -56,12 +56,17 @@ object VciMdocUtils {
 		val dsKey: AsymmetricKey.X509Certified = if (issuerSigningJwk != null) {
 			val issuerJwk = JWK.parse(issuerSigningJwk).toECKey()
 			val privateKey = convertJwkToEcPrivateKey(issuerJwk)
-			val cert = if (issuerJwk.x509CertChain != null && issuerJwk.x509CertChain.isNotEmpty()) {
-				X509Cert(ByteString(issuerJwk.x509CertChain[0].decode()))
-			} else {
-				TestKeysAndCerts.documentSignerCert
+			// VCIEnsureCredentialSigningCertificateIsNotSelfSigned enforces this at test start;
+			// this backstop avoids silently pairing the configured key with the built-in
+			// certificate, which would produce an unverifiable IssuerAuth signature.
+			if (issuerJwk.x509CertChain.isNullOrEmpty()) {
+				throw IllegalArgumentException(
+					"The 'Signing JWK' field in the 'Credential Issuer' section of the test " +
+						"configuration must contain the signing certificate chain in its 'x5c' claim"
+				)
 			}
-			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(cert)), privateKey)
+			val chain = issuerJwk.x509CertChain.map { X509Cert(ByteString(it.decode())) }
+			AsymmetricKey.X509CertifiedExplicit(X509CertChain(chain), privateKey)
 		} else {
 			TestKeysAndCerts.documentSignerKey
 		}
