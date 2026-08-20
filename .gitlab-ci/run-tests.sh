@@ -694,12 +694,11 @@ makeSsfTests() {
 
 makeAuthzenTests() {
    # Certification Profile payload tests
-#   TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
-#   TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 #   TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 #   TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 #   TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
-    :
 }
 
 makeLocalProviderTests() {

@@ -1540,6 +1540,11 @@ async def main():
                 or re.match(r'authzen-pdp-evaluations-deny-on-first-deny', m)
                 or re.match(r'authzen-pdp-evaluations-permit-on-first-permit', m)
                 or re.match(r'authzen-pdp-evaluations-unknown-semantic-value', m)
+                # no search implementations
+                or re.match(r'authzen-pdp-subject-search-', m)
+                or re.match(r'authzen-pdp-resource-search-', m)
+                or re.match(r'authzen-pdp-action-search-', m)
+
             ):
                 untested_test_modules.remove(m)
                 continue
