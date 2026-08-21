@@ -925,6 +925,16 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // selectPlanByName stopped bumping it) would run clearConfigForNewPlan and
     // trip this spy.
     expect(await page.evaluate(() => /** @type {any} */ (window).__clearConfigCalls)).toBe(0);
+
+    // GL#1897: "Load last configuration" is selectPlanByName()'s third
+    // caller (alongside ?test_plan= and ?from-plan=/?edit-plan=) — a
+    // system-chosen plan, not a hand-picked one, so it collapses the full
+    // picker into the summary card too.
+    await expect(page.locator("#planSelectedSummary")).toBeVisible();
+    await expect(page.locator("#planSearch")).toBeHidden();
+    await expect(page.locator("#planSelectedName")).toHaveText(
+      "OpenID Connect Client: Basic Certification",
+    );
   });
 
   test("R13/U11: page load probes /api/lastconfig but does not apply it", async ({ page }) => {
