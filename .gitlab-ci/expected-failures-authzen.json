@@ -1,38 +1,54 @@
 [
     {
         "test-name": "authzen-pdp-evaluations-evaluation-level-errors",
-        "variant": "*",
-        "configuration-filename": "authzen-cerbos-test-config.json",
+        "variant": {
+            "authzen_support": "properties",
+            "pdp_auth_type": "none",
+            "pdp_server_metadata": "discovery"
+        },
+        "configuration-filename": "/conformance-suite/scripts/test-configs-authzen/authzen-cerbos-test-config.json",
         "current-block": "Make request to API endpoint",
         "condition": "EnsureHttpStatusCodeIs200",
         "expected-result": "failure",
-        "comment": "Cerbos return error for response instead of 200 with deny"
+        "comment": "Cerbos does not support "
     },
     {
         "test-name": "authzen-pdp-evaluations-evaluation-level-errors",
-        "variant": "*",
-        "configuration-filename": "authzen-cerbos-test-config.json",
+        "variant": {
+            "authzen_support": "properties",
+            "pdp_auth_type": "none",
+            "pdp_server_metadata": "discovery"
+        },
+        "configuration-filename": "/conformance-suite/scripts/test-configs-authzen/authzen-cerbos-test-config.json",
         "current-block": "Make request to API endpoint",
         "condition": "EnsureValidEvaluationsResponse",
         "expected-result": "failure",
-        "comment": "Cerbos return error for response instead of 200 with deny"
+        "comment": "Cerbos does not support"
     },
     {
         "test-name": "authzen-pdp-evaluations-missing-subject-returns-decision-false",
-        "variant": "*",
-        "configuration-filename": "authzen-cerbos-test-config.json",
+        "variant": {
+            "authzen_support": "properties",
+            "pdp_auth_type": "none",
+            "pdp_server_metadata": "discovery"
+        },
+        "configuration-filename": "/conformance-suite/scripts/test-configs-authzen/authzen-cerbos-test-config.json",
         "current-block": "Make request to API endpoint",
-        "condition": "EnsureValidEvaluationsResponse",
+        "condition": "EnsureHttpStatusCodeIs200",
         "expected-result": "failure",
-        "comment": "Cerbos return error for response instead of 200 with deny"
+        "comment": "**CHANGE ME** explain why this failure occurs"
     },
     {
         "test-name": "authzen-pdp-evaluations-missing-subject-returns-decision-false",
-        "variant": "*",
-        "configuration-filename": "authzen-cerbos-test-config.json",
+        "variant": {
+            "authzen_support": "properties",
+            "pdp_auth_type": "none",
+            "pdp_server_metadata": "discovery"
+        },
+        "configuration-filename": "/conformance-suite/scripts/test-configs-authzen/authzen-cerbos-test-config.json",
         "current-block": "Make request to API endpoint",
         "condition": "EnsureValidEvaluationsResponse",
         "expected-result": "failure",
-        "comment": "Cerbos return error for response instead of 200 with deny"
+        "comment": "**CHANGE ME** explain why this failure occurs"
     }
 ]
