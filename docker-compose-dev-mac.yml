@@ -7,7 +7,12 @@ services:
   mongodb:
     image: mongo:6.0.13
     volumes:
-     - ./mongo/data:/data/db
+     # a named volume rather than a bind mount: Docker Desktop's VirtioFS file sharing
+     # (the only backend since gRPC-FUSE was removed) presents bind-mounted files as
+     # root-owned and ignores chown, so mongod (running as uid 999) fails at startup
+     # with "WiredTiger ... handle-open: open: Operation not permitted" (EPERM from
+     # its O_NOATIME open, which the kernel only permits for the file owner)
+     - mongodb-data:/data/db
   nginx:
     build:
       context: ./nginx
@@ -46,3 +51,6 @@ services:
       options:
         max-size: "500k"
         max-file: "5"
+
+volumes:
+  mongodb-data:

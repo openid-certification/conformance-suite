@@ -14,7 +14,12 @@ services:
   mongodb:
     image: mongo:6.0.13
     volumes:
-     - ./mongo/data:/data/db:delegated
+     # a named volume rather than a bind mount: Docker Desktop's VirtioFS file sharing
+     # (the only backend since gRPC-FUSE was removed) presents bind-mounted files as
+     # root-owned and ignores chown, so mongod (running as uid 999) fails at startup
+     # with "WiredTiger ... handle-open: open: Operation not permitted" (EPERM from
+     # its O_NOATIME open, which the kernel only permits for the file owner)
+     - mongodb-data:/data/db
     ports:
      - "27017:27017"
   nginxlocal:
@@ -32,3 +37,6 @@ services:
     extra_hosts:
       # the special host-gateway value resolves to the internal IP address of the host.
       - "server:host-gateway"
+
+volumes:
+  mongodb-data:
