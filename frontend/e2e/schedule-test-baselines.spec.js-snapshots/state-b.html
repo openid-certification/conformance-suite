@@ -372,6 +372,55 @@
         </div>
       </div>
     </cts-test-selector>
+            <!-- GL#1897: shown instead of #planSearch when the plan arrived via
+                 a preset/shared-configuration URL param (?test_plan=,
+                 ?from-plan=/?edit-plan=) or "Load last configuration", rather
+                 than an in-page pick — see selectPlanByName()/
+                 showPlanSelectedSummary() below. "Change" swaps back to the
+                 full picker. -->
+            <div id="planSelectedSummary" class="plan-selected-summary" hidden="">
+                <cts-card tone="orange"><div class="oidf-card"><div class="oidf-card-bar" style="background: var(--orange-400);"></div><div class="oidf-card-body">
+                    <div class="resolved-plan">
+                        <span class="pip" aria-hidden="true"><cts-icon name="shield-check" size="24"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
+        <use href="/vendor/coolicons/icons/shield-check.svg#i"></use>
+      </svg></cts-icon></span>
+                        <div class="resolved-plan-body">
+                            <p class="plan-name-display" id="planSelectedName"></p>
+                            <div class="plan-meta" id="planSelectedMeta"></div>
+                        </div>
+                        <cts-button id="planSelectedChangeBtn" size="sm" variant="secondary" label="Change"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary"><!--?lit$NNNN$--><!--?lit$NNNN$--><!--?lit$NNNN$-->Change</button></cts-button>
+                    </div>
+                </div></div></cts-card>
+            </div>
             <!-- Wrap the variant selectors so the scroll-in flash wash (fired
                  after a search-list plan pick) covers the selection group. It
                  is the scroll + flash target for revealPlanSelection(). See
