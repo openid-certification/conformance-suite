@@ -97,14 +97,7 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 					.status(400)
 					.body(useAttestationChallengeErrorBody)
 					.header("Content-Type", "application/json")
-					.header("OAuth-Client-Attestation-Challenge", "the-challenge")),
-			service("attestation-challenge-no-header.example.com")
-				.post("/par")
-				.anyBody()
-				.willReturn(HoverflyDsl.response()
-					.status(400)
-					.body(useAttestationChallengeErrorBody)
-					.header("Content-Type", "application/json"))));
+					.header("OAuth-Client-Attestation-Challenge", "the-challenge"))));
 		hoverfly.resetJournal();
 
 		cond = new CallPAREndpointAllowingDpopNonceError();
@@ -124,46 +117,23 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 		assertThat(env.getString("par_endpoint_use_attestation_challenge_error")).isNull();
 	}
 
-	@Test
-	public void testFlagsUseAttestationChallengeFromError() {
-		env.putString("server", "pushed_authorization_request_endpoint", "https://attestation-challenge.example.com/par");
-		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
-		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
-
-		cond.execute(env);
-
-		assertThat(env.getString("par_endpoint_use_attestation_challenge_error")).isEqualTo("use_attestation_challenge");
-		assertThat(env.getString("par_endpoint_dpop_nonce_error")).isNull();
-	}
-
-	@Test
-	public void testFailsWhenUseAttestationChallengeErrorMissesChallengeHeader() {
-		env.putString("server", "pushed_authorization_request_endpoint", "https://attestation-challenge-no-header.example.com/par");
-		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
-		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
-
-		assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertThat(env.getString("par_endpoint_use_attestation_challenge_error")).isNull();
-	}
-
 	/**
-	 * Simulates the retry loop in
-	 * {@link net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule#callParEndpointAndStopOnFailure}:
-	 * the first call returns 400 use_attestation_challenge (flag set), and a follow-up call to a
-	 * success endpoint clears the flag via evaluate()'s removeNativeValue.
+	 * use_attestation_challenge is an attestation-specific error, so the plain DPoP-nonce wrapper —
+	 * used for private_key_jwt/mtls (+DPoP) flows — must NOT flag it as retryable: the module's retry
+	 * loop would otherwise mask an AS wrongly returning it (once, then succeeding on retry) instead of
+	 * the 400 surfacing as a test failure. Recognition lives only in
+	 * {@link CallPAREndpointAllowingDpopNonceOrUseAttestationChallengeError}.
 	 */
 	@Test
-	public void testRetryClearsUseAttestationChallengeFlagOnSuccess() {
+	public void testIgnoresUseAttestationChallengeErrorForNonAttestationAuth() {
 		env.putString("server", "pushed_authorization_request_endpoint", "https://attestation-challenge.example.com/par");
 		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
 		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
-		cond.execute(env);
-		assertThat(env.getString("par_endpoint_use_attestation_challenge_error"))
-			.isEqualTo("use_attestation_challenge");
 
-		env.putString("server", "pushed_authorization_request_endpoint", "https://dpop-success-no-nonce.example.com/par");
 		cond.execute(env);
+
 		assertThat(env.getString("par_endpoint_use_attestation_challenge_error")).isNull();
+		assertThat(env.getString("par_endpoint_dpop_nonce_error")).isNull();
 	}
 
 	@Test

@@ -34,10 +34,12 @@ import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoi
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
+import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceOrUseAttestationChallengeError;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingUseAttestationChallengeError;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceOrUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
@@ -690,14 +692,25 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	 */
 	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
 		final int MAX_RETRY = 2;
+		boolean clientAttestation = getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION;
 
 		if (isDpop()) {
+			// use_attestation_challenge is only a legitimate, retryable error for client_attestation;
+			// for other auth types the plain DPoP-nonce wrapper is used so the 400 fails the test.
+			// A valid combined flow can need one retry per recoverable error type — e.g. use_dpop_nonce,
+			// then use_attestation_challenge, then success — hence one extra attempt for client_attestation.
+			final int maxAttempts = clientAttestation ? MAX_RETRY + 1 : MAX_RETRY;
+			Class<? extends Condition> callTokenEndpoint = clientAttestation
+				? CallTokenEndpointAllowingDpopNonceOrUseAttestationChallengeErrorAndReturnFullResponse.class
+				: CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class;
 			int i = 0;
-			while(i < MAX_RETRY){
+			while(i < maxAttempts){
 				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
-				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
-				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
+				callAndStopOnFailure(callTokenEndpoint, requirements);
+				if (clientAttestation) {
+					callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
+				}
 				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))
 					&& Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
@@ -705,7 +718,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				}
 				++i;
 			}
-		} else if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+		} else if (clientAttestation) {
 			int i = 0;
 			while(i < MAX_RETRY){
 				addClientAuthenticationToTokenEndpointRequest();
@@ -1225,13 +1238,24 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	 */
 	protected void callParEndpointAndStopOnFailure(String... requirements) {
 		final int MAX_RETRY = 2;
+		boolean clientAttestation = getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION;
 		if (isDpop() && useDpopAuthCodeBinding) {
+			// use_attestation_challenge is only a legitimate, retryable error for client_attestation;
+			// for other auth types the plain DPoP-nonce wrapper is used so the 400 fails the test.
+			// A valid combined flow can need one retry per recoverable error type — e.g. use_dpop_nonce,
+			// then use_attestation_challenge, then success — hence one extra attempt for client_attestation.
+			final int maxAttempts = clientAttestation ? MAX_RETRY + 1 : MAX_RETRY;
+			Class<? extends Condition> callParEndpoint = clientAttestation
+				? CallPAREndpointAllowingDpopNonceOrUseAttestationChallengeError.class
+				: CallPAREndpointAllowingDpopNonceError.class;
 			int i = 0;
-			while(i < MAX_RETRY){
+			while(i < maxAttempts){
 				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
-				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
-				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
+				callAndStopOnFailure(callParEndpoint, requirements);
+				if (clientAttestation) {
+					callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
+				}
 				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))
 					&& Strings.isNullOrEmpty(env.getString("par_endpoint_use_attestation_challenge_error"))) {
@@ -1239,7 +1263,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				}
 				++i;
 			}
-		} else if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+		} else if (clientAttestation) {
 			int i = 0;
 			while(i < MAX_RETRY){
 				addClientAuthenticationToPAREndpointRequest();

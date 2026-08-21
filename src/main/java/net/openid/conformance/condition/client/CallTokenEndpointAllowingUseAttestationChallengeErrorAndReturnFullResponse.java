@@ -18,8 +18,9 @@ import java.util.List;
  * {@link ExtractClientAttestationChallengeFromResponseHeader} so the next attempt picks up the freshly
  * returned {@code OAuth-Client-Attestation-Challenge}.
  *
- * <p>Use this on non-DPoP code paths; the DPoP-nonce wrapper
- * {@link CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse} already detects both errors.
+ * <p>Use this on non-DPoP client_attestation code paths; for DPoP + client_attestation use
+ * {@link CallTokenEndpointAllowingDpopNonceOrUseAttestationChallengeErrorAndReturnFullResponse},
+ * which detects both errors.
  */
 public class CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
 

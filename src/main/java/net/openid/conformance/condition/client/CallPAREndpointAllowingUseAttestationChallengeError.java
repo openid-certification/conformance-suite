@@ -16,7 +16,8 @@ import java.util.List;
  * {@link ExtractClientAttestationChallengeFromResponseHeader} so the next attempt picks up the freshly
  * returned {@code OAuth-Client-Attestation-Challenge}.
  *
- * <p>Use this on non-DPoP code paths; {@link CallPAREndpointAllowingDpopNonceError} already detects both errors.
+ * <p>Use this on non-DPoP client_attestation code paths; for DPoP + client_attestation use
+ * {@link CallPAREndpointAllowingDpopNonceOrUseAttestationChallengeError}, which detects both errors.
  */
 public class CallPAREndpointAllowingUseAttestationChallengeError extends CallPAREndpoint {
 

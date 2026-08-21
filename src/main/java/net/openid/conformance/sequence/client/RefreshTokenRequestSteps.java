@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceOrUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -104,11 +105,17 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		callAndStopOnFailure(WaitForOneSecond.class);
 
 		if (isDpop) {
+			// use_attestation_challenge is only a legitimate, retryable error for client_attestation;
+			// for other auth types the plain DPoP-nonce wrapper is used so the 400 fails the test.
+			Class<? extends Condition> callTokenEndpoint = clientAttestation
+				? CallTokenEndpointAllowingDpopNonceOrUseAttestationChallengeErrorAndReturnFullResponse.class
+				: CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class;
+
 			// we generate a new key here, to check the server handles that correctly - so this isn't suitable for
 			// public clients where the refresh token is bound to the dpop key
 			callAndStopOnFailure(GenerateDpopKey.class);
 			call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
-			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+			callAndStopOnFailure(callTokenEndpoint);
 			if (clientAttestation) {
 				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 				harvestClientAttestationChallengeResponseHeader();
@@ -127,7 +134,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 					.onSkip(ConditionResult.INFO));
 			});
 
-			call(condition(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class)
+			call(condition(callTokenEndpoint)
 				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
 				.onSkip(ConditionResult.INFO));
 			call(exec().endBlock());
@@ -136,7 +143,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 				// retry request if token_endpoint_use_attestation_challenge_error is found
 				// (draft-ietf-oauth-attestation-based-client-auth-07 §6.2). Re-running the auth sequence
 				// regenerates the client_attestation PoP using the just-harvested OAuth-Client-Attestation-Challenge.
-				retryOnUseAttestationChallengeError(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+				retryOnUseAttestationChallengeError(callTokenEndpoint);
 			}
 
 		} else if (clientAttestation) {
