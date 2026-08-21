@@ -11,14 +11,29 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 /**
- * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and
- * {@code use_attestation_challenge} errors
- * (draft-ietf-oauth-attestation-based-client-auth-07 §6.2), exposing flags so the caller can retry.
+ * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and stores the
+ * required nonce for retry.
+ *
+ * <p>{@code use_attestation_challenge} (draft-ietf-oauth-attestation-based-client-auth-07 §6.2) is an
+ * attestation-specific error, so this class deliberately does NOT treat it as retryable — for
+ * private_key_jwt/mtls (+DPoP) flows an AS returning it is misbehaving and the 400 must surface as a test
+ * failure rather than be masked by a retry. Use
+ * {@link CallPAREndpointAllowingDpopNonceOrUseAttestationChallengeError} on client_attestation flows,
+ * where the error is a legitimate challenge-(re)issuance path.
  */
 public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 
 	/** The nonce the server supplied on this response, or null if it supplied none. */
 	private String suppliedDpopNonce;
+
+	/**
+	 * Whether a 400 {@code use_attestation_challenge} response is flagged as retryable via
+	 * {@code par_endpoint_use_attestation_challenge_error}. Only the client_attestation subclass returns
+	 * true; for every other client auth type the error is invalid and must fail the test downstream.
+	 */
+	protected boolean recognizeUseAttestationChallengeError() {
+		return false;
+	}
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -53,7 +68,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
 			env.putString("par_endpoint_dpop_nonce_error", dpopNonce);
 			env.putObject("par_endpoint_response", env.getElementFromObject(RESPONSE_KEY, "body_json").getAsJsonObject());
-		} else if ("use_attestation_challenge".equals(errorCode)) {
+		} else if ("use_attestation_challenge".equals(errorCode) && recognizeUseAttestationChallengeError()) {
 			// Per draft-ietf-oauth-attestation-based-client-auth-07 §6.2, the use_attestation_challenge
 			// error MUST be accompanied by exactly one non-empty OAuth-Client-Attestation-Challenge
 			// response header.

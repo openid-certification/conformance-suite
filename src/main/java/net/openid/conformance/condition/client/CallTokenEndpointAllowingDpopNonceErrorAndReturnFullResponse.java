@@ -15,14 +15,28 @@ import java.util.List;
 
 /**
  * Wrapper around {@link CallTokenEndpointAndReturnFullResponse} that recognizes a {@code use_dpop_nonce} 400
- * response and exposes the supplied DPoP-Nonce so the caller can retry, and likewise recognizes an
- * {@code use_attestation_challenge} 400 response (draft-ietf-oauth-attestation-based-client-auth-07 §6.2)
- * so the caller can retry with a freshly harvested {@code OAuth-Client-Attestation-Challenge}.
+ * response and exposes the supplied DPoP-Nonce so the caller can retry.
+ *
+ * <p>{@code use_attestation_challenge} (draft-ietf-oauth-attestation-based-client-auth-07 §6.2) is an
+ * attestation-specific error, so this class deliberately does NOT treat it as retryable — for
+ * private_key_jwt/mtls (+DPoP) flows an AS returning it is misbehaving and the 400 must surface as a test
+ * failure rather than be masked by a retry. Use
+ * {@link CallTokenEndpointAllowingDpopNonceOrUseAttestationChallengeErrorAndReturnFullResponse} on
+ * client_attestation flows, where the error is a legitimate challenge-(re)issuance path.
  */
 public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
 
 	/** The nonce the server supplied on this response, or null if it supplied none. */
 	private String suppliedDpopNonce;
+
+	/**
+	 * Whether a 400 {@code use_attestation_challenge} response is flagged as retryable via
+	 * {@code token_endpoint_use_attestation_challenge_error}. Only the client_attestation subclass returns
+	 * true; for every other client auth type the error is invalid and must fail the test downstream.
+	 */
+	protected boolean recognizeUseAttestationChallengeError() {
+		return false;
+	}
 
 	// WARNING optional token_endpoint_dpop_nonce_error / token_endpoint_use_attestation_challenge_error
 	// returned with the respective nonce / challenge value.
@@ -62,7 +76,7 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
 			env.putString("token_endpoint_dpop_nonce_error", dpopNonce);
 			env.putObject("token_endpoint_response", env.getElementFromObject("token_endpoint_response_full", "body_json").getAsJsonObject());
-		} else if ("use_attestation_challenge".equals(errorCode)) {
+		} else if ("use_attestation_challenge".equals(errorCode) && recognizeUseAttestationChallengeError()) {
 			// Per draft-ietf-oauth-attestation-based-client-auth-07 §6.2, the use_attestation_challenge
 			// error MUST be accompanied by the OAuth-Client-Attestation-Challenge response header so the
 			// client has a fresh challenge to retry with. If it isn't (missing, repeated, or empty), the
