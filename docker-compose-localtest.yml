@@ -94,6 +94,7 @@ services:
     depends_on:
      - mongodb
      - oidcc-provider
+     - cerbos-authzen-adapter
     logging:
       # make sure we keep a reasonable amount of logs, as there's no other way to see results on the CI
       driver: "json-file"
