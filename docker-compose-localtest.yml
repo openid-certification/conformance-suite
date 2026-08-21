@@ -116,3 +116,18 @@ services:
     entrypoint:
       - "../conformance-suite/.gitlab-ci/run-tests.sh"
       - "--local-provider-tests"
+  authzen-test:
+    depends_on:
+      - cerbos-authzen-adapter
+    build:
+      context: ./test
+    environment:
+      CONFORMANCE_SERVER: https://nginx:8443/
+      CONFORMANCE_SERVER_MTLS: https://nginx:8444/
+      CONFORMANCE_DEV_MODE: 1
+    volumes:
+      - "./:/conformance-suite/"
+    working_dir: "/conformance-suite"
+    entrypoint:
+      - "../conformance-suite/.gitlab-ci/run-tests.sh"
+      - "--authzen-tests"

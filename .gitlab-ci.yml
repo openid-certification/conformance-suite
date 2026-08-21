@@ -475,10 +475,39 @@ ekyc_test:
     - run_ekyc_test_plan
 
 authzen_test:
-  <<: *deployment_test
+  stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
+  interruptible: true
+  image: docker:27.3.1
+  services:
+    - docker:dind
+  needs: ["build"]
   script:
-    - set_up_for_running_test_plan
-    - run_authzen_test_plan
+    - apk add docker-compose
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx
+    - sleep 5
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" cerbos-authzen-adapter
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run authzen-test
+  after_script:
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" cerbos-authzen-adapter > $CI_PROJECT_DIR/cerbos-authzen-adapter-log.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
+  artifacts:
+    access: developer
+    when: always
+    paths:
+      - cerbos-authzen-adapter.txt
+      - server-log.txt
+      - mongo/data/mongodb-dump.gz
+      - "*.zip"
 
 panva_test:
   <<: *deployment_test
