@@ -1486,6 +1486,140 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // family-matching row active (e.g. by keying on spec family instead of
     // plan name) would still pass the assertion above; pin the count to one.
     await expect(selectedPlanRow(page)).toHaveCount(1);
+
+    // GL#1897: a system-chosen plan (deep-link) collapses the full picker
+    // into a compact summary card instead of leaving the big search widget
+    // expanded — the search row assertions above still hold because hiding
+    // an ancestor does not remove its light-DOM descendants or their
+    // classes, only their visibility.
+    const summary = page.locator("#planSelectedSummary");
+    await expect(summary).toBeVisible();
+    await expect(page.locator("#planSearch")).toBeHidden();
+    await expect(page.locator("#planSelectedName")).toHaveText(
+      "OpenID Connect Client: Basic Certification",
+    );
+    await expect(page.locator("#planSelectedMeta")).toContainText("OIDCC");
+    await expect(page.locator("#planSelectedMeta")).toContainText("Final");
+    await expect(page.locator("#planSelectedMeta")).toContainText(
+      "oidcc-client-basic-certification-test-plan",
+    );
+    await expect(page.locator("#planSelectedMeta")).toContainText("1 test module");
+
+    // "Change" swaps back to the full picker and returns focus to its
+    // search box.
+    await page.locator("#planSelectedChangeBtn").click();
+    await expect(summary).toBeHidden();
+    await expect(page.locator("#planSearch")).toBeVisible();
+    await expect(page.locator("#planSearch .oidf-test-selector__search")).toBeFocused();
+  });
+
+  test("GL#1897: unknown ?test_plan= value falls back to the expanded picker", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html?test_plan=this-plan-does-not-exist");
+
+    // applyConfigPreset()'s existing `testPlanName in FAPI_UI.availablePlans`
+    // guard skips selectPlanByName for an unknown name, so
+    // showPlanSelectedSummary() never runs — the DOMContentLoaded fallback
+    // must un-hide the picker the early guard pre-emptively hid.
+    await expect(page.locator("#planSearch")).toBeVisible();
+    await expect(page.locator("#planSelectedSummary")).toBeHidden();
+    await expect(page.locator("#planSearch .oidf-test-selector__row").first()).toBeVisible();
+  });
+
+  test("GL#1897: ?from-plan= (edit configuration) also collapses to the summary card", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/plan/plan-edit-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          planName: "oidcc-client-basic-certification-test-plan",
+          config: { server: { issuer: "https://op.example.com" } },
+        }),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html?from-plan=plan-edit-001");
+
+    // Previously this path only hid #planSearch with nothing in its place —
+    // #1897 wants a name and a way to change it, same as the ?test_plan=
+    // path.
+    await expect(page.locator("#planSelectedSummary")).toBeVisible();
+    await expect(page.locator("#planSearch")).toBeHidden();
+    await expect(page.locator("#planSelectedName")).toHaveText(
+      "OpenID Connect Client: Basic Certification",
+    );
+  });
+
+  test("GL#1897: picking a plan by hand from the list does not auto-collapse it", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Organic picks go through dispatchPlanSelection() directly (the
+    // cts-plan-select listener), never selectPlanByName() — only the
+    // programmatic wrapper triggers showPlanSelectedSummary().
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
+
+    await expect(page.locator("#planSearch")).toBeVisible();
+    await expect(page.locator("#planSelectedSummary")).toBeHidden();
   });
 
   test("R42: cts-form-field renders a label[for] / id pair for every visible field", async ({

@@ -559,6 +559,53 @@
         .bridge-prompt .bp-title { font-weight: var(--fw-bold); color: var(--fg); font-size: var(--fs-14); }
         .bridge-prompt .bp-sub { font-size: var(--fs-13); color: var(--fg-muted); margin-top: 2px; }
         .bridge-prompt .bp-actions { display: flex; gap: var(--space-2); flex: none; }
+
+        /* GL#1897: collapsed "here's your plan" card shown in place of
+           #planSearch when the plan arrived via a preset/shared-configuration
+           URL param rather than an in-page browse-and-pick. Same visual
+           pattern as the guided wizard's review-step .resolved-plan card
+           (guided-wizard.js renderReviewStep()), copied here rather than
+           shared because that one is scoped under #guidedIsland. */
+        .plan-selected-summary { margin-bottom: var(--space-5); }
+        .plan-selected-summary .resolved-plan {
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+        }
+        .plan-selected-summary .resolved-plan-body { flex: 1 1 auto; min-width: 0; }
+        .plan-selected-summary .pip {
+            flex: none;
+            width: var(--space-10);
+            height: var(--space-10);
+            border-radius: var(--radius-2);
+            background: var(--orange-100);
+            color: var(--orange-600);
+            display: grid;
+            place-items: center;
+        }
+        .plan-selected-summary .plan-name-display {
+            font-size: var(--fs-20);
+            font-weight: var(--fw-bold);
+            color: var(--fg);
+            margin: 0;
+            line-height: var(--lh-snug);
+        }
+        .plan-selected-summary .plan-meta {
+            margin-top: var(--space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            align-items: center;
+        }
+        .plan-selected-summary .plan-name-code {
+            font-family: "JetBrains Mono", monospace;
+            font-size: var(--fs-12);
+            background: var(--bg-sunken);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-1);
+            padding: 2px var(--space-2);
+            color: var(--fg-muted);
+        }
     </style>
 
 </head>
@@ -653,6 +700,24 @@
             >Unable to load test plans — please reload the page.</cts-alert>
 
             <cts-test-selector id="planSearch" loading></cts-test-selector>
+            <!-- GL#1897: shown instead of #planSearch when the plan arrived via
+                 a preset/shared-configuration URL param (?test_plan=,
+                 ?from-plan=/?edit-plan=) or "Load last configuration", rather
+                 than an in-page pick — see selectPlanByName()/
+                 showPlanSelectedSummary() below. "Change" swaps back to the
+                 full picker. -->
+            <div id="planSelectedSummary" class="plan-selected-summary" hidden>
+                <cts-card tone="orange">
+                    <div class="resolved-plan">
+                        <span class="pip" aria-hidden="true"><cts-icon name="shield-check" size="24"></cts-icon></span>
+                        <div class="resolved-plan-body">
+                            <p class="plan-name-display" id="planSelectedName"></p>
+                            <div class="plan-meta" id="planSelectedMeta"></div>
+                        </div>
+                        <cts-button id="planSelectedChangeBtn" size="sm" variant="secondary" label="Change"></cts-button>
+                    </div>
+                </cts-card>
+            </div>
             <!-- Wrap the variant selectors so the scroll-in flash wash (fired
                  after a search-list plan pick) covers the selection group. It
                  is the scroll + flash target for revealPlanSelection(). See
@@ -819,10 +884,16 @@
          */
         document.addEventListener("DOMContentLoaded", () => {
 
-            // When arriving from "Edit Configuration" on an existing plan, the
-            // plan is pre-selected via ?from-plan= so the test-selector search
-            // list is not needed — hide it immediately to avoid a flash.
-            if (new URLSearchParams(window.location.search).get("from-plan")) {
+            // GL#1897: when the plan arrives via a preset URL param —
+            // ?from-plan=/?edit-plan= (Edit Configuration) or ?test_plan=
+            // (a shared-configuration link) — the test-selector search list
+            // is not needed; hide it immediately to avoid a flash of the full
+            // picker before selectPlanByName() resolves and swaps in the
+            // collapsed #planSelectedSummary (see showPlanSelectedSummary()).
+            // If the preset plan name turns out to be invalid/unknown, the
+            // fallback after the init chain below un-hides the picker again.
+            var presetParams = new URLSearchParams(window.location.search);
+            if (presetParams.get("from-plan") || presetParams.get("edit-plan") || presetParams.get("test_plan")) {
                 var planSearchEl = document.getElementById("planSearch");
                 if (planSearchEl) planSearchEl.hidden = true;
             }
@@ -892,6 +963,19 @@
                         return restoreEditPlanVariants();
                     }).then(function() {
                         return applyConfigJsonParam();
+                    }).then(function() {
+                        // GL#1897 fallback: a preset param named a plan that
+                        // never resolved (unknown/stale ?test_plan=, or
+                        // ?from-plan=/?edit-plan= whose plan failed to load)
+                        // — #planSearch was hidden pre-emptively above but
+                        // showPlanSelectedSummary() never ran to replace it.
+                        // Un-hide the picker so the page isn't left with
+                        // neither the picker nor the summary visible.
+                        var summary = document.getElementById('planSelectedSummary');
+                        var picker = document.getElementById('planSearch');
+                        if (picker && picker.hidden && (!summary || summary.hidden)) {
+                            showPlanPicker();
+                        }
                     });
                 });
             }).finally(function() {
@@ -1237,6 +1321,52 @@
             return currentPlanName;
         }
 
+        // GL#1897: collapse #planSearch into a compact "here's your plan"
+        // card when the plan was chosen for the user (preset URL param or
+        // "Load last configuration") rather than picked by hand from the
+        // list. appendMetaBadge builds each #planSelectedMeta child via DOM
+        // APIs (not an innerHTML template) — schedule-test.html has no
+        // shared HTML-escape helper, and plan.displayName/planName/etc. are
+        // plain text content regardless, so textContent is both the
+        // simplest and the safe-by-default choice here.
+        function appendMetaBadge(container, isBadge, text) {
+            var el = document.createElement(isBadge ? 'cts-badge' : 'span');
+            if (isBadge) el.setAttribute('variant', 'secondary');
+            else el.className = 'plan-name-code';
+            el.textContent = text;
+            container.appendChild(el);
+        }
+
+        function showPlanSelectedSummary(plan) {
+            var picker = document.getElementById('planSearch');
+            var summary = document.getElementById('planSelectedSummary');
+            if (!plan || !picker || !summary) return;
+            document.getElementById('planSelectedName').textContent = plan.displayName || plan.planName;
+            var meta = document.getElementById('planSelectedMeta');
+            meta.textContent = '';
+            if (plan.specFamily) appendMetaBadge(meta, true, plan.specFamily);
+            if (plan.specVersion) appendMetaBadge(meta, true, plan.specVersion);
+            appendMetaBadge(meta, false, plan.planName);
+            if (Array.isArray(plan.modules) && plan.modules.length) {
+                appendMetaBadge(meta, false, plan.modules.length + ' test modules');
+            }
+            picker.hidden = true;
+            summary.hidden = false;
+        }
+
+        // Swaps back to the full picker (the "Change" action, and the
+        // invalid-preset fallback in the DOMContentLoaded chain above).
+        function showPlanPicker() {
+            var picker = document.getElementById('planSearch');
+            var summary = document.getElementById('planSelectedSummary');
+            if (summary) summary.hidden = true;
+            if (picker) {
+                picker.hidden = false;
+                var input = picker.querySelector('.oidf-test-selector__search');
+                if (input) input.focus();
+            }
+        }
+
         // Core plan selection (KTD1): resolve planName -> plan via
         // FAPI_UI.availablePlans, set the current-plan source of truth, then
         // dispatch `cts-plan-selected` ourselves (cts-spec-cascade used to own
@@ -1278,7 +1408,14 @@
         async function selectPlanByName(planName) {
             isSystemSelectingPlan++;
             try {
-                return dispatchPlanSelection(planName);
+                var selected = dispatchPlanSelection(planName);
+                // GL#1897: every selectPlanByName() caller (?test_plan=,
+                // ?from-plan=/?edit-plan=, "Load last configuration") is a
+                // system-chosen plan, not a hand-picked one — collapse to
+                // the summary card. dispatchPlanSelection() (organic list
+                // clicks) is untouched, so browsing never auto-collapses.
+                if (selected) showPlanSelectedSummary(FAPI_UI.availablePlans[planName]);
+                return selected;
             } finally {
                 isSystemSelectingPlan--;
             }
@@ -1792,6 +1929,11 @@
             probeLastConfig();
             document.getElementById('loadLastConfigBtn').addEventListener('click', function() {
                 loadLastConfigFromServer();
+            });
+            // GL#1897: "Change" on the collapsed plan-summary card swaps
+            // back to the full picker.
+            document.getElementById('planSelectedChangeBtn').addEventListener('click', function() {
+                showPlanPicker();
             });
             document.getElementById('variantSelectors').addEventListener("change", function(){
                 updateVariantOptionsVisibility();
