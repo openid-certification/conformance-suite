@@ -87,7 +87,10 @@ object VciMdocUtils {
 		val validUntil = signedAt + 365.days
 
 		// Build IssuerNamespaces based on docType
-		val issuerNamespaces = buildIssuerNamespacesForDocType(docType, now, validUntil)
+		// Keep the credential's issuing_country consistent with the signing certificate's
+		// countryName (ISO 18013-5 Table B.3 binds the two), whichever key is in use.
+		val issuingCountry = subjectCountry(dsKey.certChain.certificates.first()) ?: "US"
+		val issuerNamespaces = buildIssuerNamespacesForDocType(docType, now, validUntil, issuingCountry)
 
 		// Generate MSO (Mobile Security Object)
 		// Note: For credentials without holder binding, devicePublicKey can be null
@@ -182,10 +185,17 @@ object VciMdocUtils {
 		out.toByteArray()
 	}
 
+	private fun subjectCountry(cert: X509Cert): String? {
+		val holder = org.bouncycastle.cert.X509CertificateHolder(cert.encoded.toByteArray())
+		val rdns = holder.subject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.C)
+		return if (rdns.isEmpty()) null else org.bouncycastle.asn1.x500.style.IETFUtils.valueToString(rdns[0].first.value)
+	}
+
 	private fun buildIssuerNamespacesForDocType(
 		docType: String,
 		now: Instant,
-		validUntil: Instant
+		validUntil: Instant,
+		issuingCountry: String
 	) = buildIssuerNamespaces {
 		when (docType) {
 			"org.iso.18013.5.1.mDL" -> {
@@ -196,7 +206,7 @@ object VciMdocUtils {
 					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1985-03-15")))
 					addDataElement("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
 					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
-					addDataElement("issuing_country", Tstr("UT")) // Utopia
+					addDataElement("issuing_country", Tstr(issuingCountry))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
 					addDataElement("document_number", Tstr("DL-123456789"))
 					addDataElement("portrait", Bstr(portraitJpeg))
@@ -225,7 +235,7 @@ object VciMdocUtils {
 					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
 					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))
-					addDataElement("issuing_country", Tstr("UT")) // Utopia
+					addDataElement("issuing_country", Tstr(issuingCountry))
 				}
 			}
 			"net.openid.examples.certification.1.mdoc" -> {
