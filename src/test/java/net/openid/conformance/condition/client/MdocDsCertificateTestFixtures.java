@@ -98,7 +98,11 @@ final class MdocDsCertificateTestFixtures {
 		byte[] certDer = builder
 			.build(new JcaContentSignerBuilder("SHA256withECDSA").build(signingKey.toECPrivateKey()))
 			.getEncoded();
+		return credentialWithX5c(docType, signingKey, certDer);
+	}
 
+
+	private static byte[] credentialWithX5c(String docType, ECKey signingKey, byte[] certDer) throws Exception {
 		ECKey signingKeyWithX5c = new ECKey.Builder(signingKey)
 			.x509CertChain(List.of(Base64.encode(certDer)))
 			.build();

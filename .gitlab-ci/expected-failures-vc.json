@@ -22,6 +22,28 @@
         "comment": "Same certificate as oid4vci-1_0-issuer-happy-flow above"
     },
     {
+        "test-name": "oid4vci-1_0-issuer-happy-flow",
+        "variant": {
+            "credential_format": "mdoc"
+        },
+        "configuration-filename": "*vci-issuer-test-config*.json",
+        "current-block": "*",
+        "condition": "ValidateMdocTrustAnchorIacaCertificateProfile",
+        "expected-result": "warning",
+        "comment": "The trust anchor embedded in the CI VCI test configs predates the ISO 18013-5 IACA profile checks (no countryName, pathLen 1, no issuerAltName); its private key is not available to re-mint it"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-batch-issuance",
+        "variant": {
+            "credential_format": "mdoc"
+        },
+        "configuration-filename": "*vci-issuer-test-config*.json",
+        "current-block": "*",
+        "condition": "ValidateMdocTrustAnchorIacaCertificateProfile",
+        "expected-result": "warning",
+        "comment": "Same trust anchor as oid4vci-1_0-issuer-happy-flow above"
+    },
+    {
         "test-name": "oid4vp-id2-verifier-happy-flow",
         "variant": "*",
         "configuration-filename": "*vp-verifier-test-config-with-redirect*.json",

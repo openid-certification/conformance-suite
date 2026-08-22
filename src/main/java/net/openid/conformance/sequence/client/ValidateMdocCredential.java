@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateMatchesIssuingCountry;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
+import net.openid.conformance.condition.client.ValidateMdocTrustAnchorIacaCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -53,6 +54,8 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			ConditionResult.WARNING, "ISO18013-5-B.1.4");
 		callAndContinueOnFailure(ValidateMdocDsCertificateMatchesIssuingCountry.class,
 			ConditionResult.WARNING, "ISO18013-5-B.1.4");
+		callAndContinueOnFailure(ValidateMdocTrustAnchorIacaCertificateProfile.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.2");
 		if (haip) {
 			// mirrors the SD-JWT VC x5c chain validation; HAIP requires a configured trust anchor
 			callAndContinueOnFailure(ValidateMdocDsCertificateChain.class,

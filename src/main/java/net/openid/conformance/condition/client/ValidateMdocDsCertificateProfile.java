@@ -6,15 +6,14 @@ import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocCertificateProfileChecks;
 import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.DataItem;
 
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import java.util.Set;
  */
 public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCertificate {
 
-	private static final String OID_SUBJECT_KEY_IDENTIFIER = "2.5.29.14";
 	private static final String OID_KEY_USAGE = "2.5.29.15";
 	private static final String OID_CRL_DISTRIBUTION_POINTS = "2.5.29.31";
 	private static final String OID_AUTHORITY_KEY_IDENTIFIER = "2.5.29.35";
@@ -38,14 +36,7 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 
 	private static final Set<String> ALLOWED_CRITICAL_EXTENSIONS = Set.of(OID_KEY_USAGE, OID_EXTENDED_KEY_USAGE);
 
-	private static final Set<String> ALLOWED_SIGNATURE_ALGORITHM_OIDS = Set.of(
-		"1.2.840.10045.4.3.2", // ecdsa-with-SHA256
-		"1.2.840.10045.4.3.3", // ecdsa-with-SHA384
-		"1.2.840.10045.4.3.4"  // ecdsa-with-SHA512
-	);
-
 	private static final int MAX_VALIDITY_DAYS = 457;
-	private static final int MAX_SERIAL_OCTETS = 20;
 
 	// GeneralName types in the SEQUENCE returned by getIssuerAlternativeNames()
 	private static final int GENERAL_NAME_RFC822 = 1;
@@ -61,47 +52,25 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 
 		List<String> violations = new ArrayList<>();
 
-		if (dsCert.getVersion() != 3) {
-			violations.add("certificate version is " + dsCert.getVersion() + " but must be v3");
-		}
-
-		if (dsCert.getSerialNumber().signum() != 1) {
-			violations.add("serial number must be a positive, non-zero integer");
-		} else if (dsCert.getSerialNumber().toByteArray().length > MAX_SERIAL_OCTETS) {
-			violations.add("serial number is longer than the maximum of 20 octets");
-		}
-
-		long validityMillis = dsCert.getNotAfter().getTime() - dsCert.getNotBefore().getTime();
-		if (validityMillis > Duration.ofDays(MAX_VALIDITY_DAYS).toMillis()) {
-			violations.add("validity period exceeds the maximum of 457 days after notBefore");
-		}
-		Date now = new Date();
-		if (now.before(dsCert.getNotBefore())) {
-			violations.add("certificate is not yet valid (notBefore is in the future)");
-		}
-		if (now.after(dsCert.getNotAfter())) {
-			violations.add("certificate has expired");
-		}
-
-		if (!ALLOWED_SIGNATURE_ALGORITHM_OIDS.contains(dsCert.getSigAlgOID())) {
-			violations.add("signature algorithm " + dsCert.getSigAlgOID()
-				+ " is not one of the permitted ECDSA-with-SHA256/SHA384/SHA512 algorithms");
-		}
+		MdocCertificateProfileChecks.checkVersionAndSerial(dsCert, violations);
+		MdocCertificateProfileChecks.checkValidity(dsCert, MAX_VALIDITY_DAYS, violations);
+		MdocCertificateProfileChecks.checkSignatureAlgorithm(dsCert, violations);
+		MdocCertificateProfileChecks.checkSubjectAttributes(dsCert, violations);
+		MdocCertificateProfileChecks.checkSubjectPublicKey(dsCert, true, violations);
+		MdocCertificateProfileChecks.checkSubjectKeyIdentifierValue(dsCert, violations);
+		MdocCertificateProfileChecks.checkForbiddenExtensions(dsCert, violations);
 
 		checkExtendedKeyUsage(dsCert, parseMsoDocType(issuerSigned), violations);
 
-		if (dsCert.getExtensionValue(OID_SUBJECT_KEY_IDENTIFIER) == null) {
-			violations.add("subject key identifier extension is missing");
-		}
 		if (dsCert.getExtensionValue(OID_AUTHORITY_KEY_IDENTIFIER) == null) {
 			violations.add("authority key identifier extension is missing");
 		}
 		if (dsCert.getExtensionValue(OID_CRL_DISTRIBUTION_POINTS) == null) {
 			violations.add("CRL distribution points extension is missing");
 		}
+		MdocCertificateProfileChecks.checkCrlDistributionPointsContent(dsCert, violations);
 
 		checkIssuerAlternativeName(dsCert, violations);
-		checkSubject(dsCert, violations);
 		checkIssuerBinding(dsCert, issuingCertificate(chain, env), violations);
 
 		Set<String> criticalOids = dsCert.getCriticalExtensionOIDs();
@@ -159,7 +128,7 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 		}
 		try {
 			byte[] akiValue = dsCert.getExtensionValue(OID_AUTHORITY_KEY_IDENTIFIER);
-			byte[] skiValue = issuingCert.getExtensionValue(OID_SUBJECT_KEY_IDENTIFIER);
+			byte[] skiValue = issuingCert.getExtensionValue("2.5.29.14");
 			if (akiValue != null && skiValue != null) {
 				byte[] akiKeyId = AuthorityKeyIdentifier.getInstance(
 					JcaX509ExtensionUtils.parseExtensionValue(akiValue)).getKeyIdentifierOctets();
@@ -171,6 +140,31 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 			}
 		} catch (Exception e) {
 			violations.add("authority key identifier could not be compared with the issuing certificate's subject key identifier: " + e.getMessage());
+		}
+		// Table B.3: stateOrProvinceName is mandatory (with the same value) when the IACA
+		// certificate carries it
+		org.bouncycastle.asn1.x500.X500Name issuerSubject =
+			org.bouncycastle.asn1.x500.X500Name.getInstance(issuingCert.getSubjectX500Principal().getEncoded());
+		org.bouncycastle.asn1.x500.RDN[] issuerStateRdns =
+			issuerSubject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.ST);
+		if (issuerStateRdns.length > 0) {
+			org.bouncycastle.asn1.x500.X500Name dsSubject =
+				org.bouncycastle.asn1.x500.X500Name.getInstance(dsCert.getSubjectX500Principal().getEncoded());
+			org.bouncycastle.asn1.x500.RDN[] dsStateRdns =
+				dsSubject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.ST);
+			String issuerState = org.bouncycastle.asn1.x500.style.IETFUtils.valueToString(
+				issuerStateRdns[0].getFirst().getValue());
+			if (dsStateRdns.length == 0) {
+				violations.add("the issuing certificate carries stateOrProvinceName '" + issuerState
+					+ "' but the document signer certificate subject has no stateOrProvinceName");
+			} else {
+				String dsState = org.bouncycastle.asn1.x500.style.IETFUtils.valueToString(
+					dsStateRdns[0].getFirst().getValue());
+				if (!dsState.equals(issuerState)) {
+					violations.add("the document signer certificate stateOrProvinceName '" + dsState
+						+ "' does not match the issuing certificate's '" + issuerState + "'");
+				}
+			}
 		}
 	}
 
@@ -229,30 +223,4 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 		}
 	}
 
-	private void checkSubject(X509Certificate dsCert, List<String> violations) {
-		// parse the DER subject rather than regexing the RFC 2253 string, which escaped
-		// attribute values can defeat
-		org.bouncycastle.asn1.x500.X500Name subject =
-			org.bouncycastle.asn1.x500.X500Name.getInstance(dsCert.getSubjectX500Principal().getEncoded());
-
-		org.bouncycastle.asn1.x500.RDN[] countryRdns =
-			subject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.C);
-		if (countryRdns.length == 0) {
-			violations.add("subject does not contain a countryName attribute");
-		} else {
-			org.bouncycastle.asn1.ASN1Encodable countryValue = countryRdns[0].getFirst().getValue();
-			String country = org.bouncycastle.asn1.x500.style.IETFUtils.valueToString(countryValue);
-			if (!country.matches("[A-Z]{2}")) {
-				violations.add("subject countryName '" + country
-					+ "' is not an upper case two-letter ISO 3166-1 alpha-2 code");
-			}
-			if (!(countryValue instanceof org.bouncycastle.asn1.ASN1PrintableString)) {
-				violations.add("subject countryName is not encoded as a PrintableString");
-			}
-		}
-
-		if (subject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.CN).length == 0) {
-			violations.add("subject does not contain a commonName attribute");
-		}
-	}
 }

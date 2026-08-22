@@ -63,4 +63,11 @@ public class VpSigningCertMdocDsProfile_UnitTest {
 			Files.readString(Path.of("scripts/certs-keys/vp-signing-ca.crt")));
 		assertDoesNotThrow(() -> conditionOf(new ValidateMdocDsCertificateChain()).execute(env));
 	}
+
+	@Test
+	public void scriptGeneratedCaPassesIacaProfileCheck() throws Exception {
+		env.putString("credential_trust_anchor_pem",
+			Files.readString(Path.of("scripts/certs-keys/vp-signing-ca.crt")));
+		assertDoesNotThrow(() -> conditionOf(new ValidateMdocTrustAnchorIacaCertificateProfile()).execute(env));
+	}
 }
