@@ -57,6 +57,28 @@ final class MdocDsCertificateTestFixtures {
 		});
 	}
 
+	/** Builds a self-signed CA-style certificate for the given DN and returns it as PEM. */
+	static String selfSignedCertPem(String dn) throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		X500Name name = new X500Name(dn);
+		X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+			name,
+			BigInteger.valueOf(System.nanoTime()),
+			new Date(System.currentTimeMillis() - 60_000),
+			new Date(System.currentTimeMillis() + 3600_000),
+			name,
+			SubjectPublicKeyInfo.getInstance(key.toECPublicKey().getEncoded()));
+		builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(0));
+		builder.addExtension(Extension.subjectKeyIdentifier, false,
+			new org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils().createSubjectKeyIdentifier(key.toECPublicKey()));
+		byte[] der = builder
+			.build(new JcaContentSignerBuilder("SHA256withECDSA").build(key.toECPrivateKey()))
+			.getEncoded();
+		return "-----BEGIN CERTIFICATE-----\n"
+			+ java.util.Base64.getMimeEncoder(64, "\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII)).encodeToString(der)
+			+ "\n-----END CERTIFICATE-----\n";
+	}
+
 	private interface ExtensionCustomizer {
 		void customize(X509v3CertificateBuilder builder) throws Exception;
 	}
