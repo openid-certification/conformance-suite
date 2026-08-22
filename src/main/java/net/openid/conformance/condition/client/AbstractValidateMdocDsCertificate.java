@@ -39,6 +39,14 @@ public abstract class AbstractValidateMdocDsCertificate extends AbstractConditio
 	 * decoded IssuerSigned structure.
 	 */
 	protected X509Certificate extractDsCertificate(DataItem issuerSigned) {
+		return extractDsCertificateChain(issuerSigned).get(0);
+	}
+
+	/**
+	 * Extracts the full (non-empty, leaf-first) x5chain from a decoded IssuerSigned structure
+	 * as parsed X.509 certificates.
+	 */
+	protected java.util.List<X509Certificate> extractDsCertificateChain(DataItem issuerSigned) {
 		X509CertChain certChain;
 		try {
 			certChain = MdocUtil.extractX5chain(issuerSigned);
@@ -46,13 +54,17 @@ public abstract class AbstractValidateMdocDsCertificate extends AbstractConditio
 			throw error(e.getMessage(), e);
 		}
 
-		var encoded = certChain.getCertificates().get(0).getEncoded();
 		try {
 			CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-			return (X509Certificate) certificateFactory.generateCertificate(
-				new ByteArrayInputStream(encoded.toByteArray(0, encoded.getSize())));
+			java.util.List<X509Certificate> certs = new java.util.ArrayList<>();
+			for (org.multipaz.crypto.X509Cert cert : certChain.getCertificates()) {
+				var encoded = cert.getEncoded();
+				certs.add((X509Certificate) certificateFactory.generateCertificate(
+					new ByteArrayInputStream(encoded.toByteArray(0, encoded.getSize()))));
+			}
+			return certs;
 		} catch (Exception e) {
-			throw error("Failed to parse the first certificate in x5chain as an X.509 certificate", e);
+			throw error("Failed to parse a certificate in x5chain as an X.509 certificate", e);
 		}
 	}
 }

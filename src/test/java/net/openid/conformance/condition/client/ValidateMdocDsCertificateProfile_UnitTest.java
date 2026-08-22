@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.util.TestKeysAndCerts;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -53,6 +54,27 @@ public class ValidateMdocDsCertificateProfile_UnitTest {
 		env.putString("mdoc_credential_cbor", "");
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_passesWithMatchingTrustAnchorBinding() throws Exception {
+		MdocCredentialTestUtil.putCredential(env,
+			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
+		env.putString("credential_trust_anchor_pem", TestKeysAndCerts.IACA_ROOT_CERT_PEM);
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_flagsIssuerBindingMismatchAgainstWrongAnchor() throws Exception {
+		MdocCredentialTestUtil.putCredential(env,
+			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
+		env.putString("credential_trust_anchor_pem",
+			MdocDsCertificateTestFixtures.selfSignedCertPem("CN=Unrelated Anchor"));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(fullError(e).contains("exact binary value"), fullError(e));
+		assertTrue(fullError(e).contains("authority key identifier does not match"), fullError(e));
 	}
 
 	@Test

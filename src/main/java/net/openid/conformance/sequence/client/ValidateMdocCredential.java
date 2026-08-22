@@ -2,6 +2,7 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
@@ -50,6 +51,9 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateMdocDsCertificateProfile.class,
 			ConditionResult.WARNING, "ISO18013-5-B.1.4");
 		if (haip) {
+			// mirrors the SD-JWT VC x5c chain validation; HAIP requires a configured trust anchor
+			callAndContinueOnFailure(ValidateMdocDsCertificateChain.class,
+				ConditionResult.FAILURE, "HAIP-6.1.1", "ISO18013-5-9.3.1");
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}
