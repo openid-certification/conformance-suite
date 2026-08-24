@@ -1,7 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
-import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgHS256Only;
+import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgHS256AndRS256;
 import net.openid.conformance.condition.as.SetServerSigningAlgToHS256;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgHS256;
@@ -39,7 +39,7 @@ public class OIDCCClientTestInvalidIdTokenSignatureWithHS256 extends AbstractOID
 
 	@Override
 	protected void configureServerConfiguration() {
-		callAndStopOnFailure(OIDCCGenerateServerConfigurationIdTokenSigningAlgHS256Only.class);
+		callAndStopOnFailure(OIDCCGenerateServerConfigurationIdTokenSigningAlgHS256AndRS256.class);
 	}
 
 	@Override
