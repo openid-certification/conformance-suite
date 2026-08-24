@@ -577,6 +577,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			if (validateClientAuthenticationSteps != null) {
+				// Receivers may request a fresh token per SSF operation; the extract
+				// conditions refuse to overwrite a client_authentication left over
+				// from an earlier token request, so clear it before each validation.
+				env.removeObject("client_authentication");
 				call(sequence(validateClientAuthenticationSteps));
 			}
 
