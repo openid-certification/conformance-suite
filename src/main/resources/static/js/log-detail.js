@@ -876,6 +876,150 @@ let lastRenderedBrowserJson;
 let lastRenderedBrowserSlot;
 
 /**
+ * Parse a URL into a POST-form-ready shape: the origin+pathname to submit to
+ * (the form `action`, no query string) and the query string's params as
+ * name/value pairs (the hidden `<input>`s the query string becomes). Mirrors
+ * legacy log-detail.html's `parseUrl()` — the backend's UrlWithMethod only
+ * carries `url`/`method`, so this parsing has to happen client-side.
+ * @param {string} urlString
+ * @returns {{baseUrl: string, params: Array<{name: string, value: string}>}}
+ */
+function parseUrlForForm(urlString) {
+  const url = new URL(urlString);
+  const baseUrl = url.origin + url.pathname;
+  const params = Array.from(url.searchParams.entries()).map(([name, value]) => ({ name, value }));
+  return { baseUrl, params };
+}
+
+/**
+ * Normalize a browser-URL list into `{url, method}` entries. Prefers the
+ * `-WithMethod` list (always populated 1:1 alongside its plain-string
+ * sibling by `BrowserControl.goToUrl()`); falls back to the plain string
+ * list as GET-only entries so an older/partial payload still renders.
+ * @param {Array<{url: string, method?: string}> | undefined} withMethodList
+ * @param {Array<string> | undefined} plainList
+ * @returns {Array<{url: string, method: string}>}
+ */
+function normalizeUrlEntries(withMethodList, plainList) {
+  if (Array.isArray(withMethodList) && withMethodList.length > 0) {
+    return withMethodList.map((entry) => ({
+      url: typeof entry === "string" ? entry : entry.url,
+      method: typeof entry === "string" ? "GET" : entry.method || "GET",
+    }));
+  }
+  return (Array.isArray(plainList) ? plainList : []).map((url) => ({ url, method: "GET" }));
+}
+
+/**
+ * Build one browser-URL row. GET entries show the bare URL (optionally with
+ * a QR code); POST entries show an HTTP-request preview and carry a hidden
+ * `<form method="POST">` (built from the URL's own query string, mirroring
+ * legacy's approach) that `handleVisitUrl` submits on click — scoped to this
+ * row's own form, not a global `document.querySelector`, so multiple pending
+ * POST rows can't cross-submit each other's form (a latent bug in the
+ * legacy implementation this port does not need to keep).
+ * @param {string} url - Full original URL (query string included) — also
+ *   what must be sent to the `/visit` endpoint verbatim (it matches by exact
+ *   string equality server-side).
+ * @param {string} method - "GET" or "POST".
+ * @param {{visited: boolean, showQr?: boolean}} opts
+ * @returns {HTMLElement}
+ */
+function buildUrlRow(url, method, { visited, showQr }) {
+  const row = document.createElement("div");
+  row.className = "v2-browser-row";
+  row.style.display = "flex";
+  row.style.flexDirection = "column";
+  row.style.gap = "var(--space-2)";
+
+  if (method === "POST") {
+    const { baseUrl, params } = parseUrlForForm(url);
+    const queryString = params
+      .map((p) => `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value)}`)
+      .join("&");
+    const pre = document.createElement("pre");
+    pre.style.fontFamily = "var(--font-mono)";
+    pre.style.fontSize = "var(--fs-13)";
+    pre.style.wordBreak = "break-all";
+    pre.style.whiteSpace = "pre-wrap";
+    pre.style.background = "var(--bg-sunken)";
+    pre.style.border = "1px solid var(--border)";
+    pre.style.borderRadius = "var(--radius-1)";
+    pre.style.padding = "var(--space-3)";
+    pre.style.margin = "0";
+    pre.textContent = `POST ${baseUrl} HTTP 1.1\nContent-Type: application/x-www-form-urlencoded\n\n${queryString}`;
+    row.appendChild(pre);
+
+    if (!visited) {
+      const form = document.createElement("form");
+      form.className = "redirect";
+      form.method = "POST";
+      form.action = baseUrl;
+      form.target = "_blank";
+      form.hidden = true;
+      for (const { name, value } of params) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+      row.appendChild(form);
+    }
+  } else {
+    const urlLabel = document.createElement("code");
+    urlLabel.textContent = url;
+    urlLabel.style.fontFamily = "var(--font-mono)";
+    urlLabel.style.fontSize = "var(--fs-13)";
+    urlLabel.style.wordBreak = "break-all";
+    row.appendChild(urlLabel);
+  }
+
+  const btn = document.createElement("cts-button");
+  btn.setAttribute("size", "sm");
+  if (visited) {
+    btn.setAttribute("variant", "secondary");
+    btn.setAttribute("icon", "check");
+    btn.setAttribute("label", "Visited");
+    btn.setAttribute("disabled", "");
+  } else {
+    btn.classList.add("visitUrlBtn");
+    btn.setAttribute("variant", "primary");
+    btn.setAttribute("icon", "external-link");
+    btn.setAttribute("label", "Visit URL");
+    btn.dataset.url = url;
+    btn.dataset.method = method;
+    btn.addEventListener("cts-click", handleVisitUrl);
+  }
+  row.appendChild(btn);
+
+  // QR only makes sense for a GET a wallet can scan and act on directly —
+  // matches legacy, which never offered a QR code for a POST row.
+  if (!visited && method !== "POST" && showQr) {
+    const qrHost = document.createElement("div");
+    qrHost.className = "qr";
+    qrHost.dataset.url = url;
+    qrHost.style.padding = "var(--space-2)";
+    qrHost.style.background = "white";
+    qrHost.style.display = "inline-block";
+    row.appendChild(qrHost);
+    // QRCode is loaded as a global by /vendor/qrcode/js/qrcode.min.js.
+    // The library mutates the host in-place; safe to call after append.
+    if (typeof window.QRCode === "function") {
+      // eslint-disable-next-line no-new
+      new window.QRCode(qrHost, {
+        text: url,
+        // eslint-disable-next-line no-undef
+        correctLevel: window.QRCode.CorrectLevel.L,
+        version: 20,
+      });
+    }
+  }
+
+  return row;
+}
+
+/**
  * Render the running-test browser-URL prompt into the browser slot.
  * Near-verbatim port of log-detail.html's BROWSER template + handlers,
  * but assembled with DOM methods instead of Underscore string templates.
@@ -904,73 +1048,49 @@ function renderBrowserSlot(browser) {
   lastRenderedBrowserSlot = slot;
   clearSlot(slot);
   if (!browser) return;
-  const hasUrls = Array.isArray(browser.urls) && browser.urls.length > 0;
+  const urlEntries = normalizeUrlEntries(browser.urlsWithMethod, browser.urls).filter(
+    (e) => e.url,
+  );
+  const visitedEntries = normalizeUrlEntries(
+    browser.visitedUrlsWithMethod,
+    browser.visited,
+  ).filter((e) => e.url);
+  const hasUrls = urlEntries.length > 0;
+  const hasVisited = visitedEntries.length > 0;
   const hasApiRequests =
     Array.isArray(browser.browserApiRequests) && browser.browserApiRequests.length > 0;
   const hasUriInputs =
     Array.isArray(browser.uriInputRequests) && browser.uriInputRequests.length > 0;
-  if (!hasUrls && !hasApiRequests && !hasUriInputs) return;
+  if (!hasUrls && !hasVisited && !hasApiRequests && !hasUriInputs) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "v2-browser-wrapper";
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+  wrapper.style.gap = "var(--space-3)";
 
   if (hasUrls) {
     const heading = document.createElement("p");
+    heading.style.margin = "0";
     heading.textContent = "Visit one of the following URLs to interact with the test:";
     wrapper.appendChild(heading);
+
+    for (const { url, method } of urlEntries) {
+      wrapper.appendChild(
+        buildUrlRow(url, method, { visited: false, showQr: browser.show_qr_code }),
+      );
+    }
   }
 
-  for (const entry of hasUrls ? browser.urls : []) {
-    const url = typeof entry === "string" ? entry : entry.url;
-    const method = typeof entry === "string" ? "GET" : entry.method || "GET";
-    if (!url) continue;
+  if (hasVisited) {
+    const visitedHeading = document.createElement("p");
+    visitedHeading.style.margin = "0";
+    visitedHeading.textContent = "Visited:";
+    wrapper.appendChild(visitedHeading);
 
-    const row = document.createElement("div");
-    row.className = "v2-browser-row";
-    row.style.display = "flex";
-    row.style.flexDirection = "column";
-    row.style.gap = "var(--space-2)";
-    row.style.marginBottom = "var(--space-3)";
-
-    const urlLabel = document.createElement("code");
-    urlLabel.textContent = url;
-    urlLabel.style.fontFamily = "var(--font-mono)";
-    urlLabel.style.fontSize = "var(--fs-13)";
-    urlLabel.style.wordBreak = "break-all";
-    row.appendChild(urlLabel);
-
-    const visitBtn = document.createElement("cts-button");
-    visitBtn.setAttribute("variant", "primary");
-    visitBtn.setAttribute("size", "sm");
-    visitBtn.setAttribute("icon", "external-link");
-    visitBtn.setAttribute("label", "Visit URL");
-    visitBtn.dataset.url = url;
-    visitBtn.dataset.method = method;
-    visitBtn.addEventListener("cts-click", handleVisitUrl);
-    row.appendChild(visitBtn);
-
-    if (browser.show_qr_code) {
-      const qrHost = document.createElement("div");
-      qrHost.className = "qr";
-      qrHost.dataset.url = url;
-      qrHost.style.padding = "var(--space-2)";
-      qrHost.style.background = "white";
-      qrHost.style.display = "inline-block";
-      row.appendChild(qrHost);
-      // QRCode is loaded as a global by /vendor/qrcode/js/qrcode.min.js.
-      // The library mutates the host in-place; safe to call after append.
-      if (typeof window.QRCode === "function") {
-        // eslint-disable-next-line no-new
-        new window.QRCode(qrHost, {
-          text: url,
-          // eslint-disable-next-line no-undef
-          correctLevel: window.QRCode.CorrectLevel.L,
-          version: 20,
-        });
-      }
+    for (const { url, method } of visitedEntries) {
+      wrapper.appendChild(buildUrlRow(url, method, { visited: true }));
     }
-
-    wrapper.appendChild(row);
   }
 
   // browserApiRequests — Digital Credentials API rows (mirrors the
@@ -990,7 +1110,6 @@ function renderBrowserSlot(browser) {
       row.style.display = "flex";
       row.style.flexDirection = "column";
       row.style.gap = "var(--space-2)";
-      row.style.marginBottom = "var(--space-3)";
 
       const apiBtn = document.createElement("cts-button");
       apiBtn.classList.add("visitBrowserApiBtn");
@@ -1028,7 +1147,6 @@ function renderBrowserSlot(browser) {
       row.style.display = "flex";
       row.style.flexDirection = "column";
       row.style.gap = "var(--space-2)";
-      row.style.marginBottom = "var(--space-3)";
 
       if (uriReq.description) {
         const desc = document.createElement("p");
@@ -1281,10 +1399,21 @@ async function handleVisitBrowserApi(evt) {
 
 async function handleVisitUrl(evt) {
   const host = evt.currentTarget;
+  // Always the full original URL (query string included) — the /visit
+  // endpoint below matches it by exact string equality server-side, so this
+  // must never be a query-stripped or form-action URL.
   const url = host.dataset.url;
   if (!url) return;
   showBusy(`Opening: ${url}`);
-  const win = window.open(url, "_blank");
+  let win = null;
+  if (host.dataset.method === "POST") {
+    // Scoped to this row's own form — never a global lookup — so multiple
+    // pending POST rows can't submit each other's form.
+    const form = host.closest(".v2-browser-row")?.querySelector("form.redirect");
+    form?.requestSubmit();
+  } else {
+    win = window.open(url, "_blank");
+  }
   if (win) win.focus();
   try {
     const response = await fetch(

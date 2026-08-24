@@ -4833,3 +4833,164 @@ test.describe("log-detail.html — exported values grid (#1861)", () => {
     await expect(panel).toHaveCount(0, { timeout: 10000 });
   });
 });
+
+test.describe("log-detail.html — browser-URL prompt: POST + visited (#1869)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  function waitingInfo(testId) {
+    return {
+      ...MOCK_TEST_STATUS,
+      _id: testId,
+      testId,
+      status: "WAITING",
+      result: null,
+    };
+  }
+
+  /**
+   * Register the /api/info, /api/log, and /api/runner routes for a browser
+   * -slot test. The /api/runner payload is exactly `{ status: "WAITING",
+   * browser }` — the shape the runner-poll loop actually returns.
+   * @param {import("@playwright/test").Page} page
+   * @param {string} testId
+   * @param {object} browser
+   */
+  async function setupBrowserSlotRoutes(page, testId, browser) {
+    await setupV2Routes(page, { testInfo: waitingInfo(testId), logEntries: MOCK_LOG_ENTRIES });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", browser }),
+      }),
+    );
+  }
+
+  test("GET urlsWithMethod entry renders like a plain urls entry (regression guard)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-get-001";
+    const url = "https://op.example.com/authorize?client_id=test";
+    await setupBrowserSlotRoutes(page, testId, {
+      urlsWithMethod: [{ url, method: "GET" }],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot.locator("code", { hasText: url })).toBeVisible();
+    await expect(slot.locator(".visitUrlBtn")).toBeVisible();
+    await expect(slot.locator("form.redirect")).toHaveCount(0);
+    await expect(slot).not.toContainText("POST");
+  });
+
+  test("POST urlsWithMethod entry renders an HTTP-request preview and submits a real POST", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-post-001";
+    const url = "https://rp.example.com/callback?SAMLResponse=abc123&RelayState=xyz";
+    await setupBrowserSlotRoutes(page, testId, {
+      urlsWithMethod: [{ url, method: "POST" }],
+    });
+
+    /** @type {string | null} */
+    let capturedMethod = null;
+    /** @type {string | null} */
+    let capturedPostData = null;
+    await page.context().route("https://rp.example.com/callback", async (route) => {
+      capturedMethod = route.request().method();
+      capturedPostData = route.request().postData();
+      await route.fulfill({ status: 200, contentType: "text/html", body: "" });
+    });
+
+    let visitCalled = false;
+    await page.route(
+      `**/api/runner/browser/${testId}/visit?url=${encodeURIComponent(url)}`,
+      (route) => {
+        visitCalled = true;
+        return route.fulfill({ status: 204, body: "" });
+      },
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    // Rendered as a request preview, not a bare GET-style URL link.
+    const pre = slot.locator("pre");
+    await expect(pre).toContainText("POST https://rp.example.com/callback HTTP 1.1");
+    await expect(pre).toContainText("Content-Type: application/x-www-form-urlencoded");
+    await expect(pre).toContainText("SAMLResponse=abc123&RelayState=xyz");
+    await expect(slot.locator("code", { hasText: url })).toHaveCount(0);
+
+    // The form's target="_blank" opens the POST navigation in a new tab —
+    // this page is untouched, so no extra route wiring is needed here.
+    await slot.locator(".visitUrlBtn button").click();
+
+    await expect.poll(() => capturedMethod, { timeout: 5000 }).toBe("POST");
+    expect(capturedPostData).toBe("SAMLResponse=abc123&RelayState=xyz");
+    await expect.poll(() => visitCalled, { timeout: 5000 }).toBe(true);
+  });
+
+  test("visitedUrlsWithMethod entry renders a disabled Visited row, not a live one", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-visited-001";
+    const url = "https://op.example.com/authorize?client_id=test";
+    await setupBrowserSlotRoutes(page, testId, {
+      visitedUrlsWithMethod: [{ url, method: "GET" }],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot).toContainText("Visited:");
+    const visitedBtn = slot.locator("cts-button[label='Visited']");
+    await expect(visitedBtn).toBeVisible();
+    await expect(visitedBtn).toHaveAttribute("disabled", "");
+    await expect(slot.locator(".visitUrlBtn")).toHaveCount(0);
+  });
+
+  test("a payload where every entry is already visited still renders (not an empty slot)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-visited-002";
+    await setupBrowserSlotRoutes(page, testId, {
+      visitedUrlsWithMethod: [
+        { url: "https://op.example.com/authorize?client_id=test", method: "GET" },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot.locator(".v2-browser-wrapper")).toHaveCount(1);
+    await expect(slot).toContainText("Visited:");
+  });
+
+  test("the heading and first row are visibly separated, not flush", async ({ page }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-spacing-001";
+    await setupBrowserSlotRoutes(page, testId, {
+      urlsWithMethod: [{ url: "https://op.example.com/authorize?client_id=test", method: "GET" }],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const wrapper = page.locator('[data-slot="browser"] .v2-browser-wrapper');
+    await expect(wrapper).toBeVisible();
+    const gap = await wrapper.evaluate((el) => getComputedStyle(el).gap);
+    expect(gap).not.toBe("0px");
+    expect(gap).not.toBe("normal");
+  });
+});
