@@ -920,12 +920,12 @@ class CtsLogDetailHeader extends LitElement {
     testInfo: { type: Object, attribute: "test-info" },
     findings: { type: Array, attribute: false },
     resultCounts: { type: Object, attribute: false },
-    uploadCount: { type: Number, attribute: false },
     references: { type: Object, attribute: false },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     planModules: { type: Array, attribute: false },
     exposed: { type: Object, attribute: false },
+    uploadsRequired: { type: Number, attribute: false },
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     _copyFeedback: { state: true },
   };
@@ -935,12 +935,12 @@ class CtsLogDetailHeader extends LitElement {
     this.testInfo = null;
     this.findings = null;
     this.resultCounts = null;
-    this.uploadCount = null;
     this.references = {};
     this.isAdmin = false;
     this.isPublic = false;
     this.planModules = [];
     this.exposed = null;
+    this.uploadsRequired = 0;
     this.currentInstanceId = "";
     this._configModalRef = createRef();
     this._copyFeedback = "";
@@ -1064,19 +1064,22 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
-   * Count for the overflow menu's "Upload Images (N)" label.
-   *
-   * `uploadCount` (set by `js/log-detail.js` from the `cts-log-viewer`'s
-   * `uploadCount` getter) is the real source, for the same reason
-   * `resultCounts` is: `/api/info` never serializes `testInfo.results` in
-   * production (#1866, #1915). `testInfo.results` is kept as a fallback for
-   * the same two reasons `_getResultCounts` keeps it.
-   * @returns {number} Number of entries with a truthy `upload` field.
+   * Count for the overflow menu's "Upload Images (N)" label — outstanding
+   * image-upload placeholders for this test (#1884, and the upload-count
+   * half of #1915). Previously tallied `this.testInfo.results`, which
+   * `/api/info` never serializes in production (`TestInfo.result` is
+   * singular — same phantom-field bug #1866 hit for findings), so this count
+   * never rendered. `uploadsRequired` is fed live by `log-detail.js` from the
+   * `/api/runner` poll's `browser.uploadsRequired` (`TestRunner.java`,
+   * `ImageService.getRemainingPlaceholders`) — orthogonal to `testInfo`, same
+   * pattern as `exposed` (KTD2, #1861). This supersedes the log-stream tally
+   * (`cts-log-viewer`'s `uploadCount` getter, also #1915): that counted every
+   * entry that ever carried an `upload` placeholder across the whole test,
+   * not what is still outstanding, which is what the actionable CTA needs.
+   * @returns {number} Outstanding upload placeholder count.
    */
   _getUploadCount() {
-    if (typeof this.uploadCount === "number") return this.uploadCount;
-    if (!this.testInfo || !Array.isArray(this.testInfo.results)) return 0;
-    return this.testInfo.results.filter((entry) => entry.upload).length;
+    return this.uploadsRequired || 0;
   }
 
   _isReadonly() {

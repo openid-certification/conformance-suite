@@ -1523,6 +1523,28 @@ export const StatusBarOverflowSecondaryActions = {
   },
 };
 
+// #1884 / #1915 — the overflow menu's "Upload Images" row should count
+// outstanding placeholders once fed live data, instead of always showing the
+// bare label (uploadsRequired previously read the always-empty
+// testInfo.results, so the count never rendered in production).
+export const StatusBarOverflowUploadCount = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${COMPLETED_TEST}
+      .uploadsRequired=${2}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const overflow = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return /** @type {any} */ (el);
+    });
+    const items = overflow.querySelectorAll(".overflowItem");
+    const labels = Array.from(items, (el) => el.textContent.trim());
+    expect(labels).toEqual(expect.arrayContaining([expect.stringContaining("Upload Images (2)")]));
+  },
+};
+
 export const StatusBarOverflowAdminWithPublish = {
   render: () =>
     html`<cts-log-detail-header

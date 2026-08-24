@@ -782,20 +782,6 @@ class CtsLogViewer extends LitElement {
   }
 
   /**
-   * Count of entries carrying an `upload` placeholder id across the whole
-   * stream. Powers the overflow menu's "Upload Images (N)" count (#1915)
-   * for the same reason `resultCounts` exists: `/api/info` never serializes
-   * `testInfo.results`, so a count derived from it was always zero in
-   * production. Deliberately NOT filtered through `selectFindings` first —
-   * an upload can land on a SUCCESS entry (e.g. a proof screenshot on a
-   * passing manual step), which `selectFindings` excludes.
-   * @returns {number} Number of entries with a truthy `upload` field.
-   */
-  get uploadCount() {
-    return this._entries.filter((entry) => entry.upload).length;
-  }
-
-  /**
    * Walk `_entries` once and bucket each entry's `result` under its
    * `blockId`. Trusts the backend's chronological-with-`blockId`
    * contract: a `startBlock` entry seeds an empty bucket; subsequent
