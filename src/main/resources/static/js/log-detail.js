@@ -253,16 +253,18 @@ function applyFindings() {
   if (header) {
     header.findings = findings;
     // #1915: same log-stream-wins contract as findings above, but the
-    // sticky bar's pill cluster and the overflow menu's upload count both
-    // need a tally over the WHOLE stream (including SUCCESS/INFO entries
-    // and any entry with an `upload` id, which selectFindings deliberately
-    // excludes), so these read the viewer's own getters directly rather
-    // than routing through selectFailures.
+    // sticky bar's pill cluster needs a tally over the WHOLE stream
+    // (including SUCCESS/INFO entries, which selectFindings deliberately
+    // excludes), so this reads the viewer's own getter directly rather
+    // than routing through selectFailures. (The overflow menu's upload
+    // count used to be tallied the same way; #1884 replaced it with the
+    // live `/api/runner` uploadsRequired count — see applyUploadsRequired
+    // below — since outstanding placeholders is what the actionable CTA
+    // needs, not a historical tally.)
     /** @type {any} */
     const viewer = document.getElementById("logViewer");
     if (viewer) {
       header.resultCounts = viewer.resultCounts;
-      header.uploadCount = viewer.uploadCount;
     }
   }
   /** @type {any} */
@@ -315,6 +317,22 @@ function applyExposed(exposed) {
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
   if (header) header.exposed = exposed || null;
+}
+
+/**
+ * Push the runner-sourced outstanding-upload count to the header's dedicated
+ * reactive property (#1884). Mirrors applyExposed()'s KTD2 pattern exactly:
+ * `browser.uploadsRequired` is carried ONLY by the /api/runner poll, never by
+ * /api/info, so it lives on `header.uploadsRequired` — orthogonal to
+ * `header.testInfo` — and a falsy write resets it to 0 when the runner
+ * flushes the test (live-only).
+ *
+ * @param {number | null | undefined} count
+ */
+function applyUploadsRequired(count) {
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) header.uploadsRequired = count || 0;
 }
 
 /**
@@ -824,8 +842,10 @@ function startRunnerPolling(testInfo) {
           // Runner flushed the test from memory. Clear the exported-values grid
           // so a stale grid doesn't linger if /api/info is briefly still
           // non-terminal (live-only, KTD2). applyExposed(null) is idempotent,
-          // so an always-404 poll stays a no-op on the header.
+          // so an always-404 poll stays a no-op on the header. Same reasoning
+          // for the upload-required count (#1884).
           applyExposed(null);
+          applyUploadsRequired(0);
         } else {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
@@ -837,6 +857,9 @@ function startRunnerPolling(testInfo) {
           // — `header.exposed` is orthogonal to `header.testInfo`, so the
           // /api/info refresh above can't clobber the grid.
           applyExposed(data.exposed);
+          // Outstanding image-upload placeholders (#1884) — same orthogonal
+          // pattern, feeds the overflow-menu count and the hero CTA below.
+          applyUploadsRequired(data.browser && data.browser.uploadsRequired);
         }
       } catch (err) {
         console.warn("[log-detail] /api/runner failed:", err);
@@ -1062,20 +1085,23 @@ function renderBrowserSlot(browser) {
   lastRenderedBrowserSlot = slot;
   clearSlot(slot);
   if (!browser) return;
-  const urlEntries = normalizeUrlEntries(browser.urlsWithMethod, browser.urls).filter(
+  const urlEntries = normalizeUrlEntries(browser.urlsWithMethod, browser.urls).filter((e) => e.url);
+  const visitedEntries = normalizeUrlEntries(browser.visitedUrlsWithMethod, browser.visited).filter(
     (e) => e.url,
   );
-  const visitedEntries = normalizeUrlEntries(
-    browser.visitedUrlsWithMethod,
-    browser.visited,
-  ).filter((e) => e.url);
   const hasUrls = urlEntries.length > 0;
   const hasVisited = visitedEntries.length > 0;
   const hasApiRequests =
     Array.isArray(browser.browserApiRequests) && browser.browserApiRequests.length > 0;
   const hasUriInputs =
     Array.isArray(browser.uriInputRequests) && browser.uriInputRequests.length > 0;
-  if (!hasUrls && !hasVisited && !hasApiRequests && !hasUriInputs) return;
+  // #1884 — must be included in the early-return guard below, or a test that
+  // needs ONLY an image upload (no pending URLs/API requests/URI inputs)
+  // renders nothing at all, the same bug class #1869 hit for visited-only
+  // payloads.
+  const uploadsRequired = Number(browser.uploadsRequired) || 0;
+  const hasUpload = uploadsRequired > 0;
+  if (!hasUrls && !hasVisited && !hasApiRequests && !hasUriInputs && !hasUpload) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "v2-browser-wrapper";
@@ -1105,6 +1131,36 @@ function renderBrowserSlot(browser) {
     for (const { url, method } of visitedEntries) {
       wrapper.appendChild(buildUrlRow(url, method, { visited: true }));
     }
+  }
+
+  // #1884 — an actionable "upload an image" prompt, mirroring the URL-visit
+  // rows above. Previously the only cues were a buried, uncounted overflow-menu
+  // item and a per-log-entry link (#1868) the user had to already be scrolling
+  // the log stream to see; neither is visible in "the top portion of the page"
+  // the reporter is looking at. Icon/label match cts-log-entry.js's
+  // _renderUploadCta() so the two surfaces read as the same affordance.
+  if (hasUpload) {
+    const row = document.createElement("div");
+    row.className = "v2-browser-row";
+    row.style.display = "flex";
+    row.style.flexDirection = "column";
+    row.style.gap = "var(--space-2)";
+
+    const text = document.createElement("p");
+    text.style.margin = "0";
+    text.textContent =
+      uploadsRequired === 1
+        ? "1 image needs to be uploaded to continue the test:"
+        : `${uploadsRequired} images need to be uploaded to continue the test:`;
+    row.appendChild(text);
+
+    const uploadBtn = document.createElement("cts-link-button");
+    uploadBtn.setAttribute("href", "/upload.html?log=" + encodeURIComponent(testId));
+    uploadBtn.setAttribute("icon", "camera");
+    uploadBtn.setAttribute("label", uploadsRequired === 1 ? "Upload image" : "Upload images");
+    row.appendChild(uploadBtn);
+
+    wrapper.appendChild(row);
   }
 
   // browserApiRequests — Digital Credentials API rows (mirrors the
@@ -1813,8 +1869,7 @@ function setupTocCollapse() {
    */
   let inertTimer = 0;
 
-  const prefersReducedMotion = () =>
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /**
    * Sync the toggle's accessible label, `aria-expanded` (forwarded by
