@@ -8,9 +8,18 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.ErrorResponse;
+import net.openid.conformance.apidoc.PlanCreatedResponse;
+import net.openid.conformance.apidoc.PublishResponse;
+import net.openid.conformance.apidoc.ShareLinkResponse;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.runner.TestRunnerSupport;
@@ -22,6 +31,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,7 +45,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +54,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 @RequestMapping(value = "/api")
 public class TestPlanApi implements DataUtils {
 
@@ -70,17 +80,22 @@ public class TestPlanApi implements DataUtils {
 	private TestRunnerSupport testRunnerSupport;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Create test plan")
+	@Operation(operationId = "createTestPlan", summary = "Create test plan")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "201", description = "Created test plan successfully"),
-		@ApiResponse(responseCode = "400", description = "Unknown variant parameter(s) for the plan"),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test plan"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
+		@ApiResponse(responseCode = "201", description = "Created test plan successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PlanCreatedResponse.class))),
+		@ApiResponse(responseCode = "400", description = "Unknown variant parameter(s), invalid alias, or no applicable test modules for the variant",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test plan", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<Map<String, Object>> createTestPlan(
 		@Parameter(description = "Plan name") @RequestParam String planName,
-		@Parameter(description = "Kind of test variation") @RequestParam(required = false) VariantSelection variant,
-		@Parameter(description = "Configuration json") @RequestBody JsonObject config,
+		@Parameter(description = SwaggerConfig.DESC_VARIANT_SELECTION, example = SwaggerConfig.EXAMPLE_VARIANT_SELECTION) @RequestParam(required = false) VariantSelection variant,
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The test configuration JSON; may include 'description', 'alias' and 'publish' fields alongside the server/client configuration",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_TEST_CONFIGURATION)))
+		@RequestBody JsonObject config,
 		Model m) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
@@ -175,13 +190,14 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get a list of test plan instances with paging")
+	@Operation(operationId = "listTestPlans", summary = "Get a list of test plan instances with paging")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully; 'data' contains test plan documents (the public projection when public=true)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PaginationResponse.class)))
 	})
 	public ResponseEntity<Object> getTestPlansForCurrentUser(
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
-		PaginationRequest page) {
+		@ParameterObject PaginationRequest page) {
 
 		PaginationResponse<?> response = publicOnly
 				? planService.getPaginatedPublicPlans(page)
@@ -191,16 +207,17 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@PostMapping("/plan/{id}/share")
-	@Operation(summary = "Get private link to share test plan",
-		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
+	@Operation(operationId = "shareTestPlan", summary = "Get private link to share test plan",
+		description = SwaggerConfig.DESC_SHARE_LINK)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to share plan"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to share plan", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
 	})
 	public ResponseEntity<?> shareLink(
 		@Parameter(description = "Id of test plan") @PathVariable String id,
-		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+		@Parameter(description = SwaggerConfig.DESC_SHARE_EXPIRY, example = "30") @RequestParam(name = "exp", required = true) String exp
 	) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
@@ -217,10 +234,12 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get test plan information by plan id")
+	@Operation(operationId = "getTestPlan", summary = "Get test plan information by plan id",
+		description = "Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The plan document"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id", content = @Content)
 	})
 	public ResponseEntity<Object> getTestPlan(
 		@Parameter(description = "Id of test plan") @PathVariable String id,
@@ -278,14 +297,17 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@PostMapping(value = "/plan/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Publish a test plan by plan Id")
+	@Operation(operationId = "publishTestPlan", summary = "Publish a test plan by plan Id")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Published test plan successfully"),
-		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
-		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id")
+		@ApiResponse(responseCode = "200", description = "Published test plan successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublishResponse.class))),
+		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive", content = @Content),
+		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id", content = @Content)
 	})
-	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of test plan that you want publish") @PathVariable String id,
-												  @Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
+	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of the test plan to publish") @PathVariable String id,
+												  @io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerConfig.DESC_PUBLISH_BODY,
+													  content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_PUBLISH_BODY)))
+												  @RequestBody JsonObject config) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -309,15 +331,14 @@ public class TestPlanApi implements DataUtils {
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 
-	@PostMapping(value = "/plan/{id}/makemutable", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.TEXT_HTML_VALUE)
-	@Operation(summary = "Make a test plan mutable again (requires administrator privileges)")
+	@PostMapping(value = "/plan/{id}/makemutable", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+	@Operation(operationId = "makeTestPlanMutable", summary = "Make a test plan mutable again (requires administrator privileges)")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Made the test plan mutable again successfully"),
-		@ApiResponse(responseCode = "400", description = "Could not find plan"),
-		@ApiResponse(responseCode = "403", description = "Not authorized")
+		@ApiResponse(responseCode = "200", description = "Made the test plan mutable again successfully", content = @Content),
+		@ApiResponse(responseCode = "403", description = "Not authorized, or the plan could not be found", content = @Content)
 	})
 	public ResponseEntity<Object> makeTestPlanMutable(
-			@Parameter(description = "Id of test plan that you want make mutable again") @PathVariable String id) {
+			@Parameter(description = "Id of the test plan to make mutable again") @PathVariable String id) {
 		if (authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
@@ -328,13 +349,14 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/info/{planName}")
-	@Operation(summary = "Get information for one test plan by name")
+	@Operation(operationId = "getTestPlanInfo", summary = "Get information for one test plan by name")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "Plan definition: planName, displayName, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name", content = @Content)
 	})
 	public ResponseEntity<Object> getTestPlanInfo(
-			@Parameter(description = "Plan name, use to identify a specific TestPlan ") @PathVariable String planName) {
+			@Parameter(description = "Plan name, used to identify a specific test plan") @PathVariable String planName) {
 		VariantService.TestPlanHolder holder = variantService.getTestPlan(planName);
 
 		if (holder != null) {
@@ -359,9 +381,10 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@GetMapping(value = "plan/available")
-	@Operation(summary = "Get a list of available test plans and their attributes")
+	@Operation(operationId = "listAvailableTestPlans", summary = "Get a list of available test plans and their attributes")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "array", description = "One entry per available plan, shaped as GET /api/plan/info/{planName} except each module entry also lists its configurationFields")))
 	})
 	public ResponseEntity<Object> getAvailableTestPlans() {
 		Set<Map<String, ?>> available = variantService.getTestPlans().stream()
@@ -383,14 +406,14 @@ public class TestPlanApi implements DataUtils {
 	}
 
 	@DeleteMapping(value = "/plan/{id}")
-	@Operation(summary = "Delete a test plan and related configuration. Requires the plan to be mutable.")
+	@Operation(operationId = "deleteTestPlan", summary = "Delete a test plan and related configuration. Requires the plan to be mutable.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "204", description = "Deleted successfully"),
-		@ApiResponse(responseCode = "403", description = "Insufficient permissions to delete test plan"),
-		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id, belonging to the user"),
-		@ApiResponse(responseCode = "405", description = "The plan is immutable and cannot be deleted")
+		@ApiResponse(responseCode = "204", description = "Deleted successfully", content = @Content),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to delete test plan", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id, belonging to the user", content = @Content),
+		@ApiResponse(responseCode = "405", description = "The plan is immutable and cannot be deleted", content = @Content)
 	})
-	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
+	public ResponseEntity<Void> deleteMutableTestPlan(
 		@Parameter(description = "Id of test plan") @PathVariable String id
 	) {
 		if (authenticationFacade != null && authenticationFacade.isPrivateLinkUser()) {

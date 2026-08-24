@@ -4,8 +4,13 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.runner.TestRunnerSupport;
@@ -36,8 +41,16 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_TEST_LOGS)
 @RequestMapping(value = "/api")
 public class ImageAPI {
+
+	static final int UPLOAD_SIZE_LIMIT = 500 * 1024;
+	static final int MAX_IMAGES_PER_TEST = 2;
+
+	private static final String IMAGE_BODY_DESCRIPTION = "The image as a data URI string"
+		+ " ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most "
+		+ (UPLOAD_SIZE_LIMIT / 1024) + "KB decoded and at most " + MAX_IMAGES_PER_TEST + " images per test";
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -55,13 +68,18 @@ public class ImageAPI {
 	private ImageService imageService;
 
 	@PostMapping(path = "/log/{id}/images")
-	@Operation(summary = "Upload image for a test log")
+	@Operation(operationId = "uploadTestImage", summary = "Upload image for a test log")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
-		@ApiResponse(responseCode = "400", description = "Image validation failure"),
-		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "200", description = "Uploaded image successfully; returns the new log entry",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
+		@ApiResponse(responseCode = "400", description = "Image validation failure",
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image", content = @Content)
 	})
-	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
+	public ResponseEntity<Object> uploadImageToNewLogEntry(
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = IMAGE_BODY_DESCRIPTION,
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, examples = @ExampleObject("data:image/png;base64,iVBORw0KGgo...")))
+		@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
 		@Parameter(description = "Description for image") @RequestParam(required = false) String description) throws IOException {
 
@@ -103,16 +121,20 @@ public class ImageAPI {
 	}
 
 	@PostMapping(path = "/log/{id}/images/{placeholder}")
-	@Operation(summary = "Upload the image to existing log entry")
+	@Operation(operationId = "uploadTestImageToPlaceholder", summary = "Upload the image to existing log entry")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
-		@ApiResponse(responseCode = "400", description = "Image validation failure"),
-		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "200", description = "Uploaded image successfully; returns the updated log entry (empty if no matching unfilled placeholder exists)",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The log entry document, including the img data-URI"))),
+		@ApiResponse(responseCode = "400", description = "Image validation failure",
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(type = "string", description = "Plain-text reason"))),
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to upload an image", content = @Content)
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
-		@Parameter(description = "Image should be encoded as a string") @RequestBody String encoded,
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = IMAGE_BODY_DESCRIPTION,
+			content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, examples = @ExampleObject("data:image/png;base64,iVBORw0KGgo...")))
+		@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
-		@Parameter(description = "Placeholder which created when the test run") @PathVariable String placeholder) throws IOException {
+		@Parameter(description = "Id of the image placeholder created while the test ran") @PathVariable String placeholder) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -142,12 +164,12 @@ public class ImageAPI {
 	}
 
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get all the images for a test")
+	@Operation(operationId = "listTestImages", summary = "Get all the images for a test")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "403", description = "You must be admin or test owner to list a test's images", content = @Content)
 	})
-	public ResponseEntity<Object> getAllImages(@Parameter(description = "ID of test") @PathVariable(name = "id") String testId) {
+	public ResponseEntity<Object> getAllImages(@Parameter(description = "Id of test") @PathVariable(name = "id") String testId) {
 
 		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
 
@@ -192,8 +214,8 @@ public class ImageAPI {
 		query.addCriteria(Criteria.where("testId").is(testId));
 		query.addCriteria(Criteria.where("img").exists(true));
 
-		if (mongoTemplate.find(query, Document.class, DBEventLog.COLLECTION).size() >= 2) {
-			return new ResponseEntity<Object>("Only 2 image uploads permitted per test", HttpStatus.BAD_REQUEST);
+		if (mongoTemplate.find(query, Document.class, DBEventLog.COLLECTION).size() >= MAX_IMAGES_PER_TEST) {
+			return new ResponseEntity<Object>("Only " + MAX_IMAGES_PER_TEST + " image uploads permitted per test", HttpStatus.BAD_REQUEST);
 		}
 
 		// Limit the accepted file types.
@@ -215,9 +237,6 @@ public class ImageAPI {
 			return new ResponseEntity<Object>("Only jpeg/png files accepted", HttpStatus.BAD_REQUEST);
 		}
 
-		// Impose as 550KB file size limit.
-		final int UPLOAD_SIZE_LIMIT = 500 * 1024;
-
 		// Impose the limit on the file before encoding.
 		final String encodingMarker = "base64,";
 		int index = encoded.indexOf(encodingMarker);
@@ -228,7 +247,7 @@ public class ImageAPI {
 
 			byte[] decodedBytes = Base64.getDecoder().decode(encodedData);
 			if (decodedBytes.length > UPLOAD_SIZE_LIMIT) {
-				return new ResponseEntity<Object>("File size exceeds the 500KB limit", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<Object>("File size exceeds the " + (UPLOAD_SIZE_LIMIT / 1024) + "KB limit", HttpStatus.BAD_REQUEST);
 			}
 		}
 		else {

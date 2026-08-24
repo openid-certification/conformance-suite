@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +46,7 @@ public class TestPlanApi_UnitTest {
 	public void api_returns_not_found_if_the_test_plan_id_cannot_be_found() {
 		Mockito.when(planService.getTestPlan(anyString())).thenReturn(null);
 
-		ResponseEntity<StreamingResponseBody> response = api.deleteMutableTestPlan("abc");
+		ResponseEntity<Void> response = api.deleteMutableTestPlan("abc");
 
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 	}
@@ -57,7 +56,7 @@ public class TestPlanApi_UnitTest {
 		Mockito.when(plan.getImmutable()).thenReturn(true);
 		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
 
-		ResponseEntity<StreamingResponseBody> response = api.deleteMutableTestPlan("abc");
+		ResponseEntity<Void> response = api.deleteMutableTestPlan("abc");
 
 		assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
 	}
@@ -67,7 +66,7 @@ public class TestPlanApi_UnitTest {
 		Mockito.when(plan.getImmutable()).thenReturn(null);
 		Mockito.when(planService.getTestPlan(anyString())).thenReturn(plan);
 
-		ResponseEntity<StreamingResponseBody> response = api.deleteMutableTestPlan("abc");
+		ResponseEntity<Void> response = api.deleteMutableTestPlan("abc");
 
 		verify(planService, times(1)).deleteMutableTestPlan("abc");
 		assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());

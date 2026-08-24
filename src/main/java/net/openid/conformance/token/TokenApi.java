@@ -4,8 +4,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.TokenCreatedResponse;
+import net.openid.conformance.apidoc.TokenSummary;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_API_TOKENS)
 @RequestMapping(value = "/api")
 public class TokenApi {
 
@@ -31,9 +40,10 @@ public class TokenApi {
 	private AuthenticationFacade authenticationFacade;
 
 	@GetMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get a list of existing tokens")
+	@Operation(operationId = "listTokens", summary = "Get a list of existing tokens")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = TokenSummary.class))))
 	})
 	public ResponseEntity<Object> getAllTokens() {
 
@@ -41,12 +51,17 @@ public class TokenApi {
 	}
 
 	@PostMapping(value = "/token", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Create new token")
+	@Operation(operationId = "createToken", summary = "Create new token")
 	@ApiResponses({
-		@ApiResponse(responseCode = "201", description = "Created token successfully"),
-		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin")
+		@ApiResponse(responseCode = "201", description = "Created token successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TokenCreatedResponse.class))),
+		@ApiResponse(responseCode = "403", description = "To create a token, you must not be an admin", content = @Content)
 	})
-	public ResponseEntity<Object> createToken(@Parameter(description = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {
+	public ResponseEntity<Object> createToken(
+		@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Pass {\"permanent\": true} for a token that never expires; anything else (including omitting the field) creates a token valid for "
+			+ (DBTokenService.DEFAULT_TTL_MS / (60 * 60 * 1000)) + " hours",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject("{\"permanent\": true}")))
+		@RequestBody JsonObject request) {
 
 		if (authenticationFacade.isAdmin() || authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -66,10 +81,10 @@ public class TokenApi {
 	}
 
 	@DeleteMapping(value = "/token/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Delete existing token by token Id")
+	@Operation(operationId = "deleteToken", summary = "Delete existing token by token Id")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Deleted token successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find provided token Id")
+		@ApiResponse(responseCode = "200", description = "Deleted token successfully", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find provided token Id", content = @Content)
 	})
 	public ResponseEntity<Object> deleteToken(@Parameter(description = "Id of token, use to identify a specific token") @PathVariable String id) {
 

@@ -5,8 +5,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.openid.conformance.SwaggerConfig;
+import net.openid.conformance.apidoc.PublishResponse;
+import net.openid.conformance.apidoc.ShareLinkResponse;
+import net.openid.conformance.apidoc.TestInfoResponse;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.sharing.AssetSharing;
@@ -30,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Controller
+@Tag(name = SwaggerConfig.TAG_TEST_INFORMATION)
 @RequestMapping(value = "/api")
 public class TestInfoApi {
 
@@ -48,10 +57,14 @@ public class TestInfoApi {
  	@Autowired
 	private TestPlanService planService;
 
+	private static final String INFO_API_DISABLED_MESSAGE = "This API has been disabled due to performance concerns."
+		+ " If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL;
+
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get information of all test module instances", description = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
+	@Operation(operationId = "listAllTestInfo", summary = "Get information of all test module instances", deprecated = true, description = INFO_API_DISABLED_MESSAGE + " Always returns 400.")
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "Retrieved successfully")
+			@ApiResponse(responseCode = "400", description = "Always returned: the API is disabled",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "string", description = "Explanatory message (a JSON string)")))
 	})
 	public ResponseEntity<Object> getAllTests() {
 //		List<TestInfo> testInfo = null;
@@ -65,14 +78,15 @@ public class TestInfoApi {
 //		}
 //		return new ResponseEntity<>(testInfo, HttpStatus.OK);
 
-		return new ResponseEntity<Object>("This API has been disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL, HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<Object>(INFO_API_DISABLED_MESSAGE, HttpStatus.BAD_REQUEST);
 	}
 
 	@GetMapping(value = "/info/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get test information by test id")
+	@Operation(operationId = "getTestInfo", summary = "Get test information by test id")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-			@ApiResponse(responseCode = "404", description = "Couldn't find test information for provided testId")
+			@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TestInfoResponse.class))),
+			@ApiResponse(responseCode = "404", description = "Couldn't find test information for provided testId", content = @Content)
 	})
 	public ResponseEntity<Object> getTestInfo(
 			@Parameter(description = "Id of test") @PathVariable String id,
@@ -108,15 +122,17 @@ public class TestInfoApi {
 	}
 
 	@PostMapping("/info/{testId}/share")
-	@Operation(summary = "Get private link to share test information",
-		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
+	@Operation(operationId = "shareTest", summary = "Get private link to share test information",
+		description = SwaggerConfig.DESC_SHARE_LINK)
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
-		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ShareLinkResponse.class))),
+		@ApiResponse(responseCode = "403", description = "Not permitted for private-link (guest) users", content = @Content),
+		@ApiResponse(responseCode = "404", description = "Couldn't find the test (or its plan) for the provided test id", content = @Content)
 	})
 	public ResponseEntity<?> shareLink(
-		@Parameter(description = "Id of test that you want to publish") @PathVariable String testId,
-		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+		@Parameter(description = "Id of the test to share") @PathVariable String testId,
+		@Parameter(description = SwaggerConfig.DESC_SHARE_EXPIRY, example = "30") @RequestParam(name = "exp", required = true) String exp
 
 	) {
 
@@ -146,15 +162,18 @@ public class TestInfoApi {
 	}
 
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Publish a test information")
+	@Operation(operationId = "publishTest", summary = "Publish a test information")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Published successfully"),
-			@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
-			@ApiResponse(responseCode = "403", description = "'publish' value is not valid")
+			@ApiResponse(responseCode = "200", description = "Published successfully",
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PublishResponse.class))),
+			@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive", content = @Content),
+			@ApiResponse(responseCode = "403", description = "'publish' value is not valid", content = @Content)
 	})
 	public ResponseEntity<Object> publishTestInfo(
 			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
-			@Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = SwaggerConfig.DESC_PUBLISH_BODY,
+				content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, examples = @ExampleObject(SwaggerConfig.EXAMPLE_PUBLISH_BODY)))
+			@RequestBody JsonObject config) {
 
 		if (authenticationFacade.isPrivateLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);

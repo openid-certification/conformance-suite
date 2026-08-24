@@ -167,20 +167,27 @@ public class WebSecurityResourceServerConfig {
 			).<RequestMatcher>map(pattern -> PathPatternRequestMatcher.withDefaults().matcher(pattern)).toList());
 	}
 
+	/**
+	 * GET path patterns that may be accessed anonymously when the ?public query parameter
+	 * requests published data (see getPublicMatcher). Also consumed by SwaggerConfig so the
+	 * API documentation's security requirements stay in sync with this configuration.
+	 */
+	public static final List<String> PUBLIC_GET_PATHS = List.of(
+		"/api/ui/?*",
+		"/api/info/?*",
+		"/api/log",
+		"/api/log/?*",
+		"/api/log/export/?*",
+		"/api/plan",
+		"/api/plan/?*",
+		"/api/plan/export/?*");
+
 	private RequestMatcher getPublicMatcher() {
 		// Matches following paths IIF the ?public query parameter is present
 		return new AndRequestMatcher( //
 			new OrRequestMatcher( //
-				Stream.of( //
-					"/api/ui/?*", //
-					"/api/info/?*", //
-					"/api/log", //
-					"/api/log/?*", //
-					"/api/log/export/?*", //
-					"/api/plan", //
-					"/api/plan/?*", //
-					"/api/plan/export/?*" //
-				).<RequestMatcher>map(path -> PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, path)).toList()), //
+				PUBLIC_GET_PATHS.stream() //
+					.<RequestMatcher>map(path -> PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, path)).toList()), //
 			new PublicRequestMatcher());
 	}
 
