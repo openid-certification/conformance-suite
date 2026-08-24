@@ -110,12 +110,15 @@ const HERO_MODES = {
  * rendered under the headline (#1883) — the redesign dropped the legacy UI's
  * hover-help when the terminal banner replaced the old status/result pills,
  * leaving "Test needs review" etc. with no explanation of what it means or
- * what happens next. Text is copied verbatim from the legacy/pre-redesign
+ * what happens next. Text is copied from the legacy/pre-redesign
  * `FAPI_UI.getResultHelp`/`getStatusHelp` (static/js/fapi.ui.js:95-128, an
  * exact carry-over of static-legacy/js/fapi.ui.js:478-511) rather than
  * reworded, so the explanation matches what the old UI's tooltip already
- * said. Optional per phase (guarded in `_renderTerminalBanner`) so a future
- * phase can omit it without a second render path.
+ * said — with one deliberate deviation: "behaviour" → "behavior" in the
+ * finished-warn entry, to match this codebase's American-English convention
+ * (the legacy source uses British spelling). Optional per phase (guarded in
+ * `_renderTerminalBanner`) so a future phase can omit it without a second
+ * render path.
  *
  * REVIEW result uses the warn palette: a reviewer needs to act, so the
  * banner reads as "needs attention", not as a verdict failure.
@@ -140,7 +143,7 @@ const TERMINAL_BANNER_BY_PHASE = {
     headline: "Test passed with warnings",
     icon: "warning",
     detail:
-      "The test has generated some warnings during its execution, see the log for details. Test results with warnings are accepted for certification, but they generally indicate that the software under test is behaving unexpected or not following recommendations, and the tester should check the results to ensure any warnings are expected behaviour of the software being tested.",
+      "The test has generated some warnings during its execution, see the log for details. Test results with warnings are accepted for certification, but they generally indicate that the software under test is behaving unexpected or not following recommendations, and the tester should check the results to ensure any warnings are expected behavior of the software being tested.",
   },
   "finished-review": {
     palette: "warn",
@@ -1308,7 +1311,7 @@ class CtsLogDetailHeader extends LitElement {
    * button to leak, whatever the result says.
    *
    * Rule 1 is deliberately NOT mirrored into `js/module-status.js`,
-   * which colours the plan-level module badges and progress segments.
+   * which colors the plan-level module badges and progress segments.
    * The two surfaces have different refresh semantics: this page polls
    * `/api/info` until `isFullyTerminal`, so a live phase always
    * self-corrects within one 3s cycle. `plan-detail.html` fans out
@@ -1544,7 +1547,7 @@ class CtsLogDetailHeader extends LitElement {
    * Known residual: on a live bar this abandons the in-flight run without
    * confirmation — `handleRepeat` in `js/log-detail.js` POSTs a new instance
    * and navigates away, leaving the old one running server-side. That matches
-   * the finished bar's long-standing behaviour, so it is deliberately not
+   * the finished bar's long-standing behavior, so it is deliberately not
    * special-cased here; a confirm step would belong on both.
    *
    * `needs-start` is deliberately excluded: that test has not run yet, so
