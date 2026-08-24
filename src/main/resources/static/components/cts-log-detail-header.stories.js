@@ -1809,6 +1809,10 @@ export const TerminalBannerPassed = {
     expect(banner.classList.contains("ctsTerminalBanner--pass")).toBe(true);
     expect(banner.textContent).toContain("Test passed");
     expect(banner.querySelector('cts-icon[name="circle-check"]')).toBeTruthy();
+    // #1883 — the explanatory line under the headline (legacy FAPI_UI.getResultHelp text).
+    expect(banner.querySelector(".ctsTerminalBannerDetail").textContent).toContain(
+      "passed all conditions",
+    );
   },
 };
 
@@ -1824,6 +1828,10 @@ export const TerminalBannerFailed = {
     expect(banner.classList.contains("ctsTerminalBanner--fail")).toBe(true);
     expect(banner.textContent).toContain("Test failed");
     expect(banner.querySelector('cts-icon[name="close-circle"]')).toBeTruthy();
+    // #1883 — the explanatory line under the headline (legacy FAPI_UI.getResultHelp text).
+    expect(banner.querySelector(".ctsTerminalBannerDetail").textContent).toContain(
+      "cannot be certified",
+    );
   },
 };
 
@@ -1840,6 +1848,10 @@ export const TerminalBannerWarning = {
     expect(banner.classList.contains("ctsTerminalBanner--warn")).toBe(true);
     expect(banner.textContent).toContain("Test passed with warnings");
     expect(banner.querySelector('cts-icon[name="warning"]')).toBeTruthy();
+    // #1883 — the explanatory line under the headline (legacy FAPI_UI.getResultHelp text).
+    expect(banner.querySelector(".ctsTerminalBannerDetail").textContent).toContain(
+      "accepted for certification",
+    );
   },
 };
 
@@ -1857,6 +1869,12 @@ export const TerminalBannerReview = {
     // isn't a failure — same urgency as a warning.
     expect(banner.classList.contains("ctsTerminalBanner--warn")).toBe(true);
     expect(banner.textContent).toContain("Test needs review");
+    // #1883 — the explanatory line under the headline (legacy FAPI_UI.getResultHelp
+    // text): what "review" means and when it happens, so the banner isn't a bare
+    // unexplained verdict.
+    expect(banner.querySelector(".ctsTerminalBannerDetail").textContent).toContain(
+      "manually checked",
+    );
   },
 };
 
@@ -1872,6 +1890,10 @@ export const TerminalBannerSkipped = {
     expect(banner.getAttribute("data-phase")).toBe("finished-skip");
     expect(banner.classList.contains("ctsTerminalBanner--skip")).toBe(true);
     expect(banner.textContent).toContain("Test skipped");
+    // #1883 — the explanatory line under the headline (legacy FAPI_UI.getResultHelp text).
+    expect(banner.querySelector(".ctsTerminalBannerDetail").textContent).toContain(
+      "configuration or optional features",
+    );
   },
 };
 
@@ -1886,6 +1908,12 @@ export const TerminalBannerInterrupted = {
     expect(banner.getAttribute("data-phase")).toBe("interrupted");
     expect(banner.classList.contains("ctsTerminalBanner--fail")).toBe(true);
     expect(banner.textContent).toContain("Test interrupted");
+    // #1883 — the explanatory line under the headline (legacy FAPI_UI.getStatusHelp
+    // "interrupted" text — INTERRUPTED is a status, not a result, unlike the other
+    // five phases which pull from getResultHelp).
+    expect(banner.querySelector(".ctsTerminalBannerDetail").textContent).toContain(
+      "run the test again",
+    );
   },
 };
 
