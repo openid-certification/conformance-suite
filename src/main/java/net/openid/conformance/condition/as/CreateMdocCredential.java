@@ -36,15 +36,26 @@ public class CreateMdocCredential extends AbstractCondition {
 		String requestedDocType = null;
 		Map<String, Set<String>> requestedClaims = null;
 		JsonObject dcqlQuery = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY);
+		// The VP ID2/ID3 verifier tests use presentation_definition rather than DCQL, so no query is
+		// present there and the wallet falls back to presenting a full mDL.
 		if (dcqlQuery != null) {
 			JsonObject matchingCredential = findFirstMdocCredentialEntry(dcqlQuery);
-			if (matchingCredential != null) {
-				requestedDocType = DcqlQueryUtils.extractMdocDoctypeValue(matchingCredential);
-				// Always pass a (possibly empty) map when DCQL is present so the wallet
-				// only discloses requested elements. If claims are omitted, nothing is
-				// disclosed, matching the SD-JWT data minimization behaviour.
-				requestedClaims = extractMdocRequestedClaims(matchingCredential);
+			if (matchingCredential == null) {
+				// Falling back to a default credential here would present an mdoc the verifier never asked
+				// for, hiding a verifier that accepts credentials outside those in its own DCQL query.
+				throw error("The DCQL query contains no credential entry with format 'mso_mdoc', so there "
+					+ "is no mdoc credential for the wallet to present.", args("dcql", dcqlQuery));
 			}
+			requestedDocType = DcqlQueryUtils.extractMdocDoctypeValue(matchingCredential);
+			if (requestedDocType == null) {
+				throw error("The 'mso_mdoc' credential entry in the DCQL query has no 'meta.doctype_value', "
+					+ "which OID4VP requires for the mso_mdoc format, so we cannot tell which document type "
+					+ "to present.", args("credential", matchingCredential));
+			}
+			// Always pass a (possibly empty) map when DCQL is present so the wallet
+			// only discloses requested elements. If claims are omitted, nothing is
+			// disclosed, matching the SD-JWT data minimization behaviour.
+			requestedClaims = extractMdocRequestedClaims(matchingCredential);
 		}
 
 		byte[] mdoc = testAppUtils.generateDeviceResponse(sessionTranscript, requestedDocType, requestedClaims);
