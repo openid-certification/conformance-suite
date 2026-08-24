@@ -3,7 +3,6 @@ package net.openid.conformance.openid;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
-import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
@@ -12,17 +11,13 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndp
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInServerMetadata;
 import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
-import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureServerConfigurationCodeChallengeMethodsSupportedIsAnArray;
 import net.openid.conformance.condition.client.FetchServerKeys;
@@ -34,6 +29,8 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSign
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
+import net.openid.conformance.sequence.CheckRequiredOidcDiscoveryMetadataSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -88,12 +85,6 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 	protected void performEndpointVerification() {
 
 
-		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
-			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-15.2");
-		} else {
-			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-3");
-		}
-
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 		callAndContinueOnFailure(CheckDiscEndpointIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
@@ -101,10 +92,9 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateServerMetadataAgainstSchema.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "RFC8414-2");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInServerMetadata.class, Condition.ConditionResult.WARNING, "OIDCD-3", "RFC8414-2");
 
-		callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-
-		// Includes verify-id_token_signing-algorithm-is-supported assertion (OIDC test)
-		callAndContinueOnFailure(OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		// Includes verify-op-endpoints-use-https assertion (OIDC test) for each endpoint tested,
+		// verify-id_token_signing-algorithm-is-supported and providerinfo-has-jwks_uri
+		call(requiredOidcMetadataChecks());
 
 		call(condition(OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
@@ -114,9 +104,6 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			.dontStopOnFailure()
 		);
 
-		// Includes verify-op-endpoints-use-https assertion (OIDC test) for each endpoint tested
-		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		call(condition(CheckDiscEndpointUserinfoEndpoint.class)
 			.skipIfElementMissing("server", "userinfo_endpoint")
 			.onFail(Condition.ConditionResult.FAILURE)
@@ -132,8 +119,6 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			.requirement("OIDCD-3")
 			.dontStopOnFailure());
 
-		// Includes providerinfo-has-jwks_uri
-		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		callAndStopOnFailure(FetchServerKeys.class);
 		call(new ValidateJwksSequence("server_jwks", null, "server JWKS", "OIDCD-3"));
 
@@ -158,13 +143,6 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 			callAndContinueOnFailure(OIDCCCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		}
 
-		call(condition(CheckDiscEndpointScopesSupportedContainsOpenId.class)
-				.skipIfElementMissing("server", "scopes_supported")
-				.onFail(Condition.ConditionResult.FAILURE)
-				.onSkip(Condition.ConditionResult.WARNING)
-				.requirement("OIDCD-3")
-				.dontStopOnFailure());
-
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
 		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
 		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class, Condition.ConditionResult.WARNING, "RFC8414-2");
@@ -176,6 +154,14 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(EnsureServerConfigurationCodeChallengeMethodsSupportedIsAnArray.class, Condition.ConditionResult.FAILURE, "RFC8414-2", "RFC7636-4.3");
+	}
+
+	protected ConditionSequence requiredOidcMetadataChecks() {
+		boolean dynamic = getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT;
+		return new CheckRequiredOidcDiscoveryMetadataSequence(
+			dynamic ? OIDCCCheckDiscEndpointResponseTypesSupportedDynamic.class : OIDCCCheckDiscEndpointResponseTypesSupported.class,
+			OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported.class)
+			.responseTypesSupportedRequirements("OIDCD-3", dynamic ? "OIDCC-15.2" : "OIDCC-3");
 	}
 
 }
