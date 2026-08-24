@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.EnsureServerConfigurationHasRequiredOidcMetadata;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAuthTimeToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
@@ -295,6 +296,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		onServerConfigurationCompleted();
+
+		callAndStopOnFailure(EnsureServerConfigurationHasRequiredOidcMetadata.class, "OIDCD-3");
 
 		configureServerJWKS();
 

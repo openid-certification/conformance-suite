@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.EnsureServerConfigurationHasRequiredOidcMetadata;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
@@ -524,6 +525,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
+		if (fapiClientType == FAPIClientType.OIDC && !profileBehavior.isClientCredentialsGrantOnly()) {
+			callAndStopOnFailure(EnsureServerConfigurationHasRequiredOidcMetadata.class, "OIDCD-3");
+		}
 
 		callAndStopOnFailure(FAPI2FinalEnsureMinimumServerKeyLength.class, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 
