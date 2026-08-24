@@ -1,5 +1,6 @@
 package net.openid.conformance.security;
 
+import io.swagger.v3.oas.annotations.Operation;
 import net.openid.conformance.util.TestKeysAndCerts;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ public class MdocIacaRootEndpoint {
 
 	@GetMapping(value = "/mdoc-iaca-root.pem", produces = MediaType.TEXT_PLAIN_VALUE)
 	@ResponseBody
+	@Operation(operationId = "mdocIacaRootCert",
+		summary = "Returns the certificate used for mdoc signing and verification",
+		description = "Returns the IACA root certificate used for mdoc signing and verification")
 	public ResponseEntity<String> getMdocIacaRootCert() {
 		return ResponseEntity.ok(TestKeysAndCerts.IACA_ROOT_CERT_PEM + "\n");
 	}
