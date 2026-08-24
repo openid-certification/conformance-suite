@@ -2,6 +2,8 @@ package net.openid.conformance.runner;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.info.ImageService;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
@@ -13,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -217,6 +221,64 @@ public class TestRunner_UnitTest {
 
 		assertEquals(HttpStatus.OK, runner.startTest("MANUAL").getStatusCode());
 		verify(test, never()).start();
+	}
+
+	// #1884 - the log-detail page's WAITING/RUNNING hero surfaces an "upload an
+	// image" CTA off this count, mirroring the existing URL-visit prompt; before
+	// this field existed there was no way for the frontend to know a manual
+	// upload was outstanding except by scanning the whole log stream.
+	@Test
+	public void getTestStatus_includesUploadsRequiredCountFromImageService() {
+		TestRunnerSupport support = mock(TestRunnerSupport.class);
+		TestModule test = mock(TestModule.class);
+		when(test.getId()).thenReturn("TESTID");
+		when(test.getName()).thenReturn("test");
+		when(test.getCreated()).thenReturn(Instant.now());
+		when(test.getStatusUpdated()).thenReturn(Instant.now());
+		BrowserControl browser = mock(BrowserControl.class);
+		when(test.getBrowser()).thenReturn(browser);
+		when(support.getRunningTestById("TESTID")).thenReturn(test);
+
+		ImageService imageService = mock(ImageService.class);
+		when(imageService.getRemainingPlaceholders("TESTID", true)).thenReturn(List.of("p1", "p2"));
+
+		TestRunner runner = new TestRunner();
+		ReflectionTestUtils.setField(runner, "support", support);
+		ReflectionTestUtils.setField(runner, "imageService", imageService);
+
+		ResponseEntity<Map<String, Object>> response = runner.getTestStatus("TESTID", null);
+
+		Map<String, Object> body = response.getBody();
+		@SuppressWarnings("unchecked")
+		Map<String, Object> browserMap = (Map<String, Object>) body.get("browser");
+		assertEquals(2, browserMap.get("uploadsRequired"));
+	}
+
+	@Test
+	public void getTestStatus_uploadsRequiredIsZeroWhenNoPlaceholdersOutstanding() {
+		TestRunnerSupport support = mock(TestRunnerSupport.class);
+		TestModule test = mock(TestModule.class);
+		when(test.getId()).thenReturn("TESTID");
+		when(test.getName()).thenReturn("test");
+		when(test.getCreated()).thenReturn(Instant.now());
+		when(test.getStatusUpdated()).thenReturn(Instant.now());
+		BrowserControl browser = mock(BrowserControl.class);
+		when(test.getBrowser()).thenReturn(browser);
+		when(support.getRunningTestById("TESTID")).thenReturn(test);
+
+		ImageService imageService = mock(ImageService.class);
+		when(imageService.getRemainingPlaceholders("TESTID", true)).thenReturn(List.of());
+
+		TestRunner runner = new TestRunner();
+		ReflectionTestUtils.setField(runner, "support", support);
+		ReflectionTestUtils.setField(runner, "imageService", imageService);
+
+		ResponseEntity<Map<String, Object>> response = runner.getTestStatus("TESTID", null);
+
+		Map<String, Object> body = response.getBody();
+		@SuppressWarnings("unchecked")
+		Map<String, Object> browserMap = (Map<String, Object>) body.get("browser");
+		assertEquals(0, browserMap.get("uploadsRequired"));
 	}
 
 }
