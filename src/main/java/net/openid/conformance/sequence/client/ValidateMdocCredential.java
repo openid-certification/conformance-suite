@@ -2,7 +2,12 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateMatchesIssuingCountry;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
+import net.openid.conformance.condition.client.ValidateMdocTrustAnchorIacaCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -41,7 +46,20 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			callAndContinueOnFailure(EnsureMdocDocTypeMatchesCredentialConfiguration.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.2");
 		}
+		// ISO 18013-5 Annex B DS certificate profile checks on the x5chain leaf; warnings, as
+		// they are ISO profile conformance rather than OID4VP/OID4VCI normative requirements
+		callAndContinueOnFailure(ValidateMdocDsCertificateKeyUsage.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.4");
+		callAndContinueOnFailure(ValidateMdocDsCertificateProfile.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.4");
+		callAndContinueOnFailure(ValidateMdocDsCertificateMatchesIssuingCountry.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.4");
+		callAndContinueOnFailure(ValidateMdocTrustAnchorIacaCertificateProfile.class,
+			ConditionResult.WARNING, "ISO18013-5-B.1.2");
 		if (haip) {
+			// mirrors the SD-JWT VC x5c chain validation; HAIP requires a configured trust anchor
+			callAndContinueOnFailure(ValidateMdocDsCertificateChain.class,
+				ConditionResult.FAILURE, "HAIP-6.1.1", "ISO18013-5-9.3.1");
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}

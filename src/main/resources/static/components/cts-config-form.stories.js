@@ -1278,3 +1278,61 @@ export const LargeDocumentKeystrokeDoesNotCorruptContent = {
     expect(position.lineNumber).not.toBe(1);
   },
 };
+
+/**
+ * Section intros: prose from the catalog's `intro` property renders under
+ * the section legend as sanitized markdown, with links forced to open in a
+ * new tab (the credential_issuer catalog section uses this to link to the
+ * suite's mdoc IACA root certificate).
+ */
+export const SectionIntro = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        properties: {
+          alias: { type: "string", title: "Alias" },
+          "credential.signing_jwk": { type: "string", title: "Signing JWK" },
+        },
+      }}
+      .uiSchema=${{
+        sections: [
+          {
+            key: "test_information",
+            title: "Test Information",
+            fields: ["alias"],
+          },
+          {
+            key: "credential_issuer",
+            title: "Credential Issuer",
+            intro:
+              "The suite signs mdocs with a DS certificate issued by its [mdoc IACA root](/mdoc-iaca-root.pem).",
+            fields: ["credential.signing_jwk"],
+          },
+        ],
+      }}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement, step }) {
+    await step("section with an intro renders it under the legend", async () => {
+      const intros = canvasElement.querySelectorAll(".oidf-config-form-section-intro");
+      expect(intros.length).toBe(1);
+      expect(intros[0].textContent).toContain("mdoc IACA root");
+    });
+
+    await step("intro markdown links are sanitized and open in a new tab", async () => {
+      const link = canvasElement.querySelector(".oidf-config-form-section-intro a");
+      expect(link).toBeTruthy();
+      expect(link.getAttribute("href")).toBe("/mdoc-iaca-root.pem");
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")).toContain("noopener");
+    });
+
+    await step("sections without an intro render no intro node", async () => {
+      const sections = canvasElement.querySelectorAll(".oidf-config-form-section");
+      expect(sections.length).toBe(2);
+      expect(sections[0].querySelector(".oidf-config-form-section-intro")).toBeNull();
+    });
+  },
+};

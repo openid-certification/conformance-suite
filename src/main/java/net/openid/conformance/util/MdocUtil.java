@@ -78,6 +78,39 @@ public final class MdocUtil {
 	}
 
 	/**
+	 * Extracts the X.509 certificate chain from the x5chain header (label 33) of the issuerAuth
+	 * COSE_Sign1 of an already CBOR-decoded IssuerSigned structure. The returned chain is
+	 * guaranteed non-empty; its first certificate is the document signer certificate.
+	 */
+	public static org.multipaz.crypto.X509CertChain extractX5chain(DataItem issuerSigned) throws MdocParseException {
+		DataItem issuerAuth = issuerSigned.getOrNull("issuerAuth");
+		if (issuerAuth == null) {
+			throw new MdocParseException("IssuerSigned structure missing 'issuerAuth' field");
+		}
+		CoseSign1 coseSign1;
+		try {
+			coseSign1 = issuerAuth.getAsCoseSign1();
+		} catch (Exception e) {
+			throw new MdocParseException("Failed to parse issuerAuth as COSE_Sign1", e);
+		}
+		DataItem x5chainItem = coseSign1.getUnprotectedHeaders()
+			.get(new org.multipaz.cose.CoseNumberLabel(org.multipaz.cose.Cose.COSE_LABEL_X5CHAIN));
+		if (x5chainItem == null) {
+			throw new MdocParseException("COSE_Sign1 unprotected headers missing x5chain (label 33)");
+		}
+		org.multipaz.crypto.X509CertChain certChain;
+		try {
+			certChain = x5chainItem.getAsX509CertChain();
+		} catch (Exception e) {
+			throw new MdocParseException("Failed to parse x5chain from COSE_Sign1 unprotected headers", e);
+		}
+		if (certChain.getCertificates().isEmpty()) {
+			throw new MdocParseException("x5chain certificate chain is empty");
+		}
+		return certChain;
+	}
+
+	/**
 	 * Extracts the MSO device key (deviceKeyInfo.deviceKey) from an mdoc IssuerSigned
 	 * structure and returns it converted to a JWK.
 	 */

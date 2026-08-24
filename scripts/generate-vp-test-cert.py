@@ -41,6 +41,20 @@ DEFAULT_SANS = [
 MDL_DS_OID = ObjectIdentifier("1.0.18013.5.1.2")
 
 
+# keyUsage with only digitalSignature set, as ISO 18013-5 Table B.3 requires for DS certs
+DIGITAL_SIGNATURE_ONLY = x509.KeyUsage(
+    digital_signature=True,
+    content_commitment=False,
+    key_encipherment=False,
+    data_encipherment=False,
+    key_agreement=False,
+    key_cert_sign=False,
+    crl_sign=False,
+    encipher_only=False,
+    decipher_only=False,
+)
+
+
 def _int_to_base64url(n: int, length: int) -> str:
     return base64.urlsafe_b64encode(n.to_bytes(length, "big")).decode("ascii").rstrip("=")
 
@@ -66,13 +80,29 @@ def generate_ca(san_names):
         .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
         .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=3650))
         .add_extension(x509.SubjectAlternativeName(san_names), critical=False)
-        .add_extension(x509.BasicConstraints(ca=True, path_length=1), critical=True)
+        # ISO 18013-5 Table B.1 IACA profile: pathLen 0, critical keyCertSign+cRLSign
+        # keyUsage, issuerAltName with issuer contact information
+        .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)
+        .add_extension(
+            x509.KeyUsage(
+                digital_signature=False,
+                content_commitment=False,
+                key_encipherment=False,
+                data_encipherment=False,
+                key_agreement=False,
+                key_cert_sign=True,
+                crl_sign=True,
+                encipher_only=False,
+                decipher_only=False,
+            ),
+            critical=True,
+        )
         .add_extension(
             x509.SubjectKeyIdentifier.from_public_key(ca_key.public_key()),
             critical=False,
         )
         .add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),
+            x509.IssuerAlternativeName([x509.RFC822Name("certification@oidf.org")]),
             critical=False,
         )
         .sign(ca_key, hashes.SHA256())
@@ -80,28 +110,57 @@ def generate_ca(san_names):
     return ca_key, ca_cert
 
 
-def generate_ec_jwk(ca_key, ca_cert, san_names) -> dict:
-    """Generate an EC P-256 leaf key + CA-signed cert, return as JWK with x5c."""
+def generate_ec_jwk(ca_key, ca_cert, san_names, mdoc_ds=False) -> dict:
+    """Generate an EC P-256 leaf key + CA-signed cert, return as JWK with x5c.
+
+    With mdoc_ds=False the cert is purpose-neutral (SD-JWT VC signing, OID4VP
+    request-object signing): critical digitalSignature keyUsage, no EKU. With
+    mdoc_ds=True the cert follows the ISO 18013-5 Table B.3 document signer
+    profile (critical mdlDS EKU, issuerAltName, CRL distribution points,
+    <=457 day validity) and must only be used for mdoc issuance.
+    """
     private_key = ec.generate_private_key(ec.SECP256R1())
 
-    cert = (
+    validity_days = 457 if mdoc_ds else 3650
+    builder = (
         x509.CertificateBuilder()
         .subject_name(x509.Name([
             x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
-            x509.NameAttribute(NameOID.COMMON_NAME, "OIDF Test"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "OIDF Test mdoc DS" if mdoc_ds else "OIDF Test"),
         ]))
         .issuer_name(ca_cert.subject)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=3650))
+        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=validity_days))
         .add_extension(x509.SubjectAlternativeName(san_names), critical=False)
-        .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()), critical=False)
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()), critical=False)
-        .add_extension(x509.ExtendedKeyUsage([MDL_DS_OID]), critical=False)
-        .sign(ca_key, hashes.SHA256())
+        .add_extension(DIGITAL_SIGNATURE_ONLY, critical=True)
     )
+    if mdoc_ds:
+        builder = (
+            builder
+            .add_extension(x509.ExtendedKeyUsage([MDL_DS_OID]), critical=True)
+            .add_extension(
+                x509.IssuerAlternativeName([x509.RFC822Name("certification@oidf.org")]),
+                critical=False,
+            )
+            .add_extension(
+                x509.CRLDistributionPoints([
+                    x509.DistributionPoint(
+                        full_name=[x509.UniformResourceIdentifier("http://example.com/test-ca.crl")],
+                        relative_name=None,
+                        reasons=None,
+                        crl_issuer=None,
+                    )
+                ]),
+                critical=False,
+            )
+        )
+    else:
+        builder = builder.add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+    cert = builder.sign(ca_key, hashes.SHA256())
 
     x5c_value = base64.b64encode(cert.public_bytes(serialization.Encoding.DER)).decode("ascii")
     pn = private_key.private_numbers()
@@ -137,6 +196,7 @@ def generate_rsa_jwk(ca_key, ca_cert, san_names) -> dict:
         .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()), critical=False)
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()), critical=False)
+        .add_extension(DIGITAL_SIGNATURE_ONLY, critical=True)
         .sign(ca_key, hashes.SHA256())
     )
 
@@ -173,6 +233,7 @@ def main():
     parser.add_argument("--hostname", action="append", default=[], help="Extra hostname to add to cert SAN")
     parser.add_argument("--output", help="Write EC credential signing JWK to file")
     parser.add_argument("--second-output", help="Write a second EC credential signing JWK (different key, same CA) to file")
+    parser.add_argument("--mdoc-output", help="Write an ISO 18013-5 Table B.3 mdoc DS signing JWK (same CA) to file")
     parser.add_argument("--server-output", help="Write RSA server signing JWK to file")
     parser.add_argument("--ca-output", help="Write CA trust anchor PEM to file")
     parser.add_argument("--ca-key-output", help="Write CA private key as EC JWK to file")
@@ -198,6 +259,10 @@ def main():
     if args.second_output:
         ec_jwk_2 = generate_ec_jwk(ca_key, ca_cert, san_names)
         _write_jwk(ec_jwk_2, args.second_output)
+
+    if args.mdoc_output:
+        mdoc_jwk = generate_ec_jwk(ca_key, ca_cert, san_names, mdoc_ds=True)
+        _write_jwk(mdoc_jwk, args.mdoc_output)
 
     if args.server_output:
         rsa_jwk = generate_rsa_jwk(ca_key, ca_cert, san_names)

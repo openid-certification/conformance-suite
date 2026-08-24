@@ -135,6 +135,8 @@ if [ -n "$NGROK_URL" ]; then
         python3 "${SUITE_DIR}/scripts/generate-vp-test-cert.py" \
             --hostname "$NGROK_HOSTNAME" \
             --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json" \
+            --second-output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk-2.json" \
+            --mdoc-output "${SUITE_DIR}/scripts/certs-keys/vp-mdoc-signing-jwk.json" \
             --server-output "${SUITE_DIR}/scripts/certs-keys/vp-server-jwk.json" \
             --ca-output "${SUITE_DIR}/scripts/certs-keys/vp-signing-ca.crt"
     fi
@@ -183,7 +185,7 @@ cleanup() {
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
     # Restore VP signing JWK and CA cert overwritten by generate-vp-test-cert.py
-    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json scripts/certs-keys/vp-server-jwk.json scripts/certs-keys/vp-signing-ca.crt 2>/dev/null || true
+    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json scripts/certs-keys/vp-signing-jwk-2.json scripts/certs-keys/vp-mdoc-signing-jwk.json scripts/certs-keys/vp-server-jwk.json scripts/certs-keys/vp-signing-ca.crt 2>/dev/null || true
     echo "==> Done."
 }
 trap cleanup EXIT INT TERM

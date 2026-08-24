@@ -1,5 +1,6 @@
 import { LitElement, html, nothing, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
+import { formatDescription } from "./format-description.js";
 import "./cts-form-field.js";
 import "./cts-button.js";
 import "./cts-icon.js";
@@ -169,6 +170,20 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
     margin: 0 0 var(--space-3) 0;
     padding: 0;
+  }
+  .oidf-config-form-section-intro {
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+    color: var(--fg-soft);
+    margin: 0 0 var(--space-3) 0;
+    max-width: 70ch;
+  }
+  .oidf-config-form-section-intro p {
+    margin: 0 0 var(--space-2) 0;
+  }
+  .oidf-config-form-section-intro p:last-child {
+    margin-bottom: 0;
   }
   .oidf-config-form-actions {
     display: flex;
@@ -570,6 +585,7 @@ class CtsConfigForm extends LitElement {
         return html`
           <fieldset class="oidf-config-form-section">
             <legend class="oidf-config-form-section-title">${section.title}</legend>
+            ${this._renderSectionIntro(section)}
             ${visible.map((path) => this._renderField(path, properties[path]))}
           </fieldset>
         `;
@@ -583,10 +599,23 @@ class CtsConfigForm extends LitElement {
       return html`
         <fieldset class="oidf-config-form-section">
           <legend class="oidf-config-form-section-title">${section.title}</legend>
-          ${renderedFields}
+          ${this._renderSectionIntro(section)} ${renderedFields}
         </fieldset>
       `;
     });
+  }
+
+  /**
+   * Optional prose under a section heading, from the catalog's `intro`
+   * property. Markdown via formatDescription (sanitized; links open in a
+   * new tab), so intros can link to e.g. the suite's mdoc IACA root cert.
+   * @param {{intro?: string}} section
+   */
+  _renderSectionIntro(section) {
+    if (!section.intro) return nothing;
+    return html`<div class="oidf-config-form-section-intro"
+      >${formatDescription(section.intro)}</div
+    >`;
   }
 
   _renderSectionFields(sectionKey, sectionProperties) {
