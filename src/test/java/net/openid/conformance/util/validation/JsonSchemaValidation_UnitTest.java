@@ -99,7 +99,7 @@ public class JsonSchemaValidation_UnitTest {
 	public void testValidate_structuralOneOfFailureAttributesNoUnknownProperties() throws IOException {
 		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
 
-		// content_type with parameters fails the embedded branch's pattern - a genuine
+		// Line-wrapped base64 content fails the embedded branch's pattern - a genuine
 		// structural error, so nothing may be classified as an unknown property even though
 		// the external branch rejects content_type/content as additionalProperties.
 		JsonSchemaValidationResult result = validation.validate("""
@@ -111,8 +111,8 @@ public class JsonSchemaValidation_UnitTest {
 			    "evidence": [{
 			      "type": "document",
 			      "attachments": [{
-			        "content_type": "text/plain; charset=utf-8",
-			        "content": "aGVsbG8="
+			        "content_type": "image/png",
+			        "content": "aGVs\\nbG8="
 			      }]
 			    }]
 			  }

@@ -78,15 +78,47 @@ public class CheckForUnexpectedPropertiesInVerifiedClaimsResponse_UnitTest
 	}
 
 	@Test
-	public void testEvaluate_noWarningWhenAttachmentContentTypeStructurallyInvalid() {
-		// The structural validator (FAILURE) already rejects this payload; the other oneOf
-		// branch's additionalProperties rejections of content_type/content must not surface
-		// here as bogus "unknown properties".
-		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_CONTENT_TYPE_WITH_PARAMETERS));
+	public void testEvaluate_noWarningForAttachmentContentTypeWithParameter() {
+		// Parameters are a valid part of a media type (RFC 6838, section 4.3), not unknown
+		// properties.
+		assertDoesNotThrow(() -> runTest("""
+			{
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "document",
+			      "attachments": [{
+			        "content_type": "text/plain; charset=utf-8",
+			        "content": "aGVsbG8="
+			      }]
+			    }]
+			  }
+			}
+			"""));
+	}
+
+	@Test
+	public void testEvaluate_noWarningWhenAttachmentMixesEmbeddedAndExternal() {
+		// The structural validator (FAILURE) rejects this payload; all four members are
+		// well-known attachment properties, so none of them may be misreported here as
+		// unknown - even though each oneOf branch rejects the other branch's members.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_MIXING_EMBEDDED_AND_EXTERNAL));
+	}
+
+	@Test
+	public void testEvaluate_noWarningWhenAttachmentMixesEmbeddedAndExternalWithInvalidContent() {
+		// Same, with structurally invalid content: the embedded branch's genuine pattern error
+		// must not make the external branch look like "the intended one" and turn
+		// content_type/content into bogus unknown-property warnings.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_MIXING_EMBEDDED_AND_EXTERNAL_WITH_INVALID_CONTENT));
 	}
 
 	@Test
 	public void testEvaluate_noWarningWhenAttachmentContentStructurallyInvalid() {
+		// The structural validator (FAILURE) already rejects this payload; the other oneOf
+		// branch's additionalProperties rejections of content_type/content must not surface
+		// here as bogus "unknown properties".
 		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_CONTENT_WITH_LINE_BREAK));
 	}
 }

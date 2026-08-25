@@ -51,15 +51,22 @@ public class JsonSchemaValidationResult {
 	 * then only that branch's unknown-property errors are reported; a composite where every
 	 * branch has a genuine structural error is reported via {@link #structuralErrors()} instead.
 	 *
+	 * <p>"Some branch fails purely on unknown properties" is a heuristic for "that branch is the
+	 * one the input was aimed at", not an invariant: if a payload can make an <em>unintended</em>
+	 * branch fail on unknown properties alone (e.g. one mixing well-known members of two oneOf
+	 * branches whose only difference is which members they reject as additional), that branch's
+	 * rejections of well-known properties are misreported as unknown ones - and any genuine
+	 * structural error in the intended branch is dropped. The suite's schemas avoid that shape by
+	 * giving every composition branch a discriminator that fails structurally (a required/type
+	 * mismatch, or {@code false} property schemas for the other branches' members), which stops an
+	 * unintended branch being attributable at all.</p>
+	 *
 	 * <p>Composite applications are grouped by schema evaluation path, not by instance location, so
 	 * two instances failing the same oneOf are classified together; a genuine structural error in
-	 * one instance then also suppresses the attribution for the other. For a single instance that
-	 * errs towards under-reporting unknown properties, never towards misreporting known ones. With
-	 * several instances under one composite the attributed branch is chosen for the group, so a
-	 * known property rejected by the branch a <em>different</em> instance was aimed at could in
-	 * principle be reported; the suite's schemas have no such shape (every alternative branch there
-	 * fails structurally on a required/type discriminator, which stops it being attributable at
-	 * all).</p>
+	 * one instance then also suppresses the attribution for the other. With several instances under
+	 * one composite the attributed branch is chosen for the group, so a known property rejected by
+	 * the branch a <em>different</em> instance was aimed at could in principle be reported - the
+	 * structural discriminators above prevent this too.</p>
 	 */
 	public JsonSchemaValidationResult unknownPropertyErrors() {
 		return new JsonSchemaValidationResult(partition().unknown);

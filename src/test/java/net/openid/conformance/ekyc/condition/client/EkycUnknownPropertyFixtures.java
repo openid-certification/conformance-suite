@@ -139,29 +139,12 @@ final class EkycUnknownPropertyFixtures {
 		""";
 
 	/**
-	 * Response claims whose embedded attachment fails structurally (content_type carries
-	 * parameters, forbidden by the schema's pattern). Asserted the opposite way round to the
-	 * payloads above: the structural validator must fail it, and the
+	 * Response claims whose embedded attachment fails structurally (line-wrapped base64
+	 * content, forbidden by RFC 4648 section 3.1 and the schema's pattern). Asserted the
+	 * opposite way round to the payloads above: the structural validator must fail it, and the
 	 * CheckForUnexpectedProperties* condition must stay silent - the other oneOf branch's
 	 * additionalProperties rejections of content_type/content are not unknown properties.
 	 */
-	static final String RESPONSE_ATTACHMENT_CONTENT_TYPE_WITH_PARAMETERS = """
-		{
-		  "claims": {"given_name": "Paula"},
-		  "verification": {
-		    "trust_framework": "de_aml",
-		    "evidence": [{
-		      "type": "document",
-		      "attachments": [{
-		        "content_type": "text/plain; charset=utf-8",
-		        "content": "aGVsbG8="
-		      }]
-		    }]
-		  }
-		}
-		""";
-
-	/** Response claims whose embedded attachment content is line-wrapped base64; see above. */
 	static final String RESPONSE_ATTACHMENT_CONTENT_WITH_LINE_BREAK = """
 		{
 		  "claims": {"given_name": "Paula"},
@@ -172,6 +155,57 @@ final class EkycUnknownPropertyFixtures {
 		      "attachments": [{
 		        "content_type": "image/png",
 		        "content": "aGVs\\nbG8="
+		      }]
+		    }]
+		  }
+		}
+		""";
+
+	/**
+	 * Response claims whose attachment mixes the embedded (content_type/content) and external
+	 * (url/digest) attachment members. Asserted the same way round as the line-break payload
+	 * above: the structural validator must fail it (each oneOf branch rejects the other
+	 * branch's members via "false" property schemas, which survive strictness stripping), and
+	 * the CheckForUnexpectedProperties* condition must stay silent - none of the four members
+	 * is an unknown property.
+	 */
+	static final String RESPONSE_ATTACHMENT_MIXING_EMBEDDED_AND_EXTERNAL = """
+		{
+		  "claims": {"given_name": "Paula"},
+		  "verification": {
+		    "trust_framework": "de_aml",
+		    "evidence": [{
+		      "type": "document",
+		      "attachments": [{
+		        "content_type": "image/png",
+		        "content": "aGVsbG8=",
+		        "url": "https://example.com/a",
+		        "digest": {"alg": "sha-256", "value": "aGk="}
+		      }]
+		    }]
+		  }
+		}
+		""";
+
+	/**
+	 * The mixed-members payload above with structurally invalid (non-base64) content. Before
+	 * the oneOf branches carried cross-branch "false" discriminators, strictness stripping made
+	 * the external branch accept this payload wholesale, silently swallowing the content
+	 * pattern violation - and the strict schema misreported content_type/content as unknown
+	 * properties of the external branch.
+	 */
+	static final String RESPONSE_ATTACHMENT_MIXING_EMBEDDED_AND_EXTERNAL_WITH_INVALID_CONTENT = """
+		{
+		  "claims": {"given_name": "Paula"},
+		  "verification": {
+		    "trust_framework": "de_aml",
+		    "evidence": [{
+		      "type": "document",
+		      "attachments": [{
+		        "content_type": "image/png",
+		        "content": "not!valid!base64",
+		        "url": "https://example.com/a",
+		        "digest": {"alg": "sha-256", "value": "aGk="}
 		      }]
 		    }]
 		  }
