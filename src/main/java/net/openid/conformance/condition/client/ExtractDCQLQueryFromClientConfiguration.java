@@ -17,11 +17,11 @@ public class ExtractDCQLQueryFromClientConfiguration extends AbstractCondition {
 		JsonElement dcqlElement = env.getElementFromObject("client", "dcql");
 
 		if (dcqlElement == null) {
-			throw error("dcql not found in client configuration");
+			throw error("The 'dcql' field is missing from the 'Client' section in the test configuration");
 		}
 
 		if (!dcqlElement.isJsonObject()) {
-			throw error("dcql in client configuration is not a JSON object",
+			throw error("The 'dcql' field in the 'Client' section in the test configuration is not a JSON object",
 				args("dcql", dcqlElement));
 		}
 
