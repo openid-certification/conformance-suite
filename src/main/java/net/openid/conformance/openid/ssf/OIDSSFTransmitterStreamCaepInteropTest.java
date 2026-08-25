@@ -12,6 +12,8 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoin
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAllCaepInteropEventsReceived;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureCaepInteropEventSubjectFormat;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepInteropEventUsesComplexSubject;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicitedVerificationEventHasNoState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
@@ -25,13 +27,16 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractCaepEven
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogObservedSubjectFormats;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFRecordSecurityEventTokenSubjectFormat;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDeviceComplianceChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenSubIdClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
@@ -194,6 +199,12 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				break;
 		}
 
+		eventLog.runBlock("Subject identifier formats used by the transmitter", () -> {
+			// One reviewer-friendly summary of the sub_id formats seen across all received SETs
+			// (recorded per SET by OIDSSFRecordSecurityEventTokenSubjectFormat).
+			callAndContinueOnFailure(OIDSSFLogObservedSubjectFormats.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
+		});
+
 		eventLog.runBlock("Delete Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFDeleteStreamConfigCall.class, "OIDSSF-8.1.1.5", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -301,9 +312,23 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			validateSetCommonAfterParsing();
 
 			receivedEventTypes.add(eventType);
+			validateCaepEventSubject();
 			callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
 			validateCaepEventFields(eventType);
 		});
+	}
+
+	/**
+	 * Validates the {@code sub_id} of the current CAEP event against CAEP Interop Profile §2.5:
+	 * CAEP events must use the {@code email} or {@code iss_sub} format ({@code opaque} is reserved
+	 * for the Verification event). Complex Subjects (SSF 1.0 §3.3) are accepted and structurally
+	 * validated, but reported as a WARNING since section 2.5 does not list them yet — the working
+	 * group is expected to permit them (openid/sharedsignals#351); CAEP's own
+	 * device-compliance-change example uses one.
+	 */
+	protected void validateCaepEventSubject() {
+		callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventSubjectFormat.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
+		callAndContinueOnFailure(OIDSSFWarnCaepInteropEventUsesComplexSubject.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.5");
 	}
 
 	protected void retrieveAndAcknowledgeEventsViaPoll() {
@@ -474,6 +499,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				validateSetCommonAfterParsing();
 
 				receivedEventTypes.add(eventType);
+				validateCaepEventSubject();
 				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
 				validateCaepEventFields(eventType);
 			});
@@ -500,6 +526,8 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
+		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenSubIdClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-3.1", "RFC9493-3");
+		callAndContinueOnFailure(OIDSSFRecordSecurityEventTokenSubjectFormat.class, Condition.ConditionResult.INFO, "CAEPIOP-2.5");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.7");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIatIsNotInFuture.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "RFC7519-4.1.6");

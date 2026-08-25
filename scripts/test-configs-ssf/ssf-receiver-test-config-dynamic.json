@@ -11,14 +11,29 @@
             "audience": "{BASEURL}test/a/ssf-tx-test-dyn-ci"
         },
         "subjects": {
-            "valid": {
-                "format": "opaque",
-                "id": "valid"
-            },
-            "invalid": {
-                "format": "opaque",
-                "id": "invalid"
-            }
+            "valid": [
+                {
+                    "format": "email",
+                    "email": "ssf-ci-user@example.com"
+                },
+                {
+                    "format": "iss_sub",
+                    "iss": "https://idp.example.com",
+                    "sub": "ssf-ci-user"
+                },
+                {
+                    "format": "complex",
+                    "user": {
+                        "format": "email",
+                        "email": "ssf-ci-user@example.com"
+                    },
+                    "tenant": {
+                        "format": "iss_sub",
+                        "iss": "https://idp.example.com",
+                        "sub": "tenant-1"
+                    }
+                }
+            ]
         }
     }
 }
