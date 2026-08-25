@@ -1,6 +1,6 @@
 package net.openid.conformance.condition.client;
 
-import org.multipaz.documenttype.knowntypes.PhotoID;
+import net.openid.conformance.util.PhotoIdDataElements;
 
 import java.util.Set;
 
@@ -23,31 +23,19 @@ import java.util.Set;
 public class EnsureMdocPhotoIdMandatoryDataElementsPresent
 		extends AbstractEnsureMdocMandatoryDataElementsPresent {
 
-	/** ISO/IEC TS 23220-4 Annex C Table 1, elements with presence "M". */
-	public static final Set<String> MANDATORY_ELEMENTS = Set.of(
-		"family_name",
-		"given_name",
-		"birth_date",
-		"portrait",
-		"issue_date",
-		"expiry_date",
-		"issuing_authority",
-		"issuing_country",
-		"age_over_18");
-
 	@Override
 	protected String getDocType() {
-		return PhotoID.PHOTO_ID_DOCTYPE;
+		return PhotoIdDataElements.PHOTO_ID_DOCTYPE;
 	}
 
 	@Override
 	protected String getNamespace() {
-		return PhotoID.ISO_23220_2_NAMESPACE;
+		return PhotoIdDataElements.ISO_23220_2_NAMESPACE;
 	}
 
 	@Override
-	protected Set<String> getMandatoryElements() {
-		return MANDATORY_ELEMENTS;
+	protected Set<String> getRequiredElements() {
+		return PhotoIdDataElements.MANDATORY_ELEMENTS;
 	}
 
 	@Override

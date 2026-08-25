@@ -32,8 +32,13 @@ public abstract class AbstractEnsureMdocMandatoryDataElementsPresent extends Abs
 	/** The namespace the mandatory data elements are defined in. */
 	protected abstract String getNamespace();
 
-	/** The data element identifiers the defining specification marks as mandatory. */
-	protected abstract Set<String> getMandatoryElements();
+	/** The data element identifiers the defining specification requires. */
+	protected abstract Set<String> getRequiredElements();
+
+	/** How the specification describes the requirement, e.g. "mandatory" or "recommended". */
+	protected String getRequirementDescription() {
+		return "mandatory";
+	}
 
 	/** Human readable name of the credential, used in log messages, e.g. "mDL". */
 	protected abstract String getCredentialName();
@@ -48,7 +53,8 @@ public abstract class AbstractEnsureMdocMandatoryDataElementsPresent extends Abs
 		String docType = env.getString("mdoc_doctype");
 		if (!getDocType().equals(docType)) {
 			log("The credential's docType is not " + getDocType()
-				+ " so the " + getCredentialName() + " mandatory data element check does not apply",
+				+ " so the " + getCredentialName() + " " + getRequirementDescription()
+				+ " data element check does not apply",
 				args("doctype", docType));
 			return env;
 		}
@@ -68,17 +74,18 @@ public abstract class AbstractEnsureMdocMandatoryDataElementsPresent extends Abs
 			throw error("Failed to parse the mdoc credential", e);
 		}
 
-		Set<String> missingElements = new TreeSet<>(getMandatoryElements());
+		Set<String> missingElements = new TreeSet<>(getRequiredElements());
 		missingElements.removeAll(presentElements);
 
 		if (!missingElements.isEmpty()) {
 			throw error("The issued " + getCredentialName() + " does not contain all the data elements in the '"
-					+ getNamespace() + "' namespace that " + getSpecificationName() + " defines as mandatory",
+					+ getNamespace() + "' namespace that " + getSpecificationName() + " defines as "
+					+ getRequirementDescription(),
 				args("missing_elements", missingElements, "present_elements", presentElements));
 		}
 
 		logSuccess("The issued " + getCredentialName() + " contains all the data elements that "
-				+ getSpecificationName() + " defines as mandatory",
+				+ getSpecificationName() + " defines as " + getRequirementDescription(),
 			args("present_elements", presentElements));
 
 		return env;
