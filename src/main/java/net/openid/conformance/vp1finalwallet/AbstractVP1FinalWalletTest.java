@@ -74,6 +74,7 @@ import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfig
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureMdocDeviceSignedElementsEmpty;
+import net.openid.conformance.condition.client.EnsurePresentedMdocMdlElementsAreDefined;
 import net.openid.conformance.condition.client.EnsurePresentedMdocPhotoIdElementsAreDefined;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
@@ -706,6 +707,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				call(new ValidateMdocCredential(false, getVariant(VPProfile.class) == VPProfile.HAIP));
 				callAndContinueOnFailure(EnsureMdocDeviceSignedElementsEmpty.class, ConditionResult.FAILURE);
+				callAndContinueOnFailure(EnsurePresentedMdocMdlElementsAreDefined.class,
+					ConditionResult.WARNING, "ISO18013-5-13.4.1");
 				callAndContinueOnFailure(EnsurePresentedMdocPhotoIdElementsAreDefined.class,
 					ConditionResult.WARNING, "ISO23220-4-C");
 

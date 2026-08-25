@@ -3,11 +3,9 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocElementNames;
 import net.openid.conformance.util.MdocUtil;
-import org.multipaz.cbor.Cbor;
-import org.multipaz.cbor.DataItem;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,15 +55,10 @@ public abstract class AbstractEnsureMdocDataElementsPresent extends AbstractCond
 			return env;
 		}
 
-		Set<String> presentElements = new TreeSet<>();
+		Set<String> presentElements;
 		try {
-			byte[] bytes = Base64.getDecoder().decode(env.getString("mdoc_credential_cbor"));
-			List<DataItem> items = MdocUtil.getIssuerSignedItems(Cbor.INSTANCE.decode(bytes))
-				.getOrDefault(getNamespace(), List.of());
-			for (DataItem issuerSignedItemBytes : items) {
-				DataItem issuerSignedItem = issuerSignedItemBytes.getAsTaggedEncodedCbor();
-				presentElements.add(issuerSignedItem.getOrNull("elementIdentifier").getAsTstr());
-			}
+			presentElements = new TreeSet<>(
+				MdocElementNames.fromIssuedCredential(env).getOrDefault(getNamespace(), List.of()));
 		} catch (MdocUtil.MdocParseException e) {
 			throw error(e.getMessage(), e);
 		} catch (Exception e) {
