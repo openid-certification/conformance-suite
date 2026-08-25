@@ -103,22 +103,69 @@ const HERO_MODES = {
 };
 
 /**
- * Phase → terminal-banner palette + headline. Palette keys map 1:1 to
- * the `.ctsTerminalBanner--*` modifier classes defined in STYLE_TEXT;
+ * Phase → terminal-banner palette + headline + explanation. Palette keys map
+ * 1:1 to the `.ctsTerminalBanner--*` modifier classes defined in STYLE_TEXT;
  * headline strings are the "did my test pass?" answer in plain English
- * (MR 1998 findings A2 + A7).
+ * (MR 1998 findings A2 + A7). `detail` is a one-line plain-English explanation
+ * rendered under the headline (#1883) — the redesign dropped the legacy UI's
+ * hover-help when the terminal banner replaced the old status/result pills,
+ * leaving "Test needs review" etc. with no explanation of what it means or
+ * what happens next. Text is copied from the legacy/pre-redesign
+ * `FAPI_UI.getResultHelp`/`getStatusHelp` (static/js/fapi.ui.js:95-128, an
+ * exact carry-over of static-legacy/js/fapi.ui.js:478-511) rather than
+ * reworded, so the explanation matches what the old UI's tooltip already
+ * said — with one deliberate deviation: "behaviour" → "behavior" in the
+ * finished-warn entry, to match this codebase's American-English convention
+ * (the legacy source uses British spelling). Optional per phase (guarded in
+ * `_renderTerminalBanner`) so a future phase can omit it without a second
+ * render path.
  *
  * REVIEW result uses the warn palette: a reviewer needs to act, so the
  * banner reads as "needs attention", not as a verdict failure.
- * @type {Object.<string, { palette: string, headline: string, icon: string }>}
+ * @type {Object.<string, { palette: string, headline: string, icon: string, detail?: string }>}
  */
 const TERMINAL_BANNER_BY_PHASE = {
-  "finished-pass": { palette: "pass", headline: "Test passed", icon: "circle-check" },
-  "finished-fail": { palette: "fail", headline: "Test failed", icon: "close-circle" },
-  "finished-warn": { palette: "warn", headline: "Test passed with warnings", icon: "warning" },
-  "finished-review": { palette: "warn", headline: "Test needs review", icon: "warning" },
-  "finished-skip": { palette: "skip", headline: "Test skipped", icon: "info" },
-  interrupted: { palette: "fail", headline: "Test interrupted", icon: "close-circle" },
+  "finished-pass": {
+    palette: "pass",
+    headline: "Test passed",
+    icon: "circle-check",
+    detail: "The test has passed all conditions.",
+  },
+  "finished-fail": {
+    palette: "fail",
+    headline: "Test failed",
+    icon: "close-circle",
+    detail:
+      "The test has failed at least one critical condition. This means an important error has been detected and the system under test cannot be certified.",
+  },
+  "finished-warn": {
+    palette: "warn",
+    headline: "Test passed with warnings",
+    icon: "warning",
+    detail:
+      "The test has generated some warnings during its execution, see the log for details. Test results with warnings are accepted for certification, but they generally indicate that the software under test is behaving unexpected or not following recommendations, and the tester should check the results to ensure any warnings are expected behavior of the software being tested.",
+  },
+  "finished-review": {
+    palette: "warn",
+    headline: "Test needs review",
+    icon: "warning",
+    detail:
+      "The test requires manual review, for example it contains images that need to be manually checked. These images will be checked by the certification team when a certification request is submitted.",
+  },
+  "finished-skip": {
+    palette: "skip",
+    headline: "Test skipped",
+    icon: "info",
+    detail:
+      "The test could not be completed due to configuration or optional features. Please check if the feature being tested is supported, if it is please check the configuration of the test and of the software under test. If the feature being tested is not supported by the software under test then skipped tests do not prevent certification.",
+  },
+  interrupted: {
+    palette: "fail",
+    headline: "Test interrupted",
+    icon: "close-circle",
+    detail:
+      "The test failed to run to completion as a critical element failed. Please see the log, fix the error and run the test again to get a complete set of results.",
+  },
 };
 
 const STYLE_ID = "cts-log-detail-header-styles";
@@ -352,21 +399,40 @@ const STYLE_TEXT = css`
      the only "did my test pass?" signal was a small chip among the
      log filters, which both reviewers flagged as too subtle.
      The bleed-out margins match the sticky bar's so the banner
-     reads as the same horizontal section as the page chrome above. */
+     reads as the same horizontal section as the page chrome above.
+     align-items is flex-start (not center) so the icon lines up with the
+     headline's cap-height rather than the vertical center of the whole
+     two-line block once the #1883 explanation line is present. */
   cts-log-detail-header .ctsTerminalBanner {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-2);
     padding: var(--space-3);
     font-family: var(--font-sans);
-    font-weight: var(--fw-bold);
-    font-size: var(--fs-16);
     line-height: var(--lh-tight);
     border-radius: var(--radius-3);
     margin-top: var(--space-5);
   }
   cts-log-detail-header .ctsTerminalBanner cts-icon {
     flex: 0 0 auto;
+  }
+  cts-log-detail-header .ctsTerminalBannerText {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  cts-log-detail-header .ctsTerminalBannerHeadline {
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-16);
+  }
+  /* #1883 — the plain-English "what does this mean / what happens next"
+     line under the headline. Regular weight and a step down in size so it
+     reads as supporting copy, not a second verdict. */
+  cts-log-detail-header .ctsTerminalBannerDetail {
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-13);
+    line-height: 1.5;
+    margin: 0;
   }
   cts-log-detail-header .ctsTerminalBanner--pass {
     background: var(--status-pass-bg);
@@ -1276,7 +1342,7 @@ class CtsLogDetailHeader extends LitElement {
    * button to leak, whatever the result says.
    *
    * Rule 1 is deliberately NOT mirrored into `js/module-status.js`,
-   * which colours the plan-level module badges and progress segments.
+   * which colors the plan-level module badges and progress segments.
    * The two surfaces have different refresh semantics: this page polls
    * `/api/info` until `isFullyTerminal`, so a live phase always
    * self-corrects within one 3s cycle. `plan-detail.html` fans out
@@ -1512,7 +1578,7 @@ class CtsLogDetailHeader extends LitElement {
    * Known residual: on a live bar this abandons the in-flight run without
    * confirmation — `handleRepeat` in `js/log-detail.js` POSTs a new instance
    * and navigates away, leaving the old one running server-side. That matches
-   * the finished bar's long-standing behaviour, so it is deliberately not
+   * the finished bar's long-standing behavior, so it is deliberately not
    * special-cased here; a confirm step would belong on both.
    *
    * `needs-start` is deliberately excluded: that test has not run yet, so
@@ -1751,7 +1817,10 @@ class CtsLogDetailHeader extends LitElement {
         data-phase="${phase}"
       >
         <cts-icon name="${config.icon}" size="24"></cts-icon>
-        <span>${config.headline}</span>
+        <div class="ctsTerminalBannerText">
+          <span class="ctsTerminalBannerHeadline">${config.headline}</span>
+          ${config.detail ? html`<p class="ctsTerminalBannerDetail">${config.detail}</p>` : nothing}
+        </div>
       </div>
     `;
   }
