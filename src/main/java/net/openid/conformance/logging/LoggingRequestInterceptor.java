@@ -14,6 +14,9 @@ import org.springframework.util.StreamUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -101,7 +104,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		o.addProperty("request_method", request.getMethod().toString());
 		o.add("request_headers", mapToJsonObject(request.getHeaders(), false));
 		if (body != null) {
-			o.addProperty("request_body", new String(body, StandardCharsets.UTF_8));
+			addBodyProperty(o, "request_body", body);
 		}
 		o.addProperty("msg", "HTTP request");
 		o.addProperty("http", "request");
@@ -117,7 +120,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		o.addProperty("response_status_text", response.getStatusText());
 		o.add("response_headers", mapToJsonObject(response.getHeaders(), true));
 		if (response.body != null) {
-			o.addProperty("response_body", new String(response.body, StandardCharsets.UTF_8));
+			addBodyProperty(o, "response_body", response.body);
 		}
 		if (response.cacheAgeSeconds != null) {
 			o.addProperty("msg", "Using cached HTTP response");
@@ -130,6 +133,67 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 			o.addProperty("exception_reading_body", response.bodyException.getMessage());
 		}
 		log.log(source, o);
+	}
+
+	/**
+	 * Adds the body under the given key if it is text; a binary body is replaced with a
+	 * "<key>_omitted" note saying why it was judged binary, as logging it as a string would
+	 * just render as garbage. Decided from the bytes themselves (strict UTF-8 decode plus a
+	 * control-character scan), never from the Content-Type header - the suite regularly
+	 * deals with mislabelled responses.
+	 */
+	static void addBodyProperty(JsonObject o, String key, byte[] body) {
+		ByteBuffer in = ByteBuffer.wrap(body);
+		CharBuffer out = CharBuffer.allocate(body.length);
+		CoderResult result = StandardCharsets.UTF_8.newDecoder().decode(in, out, true);
+		if (result.isError()) {
+			addBinaryBodyNote(o, key, body, in.position(),
+				"not valid UTF-8: invalid byte sequence at byte offset " + in.position());
+			return;
+		}
+		out.flip();
+		String text = out.toString();
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+			if (c < 0x20 && c != '\t' && c != '\n' && c != '\r') {
+				int byteOffset = text.substring(0, i).getBytes(StandardCharsets.UTF_8).length;
+				addBinaryBodyNote(o, key, body, byteOffset,
+					"decodes as UTF-8 but contains control character " + String.format("U+%04X", (int) c)
+						+ " at character offset " + i + " (byte offset " + byteOffset + ")");
+				return;
+			}
+		}
+		o.addProperty(key, text);
+	}
+
+	private static final int PREVIEW_BYTES = 32;
+
+	private static void addBinaryBodyNote(JsonObject o, String key, byte[] body, int badOffset, String reason) {
+		o.addProperty(key + "_omitted", "binary content, " + body.length + " bytes - not shown (" + reason + ")");
+		o.addProperty(key + "_first_bytes", escapeBytes(body, 0, PREVIEW_BYTES));
+		int from = Math.max(0, badOffset - PREVIEW_BYTES / 2);
+		int to = Math.min(body.length, badOffset + PREVIEW_BYTES / 2);
+		// only worth showing separately if it is not already covered by the first-bytes preview
+		if (to > PREVIEW_BYTES) {
+			o.addProperty(key + "_bytes_around_offset",
+				"bytes " + from + ".." + (to - 1) + ": " + escapeBytes(body, from, to));
+		}
+	}
+
+	/** Printable ASCII as-is (backslash doubled), everything else as \xNN escapes. */
+	private static String escapeBytes(byte[] body, int from, int to) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = from; i < Math.min(to, body.length); i++) {
+			int b = body[i] & 0xff;
+			if (b == '\\') {
+				sb.append("\\\\");
+			} else if (b >= 0x20 && b <= 0x7e) {
+				sb.append((char) b);
+			} else {
+				sb.append(String.format("\\x%02x", b));
+			}
+		}
+		return sb.toString();
 	}
 
 	private static final class WrappedClientHttpResponse implements ClientHttpResponse {
