@@ -3,6 +3,7 @@ package net.openid.conformance.sequence.client;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CallVicalEndpoint;
+import net.openid.conformance.condition.client.DumpVicalCborDiagnostics;
 import net.openid.conformance.condition.client.EnsureVicalEndpointContentTypeIsApplicationCbor;
 import net.openid.conformance.condition.client.ParseVical;
 import net.openid.conformance.condition.client.RegisterVical;
@@ -45,6 +46,13 @@ public class SetupVicalFromConfiguration extends AbstractConditionSequence {
 		// parser also rejects third-party VICAL defects, so ParseVical must not be a FAILURE)
 		vicalQualityCheck(EnsureVicalEndpointContentTypeIsApplicationCbor.class, "vical_endpoint_response", "ISO18013-5-C.1.7.1");
 		vicalQualityCheck(ParseVical.class, "vical", "ISO18013-5-C.1.7.1");
+
+		// informational: the VICAL in CBOR diagnostic notation, for inspecting the actual encoding
+		call(condition(DumpVicalCborDiagnostics.class)
+			.skipIfObjectsMissing("vical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure());
 		vicalQualityCheck(ValidateVicalSignature.class, "vical", "ISO18013-5-C.1.7.1");
 		vicalQualityCheck(ValidateVicalSignerCertificateProfile.class, "vical", "ISO18013-5-C.1.7.2");
 		vicalQualityCheck(ValidateVicalStructure.class, "vical", "ISO18013-5-C.1.7.1");
