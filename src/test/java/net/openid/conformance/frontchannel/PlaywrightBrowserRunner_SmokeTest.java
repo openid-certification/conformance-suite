@@ -54,6 +54,7 @@ public class PlaywrightBrowserRunner_SmokeTest {
 	private final AtomicReference<String> loginBody = new AtomicReference<>();
 	private final AtomicReference<String> postTargetContentType = new AtomicReference<>();
 	private final AtomicReference<String> postTargetBody = new AtomicReference<>();
+	private final AtomicReference<String> formPostCallbackBody = new AtomicReference<>();
 
 	private TestInstanceEventLog eventLog;
 	private BrowserControl browserControl;
@@ -97,6 +98,28 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			} else {
 				html(exchange, "<form method=\"POST\" action=\"/slow\"><button id=\"go\" type=\"submit\">Go</button></form>");
 			}
+		});
+		// an authorization server answering the consent with a self-submitting form (response_mode=form_post),
+		// posting to a callback that takes its time to answer, as the suite does when busy
+		server.createContext("/form-post-authorize", exchange -> {
+			if ("POST".equals(exchange.getRequestMethod())) {
+				redirect(exchange, "/form-post-response");
+			} else {
+				html(exchange, "<h1>Consent</h1><form method=\"POST\" action=\"/form-post-authorize\">"
+					+ "<button id=\"authorize\" type=\"submit\">Authorize</button></form>");
+			}
+		});
+		server.createContext("/form-post-response", exchange ->
+			html(exchange, "<form method=\"POST\" action=\"/form-post-callback\"><input type=\"hidden\" name=\"code\" value=\"456\"></form>"
+				+ "<script>window.addEventListener('load', function() { document.forms[0].submit(); });</script>"));
+		server.createContext("/form-post-callback", exchange -> {
+			try {
+				Thread.sleep(2_000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			formPostCallbackBody.set(readBody(exchange));
+			html(exchange, "<div id=\"result\">Done</div>");
 		});
 		server.createContext("/whoami", exchange ->
 			html(exchange, "<div id=\"result\">" + (loggedIn(exchange) ? "logged-in" : "anonymous") + "</div>"));
@@ -167,6 +190,22 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			]""").call();
 
 		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(12_000);
+	}
+
+	@Test
+	public void waitsForASelfSubmittingFormPostPageToReachTheCallback() throws Exception {
+		// the click returns once the authorization server's form_post page has committed; the POST that page
+		// sends from its load handler is still in flight when the following tasks look at the url
+		long start = System.currentTimeMillis();
+		runner(baseUrl + "/form-post-authorize", "GET", """
+			[
+				{"task": "Consent", "match": "*/form-post-authorize*", "commands": [["click", "id", "authorize"]]},
+				{"task": "Login again", "optional": true, "match": "*/login*", "commands": [["click", "id", "login"]]},
+				{"task": "Done", "match": "*/form-post-callback*", "commands": [["wait", "id", "result", 5, "Done"]]}
+			]""").call();
+
+		assertThat(formPostCallbackBody.get()).isEqualTo("code=456");
+		assertThat(System.currentTimeMillis() - start).isGreaterThanOrEqualTo(2_000);
 	}
 
 	@Test
