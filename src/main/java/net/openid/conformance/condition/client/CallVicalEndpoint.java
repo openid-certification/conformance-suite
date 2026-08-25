@@ -16,9 +16,9 @@ import java.util.Base64;
 
 /**
  * Fetches the signed VICAL from the configured VICAL URL with a GET request (ISO/IEC 18013-5
- * describes VICAL distribution URLs as accepting GET requests and returning a CBOR payload with
- * Content-Type application/cbor) and stores it in the environment the same way as an inline
- * configured VICAL, plus the raw response details for downstream response checks.
+ * Annex C.1.7.3 describes the VICAL endpoint as accepting GET requests and returning the signed
+ * VICAL) and stores it in the environment the same way as an inline configured VICAL, plus the
+ * raw response details for downstream response checks.
  */
 public class CallVicalEndpoint extends AbstractCondition {
 
@@ -40,8 +40,9 @@ public class CallVicalEndpoint extends AbstractCondition {
 
 		ResponseEntity<byte[]> response;
 		try {
+			// no Accept header: the expected content type is unsettled in the second-edition
+			// draft (application/cwt for VICAL vs application/cbor for RICAL endpoints)
 			HttpHeaders headers = new HttpHeaders();
-			headers.set(HttpHeaders.ACCEPT, "application/cbor");
 			response = restTemplate.exchange(vicalUrl, HttpMethod.GET, new HttpEntity<>(headers), byte[].class);
 		} catch (Exception e) {
 			throw error("Unable to retrieve the VICAL from the 'VICAL URL' given in the test configuration", e,
