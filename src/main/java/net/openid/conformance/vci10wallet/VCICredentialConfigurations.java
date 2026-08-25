@@ -216,6 +216,26 @@ public class VCICredentialConfigurations {
 					},
 					"scope": "org.iso.18013.5.1.mDL"
 				},
+				"org.iso.23220.photoid.1": {
+					"format": "mso_mdoc",
+					"doctype": "org.iso.23220.photoid.1",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake Photo ID (ISO/IEC TS 23220-4) ${testId}",
+							"description": "OpenID Conformance Test Fake Photo ID"
+						}
+						]
+					},
+					"scope": "org.iso.23220.photoid.1"
+				},
 				"org.iso.18013.5.1.mDL.attestation": {
 					"format": "mso_mdoc",
 					"doctype": "org.iso.18013.5.1.mDL",
