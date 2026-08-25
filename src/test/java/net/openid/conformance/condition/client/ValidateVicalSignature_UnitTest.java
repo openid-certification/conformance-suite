@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.util.BrainpoolSignatureProvider;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -40,6 +41,18 @@ public class ValidateVicalSignature_UnitTest {
 	public void testEvaluate_passesForValidSignature() {
 		VicalTestFixtures.VicalSigner iaca = VicalTestFixtures.generateSigner();
 		putVical(VicalTestFixtures.goodSignedVical(List.of(iaca.getCert())));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_passesForBrainpoolSigner() {
+		// as used by the Aptitude-signed Geneva interop VICAL; requires BrainpoolSignatureProvider
+		BrainpoolSignatureProvider.ensureInstalled();
+		VicalTestFixtures.VicalSigner signer = VicalTestFixtures.generateBrainpoolSigner();
+		VicalTestFixtures.VicalSigner iaca = VicalTestFixtures.generateSigner();
+		putVical(VicalTestFixtures.goodSignedVical(List.of(iaca.getCert()),
+			List.of("org.iso.18013.5.1.mDL"), signer));
 
 		assertDoesNotThrow(() -> cond.execute(env));
 	}

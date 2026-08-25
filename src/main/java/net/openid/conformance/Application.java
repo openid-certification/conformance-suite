@@ -2,7 +2,7 @@ package net.openid.conformance;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
-import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
+import net.openid.conformance.util.BrainpoolSignatureProvider;
 import jakarta.annotation.PostConstruct;
 import net.openid.conformance.info.FavoritePlansService;
 import net.openid.conformance.info.TestInfoService;
@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import java.security.Security;
 
 @SpringBootApplication
 public class Application {
@@ -124,7 +123,7 @@ public class Application {
 
 	public static void main(String[] args) {
 
-		Security.addProvider(BouncyCastleProviderSingleton.getInstance());
+		BrainpoolSignatureProvider.ensureInstalled();
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new PreparedEventListener());

@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client
 
 import com.google.gson.JsonObject
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton
 import kotlinx.coroutines.runBlocking
 import net.openid.conformance.testmodule.Environment
 import net.openid.conformance.util.MdocUtil
@@ -27,10 +28,13 @@ import org.multipaz.crypto.Crypto
 import org.multipaz.crypto.EcCurve
 import org.multipaz.crypto.EcPrivateKey
 import org.multipaz.crypto.EcPrivateKeyDoubleCoordinate
+import org.multipaz.crypto.toEcPrivateKey
 import org.multipaz.crypto.X500Name
 import org.multipaz.crypto.X509KeyUsage
 import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
+import java.security.KeyPairGenerator
+import java.security.spec.ECGenParameterSpec
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -56,9 +60,10 @@ object VicalTestFixtures {
 	fun generateSigner(
 		includeEku: Boolean = true,
 		validFrom: Instant = Clock.System.now() - 1.days,
-		validUntil: Instant = Clock.System.now() + 365.days
+		validUntil: Instant = Clock.System.now() + 365.days,
+		curve: EcCurve = EcCurve.P256
 	): VicalSigner {
-		val key = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
+		val key = createKey(curve)
 		val name = X500Name.fromName("CN=OIDF Test VICAL Signer,O=OpenID Foundation,C=UT")
 		val builder = X509Cert.Builder(
 			key.publicKey,
@@ -186,13 +191,21 @@ object VicalTestFixtures {
 		env.putObject("vical", vical)
 	}
 
+	/**
+	 * A signer on brainpoolP256r1 - a curve the JVM's SunEC provider cannot verify, as used by
+	 * the Aptitude-signed Geneva interop VICAL (cf. BrainpoolSignatureProvider).
+	 */
+	@JvmStatic
+	fun generateBrainpoolSigner(): VicalSigner = generateSigner(curve = EcCurve.BRAINPOOLP256R1)
+
 	/** A test IACA root with a document signer certificate issued by it. */
 	class IssuerPki(val iacaCert: X509Cert, val dsKey: EcPrivateKey, val dsCert: X509Cert)
 
 	/** Generates a test IACA root CA and a DS certificate signed by it. */
 	@JvmStatic
-	fun generateIssuerPki(): IssuerPki {
-		val iacaKey = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
+	@JvmOverloads
+	fun generateIssuerPki(iacaCurve: EcCurve = EcCurve.P256): IssuerPki {
+		val iacaKey = createKey(iacaCurve)
 		val iacaName = X500Name.fromName("CN=OIDF Test IACA,O=OpenID Foundation,C=UT")
 		val iacaCert = runBlocking {
 			X509Cert.Builder(
@@ -250,6 +263,15 @@ object VicalTestFixtures {
 		val mdocBase64Url = org.multipaz.testapp.VciMdocUtils.createMdocCredential(
 			deviceJwk.toPublicJWK().toJSONString(), docType, issuerJwk.toJSONString())
 		return com.nimbusds.jose.util.Base64URL(mdocBase64Url).decode()
+	}
+
+	// SunEC cannot generate brainpool keys and KeyPairGenerator does not fail over to BC,
+	// so generate fixture keys with BC explicitly and convert to a multipaz key
+	private fun createKey(curve: EcCurve): EcPrivateKey {
+		val generator = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance())
+		generator.initialize(ECGenParameterSpec(curve.SECGName))
+		val pair = generator.generateKeyPair()
+		return pair.private.toEcPrivateKey(pair.public, curve)
 	}
 
 	// Java-friendly Instant helpers for tests
