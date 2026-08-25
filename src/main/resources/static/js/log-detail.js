@@ -250,7 +250,21 @@ function applyFindings() {
   const findings = selectFailures(latestTestInfo);
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
-  if (header) header.findings = findings;
+  if (header) {
+    header.findings = findings;
+    // #1915: same log-stream-wins contract as findings above, but the
+    // sticky bar's pill cluster and the overflow menu's upload count both
+    // need a tally over the WHOLE stream (including SUCCESS/INFO entries
+    // and any entry with an `upload` id, which selectFindings deliberately
+    // excludes), so these read the viewer's own getters directly rather
+    // than routing through selectFailures.
+    /** @type {any} */
+    const viewer = document.getElementById("logViewer");
+    if (viewer) {
+      header.resultCounts = viewer.resultCounts;
+      header.uploadCount = viewer.uploadCount;
+    }
+  }
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
   if (topFailureSummary) {
