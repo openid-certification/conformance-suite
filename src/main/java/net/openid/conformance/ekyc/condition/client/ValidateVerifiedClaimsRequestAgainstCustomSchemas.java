@@ -23,6 +23,10 @@ public class ValidateVerifiedClaimsRequestAgainstCustomSchemas extends AbstractV
 			return env;
 		}
 
+		if (!authorizationRequest.get("claims").isJsonObject()) {
+			throw error("The claims member of the authorization request is not a JSON object",
+				args("claims", authorizationRequest.get("claims")));
+		}
 		JsonObject claims = authorizationRequest.getAsJsonObject("claims");
 		for (JsonElement schemaElement : OIDFJSON.packJsonElementIntoJsonArray(requestSchemas)) {
 			validateAgainstCustomSchema(claims, schemaElement, "eKYC Additional Request Validation Schemas");

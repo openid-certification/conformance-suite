@@ -150,4 +150,14 @@ class CheckForUnexpectedPropertiesInVerifiedClaimsRequest_UnitTest {
 	public void testEvaluate_wrongBranchFieldAtEvidenceLevel() {
 		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.REQUEST_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE));
 	}
+
+	@Test
+	public void testEvaluate_claimsNotAnObjectIsNotWarnedAboutHereOrACrash() {
+		// A non-object claims member is a structural problem reported at FAILURE by
+		// ValidateVerifiedClaimsRequestAgainstSchema; this condition runs with WARNING and must
+		// neither duplicate that nor let a ClassCastException escape.
+		assertDoesNotThrow(() -> runTest("""
+			{"claims": "not-an-object"}
+			"""));
+	}
 }

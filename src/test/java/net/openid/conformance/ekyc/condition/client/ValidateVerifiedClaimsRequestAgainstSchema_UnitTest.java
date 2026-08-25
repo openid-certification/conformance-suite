@@ -508,4 +508,11 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 
 		assertThrows(ConditionError.class, () -> runTest(request));
 	}
+
+	@Test
+	public void testEvaluate_claimsNotAnObjectIsAConditionErrorNotACrash() {
+		assertThrows(ConditionError.class, () -> runTest("""
+			{"claims": "not-an-object"}
+			"""));
+	}
 }

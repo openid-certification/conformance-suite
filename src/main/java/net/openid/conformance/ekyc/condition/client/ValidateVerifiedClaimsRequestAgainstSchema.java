@@ -35,6 +35,10 @@ public class ValidateVerifiedClaimsRequestAgainstSchema extends AbstractEkycSche
 			logSuccess("No claims to validate against request schema");
 			return env;
 		}
+		if (!authorizationRequest.get("claims").isJsonObject()) {
+			throw error("The claims member of the authorization request is not a JSON object",
+				args("claims", authorizationRequest.get("claims")));
+		}
 
 		return super.evaluate(env);
 	}
