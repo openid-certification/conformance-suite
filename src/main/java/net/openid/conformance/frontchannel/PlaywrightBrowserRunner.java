@@ -77,9 +77,14 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * endpoint answering, so this matches the HtmlUnit runner's HTTP timeout
 	 * ({@code SeleniumBrowserRunner.BROWSER_HTTP_TIMEOUT_MILLIS}).
 	 */
-	private static final double NAVIGATION_TIMEOUT_MILLIS = 60_000;
+	private static final long NAVIGATION_TIMEOUT_MILLIS = 60_000;
 	/** Timeout for the target element of a click/text command to appear. */
-	private static final double ELEMENT_TIMEOUT_MILLIS = 10_000;
+	private static final long ELEMENT_TIMEOUT_MILLIS = 10_000;
+	/**
+	 * How long an optional task waits for the url to match before it is skipped; see
+	 * {@link #waitForUrlToMatch}. Short, as every skipped optional task pays this.
+	 */
+	private static final long OPTIONAL_TASK_URL_TIMEOUT_MILLIS = 2_000;
 
 	/** Browser types {@link #ensureBrowserInstalled} has verified in this JVM. */
 	private static final Set<String> INSTALLED_BROWSER_TYPES = ConcurrentHashMap.newKeySet();
@@ -92,7 +97,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		return thread;
 	});
 	/** Timeout for the page to finish loading before a task's commands run (matches the HtmlUnit runner). */
-	private static final double PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
+	private static final long PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
 
 	private final BrowserControl browserControl;
 	private final String testId;
@@ -220,8 +225,9 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				}
 
 				if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
-					if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, page.url())) {
-						if (currentTask.has("optional") && OIDFJSON.getBoolean(currentTask.get("optional"))) {
+					boolean optional = currentTask.has("optional") && OIDFJSON.getBoolean(currentTask.get("optional"));
+					if (!waitForUrlToMatch(expectedUrlMatcher, optional)) {
+						if (optional) {
 							eventLog.log("WebRunner", args(
 								"msg", "Skipping optional task due to URL mismatch",
 								"match", expectedUrlMatcher,
@@ -331,6 +337,38 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 
 	private String engineDescription() {
 		return "playwright/" + settings.browserType();
+	}
+
+	/**
+	 * Waits for the page's url to match a task's 'match' pattern.
+	 *
+	 * <p>HtmlUnit's click() only returns once the whole chain of page loads it set off has completed,
+	 * so the HtmlUnit runner can judge a task's url at an instant. A real browser may still be
+	 * navigating when the previous task's commands are done: a click returns once the navigation it
+	 * initiated has committed, but that page may navigate on from its own scripts. The everyday
+	 * example is an authorization server's response_mode=form_post page, which POSTs itself to the
+	 * suite's redirect uri from its onload handler; the url only changes once the suite has answered
+	 * that POST, which under load can take a while. So rather than judging the url at an instant,
+	 * this waits for it to match: for up to the navigation timeout if the task is required, and
+	 * briefly if it is optional, where not matching is the normal way of skipping the task.
+	 *
+	 * @return true if the url matches (possibly after waiting), false if it still doesn't
+	 */
+	private boolean waitForUrlToMatch(String expectedUrlMatcher, boolean optional) {
+		if (PatternMatchUtils.simpleMatch(expectedUrlMatcher, page.url())) {
+			return true;
+		}
+		long timeout = optional ? OPTIONAL_TASK_URL_TIMEOUT_MILLIS : NAVIGATION_TIMEOUT_MILLIS;
+		logger.debug(testId + ": WebRunner url " + page.url() + " does not match '" + expectedUrlMatcher
+			+ "', waiting up to " + timeout + "ms for it to");
+		try {
+			page.waitForURL(url -> PatternMatchUtils.simpleMatch(expectedUrlMatcher, url), new Page.WaitForURLOptions()
+				.setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+				.setTimeout(timeout));
+			return true;
+		} catch (TimeoutError e) {
+			return false;
+		}
 	}
 
 	/**
@@ -554,7 +592,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 					"action", action
 				));
 
-				double timeoutMillis = timeoutSeconds * 1000.0;
+				long timeoutMillis = timeoutSeconds * 1000L;
 				try {
 					if (elementType.equalsIgnoreCase("contains")) {
 						page.waitForURL(u -> u.contains(target), new Page.WaitForURLOptions().setTimeout(timeoutMillis));
@@ -589,7 +627,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 				try {
 					page.waitForSelector(getSelector(elementType, target),
-						new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN).setTimeout(timeoutSeconds * 1000.0));
+						new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN).setTimeout(timeoutSeconds * 1000L));
 					logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
 				} catch (TimeoutError timeoutException) {
 					this.lastException = timeoutException.getMessage();
@@ -602,7 +640,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 				try {
 					page.waitForSelector(getSelector(elementType, target),
-						new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(timeoutSeconds * 1000.0));
+						new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(timeoutSeconds * 1000L));
 					logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now visible");
 				} catch (TimeoutError timeoutException) {
 					this.lastException = timeoutException.getMessage();
