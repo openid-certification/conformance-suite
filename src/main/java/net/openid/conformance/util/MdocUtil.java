@@ -6,7 +6,10 @@ import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
+import org.multipaz.cose.Cose;
+import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
+import org.multipaz.crypto.X509CertChain;
 import org.multipaz.crypto.EcPublicKey;
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate;
 import org.multipaz.crypto.EcPublicKeyOkp;
@@ -82,7 +85,7 @@ public final class MdocUtil {
 	 * COSE_Sign1 of an already CBOR-decoded IssuerSigned structure. The returned chain is
 	 * guaranteed non-empty; its first certificate is the document signer certificate.
 	 */
-	public static org.multipaz.crypto.X509CertChain extractX5chain(DataItem issuerSigned) throws MdocParseException {
+	public static X509CertChain extractX5chain(DataItem issuerSigned) throws MdocParseException {
 		DataItem issuerAuth = issuerSigned.getOrNull("issuerAuth");
 		if (issuerAuth == null) {
 			throw new MdocParseException("IssuerSigned structure missing 'issuerAuth' field");
@@ -94,11 +97,11 @@ public final class MdocUtil {
 			throw new MdocParseException("Failed to parse issuerAuth as COSE_Sign1", e);
 		}
 		DataItem x5chainItem = coseSign1.getUnprotectedHeaders()
-			.get(new org.multipaz.cose.CoseNumberLabel(org.multipaz.cose.Cose.COSE_LABEL_X5CHAIN));
+			.get(new CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN));
 		if (x5chainItem == null) {
 			throw new MdocParseException("COSE_Sign1 unprotected headers missing x5chain (label 33)");
 		}
-		org.multipaz.crypto.X509CertChain certChain;
+		X509CertChain certChain;
 		try {
 			certChain = x5chainItem.getAsX509CertChain();
 		} catch (Exception e) {

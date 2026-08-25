@@ -18,6 +18,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
+import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.sequence.client.ValidateVCINonceEndpointResponse;
@@ -137,6 +138,13 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					"OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
 				callAndStopOnFailure(VCISelectOAuthorizationServer.class, ConditionResult.FAILURE,
 					"OID4VCI-1FINAL-12.2.3");
+				if (credentialFormat == VCI1FinalCredentialFormat.MDOC) {
+					// register and validate the optionally configured VICAL used by the mdoc
+					// issuer trust checks in ValidateMdocCredential; done once at configure
+					// time (this behavior serves the FAPI2SP modules too, so this single spot
+					// covers every VCI issuer test family)
+					call(sequence(SetupVicalFromConfiguration.class));
+				}
 			}
 		};
 	}

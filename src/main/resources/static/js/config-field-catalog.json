@@ -101,13 +101,25 @@
           "key": "credential.trust_anchor_pem",
           "label": "Credential Trust Anchor",
           "type": "string",
-          "tooltip": "The trust anchor certificate for verifying the SD-JWT credential x5c chain, as a PEM certificate."
+          "tooltip": "The trust anchor certificate for verifying the credential's certificate chain, as a PEM certificate: for SD-JWT credentials the x5c chain, for mdoc credentials the IACA root for the issuerAuth x5chain (used when no VICAL is supplied - a VICAL takes precedence)."
         },
         {
           "key": "credential.status_list_trust_anchor_pem",
           "label": "Status List Trust Anchor",
           "type": "string",
           "tooltip": "The trust anchor certificate for verifying the status list token x5c chain, as a PEM certificate."
+        },
+        {
+          "key": "credential.vical",
+          "label": "VICAL",
+          "type": "string",
+          "tooltip": "Optional base64-encoded signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List). If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL (taking precedence over the 'Credential Trust Anchor'). Only one of 'VICAL' and 'VICAL URL' may be supplied."
+        },
+        {
+          "key": "credential.vical_url",
+          "label": "VICAL URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL to fetch a signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List) from. If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL. Only one of 'VICAL' and 'VICAL URL' may be supplied."
         },
         {
           "key": "vci.credential_configuration_id",
