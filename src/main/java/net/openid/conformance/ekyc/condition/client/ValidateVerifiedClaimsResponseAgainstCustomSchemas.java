@@ -24,7 +24,7 @@ public class ValidateVerifiedClaimsResponseAgainstCustomSchemas extends Abstract
 		}
 
 		for (JsonElement schemaElement : OIDFJSON.packJsonElementIntoJsonArray(responseSchemas)) {
-			validateAgainstCustomSchema(claimsObject, schemaElement, "user-provided response schema");
+			validateAgainstCustomSchema(claimsObject, schemaElement, "eKYC Additional Response Validation Schemas");
 		}
 
 		logSuccess("Validated response claims against custom schemas");

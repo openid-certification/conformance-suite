@@ -25,7 +25,7 @@ public class ValidateVerifiedClaimsRequestAgainstCustomSchemas extends AbstractV
 
 		JsonObject claims = authorizationRequest.getAsJsonObject("claims");
 		for (JsonElement schemaElement : OIDFJSON.packJsonElementIntoJsonArray(requestSchemas)) {
-			validateAgainstCustomSchema(claims, schemaElement, "user-provided request schema");
+			validateAgainstCustomSchema(claims, schemaElement, "eKYC Additional Request Validation Schemas");
 		}
 
 		logSuccess("Validated request claims against custom schemas");
