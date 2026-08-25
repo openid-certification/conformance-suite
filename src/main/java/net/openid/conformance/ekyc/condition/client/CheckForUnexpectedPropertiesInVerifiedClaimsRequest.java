@@ -33,6 +33,13 @@ public class CheckForUnexpectedPropertiesInVerifiedClaimsRequest extends Abstrac
 			logSuccess("No claims to check for unexpected properties");
 			return env;
 		}
+		if (!authorizationRequest.get("claims").isJsonObject()) {
+			// Not an unknown-property matter, and this condition runs with WARNING:
+			// ValidateVerifiedClaimsRequestAgainstSchema reports this at FAILURE.
+			log("The claims member of the authorization request is not a JSON object, so it cannot be checked for unexpected properties",
+				args("claims", authorizationRequest.get("claims")));
+			return env;
+		}
 		return super.evaluate(env);
 	}
 }
