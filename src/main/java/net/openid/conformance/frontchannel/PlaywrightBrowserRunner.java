@@ -13,6 +13,7 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.Response;
 import com.microsoft.playwright.TimeoutError;
 import com.microsoft.playwright.Tracing;
+import com.microsoft.playwright.impl.driver.Driver;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.microsoft.playwright.options.WaitUntilState;
@@ -26,7 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.web.util.HtmlUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -35,9 +39,16 @@ import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -69,6 +80,17 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	private static final double NAVIGATION_TIMEOUT_MILLIS = 60_000;
 	/** Timeout for the target element of a click/text command to appear. */
 	private static final double ELEMENT_TIMEOUT_MILLIS = 10_000;
+
+	/** Browser types {@link #ensureBrowserInstalled} has verified in this JVM. */
+	private static final Set<String> INSTALLED_BROWSER_TYPES = ConcurrentHashMap.newKeySet();
+
+	/** How long {@link #closeBrowser()} gives Playwright to shut down gracefully before the driver is terminated. */
+	private static final long SHUTDOWN_TIMEOUT_MILLIS = 20_000;
+	private static final ScheduledExecutorService SHUTDOWN_WATCHDOG = Executors.newSingleThreadScheduledExecutor(runnable -> {
+		Thread thread = new Thread(runnable, "playwright-shutdown-watchdog");
+		thread.setDaemon(true);
+		return thread;
+	});
 	/** Timeout for the page to finish loading before a task's commands run (matches the HtmlUnit runner). */
 	private static final double PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
 
@@ -311,7 +333,47 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		return "playwright/" + settings.browserType();
 	}
 
+	/**
+	 * Makes sure Playwright's build of the given browser is present in its browser cache, downloading
+	 * it if not. Left to itself, Playwright downloads <em>all</em> of its browsers (Chromium, Firefox
+	 * and WebKit) on the first {@link Playwright#create()} in the JVM, i.e. inside the first test's
+	 * runner thread, with concurrent runners racing each other. {@link PlaywrightBrowserInstaller}
+	 * calls this once at server startup; {@link #launchBrowser()} calls it as a fallback. Only the
+	 * requested browser is installed, and only once per JVM.
+	 */
+	static synchronized void ensureBrowserInstalled(String browserType) {
+		if (INSTALLED_BROWSER_TYPES.contains(browserType)) {
+			return;
+		}
+		long start = System.currentTimeMillis();
+		logger.info("Making sure Playwright's " + browserType + " is installed (this downloads it on first use)");
+		try {
+			// creating the driver here with installBrowsers=false is what stops Playwright.create()
+			// from installing all browsers later: the driver is a JVM-wide singleton
+			ProcessBuilder processBuilder = Driver.ensureDriverInstalled(Collections.emptyMap(), false).createProcessBuilder();
+			processBuilder.command().addAll(List.of("install", browserType));
+			processBuilder.redirectErrorStream(true);
+			Process process = processBuilder.start();
+			try (BufferedReader output = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+				output.lines().forEach(line -> logger.info("playwright install: " + line));
+			}
+			int exitCode = process.waitFor();
+			if (exitCode != 0) {
+				throw new IllegalStateException("'playwright install " + browserType + "' failed with exit code " + exitCode);
+			}
+			INSTALLED_BROWSER_TYPES.add(browserType);
+			logger.info("Playwright's " + browserType + " is installed (took " + (System.currentTimeMillis() - start) + "ms)");
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to install Playwright's " + browserType, e);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Interrupted while installing Playwright's " + browserType, e);
+		}
+	}
+
 	private void launchBrowser() {
+		ensureBrowserInstalled(settings.browserType());
+
 		playwright = Playwright.create();
 
 		BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
@@ -662,9 +724,19 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * which makes any Playwright call throw. The flag is cleared for the duration of the shutdown
 	 * and each step is retried once after an interrupt, so the browser and driver processes are
 	 * really released rather than leaked; the flag is restored afterwards.
+	 *
+	 * <p>Playwright's close calls have no timeout and have been seen to never return (the driver
+	 * waiting on a browser that no longer answers). A watchdog therefore terminates the driver
+	 * process after {@link #SHUTDOWN_TIMEOUT_MILLIS}, which fails any call still blocked on it and
+	 * takes the browser down with it.
 	 */
 	private void closeBrowser() {
 		boolean interrupted = Thread.interrupted();
+		Playwright toTerminate = playwright;
+		ScheduledFuture<?> watchdog = toTerminate == null ? null : SHUTDOWN_WATCHDOG.schedule(() -> {
+			logger.warn(testId + ": Playwright did not shut down within " + SHUTDOWN_TIMEOUT_MILLIS + "ms, terminating the driver");
+			terminateDriver(testId, toTerminate);
+		}, SHUTDOWN_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		try {
 			if (context != null) {
 				if (settings.traceMode() != TraceMode.OFF) {
@@ -685,9 +757,38 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				closeQuietly("driver", playwright::close);
 			}
 		} finally {
+			if (watchdog != null) {
+				watchdog.cancel(false);
+			}
 			if (interrupted) {
 				Thread.currentThread().interrupt();
 			}
+		}
+	}
+
+	/**
+	 * Last resort for a hung shutdown: closes the connection to the driver, which makes any call
+	 * blocked on it throw, and kills the driver process (and with it the browser) if closing the
+	 * connection did not make it exit.
+	 */
+	@SuppressWarnings("PMD.AvoidAccessibilityAlteration") // the driver process is not exposed by Playwright's API
+	static void terminateDriver(String testId, Playwright toTerminate) {
+		try {
+			toTerminate.close();
+		} catch (RuntimeException e) {
+			logger.warn(testId + ": Error closing Playwright while terminating the driver", e);
+		}
+		try {
+			Field driverProcessField = toTerminate.getClass().getDeclaredField("driverProcess");
+			driverProcessField.setAccessible(true);
+			Process driverProcess = (Process) driverProcessField.get(toTerminate);
+			if (driverProcess != null && driverProcess.isAlive()) {
+				logger.warn(testId + ": Playwright driver process " + driverProcess.pid() + " still alive, killing it");
+				driverProcess.descendants().forEach(ProcessHandle::destroyForcibly);
+				driverProcess.destroyForcibly();
+			}
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			logger.warn(testId + ": Could not check whether the Playwright driver process exited", e);
 		}
 	}
 
