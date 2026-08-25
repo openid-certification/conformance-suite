@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateMdocCredential_UnitTest {
@@ -106,6 +108,45 @@ public class CreateMdocCredential_UnitTest {
 		assertThat(collectStrings(disclosedElementsFor("org.iso.18013.5.1")))
 			.containsExactlyInAnyOrder("family_name", "given_name");
 		assertThat(countDisclosedElements()).isEqualTo(2);
+	}
+
+	@Test
+	public void testEvaluate_dcqlWithNoMdocCredential_fails() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "dc+sd-jwt",
+			      "meta": {"vct_values": ["https://credentials.example.com/identity_credential"]}
+			    }
+			  ]
+			}
+			"""));
+
+		assertThatExceptionOfType(ConditionError.class)
+			.isThrownBy(() -> cond.execute(env))
+			.withMessageContaining("no credential entry with format 'mso_mdoc'");
+	}
+
+	@Test
+	public void testEvaluate_mdocCredentialWithoutDoctypeValue_fails() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc"
+			    }
+			  ]
+			}
+			"""));
+
+		assertThatExceptionOfType(ConditionError.class)
+			.isThrownBy(() -> cond.execute(env))
+			.withMessageContaining("meta.doctype_value");
 	}
 
 	private void parseCredential() {
