@@ -3,12 +3,10 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocElementNames;
 import net.openid.conformance.util.MdocUtil;
 import net.openid.conformance.util.PhotoIdDataElements;
-import org.multipaz.cbor.Cbor;
-import org.multipaz.cbor.DataItem;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,10 +38,9 @@ public class EnsureMdocPhotoIdConditionalDataElementsPresent extends AbstractCon
 			return env;
 		}
 
-		Map<String, List<DataItem>> namespaces;
+		Map<String, List<String>> namespaces;
 		try {
-			byte[] bytes = Base64.getDecoder().decode(env.getString("mdoc_credential_cbor"));
-			namespaces = MdocUtil.getIssuerSignedItems(Cbor.INSTANCE.decode(bytes));
+			namespaces = MdocElementNames.fromIssuedCredential(env);
 		} catch (MdocUtil.MdocParseException e) {
 			throw error(e.getMessage(), e);
 		} catch (Exception e) {
@@ -56,7 +53,7 @@ public class EnsureMdocPhotoIdConditionalDataElementsPresent extends AbstractCon
 			return env;
 		}
 
-		Set<String> dataGroupElements = elementNames(namespaces, PhotoIdDataElements.DATAGROUPS_NAMESPACE);
+		Set<String> dataGroupElements = new TreeSet<>(namespaces.get(PhotoIdDataElements.DATAGROUPS_NAMESPACE));
 
 		Set<String> missing = new TreeSet<>(PhotoIdDataElements.CONDITIONAL_DATAGROUP_ELEMENTS);
 		missing.removeAll(dataGroupElements);
@@ -66,7 +63,8 @@ public class EnsureMdocPhotoIdConditionalDataElementsPresent extends AbstractCon
 				args("missing_elements", missing, "present_elements", dataGroupElements));
 		}
 
-		Set<String> photoIdElements = elementNames(namespaces, PhotoIdDataElements.PHOTO_ID_NAMESPACE);
+		Set<String> photoIdElements =
+			new TreeSet<>(namespaces.getOrDefault(PhotoIdDataElements.PHOTO_ID_NAMESPACE, List.of()));
 		Set<String> missingTravel = new TreeSet<>(PhotoIdDataElements.ELEMENTS_REQUIRED_WHEN_DG1_PRESENT);
 		missingTravel.removeAll(photoIdElements);
 		if (!missingTravel.isEmpty()) {
@@ -79,14 +77,5 @@ public class EnsureMdocPhotoIdConditionalDataElementsPresent extends AbstractCon
 			args("datagroup_elements", dataGroupElements, "photo_id_elements", photoIdElements));
 
 		return env;
-	}
-
-	private Set<String> elementNames(Map<String, List<DataItem>> namespaces, String namespace) {
-		Set<String> names = new TreeSet<>();
-		for (DataItem issuerSignedItemBytes : namespaces.getOrDefault(namespace, List.of())) {
-			names.add(issuerSignedItemBytes.getAsTaggedEncodedCbor()
-				.getOrNull("elementIdentifier").getAsTstr());
-		}
-		return names;
 	}
 }

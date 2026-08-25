@@ -5,6 +5,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdlDataElements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +66,7 @@ public class EnsureMdocMdlMandatoryDataElementsPresent_UnitTest {
 	@Test
 	public void testEvaluate_failsWhenNamespaceIsEmpty() throws Exception {
 		byte[] bytes = MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE);
-		for (String element : EnsureMdocMdlMandatoryDataElementsPresent.MANDATORY_ELEMENTS) {
+		for (String element : MdlDataElements.MANDATORY_ELEMENTS) {
 			bytes = MdocCredentialTestUtil.removeElement(bytes, element);
 		}
 		putCredential(bytes, DrivingLicense.MDL_DOCTYPE);

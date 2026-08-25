@@ -7,6 +7,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdlDataElements;
 import net.openid.conformance.util.PhotoIdDataElements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ public class PhotoIdElementsAreDefined_UnitTest {
 
 	private EnsureIssuedMdocPhotoIdElementsAreDefined issued;
 
+	private EnsurePresentedMdocMdlElementsAreDefined presentedMdl;
+
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	private Environment env;
@@ -35,6 +38,8 @@ public class PhotoIdElementsAreDefined_UnitTest {
 		presented.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
 		issued = new EnsureIssuedMdocPhotoIdElementsAreDefined();
 		issued.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		presentedMdl = new EnsurePresentedMdocMdlElementsAreDefined();
+		presentedMdl.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
 		env = new Environment();
 	}
 
@@ -126,6 +131,40 @@ public class PhotoIdElementsAreDefined_UnitTest {
 			"enrolment_portrait_image", "family_name_viz", "given_name_viz");
 
 		assertDoesNotThrow(() -> presented.execute(env));
+	}
+
+	@Test
+	public void testPresentedMdl_passesForDefinedElements() {
+		putPresentedMdoc(MdlDataElements.MDL_DOCTYPE, MdlDataElements.MDL_NAMESPACE,
+			"family_name", "driving_privileges", "un_distinguishing_sign", "age_over_21",
+			"biometric_template_signature_sign");
+
+		assertDoesNotThrow(() -> presentedMdl.execute(env));
+	}
+
+	@Test
+	public void testPresentedMdl_failsForUndefinedElement() {
+		putPresentedMdoc(MdlDataElements.MDL_DOCTYPE, MdlDataElements.MDL_NAMESPACE,
+			"family_name", "favourite_colour");
+
+		ConditionError e = assertThrows(ConditionError.class, () -> presentedMdl.execute(env));
+		assertTrue(e.getMessage().contains("does not define"), e.getMessage());
+	}
+
+	/** ISO/IEC 18013-5 13.4.9 lets an issuing authority put domestic data in its own namespace. */
+	@Test
+	public void testPresentedMdl_allowsIssuingAuthorityNamespace() {
+		putPresentedMdoc(MdlDataElements.MDL_DOCTYPE, "org.iso.18013.5.1.US", "organ_donor");
+
+		assertDoesNotThrow(() -> presentedMdl.execute(env));
+	}
+
+	@Test
+	public void testPresentedMdl_doesNotApplyToPhotoId() {
+		putPresentedMdoc(PhotoIdDataElements.PHOTO_ID_DOCTYPE, PhotoIdDataElements.ISO_23220_2_NAMESPACE,
+			"family_name");
+
+		assertDoesNotThrow(() -> presentedMdl.execute(env));
 	}
 
 	@Test
