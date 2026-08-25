@@ -42,4 +42,8 @@ public class FAPI2SPFinalClientTestDiscoveryIssuerMismatch extends AbstractFAPI2
 		//Do nothing
 	}
 
+	@Override
+	protected String getResponseClientMustStopAfter() {
+		return "a discovery document whose issuer does not match the URL the document was retrieved from";
+	}
 }

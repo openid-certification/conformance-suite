@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveNonceFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -50,43 +49,13 @@ public class FAPI2SPFinalClientTestInvalidMissingNonce extends AbstractFAPI2SPFi
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
 		super.issueIdToken(isAuthorizationEndpoint);
 		if(issuedMissingNonce) {
+			// after this the request routers refuse all endpoints
 			startWaitingForTimeout();
 		}
 	}
 
 	@Override
-	protected Object tokenEndpoint(String requestId) {
-		//already issued an invalid id_token but the client sent a token request
-		if(issuedMissingNonce) {
-			throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an invalid id_token (" +
-				getIdTokenFaultErrorMessage()+ ")");
-		} else {
-			return super.tokenEndpoint(requestId);
-		}
-	}
-
-	@Override
-	protected Object userinfoEndpoint(String requestId) {
-		if(issuedMissingNonce) {
-			throw new TestFailureException(getId(), "Client has incorrectly called userinfo_endpoint after receiving an invalid id_token (" +
-				getIdTokenFaultErrorMessage() + ")");
-		} else {
-			return super.userinfoEndpoint(requestId);
-		}
-	}
-
-
-	@Override
-	protected Object accountsEndpoint(String requestId) {
-		if(issuedMissingNonce) {
-			throw new TestFailureException(getId(), "Client has incorrectly called accounts endpoint after receiving an invalid id_token (" +
-				getIdTokenFaultErrorMessage() + ")");
-		} else {
-			return super.accountsEndpoint(requestId);
-		}
-	}
-
-	protected String getIdTokenFaultErrorMessage() {
-		return "missing nonce value";
+	protected String getResponseClientMustStopAfter() {
+		return "an invalid id_token (missing nonce value)";
 	}
 }

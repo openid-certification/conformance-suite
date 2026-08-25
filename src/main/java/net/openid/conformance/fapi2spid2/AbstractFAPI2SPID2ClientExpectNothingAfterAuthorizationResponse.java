@@ -1,7 +1,5 @@
 package net.openid.conformance.fapi2spid2;
 
-import net.openid.conformance.testmodule.TestFailureException;
-
 /**
  * Base class for tests that return an invalid authorization response
  * Client must stop after receiving an invalid authorization response
@@ -10,25 +8,16 @@ public abstract class AbstractFAPI2SPID2ClientExpectNothingAfterAuthorizationRes
 	@Override
 	protected void createAuthorizationEndpointResponse() {
 		super.createAuthorizationEndpointResponse();
+		// after this the request routers refuse all endpoints; in particular the token
+		// endpoint must keep working until here, as profiles like Open Banking UK / Brazil
+		// require the client to obtain a client_credentials access token and create a
+		// consent before it calls the authorization endpoint
 		startWaitingForTimeout();
 	}
 
 	@Override
-	protected Object tokenEndpoint(String requestId) {
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an invalid authorization response (" +
-			getAuthorizationResponseErrorMessage()+ ")");
-	}
-
-	@Override
-	protected Object userinfoEndpoint(String requestId) {
-		throw new TestFailureException(getId(), "Client has incorrectly called userinfo_endpoint after receiving an invalid authorization response (" +
-			getAuthorizationResponseErrorMessage() + ")");
-	}
-
-	@Override
-	protected Object accountsEndpoint(String requestId) {
-		throw new TestFailureException(getId(), "Client has incorrectly called accounts endpoint after receiving an invalid authorization response (" +
-			getAuthorizationResponseErrorMessage() + ")");
+	protected String getResponseClientMustStopAfter() {
+		return "an invalid authorization response (" + getAuthorizationResponseErrorMessage() + ")";
 	}
 
 	protected abstract String getAuthorizationResponseErrorMessage();
