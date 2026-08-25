@@ -9,4 +9,25 @@
 # to java is used to launch it
 FROM eclipse-temurin:21
 
-RUN apt-get update && apt-get install redir
+# Alongside redir, the shared libraries Playwright's Chromium needs when the
+# suite runs with -Dbrowser.engine=playwright (the browser itself is downloaded
+# by Playwright on first use).
+RUN apt-get update && apt-get install -y \
+    redir \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2t64 \
+    libatspi2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
