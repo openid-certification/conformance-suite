@@ -4,6 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.PlaywrightException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import net.openid.conformance.frontchannel.PlaywrightBrowserRunner.Settings;
@@ -216,6 +220,23 @@ public class PlaywrightBrowserRunner_SmokeTest {
 	private static String currentCommand(PlaywrightBrowserRunner runner) {
 		JsonElement command = runner.getStatus().get("currentCommand");
 		return command == null || command.isJsonNull() ? null : OIDFJSON.getString(command);
+	}
+
+	@Test
+	public void terminateDriverKillsDriverAndBrowser() {
+		PlaywrightBrowserRunner.ensureBrowserInstalled("chromium");
+		Playwright playwright = Playwright.create();
+		Browser browser = playwright.chromium().launch();
+		Page page = browser.newContext().newPage();
+		page.navigate(baseUrl + "/callback");
+		long driverPid = ProcessHandle.current().children()
+			.filter(p -> p.info().commandLine().orElse("").contains("playwright"))
+			.mapToLong(ProcessHandle::pid).max().orElseThrow();
+
+		PlaywrightBrowserRunner.terminateDriver(TEST_ID, playwright);
+
+		assertThat(ProcessHandle.of(driverPid).map(ProcessHandle::isAlive).orElse(false)).as("driver process alive").isFalse();
+		assertThatThrownBy(page::title).isInstanceOf(PlaywrightException.class);
 	}
 
 	@Test
