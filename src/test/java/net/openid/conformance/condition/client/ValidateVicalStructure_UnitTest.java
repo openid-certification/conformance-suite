@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.cbor.Bstr;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.Tagged;
 import org.multipaz.cbor.Tstr;
@@ -157,6 +158,23 @@ public class ValidateVicalStructure_UnitTest {
 
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("serialNumber"), e.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_negativeBignumSerialFindingNamesTagAndCertificate() {
+		// the real-world defect from the Geneva interop VICAL: a serial number with the high
+		// bit set encoded as a tag 3 negative bignum instead of a tag 2 unsigned bignum
+		byte[] serialBytes = iaca.getCert().getSerialNumber().getValue();
+		DataItem wrongTagSerial = VicalTestFixtures.certificateInfo(iaca.getCert(),
+			List.of("org.iso.18013.5.1.mDL"), null, null, Set.of("serialNumber"),
+			Map.of("serialNumber", new Tagged(Tagged.NEGATIVE_BIGNUM, new Bstr(serialBytes))));
+		putVical(VicalTestFixtures.buildVicalMap(List.of(wrongTagSerial)));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("tag 3 (negative bignum)"), e.getMessage());
+		assertTrue(e.getMessage().contains("negative-bignum tag by mistake"), e.getMessage());
+		// the finding names the certificate, not just the array index
+		assertTrue(e.getMessage().contains("CN=OIDF Test VICAL Signer"), e.getMessage());
 	}
 
 	@Test

@@ -158,6 +158,9 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 		} else {
 			try {
 				cert = X509Cert.Companion.fromDataItem(certItem);
+				// name the entry so a finding can be matched to a certificate without
+				// counting array entries in the raw CBOR
+				prefix = "certificateInfos[" + index + "] (" + cert.getSubject().getName() + "): ";
 			} catch (Exception e) {
 				findings.add(prefix + "'certificate' could not be parsed as a DER-encoded X.509 certificate");
 			}
@@ -169,7 +172,11 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 		} else if (cert != null) {
 			BigInteger listed = biguintValue(serialItem);
 			if (listed == null) {
-				findings.add(prefix + "'serialNumber' is not a biguint");
+				String hint = "";
+				if (serialItem instanceof Tagged && ((Tagged) serialItem).getTagNumber() == Tagged.NEGATIVE_BIGNUM) {
+					hint = " - a serial number whose first byte is 0x80 or above has probably been encoded with the negative-bignum tag by mistake";
+				}
+				findings.add(prefix + "'serialNumber' must be a biguint (a tag 2 unsigned-bignum byte string, or a plain unsigned integer) but is " + describeItem(serialItem) + hint);
 			} else {
 				BigInteger actual = new BigInteger(1, cert.getSerialNumber().getValue());
 				if (!listed.equals(actual)) {
@@ -237,6 +244,36 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 		} catch (Exception e) {
 			findings.add("'" + fieldName + "' is not a valid tdate (tag 0 RFC 3339 date-time string)");
 			return null;
+		}
+	}
+
+	/** Human-readable description of a CBOR item's shape, e.g. "tag 3 (negative bignum) around a byte string". */
+	private String describeItem(DataItem item) {
+		if (item instanceof Tagged) {
+			long tag = ((Tagged) item).getTagNumber();
+			String name;
+			if (tag == Tagged.DATE_TIME_STRING) {
+				name = "date-time string";
+			} else if (tag == Tagged.UNSIGNED_BIGNUM) {
+				name = "unsigned bignum";
+			} else if (tag == Tagged.NEGATIVE_BIGNUM) {
+				name = "negative bignum";
+			} else if (tag == Tagged.ENCODED_CBOR) {
+				name = "embedded CBOR";
+			} else {
+				name = "unrecognized tag";
+			}
+			return "tag " + tag + " (" + name + ") around " + describeItem(((Tagged) item).getTaggedItem());
+		}
+		String type = item.getClass().getSimpleName();
+		switch (type) {
+			case "Uint": return "an unsigned integer";
+			case "Nint": return "a negative integer";
+			case "Bstr": return "a byte string";
+			case "Tstr": return "a text string";
+			case "CborArray": return "an array";
+			case "CborMap": return "a map";
+			default: return "a " + type;
 		}
 	}
 
