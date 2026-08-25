@@ -86,6 +86,7 @@ import net.openid.conformance.condition.client.ExtractAuthorizationEndpointRespo
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractDCQLQueryFromClientConfiguration;
+import net.openid.conformance.condition.client.LoadBuiltInDcqlQuery;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractSecondJWKsFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
@@ -163,14 +164,17 @@ import java.util.concurrent.TimeUnit;
 @VariantParameters({
 	VPProfile.class,
 	VP1FinalWalletCredentialFormat.class,
+	VP1FinalWalletCredentialType.class,
 	VP1FinalWalletClientIdPrefix.class,
 	VP1FinalWalletResponseMode.class,
 	VP1FinalWalletRequestMethod.class
 })
 @ConfigurationFields({
 	"client.jwks",
-	"client.dcql",
 	"client.verifier_info"
+})
+@VariantConfigurationFields(parameter = VP1FinalWalletCredentialType.class, value = "custom", configurationFields = {
+	"client.dcql"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "decentralized_identifier", configurationFields = {
 	"client.client_id"
@@ -212,6 +216,18 @@ import java.util.concurrent.TimeUnit;
 	"client2.client_id"
 })
 @VariantNotApplicableWhen(
+	parameter = VP1FinalWalletCredentialType.class,
+	values = {"mdl"},  // the built-in mDL query is an mdoc query
+	whenParameter = VP1FinalWalletCredentialFormat.class,
+	hasValues = "sd_jwt_vc"
+)
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletCredentialType.class,
+	values = {"eudi_pid"},  // the built-in PID query is an SD-JWT VC query
+	whenParameter = VP1FinalWalletCredentialFormat.class,
+	hasValues = "iso_mdl"
+)
+@VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
 	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
 	whenParameter = VPProfile.class,
@@ -245,6 +261,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected VP1FinalWalletResponseMode responseMode;
 	protected VP1FinalWalletRequestMethod requestMethod;
 	protected VP1FinalWalletCredentialFormat credentialFormat;
+	protected VP1FinalWalletCredentialType credentialType;
 	protected VP1FinalWalletClientIdPrefix clientIdPrefix;
 	protected volatile TestState testState = TestState.INITIAL;
 
@@ -277,6 +294,12 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
 		env.putString("credential_format", credentialFormat.toString());
+		credentialType = getVariant(VP1FinalWalletCredentialType.class);
+		if (credentialType.getDcqlResource() != null) {
+			// the presence of this string is what makes the authorization request sequence use the
+			// suite's built-in query instead of the one from the test configuration
+			env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, credentialType.getDcqlResource());
+		}
 		requestMethod = getVariant(VP1FinalWalletRequestMethod.class);
 		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdPrefix.toString());
@@ -558,7 +581,12 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINALA-A.2");
 			}
 
-			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
+			call(condition(LoadBuiltInDcqlQuery.class)
+				.skipIfStringMissing(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY));
+			// ExtractDCQLQueryFromClientConfiguration stays in the sequence unconditionally, as the
+			// modules that mutate the query insert themselves after it
+			call(condition(ExtractDCQLQueryFromClientConfiguration.class)
+				.skipIfStringPresent(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY));
 			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6", "OID4VP-1FINAL-6.1");
 			callAndContinueOnFailure(CheckDCQLQueryCredentialFormatMatchesTestConfiguration.class, ConditionResult.FAILURE);
 			callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
