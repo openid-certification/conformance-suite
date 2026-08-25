@@ -74,6 +74,21 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 	}
 
 	@Test
+	public void testEvaluate_unknownPropertyInAttachmentIsNotAStructuralFailure() {
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_UNKNOWN_PROPERTY_IN_ATTACHMENT));
+	}
+
+	@Test
+	public void testEvaluate_rejectAttachmentContentTypeWithParameters() {
+		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_CONTENT_TYPE_WITH_PARAMETERS));
+	}
+
+	@Test
+	public void testEvaluate_rejectAttachmentContentWithLineBreak() {
+		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_CONTENT_WITH_LINE_BREAK));
+	}
+
+	@Test
 	public void testEvaluate_rejectForbiddenAttachmentContentTypeLowercase() {
 		assertThrows(ConditionError.class, () -> executeWithAttachmentContentType("multipart/mixed"));
 	}

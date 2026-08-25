@@ -115,6 +115,69 @@ final class EkycUnknownPropertyFixtures {
 		}
 		""";
 
+	/**
+	 * Response claims with an unknown property inside an embedded attachment. The attachment
+	 * oneOf's other (external) branch also rejects content_type/content as additional
+	 * properties, but only the unknown member itself may be reported - the sibling branch's
+	 * rejections are an artefact of the failed oneOf, not unknown properties.
+	 */
+	static final String RESPONSE_UNKNOWN_PROPERTY_IN_ATTACHMENT = """
+		{
+		  "claims": {"given_name": "Paula"},
+		  "verification": {
+		    "trust_framework": "de_aml",
+		    "evidence": [{
+		      "type": "document",
+		      "attachments": [{
+		        "content_type": "image/png",
+		        "content": "aGVsbG8=",
+		        "unknown_member": "x"
+		      }]
+		    }]
+		  }
+		}
+		""";
+
+	/**
+	 * Response claims whose embedded attachment fails structurally (content_type carries
+	 * parameters, forbidden by the schema's pattern). Asserted the opposite way round to the
+	 * payloads above: the structural validator must fail it, and the
+	 * CheckForUnexpectedProperties* condition must stay silent - the other oneOf branch's
+	 * additionalProperties rejections of content_type/content are not unknown properties.
+	 */
+	static final String RESPONSE_ATTACHMENT_CONTENT_TYPE_WITH_PARAMETERS = """
+		{
+		  "claims": {"given_name": "Paula"},
+		  "verification": {
+		    "trust_framework": "de_aml",
+		    "evidence": [{
+		      "type": "document",
+		      "attachments": [{
+		        "content_type": "text/plain; charset=utf-8",
+		        "content": "aGVsbG8="
+		      }]
+		    }]
+		  }
+		}
+		""";
+
+	/** Response claims whose embedded attachment content is line-wrapped base64; see above. */
+	static final String RESPONSE_ATTACHMENT_CONTENT_WITH_LINE_BREAK = """
+		{
+		  "claims": {"given_name": "Paula"},
+		  "verification": {
+		    "trust_framework": "de_aml",
+		    "evidence": [{
+		      "type": "document",
+		      "attachments": [{
+		        "content_type": "image/png",
+		        "content": "aGVs\\nbG8="
+		      }]
+		    }]
+		  }
+		}
+		""";
+
 	/** Response claims with a document-branch field on vouch evidence; see the request twin. */
 	static final String RESPONSE_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE = """
 		{

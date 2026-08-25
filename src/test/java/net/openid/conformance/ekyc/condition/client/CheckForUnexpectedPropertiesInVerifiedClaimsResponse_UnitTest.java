@@ -71,4 +71,22 @@ public class CheckForUnexpectedPropertiesInVerifiedClaimsResponse_UnitTest
 	public void testEvaluate_wrongBranchFieldAtEvidenceLevel() {
 		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.RESPONSE_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE));
 	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInAttachment() {
+		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.RESPONSE_UNKNOWN_PROPERTY_IN_ATTACHMENT));
+	}
+
+	@Test
+	public void testEvaluate_noWarningWhenAttachmentContentTypeStructurallyInvalid() {
+		// The structural validator (FAILURE) already rejects this payload; the other oneOf
+		// branch's additionalProperties rejections of content_type/content must not surface
+		// here as bogus "unknown properties".
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_CONTENT_TYPE_WITH_PARAMETERS));
+	}
+
+	@Test
+	public void testEvaluate_noWarningWhenAttachmentContentStructurallyInvalid() {
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_ATTACHMENT_CONTENT_WITH_LINE_BREAK));
+	}
 }

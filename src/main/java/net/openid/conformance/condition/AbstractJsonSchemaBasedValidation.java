@@ -30,8 +30,9 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 			JsonSchemaValidationResult validationResult = jsonSchemaValidation.validate(inputJsonObject);
 			if (!validationResult.isValid()) {
 				onValidationFailure(env, validationResult, input);
+			} else {
+				onValidationSuccess(env, input);
 			}
-			onValidationSuccess(env, input);
 		} catch (IOException e) {
 			throw new RuntimeException("JSON Schema based input validation failed", e);
 		}
