@@ -342,7 +342,7 @@
           "key": "client.dcql",
           "label": "dcql",
           "type": "object",
-          "tooltip": "The DCQL (Digital Credentials Query Language) to use in dcql_query parameter in authorization request"
+          "tooltip": "The DCQL (Digital Credentials Query Language) to use in dcql_query parameter in authorization request. In the wallet tests this is only needed when the Credential Type variant is 'custom'; for the other credential types the conformance suite uses its own query."
         },
         {
           "key": "client.verifier_info",
