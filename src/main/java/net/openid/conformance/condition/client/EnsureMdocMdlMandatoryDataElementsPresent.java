@@ -37,7 +37,7 @@ public class EnsureMdocMdlMandatoryDataElementsPresent
 	}
 
 	@Override
-	protected Set<String> getMandatoryElements() {
+	protected Set<String> getRequiredElements() {
 		return MANDATORY_ELEMENTS;
 	}
 
