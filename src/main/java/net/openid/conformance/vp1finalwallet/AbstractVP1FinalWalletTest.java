@@ -74,6 +74,7 @@ import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfig
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureMdocDeviceSignedElementsEmpty;
+import net.openid.conformance.condition.client.EnsurePresentedMdocPhotoIdElementsAreDefined;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
@@ -705,6 +706,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				call(new ValidateMdocCredential(false, getVariant(VPProfile.class) == VPProfile.HAIP));
 				callAndContinueOnFailure(EnsureMdocDeviceSignedElementsEmpty.class, ConditionResult.FAILURE);
+				callAndContinueOnFailure(EnsurePresentedMdocPhotoIdElementsAreDefined.class,
+					ConditionResult.WARNING, "ISO23220-4-C");
 
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateMdocDocTypeMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
