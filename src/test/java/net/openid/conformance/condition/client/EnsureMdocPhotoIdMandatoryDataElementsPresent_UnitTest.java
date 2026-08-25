@@ -64,6 +64,31 @@ public class EnsureMdocPhotoIdMandatoryDataElementsPresent_UnitTest {
 		assertTrue(e.getMessage().contains("mandatory"), e.getMessage());
 	}
 
+	@Test
+	public void testEvaluate_recommendedElementsPresentInIssuedCredential() throws Exception {
+		EnsureMdocPhotoIdRecommendedDataElementsPresent recommended =
+			new EnsureMdocPhotoIdRecommendedDataElementsPresent();
+		recommended.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		putCredential(MdocCredentialTestUtil.createCredentialBytes(PhotoID.PHOTO_ID_DOCTYPE),
+			PhotoID.PHOTO_ID_DOCTYPE);
+
+		assertDoesNotThrow(() -> recommended.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_failsWhenRecommendedElementMissing() throws Exception {
+		EnsureMdocPhotoIdRecommendedDataElementsPresent recommended =
+			new EnsureMdocPhotoIdRecommendedDataElementsPresent();
+		recommended.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		putCredential(MdocCredentialTestUtil.removeElement(
+				MdocCredentialTestUtil.createCredentialBytes(PhotoID.PHOTO_ID_DOCTYPE),
+				PhotoID.ISO_23220_2_NAMESPACE, "age_in_years"),
+			PhotoID.PHOTO_ID_DOCTYPE);
+
+		ConditionError e = assertThrows(ConditionError.class, () -> recommended.execute(env));
+		assertTrue(e.getMessage().contains("recommended"), e.getMessage());
+	}
+
 	/**
 	 * ISO/IEC TS 23220-2 ed.2 replaced the previous edition's "_unicode" suffixed element
 	 * identifiers with the plain ones, so a credential using the old names is missing the

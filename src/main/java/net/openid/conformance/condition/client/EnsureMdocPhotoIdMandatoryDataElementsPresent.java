@@ -21,7 +21,7 @@ import java.util.Set;
  * here. Older ISO/IEC TS 23220-4 drafts (e.g. WG4 N 4583) still list the "_unicode" names.
  */
 public class EnsureMdocPhotoIdMandatoryDataElementsPresent
-		extends AbstractEnsureMdocMandatoryDataElementsPresent {
+		extends AbstractEnsureMdocDataElementsPresent {
 
 	@Override
 	protected String getDocType() {
@@ -36,6 +36,11 @@ public class EnsureMdocPhotoIdMandatoryDataElementsPresent
 	@Override
 	protected Set<String> getRequiredElements() {
 		return PhotoIdDataElements.MANDATORY_ELEMENTS;
+	}
+
+	@Override
+	protected String getRequirementDescription() {
+		return "mandatory";
 	}
 
 	@Override

@@ -14,9 +14,9 @@ import java.util.TreeSet;
 
 /**
  * Base class for checks that an issued mdoc credential of a particular docType contains all the
- * data elements its defining specification marks as mandatory. Subclasses supply the docType, the
- * namespace the mandatory elements live in, and the element list. The check passes without doing
- * anything for other docTypes.
+ * data elements its defining specification marks with a given presence, e.g. mandatory or
+ * recommended. Subclasses supply the docType, the namespace the elements live in, and the
+ * element list. The check passes without doing anything for other docTypes.
  *
  * This check only applies at issuance — in presentations selective disclosure legitimately
  * omits elements the verifier did not request.
@@ -24,26 +24,24 @@ import java.util.TreeSet;
  * Reads the docType stored in 'mdoc_doctype' and the raw CBOR stored as standard base64 in
  * 'mdoc_credential_cbor' by ParseMdocCredentialFromVCIIssuance.
  */
-public abstract class AbstractEnsureMdocMandatoryDataElementsPresent extends AbstractCondition {
+public abstract class AbstractEnsureMdocDataElementsPresent extends AbstractCondition {
 
 	/** The docType this check applies to; the condition no-ops for any other docType. */
 	protected abstract String getDocType();
 
-	/** The namespace the mandatory data elements are defined in. */
+	/** The namespace the data elements are defined in. */
 	protected abstract String getNamespace();
 
-	/** The data element identifiers the defining specification requires. */
+	/** The data element identifiers the defining specification lists with this presence. */
 	protected abstract Set<String> getRequiredElements();
 
 	/** How the specification describes the requirement, e.g. "mandatory" or "recommended". */
-	protected String getRequirementDescription() {
-		return "mandatory";
-	}
+	protected abstract String getRequirementDescription();
 
 	/** Human readable name of the credential, used in log messages, e.g. "mDL". */
 	protected abstract String getCredentialName();
 
-	/** The specification the mandatory element list comes from, used in log messages. */
+	/** The specification the element list comes from, used in log messages. */
 	protected abstract String getSpecificationName();
 
 	@Override

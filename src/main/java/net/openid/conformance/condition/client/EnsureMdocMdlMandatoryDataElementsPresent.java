@@ -10,7 +10,7 @@ import java.util.Set;
  * org.iso.18013.5.1 namespace. The check passes without doing anything for other docTypes.
  */
 public class EnsureMdocMdlMandatoryDataElementsPresent
-		extends AbstractEnsureMdocMandatoryDataElementsPresent {
+		extends AbstractEnsureMdocDataElementsPresent {
 
 	/** ISO/IEC 18013-5:2021 §7.2.1 Table 5, elements with presence "M". */
 	public static final Set<String> MANDATORY_ELEMENTS = Set.of(
@@ -39,6 +39,11 @@ public class EnsureMdocMdlMandatoryDataElementsPresent
 	@Override
 	protected Set<String> getRequiredElements() {
 		return MANDATORY_ELEMENTS;
+	}
+
+	@Override
+	protected String getRequirementDescription() {
+		return "mandatory";
 	}
 
 	@Override
