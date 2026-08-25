@@ -8,8 +8,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import net.openid.conformance.vp1finalverifier.VP1FinalVerifierCredentialFormat;
-
 import java.util.Map;
 
 /**
@@ -19,9 +17,11 @@ import java.util.Map;
  */
 public class CheckDCQLQueryCredentialFormatMatchesTestConfiguration extends AbstractCondition {
 
+	// Keyed on the credential format variant values, which are shared by the verifier and wallet
+	// test families (VP1FinalVerifierCredentialFormat / VP1FinalWalletCredentialFormat).
 	private static final Map<String, String> VARIANT_TO_DCQL_FORMAT = Map.of(
-		VP1FinalVerifierCredentialFormat.SD_JWT_VC.toString(), "dc+sd-jwt",
-		VP1FinalVerifierCredentialFormat.ISO_MDL.toString(), "mso_mdoc"
+		"sd_jwt_vc", "dc+sd-jwt",
+		"iso_mdl", "mso_mdoc"
 	);
 
 	@Override

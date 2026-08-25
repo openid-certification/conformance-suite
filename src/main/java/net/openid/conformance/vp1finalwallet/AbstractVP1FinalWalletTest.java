@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInBindingJwt;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInBindingJwtHeader;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
@@ -282,6 +283,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		responseMode = getVariant(VP1FinalWalletResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
+		env.putString("credential_format", credentialFormat.toString());
 		requestMethod = getVariant(VP1FinalWalletRequestMethod.class);
 		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdPrefix.toString());
@@ -569,6 +571,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
 			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6", "OID4VP-1FINAL-6.1");
+			callAndContinueOnFailure(CheckDCQLQueryCredentialFormatMatchesTestConfiguration.class, ConditionResult.FAILURE);
 			callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 			callAndContinueOnFailure(CheckForNonSelectivelyDisclosableClaimsInDcqlQuery.class, ConditionResult.WARNING, "SDJWTVC-3.2.2.2");
 			callAndContinueOnFailure(CheckForUnreferencedClaimsInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.4.1");
