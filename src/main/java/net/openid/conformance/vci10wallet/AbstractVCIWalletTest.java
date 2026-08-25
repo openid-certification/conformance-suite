@@ -822,7 +822,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				throw new TestFailureException(getId(), "The credential_offer endpoint must be called over an mTLS secured connection.");
 			}
 
-			return credentialOfferEndpoint(requestId, path);
+			return credentialOfferEndpoint(requestId);
 		} else if (path.equals(DEFERRED_CREDENTIAL_PATH)) {
 
 			if (isMTLSConstrain()) {
@@ -841,7 +841,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
-	protected Object credentialOfferEndpoint(String requestId, String path) {
+	protected Object credentialOfferEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
@@ -862,7 +862,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		}
 
 		Object responseEntity = runPathDispatch(
-			VCIClientProfileBehavior.buildCredentialOfferDispatch(path, mtlsChecks), requestId);
+			VCIClientProfileBehavior.buildCredentialOfferDispatch(mtlsChecks), requestId);
 
 		setStatus(Status.WAITING);
 		return responseEntity;

@@ -10,8 +10,11 @@ import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
+import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -48,6 +51,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequest
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationRequest;
+import net.openid.conformance.vci10wallet.condition.VCIVerifyCredentialOfferRequestId;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
@@ -381,7 +385,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			return buildNotificationDispatch();
 		}
 		if (isCredentialOfferPath(path)) {
-			return buildCredentialOfferDispatch(path, null);
+			return buildCredentialOfferDispatch(null);
 		}
 		if (isStatusListsPath(path)) {
 			// statuslists is served imperatively below — the response shape branches on
@@ -422,28 +426,33 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	 * <p>{@code additionalRequestChecks} are extra checks to run before the shared ones;
 	 * may be {@code null}.
 	 */
-	public static PathDispatch buildCredentialOfferDispatch(String path, ConditionSequence additionalRequestChecks) {
+	public static PathDispatch buildCredentialOfferDispatch(ConditionSequence additionalRequestChecks) {
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
 				if (additionalRequestChecks != null) {
 					call(additionalRequestChecks);
 				}
+				callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.3");
+				callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.WARNING, "OID4VCI-1FINAL-4.1.3");
+				callAndContinueOnFailure(EnsureIncomingRequestBodyIsEmpty.class, ConditionResult.WARNING, "OID4VCI-1FINAL-4.1.3");
+				// WARNING: a wrong id gets the spec-correct 404 either way; the warning
+				// surfaces the mismatch (with both ids) in the test log for debugging.
+				callAndContinueOnFailure(VCIVerifyCredentialOfferRequestId.class, ConditionResult.WARNING, "OID4VCI-1FINAL-4.1.3");
 			}
 		};
 		return new PathDispatch("Credential offer endpoint", sequence,
-			m -> buildCredentialOfferResponse(m.getEnv(), path));
+			m -> buildCredentialOfferResponse(m.getEnv()));
 	}
 
 	/**
 	 * Response for a {@code credential_offer/{id}} request: the stored offer (JSON,
-	 * {@code Cache-Control: no-cache}) when the id in the path matches the one minted by
-	 * {@link VCICreateCredentialOfferUri}, 404 otherwise.
+	 * {@code Cache-Control: no-cache}) when {@link VCIVerifyCredentialOfferRequestId}
+	 * matched the path id against the one minted by {@link VCICreateCredentialOfferUri},
+	 * 404 otherwise.
 	 */
-	public static ResponseEntity<Object> buildCredentialOfferResponse(Environment env, String path) {
-		String credentialOfferId = path.substring(path.lastIndexOf('/') + 1);
-		String expectedCredentialOfferId = env.getString("vci", "credential_offer_id");
-		if (expectedCredentialOfferId != null && expectedCredentialOfferId.equals(credentialOfferId)) {
+	public static ResponseEntity<Object> buildCredentialOfferResponse(Environment env) {
+		if (env.getString("vci", "credential_offer_id_matched") != null) {
 			JsonElement credentialOffer = env.getElementFromObject("vci", "credential_offer");
 			return ResponseEntity.status(HttpStatus.OK)
 				.contentType(MediaType.APPLICATION_JSON)
