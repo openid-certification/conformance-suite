@@ -16,6 +16,8 @@ data
 .factorypath
 *.zip
 mongo
+# Playwright traces written by docker-compose-localtest.yml (browser.playwright.tracesDir)
+/traces/
 .DS_Store
 
 # Scratch directory for unversioned dev artifacts: screenshots, traces, logs,
