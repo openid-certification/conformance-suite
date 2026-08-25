@@ -21,6 +21,13 @@ public class ExtractClientAttestationFromRequest extends AbstractCondition {
 
 		JsonObject requestHeaders = env.getElementFromObject("token_endpoint_request", "headers").getAsJsonObject();
 
+		// remove any values left over from a previous request, so that if this request has no client
+		// attestation the later validation conditions skip instead of validating the previous values
+		env.removeObject("client_attestation_object");
+		env.removeObject("client_attestation_pop_object");
+		env.removeNativeValue("client_attestation");
+		env.removeNativeValue("client_attestation_pop");
+
 		JsonElement clientAttestationHeaderEl = requestHeaders.get("oauth-client-attestation");
 
 		if (clientAttestationHeaderEl == null || Strings.isNullOrEmpty(OIDFJSON.getString(clientAttestationHeaderEl))) {
