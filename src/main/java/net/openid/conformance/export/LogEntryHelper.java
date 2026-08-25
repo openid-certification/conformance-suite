@@ -74,6 +74,7 @@ public class LogEntryHelper {
 		specLinks.put("RFC8485-", "https://tools.ietf.org/html/rfc8485#section-");
 		specLinks.put("RFC8935-", "https://tools.ietf.org/html/rfc8935#section-");
 		specLinks.put("RFC8936-", "https://tools.ietf.org/html/rfc8936#section-");
+		specLinks.put("RFC9493-", "https://www.rfc-editor.org/rfc/rfc9493.html#section-");
 		specLinks.put("RFC9325-", "https://tools.ietf.org/html/rfc9325.html#section-");
 		specLinks.put("RFC9325A-", "https://tools.ietf.org/html/rfc9325.html#appendix-");
 		specLinks.put("RFC9396-", "https://tools.ietf.org/html/rfc9396#section-");
