@@ -1,5 +1,6 @@
 package net.openid.conformance.util;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -118,6 +119,84 @@ public final class PhotoIdDataElements {
 		"version",
 		"dg3", "dg4", "dg5", "dg6", "dg7", "dg8", "dg9",
 		"dg10", "dg11", "dg12", "dg13", "dg14", "dg15", "dg16");
+
+	/**
+	 * The value constraints ISO/IEC TS 23220-2 gives for the Table C.1 elements. Elements not
+	 * listed are still subject to the generic tstr length limit when encoded as a text string,
+	 * which ISO/IEC TS 23220-4 states applies to every tstr data element.
+	 *
+	 * Unlike ISO/IEC 18013-5, 23220-2 encodes issue_date and expiry_date as full_date only,
+	 * portrait_capture_date as tdate only, and allows alpha-3 as well as alpha-2 codes for
+	 * issuing_country and nationality (but not for resident_country or Table C.2's birth_country).
+	 */
+	private static final Map<String, MdocValueConstraint> ISO_23220_2_VALUE_CONSTRAINTS = Map.ofEntries(
+		Map.entry("family_name", MdocValueConstraint.tstr()),
+		Map.entry("given_name", MdocValueConstraint.tstr()),
+		Map.entry("family_name_viz", MdocValueConstraint.tstr()),
+		Map.entry("given_name_viz", MdocValueConstraint.tstr()),
+		Map.entry("family_name_latin1", MdocValueConstraint.latin1Tstr()),
+		Map.entry("given_name_latin1", MdocValueConstraint.latin1Tstr()),
+		Map.entry("birth_date", MdocValueConstraint.fullDateOrBirthDateStructure()),
+		Map.entry("portrait", MdocValueConstraint.bstr()),
+		Map.entry("enrolment_portrait_image", MdocValueConstraint.bstr()),
+		Map.entry("issue_date", MdocValueConstraint.fullDate()),
+		Map.entry("expiry_date", MdocValueConstraint.fullDate()),
+		Map.entry("issuing_authority", MdocValueConstraint.tstr()),
+		Map.entry("issuing_country", MdocValueConstraint.alpha2Or3CountryCode()),
+		Map.entry("issuing_subdivision", MdocValueConstraint.tstr()),
+		Map.entry("age_in_years", MdocValueConstraint.uint()),
+		Map.entry("age_birth_year", MdocValueConstraint.uint()),
+		Map.entry("portrait_capture_date", MdocValueConstraint.tdate()),
+		Map.entry("birthplace", MdocValueConstraint.tstr()),
+		Map.entry("name_at_birth", MdocValueConstraint.tstr()),
+		Map.entry("resident_address", MdocValueConstraint.tstr()),
+		Map.entry("resident_city", MdocValueConstraint.tstr()),
+		Map.entry("resident_city_latin1", MdocValueConstraint.latin1Tstr()),
+		Map.entry("resident_postal_code", MdocValueConstraint.tstr()),
+		Map.entry("resident_country", MdocValueConstraint.alpha2CountryCode()),
+		// ISO/IEC 5218, with Table C.1 adding that 9 shall be used for X
+		Map.entry("sex", MdocValueConstraint.uintOneOf(Set.of(0L, 1L, 2L, 9L))),
+		Map.entry("nationality", MdocValueConstraint.alpha2Or3CountryCode()),
+		Map.entry("document_number", MdocValueConstraint.tstr()));
+
+	/** The value constraints Table C.2 gives, all of which are text strings bar the country code. */
+	private static final Map<String, MdocValueConstraint> PHOTO_ID_VALUE_CONSTRAINTS = Map.ofEntries(
+		Map.entry("person_id", MdocValueConstraint.tstr()),
+		Map.entry("birth_country", MdocValueConstraint.alpha2CountryCode()),
+		Map.entry("birth_state", MdocValueConstraint.tstr()),
+		Map.entry("birth_city", MdocValueConstraint.tstr()),
+		Map.entry("administrative_number", MdocValueConstraint.tstr()),
+		Map.entry("resident_street", MdocValueConstraint.tstr()),
+		Map.entry("resident_house_number", MdocValueConstraint.tstr()),
+		// the one Table C.2 element whose definition says "shall only use latin1 characters"
+		Map.entry("resident_state", MdocValueConstraint.latin1Tstr()),
+		Map.entry("travel_document_type", MdocValueConstraint.tstr()),
+		Map.entry("travel_document_number", MdocValueConstraint.tstr()),
+		Map.entry("travel_document_mrz", MdocValueConstraint.tstr()));
+
+	/**
+	 * The constraint for an element, or null if the specification gives none beyond the generic
+	 * tstr length limit. Table C.3's data groups are byte strings apart from version.
+	 */
+	public static MdocValueConstraint getValueConstraint(String namespace, String elementIdentifier) {
+		if (ISO_23220_2_NAMESPACE.equals(namespace)) {
+			MdocValueConstraint constraint = ISO_23220_2_VALUE_CONSTRAINTS.get(elementIdentifier);
+			if (constraint != null) {
+				return constraint;
+			}
+			return AGE_OVER_NN.matcher(elementIdentifier).matches() ? MdocValueConstraint.bool() : null;
+		}
+		if (PHOTO_ID_NAMESPACE.equals(namespace)) {
+			return PHOTO_ID_VALUE_CONSTRAINTS.get(elementIdentifier);
+		}
+		if (DATAGROUPS_NAMESPACE.equals(namespace)) {
+			if ("version".equals(elementIdentifier)) {
+				return MdocValueConstraint.tstr();
+			}
+			return isDefined(namespace, elementIdentifier) ? MdocValueConstraint.bstr() : null;
+		}
+		return null;
+	}
 
 	/** True if the namespace is one of the three Annex C defines. */
 	public static boolean isKnownNamespace(String namespace) {
