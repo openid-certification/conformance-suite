@@ -34,11 +34,11 @@ import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
-import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
@@ -131,7 +131,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 				// VCI variants are plan-level context — FAPI2SP modules don't declare them
 				Set.of(VCIGrantType.class, VCICredentialEncryption.class, VCICredentialIssuanceMode.class,
 					VCI1FinalCredentialFormat.class, VCICredentialOfferParameterVariant.class,
-					VCIAuthorizationCodeFlowVariant.class)
+					VCIWalletAuthorizationCodeFlowVariant.class)
 			)
 		);
 	}
@@ -173,7 +173,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 	@Override
 	public List<String> certificationProfileName(VariantSelection variantSelection) {
 		String credentialFormat = variantSelection.getVariantParameterValue(VCI1FinalCredentialFormat.class);
-		String codeFlowVariant = variantSelection.getVariantParameterValue(VCIAuthorizationCodeFlowVariant.class);
+		String codeFlowVariant = variantSelection.getVariantParameterValue(VCIWalletAuthorizationCodeFlowVariant.class);
 		String credentialOfferVariant = variantSelection.getVariantParameterValue(VCICredentialOfferParameterVariant.class);
 
 		if (credentialOfferVariant != null) {
