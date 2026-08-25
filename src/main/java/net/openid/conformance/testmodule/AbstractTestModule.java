@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
+import net.openid.conformance.util.BrainpoolSignatureProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -28,7 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.InvocationTargetException;
-import java.security.Security;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,15 +44,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	public static final boolean LOG_FINAL_ENV = Boolean.parseBoolean(System.getProperty("net.openid.conformance.testModules.logFinalEnv", "true"));
 
 	static {
-		ensureBCSecurityProviderIsPresent();
-	}
-
-	private static void ensureBCSecurityProviderIsPresent() {
-
-		boolean bcProviderPresent = Arrays.stream(Security.getProviders()).anyMatch(sp -> "BC".equals(sp.getName()));
-		if (!bcProviderPresent) {
-			Security.addProvider(BouncyCastleProviderSingleton.getInstance());
-		}
+		// registers BouncyCastle and the brainpool delegating provider
+		BrainpoolSignatureProvider.ensureInstalled();
 	}
 
 	private String id = null; // unique identifier for the test, set from the outside

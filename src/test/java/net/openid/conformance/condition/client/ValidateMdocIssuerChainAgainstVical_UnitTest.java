@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.util.BrainpoolSignatureProvider;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.crypto.EcCurve;
 import org.multipaz.crypto.X509Cert;
 
 import java.util.List;
@@ -47,6 +49,20 @@ public class ValidateMdocIssuerChainAgainstVical_UnitTest {
 	@Test
 	public void testEvaluate_passesWhenIssuerCertListedWithMatchingDocType() {
 		putVical(VicalTestFixtures.goodSignedVical(List.of(issuerCert)));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_passesWhenCredentialChainsToBrainpoolIaca() throws Exception {
+		// two IACAs in the Geneva interop VICAL use brainpool curves; the chain evaluation
+		// (X509Signed.verify inside VicalTrustManager) needs BrainpoolSignatureProvider.
+		// The IACA root key goes on brainpoolP256r1; the DS key stays P-256.
+		BrainpoolSignatureProvider.ensureInstalled();
+		VicalTestFixtures.IssuerPki pki = VicalTestFixtures.generateIssuerPki(EcCurve.BRAINPOOLP256R1);
+		byte[] brainpoolChained = VicalTestFixtures.issuerSignedFromPki(pki, "org.iso.18013.5.1.mDL");
+		MdocCredentialTestUtil.putCredential(env, brainpoolChained);
+		putVical(VicalTestFixtures.goodSignedVical(List.of(pki.getIacaCert())));
 
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
