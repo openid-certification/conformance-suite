@@ -47,15 +47,21 @@ final class MdocCredentialTestUtil {
 	 * re-signing — the original issuerAuth (and so the MSO valueDigests) is kept as-is.
 	 */
 	static byte[] rebuildWithItems(byte[] issuerSignedBytes, ItemListTransformer transformer) {
+		return rebuildWithItems(issuerSignedBytes, DrivingLicense.MDL_NAMESPACE, transformer);
+	}
+
+	/** As {@link #rebuildWithItems(byte[], ItemListTransformer)}, for an arbitrary namespace. */
+	static byte[] rebuildWithItems(byte[] issuerSignedBytes, String namespace,
+			ItemListTransformer transformer) {
 		DataItem issuerSigned = Cbor.INSTANCE.decode(issuerSignedBytes);
 		CborMap nameSpaces = (CborMap) issuerSigned.getOrNull("nameSpaces");
-		CborArray mdlItems = (CborArray) nameSpaces.getOrNull(DrivingLicense.MDL_NAMESPACE);
+		CborArray items = (CborArray) nameSpaces.getOrNull(namespace);
 
 		MapBuilder<CborBuilder> rebuilt = CborMap.Companion.builder();
 		ArrayBuilder<MapBuilder<MapBuilder<CborBuilder>>> newItems = rebuilt
 			.putMap("nameSpaces")
-			.putArray(DrivingLicense.MDL_NAMESPACE);
-		transformer.transform(mdlItems, newItems);
+			.putArray(namespace);
+		transformer.transform(items, newItems);
 		newItems.end().end();
 		rebuilt.put("issuerAuth", issuerSigned.getOrNull("issuerAuth"));
 
@@ -64,7 +70,12 @@ final class MdocCredentialTestUtil {
 
 	/** Re-encodes the IssuerSigned structure with the named element removed from the mDL namespace. */
 	static byte[] removeElement(byte[] issuerSignedBytes, String elementIdentifier) {
-		return rebuildWithItems(issuerSignedBytes, (originalItems, newItems) -> {
+		return removeElement(issuerSignedBytes, DrivingLicense.MDL_NAMESPACE, elementIdentifier);
+	}
+
+	/** Re-encodes the IssuerSigned structure with the named element removed from the given namespace. */
+	static byte[] removeElement(byte[] issuerSignedBytes, String namespace, String elementIdentifier) {
+		return rebuildWithItems(issuerSignedBytes, namespace, (originalItems, newItems) -> {
 			for (DataItem item : originalItems.getItems()) {
 				String id = item.getAsTaggedEncodedCbor().getOrNull("elementIdentifier").getAsTstr();
 				if (!id.equals(elementIdentifier)) {

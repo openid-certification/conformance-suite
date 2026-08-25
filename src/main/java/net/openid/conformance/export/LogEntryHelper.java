@@ -98,6 +98,7 @@ public class LogEntryHelper {
 		specLinks.put("BCP195-", "https://tools.ietf.org/html/bcp195#section-");
 		specLinks.put("ISO18013-5-", "https://www.iso.org/standard/69084.html#");
 		specLinks.put("ISO18013-7-", "https://www.iso.org/standard/82772.html#");
+		specLinks.put("ISO23220-4-", "https://www.iso.org/standard/86785.html#");
 		specLinks.put("CDR-", "https://consumerdatastandardsaustralia.github.io/standards/#");
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");

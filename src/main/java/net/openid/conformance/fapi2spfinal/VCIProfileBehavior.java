@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureMdocPhotoIdMandatoryDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureSdJwtVcVctMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
@@ -419,6 +420,8 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					// so missing elements are always a failure.
 					callAndContinueOnFailure(EnsureMdocMdlMandatoryDataElementsPresent.class,
 						ConditionResult.FAILURE, "ISO18013-5-7.2.1");
+					callAndContinueOnFailure(EnsureMdocPhotoIdMandatoryDataElementsPresent.class,
+						ConditionResult.FAILURE, "ISO23220-4-C");
 				}
 			}
 		};
