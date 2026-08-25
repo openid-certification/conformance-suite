@@ -15,9 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 class VariantSortOrder_UnitTest {
 
-	// vp_profile (60) and credential_format (70) are ranked; the rest default to 1000 and sort alphabetically
+	// vp_profile (60), credential_format (70) and credential_type (80) are ranked; the rest default
+	// to 1000 and sort alphabetically
 	private static final List<String> EXPECTED_ORDER =
-			List.of("vp_profile", "credential_format", "client_id_prefix", "request_method", "response_mode");
+			List.of("vp_profile", "credential_format", "credential_type", "client_id_prefix", "request_method", "response_mode");
 
 	private static VariantService variantService;
 
