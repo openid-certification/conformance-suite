@@ -822,7 +822,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				throw new TestFailureException(getId(), "The credential_offer endpoint must be called over an mTLS secured connection.");
 			}
 
-			return credentialOfferEndpoint(requestId, path);
+			return credentialOfferEndpoint(requestId);
 		} else if (path.equals(DEFERRED_CREDENTIAL_PATH)) {
 
 			if (isMTLSConstrain()) {
@@ -841,25 +841,28 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
 
-	protected Object credentialOfferEndpoint(String requestId, String path) {
+	protected Object credentialOfferEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Credential offer endpoint"));
-
-		call(exec().mapKey("token_endpoint_request", requestId));
-
+		// The endpoint itself (block, checks, id-match response) is shared with the
+		// FAPI2SP client tests via runPathDispatch; only the mTLS certificate checks
+		// are wallet-specific (mTLS-constrained wallet plans serve this endpoint on
+		// the mTLS host).
+		ConditionSequence mtlsChecks = null;
 		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
-			checkMtlsCertificate();
+			mtlsChecks = new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					call(exec().mapKey("token_endpoint_request", requestId));
+					call(checkMtlsCertificateSequence());
+					call(exec().unmapKey("token_endpoint_request"));
+				}
+			};
 		}
 
-		call(exec().unmapKey("token_endpoint_request"));
-
-		call(exec().mapKey("incoming_request", requestId));
-
-		ResponseEntity<Object> responseEntity = VCIClientProfileBehavior.buildCredentialOfferResponse(env, path);
-
-		call(exec().unmapKey("incoming_request").endBlock());
+		Object responseEntity = runPathDispatch(
+			VCIClientProfileBehavior.buildCredentialOfferDispatch(mtlsChecks), requestId);
 
 		setStatus(Status.WAITING);
 		return responseEntity;
@@ -1637,9 +1640,22 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 	@Override
 	protected void checkMtlsCertificate() {
-		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-2.5.2.1");
-		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
+		call(checkMtlsCertificateSequence());
+	}
+
+	/**
+	 * Sequence form of {@link #checkMtlsCertificate()} for callers that embed the checks
+	 * inside their own ConditionSequence (e.g. {@link #credentialOfferEndpoint}).
+	 */
+	protected ConditionSequence checkMtlsCertificateSequence() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-2.5.2.1");
+				callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
+			}
+		};
 	}
 
 	/**
