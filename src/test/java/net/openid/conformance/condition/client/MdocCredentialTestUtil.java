@@ -10,11 +10,13 @@ import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.CborBuilder;
 import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
+import org.multipaz.cbor.DataItemExtensionsKt;
 import org.multipaz.cbor.MapBuilder;
 import org.multipaz.documenttype.knowntypes.DrivingLicense;
 import org.multipaz.testapp.VciMdocUtils;
 
 import java.util.Base64;
+import java.util.Map;
 
 /**
  * Shared scaffolding for unit tests that exercise conditions on mdoc IssuerSigned structures
@@ -66,6 +68,97 @@ final class MdocCredentialTestUtil {
 		rebuilt.put("issuerAuth", issuerSigned.getOrNull("issuerAuth"));
 
 		return Cbor.INSTANCE.encode(rebuilt.end().build());
+	}
+
+	/**
+	 * Re-encodes the IssuerSigned structure with the named element's value replaced. The MSO
+	 * valueDigests are not recalculated, which does not matter for checks that do not verify them.
+	 */
+	static byte[] replaceElementValue(byte[] issuerSignedBytes, String namespace,
+			String elementIdentifier, DataItem newValue) {
+		return rebuildWithItems(issuerSignedBytes, namespace, (originalItems, newItems) -> {
+			for (DataItem item : originalItems.getItems()) {
+				DataItem inner = item.getAsTaggedEncodedCbor();
+				String id = inner.getOrNull("elementIdentifier").getAsTstr();
+				if (!id.equals(elementIdentifier)) {
+					newItems.add(item);
+					continue;
+				}
+				newItems.addTaggedEncodedCbor(Cbor.INSTANCE.encode(issuerSignedItem(
+					inner.getOrNull("digestID"), inner.getOrNull("random"), elementIdentifier, newValue)));
+			}
+		});
+	}
+
+	/** Re-encodes the IssuerSigned structure with an extra element added to the given namespace. */
+	static byte[] addElement(byte[] issuerSignedBytes, String namespace, String elementIdentifier,
+			DataItem value) {
+		DataItem issuerSigned = Cbor.INSTANCE.decode(issuerSignedBytes);
+		CborMap nameSpaces = (CborMap) issuerSigned.getOrNull("nameSpaces");
+
+		MapBuilder<CborBuilder> rebuilt = CborMap.Companion.builder();
+		MapBuilder<MapBuilder<CborBuilder>> namespacesBuilder = rebuilt.putMap("nameSpaces");
+		boolean added = false;
+		for (Map.Entry<DataItem, DataItem> entry : nameSpaces.getItems().entrySet()) {
+			String existing = entry.getKey().getAsTstr();
+			ArrayBuilder<MapBuilder<MapBuilder<CborBuilder>>> items = namespacesBuilder.putArray(existing);
+			for (DataItem item : ((CborArray) entry.getValue()).getItems()) {
+				items.add(item);
+			}
+			if (existing.equals(namespace)) {
+				appendItem(items, elementIdentifier, value);
+				added = true;
+			}
+			items.end();
+		}
+		if (!added) {
+			ArrayBuilder<MapBuilder<MapBuilder<CborBuilder>>> items = namespacesBuilder.putArray(namespace);
+			appendItem(items, elementIdentifier, value);
+			items.end();
+		}
+		namespacesBuilder.end();
+		rebuilt.put("issuerAuth", issuerSigned.getOrNull("issuerAuth"));
+		return Cbor.INSTANCE.encode(rebuilt.end().build());
+	}
+
+
+	/** Re-encodes the IssuerSigned structure with an element-less namespace added. */
+	static byte[] addEmptyNamespace(byte[] issuerSignedBytes, String namespace) {
+		DataItem issuerSigned = Cbor.INSTANCE.decode(issuerSignedBytes);
+		CborMap nameSpaces = (CborMap) issuerSigned.getOrNull("nameSpaces");
+
+		MapBuilder<CborBuilder> rebuilt = CborMap.Companion.builder();
+		MapBuilder<MapBuilder<CborBuilder>> namespacesBuilder = rebuilt.putMap("nameSpaces");
+		for (Map.Entry<DataItem, DataItem> entry : nameSpaces.getItems().entrySet()) {
+			ArrayBuilder<MapBuilder<MapBuilder<CborBuilder>>> items =
+				namespacesBuilder.putArray(entry.getKey().getAsTstr());
+			for (DataItem item : ((CborArray) entry.getValue()).getItems()) {
+				items.add(item);
+			}
+			items.end();
+		}
+		namespacesBuilder.putArray(namespace).end();
+		namespacesBuilder.end();
+		rebuilt.put("issuerAuth", issuerSigned.getOrNull("issuerAuth"));
+		return Cbor.INSTANCE.encode(rebuilt.end().build());
+	}
+
+	private static void appendItem(ArrayBuilder<MapBuilder<MapBuilder<CborBuilder>>> items,
+			String elementIdentifier, DataItem value) {
+		items.addTaggedEncodedCbor(Cbor.INSTANCE.encode(issuerSignedItem(
+			DataItemExtensionsKt.toDataItem(9999),
+			DataItemExtensionsKt.toDataItem(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }),
+			elementIdentifier, value)));
+	}
+
+	private static DataItem issuerSignedItem(DataItem digestId, DataItem random,
+			String elementIdentifier, DataItem value) {
+		MapBuilder<CborBuilder> item = CborMap.Companion.builder();
+		item.put("digestID", digestId);
+		item.put("random", random);
+		item.put("elementIdentifier", DataItemExtensionsKt.toDataItem(elementIdentifier));
+		item.put("elementValue", value);
+		return item.end().build();
 	}
 
 	/** Re-encodes the IssuerSigned structure with the named element removed from the mDL namespace. */

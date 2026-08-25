@@ -242,16 +242,24 @@ object VciMdocUtils {
 				// Photo ID (ISO/IEC TS 23220-4 Annex C). The element identifiers are those of
 				// ISO/IEC TS 23220-2 ed.2, which dropped the "_unicode" suffixes of the previous
 				// edition. These are the elements Annex C Table 1 marks as mandatory.
+				// 23220-2 says the age elements are calculated from the date picked for birth_date.
+				val birthDate = java.time.LocalDate.of(1985, 3, 15)
+				val ageInYears = java.time.Period.between(birthDate,
+					java.time.LocalDate.ofInstant(
+						java.time.Instant.ofEpochSecond(now.epochSeconds), java.time.ZoneOffset.UTC)).years
 				addNamespace("org.iso.23220.1") {
 					addDataElement("family_name", Tstr("Mustermann"))
 					addDataElement("given_name", Tstr("Erika"))
-					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1985-03-15")))
+					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(birthDate.toString())))
 					addDataElement("portrait", Bstr(portraitJpeg))
 					addDataElement("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
 					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
 					addDataElement("issuing_country", Tstr(issuingCountry))
 					addDataElement("age_over_18", Simple.TRUE)
+					// Annex C Table 1 marks these "R" (recommended)
+					addDataElement("age_in_years", Uint(ageInYears.toULong()))
+					addDataElement("age_birth_year", Uint(birthDate.year.toULong()))
 				}
 			}
 			"net.openid.examples.certification.1.mdoc" -> {
