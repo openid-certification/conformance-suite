@@ -1,9 +1,12 @@
 package net.openid.conformance.util.validation;
 
+import com.networknt.schema.Error;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,6 +60,97 @@ public class JsonSchemaValidation_UnitTest {
 		JsonSchemaValidationResult result = validation.validate(AGGREGATED_CLAIMS_WITH_WRONG_BRANCH_FIELD);
 
 		assertTrue(result.isValid(), () -> "expected no errors but got: " + result.getValidationMessages());
+	}
+
+	@Test
+	public void testValidate_unknownPropertyErrorsAttributeOnlyTheFailedBranchsUnknowns() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// The embedded-attachment oneOf branch fails only on unknown_member; the external
+		// branch's additionalProperties rejections of content_type/content are sibling-branch
+		// noise and must not be attributed as unknown properties.
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "verified_claims": {
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "document",
+			      "attachments": [{
+			        "content_type": "image/png",
+			        "content": "aGVsbG8=",
+			        "unknown_member": "x"
+			      }]
+			    }]
+			  }
+			  }
+			}
+			""");
+
+		assertFalse(result.isValid());
+		assertTrue(result.structuralErrors().isValid(),
+			() -> "expected no structural errors but got: " + result.structuralErrors().getValidationMessages());
+		assertEquals(List.of("unknown_member"),
+			result.unknownPropertyErrors().getValidationMessages().stream().map(Error::getProperty).toList());
+	}
+
+	@Test
+	public void testValidate_structuralOneOfFailureAttributesNoUnknownProperties() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// content_type with parameters fails the embedded branch's pattern - a genuine
+		// structural error, so nothing may be classified as an unknown property even though
+		// the external branch rejects content_type/content as additionalProperties.
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "verified_claims": {
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "document",
+			      "attachments": [{
+			        "content_type": "text/plain; charset=utf-8",
+			        "content": "aGVsbG8="
+			      }]
+			    }]
+			  }
+			  }
+			}
+			""");
+
+		assertFalse(result.structuralErrors().isValid());
+		assertTrue(result.unknownPropertyErrors().isValid(),
+			() -> "expected no unknown-property errors but got: " + result.unknownPropertyErrors().getValidationMessages());
+	}
+
+	@Test
+	public void testValidate_directUnevaluatedPropertyIsAttributedAsUnknown() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// A wrong-branch field at evidence level is an unevaluated property; the enclosing
+		// verified_claims anyOf branch fails solely because of it, so it is attributed as
+		// an unknown property rather than treated as a structural anyOf failure.
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "verified_claims": {
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "vouch",
+			      "document_details": "ignored-for-vouch"
+			    }]
+			  }
+			  }
+			}
+			""");
+
+		assertTrue(result.structuralErrors().isValid(),
+			() -> "expected no structural errors but got: " + result.structuralErrors().getValidationMessages());
+		assertEquals(List.of("document_details"),
+			result.unknownPropertyErrors().getValidationMessages().stream().map(Error::getProperty).toList());
 	}
 
 	@Test

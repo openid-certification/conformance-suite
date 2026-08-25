@@ -72,7 +72,7 @@ public class JsonSchemaValidation {
 	 * When enabled, {@code "additionalProperties": false} and {@code "unevaluatedProperties": false}
 	 * are removed from the schema before validating, so unknown properties do not cause validation
 	 * failures. Filtering the resulting messages by type (see
-	 * {@link JsonSchemaValidationResult#withoutUnknownPropertyErrors()}) is not sufficient for this:
+	 * {@link JsonSchemaValidationResult#structuralErrors()}) is not sufficient for this:
 	 * when the strict keyword sits inside a {@code oneOf}/{@code anyOf}/{@code allOf} branch, an
 	 * unknown property makes the whole branch fail, and the sibling branches' errors (e.g. a
 	 * {@code type} mismatch from the other branch) escape the type-based filter. Conditions that
@@ -93,11 +93,13 @@ public class JsonSchemaValidation {
 	 * in the suite uses one today; keep it that way, or extend the rewrite to cover the base
 	 * scheme.</p>
 	 *
-	 * <p>If schema transformation ever becomes unworkable, the intended replacement is
-	 * classification of the validation output instead: networknt's {@code OutputFormat.HIERARCHICAL}
-	 * returns a per-branch error tree that, unlike the flat message set used here, records which
-	 * oneOf/anyOf branch each error belongs to, so composite failures caused solely by unknown
-	 * properties can be told apart from genuine structural errors.</p>
+	 * <p>The unknown-property (WARNING) conditions solve the same composite-branch problem in the
+	 * opposite direction without schema transformation: {@link JsonSchemaValidationResult} groups
+	 * the flat errors by the oneOf/anyOf branch recorded in their evaluation paths - the same
+	 * classification networknt's {@code OutputFormat.HIERARCHICAL} tree encodes - so composite
+	 * failures caused solely by unknown properties can be told apart from genuine structural
+	 * errors. If schema transformation ever becomes unworkable, basing this flag's behaviour on
+	 * {@link JsonSchemaValidationResult#structuralErrors()} is the intended replacement.</p>
 	 */
 	public void setIgnoreUnknownPropertyStrictness(boolean ignoreUnknownPropertyStrictness) {
 		this.ignoreUnknownPropertyStrictness = ignoreUnknownPropertyStrictness;

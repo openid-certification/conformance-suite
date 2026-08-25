@@ -104,6 +104,33 @@ public class CheckForUnexpectedParametersInDcqlQuery_UnitTest extends AbstractVc
 	}
 
 	@Test
+	public void testEvaluate_unknownPropertyStillReportedWhenInputAlsoStructurallyInvalid() {
+		// The paired structural validator (FAILURE) reports the invalid id; a structural error
+		// elsewhere in the document must not suppress the warning for an attributable unknown
+		// property.
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": 42,
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      }
+			    }
+			  ],
+			  "unexpected_top": true
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data, "$.unexpected_top");
+	}
+
+	@Test
 	public void testEvaluate_unknownPropertyInMeta() {
 		String json = """
 			{
