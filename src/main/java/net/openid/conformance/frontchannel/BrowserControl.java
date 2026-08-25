@@ -223,10 +223,16 @@ public class BrowserControl implements DataUtils {
 					commands.addProperty("match-limit", limit);
 				}
 				BrowserRunner wr = createRunner(new BrowserVisit(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds));
-				executionManager.runInBackground(wr);
+				// registered before it is submitted, so that the runner finds itself (and, in submission
+				// order, the runners that came before it) in the queue from the moment it starts
+				addRunner(wr);
+				try {
+					executionManager.runInBackground(wr);
+				} catch (RuntimeException e) {
+					runners.remove(wr);
+					throw e;
+				}
 				logger.debug(testId + ": " + engine + " BrowserRunner submitted to task executor for: " + url);
-
-				runners.add(wr);
 
 				return;
 			}
@@ -283,10 +289,33 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
+	 * Registers a runner that is about to be started. Runners are kept in submission order.
+	 */
+	void addRunner(BrowserRunner runner) {
+		runners.add(runner);
+	}
+
+	/**
 	 * Called by a {@link BrowserRunner} when it has finished, successfully or not.
 	 */
 	void removeRunner(BrowserRunner runner) {
 		runners.remove(runner);
+	}
+
+	/**
+	 * The runners submitted before the given one that have not finished yet, in submission order.
+	 * The Playwright runner waits for these before it starts, so that the session state they leave
+	 * behind is complete when it picks it up (see {@link #getPlaywrightStorageState()}).
+	 */
+	List<BrowserRunner> runnersBefore(BrowserRunner runner) {
+		List<BrowserRunner> before = new ArrayList<>();
+		for (BrowserRunner r : runners) {
+			if (r.equals(runner)) {
+				break;
+			}
+			before.add(r);
+		}
+		return before;
 	}
 
 	/**

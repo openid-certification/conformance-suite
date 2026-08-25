@@ -29,6 +29,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,13 +68,16 @@ public class PlaywrightBrowserRunner_SmokeTest {
 		server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
 
+		// the login page returns to the authorization endpoint it was sent from ('return' query parameter)
 		server.createContext("/login", exchange -> {
+			String query = exchange.getRequestURI().getQuery();
+			String returnTo = query != null && query.startsWith("return=") ? query.substring("return=".length()) : "/authorize";
 			if ("POST".equals(exchange.getRequestMethod())) {
 				loginBody.set(readBody(exchange));
 				exchange.getResponseHeaders().add("Set-Cookie", "session=abc; Path=/");
-				redirect(exchange, "/authorize");
+				redirect(exchange, returnTo);
 			} else {
-				html(exchange, "<h1>Login</h1><form method=\"POST\" action=\"/login\">"
+				html(exchange, "<h1>Login</h1><form method=\"POST\" action=\"/login?return=" + returnTo + "\">"
 					+ "<input id=\"username\" name=\"username\"><input name=\"password\" type=\"password\">"
 					+ "<button id=\"login\" type=\"submit\">Login</button></form>");
 			}
@@ -86,6 +93,26 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			}
 		});
 		server.createContext("/callback", exchange -> html(exchange, "<div id=\"result\">Done</div>"));
+		// like /authorize, but redirecting back to a callback that takes its time to answer, as the
+		// suite does when it is busy processing the authorization response
+		server.createContext("/slow-authorize", exchange -> {
+			if (!loggedIn(exchange)) {
+				redirect(exchange, "/login?return=/slow-authorize");
+			} else if ("POST".equals(exchange.getRequestMethod())) {
+				redirect(exchange, "/slow-callback?code=789");
+			} else {
+				html(exchange, "<h1>Consent</h1><form method=\"POST\" action=\"/slow-authorize\">"
+					+ "<button id=\"authorize\" type=\"submit\">Authorize</button></form>");
+			}
+		});
+		server.createContext("/slow-callback", exchange -> {
+			try {
+				Thread.sleep(8_000); // comfortably longer than launching a browser takes
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			html(exchange, "<div id=\"result\">Done</div>");
+		});
 		// an authorization server that takes its time before redirecting back
 		server.createContext("/slow", exchange -> {
 			if ("POST".equals(exchange.getRequestMethod())) {
@@ -178,6 +205,52 @@ public class PlaywrightBrowserRunner_SmokeTest {
 		// the cookie set by the login above is seen by a new runner (and hence a new browser)
 		runner(baseUrl + "/whoami", "GET", """
 			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^logged-in$"]]}]""").call();
+	}
+
+	@Test
+	public void waitsForTheEarlierRunnerToFinishSoItsSessionIsCarriedOver() throws Exception {
+		// The suite starts the next scripted browser run as soon as it has processed the callback the
+		// previous browser was redirected to, i.e. while that browser is still loading the callback
+		// page and has not saved its session state yet (this is how the second authorization of the
+		// prompt=none / id_token_hint / max_age tests is started). The next runner must not start its
+		// browser until the previous one has finished, or the login is lost.
+		PlaywrightBrowserRunner first = runner(baseUrl + "/slow-authorize", "GET", """
+			[
+				{"task": "Login", "match": "*/login*", "commands": [
+					["text", "id", "username", "alice"],
+					["text", "name", "password", "secret"],
+					["click", "id", "login"]
+				]},
+				{"task": "Consent", "match": "*/slow-authorize*", "commands": [["click", "id", "authorize"]]},
+				{"task": "Done", "match": "*/slow-callback*", "commands": [["wait", "id", "result", 5, "Done"]]}
+			]""");
+		PlaywrightBrowserRunner second = runner(baseUrl + "/whoami", "GET", """
+			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^logged-in$"]]}]""");
+		// registered in submission order, as BrowserControl.goToUrl does
+		browserControl.addRunner(first);
+		browserControl.addRunner(second);
+
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		try {
+			Future<String> firstResult = executor.submit(first);
+
+			// once the first browser has logged in it is on its way to the slow callback; start the second now
+			long deadline = System.currentTimeMillis() + 30_000;
+			while (loginBody.get() == null && System.currentTimeMillis() < deadline) {
+				Thread.sleep(100);
+			}
+			assertThat(loginBody.get()).as("first runner logged in").isNotNull();
+			assertThat(firstResult.isDone()).as("first runner still running").isFalse();
+			Future<String> secondResult = executor.submit(second);
+
+			assertThat(firstResult.get(60, TimeUnit.SECONDS)).isEqualTo("web runner exited");
+			assertThat(secondResult.get(60, TimeUnit.SECONDS)).isEqualTo("web runner exited");
+		} finally {
+			executor.shutdownNow();
+		}
+
+		assertThat(browserControl.runnersActive()).isFalse();
+		assertThat(browserControl.getPlaywrightStorageState()).contains("session");
 	}
 
 	@Test

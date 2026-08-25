@@ -98,6 +98,13 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	});
 	/** Timeout for the page to finish loading before a task's commands run (matches the HtmlUnit runner). */
 	private static final int PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
+	/**
+	 * How long a runner waits for the runners submitted before it to finish before it starts its
+	 * own browser; see {@link #waitForEarlierRunners()}. Long enough for a predecessor to finish
+	 * a typical final task (waiting up to {@link #ELEMENT_TIMEOUT_MILLIS} for the suite's callback
+	 * page) and to shut down (up to {@link #SHUTDOWN_TIMEOUT_MILLIS}).
+	 */
+	private static final long EARLIER_RUNNERS_TIMEOUT_MILLIS = 40_000;
 
 	private final BrowserControl browserControl;
 	private final String testId;
@@ -143,6 +150,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		try {
 			logger.info(testId + ": Sending Playwright BrowserControl (" + settings.browserType() + ") to: " + url);
 
+			waitForEarlierRunners();
 			launchBrowser();
 
 			try {
@@ -330,13 +338,59 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 			}
 			throw new TestFailureException(testId, "Web Runner Exception: " + e.getMessage(), e);
 		} finally {
-			browserControl.removeRunner(this);
-			closeBrowser();
+			try {
+				// closing saves this browser's session state for the next runner, so it has to
+				// happen before this runner stops counting as active (see waitForEarlierRunners)
+				closeBrowser();
+			} finally {
+				browserControl.removeRunner(this);
+			}
 		}
 	}
 
 	private String engineDescription() {
 		return "playwright/" + settings.browserType();
+	}
+
+	/**
+	 * Waits for the runners submitted before this one to finish, so that this runner's browser
+	 * starts with the session state (cookies, storage) they leave behind.
+	 *
+	 * <p>With HtmlUnit all runners of a test share one cookie jar by reference, so a login done by
+	 * one runner is visible to the next as it happens. Playwright runners each have their own
+	 * browser and hand the session state over via {@link BrowserControl#getPlaywrightStorageState()},
+	 * which the previous runner only writes as it shuts down. The next runner is often submitted
+	 * before then: the suite handles the callback the previous browser was redirected to and starts
+	 * the next authorization (e.g. the second one of the prompt=none / id_token_hint / max_age
+	 * tests) while that browser is still loading the callback page. Without waiting, this runner
+	 * would start with an empty or stale cookie jar and the authorization server would see a user
+	 * that is not logged in.
+	 *
+	 * <p>The wait is bounded so a long-running predecessor cannot block this runner forever; if it
+	 * expires the runner goes ahead with whatever state has been saved so far.
+	 */
+	private void waitForEarlierRunners() throws InterruptedException {
+		List<BrowserRunner> earlier = browserControl.runnersBefore(this);
+		if (earlier.isEmpty()) {
+			return;
+		}
+		logger.debug(testId + ": WebRunner waiting for " + earlier.size() + " earlier runner(s) to finish before starting");
+		long start = System.currentTimeMillis();
+		long deadline = start + EARLIER_RUNNERS_TIMEOUT_MILLIS;
+		while (!browserControl.runnersBefore(this).isEmpty()) {
+			if (System.currentTimeMillis() >= deadline) {
+				logger.warn(testId + ": WebRunner gave up waiting for earlier runner(s) to finish after "
+					+ EARLIER_RUNNERS_TIMEOUT_MILLIS + "ms, starting without their session state");
+				eventLog.log("WebRunner", args(
+					"msg", "Earlier scripted browser runs of this test have not finished; starting the browser "
+						+ "without the session state (cookies) they may leave behind",
+					"url", visit.url(),
+					"result", Condition.ConditionResult.WARNING));
+				return;
+			}
+			Thread.sleep(100);
+		}
+		logger.debug(testId + ": WebRunner earlier runner(s) finished after " + (System.currentTimeMillis() - start) + "ms");
 	}
 
 	/**
@@ -777,10 +831,11 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		}, SHUTDOWN_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 		try {
 			if (context != null) {
+				// the session state first: the next runner is waiting for it, and writing a trace can take a while
+				closeQuietly("storage state", () -> browserControl.setPlaywrightStorageState(context.storageState()));
 				if (settings.traceMode() != TraceMode.OFF) {
 					closeQuietly("tracing", this::stopTracing);
 				}
-				closeQuietly("storage state", () -> browserControl.setPlaywrightStorageState(context.storageState()));
 			}
 			if (page != null) {
 				closeQuietly("page", page::close);
