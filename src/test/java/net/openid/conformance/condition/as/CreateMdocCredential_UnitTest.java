@@ -111,6 +111,34 @@ public class CreateMdocCredential_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_photoIdDoctype_presentsPhotoIdCredential() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.23220.photoid.1"},
+			      "claims": [
+			        {"path": ["org.iso.23220.1", "family_name"]},
+			        {"path": ["org.iso.23220.1", "portrait"]}
+			      ]
+			    }
+			  ]
+			}
+			"""));
+
+		cond.execute(env);
+		parseCredential();
+
+		assertThat(env.getString("mdoc", "docType")).isEqualTo("org.iso.23220.photoid.1");
+		assertThat(collectStrings(disclosedElementsFor("org.iso.23220.1")))
+			.containsExactlyInAnyOrder("family_name", "portrait");
+		assertThat(countDisclosedElements()).isEqualTo(2);
+	}
+
+	@Test
 	public void testEvaluate_dcqlWithNoMdocCredential_fails() {
 		env.putString("session_transcript", SESSION_TRANSCRIPT);
 		env.putObject("dcql_query", dcql("""
