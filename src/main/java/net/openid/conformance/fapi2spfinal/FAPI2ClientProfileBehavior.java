@@ -212,8 +212,10 @@ public class FAPI2ClientProfileBehavior {
 	 *       function), letting the test module drive execution. VCI uses this so its
 	 *       behavior never calls {@code module.do*}.</li>
 	 * </ul>
-	 * {@code AbstractFAPI2SPFinalClientTest.handleHttp} consults the declarative form
-	 * first; if it returns {@code null}, it falls back to this imperative form.
+	 * {@code AbstractFAPI2SPFinalClientTest.handleClientRequestForPath} consults the
+	 * declarative form first; if it returns {@code null}, it falls back to this imperative
+	 * form. The driver maps {@code incoming_request} itself; {@code requestId} is provided
+	 * only so an implementation can set up additional env aliases of the raw request.
 	 */
 	public Object handleProfileSpecificPath(String requestId, String path) {
 		throw new IllegalStateException("Profile did not claim path: " + path);
@@ -232,12 +234,17 @@ public class FAPI2ClientProfileBehavior {
 
 	/**
 	 * Bundle of "what condition sequence to run for this path" and "how to build the
-	 * HTTP response from env state once it's done". The {@code responseBuilder}'s
-	 * argument is the {@code AbstractFAPI2SPFinalClientTest} so the builder has access
-	 * to the env, the test module's helpers (e.g. {@code scheduleDelayedFinishForAdditionalRequests}),
-	 * and any side effects it needs to perform after the sequence finishes.
+	 * HTTP response once it's done". The test module drives it via
+	 * {@code AbstractFAPI2SPFinalClientTest.runPathDispatch}: it opens a log block named
+	 * {@code blockName}, maps {@code incoming_request} to the raw request, runs
+	 * {@code sequence} (checks and validation only — no block or mapping bookkeeping),
+	 * then invokes {@code responseBuilder} while the mapping is still live, so the
+	 * builder may read both the raw request and any env state the sequence's conditions
+	 * produced. The builder's argument is the test module, giving access to the env and
+	 * module helpers (e.g. {@code scheduleDelayedFinishForAdditionalRequests}).
 	 */
 	public record PathDispatch(
+		String blockName,
 		ConditionSequence sequence,
 		Function<AbstractFAPI2SPFinalClientTest, Object> responseBuilder
 	) {

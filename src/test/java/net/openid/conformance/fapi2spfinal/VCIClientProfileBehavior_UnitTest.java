@@ -185,6 +185,7 @@ public class VCIClientProfileBehavior_UnitTest {
 
 		FAPI2ClientProfileBehavior.PathDispatch match = behavior.getProfileSpecificPathDispatch("req1", "credential_offer/abc123");
 		assertThat(match).isNotNull();
+		assertThat(match.blockName()).isEqualTo("Credential offer endpoint");
 		Object matchResponse = match.responseBuilder().apply(module);
 		assertThat(matchResponse).isInstanceOf(org.springframework.http.ResponseEntity.class);
 		org.springframework.http.ResponseEntity<?> matchEntity = (org.springframework.http.ResponseEntity<?>) matchResponse;

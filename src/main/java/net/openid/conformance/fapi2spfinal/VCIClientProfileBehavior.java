@@ -375,13 +375,13 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	@Override
 	public PathDispatch getProfileSpecificPathDispatch(String requestId, String path) {
 		if (NONCE_PATH.equals(path)) {
-			return buildNonceDispatch(requestId);
+			return buildNonceDispatch();
 		}
 		if (NOTIFICATION_PATH.equals(path)) {
-			return buildNotificationDispatch(requestId);
+			return buildNotificationDispatch();
 		}
 		if (isCredentialOfferPath(path)) {
-			return buildCredentialOfferDispatch(requestId, path);
+			return buildCredentialOfferDispatch(path, null);
 		}
 		if (isStatusListsPath(path)) {
 			// statuslists is served imperatively below — the response shape branches on
@@ -390,7 +390,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			return null;
 		}
 		// CREDENTIAL_PATH
-		return buildCredentialDispatch(requestId);
+		return buildCredentialDispatch();
 	}
 
 	@Override
@@ -412,25 +412,33 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	/**
 	 * OID4VCI 1.0 Final 4.1.3 credential offer endpoint (by reference): the wallet
-	 * dereferences the {@code credential_offer_uri} we handed it in {@link #onStart()}.
-	 * Block bookkeeping here, response via {@link #buildCredentialOfferResponse}.
+	 * dereferences the {@code credential_offer_uri} it was handed when the offer was
+	 * presented. Single implementation shared by the FAPI2SP client tests
+	 * ({@link #getProfileSpecificPathDispatch}, no additional checks) and the wallet
+	 * modules ({@code AbstractVCIWalletTest.credentialOfferEndpoint}, which passes its
+	 * mTLS certificate checks). Block and incoming_request bookkeeping belong to the
+	 * driver ({@code AbstractFAPI2SPFinalClientTest.runPathDispatch}).
+	 *
+	 * <p>{@code additionalRequestChecks} are extra checks to run before the shared ones;
+	 * may be {@code null}.
 	 */
-	private PathDispatch buildCredentialOfferDispatch(String requestId, String path) {
+	public static PathDispatch buildCredentialOfferDispatch(String path, ConditionSequence additionalRequestChecks) {
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				call(exec().startBlock("Credential offer endpoint").mapKey("incoming_request", requestId));
-				call(exec().unmapKey("incoming_request").endBlock());
+				if (additionalRequestChecks != null) {
+					call(additionalRequestChecks);
+				}
 			}
 		};
-		return new PathDispatch(sequence, m -> buildCredentialOfferResponse(m.getEnv(), path));
+		return new PathDispatch("Credential offer endpoint", sequence,
+			m -> buildCredentialOfferResponse(m.getEnv(), path));
 	}
 
 	/**
 	 * Response for a {@code credential_offer/{id}} request: the stored offer (JSON,
 	 * {@code Cache-Control: no-cache}) when the id in the path matches the one minted by
-	 * {@link VCICreateCredentialOfferUri}, 404 otherwise. Shared by the wallet modules
-	 * ({@code AbstractVCIWalletTest.credentialOfferEndpoint}) and the FAPI2SP client tests.
+	 * {@link VCICreateCredentialOfferUri}, 404 otherwise.
 	 */
 	public static ResponseEntity<Object> buildCredentialOfferResponse(Environment env, String path) {
 		String credentialOfferId = path.substring(path.lastIndexOf('/') + 1);
@@ -522,20 +530,17 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	 * sequence does the validation + generation; response builder reads the prepared
 	 * response from env. Mirrors AbstractVCIWalletTest.nonceEndpoint.
 	 */
-	private PathDispatch buildNonceDispatch(String requestId) {
+	private PathDispatch buildNonceDispatch() {
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				call(exec().startBlock("Nonce endpoint"));
-				call(exec().mapKey("incoming_request", requestId));
 				callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.1");
 				callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-7");
 				callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
-				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};
-		return new PathDispatch(sequence, m -> {
+		return new PathDispatch("Nonce endpoint", sequence, m -> {
 			JsonObject body = m.getEnv().getObject("credential_nonce_response");
 			JsonObject headers = m.getEnv().getObject("credential_nonce_response_headers");
 			return ResponseEntity.status(HttpStatus.OK)
@@ -564,14 +569,11 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	 * — original returned 400 (bearer-token error); the new path halts the test on the
 	 * sender-constrain failure. Both indicate a broken client.
 	 */
-	private PathDispatch buildCredentialDispatch(String requestId) {
+	private PathDispatch buildCredentialDispatch() {
 		final Map<String, Object> additionalClaims = additionalSdJwtClaims();
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				call(exec().startBlock("Credential endpoint"));
-				call(exec().mapKey("incoming_request", requestId));
-
 				// Resource-endpoint request validation: sender-constrain proof, access-token
 				// validation (DPoP jkt + proof ath / mTLS), and FAPI resource headers.
 				// Halts on hard failures inside the embedded sequence.
@@ -716,11 +718,9 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					.skipIfElementPresent("vci", "credential_error_response")
 					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE));
-
-				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};
-		return new PathDispatch(sequence, m -> {
+		return new PathDispatch("Credential endpoint", sequence, m -> {
 			// DPoP-nonce-error path: sender-constrain populated
 			// resource_endpoint_dpop_nonce_error and the sequence ran
 			// CreateResourceEndpointDpopErrorResponse. Return the prepared 401 response
@@ -766,7 +766,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	 * notification-specific validation, return 204 on success or 400 with the error
 	 * body when validation populated {@code vci.notification_error_response} per § 11.3.
 	 */
-	private PathDispatch buildNotificationDispatch(String requestId) {
+	private PathDispatch buildNotificationDispatch() {
 		// Clear any previous notification error response so subsequent calls aren't
 		// poisoned. The sequence runs after this build call, so the clear happens before
 		// any condition observes the env.
@@ -777,8 +777,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				call(exec().startBlock("Notification endpoint"));
-				call(exec().mapKey("incoming_request", requestId));
 				// Full resource-endpoint request validation: sender-constrain proof,
 				// access-token validation, FAPI resource headers. Matches the wallet's
 				// notification endpoint at AbstractVCIWalletTest.notificationEndpoint.
@@ -800,10 +798,9 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					.onFail(ConditionResult.WARNING)
 					.requirements("OID4VCI-1FINAL-11.1")
 					.dontStopOnFailure());
-				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};
-		return new PathDispatch(sequence, m -> {
+		return new PathDispatch("Notification endpoint", sequence, m -> {
 			// DPoP-nonce-error path: sender-constrain populated
 			// resource_endpoint_dpop_nonce_error and the sequence ran
 			// CreateResourceEndpointDpopErrorResponse. Return the prepared 401 response
