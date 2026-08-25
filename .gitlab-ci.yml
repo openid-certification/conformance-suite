@@ -520,6 +520,12 @@ local_test:
   services:
     - docker:dind
   needs: ["build"]
+  # Run the local provider tests once per scripted-browser engine; BROWSER_ENGINE is picked up by
+  # docker-compose-localtest.yml and passed to the server as -Dbrowser.engine
+  parallel:
+    matrix:
+      - BROWSER_ENGINE: selenium
+      - BROWSER_ENGINE: playwright
   script:
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
@@ -529,18 +535,20 @@ local_test:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test
   after_script:
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log.txt
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider > $CI_PROJECT_DIR/oidcc-provider-log-${BROWSER_ENGINE}.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log-${BROWSER_ENGINE}.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump-${BROWSER_ENGINE}.gz --gzip
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
   artifacts:
     access: developer
     when: always
     paths:
-      - oidcc-provider-log.txt
-      - server-log.txt
-      - mongo/data/mongodb-dump.gz
+      - oidcc-provider-log-*.txt
+      - server-log-*.txt
+      - mongo/data/mongodb-dump-*.gz
       - "*.zip"
+      # Playwright traces of failed scripted-browser runs (open with 'npx playwright show-trace')
+      - traces/
 
 security_test:
   stage: test

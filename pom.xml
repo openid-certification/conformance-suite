@@ -31,6 +31,7 @@
 <!--		<commons-lang3.version>3.20.0</commons-lang3.version>-->
 		<bouncycastle.version>1.84</bouncycastle.version>
 		<json-schema-validator.version>3.0.3</json-schema-validator.version>
+		<playwright.version>1.62.0</playwright.version>
 	</properties>
 
 	<dependencies>
@@ -199,6 +200,15 @@
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>htmlunit3-driver</artifactId>
 		</dependency>
+
+		<!-- Playwright: real browser engine (chromium/firefox/webkit) alternative to HtmlUnit for BrowserControl,
+		     selected at runtime with -Dbrowser.engine=playwright -->
+		<dependency>
+			<groupId>com.microsoft.playwright</groupId>
+			<artifactId>playwright</artifactId>
+			<version>${playwright.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.vdurmont</groupId>
 			<artifactId>semver4j</artifactId>

@@ -54,6 +54,24 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
+### Scripted browser engine
+
+The scripted browser that runs a test config's `"browser"` automation block (`BrowserControl` in
+`frontchannel/`) has two engines behind the `BrowserRunner` interface, selected per JVM with
+`-Dbrowser.engine=`:
+
+- `selenium` (default) — headless HtmlUnit via Selenium (`SeleniumBrowserRunner`)
+- `playwright` — a real Chromium/Firefox/WebKit via Playwright (`PlaywrightBrowserRunner`); tune with
+  `-Dbrowser.playwright.type=chromium|firefox|webkit`, `.headless`, `.slowMo`, `.extraHttpHeaders` (JSON),
+  `.traceEnabled=false|true|on-failure` and `.tracesDir`. Traces land as `<tracesDir>/<testId>.zip`, are
+  downloadable at `GET /api/log/{id}/trace` and open with `npx playwright show-trace`. The browser binary is
+  downloaded by Playwright on first use.
+
+Both engines accept the same commands and log under the `WebRunner` source. The CI `local_test` job runs the
+local-provider plans once per engine; locally, `BROWSER_ENGINE=playwright docker-compose -f docker-compose-localtest.yml ...`
+does the same. `mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
+Playwright runner end-to-end against an in-process fake AS (opt-in because it needs the browser download).
+
 ### Running the legacy (pre-redesign) UI
 
 The `legacy-ui` Spring profile serves a frozen snapshot of the pre-redesign jQuery/Handlebars

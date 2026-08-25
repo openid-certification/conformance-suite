@@ -751,6 +751,7 @@ public class TestRunner implements DataUtils {
 				map.put("urls", browser.getUrls());
 				map.put("visited", browser.getVisited());
 				map.put("runners", browser.getWebRunners());
+				map.put("engine", browser.getEngine());
 
 				return new ResponseEntity<>(map, HttpStatus.OK);
 			} else {
@@ -857,6 +858,7 @@ public class TestRunner implements DataUtils {
 			// image" prompt near the top of the page (mirroring the URL-visit
 			// prompt) instead of only via the buried overflow-menu action.
 			bmap.put("uploadsRequired", imageService.getRemainingPlaceholders(test.getId(), true).size());
+			bmap.put("engine", browser.getEngine());
 			map.put("browser", bmap);
 		}
 		return map;
