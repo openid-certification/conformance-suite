@@ -154,6 +154,21 @@ public class JsonSchemaValidation_UnitTest {
 	}
 
 	@Test
+	public void testValidate_distributedClaimsSourceWithoutAccessTokenIsValid() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// OIDC Core section 5.6.2 defines access_token as OPTIONAL for distributed claims
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "_claim_names": {"verified_claims": "src1"},
+			  "_claim_sources": {"src1": {"endpoint": "https://example.com/claims"}}
+			}
+			""");
+
+		assertTrue(result.isValid(), () -> "expected no errors but got: " + result.getValidationMessages());
+	}
+
+	@Test
 	public void testValidate_ignoreUnknownPropertyStrictnessKeepsStructuralErrorsBehindCrossDocumentRefs() throws IOException {
 		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
 		validation.setIgnoreUnknownPropertyStrictness(true);
