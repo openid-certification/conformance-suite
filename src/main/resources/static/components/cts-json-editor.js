@@ -239,6 +239,11 @@ const STYLE_TEXT = css`
     resize: vertical;
     text-indent: 0;
     box-sizing: border-box;
+    /* Long unbroken values (base64 x5c certs) need a mid-word break to
+     wrap instead of overflowing horizontally. Chrome/Firefox force this
+     inside a <textarea> by default; Safari does not, so it must be
+     explicit — same fix as cts-form-field's .oidf-textarea. */
+    overflow-wrap: break-word;
   }
   cts-json-editor[readonly] .oidf-json-editor-fallback {
     background: var(--bg-muted);
@@ -493,7 +498,14 @@ class CtsJsonEditor extends LitElement {
       fontSize: 13,
       tabSize: 2,
       formatOnPaste: false,
-      wordWrap: "off",
+      // Config JSON routinely carries very long unbroken string values
+      // (base64 x5c certificates, JWKs) as a single line. With word wrap
+      // off, one such value forces the editor's horizontal scroll extent
+      // out to several screens wide with nothing else visible — "on" soft-
+      // wraps at the viewport edge (Monaco breaks mid-token when there's no
+      // better wrap point, unlike CSS text flow) so long values stay
+      // readable without horizontal scrolling.
+      wordWrap: "on",
     });
 
     // Monaco creates its own hidden native <textarea class="inputarea">
