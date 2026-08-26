@@ -6,7 +6,6 @@ import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponsePa
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveStateFromAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 
 
 @PublishTestModule(
@@ -56,41 +55,13 @@ public class FAPI2SPID2ClientTestEnsureAuthorizationResponseWithInvalidMissingSt
 	protected void createAuthorizationEndpointResponse() {
 		super.createAuthorizationEndpointResponse();
 		if(removedState) {
+			// after this the request routers refuse all endpoints
 			startWaitingForTimeout();
 		}
 	}
 
 	@Override
-	protected Object tokenEndpoint(String requestId) {
-		if(removedState) {
-			throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an invalid authorization response (" +
-				getAuthorizationResponseErrorMessage() + ")");
-		} else {
-			return super.tokenEndpoint(requestId);
-		}
-	}
-
-	@Override
-	protected Object userinfoEndpoint(String requestId) {
-		if(removedState) {
-			throw new TestFailureException(getId(), "Client has incorrectly called userinfo_endpoint after receiving an invalid authorization response (" +
-				getAuthorizationResponseErrorMessage() + ")");
-		} else {
-			return super.userinfoEndpoint(requestId);
-		}
-	}
-
-	@Override
-	protected Object accountsEndpoint(String requestId) {
-		if(removedState) {
-			throw new TestFailureException(getId(), "Client has incorrectly called accounts endpoint after receiving an invalid authorization response (" +
-				getAuthorizationResponseErrorMessage() + ")");
-		} else {
-			return super.accountsEndpoint(requestId);
-		}
-	}
-
-	protected String getAuthorizationResponseErrorMessage() {
-		return "Removed state from the authorization response";
+	protected String getResponseClientMustStopAfter() {
+		return "an invalid authorization response (Removed state from the authorization response)";
 	}
 }

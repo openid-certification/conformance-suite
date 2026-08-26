@@ -290,7 +290,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected AuthorizationRequestType authorizationRequestType;
 
-	protected boolean startingShutdown = false;
+	// volatile: written while the env lock is held, but both routers read it after
+	// setStatus(WAITING) has released that lock, so the visibility guarantee would
+	// otherwise rest on a happens-before edge from a lock that is no longer held.
+	protected volatile boolean startingShutdown = false;
 
 	protected Boolean profileRequiresMtlsEverywhere;
 
@@ -603,14 +606,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
+			refuseIfStartingShutdown(path);
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
+			refuseIfStartingShutdown(path);
 			if (profileRequiresMtlsEverywhere) {
 				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
@@ -620,9 +619,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
+			refuseIfStartingShutdown(path);
 			if (isMTLSConstrain()) {
 				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
 			}
@@ -630,9 +627,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
+			refuseIfStartingShutdown(path);
 			if(profileRequiresMtlsEverywhere) {
 				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
@@ -642,14 +637,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
+			refuseIfStartingShutdown(path);
 			return accountRequestsEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH)) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
+			refuseIfStartingShutdown(path);
 
 			if (isMTLSConstrain()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
@@ -678,6 +669,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
+		// as in handleClientRequestForPath, refuse every endpoint once the test has sent a
+		// response that must cause the client to stop interacting with the server
+		refuseIfStartingShutdown(path);
+
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
@@ -687,9 +682,6 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 			return accountsEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
-			if(startingShutdown){
-				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
-			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals("par")) {
 			return parEndpoint(requestId);
@@ -1103,6 +1095,19 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
+	/**
+	 * Subclasses must never refuse the token endpoint unconditionally in an override. The
+	 * KSA, Open Banking UK and Open Banking Brazil profiles all require the client to obtain
+	 * a client_credentials access token and create a consent <em>before</em> it makes any
+	 * authorization or PAR request, so an override that throws unconditionally rejects the
+	 * very first request of the test, long before the fault the module exists to test has
+	 * been injected (see https://gitlab.com/openid/conformance-suite/-/issues/1933).
+	 *
+	 * <p>Refusing endpoints after the fault has been sent needs no override at all: both
+	 * request routers call {@link #refuseIfStartingShutdown(String)} for every path once
+	 * {@link #startWaitingForTimeout()} has run, and
+	 * {@link #getResponseClientMustStopAfter()} lets a module name the fault it injected.
+	 */
 	protected Object tokenEndpoint(String requestId) {
 
 		setStatus(Status.RUNNING);
@@ -1742,6 +1747,23 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;
 		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireDpopClientCredentialAccessToken.class;
 		senderConstrainTokenRequestHelper = new DPopTokenRequestHelper();
+	}
+
+	/**
+	 * The response this test sent that obliges the client to stop interacting with the
+	 * server. Completes the sentence "Client has incorrectly called '&lt;path&gt;' after
+	 * receiving ..." in the refusal thrown for any request made after
+	 * {@link #startWaitingForTimeout()}; fault modules override it to name the fault
+	 * they injected.
+	 */
+	protected String getResponseClientMustStopAfter() {
+		return "a response that must cause it to stop interacting with the server";
+	}
+
+	protected void refuseIfStartingShutdown(String path) {
+		if (startingShutdown) {
+			throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving " + getResponseClientMustStopAfter());
+		}
 	}
 
 	protected void startWaitingForTimeout() {

@@ -3,7 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddInvalidStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 
 
 @PublishTestModule(
@@ -31,30 +30,6 @@ public class FAPI2SPFinalClientTestEnsureAuthorizationResponseWithInvalidStateFa
 	protected void addCustomValuesToIdToken(){
 		//Do nothing
 	}
-	@Override
-	protected void createAuthorizationEndpointResponse() {
-		super.createAuthorizationEndpointResponse();
-		startWaitingForTimeout();
-	}
-
-	@Override
-	protected Object tokenEndpoint(String requestId) {
-		throw new TestFailureException(getId(), "Client has incorrectly called token_endpoint after receiving an invalid authorization response (" +
-			getAuthorizationResponseErrorMessage()+ ")");
-	}
-
-	@Override
-	protected Object userinfoEndpoint(String requestId) {
-		throw new TestFailureException(getId(), "Client has incorrectly called userinfo_endpoint after receiving an invalid authorization response (" +
-			getAuthorizationResponseErrorMessage() + ")");
-	}
-
-	@Override
-	protected Object accountsEndpoint(String requestId) {
-		throw new TestFailureException(getId(), "Client has incorrectly called accounts endpoint after receiving an invalid authorization response (" +
-			getAuthorizationResponseErrorMessage() + ")");
-	}
-
 	@Override
 	protected String getAuthorizationResponseErrorMessage() {
 		return "Added invalid state to the authorization response";
