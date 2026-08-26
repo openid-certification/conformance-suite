@@ -3,7 +3,6 @@ package net.openid.conformance.fapi2spfinal.brazil;
 
 import net.openid.conformance.fapi2spfinal.FAPI2MessageSigningFinalClientTestPlan;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalBrazilClientDCRHappyPathTest;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidOpenBankingIntentId;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
@@ -73,8 +72,6 @@ public class BrazilOBClientTestPlan implements TestPlan {
 	public List<TestPlan.ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalClientTestPlan.testModules);
 
-		// this is marked with VariantNotApplicable for Brazil, we must remove it otherwise we get a startup error
-		modules.remove(FAPI2SPFinalClientTestInvalidOpenBankingIntentId.class);
 
 		modules.add(FAPI2SPFinalBrazilClientDCRHappyPathTest.class);
 

@@ -13,7 +13,6 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWith
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithWrongAudFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureOtherScopeOrderSucceeds;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsArrayAudienceFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsAudienceFails;
@@ -22,7 +21,6 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAsserti
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARTokenEndpointAsAudienceFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRegisteredRedirectUri;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestClaimsParameterIdentityClaims;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestEssentialAcrScaClaim;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -185,12 +183,10 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalPAREndpointAsAudienceFails.class);
 		fapiTestModules.remove(FAPI2SPFinalPARTokenEndpointAsAudienceFails.class);
 
-		// Profile-specific tests (plain_fapi / connectid_au / openbanking_uk / openbanking_brazil)
+		// Profile-specific tests (plain_fapi / connectid_au / openbanking_brazil)
 		fapiTestModules.remove(FAPI2SPFinalEnsureRegisteredRedirectUri.class);
 		fapiTestModules.remove(FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails.class);
 		fapiTestModules.remove(FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class);
-		fapiTestModules.remove(FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId.class);
-		fapiTestModules.remove(FAPI2SPFinalTestEssentialAcrScaClaim.class);
 		fapiTestModules.remove(FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails.class);
 
 		return fapiTestModules;

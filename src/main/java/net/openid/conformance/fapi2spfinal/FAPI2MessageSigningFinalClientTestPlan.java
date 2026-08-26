@@ -55,8 +55,6 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		FAPI2SPFinalClientTestEnsureJarmWithInvalidSigFails.class,
 		FAPI2SPFinalClientTestEnsureJarmSignatureAlgIsNotNone.class,
 
-		// OB systems specific tests
-		FAPI2SPFinalClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
 		FAPI2SPFinalClientRefreshTokenTest.class
 	);
