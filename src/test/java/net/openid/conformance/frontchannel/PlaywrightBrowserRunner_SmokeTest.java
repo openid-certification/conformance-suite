@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -55,6 +56,8 @@ public class PlaywrightBrowserRunner_SmokeTest {
 
 	private HttpServer server;
 	private String baseUrl;
+	private HttpServer hangingServer;
+	private final CountDownLatch releaseHangingRequests = new CountDownLatch(1);
 	private final AtomicReference<String> loginBody = new AtomicReference<>();
 	private final AtomicReference<String> postTargetContentType = new AtomicReference<>();
 	private final AtomicReference<String> postTargetBody = new AtomicReference<>();
@@ -155,6 +158,20 @@ public class PlaywrightBrowserRunner_SmokeTest {
 			postTargetBody.set(readBody(exchange));
 			html(exchange, "<pre id=\"body\">" + exchange.getRequestMethod() + " " + postTargetBody.get() + "</pre>");
 		});
+		// a page on the awaited url whose 'load' event never fires, as one of its images is never answered
+		hangingServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+		hangingServer.createContext("/never.png", exchange -> {
+			try {
+				releaseHangingRequests.await();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			exchange.close();
+		});
+		hangingServer.start();
+		String hangingImage = "http://127.0.0.1:" + hangingServer.getAddress().getPort() + "/never.png";
+		server.createContext("/hanging-callback", exchange ->
+			html(exchange, "<div id=\"result\">Done</div><img src=\"" + hangingImage + "\">"));
 		server.start();
 
 		eventLog = BsonEncoding.testInstanceEventLog();
@@ -163,6 +180,8 @@ public class PlaywrightBrowserRunner_SmokeTest {
 
 	@AfterEach
 	public void tearDown() {
+		releaseHangingRequests.countDown();
+		hangingServer.stop(0);
 		server.stop(0);
 	}
 
@@ -288,6 +307,24 @@ public class PlaywrightBrowserRunner_SmokeTest {
 
 		assertThat(postTargetContentType.get()).startsWith("application/x-www-form-urlencoded");
 		assertThat(postTargetBody.get()).isEqualTo("foo=bar+baz&x=1&y=a%26b");
+	}
+
+	@Test
+	public void postsAParameterNamedSubmit() throws Exception {
+		runner(baseUrl + "/post-target?submit=Go&x=1", "POST", """
+			[{"task": "Check", "match": "*/post-target", "commands": [["wait", "id", "body", 5, "^POST "]]}]""").call();
+
+		assertThat(postTargetBody.get()).isEqualTo("submit=Go&x=1");
+	}
+
+	@Test
+	public void urlWaitsDoNotWaitForThePageToFinishLoading() throws Exception {
+		runner(baseUrl + "/hanging-callback?code=123", "GET", """
+			[{"task": "Done", "match": "*/hanging-callback*", "commands": [
+				["wait", "contains", "/hanging-callback", 3],
+				["wait", "match", "code=123$", 3],
+				["wait", "id", "result", 3, "Done"]
+			]}]""").call();
 	}
 
 	@Test
