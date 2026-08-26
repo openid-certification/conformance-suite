@@ -98,6 +98,8 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	});
 	/** Timeout for the page to finish loading before a task's commands run (matches the HtmlUnit runner). */
 	private static final int PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
+	/** Timeout for one attempt at the screenshot shown in the test log; see {@link #updateCache()}. */
+	private static final int SCREENSHOT_TIMEOUT_MILLIS = 5_000;
 	/**
 	 * How long a runner waits for the runners submitted before it to finish before it starts its
 	 * own browser; see {@link #waitForEarlierRunners()}. Long enough for a predecessor to finish
@@ -649,7 +651,11 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				int timeoutMillis = timeoutSeconds * 1000;
 				try {
 					if (elementType.equalsIgnoreCase("contains")) {
-						page.waitForURL(u -> u.contains(target), new Page.WaitForURLOptions().setTimeout(timeoutMillis));
+						// a plain substring test, except that '*' in the target matches anything. Configs
+						// use it (e.g. "/test/*/post"); with HtmlUnit such a wait never runs, as its click
+						// returns only once the whole chain of pages is done and the optional task it sits
+						// in is then skipped, while a real browser is seen on the transient pages in between.
+						page.waitForURL(u -> PatternMatchUtils.simpleMatch("*" + target + "*", u), new Page.WaitForURLOptions().setTimeout(timeoutMillis));
 					} else if (elementType.equalsIgnoreCase("match")) {
 						Pattern urlPattern = Pattern.compile(target); // NB this takes a regexp
 						page.waitForURL(u -> urlPattern.matcher(u).find(), new Page.WaitForURLOptions().setTimeout(timeoutMillis));
@@ -778,6 +784,17 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 
 	/**
 	 * Refresh the values served by {@link #getStatus()}. Must only be called from the runner thread.
+	 *
+	 * <p>The screenshot is best effort and deliberately short-lived. A screenshot taken while the
+	 * page is navigating to another origin (Chromium swaps renderer processes for that) has been
+	 * seen never to return, so it only ends with its timeout. That is the normal course of events
+	 * after a click that lands on an authorization server's response_mode=form_post page: the click
+	 * returns once that page has committed, and the page then immediately POSTs itself to the
+	 * suite's redirect uri. With the context's default (navigation) timeout this stalled the runner
+	 * for a minute after such a click, long enough for the test to give up waiting for it and for
+	 * the next runner not to get this one's session state. So the screenshot gets a short timeout
+	 * and one more try, by which time the page has settled; if that fails too the previous
+	 * screenshot is kept.
 	 */
 	private void updateCache() {
 		if (page == null) {
@@ -785,9 +802,21 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 		}
 		try {
 			cachedCurrentUrl = page.url();
-			cachedScreenshot = "data:image/png;base64," + Base64.getEncoder().encodeToString(page.screenshot());
 		} catch (RuntimeException e) {
-			logger.warn(testId + ": Failed to capture Playwright page state", e);
+			logger.warn(testId + ": Failed to capture Playwright page url", e);
+			return;
+		}
+		for (int attempt = 1; attempt <= 2; attempt++) {
+			try {
+				byte[] screenshot = page.screenshot(new Page.ScreenshotOptions().setTimeout(SCREENSHOT_TIMEOUT_MILLIS));
+				cachedScreenshot = "data:image/png;base64," + Base64.getEncoder().encodeToString(screenshot);
+				return;
+			} catch (TimeoutError e) {
+				logger.debug(testId + ": Playwright screenshot timed out (attempt " + attempt + "), page is probably navigating");
+			} catch (RuntimeException e) {
+				logger.warn(testId + ": Failed to capture Playwright screenshot", e);
+				return;
+			}
 		}
 	}
 

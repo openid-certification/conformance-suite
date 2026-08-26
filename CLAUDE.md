@@ -69,7 +69,11 @@ The scripted browser that runs a test config's `"browser"` automation block (`Br
 
 Both engines accept the same commands and log under the `WebRunner` source. The CI `local_test` job runs the
 local-provider plans once per engine; locally, `BROWSER_ENGINE=playwright docker-compose -f docker-compose-localtest.yml ...`
-does the same. `mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
+does the same (add `BROWSER_TRACE=true` to get a trace of every scripted-browser run under `traces/`, not just failed
+ones; `run test --rerun 10:1` runs a single plan/module). CI sets `BROWSER_TRACE=false` for speed — flip it to
+`on-failure` in `.gitlab-ci.yml` when a CI failure needs a trace. Playwright drives a real browser, so it also sees the
+transient pages HtmlUnit skips over (e.g. an AS's `response_mode=form_post` page); that is why the Playwright runner
+waits for a task's url to match rather than judging it at an instant and keeps its screenshots short-lived. `mvn test -Dtest=PlaywrightBrowserRunner_SmokeTest -Dplaywright.smoke=true` exercises the
 Playwright runner end-to-end against an in-process fake AS (opt-in because it needs the browser download).
 
 ### Running the legacy (pre-redesign) UI
