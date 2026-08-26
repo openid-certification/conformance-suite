@@ -1397,8 +1397,21 @@ export function scrollEntryIntoView(host, options) {
  * @returns {void}
  */
 export function flashEntryArrival(host) {
-  const item = host.querySelector(".logItem");
+  const item = /** @type {HTMLElement | null} */ (host.querySelector(".logItem"));
   if (!item) return;
+  flashItem(item);
+}
+
+/**
+ * Run the actual flash on a resolved, non-null `.logItem` element. Split out
+ * from flashEntryArrival() so `item`'s non-null HTMLElement type is fixed by
+ * the parameter declaration — TS narrowing from an outer `if (!item) return`
+ * doesn't carry into the nested closures below, but a parameter type does.
+ *
+ * @param {HTMLElement} item - The `.logItem` row to flash.
+ * @returns {void}
+ */
+function flashItem(item) {
   const reduce =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
