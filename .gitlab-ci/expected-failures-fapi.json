@@ -265,5 +265,16 @@
         "condition": "EnsureInvalidRequestUriError",
         "expected-result": "failure",
         "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-client-test-invalid-authorization-response-iss",
+        "variant": {
+            "fapi_profile": "ksa"
+        },
+        "configuration-filename": "*ksa-fapi2-rp.json",
+        "current-block": "",
+        "condition": "fapi2-security-profile-final-client-test-invalid-authorization-response-iss",
+        "expected-result": "failure",
+        "comment": "Expected by design, not a suite bug. This RP test requires the client to stop after the invalid iss, but the client here is our own OP test module, which calls RequireIssInAuthorizationResponse with callAndContinueOnFailure (AbstractFAPI2SPFinalServerTestModule) so that it can report every finding - it logs the bad iss and then calls the token endpoint anyway. No op-against-rp pairing can pass an ExpectNothingAfter* module until the driver stops on the fault. The pairing is run for the compare_fapi diff: it exercises the KSA client_credentials + consent preamble before the fault, which issue #1933 broke, and a regression there removes ~35 conditions from this module's log."
     }
 ]
