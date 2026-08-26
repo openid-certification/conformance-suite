@@ -29,7 +29,7 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
-	"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil",
+	"plain_fapi", "consumerdataright_au", "openbanking_brazil",
 	"connectid_au", "cbuae", "fapi_client_credentials_grant"
 })
 public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {

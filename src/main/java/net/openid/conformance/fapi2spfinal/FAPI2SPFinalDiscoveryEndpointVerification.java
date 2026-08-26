@@ -54,11 +54,6 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		clientCredentialsGrant = true;
 	}
 
-	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
-	public void setupOpenBankingUk() {
-		profileBehavior = new OpenBankingUkProfileBehavior();
-	}
-
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		profileBehavior = new ConsumerDataRightAuProfileBehavior();
