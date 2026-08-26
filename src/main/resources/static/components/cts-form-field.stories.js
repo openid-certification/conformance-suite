@@ -94,6 +94,48 @@ export const JsonTextarea = {
   },
 };
 
+/**
+ * A long unbroken value (a pasted JWKS x5c certificate, no whitespace to
+ * wrap on) must stay inside its container width AND grow the
+ * box's HEIGHT to accommodate the wrapped lines. Originally attempted via
+ * CSS (\`field-sizing: content\` + \`max-width\`), but Safari's own Web
+ * Inspector Computed panel showed \`field-sizing: content\` clamping height
+ * against \`max-height\` correctly while completely ignoring an explicit
+ * \`max-width: 100%\` — width read out at 8755px against a 100% ceiling, a
+ * real WebKit gap. Fixed with autoGrowTextarea() in JS instead: width is
+ * governed purely by plain \`width: 100%\` (no auto-sizing feature involved,
+ * so nothing for Safari to get wrong), height is set directly from
+ * \`scrollHeight\`.
+ */
+export const LongUnbrokenValueStaysClamped = {
+  render: () => html`
+    <div style="width: 400px;">
+      <cts-form-field
+        name="client.jwks"
+        .schema=${{ type: "object", format: "json", title: "Client JWKS" }}
+        value=""
+      ></cts-form-field>
+    </div>
+  `,
+  async play({ canvasElement }) {
+    const wrapper = /** @type {HTMLElement} */ (canvasElement.querySelector("div"));
+    const field = /** @type {any} */ (canvasElement.querySelector("cts-form-field"));
+    const textarea = /** @type {HTMLTextAreaElement} */ (canvasElement.querySelector("textarea"));
+    expect(textarea).toBeTruthy();
+    const restingHeight = textarea.getBoundingClientRect().height;
+
+    field.value = "M".repeat(3000);
+    await field.updateComplete;
+
+    const wrapperWidth = wrapper.getBoundingClientRect().width;
+    const textareaWidth = textarea.getBoundingClientRect().width;
+    expect(textareaWidth).toBeLessThanOrEqual(wrapperWidth + 1);
+    // The box grew taller to fit the wrapped lines — confirms
+    // autoGrowTextarea() actually ran, not just that width never moved.
+    expect(textarea.getBoundingClientRect().height).toBeGreaterThan(restingHeight);
+  },
+};
+
 export const SelectDropdown = {
   render: () => html`
     <cts-form-field
@@ -589,5 +631,79 @@ export const FocusState = {
     expect(computed.borderTopColor).toBe("rgb(235, 139, 53)");
     // --focus-ring expands to a 3px box-shadow; assert it is non-empty.
     expect(computed.boxShadow).not.toBe("none");
+  },
+};
+
+/**
+ * --font-mono (JetBrains Mono) is a Google Fonts
+ * webfont, loaded asynchronously. The first autoGrowTextarea() call (on
+ * mount) can measure scrollHeight against a narrower FALLBACK font if
+ * JetBrains Mono hasn't finished loading yet — undercounting how many
+ * lines the content actually wraps to. Since autoGrowTextarea() only
+ * re-runs on user input, a box nobody has typed into stayed stuck at that
+ * too-small height. connectedCallback registers a per-instance
+ * document.fonts.ready handler to catch this.
+ *
+ * document.fonts.ready is real browser state that's almost always already
+ * resolved by the time any test runs (fonts load fast, well before any
+ * interaction) — racing the genuine timing isn't practical to test
+ * reliably. Instead this stubs document.fonts with a promise under the
+ * test's control, mounts the field AFTER stubbing (so its
+ * connectedCallback captures the stub, not the real one), forces a
+ * too-small height, and asserts it only self-corrects once the stubbed
+ * promise resolves — proving the wiring (call the grow logic when fonts
+ * settle) is correct, independent of real font-load timing.
+ */
+export const HeightRecoversOnceFontsSettle = {
+  render: () => html`<div id="mount-point"></div>`,
+  async play({ canvasElement }) {
+    const mountPoint = /** @type {HTMLElement} */ (canvasElement.querySelector("#mount-point"));
+    const originalFonts = document.fonts;
+    /** @type {() => void} */
+    let resolveReady = () => {};
+    const readyPromise = /** @type {Promise<void>} */ (
+      new Promise((resolve) => {
+        resolveReady = resolve;
+      })
+    );
+    Object.defineProperty(document, "fonts", {
+      value: { ready: readyPromise },
+      configurable: true,
+    });
+
+    try {
+      const field = /** @type {any} */ (document.createElement("cts-form-field"));
+      field.name = "client.jwks";
+      field.schema = { type: "object", format: "json", title: "Client JWKS" };
+      field.value = {
+        keys: Array.from({ length: 6 }, (_, i) => ({
+          kty: "EC",
+          kid: `key-${i}`,
+          x: "M".repeat(30),
+        })),
+      };
+      mountPoint.appendChild(field);
+      await field.updateComplete;
+
+      const textarea = /** @type {HTMLTextAreaElement} */ (field.querySelector("textarea"));
+      const naturalHeight = textarea.getBoundingClientRect().height;
+
+      // Stand in for an under-measurement: force a too-small height, as if
+      // scrollHeight had been read against the fallback font. Safe to do
+      // here — the stubbed fonts.ready hasn't resolved yet, so nothing has
+      // corrected it out from under this assertion.
+      textarea.style.height = "50px";
+      expect(textarea.getBoundingClientRect().height).toBeLessThan(naturalHeight);
+
+      resolveReady();
+      await readyPromise;
+      // Let the .then() callback's microtask actually run.
+      await Promise.resolve();
+
+      expect(textarea.getBoundingClientRect().height).toBeCloseTo(naturalHeight, 0);
+    } finally {
+      Object.defineProperty(document, "fonts", { value: originalFonts, configurable: true });
+      mountPoint.replaceChildren();
+    }
   },
 };
