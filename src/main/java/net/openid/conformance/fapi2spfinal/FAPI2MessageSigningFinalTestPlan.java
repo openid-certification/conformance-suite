@@ -96,9 +96,6 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		//Refresh token tests
 		FAPI2SPFinalRefreshToken.class,
 
-		// OBUK specific tests
-		FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId.class,
-		FAPI2SPFinalTestEssentialAcrScaClaim.class,
 
 		// OB Brazil specific tests
 		FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails.class,
