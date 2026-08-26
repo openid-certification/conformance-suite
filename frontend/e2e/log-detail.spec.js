@@ -277,29 +277,41 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(pills.locator('[data-testid="status-bar-pill-info"]')).toHaveCount(0);
   });
 
-  test("#1915 — overflow menu's upload count tallies the live /api/log stream, not the never-served testInfo.results", async ({
+  test("#1884 — overflow menu's upload count tracks the live /api/runner uploadsRequired, not a log-stream tally", async ({
     page,
   }) => {
-    // One upload on a WARNING entry and one on a SUCCESS entry — the SUCCESS
-    // one proves the count is NOT routed through selectFindings (which
-    // deliberately excludes SUCCESS/INFO), matching the real case of a proof
-    // screenshot attached to a passing manual step. MOCK_TEST_STATUS carries
-    // no `results` field, so a pass here is only possible via
-    // cts-log-viewer's uploadCount, not the dead field.
-    const entriesWithUploads = [
-      { ...MOCK_LOG_ENTRIES[0], upload: "upload-1" },
-      ...MOCK_LOG_ENTRIES.slice(1, 5),
-      { ...MOCK_LOG_ENTRIES[5], upload: "upload-2" },
-      MOCK_LOG_ENTRIES[6],
-    ];
+    // #1915 originally fixed this count by tallying entries with an `upload`
+    // id across the whole /api/log stream. #1884 replaced that with a live
+    // count of outstanding placeholders from /api/runner's
+    // browser.uploadsRequired (TestRunner.java, ImageService.getRemaining
+    // Placeholders): the overflow item is an actionable "do this now" CTA,
+    // so it should reflect what's still outstanding, not a historical tally
+    // that never clears once a test finishes. A WAITING test is required
+    // here — startRunnerPolling() no-ops for an already-terminal test, so
+    // the poll (and this count) never fires for a FINISHED test.
+    const testId = "test-upload-count-001";
+    const waitingInfo = {
+      ...MOCK_TEST_STATUS,
+      _id: testId,
+      testId,
+      status: "WAITING",
+      result: null,
+    };
     await setupFailFast(page);
     await setupV2Routes(page, {
-      testInfo: MOCK_TEST_STATUS,
-      logEntries: entriesWithUploads,
+      testInfo: waitingInfo,
+      logEntries: MOCK_LOG_ENTRIES,
     });
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "WAITING", browser: { uploadsRequired: 2 } }),
+      }),
+    );
     await setupCommonRoutes(page);
 
-    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
 
     await page.locator('[data-testid="overflow-trigger"]').click();
     await expect(page.locator('button[data-action-id="upload-images"]')).toHaveText(
@@ -5072,5 +5084,71 @@ test.describe("log-detail.html — browser-URL prompt: POST + visited (#1869)", 
     const gap = await wrapper.evaluate((el) => getComputedStyle(el).gap);
     expect(gap).not.toBe("0px");
     expect(gap).not.toBe("normal");
+  });
+
+  // #1884 — the upload-needed CTA rendered into the same browser slot.
+  test("a single outstanding placeholder renders singular copy and an Upload image link", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-upload-001";
+    await setupBrowserSlotRoutes(page, testId, { uploadsRequired: 1 });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot).toContainText("1 image needs to be uploaded");
+    const uploadLink = slot.locator("cts-link-button");
+    await expect(uploadLink).toBeVisible();
+    await expect(uploadLink).toHaveAttribute("label", "Upload image");
+    await expect(uploadLink).toHaveAttribute(
+      "href",
+      `/upload.html?log=${encodeURIComponent(testId)}`,
+    );
+  });
+
+  test("multiple outstanding placeholders render plural copy and label", async ({ page }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-upload-002";
+    await setupBrowserSlotRoutes(page, testId, { uploadsRequired: 3 });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot).toContainText("3 images need to be uploaded");
+    await expect(slot.locator("cts-link-button")).toHaveAttribute("label", "Upload images");
+  });
+
+  test("an upload-only payload (no pending URLs) still renders, not an empty slot (regression guard)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-upload-003";
+    await setupBrowserSlotRoutes(page, testId, { uploadsRequired: 1 });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot.locator(".v2-browser-wrapper")).toHaveCount(1);
+    await expect(slot.locator("cts-link-button")).toBeVisible();
+  });
+
+  test("uploadsRequired: 0 renders no upload CTA", async ({ page }) => {
+    await setupFailFast(page);
+    const testId = "test-browser-upload-004";
+    await setupBrowserSlotRoutes(page, testId, {
+      urlsWithMethod: [{ url: "https://op.example.com/authorize?client_id=test", method: "GET" }],
+      uploadsRequired: 0,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
+
+    const slot = page.locator('[data-slot="browser"]');
+    await expect(slot.locator("cts-link-button")).toHaveCount(0);
+    await expect(slot).not.toContainText("needs to be uploaded");
   });
 });

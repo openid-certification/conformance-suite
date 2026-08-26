@@ -853,6 +853,10 @@ public class TestRunner implements DataUtils {
 			bmap.put("visited", browser.getVisited());
 			bmap.put("visitedUrlsWithMethod", browser.getVisitedUrlsWithMethod());
 			bmap.put("runners", browser.getWebRunners());
+			// #1884 - lets the log-detail page surface an actionable "upload an
+			// image" prompt near the top of the page (mirroring the URL-visit
+			// prompt) instead of only via the buried overflow-menu action.
+			bmap.put("uploadsRequired", imageService.getRemainingPlaceholders(test.getId(), true).size());
 			map.put("browser", bmap);
 		}
 		return map;
