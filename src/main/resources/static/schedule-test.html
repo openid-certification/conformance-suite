@@ -174,6 +174,57 @@
         #guidedIsland:focus,
         #scheduleTestPage:focus { outline: none; }
 
+        /* Reserve room below each island's content so its sticky
+           cts-action-bar (#guidedStageActions / #launchButtons) has space to
+           stick all the way to true max scroll before releasing.
+           The bar's containing block for sticky purposes is this island
+           div, not the outer <main> — a padding-bottom on <main> gives the
+           bar no extra room, since the island itself ends flush with the
+           bar. The fallback `80px` covers the first paint before
+           cts-action-bar publishes --cts-action-bar-height. */
+        #guidedIsland,
+        #scheduleTestPage {
+            padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
+        }
+
+        /* The padding-bottom above only guarantees room
+           exists at the very end of the scroll range — it does nothing to
+           stop content from landing PARTIALLY BEHIND the sticky bar when
+           scrolled to mid-way through the form (e.g. "Validate
+           Configuration", the form's own submit button, is the last thing
+           inside <cts-config-form> and sits right where the sticky bar
+           covers it). scrollIntoView()/scrollIntoViewIfNeeded() and Tab-key
+           focus scrolling compute "is this visible?" from raw viewport
+           geometry — they have no idea the bottom var(--cts-action-bar-
+           height) pixels of the viewport are painted over by a fixed/sticky
+           bar, so they stop scrolling as soon as an element's box merely
+           intersects the viewport, even if it's still hidden underneath.
+           scroll-padding-bottom is the browser-native fix: every native and
+           scripted scrollIntoView within this page now reserves that much
+           clearance automatically, the same way log-detail.js's entries use
+           scroll-margin-top to clear the sticky status bar at the top. */
+        html {
+            scroll-padding-bottom: var(--cts-action-bar-height, 80px);
+        }
+
+        /* scroll-padding-bottom only controls how FAR a
+           scroll goes, not the underlying layout — on a short form, true
+           max scroll is reached before the requested clearance is actually
+           satisfied, so the bar (once it releases from sticking) still
+           settles flush against the form's last control ("Validate
+           Configuration") with zero DOM-level gap. Give the bar itself real
+           margin so there's always visible breathing room once it settles,
+           independent of scroll position or how tall any given plan's form
+           is. */
+        #launchButtons .oidf-action-bar,
+        #guidedStageActions .oidf-action-bar {
+            /* Targets cts-action-bar's inner div, not the host: the host
+               element itself has no explicit `display` and defaults to
+               `inline`, which ignores margin-top entirely — margin has to
+               land on the div that's actually block-level and sticky. */
+            margin-top: var(--space-4);
+        }
+
         /* revealPlanSelection() scrolls #selectionFlash to block:start; land
            it 16px shy of the viewport top so the selection (and the flash wash
            around it) gets breathing room. scroll-margin offsets the scroll
