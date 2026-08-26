@@ -526,6 +526,12 @@ local_test:
     matrix:
       - BROWSER_ENGINE: selenium
       - BROWSER_ENGINE: playwright
+  variables:
+    # Playwright tracing records screenshots and DOM snapshots of every scripted-browser run even in
+    # the compose file's default 'on-failure' mode (it only decides at the end whether to keep the
+    # trace), which is measurable overhead over ~1000 modules. Off here; set to on-failure or true
+    # when a failure needs a trace (see the traces/ artifact below), and locally.
+    BROWSER_TRACE: "false"
   script:
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
@@ -547,7 +553,8 @@ local_test:
       - server-log-*.txt
       - mongo/data/mongodb-dump-*.gz
       - "*.zip"
-      # Playwright traces of failed scripted-browser runs (open with 'npx playwright show-trace')
+      # Playwright traces (open with 'npx playwright show-trace'); only written when BROWSER_TRACE above is
+      # on-failure or true
       - traces/
 
 security_test:
