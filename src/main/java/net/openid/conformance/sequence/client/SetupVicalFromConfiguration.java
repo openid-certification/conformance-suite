@@ -3,7 +3,7 @@ package net.openid.conformance.sequence.client;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CallVicalEndpoint;
-import net.openid.conformance.condition.client.EnsureVicalEndpointContentTypeIsApplicationCbor;
+import net.openid.conformance.condition.client.DumpVicalCborDiagnostics;
 import net.openid.conformance.condition.client.ParseVical;
 import net.openid.conformance.condition.client.RegisterVical;
 import net.openid.conformance.condition.client.ValidateVicalSignature;
@@ -39,12 +39,21 @@ public class SetupVicalFromConfiguration extends AbstractConditionSequence {
 			.onSkip(ConditionResult.INFO)
 			.onFail(ConditionResult.FAILURE)
 			.dontStopOnFailure()
-			.requirements("ISO18013-5-C.1.7.1"));
+			.requirements("ISO18013-5-C.1.7.3"));
 
 		// WARNING, not FAILURE — see the severity policy in the class javadoc (multipaz's
 		// parser also rejects third-party VICAL defects, so ParseVical must not be a FAILURE)
-		vicalQualityCheck(EnsureVicalEndpointContentTypeIsApplicationCbor.class, "vical_endpoint_response", "ISO18013-5-C.1.7.1");
+		// deliberately no response content-type check: the second-edition draft says
+		// application/cwt (C.1.7.3) while the RICAL annex says application/cbor, and ISO
+		// may yet change either - revisit once the second edition is published
 		vicalQualityCheck(ParseVical.class, "vical", "ISO18013-5-C.1.7.1");
+
+		// informational: the VICAL in CBOR diagnostic notation, for inspecting the actual encoding
+		call(condition(DumpVicalCborDiagnostics.class)
+			.skipIfObjectsMissing("vical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure());
 		vicalQualityCheck(ValidateVicalSignature.class, "vical", "ISO18013-5-C.1.7.1");
 		vicalQualityCheck(ValidateVicalSignerCertificateProfile.class, "vical", "ISO18013-5-C.1.7.2");
 		vicalQualityCheck(ValidateVicalStructure.class, "vical", "ISO18013-5-C.1.7.1");
