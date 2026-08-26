@@ -14,8 +14,7 @@ public class KsaClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	/**
 	 * KSA's consent (account-request) endpoint path. Note this is singular
-	 * ({@code account-request}), unlike the UK {@code account-requests} (plural) path that
-	 * {@link AbstractFAPI2SPFinalClientTest#ACCOUNT_REQUESTS_PATH} carries.
+	 * ({@code account-request}), not the plural {@code account-requests} used elsewhere.
 	 */
 	public static final String KSA_ACCOUNT_REQUEST_PATH = "open-banking/v1.1/account-request";
 

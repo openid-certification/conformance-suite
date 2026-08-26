@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpSession;
 // Allowing the OP to accept a 'redirect_uri' that has not been previously registered applies to
 // 'plain_fapi' and 'vci_haip' (the latter is exercised via VCIIssuerTestPlanHaip, which selects this
 // module instead of FAPI2SPFinalEnsureRegisteredRedirectUri since HAIP does not require pre-registration).
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant" })
 
 public class FAPI2SPFinalTolerateUnregisteredRedirectUri extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 

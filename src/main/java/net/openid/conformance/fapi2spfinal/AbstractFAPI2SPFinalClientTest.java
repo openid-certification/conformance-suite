@@ -116,7 +116,6 @@ import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthori
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateKSAOBAccountRequestResponse;
-import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
@@ -130,7 +129,6 @@ import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
-import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.GenerateKSAAccountConsentId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireDpopAccessToken;
@@ -239,7 +237,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 })
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
 
-	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	protected Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	protected Class<? extends ConditionSequence> validateClientAuthenticationSteps;
@@ -1647,50 +1644,6 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 	}
 
-	/**
-	 * OpenBanking account request API
-	 *
-	 * @param requestId
-	 * @return
-	 */
-	protected Object accountRequestsEndpoint(String requestId) {
-
-		setStatus(Status.RUNNING);
-
-		call(exec().startBlock("Account request endpoint")
-			.mapKey("incoming_request", requestId));
-
-		checkResourceEndpointRequest(true);
-
-		ResponseEntity<Object> responseObject = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			createResourceEndpointDpopErrorResponse();
-			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
-		} else {
-			// TODO: should we clear the old headers?
-			callAndStopOnFailure(GenerateAccountRequestId.class);
-			exposeEnvString("account_request_id");
-
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-
-		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
-
-		JsonObject accountRequestResponse = env.getObject("account_request_response");
-		JsonObject headerJson = env.getObject("account_request_response_headers");
-
-			callAndStopOnFailure(ClearAccessTokenFromRequest.class);
-			responseObject = new ResponseEntity<>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
-			if(requireResourceServerEndpointDpopNonce()) {
-				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
-			}
-		}
-		call(exec().unmapKey("incoming_request").endBlock());
-
-		setStatus(Status.WAITING);
-
-		return responseObject;
-	}
-
 	protected Object ksaAccountRequestEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
@@ -1816,11 +1769,6 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
 	public void setupFapiClientCredentialsGrant() {
 		initProfileBehavior(new ClientCredentialsGrantClientProfileBehavior());
-	}
-
-	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
-	public void setupOpenBankingUk() {
-		initProfileBehavior(new OpenBankingUkClientProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au")

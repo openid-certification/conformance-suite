@@ -20,7 +20,6 @@ import net.openid.conformance.variant.VariantSetup;
 )
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
 	"plain_fapi",
-	"openbanking_uk",
 	"consumerdataright_au",
 	"connectid_au",
 	"cbuae",

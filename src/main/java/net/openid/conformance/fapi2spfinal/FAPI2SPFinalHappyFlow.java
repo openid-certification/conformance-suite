@@ -161,8 +161,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 	protected void requestProtectedResource() {
 
 		if (!isSecondClient()) {
-			if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_UK ||
-				getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
+			if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 				callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
 				checkAccountRequestEndpointTLS();
 				checkAccountResourceEndpointTLS();

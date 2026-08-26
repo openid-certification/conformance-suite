@@ -103,8 +103,6 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 			case "fapi_client_credentials_grant":
 				certProfile += "Client Credentials Grant ";
 				break;
-			case "openbanking_uk":
-				return List.of("FAPI2SP OP UK-OB");
 			case "consumerdataright_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
