@@ -194,7 +194,10 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(inner.locator("cts-button")).toHaveCount(2);
 
     const bar = page.locator("#guidedStageActions .oidf-action-bar");
-    await expect(bar).toHaveCSS("position", "fixed");
+    // sticky, not fixed — see cts-action-bar.js's class doc comment for
+    // why. Behaves identically to fixed here since nothing has scrolled
+    // the bar's containing block out from under it yet.
+    await expect(bar).toHaveCSS("position", "sticky");
     // Let the 220ms slide-in animation settle before measuring geometry.
     await bar.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const barBox = await bar.boundingBox();
