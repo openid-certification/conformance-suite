@@ -126,6 +126,16 @@ _makeFapiTestPart1() {
 
     #FAPI2 KSA profile2
     TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][fapi_client_type=oidc][sender_constrain=mtls][fapi_profile=ksa][fapi_response_mode=plain_response][authorization_request_type=simple]:fapi2-security-profile-final-client-test-happy-path{fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=mtls][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=ksa][fapi_response_mode=plain_response][authorization_request_type=simple]:fapi2-security-profile-final-par-without-duplicate-parameters}${SUITE_DIR}/scripts/test-configs-rp-against-op/ksa-fapi2-op.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/ksa-fapi2-rp.json"
+    # A negative RP test under a consent based profile. The KSA client must obtain a
+    # client_credentials token and create a consent before /par, so this covers the token
+    # endpoint staying open until the fault is sent (issue #1933). The RP module cannot
+    # pass: its driver is our own OP test module, which reports the invalid iss and then
+    # carries on to the token endpoint rather than stopping, so the failure is listed in
+    # expected-failures-fapi.json. The regression signal is compare_fapi - a regression
+    # drops ~35 conditions from this module, the test never reaching its own fault.
+    # separate op config (differing only in description) so compare-results.py can tell
+    # this driver plan apart from the happy path pairing's, which uses the same module
+    TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][fapi_client_type=oidc][sender_constrain=mtls][fapi_profile=ksa][fapi_response_mode=plain_response][authorization_request_type=simple]:fapi2-security-profile-final-client-test-invalid-authorization-response-iss{fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=mtls][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=ksa][fapi_response_mode=plain_response][authorization_request_type=simple]:fapi2-security-profile-final-par-without-duplicate-parameters}${SUITE_DIR}/scripts/test-configs-rp-against-op/ksa-fapi2-op-1.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/ksa-fapi2-rp.json"
 
 
 }
