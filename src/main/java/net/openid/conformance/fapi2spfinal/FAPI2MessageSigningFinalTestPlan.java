@@ -96,9 +96,6 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		//Refresh token tests
 		FAPI2SPFinalRefreshToken.class,
 
-		// OBUK specific tests
-		FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId.class,
-		FAPI2SPFinalTestEssentialAcrScaClaim.class,
 
 		// OB Brazil specific tests
 		FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails.class,
@@ -182,12 +179,6 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		switch (profile) {
 			case "plain_fapi":
 				break;
-			case "openbanking_uk":
-				if (jarm) {
-					throw new RuntimeException("Invalid configuration for %s: JARM is not used in UK".formatted(
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				return List.of( "FAPI2MS OP UK-OB");
 			case "consumerdataright_au":
 //				certProfile = "AU-CDR";
 				if (!privateKey) {

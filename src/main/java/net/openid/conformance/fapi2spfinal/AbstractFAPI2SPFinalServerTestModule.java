@@ -88,7 +88,6 @@ import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFl
 import net.openid.conformance.condition.client.RequireIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
@@ -166,10 +165,6 @@ import java.util.function.Supplier;
 	"resource.resourceMediaType",
 	"resource.resourceRequestBody"
 })
-@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
-	"resource.resourceUrlAccountRequests",
-	"resource.resourceUrlAccountsResource"
-})
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
 	"resource.cdrVersion"
 })
@@ -209,14 +204,6 @@ import java.util.function.Supplier;
 })
 // mtls fields are only necessary for non-plain_fapi profiles, but we can't use @VariantHidesConfigurationFields
 // as that would result in them not being shown for mtls client auth
-@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca",
-	"mtls2.key",
-	"mtls2.cert",
-	"mtls2.ca"
-})
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
 	"mtls.key",
 	"mtls.cert",
@@ -297,7 +284,7 @@ import java.util.function.Supplier;
 	parameter = ClientAuthType.class,
 	values = {"client_attestation"},
 	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant"}
+	hasValues = {"plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant"}
 )
 // VCI profile configuration fields
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
@@ -359,13 +346,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-		}
-	}
-
-	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
 		}
 	}
 
@@ -1162,11 +1142,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
 	public void setupFapiClientCredentialsGrant() {
 		initProfileBehavior(new ClientCredentialsGrantProfileBehavior());
-	}
-
-	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
-	public void setupOpenBankingUk() {
-		initProfileBehavior(new OpenBankingUkProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au")

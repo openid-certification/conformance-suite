@@ -20,7 +20,6 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidMissingI
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidMissingNonce;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidNonce;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidNullAlg;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidOpenBankingIntentId;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestInvalidSecondaryAud;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestValidAudAsArray;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -164,7 +163,6 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 		modules.remove(FAPI2SPFinalClientTestEnsureJarmSignatureAlgIsNotNone.class);
 
 		// Profile-incompatible
-		modules.remove(FAPI2SPFinalClientTestInvalidOpenBankingIntentId.class); // openbanking_uk only
 		modules.remove(FAPI2SPFinalClientRefreshTokenTest.class);               // openbanking_brazil / cbuae only
 
 		return modules;
