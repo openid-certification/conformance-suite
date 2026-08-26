@@ -1403,6 +1403,16 @@ export function flashEntryArrival(host) {
 }
 
 /**
+ * Tracks each `.logItem`'s in-flight flash cleanup (its animationend
+ * listener + safety-net timer) so flashItem() can cancel a still-pending
+ * one when re-triggered on the same element, instead of leaving it
+ * stranded. Keyed by element (not id) and a WeakMap so entries are
+ * collected automatically once a row leaves the DOM.
+ * @type {WeakMap<HTMLElement, {timer: ReturnType<typeof setTimeout>, onAnimationEnd: (e: AnimationEvent) => void}>}
+ */
+const pendingFlashes = new WeakMap();
+
+/**
  * Run the actual flash on a resolved, non-null `.logItem` element. Split out
  * from flashEntryArrival() so `item`'s non-null HTMLElement type is fixed by
  * the parameter declaration — TS narrowing from an outer `if (!item) return`
@@ -1412,14 +1422,25 @@ export function flashEntryArrival(host) {
  * @returns {void}
  */
 function flashItem(item) {
+  // Cancel a still-pending flash on this same item (e.g. rapid repeat clicks
+  // on the same failure row) rather than leaving its listener/timer stranded
+  // — mirrors cts-flash-highlight's per-instance _flashTimer cancellation,
+  // adapted to a WeakMap since this is a plain function, not a class with
+  // per-instance state.
+  const prior = pendingFlashes.get(item);
+  if (prior) {
+    clearTimeout(prior.timer);
+    item.removeEventListener("animationend", prior.onAnimationEnd);
+    pendingFlashes.delete(item);
+  }
+
   const reduce =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Force a reflow before re-adding so a re-trigger mid-flash (e.g. rapid
-  // repeat clicks on the same failure row) restarts the wash from 0% rather
-  // than continuing mid-curve.
+  // Force a reflow before re-adding so a re-trigger mid-flash restarts the
+  // wash from 0% rather than continuing mid-curve.
   item.removeAttribute(FLASH_ARRIVAL_ATTR);
   void item.offsetWidth;
   item.setAttribute(FLASH_ARRIVAL_ATTR, "");
@@ -1428,6 +1449,7 @@ function flashItem(item) {
   function clear() {
     item.removeEventListener("animationend", onAnimationEnd);
     item.removeAttribute(FLASH_ARRIVAL_ATTR);
+    pendingFlashes.delete(item);
   }
   /** @param {AnimationEvent} e - The bubbled animationend event. */
   function onAnimationEnd(e) {
@@ -1437,5 +1459,9 @@ function flashItem(item) {
   item.addEventListener("animationend", onAnimationEnd);
   // Reduced-motion path: the sole cleanup, since no animation (and thus no
   // animationend) runs. Motion path: safety net in case animationend is missed.
-  setTimeout(clear, reduce ? FLASH_ARRIVAL_DURATION_MS : FLASH_ARRIVAL_DURATION_MS + 200);
+  const timer = setTimeout(
+    clear,
+    reduce ? FLASH_ARRIVAL_DURATION_MS : FLASH_ARRIVAL_DURATION_MS + 200,
+  );
+  pendingFlashes.set(item, { timer, onAnimationEnd });
 }

@@ -1770,6 +1770,17 @@ function handleScrollToEntry(evt) {
 }
 
 /**
+ * Cancels the most recently scheduled flashArrivalWhenScrollSettles() wait,
+ * if any is still pending. Only one jump's landing can be "current" at a
+ * time — without this, clicking a second failure row before the first
+ * jump's scroll settles would leave the first wait armed too, and a single
+ * scrollend (the browser coalesces the redirected scroll into one motion)
+ * would flash both the abandoned first target and the real second one.
+ * @type {(() => void) | null}
+ */
+let cancelPendingArrivalFlash = null;
+
+/**
  * Flash the landing row once the smooth scroll started by
  * scrollEntryIntoView has settled — firing mid-scroll would read as noise
  * rather than "you've arrived" (same post-settle timing schedule-test.html
@@ -1781,15 +1792,26 @@ function handleScrollToEntry(evt) {
  * @returns {void}
  */
 function flashArrivalWhenScrollSettles(target) {
+  if (cancelPendingArrivalFlash) cancelPendingArrivalFlash();
+
   let settled = false;
   function finish() {
     if (settled) return;
     settled = true;
     window.removeEventListener("scrollend", finish);
+    clearTimeout(timeoutId);
+    cancelPendingArrivalFlash = null;
     flashEntryArrival(target);
   }
+  function cancel() {
+    if (settled) return;
+    settled = true;
+    window.removeEventListener("scrollend", finish);
+    clearTimeout(timeoutId);
+  }
   window.addEventListener("scrollend", finish, { once: true });
-  setTimeout(finish, 1000);
+  const timeoutId = setTimeout(finish, 1000);
+  cancelPendingArrivalFlash = cancel;
 }
 
 /**
