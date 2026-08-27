@@ -23,12 +23,22 @@ public class PlaywrightBrowserInstaller {
 		if (!engine.equals(BrowserControl.ENGINE_PLAYWRIGHT)) {
 			return;
 		}
-		String browserType = PlaywrightBrowserRunner.Settings.fromSystemProperties().browserType();
+		PlaywrightBrowserRunner.Settings settings = PlaywrightBrowserRunner.Settings.fromSystemProperties();
 		try {
-			PlaywrightBrowserRunner.ensureBrowserInstalled(browserType);
+			PlaywrightBrowserRunner.ensureBrowserInstalled(settings.browserType());
 		} catch (RuntimeException e) {
 			// don't take the whole server down: the runner retries the install when it is first needed
-			logger.error("Failed to install Playwright's " + browserType + " at startup; scripted browser runs will retry", e);
+			logger.error("Failed to install Playwright's " + settings.browserType() + " at startup; scripted browser runs will retry", e);
+			return;
+		}
+		if (settings.sharedBrowser()) {
+			// likewise started here so the first test does not pay for it; the runners retry, and
+			// fall back to a browser of their own, if this fails
+			try {
+				PlaywrightBrowserServer.endpoint(settings);
+			} catch (RuntimeException e) {
+				logger.error("Failed to start the shared Playwright browser at startup; scripted browser runs will retry", e);
+			}
 		}
 	}
 }

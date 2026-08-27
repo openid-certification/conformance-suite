@@ -46,12 +46,14 @@ public class PlaywrightBrowserRunner_UnitTest {
 	@Test
 	public void settingsAreReadFromSystemProperties() {
 		String[] names = {"browser.playwright.type", "browser.playwright.headless", "browser.playwright.slowMo",
-			"browser.playwright.extraHttpHeaders", "browser.playwright.traceEnabled", "browser.playwright.tracesDir"};
+			"browser.playwright.sharedBrowser", "browser.playwright.extraHttpHeaders", "browser.playwright.traceEnabled",
+			"browser.playwright.tracesDir"};
 		try {
 			PlaywrightBrowserRunner.Settings defaults = PlaywrightBrowserRunner.Settings.fromSystemProperties();
 			assertThat(defaults.browserType()).isEqualTo("chromium");
 			assertThat(defaults.headless()).isTrue();
 			assertThat(defaults.slowMo()).isZero();
+			assertThat(defaults.sharedBrowser()).isTrue();
 			assertThat(defaults.extraHttpHeaders()).isEmpty();
 			assertThat(defaults.traceMode()).isEqualTo(TraceMode.OFF);
 			assertThat(defaults.tracesDir()).isEmpty();
@@ -59,6 +61,7 @@ public class PlaywrightBrowserRunner_UnitTest {
 			System.setProperty("browser.playwright.type", "Firefox");
 			System.setProperty("browser.playwright.headless", "false");
 			System.setProperty("browser.playwright.slowMo", "250");
+			System.setProperty("browser.playwright.sharedBrowser", "false");
 			System.setProperty("browser.playwright.extraHttpHeaders", "{\"X-Test\": \"1\", \"ngrok-skip-browser-warning\": \"yes\"}");
 			System.setProperty("browser.playwright.traceEnabled", "on-failure");
 			System.setProperty("browser.playwright.tracesDir", "/tmp/traces");
@@ -67,6 +70,7 @@ public class PlaywrightBrowserRunner_UnitTest {
 			assertThat(configured.browserType()).isEqualTo("firefox");
 			assertThat(configured.headless()).isFalse();
 			assertThat(configured.slowMo()).isEqualTo(250);
+			assertThat(configured.sharedBrowser()).isFalse();
 			assertThat(configured.extraHttpHeaders()).containsExactlyInAnyOrderEntriesOf(
 				java.util.Map.of("X-Test", "1", "ngrok-skip-browser-warning", "yes"));
 			assertThat(configured.traceMode()).isEqualTo(TraceMode.ON_FAILURE);
