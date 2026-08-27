@@ -1,5 +1,7 @@
 package net.openid.conformance.frontchannel;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 import net.openid.conformance.frontchannel.PlaywrightBrowserRunner.TraceMode;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +32,24 @@ public class PlaywrightBrowserRunner_UnitTest {
 
 		assertThat(html).contains("<form method=\"POST\" action=\"https://as.example.com/authorize\"></form>");
 		assertThat(html).doesNotContain("<input");
+	}
+
+	@Test
+	public void laterTaskUrlMatchersLeaveOutThoseMatchingAnything() {
+		JsonArray tasks = JsonParser.parseString("""
+			[
+				{"task": "Login", "match": "*/login*"},
+				{"task": "Consent", "match": "*/consent*"},
+				{"task": "Anything"},
+				{"task": "Star", "match": "*"},
+				{"task": "Stars", "match": "**"},
+				{"task": "Empty", "match": ""},
+				{"task": "Done", "match": "*/callback*"}
+			]""").getAsJsonArray();
+
+		assertThat(PlaywrightBrowserRunner.laterTaskUrlMatchers(tasks, 0)).containsExactly("*/consent*", "*/callback*");
+		assertThat(PlaywrightBrowserRunner.laterTaskUrlMatchers(tasks, 1)).containsExactly("*/callback*");
+		assertThat(PlaywrightBrowserRunner.laterTaskUrlMatchers(tasks, 6)).isEmpty();
 	}
 
 	@Test

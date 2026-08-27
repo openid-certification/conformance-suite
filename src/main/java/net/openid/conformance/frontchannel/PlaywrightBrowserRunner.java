@@ -2,6 +2,7 @@ package net.openid.conformance.frontchannel;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.playwright.Browser;
@@ -39,6 +40,7 @@ import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -239,7 +241,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 
 				if (!Strings.isNullOrEmpty(expectedUrlMatcher)) {
 					boolean optional = currentTask.has("optional") && OIDFJSON.getBoolean(currentTask.get("optional"));
-					if (!waitForUrlToMatch(expectedUrlMatcher, optional)) {
+					if (!waitForUrlToMatch(expectedUrlMatcher, optional, laterTaskUrlMatchers(tasks, i))) {
 						if (optional) {
 							eventLog.log("WebRunner", args(
 								"msg", "Skipping optional task due to URL mismatch",
@@ -286,9 +288,11 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 							doCommand(commands.get(j).getAsJsonArray(), taskName);
 							// clear the current command once it's done
 							this.currentCommand = null;
-							updateCache();
 						}
 					}
+
+					// one screenshot per task, not per command: each costs a round trip to the browser
+					updateCache();
 
 					eventLog.log("WebRunner", args(
 						"msg", "Completed processing of webpage",
@@ -411,23 +415,58 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * this waits for it to match: for up to the navigation timeout if the task is required, and
 	 * briefly if it is optional, where not matching is the normal way of skipping the task.
 	 *
+	 * <p>An optional task is skipped without waiting once the page is on a url that one of the
+	 * later tasks is for: the browser has evidently gone past the optional task's page. That is
+	 * the everyday case of the Login and Consent tasks on a visit by a user the authorization
+	 * server still knows, which sends the browser straight to the suite's redirect uri.
+	 *
+	 * @param laterTaskUrlMatchers the 'match' patterns of the tasks after this one (ignoring any
+	 *                             that match everything, which say nothing about where the page is)
 	 * @return true if the url matches (possibly after waiting), false if it still doesn't
 	 */
-	private boolean waitForUrlToMatch(String expectedUrlMatcher, boolean optional) {
+	private boolean waitForUrlToMatch(String expectedUrlMatcher, boolean optional, List<String> laterTaskUrlMatchers) {
 		if (PatternMatchUtils.simpleMatch(expectedUrlMatcher, page.url())) {
 			return true;
+		}
+		if (optional && matchesAny(laterTaskUrlMatchers, page.url())) {
+			logger.debug(testId + ": WebRunner url " + page.url() + " is already one of a later task's, skipping the optional task without waiting");
+			return false;
 		}
 		int timeout = optional ? OPTIONAL_TASK_URL_TIMEOUT_MILLIS : NAVIGATION_TIMEOUT_MILLIS;
 		logger.debug(testId + ": WebRunner url " + page.url() + " does not match '" + expectedUrlMatcher
 			+ "', waiting up to " + timeout + "ms for it to");
 		try {
-			page.waitForURL(url -> PatternMatchUtils.simpleMatch(expectedUrlMatcher, url), new Page.WaitForURLOptions()
-				.setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
-				.setTimeout(timeout));
-			return true;
+			page.waitForURL(url -> PatternMatchUtils.simpleMatch(expectedUrlMatcher, url) || (optional && matchesAny(laterTaskUrlMatchers, url)),
+				new Page.WaitForURLOptions()
+					.setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+					.setTimeout(timeout));
+			return PatternMatchUtils.simpleMatch(expectedUrlMatcher, page.url());
 		} catch (TimeoutError e) {
 			return false;
 		}
+	}
+
+	private static boolean matchesAny(List<String> urlMatchers, String url) {
+		return urlMatchers.stream().anyMatch(matcher -> PatternMatchUtils.simpleMatch(matcher, url));
+	}
+
+	/**
+	 * The 'match' patterns of the tasks after the given one, leaving out the ones that would match
+	 * any url (the default for a task without 'match').
+	 */
+	static List<String> laterTaskUrlMatchers(JsonArray tasks, int taskIndex) {
+		List<String> matchers = new ArrayList<>();
+		for (int i = taskIndex + 1; i < tasks.size(); i++) {
+			JsonElement task = tasks.get(i);
+			if (!task.isJsonObject() || !task.getAsJsonObject().has("match")) {
+				continue;
+			}
+			String matcher = OIDFJSON.getString(task.getAsJsonObject().get("match"));
+			if (!Strings.isNullOrEmpty(matcher) && !matcher.replace("*", "").isEmpty()) {
+				matchers.add(matcher);
+			}
+		}
+		return matchers;
 	}
 
 	/**
