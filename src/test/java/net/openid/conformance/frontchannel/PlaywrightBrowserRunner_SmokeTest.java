@@ -211,6 +211,21 @@ public class PlaywrightBrowserRunner_SmokeTest {
 	}
 
 	@Test
+	public void skipsOptionalTasksWithoutWaitingWhenAlreadyOnALaterTasksPage() throws Exception {
+		// a user the authorization server still knows is sent straight to the callback: the optional
+		// login and consent tasks must be skipped at once, not after their url wait each (2s)
+		long start = System.currentTimeMillis();
+		runner(baseUrl + "/callback?code=1", "GET", """
+			[
+				{"task": "Login", "optional": true, "match": "*/login*", "commands": [["click", "id", "login"]]},
+				{"task": "Consent", "optional": true, "match": "*/authorize*", "commands": [["click", "id", "authorize"]]},
+				{"task": "Done", "match": "*/callback*", "commands": [["wait", "id", "result", 5, "Done"]]}
+			]""").call();
+
+		assertThat(System.currentTimeMillis() - start).as("no 2s wait per skipped optional task").isLessThan(3_500);
+	}
+
+	@Test
 	public void runnerLaunchesItsOwnBrowserWhenSharingIsOff() throws Exception {
 		String result = runner(baseUrl + "/whoami", "GET", """
 			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^anonymous$"]]}]""", settings(false)).call();
