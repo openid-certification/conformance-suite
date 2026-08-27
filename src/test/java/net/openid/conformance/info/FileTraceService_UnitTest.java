@@ -50,8 +50,33 @@ public class FileTraceService_UnitTest {
 		Path sub = Files.createDirectory(tracesDir.resolve("sub"));
 
 		FileTraceService service = service(sub.toString());
-		assertThat(service.getTraceForTestId("../secret")).isEmpty();
-		assertThat(service.getTraceForTestId("")).isEmpty();
-		assertThat(service.getTraceForTestId(null)).isEmpty();
+		for (String crafted : new String[] {"../secret", "..\\secret", "/" + secret, "abc/../../secret", "abc%2F..%2Fsecret", "secret\0", "", null}) {
+			assertThat(service.getTraceForTestId(crafted)).as("read with id %s", crafted).isEmpty();
+			service.deleteTraceForTestId(crafted);
+			assertThat(secret).as("after delete with id %s", crafted).exists();
+		}
+	}
+
+	@Test
+	public void deletesTraceForTestId() throws IOException {
+		Path trace = tracesDir.resolve("abc123.zip");
+		Files.writeString(trace, "trace", StandardCharsets.UTF_8);
+		Path other = tracesDir.resolve("def456.zip");
+		Files.writeString(other, "other", StandardCharsets.UTF_8);
+
+		service(tracesDir.toString()).deleteTraceForTestId("abc123");
+
+		assertThat(trace).doesNotExist();
+		assertThat(other).exists();
+	}
+
+	@Test
+	public void deleteIsANoOpWithoutATraceOrTracesDir() throws IOException {
+		service(tracesDir.toString()).deleteTraceForTestId("abc123"); // nothing recorded
+
+		Files.writeString(tracesDir.resolve("abc123.zip"), "trace", StandardCharsets.UTF_8);
+		service("").deleteTraceForTestId("abc123");
+		service(null).deleteTraceForTestId("abc123");
+		assertThat(tracesDir.resolve("abc123.zip")).exists();
 	}
 }

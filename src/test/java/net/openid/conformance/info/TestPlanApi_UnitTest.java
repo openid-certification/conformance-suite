@@ -32,6 +32,7 @@ public class TestPlanApi_UnitTest {
 	TestPlanService planService;
 	TestInfoService infoService;
 	TestRunnerSupport testRunnerSupport;
+	TraceService traceService;
 	Plan plan;
 	TestPlanApi api;
 
@@ -40,6 +41,7 @@ public class TestPlanApi_UnitTest {
 		planService = Mockito.mock(TestPlanService.class);
 		infoService = Mockito.mock(TestInfoService.class);
 		testRunnerSupport = Mockito.mock(TestRunnerSupport.class);
+		traceService = Mockito.mock(TraceService.class);
 		plan = Mockito.mock(Plan.class);
 		api = new TestPlanApi();
 		ReflectionTestUtils.setField(api, "planService", planService);
@@ -49,6 +51,7 @@ public class TestPlanApi_UnitTest {
 		// mocks, and the ordering assertion below is unchanged by that
 		ReflectionTestUtils.setField(api, "bulkPlanDeleter",
 			new BulkPlanDeleter(Mockito.mock(MongoTemplate.class), infoService, testRunnerSupport));
+		ReflectionTestUtils.setField(api, "traceService", traceService);
 	}
 
 	@Test
@@ -112,6 +115,10 @@ public class TestPlanApi_UnitTest {
 
 		verify(planService, times(1)).deleteMutableTestPlan("abc");
 		verify(infoService, times(1)).deleteTests(testIds);
+		// and their Playwright traces, which live on disk rather than in the database
+		for (String testId : testIds) {
+			verify(traceService, times(1)).deleteTraceForTestId(testId);
+		}
 	}
 
 	@Test

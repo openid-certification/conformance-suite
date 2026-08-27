@@ -30,24 +30,48 @@ public class FileTraceService implements TraceService {
 
 	@Override
 	public Optional<byte[]> getTraceForTestId(String testId) {
-		if (Strings.isNullOrEmpty(tracesDir)) {
-			return Optional.empty();
-		}
-		if (testId == null || !TEST_ID.matcher(testId).matches()) {
-			logger.debug("Refusing to look up trace for malformed testId: {}", testId);
-			return Optional.empty();
-		}
-
-		Path tracePath = Path.of(tracesDir).resolve(testId + ".zip");
-		if (!Files.isRegularFile(tracePath)) {
+		Optional<Path> tracePath = tracePath(testId);
+		if (tracePath.isEmpty() || !Files.isRegularFile(tracePath.get())) {
 			return Optional.empty();
 		}
 
 		try {
-			return Optional.of(Files.readAllBytes(tracePath));
+			return Optional.of(Files.readAllBytes(tracePath.get()));
 		} catch (IOException e) {
 			logger.error("Failed to read trace for testId: {}", testId, e);
 			return Optional.empty();
 		}
+	}
+
+	@Override
+	public void deleteTraceForTestId(String testId) {
+		Optional<Path> tracePath = tracePath(testId);
+		if (tracePath.isEmpty()) {
+			return;
+		}
+
+		try {
+			if (Files.deleteIfExists(tracePath.get())) {
+				logger.debug("Deleted trace for testId: {}", testId);
+			}
+		} catch (IOException e) {
+			logger.error("Failed to delete trace for testId: {}", testId, e);
+		}
+	}
+
+	/**
+	 * The path a test's trace is at, or empty if traces aren't configured or the id isn't one of
+	 * ours. The id is only ever turned into a path if it is plain alphanumeric, so it can't leave
+	 * the traces directory or name anything but a {@code <testId>.zip} in it.
+	 */
+	private Optional<Path> tracePath(String testId) {
+		if (Strings.isNullOrEmpty(tracesDir)) {
+			return Optional.empty();
+		}
+		if (testId == null || !TEST_ID.matcher(testId).matches()) {
+			logger.debug("Refusing to turn malformed testId into a trace path: {}", testId);
+			return Optional.empty();
+		}
+		return Optional.of(Path.of(tracesDir).resolve(testId + ".zip"));
 	}
 }
