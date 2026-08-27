@@ -14,6 +14,10 @@ import java.util.List;
 
 public class FAPIValidateRequestObjectIdTokenACRClaims extends AbstractCondition {
 
+	protected List<String> getExpectedAcrValues() {
+		return List.of("urn:openbanking:psd2:sca", "urn:openbanking:psd2:ca");
+	}
+
 	@Override
 	@PreEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
@@ -61,9 +65,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims extends AbstractCondition
 			return env;
 		}
 
-		List<String> expectedValues = new ArrayList<>();
-		expectedValues.add("urn:openbanking:psd2:sca");
-		expectedValues.add("urn:openbanking:psd2:ca");
+		List<String> expectedValues = getExpectedAcrValues();
 
 		JsonArray matchedAcrValues = new JsonArray();
 		for (String possibleAcrValues : receivedValues) {

@@ -27,7 +27,6 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
-import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
@@ -97,7 +96,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
-import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
@@ -1122,7 +1120,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void addCustomValuesToParResponse() {}
 
 	protected JsonObject createPAREndpointResponse() {
-		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
+		callAndStopOnFailure(profileBehavior.getCreatePAREndpointResponseCondition(), "PAR-2.2");
 		addCustomValuesToParResponse();
 		JsonObject parResponse = env.getObject("par_endpoint_response");
 		return parResponse;
@@ -1271,9 +1269,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndStopOnFailure(ValidateRefreshToken.class);
 
 			issueAccessToken();
-			issueRefreshToken(); // rotate refresh token
+			if (profileBehavior.shouldRotateRefreshTokens()) {
+				issueRefreshToken(); // rotate refresh token
+			}
 			env.removeNativeValue("id_token");
 			callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			call(profileBehavior.customizeTokenEndpointResponse());
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 
 			// Create a new DPoP nonce
@@ -1374,6 +1375,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
 		}
+		call(profileBehavior.customizeTokenEndpointResponse());
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
@@ -1430,7 +1432,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		if (fapiClientType == FAPIClientType.OIDC) {
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
-				CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
+				profileBehavior.getCheckForUnexpectedClaimsInClaimsParameterCondition(), ConditionResult.WARNING, "OIDCC-5.5");
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
 				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10", "OBSP-3.4");
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
