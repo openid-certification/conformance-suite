@@ -76,7 +76,6 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfi
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.FAPI2ValidateJarmSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -965,7 +964,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-2.4-2", "JARM-2.4-3", "JARM-2.4-4");
 
-			callAndContinueOnFailure(FAPI2ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
+			call(profileBehavior.validateJarmSigningAlg());
 
 			skipIfElementMissing("jarm_response", "jws_header", ConditionResult.INFO,
 				ValidateJARMSigningAlg.class, ConditionResult.FAILURE);
