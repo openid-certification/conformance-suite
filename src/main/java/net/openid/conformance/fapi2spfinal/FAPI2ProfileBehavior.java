@@ -8,6 +8,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
@@ -247,6 +248,20 @@ public class FAPI2ProfileBehavior {
 				callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
 				callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 				callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CID-SP-4.2-12", "CDR-http-headers");
+			}
+		};
+	}
+
+	/**
+	 * Change profile-specific headers for the happy flow's additional resource endpoint
+	 * request, exercising an alternative value of the customer-presence headers.
+	 * Default switches x-fapi-customer-ip-address to an IPv6 address.
+	 */
+	public ConditionSequence addAlternateResourceEndpointProfileHeaders() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
 			}
 		};
 	}
