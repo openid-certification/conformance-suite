@@ -214,6 +214,12 @@ public class ConsumerDataRightAuProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
+	public String[] refreshTokenRotationProhibitedRequirements() {
+		// CDR Data Holders MUST NOT support refresh token rotation
+		return new String[] { "CDR-tokens" };
+	}
+
+	@Override
 	public ConditionSequence onConfigure() {
 		return new AbstractConditionSequence() {
 			@Override

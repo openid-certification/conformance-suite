@@ -109,9 +109,10 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
 		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop());
-		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
+		String[] rotationProhibitedRequirements = profileBehavior.refreshTokenRotationProhibitedRequirements();
+		if (rotationProhibitedRequirements != null) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
-				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-15").dontStopOnFailure());
+				condition(ValidateRefreshTokenNotRotated.class).requirements(rotationProhibitedRequirements).dontStopOnFailure());
 		}
 
 		if (! isOpenId) {
@@ -124,7 +125,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		call(sequence);
 		call(profileBehavior.afterTokenEndpointResponseProcessed());
 
-		if (getVariant(FAPI2FinalOPProfile.class) != FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (profileBehavior.refreshTokenRotationProhibitedRequirements() == null) {
 			if (env.getString("refresh_token_prev").equals(env.getString("refresh_token"))) {
 				eventLog.log(getName(), "Refresh token not rotated. Skipping lost refresh token test.");
 			}

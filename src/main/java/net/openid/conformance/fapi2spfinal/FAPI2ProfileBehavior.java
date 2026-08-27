@@ -213,6 +213,16 @@ public class FAPI2ProfileBehavior {
 	}
 
 	/**
+	 * Requirement tags for the check that refresh tokens are not rotated, for
+	 * profiles that prohibit rotation (Brazil, CDR). Returns null when rotation
+	 * is permitted, in which case the check is not performed.
+	 */
+	public String[] refreshTokenRotationProhibitedRequirements() {
+		// plain FAPI: refresh token rotation is permitted
+		return null;
+	}
+
+	/**
 	 * Profile-specific id_token validation (e.g., encryption checks).
 	 * Default does nothing.
 	 */
