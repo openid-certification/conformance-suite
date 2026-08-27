@@ -64,7 +64,9 @@ The scripted browser that runs a test config's `"browser"` automation block (`Br
 - `playwright` — a real Chromium/Firefox/WebKit via Playwright (`PlaywrightBrowserRunner`); tune with
   `-Dbrowser.playwright.type=chromium|firefox|webkit`, `.headless`, `.slowMo`, `.extraHttpHeaders` (JSON),
   `.traceEnabled=false|true|on-failure` and `.tracesDir`. Traces land as `<tracesDir>/<testId>.zip`, are
-  downloadable at `GET /api/log/{id}/trace` and open with `npx playwright show-trace`. The browser binary is
+  downloadable at `GET /api/log/{id}/trace` (test owner or admin only, never public) and open with
+  `npx playwright show-trace`; they are deleted with their test plan, and there is no age-based cleanup, so
+  tracing is a debugging switch rather than something to leave on for a long-running instance. The browser binary is
   downloaded into Playwright's cache at server startup (`PlaywrightBrowserInstaller`) if missing. All runners
   of a JVM share one browser process (`PlaywrightBrowserServer`, Playwright's `launch-server` run from the
   bundled driver; each runner connects and gets an isolated context) — `-Dbrowser.playwright.sharedBrowser=false`

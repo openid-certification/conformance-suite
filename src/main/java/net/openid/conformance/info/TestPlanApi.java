@@ -79,6 +79,9 @@ public class TestPlanApi implements DataUtils {
 	@Autowired
 	private TestRunnerSupport testRunnerSupport;
 
+	@Autowired
+	private TraceService traceService;
+
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "createTestPlan", summary = "Create test plan")
 	@ApiResponses(value = {
@@ -455,6 +458,8 @@ public class TestPlanApi implements DataUtils {
 		// both setStatusInternal() and call() refuse to act from a terminal state.
 		infoService.deleteTests(testIds);
 		planService.deleteMutableTestPlan(id);
+		// the Playwright traces (if any were recorded) live on disk, outside the database cascade
+		testIds.forEach(traceService::deleteTraceForTestId);
 
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
