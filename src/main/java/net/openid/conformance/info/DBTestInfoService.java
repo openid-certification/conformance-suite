@@ -137,6 +137,9 @@ public class DBTestInfoService implements TestInfoService {
 	public ImmutableMap<String, String> getTestOwner(String testId) {
 		try {
 			return testOwnerCache.get(testId);
+		} catch (CacheLoader.InvalidCacheLoadException e) {
+			// the loader returns null for a test that does not exist, which the cache reports this way
+			return null;
 		} catch (ExecutionException e) {
 			logger.error("ExecutionException while looking up owner for testId: " + testId, e);
 		}
