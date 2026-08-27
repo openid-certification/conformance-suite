@@ -89,7 +89,6 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
 		String senderConstrain = v.get("sender_constrain");
-		boolean privateKey = clientAuth.equals("private_key_jwt");
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 
@@ -106,11 +105,7 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 				certProfile += "Client Credentials Grant ";
 				break;
 			case "consumerdataright_au":
-				if (!privateKey) {
-					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				return List.of("FAPI2SP OP AU-CDR");
+				throw new RuntimeException("AU-CDR requires JARM and signed request objects, please use the FAPI2 Message Signing test plan.");
 			case "openbanking_brazil":
 				return List.of( "FAPI2SP OP BR-OF");
 			case "connectid_au":
