@@ -13,6 +13,10 @@ public class CreatePAREndpointResponse extends AbstractCondition {
 
 	public static final int EXPIRES_IN = 600;
 
+	protected int expiresIn() {
+		return EXPIRES_IN;
+	}
+
 	@Override
 	@PreEnvironment()
 	@PostEnvironment(required = "par_endpoint_response", strings = "par_endpoint_generated_request_uri")
@@ -29,7 +33,7 @@ public class CreatePAREndpointResponse extends AbstractCondition {
 
 		JsonObject parEndpointResponse = new JsonObject();
 		parEndpointResponse.addProperty("request_uri", requestUri);
-		parEndpointResponse.addProperty("expires_in", EXPIRES_IN);
+		parEndpointResponse.addProperty("expires_in", expiresIn());
 
 		env.putObject("par_endpoint_response", parEndpointResponse);
 
