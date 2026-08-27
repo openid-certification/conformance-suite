@@ -3,9 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddDpopJktToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -118,11 +116,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		callAndContinueOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
 
 		updateResourceRequest();
-		callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
-		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONSUMERDATARIGHT_AU) {
-			// CDR requires this header when the x-fapi-customer-ip-address header is present
-			callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
-		}
+		call(profileBehavior.addAlternateResourceEndpointProfileHeaders());
 		// try different, valid accept headers to verify server accepts them
 		ConditionSequence alternateHeaders = profileBehavior.setAlternateResourceEndpointContentHeaders();
 		if (alternateHeaders != null) {
