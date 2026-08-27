@@ -62,7 +62,8 @@ import java.util.regex.Pattern;
  *
  * <p>Locators always take the first matching element, mirroring Selenium's {@code findElement()},
  * so selectors that match several elements (e.g. {@code xpath=//*}) don't trip Playwright's strict
- * mode. Each runner launches its own browser; cookies and storage are carried between the runners of
+ * mode. Each runner has a browser context of its own, normally in the browser shared by all runners
+ * of the JVM ({@link PlaywrightBrowserServer}); cookies and storage are carried between the runners of
  * one test module instance via the context's storage state held by {@link BrowserControl}, which
  * gives the same "shared cookie jar" behaviour the OIDC prompt=login tests rely on with HtmlUnit.
  */
@@ -100,6 +101,8 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	private static final int PAGE_LOAD_TIMEOUT_MILLIS = 10_000;
 	/** Timeout for one attempt at the screenshot shown in the test log; see {@link #updateCache()}. */
 	private static final int SCREENSHOT_TIMEOUT_MILLIS = 5_000;
+	/** Timeout for connecting to the shared browser, see {@link PlaywrightBrowserServer}. */
+	private static final int CONNECT_TIMEOUT_MILLIS = 30_000;
 	/**
 	 * How long a runner waits for the runners submitted before it to finish before it starts its
 	 * own browser; see {@link #waitForEarlierRunners()}. Long enough for a predecessor to finish
@@ -470,23 +473,37 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 
 		playwright = Playwright.create();
 
-		BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-			.setHeadless(settings.headless())
-			.setSlowMo(settings.slowMo());
-
+		BrowserType browserType;
 		switch (settings.browserType()) {
 			case "firefox":
-				browser = playwright.firefox().launch(launchOptions);
+				browserType = playwright.firefox();
 				break;
 			case "webkit":
-				browser = playwright.webkit().launch(launchOptions);
+				browserType = playwright.webkit();
 				break;
 			case "chromium":
-				browser = playwright.chromium().launch(launchOptions);
+				browserType = playwright.chromium();
 				break;
 			default:
 				throw new TestFailureException(testId, "Unsupported browser.playwright.type '" + settings.browserType()
 					+ "', expected one of chromium, firefox, webkit");
+		}
+
+		if (settings.sharedBrowser()) {
+			// the browser shared by all runners of this JVM, see PlaywrightBrowserServer; this runner
+			// gets a context of its own in it below
+			try {
+				String endpoint = PlaywrightBrowserServer.endpoint(settings);
+				browser = browserType.connect(endpoint, new BrowserType.ConnectOptions().setTimeout(CONNECT_TIMEOUT_MILLIS));
+				logger.debug(testId + ": Connected to the shared " + settings.browserType() + " at " + endpoint);
+			} catch (RuntimeException e) {
+				logger.warn(testId + ": Could not use the shared Playwright browser, launching one for this run instead", e);
+			}
+		}
+		if (browser == null) {
+			browser = browserType.launch(new BrowserType.LaunchOptions()
+				.setHeadless(settings.headless())
+				.setSlowMo(settings.slowMo()));
 		}
 
 		Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
@@ -1016,12 +1033,14 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 	 * <li>{@code browser.playwright.type} – chromium (default), firefox or webkit</li>
 	 * <li>{@code browser.playwright.headless} – default true</li>
 	 * <li>{@code browser.playwright.slowMo} – milliseconds to slow every action down by, default 0</li>
+	 * <li>{@code browser.playwright.sharedBrowser} – default true: runners share the JVM's one browser
+	 * ({@link PlaywrightBrowserServer}) rather than each launching their own</li>
 	 * <li>{@code browser.playwright.extraHttpHeaders} – JSON object of headers to add to every request</li>
 	 * <li>{@code browser.playwright.traceEnabled} – false (default), true or on-failure</li>
 	 * <li>{@code browser.playwright.tracesDir} – directory the trace archives are written to as {@code <testId>.zip}</li>
 	 * </ul>
 	 */
-	record Settings(String browserType, boolean headless, int slowMo, Map<String, String> extraHttpHeaders,
+	record Settings(String browserType, boolean headless, int slowMo, boolean sharedBrowser, Map<String, String> extraHttpHeaders,
 					TraceMode traceMode, String tracesDir) {
 
 		static Settings fromSystemProperties() {
@@ -1029,6 +1048,7 @@ public class PlaywrightBrowserRunner implements BrowserRunner, DataUtils {
 				System.getProperty("browser.playwright.type", "chromium").toLowerCase(Locale.ROOT),
 				Boolean.parseBoolean(System.getProperty("browser.playwright.headless", "true")),
 				Integer.parseInt(System.getProperty("browser.playwright.slowMo", "0")),
+				Boolean.parseBoolean(System.getProperty("browser.playwright.sharedBrowser", "true")),
 				parseExtraHttpHeaders(System.getProperty("browser.playwright.extraHttpHeaders", "")),
 				TraceMode.parse(System.getProperty("browser.playwright.traceEnabled", "false")),
 				System.getProperty("browser.playwright.tracesDir", ""));

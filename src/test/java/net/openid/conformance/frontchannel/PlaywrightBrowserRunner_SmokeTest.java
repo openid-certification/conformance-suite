@@ -167,13 +167,55 @@ public class PlaywrightBrowserRunner_SmokeTest {
 	}
 
 	private Settings settings() {
-		return new Settings("chromium", true, 0, Map.of(), TraceMode.ON_FAILURE, tracesDir.toString());
+		return settings(true);
+	}
+
+	private Settings settings(boolean sharedBrowser) {
+		return new Settings("chromium", true, 0, sharedBrowser, Map.of(), TraceMode.ON_FAILURE, tracesDir.toString());
 	}
 
 	private PlaywrightBrowserRunner runner(String url, String method, String tasksJson) {
+		return runner(url, method, tasksJson, settings());
+	}
+
+	private PlaywrightBrowserRunner runner(String url, String method, String tasksJson, Settings settings) {
 		JsonArray tasks = JsonParser.parseString(tasksJson).getAsJsonArray();
-		return new PlaywrightBrowserRunner(browserControl, TEST_ID, eventLog, settings(),
+		return new PlaywrightBrowserRunner(browserControl, TEST_ID, eventLog, settings,
 			new BrowserVisit(url, tasks, null, method, 0));
+	}
+
+	@Test
+	public void runnersShareTheJvmsBrowserAndKeepTheirSessionsApart() throws Exception {
+		// the first runner logs in, so its context has the session cookie...
+		runner(baseUrl + "/authorize", "GET", """
+			[
+				{"task": "Login", "match": "*/login*", "commands": [["text", "id", "username", "alice"], ["text", "name", "password", "secret"], ["click", "id", "login"]]},
+				{"task": "Consent", "match": "*/authorize*", "commands": [["click", "id", "authorize"]]},
+				{"task": "Done", "match": "*/callback?code=*", "commands": [["wait", "id", "result", 5, "Done"]]}
+			]""").call();
+		assertThat(PlaywrightBrowserServer.isRunning()).as("shared browser server running").isTrue();
+		String endpoint = PlaywrightBrowserServer.endpoint(settings());
+
+		// ...which a runner of another test (another BrowserControl) in the same browser must not see
+		BrowserControl otherTest = new BrowserControl(new JsonObject(), "PWSMOKE2", eventLog, null, null);
+		JsonArray tasks = JsonParser.parseString("""
+			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^anonymous$"]]}]""").getAsJsonArray();
+		new PlaywrightBrowserRunner(otherTest, "PWSMOKE2", eventLog, settings(),
+			new BrowserVisit(baseUrl + "/whoami", tasks, null, "GET", 0)).call();
+
+		// while the same test's next runner does, through the storage state as before
+		runner(baseUrl + "/whoami", "GET", """
+			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^logged-in$"]]}]""").call();
+
+		assertThat(PlaywrightBrowserServer.endpoint(settings())).as("same server throughout").isEqualTo(endpoint);
+	}
+
+	@Test
+	public void runnerLaunchesItsOwnBrowserWhenSharingIsOff() throws Exception {
+		String result = runner(baseUrl + "/whoami", "GET", """
+			[{"task": "Check", "commands": [["wait", "css", "#result", 5, "^anonymous$"]]}]""", settings(false)).call();
+
+		assertThat(result).isEqualTo("web runner exited");
 	}
 
 	@Test

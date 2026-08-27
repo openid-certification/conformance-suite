@@ -65,7 +65,10 @@ The scripted browser that runs a test config's `"browser"` automation block (`Br
   `-Dbrowser.playwright.type=chromium|firefox|webkit`, `.headless`, `.slowMo`, `.extraHttpHeaders` (JSON),
   `.traceEnabled=false|true|on-failure` and `.tracesDir`. Traces land as `<tracesDir>/<testId>.zip`, are
   downloadable at `GET /api/log/{id}/trace` and open with `npx playwright show-trace`. The browser binary is
-  downloaded into Playwright's cache at server startup (`PlaywrightBrowserInstaller`) if missing.
+  downloaded into Playwright's cache at server startup (`PlaywrightBrowserInstaller`) if missing. All runners
+  of a JVM share one browser process (`PlaywrightBrowserServer`, Playwright's `launch-server` run from the
+  bundled driver; each runner connects and gets an isolated context) — `-Dbrowser.playwright.sharedBrowser=false`
+  makes every runner launch its own browser instead, which the runners also fall back to if the server fails.
 
 Both engines accept the same commands and log under the `WebRunner` source. The CI `local_test` job runs the
 local-provider plans once per engine; locally, `BROWSER_ENGINE=playwright docker-compose -f docker-compose-localtest.yml ...`
