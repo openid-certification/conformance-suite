@@ -19,6 +19,8 @@ authentication. Tests cover:
 - Public list/export endpoints return only published results
 - Runner running-list, start, and cancel, /lastconfig, and plan metadata
 - API token lifecycle, and that an expired API token is rejected with 401
+- Playwright trace download (GET /log/{id}/trace): owner (or admin) only —
+  never public, not even for a published test, and not via share links
 
 Not yet covered (the exposed API surface these do NOT touch):
 - POST /token (creating a new token; only listing/deleting is covered)
@@ -47,6 +49,8 @@ Environment variables:
     CONFORMANCE_EXPIRED_TOKEN  API token whose stored expiry is already in the past (optional;
                         seeded directly in MongoDB, since the 24-hour TTL of a token
                         created over HTTP cannot be shortened)
+    CONFORMANCE_TRACES_DIR  the server's browser.playwright.tracesDir as this script sees it
+                        (optional; a trace is placed there for the trace download checks)
 """
 
 import base64
@@ -482,6 +486,11 @@ def run_tests():
     resp = pl_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
     runner.check_status("Plan share: cannot export shared plan (not in allowlist)", resp, 403)
 
+    # Likewise the Playwright trace (screenshots and DOM snapshots of every page the scripted
+    # browser visited, login form included) is a three-segment URI outside the allowlist
+    resp = pl_client.get(f"{base_url}api/log/{test_id}/trace")
+    runner.check_status("Plan share: cannot download shared test trace (not in allowlist)", resp, 403)
+
     # Denied access
     print("\n--- 1. Plan sharing: denied access ---")
     resp = pl_client.get(f"{base_url}api/plan/{other_plan_id}")
@@ -517,6 +526,9 @@ def run_tests():
 
     resp = pl_client.get(f"{base_url}api/log/exporthtml/{UNKNOWN_TEST_ID}")
     runner.check_status("Plan share: export of unknown test html", resp, 404)
+
+    resp = pl_client.get(f"{base_url}api/log/{other_test_id}/trace")
+    runner.check_status("Plan share: cannot download other test trace", resp, 403)
 
     resp = pl_client.post(f"{base_url}api/info/{test_id}/publish",
                           content=json.dumps({"publish": "summary"}),
@@ -667,6 +679,12 @@ def run_tests():
     resp = tl_client.get(f"{base_url}api/log/export/{other_test_id}")
     runner.check_status("Test share: cannot export other test zip", resp, 404)
 
+    resp = tl_client.get(f"{base_url}api/log/{test_id}/trace")
+    runner.check_status("Test share: cannot download shared test trace (not in allowlist)", resp, 403)
+
+    resp = tl_client.get(f"{base_url}api/log/{other_test_id}/trace")
+    runner.check_status("Test share: cannot download other test trace", resp, 403)
+
     resp = tl_client.post(f"{base_url}api/info/{test_id}/publish",
                           content=json.dumps({"publish": "summary"}),
                           headers={"Content-Type": "application/json"})
@@ -739,6 +757,9 @@ def run_tests():
 
     resp = plan_bearer.get(f"{base_url}api/plan/exporthtml/{plan_id}")
     runner.check_status("Plan JWT Bearer: cannot export shared plan (not in allowlist)", resp, 403)
+
+    resp = plan_bearer.get(f"{base_url}api/log/{test_id}/trace")
+    runner.check_status("Plan JWT Bearer: cannot download shared test trace", resp, 403)
 
     resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
     runner.check_status("Plan JWT Bearer: cannot create share link", resp, 403)
@@ -838,6 +859,9 @@ def run_tests():
 
     resp = test_bearer.get(f"{base_url}api/log/export/{UNKNOWN_TEST_ID}")
     runner.check_status("Test JWT Bearer: export of unknown test zip", resp, 404)
+
+    resp = test_bearer.get(f"{base_url}api/log/{test_id}/trace")
+    runner.check_status("Test JWT Bearer: cannot download shared test trace", resp, 403)
 
     test_bearer.close()
 
@@ -955,6 +979,9 @@ def run_tests():
 
     resp = noauth_client.get(f"{base_url}api/log/{test_id}")
     runner.check_status("Unauth: test log rejected", resp, 401)
+
+    resp = noauth_client.get(f"{base_url}api/log/{test_id}/trace")
+    runner.check_status("Unauth: test trace rejected", resp, 401)
 
     resp = noauth_client.get(f"{base_url}api/runner/available")
     runner.check_status("Unauth: runner rejected", resp, 401)
@@ -1077,6 +1104,12 @@ def run_tests():
     resp = pub_client.get(f"{base_url}api/log/exporthtml/{test_id}?public=true")
     runner.check_status("Public: log/exporthtml needs auth even with ?public", resp, 401)
 
+    # Unlike the log export, the Playwright trace of a published test stays private: it holds
+    # screenshots and DOM snapshots of every page the scripted browser visited, the login form
+    # with the configured credentials included. There is no ?public variant of it at all.
+    resp = pub_client.get(f"{base_url}api/log/{test_id}/trace?public=true")
+    runner.check_status("Public: published test trace needs auth even with ?public", resp, 401)
+
     resp = pub_client.get(f"{base_url}api/log/export/{test_id}?public=true")
     assert_valid_export_zip(runner, "Public: can export published test zip", resp, [test_id])
 
@@ -1119,6 +1152,9 @@ def run_tests():
 
     resp = pub_client.get(f"{base_url}api/log/export/{test_id}")
     runner.check_status("Public: log/export without ?public requires auth", resp, 401)
+
+    resp = pub_client.get(f"{base_url}api/log/{test_id}/trace")
+    runner.check_status("Public: test trace requires auth", resp, 401)
 
     resp = pub_client.post(f"{base_url}api/info/{test_id}/publish",
                            content=json.dumps({"publish": "summary"}),
@@ -1488,9 +1524,47 @@ def run_tests():
                            content=TINY_PNG_DATA_URI, headers={"Content-Type": "text/plain"})
         runner.check_status("Isolation: cannot upload an image to another user's test placeholder", resp, 403)
 
+        # The same 404 as for an unknown test, so that the test's existence does not leak
+        resp = user_b.get(f"{base_url}api/log/{iso_test_id}/trace")
+        runner.check_status("Isolation: cannot download another user's test trace", resp, 404)
+
         user_b.close()
     else:
         print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping cross-user isolation checks")
+
+    resp = owner_client.get(f"{base_url}api/log/nonexistenttestid/trace")
+    runner.check_status("Trace: unknown test is 404", resp, 404)
+
+    # Whether a test has a trace depends on the engine and trace settings the server runs with,
+    # so the owner's download is tested with a trace placed in the server's traces directory
+    # (CONFORMANCE_TRACES_DIR, that directory as this script sees it).
+    traces_dir = os.environ.get("CONFORMANCE_TRACES_DIR")
+    if traces_dir:
+        trace_plan_id, trace_module = create_test_plan(owner_client, base_url, plan_name, config)
+        trace_test_id = create_test_from_plan(owner_client, base_url, trace_plan_id, trace_module)
+        wait_for_test_finished(owner_client, base_url, trace_test_id)
+
+        seeded = io.BytesIO()
+        with zipfile.ZipFile(seeded, "w") as archive:
+            archive.writestr("trace.trace", "seeded by run-security-tests.py")
+        os.makedirs(traces_dir, exist_ok=True)
+        trace_file = os.path.join(traces_dir, f"{trace_test_id}.zip")
+        with open(trace_file, "wb") as f:
+            f.write(seeded.getvalue())
+        try:
+            resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/trace")
+            runner.check_status("Trace: owner can download their test's trace", resp, 200)
+            runner.check("Trace: download is the recorded zip",
+                         resp.headers.get("content-type", "").startswith("application/zip")
+                         and resp.content == seeded.getvalue(),
+                         f"content-type={resp.headers.get('content-type')} length={len(resp.content)}")
+        finally:
+            os.remove(trace_file)
+
+        resp = owner_client.get(f"{base_url}api/log/{trace_test_id}/trace")
+        runner.check_status("Trace: owner's test without a recorded trace is 404", resp, 404)
+    else:
+        print("  NOTE: CONFORMANCE_TRACES_DIR not set; skipping the trace download checks")
 
     # ===================================================================
     # 4f. CERTIFICATION PACKAGE & IMMUTABLE PLANS
