@@ -17,6 +17,7 @@ import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
+import net.openid.conformance.condition.client.FAPI2ValidateJarmSigningAlg;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
@@ -194,6 +195,19 @@ public class FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(FAPI2ValidateIdTokenSigningAlg.class,
 					ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4");
+			}
+		};
+	}
+
+	/**
+	 * Validate the signing algorithm of a JARM authorization response.
+	 * Default permits the FAPI2 algorithms.
+	 */
+	public ConditionSequence validateJarmSigningAlg() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(FAPI2ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
 			}
 		};
 	}
