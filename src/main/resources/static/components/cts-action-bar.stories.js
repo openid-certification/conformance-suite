@@ -95,7 +95,8 @@ export const Bottom = {
     await step("bottom positioning and default aria-label apply", async () => {
       expect(bar).toBeTruthy();
       expect(bar.getAttribute("data-position")).toBe("bottom");
-      expect(getComputedStyle(bar).position).toBe("fixed");
+      // sticky, not fixed — see the class doc comment for why.
+      expect(getComputedStyle(bar).position).toBe("sticky");
       // Default aria-label kicks in when the host has none.
       expect(bar.getAttribute("aria-label")).toBe("Actions");
     });
@@ -136,10 +137,13 @@ export const UnknownPresetFallsBack = {
  * FOUC: the `:not(:defined)` fallback in css/layout.css must pin a
  * placeholder bar to the bottom of the viewport so the action bar exists
  * from first paint, not only after /components/cts-action-bar.js executes.
- * The post-upgrade bar is `position: fixed; bottom: 0`, so the fallback
- * must mirror that geometry — an in-flow height reservation (the regime
- * used by cts-navbar / cts-footer) would paint at the host's mid-page
- * source position instead. Mirrors cts-navbar's FoucFallbackReservesHeight.
+ * The fallback uses `position: fixed; bottom: 0` — an in-flow height
+ * reservation (the regime used by cts-navbar / cts-footer) would paint at
+ * the host's mid-page source position instead. The post-upgrade bar itself
+ * is `position: sticky`, which behaves identically to `fixed`
+ * during this brief pre-upgrade window (nothing has scrolled a containing
+ * block out from under it yet), so `fixed` remains a faithful placeholder.
+ * Mirrors cts-navbar's FoucFallbackReservesHeight.
  */
 export const FoucFallbackPinsToViewportBottom = {
   render: () => html`

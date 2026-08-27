@@ -58,9 +58,27 @@ import { isMultiLineConfigField } from "../lib/config-field-types.js";
  *
  * String-typed fields whose `name` leaf ends with a PEM/JWKS/key suffix
  * (see `lib/config-field-types.js`) render as `<textarea>` instead of
- * `<input>` so multi-line credentials paste cleanly. The textarea uses
- * `field-sizing: content` to auto-grow with content up to `max-height`;
- * Firefox falls back to the floor `min-height` plus manual `resize:vertical`.
+ * `<input>` so multi-line credentials paste cleanly. The textarea auto-grows
+ * to fit content up to `max-height` via `autoGrowTextarea()` (module-level
+ * helper, called from `_handleInput` on keystroke and `updated()` for
+ * external `.value` writes) rather than the CSS `field-sizing: content`
+ * property: Safari's implementation clamps height against `max-height`
+ * correctly but ignores an explicit `max-width` entirely, letting a long
+ * unbroken value (a pasted JWKS x5c certificate) grow the box wider with
+ * every character instead of wrapping (confirmed via Safari's own
+ * Computed-styles panel). Driving height from JS sidesteps that CSS
+ * feature altogether — width is governed purely by plain `width: 100%`,
+ * which needs no auto-sizing feature to work reliably everywhere.
+ *
+ * The very first `autoGrowTextarea()` call (on mount, before user input)
+ * can under-measure: `--font-mono` (JetBrains Mono) loads asynchronously
+ * from Google Fonts, so `scrollHeight` may be read against a narrower
+ * fallback font's metrics and never re-measured until the user types. Each
+ * instance's `connectedCallback` calls `regrowOnceFontsSettle(this)`, which
+ * re-grows its textarea once `document.fonts.ready` resolves, so a
+ * pre-filled box nobody has typed into still lands at its true height
+ * rather than the fallback-font one — regardless of whether fonts were
+ * still loading or had already settled by the time it mounted.
  *
  * @property {object} schema - JSON-schema fragment for this field. May include
  *   `type`, `format`, `enum`, `enumLabels`, `title`, `description`,
@@ -95,6 +113,59 @@ let uidCounter = 0;
 // `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
 const SELECT_CHEVRON =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
+
+/**
+ * Resize a textarea's height to fit its content, clamped to its own
+ * `max-height` (CSS `resize: vertical` can still push it taller by hand).
+ * Replaces `field-sizing: content` — see the `.oidf-textarea`
+ * CSS comment for why that CSS feature is unsafe to use here. Reset to
+ * `"auto"` first so shrinking content (e.g. deleting a paste) reduces
+ * `scrollHeight` correctly instead of measuring against the stale height.
+ * @param {HTMLTextAreaElement} el - The textarea to resize.
+ * @returns {void}
+ */
+function autoGrowTextarea(el) {
+  el.style.height = "auto";
+  const maxHeight = parseFloat(getComputedStyle(el).maxHeight);
+  const target = Number.isFinite(maxHeight)
+    ? Math.min(el.scrollHeight, maxHeight)
+    : el.scrollHeight;
+  el.style.height = `${target}px`;
+}
+
+/**
+ * Re-grow `host`'s textarea (if it renders one) once web fonts have
+ * settled, in addition to whatever grow already ran at call time.
+ * Follow-up: `--font-mono` (JetBrains Mono) is a Google Fonts webfont,
+ * loaded asynchronously. The very first `autoGrowTextarea()` call — on
+ * initial mount, before the webfont has necessarily finished loading —
+ * measures `scrollHeight` against whichever FALLBACK font is rendering at
+ * that instant (`ui-monospace` / "SF Mono" on macOS Safari), which can
+ * wrap fewer lines than JetBrains Mono's actual metrics once it swaps in.
+ * Since `autoGrowTextarea()` otherwise only runs again on user input, a box
+ * nobody has typed into stays stuck at the fallback-font height.
+ *
+ * Deliberately per-instance rather than one module-level listener shared
+ * across every `cts-form-field`: `document.fonts.ready` resolves once and
+ * stays resolved, but new fields keep mounting well after that first
+ * resolution (e.g. every time the user picks a different plan/variant) —
+ * a shared listener registered before those later fields exist would never
+ * fire again for them. `.then()` on an already-resolved promise still
+ * resolves (near-)immediately, so this is correct and cheap whether fonts
+ * were still loading or had already settled by the time `host` connected.
+ * @param {InstanceType<typeof CtsFormField>} host - The connecting field instance.
+ * @returns {void}
+ */
+function regrowOnceFontsSettle(host) {
+  if (typeof document === "undefined" || !document.fonts) return;
+  document.fonts.ready.then(() => {
+    if (!host.isConnected) return;
+    const textarea = /** @type {HTMLTextAreaElement | null} */ (
+      host.querySelector("textarea.oidf-textarea")
+    );
+    if (textarea) autoGrowTextarea(textarea);
+  });
+}
 
 const STYLE_TEXT = css`
   cts-form-field {
@@ -138,16 +209,30 @@ const STYLE_TEXT = css`
   }
   .oidf-form-field .oidf-textarea {
     /* layout.css ships a global \`textarea { height: 200px }\` for legacy pages
-     (index.html etc). An explicit height overrides \`field-sizing: content\`,
-     so we reset to \`auto\` and let min-height / max-height carry the bounds. */
+     (index.html etc). An explicit height overrides the JS-driven auto-grow
+     below, so we reset to \`auto\` and let min-height / max-height carry the
+     resting bounds. */
     height: auto;
     min-height: calc(var(--space-6) * 4);
     max-height: 50vh;
-    /* Auto-grow as the user types/pastes. Firefox lacks support today and
-     falls back to the fixed initial size + min-height floor + manual resize
-     handle. Width stays at 100% so horizontal jank is impossible. */
-    field-sizing: content;
     resize: vertical;
+    /* Long unbroken values (base64 x5c certs inside a pasted JWKS,
+     PEM blobs, JWTs) need a mid-word break to actually wrap. Chrome and
+     Firefox already force this inside a <textarea> without any CSS; Safari
+     does not — it lets the line overflow horizontally instead, so this
+     must be explicit for wrapping to work there too. */
+    overflow-wrap: break-word;
+    /* Auto-grow height is driven by autoGrowTextarea() in JS, NOT
+     field-sizing: content. Verified via Safari's own Web Inspector Computed
+     panel: field-sizing: content clamped height against max-height
+     correctly (height == max-height once full) but completely ignored an
+     explicit max-width: 100% — width read out at 8755px against a 100%
+     ceiling. That's a real WebKit gap, not a specificity/ordering mistake
+     to fix in CSS. Driving height from JS instead sidesteps field-sizing
+     entirely, so width is governed only by the plain \`width: 100%\` above,
+     which every browser already honors reliably with no auto-sizing
+     feature involved. Do not reintroduce field-sizing here without
+     re-verifying this exact failure mode in real Safari first. */
   }
   .oidf-form-field .oidf-input.is-mono,
   .oidf-form-field .oidf-textarea.is-mono {
@@ -268,6 +353,25 @@ class CtsFormField extends LitElement {
   }
 
   /**
+   * Grow the textarea (if this field renders one) to fit its current value
+   * after every render where `value` changed — covers the initial mount
+   * (a plan loaded with a pre-filled JWKS/PEM), external `.value` writes
+   * (e.g. cts-config-form syncing from the JSON tab), and Lit's own
+   * re-render after `_handleInput` updates `this.value` indirectly via the
+   * parent. `_handleInput` also calls this directly on keystroke, so typing
+   * doesn't wait on this async round-trip for a responsive feel.
+   * @param {Map<string, unknown>} changed - Lit's changed-properties map.
+   * @returns {void}
+   */
+  updated(changed) {
+    if (!changed.has("value")) return;
+    const textarea = /** @type {HTMLTextAreaElement | null} */ (
+      this.querySelector("textarea.oidf-textarea")
+    );
+    if (textarea) autoGrowTextarea(textarea);
+  }
+
+  /**
    * Effective JSON type for this field: the declared schema type when it is
    * object/array, otherwise the latched value-shape mode ("" when neither).
    *
@@ -289,6 +393,7 @@ class CtsFormField extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    regrowOnceFontsSettle(this);
   }
 
   _handleInput(e) {
@@ -297,6 +402,11 @@ class CtsFormField extends LitElement {
     const jsonType = this._effectiveJsonType();
     let value = raw;
     let parseError = "";
+
+    // Grow immediately on keystroke — `updated()` also does this once
+    // `this.value` round-trips back through the parent, but that's async;
+    // this keeps typing responsive on every input event.
+    if (e.target.tagName === "TEXTAREA") autoGrowTextarea(e.target);
 
     if (type === "array" && format === "newline-array") {
       // Newline-delimited array: split on `\n`, trim, drop empties.

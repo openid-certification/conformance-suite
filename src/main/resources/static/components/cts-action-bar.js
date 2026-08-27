@@ -1,8 +1,10 @@
 import { css } from "lit";
 /**
- * Sticky bottom action bar. Wraps its children in a viewport-pinned bar with
- * an inner content wrapper aligned to a caller-supplied content width preset,
- * so primary page actions stay visible while the user scrolls a long form.
+ * Sticky bottom action bar. Wraps its children in a bar pinned to the
+ * viewport bottom while scrolling through the host's containing block, with
+ * an inner content wrapper aligned to a caller-supplied content width
+ * preset, so primary page actions stay visible while the user scrolls a
+ * long form.
  *
  * Vanilla HTMLElement following the cts-card / cts-modal / cts-alert
  * convention (light DOM, scoped style injected once into <head>, children
@@ -14,25 +16,41 @@ import { css } from "lit";
  * inside the host at parse time and re-render into that (see
  * #guidedActionsContent in schedule-test.html).
  *
+ * `"bottom"` mode uses `position: sticky` (not `fixed`): the bar pins to the
+ * viewport bottom exactly like a fixed bar until its containing block's
+ * bottom edge (schedule-test.html's `#scheduleTestPage` / `#guidedIsland`)
+ * scrolls into view, at which point it releases and settles in normal flow
+ * — immediately BEFORE the page footer (a sibling after `<main>`) — instead
+ * of continuing to float over it indefinitely. With `fixed`, the bar
+ * visually renders as the very last thing on the page at maximum scroll —
+ * the footer sits above an always-floating bar rather than the bar
+ * settling above the footer like the rest of the page's primary content
+ * does. `position: sticky` fixes that ordering: the footer is always the
+ * true end of the page.
+ *
  * The bar publishes its measured height as `--cts-action-bar-height` on the
  * document root after first paint and re-measures on ResizeObserver
- * callbacks. Callers can opt in to spacing with a single CSS line, e.g.
+ * callbacks. Callers reserve that much `padding-bottom` on the bar's
+ * containing block so it doesn't cover the last piece of in-flow content
+ * while sticking, e.g.
  *
- *     .schedule-test-page {
+ *     #scheduleTestPage {
  *       padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
  *     }
  *
- * The page footer opts into the same variable for its own clearance
- * (`cts-footer .oidf-footer` in oidf-app.css), so at maximum scroll the
- * footer rests fully above the bar instead of hiding behind it (R15).
+ * That reservation must live on the bar's actual containing block (the
+ * nearest block-level ancestor — an island div one level in, not schedule-
+ * test.html's outer `<main>`), or sticky has no room to hold at the
+ * viewport bottom and releases far too early.
  *
  * @property {string} align-to - Content-width preset for the inner wrapper.
  *   See ALIGN_PRESETS for the supported names. Unknown values warn once and
  *   fall back to the default preset.
  * @property {string} position - Layout mode. `"bottom"` (default) renders
- *   the bar as `position: fixed; bottom: 0; left: 0; right: 0`. `"static"`
- *   renders the bar inline at its source position — useful for Storybook
- *   and dev previews.
+ *   the bar as `position: sticky; bottom: 0; left: 0; right: 0`, pinned
+ *   within its containing block per the note above. `"static"` renders the
+ *   bar inline at its source position — useful for Storybook and dev
+ *   previews.
  * @property {string} aria-label - Accessible label for the bar's region.
  *   Defaults to `"Actions"` when absent.
  */
@@ -67,7 +85,10 @@ const STYLE_TEXT = css`
     z-index: 2;
   }
   .oidf-action-bar[data-position="bottom"] {
-    position: fixed;
+    /* sticky, not fixed — see the class doc comment above: this lets the
+       bar release at the end of its containing block instead of floating
+       over the page footer indefinitely. */
+    position: sticky;
     bottom: 0;
     left: 0;
     right: 0;
