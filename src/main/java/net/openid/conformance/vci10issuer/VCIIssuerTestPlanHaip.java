@@ -3,7 +3,9 @@ package net.openid.conformance.vci10issuer;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalCdrArrangementAmendmentRevokesOldTokens;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalCdrEnsureNegativeSharingDurationFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalCdrEnsureUnrecognisedArrangementIdFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalCdrEnsureSharingDurationZeroGivesNoRefreshToken;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalCdrRefreshTokenIntrospectionExpiry;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalDiscoveryEndpointVerification;
@@ -194,6 +196,8 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalCdrEnsureSharingDurationZeroGivesNoRefreshToken.class);
 		fapiTestModules.remove(FAPI2SPFinalCdrEnsureNegativeSharingDurationFails.class);
 		fapiTestModules.remove(FAPI2SPFinalCdrRefreshTokenIntrospectionExpiry.class);
+		fapiTestModules.remove(FAPI2SPFinalCdrArrangementAmendmentRevokesOldTokens.class);
+		fapiTestModules.remove(FAPI2SPFinalCdrEnsureUnrecognisedArrangementIdFails.class);
 
 		return fapiTestModules;
 	}
