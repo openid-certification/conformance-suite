@@ -97,6 +97,9 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 		//Refresh token tests
 		FAPI2SPFinalRefreshToken.class,
+		FAPI2SPFinalCdrEnsureSharingDurationZeroGivesNoRefreshToken.class,
+		FAPI2SPFinalCdrEnsureNegativeSharingDurationFails.class,
+		FAPI2SPFinalCdrRefreshTokenIntrospectionExpiry.class,
 
 
 		// OB Brazil specific tests
