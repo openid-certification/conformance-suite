@@ -228,11 +228,31 @@ compare_panva:
   script:
     - run_compare panva_test
 
+# local_test runs once per scripted-browser engine and each run exports a full set of result zips;
+# compare-results.py refuses two results for one test, so each engine's results are compared in a
+# job of their own. Both are compared against the selenium results of master's latest passed
+# pipeline: the comparison leaves the scripted browser's own log entries out, so the engines should
+# produce the same results. Until the engine matrix has reached master, the job there is still the
+# plain 'local_test', hence the second name (a name that does not exist is skipped).
 compare_local:
   <<: *compare
-  needs: ["local_test"]
+  needs:
+    - job: local_test
+      parallel:
+        matrix:
+          - BROWSER_ENGINE: selenium
   script:
-    - run_compare local_test
+    - 'run_compare "local_test: [selenium]" local_test'
+
+compare_local_playwright:
+  <<: *compare
+  needs:
+    - job: local_test
+      parallel:
+        matrix:
+          - BROWSER_ENGINE: playwright
+  script:
+    - 'run_compare "local_test: [selenium]" local_test'
 
 compare_client:
   <<: *compare
@@ -1010,13 +1030,14 @@ security_test:
     apk add curl colordiff
     mkdir reference
     cd reference
-    for i in $*; do
-      echo "Fetching master branch latest passed pipeline results for '$*'"
+    for i in "$@"; do
+      echo "Fetching master branch latest passed pipeline results for '$i'"
       res=0
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error --fail -L -o $i.zip "$CI_API_V4_URL/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=$i" || res=$?
+      # the job name goes through --data-urlencode as matrix job names contain spaces and brackets ('local_test: [selenium]')
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error --fail -L -G --data-urlencode "job=$i" -o "$i.zip" "$CI_API_V4_URL/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download" || res=$?
       if [ $res -eq 0 ]; then
-        unzip $i.zip
-        rm $i.zip
+        unzip "$i.zip"
+        rm "$i.zip"
       fi
     done
     cd ..
