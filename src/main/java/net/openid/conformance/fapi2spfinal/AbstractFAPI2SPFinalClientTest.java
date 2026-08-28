@@ -185,6 +185,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
+// AU-CDR (CD210) permits exactly one combination; hide the others so the UI preselects it
+@VariantNotApplicableWhen(parameter = ClientAuthType.class, values = { "mtls" },
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = { "consumerdataright_au" })
+@VariantNotApplicableWhen(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" },
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = { "consumerdataright_au" })
+@VariantNotApplicableWhen(parameter = FAPI2SenderConstrainMethod.class, values = { "dpop" },
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = { "consumerdataright_au" })
+@VariantNotApplicableWhen(parameter = FAPIResponseMode.class, values = { "plain_response" },
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = { "consumerdataright_au" })
+@VariantNotApplicableWhen(parameter = FAPIClientType.class, values = { "plain_oauth" },
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = { "consumerdataright_au" })
+@VariantNotApplicableWhen(parameter = AuthorizationRequestType.class, values = { "rar" },
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = { "consumerdataright_au" })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
 })
