@@ -30,6 +30,21 @@ import java.util.Set;
  */
 public abstract class AbstractCheckForUnexpectedSchemaProperties extends AbstractJsonSchemaBasedValidation {
 
+	/**
+	 * A clean schema validation means nothing to report here, not that the input as a whole is
+	 * valid - that is the paired structural validator's verdict to give. Say what this condition
+	 * checked, in the same words as the failure path's equivalent outcome below.
+	 */
+	@Override
+	protected void onValidationSuccess(Environment env, JsonSchemaValidationInput input) {
+		logNoUnknownProperties(input);
+	}
+
+	private void logNoUnknownProperties(JsonSchemaValidationInput input) {
+		logSuccess("No unknown properties were found in the " + input.getInputName(),
+			args("input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
+	}
+
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
 		// Structural errors are reported by the paired structural validation condition (run with
@@ -51,8 +66,7 @@ public abstract class AbstractCheckForUnexpectedSchemaProperties extends Abstrac
 		}
 		if (unknownProps.isEmpty()) {
 			if (allowListed.isEmpty()) {
-				logSuccess("No unknown properties were found in the " + input.getInputName(),
-					args("input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
+				logNoUnknownProperties(input);
 			} else {
 				logSuccess("The only unknown properties found in the " + input.getInputName()
 						+ " are allow-listed in the '" + getAllowUnexpectedFieldsConfigKey() + "' array in the test configuration",
