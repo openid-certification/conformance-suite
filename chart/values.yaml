@@ -17,6 +17,14 @@ application:
 # image to include the legacy-ui code (static-legacy/ etc.); otherwise the profile is a no-op.
 legacyUi:
   enabled: false
+# Issuer URL of the OpenID Provider that sign-in goes through, rendered into the
+# deployment as OIDC_IDP_ISS. This default matches the application's own default
+# (`oidc.idp.iss` in application.properties) and is the OpenID Foundation's IdP —
+# self-hosted instances must override it with `--set idpIss=`, along with the
+# oidc-idp-credentials secret holding the matching clientid and secret. Declared
+# here so that omitting it renders a working default rather than an empty issuer.
+# See docs/upgrading-to-idp-login.md.
+idpIss: https://openid.net/auth
 nodeSelector: {}
 tolerations: {}
 service:

@@ -8,7 +8,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -49,14 +52,6 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		}
 	}
 
-	private OAuth2AuthenticationToken getOAuth() {
-		Authentication a = getAuthentication();
-		if (a instanceof OAuth2AuthenticationToken token) {
-			return token;
-		}
-		return null;
-	}
-
 	private boolean hasAuthority(GrantedAuthority authority) {
 		Authentication a = getAuthentication();
 		if (a != null) {
@@ -95,47 +90,93 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	@Override
 	public ImmutableMap<String, String> getPrincipal() {
-
-		var privateToken = getPrivateOneTimeToken();
-		if (privateToken != null) {
-			return ImmutableMap.copyOf(privateToken.getSharedAsset().getOwner());
+		Authentication a = getAuthentication();
+		if (a == null) {
+			return null;
 		}
-
-		OAuth2AuthenticationToken oauth = getOAuth();
-		if (oauth == null) {
+		String issuer = "";
+		String subject = "";
+		// Type test rather than a cast: an OAuth2AuthenticationToken from a plain
+		// OAuth2 (non-OIDC) flow carries an OAuth2User, and a ClassCastException
+		// here would break every request made by that principal.
+		if (a instanceof OAuth2AuthenticationToken oidcToken && oidcToken.getPrincipal() instanceof OidcUser oidcUser) {
+			if (oidcUser.getIssuer() == null) {
+				return null;
+			}
+			issuer = oidcUser.getIssuer().toString();
+			subject = oidcUser.getSubject();
+		} else if(a instanceof JwtAuthenticationToken jwtToken) {
+			var jwt = (Jwt) jwtToken.getPrincipal();
+			if (jwt.getIssuer() == null) {
+				return null;
+			}
+			issuer = jwt.getIssuer().toString();
+			subject = jwt.getSubject();
+		} else if (a instanceof OneTimeTokenAuthentication ott) {
+			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
+			return ImmutableMap.copyOf(privateToken.getSharedAsset().getOwner());
+		} else {
 			return null;
 		}
 
-		OidcUser principal = (OidcUser) oauth.getPrincipal();
-		String issuer = principal.getIssuer().toString();
-		String subject = principal.getSubject();
-
-		ImmutableMap<String, String> data = ImmutableMap.of(
+		return ImmutableMap.of(
 			"sub", subject,
 			"iss", issuer
 		);
+	}
 
-		return data;
+	private static String firstNonNull(String preferred, String fallback) {
+		return preferred != null ? preferred : (fallback == null ? "" : fallback);
 	}
 
 	@Override
 	public String getDisplayName() {
-
-		var privateToken = getPrivateOneTimeToken();
-		if (privateToken != null) {
-			return privateToken.getUsername();
-		}
-
-		OAuth2AuthenticationToken oauth = getOAuth();
-		if (oauth != null && oauth.getPrincipal() instanceof OidcUser oidcUser) {
-
-			if (oidcUser.getEmail() != null) {
-				return oidcUser.getEmail();
+		Authentication a = getAuthentication();
+		// Same type test as getPrincipal(): the principal of an OAuth2 (non-OIDC)
+		// login is not an OidcUser, and casting it would fail the whole request.
+		if (a instanceof OAuth2AuthenticationToken oidcToken && oidcToken.getPrincipal() instanceof OidcUser oidcUser) {
+			OidcIdToken idToken = oidcUser.getIdToken();
+			if (idToken == null) {
+				return "";
 			}
-
-			return oidcUser.getName();
-		} else if (oauth != null) {
-			return oauth.getName();
+			// Deliberately the ID token alone, not oidcUser.getEmail(), which reads the
+			// claims aggregated from the ID token and the UserInfo response. The IdP
+			// requires an email address for every user and issues it in the ID token,
+			// so the wider read buys nothing here.
+			//
+			// It is not free either: reading the merged set makes the display name
+			// depend on whether OidcUserService fetched UserInfo, which it does only
+			// because "email" is among the granted scopes. If that scope is ever
+			// dropped from the registration, the merged read starts returning the same
+			// thing this one does, and only in that configuration - a difference that
+			// would be invisible until someone hit it.
+			//
+			// If the IdP ever stops putting email in the ID token, this degrades
+			// silently to the full name and then the subject rather than failing:
+			// switch to oidcUser.getEmail() at that point.
+			if (idToken.getEmail() != null) {
+				return idToken.getEmail();
+			}
+			// Falls back to the subject, which is what OidcUser#getName resolves to:
+			// a principal with no human-readable claim still needs a stable label.
+			return firstNonNull(idToken.getFullName(), oidcUser.getSubject());
+		} else if (a instanceof JwtAuthenticationToken jwtToken) {
+			// Jwt is a principal, not an Authentication, so this must match on the
+			// token type - matching on Jwt itself is unreachable.
+			var jwt = (Jwt) jwtToken.getPrincipal();
+			for (String claim : new String[] {"email", "mail", "name"}) {
+				String value = jwt.getClaimAsString(claim);
+				if (value != null) {
+					return value;
+				}
+			}
+			// API tokens carry none of those claims, so without this an API-token
+			// caller would get an empty displayName from /api/currentuser - the
+			// pre-IdP code fell back to the subject here too.
+			return firstNonNull(jwt.getSubject(), "");
+		} else if (a instanceof OneTimeTokenAuthentication ott) {
+			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
+			return privateToken.getUsername();
 		}
 		return "";
 	}

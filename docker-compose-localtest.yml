@@ -40,6 +40,12 @@ services:
     environment:
      - DEVMODE=${DEVMODE:-true}
     entrypoint: /bin/sh
+    # oidc.idp.iss and clientid default to the same values as the dev profile, so
+    # that running this file without the OIDC_IDP_* variables exported starts a
+    # recognisable local setup rather than "--oidc.idp.iss=" and a compose warning.
+    # oidc.idp.secret deliberately has no default: a placeholder secret would let a
+    # misconfigured stack come up looking healthy and fail later at the token
+    # endpoint. In CI all three arrive from project-level CI/CD variables.
     command:
      - -c
      - >
@@ -51,6 +57,9 @@ services:
        --fintechlabs.base_mtls_url=https://nginx:8444
        --fintechlabs.devmode=$$DEVMODE
        --fintechlabs.startredir=true
+       --oidc.idp.iss=${OIDC_IDP_ISS:-https://openid.net/auth}
+       --oidc.idp.clientid=${OIDC_IDP_CLIENTID:-conformance-suite-local}
+       --oidc.idp.secret=$OIDC_IDP_SECRET
     links:
      - mongodb:mongodb
     depends_on:

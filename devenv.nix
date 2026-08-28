@@ -11,12 +11,38 @@ in
     pkgs.git
     pkgs.ngrok
     pkgs.mvnd
+    # Used by enterShell to issue the local TLS chain. Previously pulled in
+    # implicitly by the `certificates` option, which enterShell now replaces.
+    pkgs.mkcert
   ];
 
   scripts.hello.exec = "echo $GREET";
 
   enterShell = ''
     hello
+
+    # TLS for the local nginx proxy. This replaces devenv's `certificates` option,
+    # which issues a bare leaf certificate: nginx has to serve the full chain
+    # (leaf + the mkcert root) so that clients which only have the root out of
+    # band can build a path to it. Concatenating the two is the whole reason this
+    # is hand-rolled.
+    #
+    # The trade-off is that devenv's own regeneration and trust-store handling no
+    # longer apply: the chain is created once and then left alone. To reissue it
+    # (expiry, or a new mkcert root after `mkcert -uninstall`), delete
+    # "$MKCERT_DIR" and re-enter the shell.
+    MKCERT_DIR="${config.env.DEVENV_STATE}/mkcert/"
+    mkdir -p "$MKCERT_DIR"
+
+    if [ ! -f "$MKCERT_DIR/fullchain.pem" ]; then
+      echo "creating cert chain"
+
+      mkcert -cert-file "$MKCERT_DIR/cert.pem" -key-file "$MKCERT_DIR/key.pem" "localhost.emobix.co.uk"
+
+      cat "$MKCERT_DIR/cert.pem" "$(mkcert -CAROOT)/rootCA.pem" > "$MKCERT_DIR/fullchain.pem"
+
+      echo "certs created under $MKCERT_DIR"
+    fi
 
     export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
 
@@ -27,9 +53,6 @@ in
   '';
 
   dotenv.enable = true;
-  certificates = [
-    "localhost.emobix.co.uk"
-  ];
 
   hosts."localhost.emobix.co.uk" = "127.0.0.1";
 
@@ -55,8 +78,8 @@ in
             ssl_protocols       TLSv1.2 TLSv1.3;
             ssl_prefer_server_ciphers on;
 
-            ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk.pem;
-            ssl_certificate_key ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk-key.pem;
+            ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/fullchain.pem;
+            ssl_certificate_key ${config.env.DEVENV_STATE}/mkcert/key.pem;
 
             server {
                 listen 8443 ssl;
