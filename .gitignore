@@ -113,6 +113,12 @@ devenv.local.nix
 # direnv
 .direnv
 
+# Local environment overrides for the docker-compose stacks. NOTE that .env
+# itself is deliberately tracked — it carries MAVEN_CACHE for builder-compose.yml
+# — so it is NOT ignored here and nothing secret may ever be written to it. Put
+# local credentials (an IdP client secret, say) in .env.local instead.
+.env.*
+
 # pre-commit
 .pre-commit-config.yaml
 

@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -195,6 +196,15 @@ public class FavoritePlansEndpointSecurity_UnitTest {
 		@Bean
 		public ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider() {
 			return Mockito.mock(ShareJwtBearerAuthenticationProvider.class);
+		}
+
+		@Bean
+		public JwtAuthenticationProvider idpJwtAuthenticationProvider() {
+			// Overrides the config's bean, which needs a RolesAuthoritiesConverter and
+			// would reach the IdP as soon as a test sent an Authorization header. Like
+			// the other providers, it is only consulted when one is present, and these
+			// tests never send one. Mirrors ResourceServerRequestCache_UnitTest.
+			return Mockito.mock(JwtAuthenticationProvider.class);
 		}
 	}
 }
