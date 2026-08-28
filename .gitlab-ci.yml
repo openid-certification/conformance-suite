@@ -522,6 +522,12 @@ local_test:
   needs: ["build"]
   script:
     - apk add docker-compose
+    # OIDC_IDP_ISS/CLIENTID/SECRET are CI variables, so they are already in this
+    # job's environment and docker-compose interpolates $OIDC_IDP_* in
+    # docker-compose-localtest.yml straight from the shell. They must NOT be
+    # written to .env: that file is tracked (it carries MAVEN_CACHE for
+    # builder-compose.yml), so writing there both clobbers it and puts a live
+    # client secret in a tracked path.
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx
@@ -758,20 +764,26 @@ security_test:
     fi
 
     # Create OIDC credentials secrets
+    #
+    # The gitlab/google secrets are no longer referenced by the deployment: login
+    # now goes through the single IdP, which brokers those providers itself. These
+    # two deletes are not leftovers — they garbage-collect the secrets from the
+    # pre-IdP deployment in long-lived namespaces (production, demo) that are
+    # reused across deploys. They can be dropped once every environment has been
+    # deployed at least once from this branch.
     kubectl delete secret oidc-gitlab-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
     kubectl delete secret oidc-google-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
-    kubectl create secret generic oidc-gitlab-credentials \
+    kubectl delete secret oidc-idp-credentials \
       --namespace="$KUBE_NAMESPACE" \
-      --from-literal=clientid="$OIDC_GITLAB_CLIENTID" \
-      --from-literal=secret="$OIDC_GITLAB_SECRET"
-    kubectl create secret generic oidc-google-credentials \
+      --ignore-not-found=true
+    kubectl create secret generic oidc-idp-credentials \
       --namespace="$KUBE_NAMESPACE" \
-      --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
-      --from-literal=secret="$OIDC_GOOGLE_SECRET"
+      --from-literal=clientid="$OIDC_IDP_CLIENTID" \
+      --from-literal=secret="$OIDC_IDP_SECRET"
 
     # Create jwk secrets
     kubectl delete secret fintechlabs-signing-key \
@@ -807,6 +819,7 @@ security_test:
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set service.mtls="$CI_ENVIRONMENT_MTLS_URL" \
       --set replicaCount="$replicas" \
+      --set idpIss="$OIDC_IDP_ISS" \
       $mongo_settings \
       $legacy_ui_settings \
       --namespace="$KUBE_NAMESPACE" \

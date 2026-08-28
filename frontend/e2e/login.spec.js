@@ -23,7 +23,7 @@ test.describe("login.html — Login page", () => {
     );
   }
 
-  test("renders cts-login-page with both OAuth buttons", async ({ page }) => {
+  test("renders cts-login-page with the IdP sign-in button", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -32,51 +32,38 @@ test.describe("login.html — Login page", () => {
     const loginPage = page.locator("cts-login-page");
     await expect(loginPage).toBeVisible();
 
-    const googleBtn = loginPage.locator('a[href="/oauth2/authorization/google"]');
-    const gitlabBtn = loginPage.locator('a[href="/oauth2/authorization/gitlab"]');
+    const idpBtn = loginPage.locator('a[href="/oauth2/authorization/idp"]');
 
-    await expect(googleBtn).toBeVisible();
-    await expect(googleBtn).toContainText("Proceed with Google");
+    await expect(idpBtn).toBeVisible();
+    await expect(idpBtn).toContainText("Sign in with OpenID");
 
-    await expect(gitlabBtn).toBeVisible();
-    await expect(gitlabBtn).toContainText("Proceed with GitLab");
+    // Login now goes through a single IdP, which brokers the upstream providers.
+    // The per-provider buttons must not come back alongside it.
+    await expect(loginPage.locator('a[href="/oauth2/authorization/google"]')).toHaveCount(0);
+    await expect(loginPage.locator('a[href="/oauth2/authorization/gitlab"]')).toHaveCount(0);
   });
 
-  test("both OAuth buttons render at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {
+  test("the IdP button renders at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
     await page.goto("/login.html");
 
-    const googleAnchor = page.locator('a[href="/oauth2/authorization/google"]');
-    const gitlabAnchor = page.locator('a[href="/oauth2/authorization/gitlab"]');
+    const idpBtn = page.locator('a[href="/oauth2/authorization/idp"]');
 
-    await expect(googleAnchor).toHaveClass(/\boidf-btn-lg\b/);
-    await expect(gitlabAnchor).toHaveClass(/\boidf-btn-lg\b/);
+    await expect(idpBtn).toHaveClass(/\boidf-btn-lg\b/);
   });
 
-  test("Google button uses variant=secondary (anchor has oidf-btn-secondary)", async ({ page }) => {
+  test("IdP button uses variant=secondary (anchor has oidf-btn-secondary)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
     await page.goto("/login.html");
 
-    const googleAnchor = page.locator('a[href="/oauth2/authorization/google"]');
+    const idpAnchor = page.locator('a[href="/oauth2/authorization/idp"]');
 
-    await expect(googleAnchor).toHaveClass(/\boidf-btn-secondary\b/);
-    await expect(googleAnchor).toHaveAttribute("href", "/oauth2/authorization/google");
-  });
-
-  test("GitLab button uses variant=secondary (anchor has oidf-btn-secondary)", async ({ page }) => {
-    await setupFailFast(page);
-    await setupLoginRoutes(page);
-
-    await page.goto("/login.html");
-
-    const gitlabAnchor = page.locator('a[href="/oauth2/authorization/gitlab"]');
-
-    await expect(gitlabAnchor).toHaveClass(/\boidf-btn-secondary\b/);
-    await expect(gitlabAnchor).toHaveAttribute("href", "/oauth2/authorization/gitlab");
+    await expect(idpAnchor).toHaveClass(/\boidf-btn-secondary\b/);
+    await expect(idpAnchor).toHaveAttribute("href", "/oauth2/authorization/idp");
   });
 
   test("Bootstrap CSS/JS assets are not requested by the page", async ({ page }) => {

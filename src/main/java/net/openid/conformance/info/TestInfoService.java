@@ -75,4 +75,29 @@ public interface TestInfoService {
 	 * @param acknowledged whether the database acknowledged both removes
 	 */
 	record Deleted(long tests, long logEntries, boolean acknowledged) { }
+
+	/**
+	 * Hand every test owned by the given legacy (issuer, subject) over to the
+	 * currently authenticated user, along with the log entries and screenshots
+	 * belonging to those tests.
+	 *
+	 * @return how many documents changed hands in each collection
+	 */
+	MigrationCounts migrateOwnership(String oldIss, String oldSub);
+
+	/**
+	 * What a single ownership migration moved.
+	 *
+	 * @param tests      documents re-owned in TEST_INFO
+	 * @param logEntries documents re-owned in EVENT_LOG — the test log, including
+	 *                   the entries that carry uploaded screenshots
+	 */
+	record MigrationCounts(long tests, long logEntries) {
+
+		public static final MigrationCounts NONE = new MigrationCounts(0, 0);
+
+		public boolean movedNothing() {
+			return tests == 0 && logEntries == 0;
+		}
+	}
 }

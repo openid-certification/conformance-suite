@@ -1,8 +1,6 @@
 import { html } from "lit";
 import { expect, within, waitFor } from "storybook/test";
 import "./cts-login-page.js";
-import "./cts-link-button.js";
-import "./cts-alert.js";
 
 export default {
   title: "Pages/cts-login-page",
@@ -47,41 +45,38 @@ export const Default = {
       expect(canvasElement.querySelectorAll(".oidf-login-brand__pillars li").length).toBe(4);
     });
 
-    await step(
-      "Google OAuth button renders with correct href via cts-link-button -> <a>",
-      async () => {
-        const googleAnchor = /** @type {HTMLAnchorElement} */ (
-          canvas.getByText("Proceed with Google").closest("a")
-        );
-        expect(googleAnchor).toBeTruthy();
-        expect(googleAnchor.getAttribute("href")).toBe("/oauth2/authorization/google");
-        // Token-styled button class — Bootstrap btn-* must NOT leak through.
-        expect(googleAnchor.classList.contains("oidf-btn")).toBe(true);
-        expect(googleAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
-        expect(googleAnchor.classList.contains("btn-danger")).toBe(false);
-        expect(googleAnchor.classList.contains("btn")).toBe(false);
-        // The shared <style id="cts-button-styles"> block must be in <head>, otherwise
-        // the brand anchors render as plain text links instead of 44px lg buttons.
-        // (Prior regression: cts-link-button.js only injected on connectedCallback,
-        // and this page never mounts one — so the import was a silent no-op.)
-        expect(document.getElementById("cts-button-styles")).toBeTruthy();
-        const googleStyle = getComputedStyle(googleAnchor);
-        expect(googleStyle.height).toBe("44px");
-        // Vendor mark precedes the label — inline brand SVG, not part of cts-icon.
-        expect(googleAnchor.querySelector('svg[data-brand="google"]')).toBeTruthy();
-      },
-    );
-
-    await step("GitLab OAuth button renders with correct href", async () => {
-      const gitlabAnchor = /** @type {HTMLAnchorElement} */ (
-        canvas.getByText("Proceed with GitLab").closest("a")
+    await step("sign-in button is the single IdP entry point", async () => {
+      const idpAnchor = /** @type {HTMLAnchorElement} */ (
+        canvas.getByText("Sign in with OpenID").closest("a")
       );
-      expect(gitlabAnchor).toBeTruthy();
-      expect(gitlabAnchor.getAttribute("href")).toBe("/oauth2/authorization/gitlab");
-      expect(gitlabAnchor.classList.contains("oidf-btn")).toBe(true);
-      expect(gitlabAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
-      expect(gitlabAnchor.classList.contains("btn-primary")).toBe(false);
-      expect(gitlabAnchor.querySelector('svg[data-brand="gitlab"]')).toBeTruthy();
+      expect(idpAnchor).toBeTruthy();
+      expect(idpAnchor.getAttribute("href")).toBe("/oauth2/authorization/idp");
+
+      // The IdP brokers the upstream providers, so the retired per-provider
+      // buttons must not come back alongside it.
+      expect(canvasElement.querySelector('a[href="/oauth2/authorization/google"]')).toBeNull();
+      expect(canvasElement.querySelector('a[href="/oauth2/authorization/gitlab"]')).toBeNull();
+    });
+
+    await step("sign-in button carries the design-system button treatment", async () => {
+      const idpAnchor = /** @type {HTMLAnchorElement} */ (
+        canvas.getByText("Sign in with OpenID").closest("a")
+      );
+      expect(idpAnchor.classList.contains("oidf-btn")).toBe(true);
+      expect(idpAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
+      // oidf-btn-secondary is styled around a leading icon; without one the
+      // button reads as under-filled next to the rest of the design system.
+      expect(idpAnchor.querySelector("cts-icon")?.getAttribute("name")).toBe("user-01");
+      // Bootstrap btn-* must NOT leak through — the legacy page styled this
+      // anchor with btn/btn-lg/btn-primary.
+      expect([...idpAnchor.classList].some((c) => /^btn(-|$)/.test(c))).toBe(false);
+      // This is a plain <a>, not a mounted cts-link-button, so it depends on the
+      // shared <style id="cts-button-styles"> block that cts-link-button.js
+      // injects on import. Without it the anchor renders as a plain text link
+      // instead of a 44px lg button. (Prior regression: that injection used to
+      // happen in connectedCallback, which this page never triggers.)
+      expect(document.getElementById("cts-button-styles")).toBeTruthy();
+      expect(getComputedStyle(idpAnchor).height).toBe("44px");
     });
 
     await step("public links have correct hrefs and live in rich-list anchors", async () => {
@@ -146,9 +141,8 @@ export const WithError = {
       expect(canvasElement.querySelector(".oidf-alert-info")).toBeNull();
     });
 
-    await step("OAuth buttons still render", async () => {
-      expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
-      expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
+    await step("IdP sign-in button still renders", async () => {
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
   },
 };
@@ -179,9 +173,8 @@ export const PostLogout = {
       expect(canvasElement.querySelector(".oidf-alert-danger")).toBeNull();
     });
 
-    await step("OAuth buttons still render", async () => {
-      expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
-      expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
+    await step("IdP sign-in button still renders", async () => {
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
   },
 };
@@ -243,9 +236,8 @@ export const ErrorAndLogout = {
       expect(logoutAlert.classList.contains("bg-info")).toBe(false);
     });
 
-    await step("OAuth buttons still render", async () => {
-      expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
-      expect(canvas.getByText("Proceed with GitLab")).toBeInTheDocument();
+    await step("IdP sign-in button still renders", async () => {
+      expect(canvas.getByText("Sign in with OpenID")).toBeInTheDocument();
     });
 
     await step("public links still present", async () => {

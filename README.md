@@ -16,6 +16,13 @@ To get started as a developer or running the conformance suite locally, see:
 
 https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run
 
+If you run your own instance, note that sign-in now goes through a single
+OpenID Provider that you configure; the built-in Google and GitLab options have
+been removed, and an instance upgraded without the new settings will start but
+nobody will be able to log in. See:
+
+[docs/upgrading-to-idp-login.md](docs/upgrading-to-idp-login.md)
+
 For guidelines for submitting contributions, see:
 
 https://gitlab.com/openid/conformance-suite/wikis/Developers/Contributing

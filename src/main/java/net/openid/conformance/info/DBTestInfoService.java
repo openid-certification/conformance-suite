@@ -213,6 +213,12 @@ public class DBTestInfoService implements TestInfoService {
 		sortedMap.put("description", "text");
 
 		collection.createIndex(new Document(sortedMap));
+
+		// Almost every read here is scoped to the calling user via an exact match on
+		// the whole owner sub-document, and migrateOwnership updates by it. Without
+		// this, all of those are collection scans. Creating an index that already
+		// exists is a no-op, so this is safe to run on every startup.
+		collection.createIndex(new Document("owner", 1));
 	}
 
 	@Override
@@ -250,4 +256,56 @@ public class DBTestInfoService implements TestInfoService {
 		return new Deleted(testInfoDeleteResult.getDeletedCount(), logDeleteResult.getDeletedCount(),
 			testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged());
 	}
+
+	@Override
+	public MigrationCounts migrateOwnership(String oldIss, String oldSub) {
+
+		ImmutableMap<String, String> newOwner = authenticationFacade.getPrincipal();
+		ImmutableMap<String, String> owner = ImmutableMap.of(
+			"sub", oldSub,
+			"iss", oldIss
+		);
+
+		// A null new owner would rewrite every matching document's owner to null,
+		// orphaning the tests it was supposed to hand over.
+		if (newOwner == null || newOwner.equals(owner)) {
+			return MigrationCounts.NONE;
+		}
+
+		Query query = new Query(Criteria.where("owner").is(owner));
+
+		Update udt = Update.update("owner", newOwner);
+
+		long tests = mongoTemplate.updateMulti(query, udt, COLLECTION).getModifiedCount();
+
+		// Log entries carry their own copy of the owner, under "testOwner", and are
+		// access-controlled on it independently of TEST_INFO (LogApi filters on
+		// testOwner; DBImageService does too, because uploaded screenshots are
+		// stored as EVENT_LOG documents). Migrating TEST_INFO alone leaves the user
+		// seeing their tests in the listings but getting an empty log and no
+		// screenshots when they open one.
+		Query logQuery = new Query(Criteria.where("testOwner").is(owner));
+		Update logUpdate = Update.update("testOwner", newOwner);
+
+		long logEntries = mongoTemplate.updateMulti(logQuery, logUpdate, DBEventLog.COLLECTION).getModifiedCount();
+
+		MigrationCounts counts = new MigrationCounts(tests, logEntries);
+		if (!counts.movedNothing()) {
+			// getTestOwner answers from this cache for up to 30 minutes, so without
+			// this the owner checks in ImageApi keep comparing against the identity
+			// the migration just replaced, and keep failing. Invalidating everything
+			// rather than the migrated ids: the cache holds at most 1000 entries and
+			// reloads on demand, so finding out exactly which ones moved would cost
+			// more than rebuilding them.
+			testOwnerCache.invalidateAll();
+
+			logger.info("Migrated ownership of legacy records. legacyIss={} legacySub={} newOwner={} tests={} logEntries={}",
+				oldIss, oldSub, newOwner.get("sub"), tests, logEntries);
+		} else {
+			logger.debug("No legacy records to migrate. legacyIss={} legacySub={}", oldIss, oldSub);
+		}
+
+		return counts;
+	}
+
 }
