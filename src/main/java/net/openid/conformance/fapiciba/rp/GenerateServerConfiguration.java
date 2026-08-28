@@ -42,6 +42,15 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		final JsonArray cibaModes = new JsonArray();
 		server.add("backchannel_token_delivery_modes_supported", cibaModes);
 
+		JsonArray subjectTypes = new JsonArray();
+		subjectTypes.add("public");
+		server.add("subject_types_supported", subjectTypes);
+
+		JsonArray scopes = new JsonArray();
+		scopes.add("openid");
+		scopes.add("accounts");
+		server.add("scopes_supported", scopes);
+
 		server.addProperty("request_parameter_supported", true);
 
 		env.putObject("server", server);
