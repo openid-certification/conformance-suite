@@ -327,28 +327,87 @@ export const GUIDED_WIZARD_TREE = {
             {
               id: "rp",
               label: "RP (Client)",
-              result: {
-                plan_name: "fapi1-advanced-final-client-test-plan",
-                variants: {
-                  client_auth_type: "private_key_jwt",
-                  fapi_profile: "consumerdataright_au",
-                  fapi_auth_request_method: "pushed",
-                  fapi_response_mode: "plain_response",
-                  fapi_client_type: "oidc",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi1_cdr_rp",
+                    label: "FAPI1 Advanced client",
+                    description: "Client-side FAPI1 Advanced tests for the current CDR standards.",
+                    result: {
+                      plan_name: "fapi1-advanced-final-client-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_profile: "consumerdataright_au",
+                        fapi_auth_request_method: "pushed",
+                        fapi_response_mode: "plain_response",
+                        fapi_client_type: "oidc",
+                      },
+                    },
+                  },
+                  {
+                    id: "fapi2_cdr_rp",
+                    label: "FAPI2 Message Signing client (draft)",
+                    description:
+                      "Client-side FAPI2 Message Signing tests for the draft CDR standards (Consultation Draft 210).",
+                    result: {
+                      plan_name: "fapi2-message-signing-final-client-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_profile: "consumerdataright_au",
+                        fapi_request_method: "signed_non_repudiation",
+                        authorization_request_type: "simple",
+                        sender_constrain: "mtls",
+                        fapi_response_mode: "jarm",
+                        fapi_client_type: "oidc",
+                      },
+                    },
+                  },
+                ],
               },
             },
             {
               id: "op",
               label: "OP (Authorization Server)",
-              result: {
-                plan_name: "fapi1-advanced-final-test-plan",
-                variants: {
-                  client_auth_type: "private_key_jwt",
-                  fapi_profile: "consumerdataright_au",
-                  fapi_auth_request_method: "pushed",
-                  fapi_response_mode: "jarm",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi1_cdr_op",
+                    label: "FAPI1 Advanced",
+                    description:
+                      "Authorization-server FAPI1 Advanced tests for the current CDR standards.",
+                    result: {
+                      plan_name: "fapi1-advanced-final-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_profile: "consumerdataright_au",
+                        fapi_auth_request_method: "pushed",
+                        fapi_response_mode: "jarm",
+                      },
+                    },
+                  },
+                  {
+                    id: "fapi2_cdr_op",
+                    label: "FAPI2 Message Signing (draft)",
+                    description:
+                      "Authorization-server FAPI2 Message Signing tests for the draft CDR standards (Consultation Draft 210).",
+                    result: {
+                      plan_name: "fapi2-message-signing-final-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_profile: "consumerdataright_au",
+                        fapi_request_method: "signed_non_repudiation",
+                        authorization_request_type: "simple",
+                        sender_constrain: "mtls",
+                        fapi_response_mode: "jarm",
+                        openid: "openid_connect",
+                      },
+                    },
+                  },
+                ],
               },
             },
           ],
