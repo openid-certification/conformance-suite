@@ -196,10 +196,28 @@
         "test-name": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
         "variant": "*",
         "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt.json",
-        "current-block": "",
-        "condition": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+        "current-block": "Direct post endpoint",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
         "expected-result": "failure",
-        "comment": "Wallet test interrupts when the paired verifier-side rejects the request (which is the expected behavior - verifier-side correctly refuses our unknown transaction_data type)"
+        "comment": "Paired verifier-happy-flow (acting as wallet) flags the unknown transaction_data type but continues its happy flow and posts a vp_token instead of an error response"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+        "variant": "*",
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt.json",
+        "current-block": "Direct post endpoint",
+        "condition": "EnsureNoVpTokenInAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "As above - the paired module posts a vp_token, which the negative test correctly rejects"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+        "variant": "*",
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt.json",
+        "current-block": "Direct post endpoint",
+        "condition": "EnsureInvalidTransactionDataError",
+        "expected-result": "failure",
+        "comment": "As above - the paired module's response has no invalid_transaction_data error code"
     },
     {
         "test-name": "oid4vp-1final-verifier-happy-flow",
@@ -218,24 +236,6 @@
         "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
         "expected-result": "warning",
         "comment": "Paired wallet negative test deliberately sends transaction_data, which the unknown-params check also flags"
-    },
-    {
-        "test-name": "oid4vp-1final-verifier-happy-flow",
-        "variant": "*",
-        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
-        "current-block": "Authorization endpoint",
-        "condition": "EnsureHttpStatusCodeIs200",
-        "expected-result": "failure",
-        "comment": "Paired wallet negative test bails out after verifier-side rejects the request, so no successful HTTP 200 is exchanged"
-    },
-    {
-        "test-name": "oid4vp-1final-verifier-happy-flow",
-        "variant": "*",
-        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
-        "current-block": "Authorization endpoint",
-        "condition": "ValidateDirectPostResponse",
-        "expected-result": "warning",
-        "comment": "Paired wallet negative test bails out after verifier-side rejects the request, so no direct_post response is sent to validate"
     },
     {
         "test-name": "oid4vp-1final-verifier-happy-flow",
