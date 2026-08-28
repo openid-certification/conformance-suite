@@ -34,10 +34,8 @@ services:
       BASE_MTLS_URL: ${BASE_MTLS_URL:-https://localhost.emobix.co.uk:8444}
       MONGODB_HOST: mongodb
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      OIDC_GOOGLE_CLIENTID: ${OIDC_GOOGLE_CLIENTID:-google-client}
-      OIDC_GOOGLE_SECRET: ${OIDC_GOOGLE_SECRET:-google-secret}
-      OIDC_GITLAB_CLIENTID: ${OIDC_GITLAB_CLIENTID:-gitlab-client}
-      OIDC_GITLAB_SECRET: ${OIDC_GITLAB_SECRET:-gitlab-secret}
+      OIDC_IDP_CLIENTID: conformance-suite-local
+      OIDC_IDP_ISS: https://openid.net/auth
     depends_on:
      - mongodb
     logging:

@@ -28,6 +28,26 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Issues and verifies the signed one-time tokens behind private share links.
+ * <p>
+ * <strong>Share links issued before the IdP migration are broken and cannot be
+ * repaired.</strong> The token embeds the plan's owner as a {@code
+ * ct_testplan_owner} claim at issue time, and a private-link request is
+ * authorized by feeding that claim back as the principal
+ * ({@code OIDCAuthenticationFacade#getPrincipal} returns it for a
+ * {@code OneTimeTokenAuthentication}) and looking the plan up with
+ * {@code findByIdAndOwner}. Once {@code MigrationAuthenticationHandler} has
+ * rewritten the plan's owner to the identity the IdP now issues, that lookup no
+ * longer matches, and the link resolves to nothing.
+ * <p>
+ * The token is signed, so the embedded owner cannot be rewritten in place the way
+ * the database records were, and the links are already distributed - some of them
+ * in submitted certification packages - so they cannot be reissued to whoever
+ * holds them either. Anyone who needs a working link has to be sent a new one,
+ * generated after the owning user's first IdP login. This is accepted rather than
+ * solved.
+ */
 @Component
 public class AssetSharing {
 

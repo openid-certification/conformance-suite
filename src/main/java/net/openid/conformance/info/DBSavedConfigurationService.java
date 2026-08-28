@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -99,6 +100,30 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 
 		mongoTemplate.remove(query, COLLECTION);
 
+	}
+
+	@Override
+	public long migrateOwnership(String oldIss, String oldSub) {
+
+		ImmutableMap<String, String> newOwner = authenticationFacade.getPrincipal();
+		ImmutableMap<String, String> owner = ImmutableMap.of(
+			"sub", oldSub,
+			"iss", oldIss
+		);
+
+		// A null new owner would rewrite every matching document's owner to null,
+		// orphaning the records it was supposed to hand over.
+		if (newOwner == null || newOwner.equals(owner)) {
+			return 0;
+		}
+
+		Criteria criteria = Criteria.where("owner").is(owner);
+
+		Query query = new Query(criteria);
+
+		Update udt = Update.update("owner", newOwner);
+
+		return mongoTemplate.updateMulti(query, udt, COLLECTION).getModifiedCount();
 	}
 
 

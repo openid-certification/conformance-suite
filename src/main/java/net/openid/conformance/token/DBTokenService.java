@@ -1,5 +1,6 @@
 package net.openid.conformance.token;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -75,7 +77,7 @@ public class DBTokenService implements TokenService {
 	}
 
 	@Override
-	public Map findToken(String token) {
+	public Map<String,Object> findToken(String token) {
 
 		Criteria criteria = new Criteria("token").is(token);
 		Query query = new Query(criteria);
@@ -89,5 +91,29 @@ public class DBTokenService implements TokenService {
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
 		collection.createIndex(new Document("owner", 1));
 		collection.createIndex(new Document("token", 1), new IndexOptions().unique(true));
+	}
+
+	@Override
+	public long migrateOwnership(String oldIss, String oldSub) {
+
+		ImmutableMap<String, String> newOwner = authenticationFacade.getPrincipal();
+		ImmutableMap<String, String> owner = ImmutableMap.of(
+			"sub", oldSub,
+			"iss", oldIss
+		);
+
+		// A null new owner would rewrite every matching document's owner to null,
+		// orphaning the records it was supposed to hand over.
+		if (newOwner == null || newOwner.equals(owner)) {
+			return 0;
+		}
+
+		Criteria criteria = Criteria.where("owner").is(owner);
+
+		Query query = new Query(criteria);
+
+		Update udt = Update.update("owner", newOwner);
+
+		return mongoTemplate.updateMulti(query, udt, COLLECTION).getModifiedCount();
 	}
 }
