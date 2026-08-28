@@ -154,6 +154,62 @@ public class JsonSchemaValidation_UnitTest {
 	}
 
 	@Test
+	public void testValidate_containerOfAnUnknownPropertyIsNotItselfReportedAsUnknown() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// check_details is a spec-defined evidence member, but it is contributed by an
+		// allOf/if/then branch: the unknown "bogus" inside it fails that branch's subschema,
+		// whose property annotation the evidence-level "unevaluatedProperties": false then no
+		// longer sees. Only the genuine unknown property may be reported.
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "verified_claims": {
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "document",
+			      "check_details": [{"check_method": "x", "bogus": 1}]
+			    }]
+			  }
+			  }
+			}
+			""");
+
+		assertTrue(result.structuralErrors().isValid(),
+			() -> "expected no structural errors but got: " + result.structuralErrors().getValidationMessages());
+		assertEquals(List.of("bogus"),
+			result.unknownPropertyErrors().getValidationMessages().stream().map(Error::getProperty).toList());
+	}
+
+	@Test
+	public void testValidate_genuineUnknownPropertyAlongsideAContainerOfAnotherOneIsStillReported() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// Two unevaluated properties at evidence level: "bogus_member", which nothing in the
+		// schema knows, and "check_details", which is only unevaluated because of the unknown
+		// property inside it. Suppressing the second must not suppress the first.
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "verified_claims": {
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "document",
+			      "bogus_member": 1,
+			      "check_details": [{"check_method": "x", "bogus": 1}]
+			    }]
+			  }
+			  }
+			}
+			""");
+
+		assertEquals(List.of("bogus", "bogus_member"),
+			result.unknownPropertyErrors().getValidationMessages().stream().map(Error::getProperty).sorted().toList());
+	}
+
+	@Test
 	public void testValidate_distributedClaimsSourceWithoutAccessTokenIsValid() throws IOException {
 		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
 

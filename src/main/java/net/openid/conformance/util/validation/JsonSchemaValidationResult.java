@@ -50,6 +50,9 @@ public class JsonSchemaValidationResult {
 	 * unknown properties only when some branch fails purely because of them (recursively), and
 	 * then only that branch's unknown-property errors are reported; a composite where every
 	 * branch has a genuine structural error is reported via {@link #structuralErrors()} instead.
+	 * {@code unevaluatedProperties} errors naming a property that something inside has already
+	 * failed on are dropped first, before any of that - see
+	 * {@link #withoutCascadedUnevaluatedErrors(List)}.
 	 *
 	 * <p>"Some branch fails purely on unknown properties" is a heuristic for "that branch is the
 	 * one the input was aimed at", not an invariant: if a payload can make an <em>unintended</em>
@@ -80,9 +83,55 @@ public class JsonSchemaValidationResult {
 	private Partition partition() {
 		if (partition == null) {
 			partition = new Partition();
-			classify(validationMessages, 0, partition);
+			classify(withoutCascadedUnevaluatedErrors(validationMessages), 0, partition);
 		}
 		return partition;
+	}
+
+	/**
+	 * Drops {@code unevaluatedProperties} errors that fired only because a subschema for that very
+	 * property failed. {@code unevaluatedProperties} works off the property-name annotations the
+	 * sibling subschemas produce, and a subschema that fails produces none - so a spec-defined
+	 * member contributed by, say, an {@code allOf}/{@code if}/{@code then} branch is reported as
+	 * "unevaluated" as soon as anything inside it is invalid, on top of the error that is inside
+	 * it. Reporting the container as an unknown property is wrong: the schema plainly knows it.
+	 *
+	 * <p>An error located strictly inside property P is the marker for that, because it can only
+	 * exist if some subschema applied to P (and failed). When nothing applies to P - the case
+	 * {@code unevaluatedProperties} is meant to catch - nothing can produce an error inside it,
+	 * so a genuine unknown-property report is never dropped here.</p>
+	 */
+	private static List<Error> withoutCascadedUnevaluatedErrors(List<Error> errors) {
+		List<Error> kept = new ArrayList<>(errors.size());
+		for (Error error : errors) {
+			if ("unevaluatedProperties".equals(error.getKeyword()) && error.getProperty() != null
+					&& hasErrorInsideProperty(errors, error.getInstanceLocation(), error.getProperty())) {
+				continue;
+			}
+			kept.add(error);
+		}
+		return kept;
+	}
+
+	private static boolean hasErrorInsideProperty(List<Error> errors, NodePath objectLocation, String property) {
+		int depth = objectLocation.getNameCount();
+		for (Error error : errors) {
+			NodePath location = error.getInstanceLocation();
+			if (location.getNameCount() <= depth || !property.equals(location.getElement(depth))) {
+				continue;
+			}
+			boolean sameObject = true;
+			for (int i = 0; i < depth; i++) {
+				if (!objectLocation.getElement(i).equals(location.getElement(i))) {
+					sameObject = false;
+					break;
+				}
+			}
+			if (sameObject) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static final class Partition {
