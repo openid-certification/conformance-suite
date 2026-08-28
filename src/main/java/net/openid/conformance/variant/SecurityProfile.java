@@ -2,6 +2,7 @@ package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "security_profile",
+	sortOrder = 10,
 	displayName = "Security Profile",
 	description = "Security Profile specification that tests will follow"
 )

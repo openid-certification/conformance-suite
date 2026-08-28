@@ -4,6 +4,7 @@ import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "credential_format",
+	sortOrder = 70,
 	displayName = "Credential Format",
 	description = "The credential format that will be returned by the Wallet."
 )

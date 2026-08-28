@@ -6,6 +6,7 @@ import java.util.List;
 
 @VariantParameter(
 	name = "response_type",
+	sortOrder = 40,
 	displayName = "Response Type",
 	description = "The Response Type to be used in testing. A separate test plan should be run for each response type that needs to be tested."
 )

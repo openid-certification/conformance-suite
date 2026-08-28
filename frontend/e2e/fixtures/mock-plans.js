@@ -8,6 +8,11 @@
  * cts-test-selector (the sole plan-entry point) lists plans by `planName` /
  * `displayName` and filters by `specFamily`; the other fields are retained to
  * mirror the real payload. Some `profile` values match guided-tree leaves.
+ *
+ * `variants` keys are listed in the order the backend emits them (by
+ * `@VariantParameter.sortOrder`, ties alphabetical by name) — the UI renders
+ * them in payload order, so fixture order is what the e2e-rendered dropdown
+ * order reflects. Keep new entries sorted the same way.
  */
 
 export const MOCK_PLANS = [
@@ -27,6 +32,22 @@ export const MOCK_PLANS = [
     configurationFields: ["server.issuer", "client.client_id", "client.client_secret"],
     hidesConfigurationFields: [],
     variants: {
+      server_metadata: {
+        variantInfo: {
+          displayName: "Server Metadata",
+          description: "How server metadata is obtained",
+        },
+        variantValues: {
+          discovery: { configurationFields: [], hidesConfigurationFields: [] },
+          static: { configurationFields: ["server.jwks_uri"], hidesConfigurationFields: [] },
+        },
+      },
+      response_type: {
+        variantInfo: { displayName: "Response Type", description: "OAuth 2.0 response type" },
+        variantValues: {
+          code: { configurationFields: [], hidesConfigurationFields: [] },
+        },
+      },
       client_auth_type: {
         variantInfo: {
           displayName: "Client Authentication Type",
@@ -36,22 +57,6 @@ export const MOCK_PLANS = [
           client_secret_basic: { configurationFields: [], hidesConfigurationFields: [] },
           client_secret_post: { configurationFields: [], hidesConfigurationFields: [] },
           private_key_jwt: { configurationFields: ["client.jwks"], hidesConfigurationFields: [] },
-        },
-      },
-      response_type: {
-        variantInfo: { displayName: "Response Type", description: "OAuth 2.0 response type" },
-        variantValues: {
-          code: { configurationFields: [], hidesConfigurationFields: [] },
-        },
-      },
-      server_metadata: {
-        variantInfo: {
-          displayName: "Server Metadata",
-          description: "How server metadata is obtained",
-        },
-        variantValues: {
-          discovery: { configurationFields: [], hidesConfigurationFields: [] },
-          static: { configurationFields: ["server.jwks_uri"], hidesConfigurationFields: [] },
         },
       },
     },
@@ -157,24 +162,15 @@ export const MOCK_GUIDED_PLANS = [
       },
     ],
     variants: {
-      client_auth_type: {
+      fapi_profile: {
         variantInfo: {
-          displayName: "Client Authentication Type",
-          description: "The type of client authentication your software supports.",
+          displayName: "FAPI Profile",
+          description: "The FAPI sub-profile to use.",
         },
         variantValues: {
-          private_key_jwt: { configurationFields: [] },
-          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
-        },
-      },
-      sender_constrain: {
-        variantInfo: {
-          displayName: "Sender Constraining",
-          description: "The method to use to sender constrain access tokens.",
-        },
-        variantValues: {
-          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
-          dpop: { configurationFields: [] },
+          plain_fapi: { configurationFields: [] },
+          ksa: { configurationFields: [] },
+          connectid_au: { configurationFields: [] },
         },
       },
       authorization_request_type: {
@@ -187,14 +183,14 @@ export const MOCK_GUIDED_PLANS = [
           rar: { configurationFields: [] },
         },
       },
-      openid: {
+      client_auth_type: {
         variantInfo: {
-          displayName: "Test OpenID",
-          description: "If your server supports issuing id_tokens, pick 'openid connect'.",
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
         },
         variantValues: {
-          plain_oauth: { configurationFields: [] },
-          openid_connect: { configurationFields: [] },
+          private_key_jwt: { configurationFields: [] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
         },
       },
       fapi_request_method: {
@@ -207,17 +203,6 @@ export const MOCK_GUIDED_PLANS = [
           signed_non_repudiation: { configurationFields: [] },
         },
       },
-      fapi_profile: {
-        variantInfo: {
-          displayName: "FAPI Profile",
-          description: "The FAPI sub-profile to use.",
-        },
-        variantValues: {
-          plain_fapi: { configurationFields: [] },
-          ksa: { configurationFields: [] },
-          connectid_au: { configurationFields: [] },
-        },
-      },
       fapi_response_mode: {
         variantInfo: {
           displayName: "FAPI Response Mode",
@@ -226,6 +211,26 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           plain_response: { configurationFields: [] },
           jarm: { configurationFields: [] },
+        },
+      },
+      openid: {
+        variantInfo: {
+          displayName: "Test OpenID",
+          description: "If your server supports issuing id_tokens, pick 'openid connect'.",
+        },
+        variantValues: {
+          plain_oauth: { configurationFields: [] },
+          openid_connect: { configurationFields: [] },
+        },
+      },
+      sender_constrain: {
+        variantInfo: {
+          displayName: "Sender Constraining",
+          description: "The method to use to sender constrain access tokens.",
+        },
+        variantValues: {
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+          dpop: { configurationFields: [] },
         },
       },
     },
@@ -244,16 +249,6 @@ export const MOCK_GUIDED_PLANS = [
       },
     ],
     variants: {
-      client_auth_type: {
-        variantInfo: {
-          displayName: "Client Authentication Type",
-          description: "The type of client authentication your software supports.",
-        },
-        variantValues: {
-          private_key_jwt: { configurationFields: ["client.jwks"] },
-          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
-        },
-      },
       ciba_mode: {
         variantInfo: {
           displayName: "CIBA Mode",
@@ -262,6 +257,16 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           ping: { configurationFields: [] },
           poll: { configurationFields: [] },
+        },
+      },
+      client_auth_type: {
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
+        },
+        variantValues: {
+          private_key_jwt: { configurationFields: ["client.jwks"] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
         },
       },
       fapi_ciba_profile: {
@@ -290,6 +295,26 @@ export const MOCK_GUIDED_PLANS = [
       },
     ],
     variants: {
+      client_registration: {
+        variantInfo: {
+          displayName: "Client Registration",
+          description: "How the client is registered.",
+        },
+        variantValues: {
+          static_client: { configurationFields: [] },
+          dynamic_client: { configurationFields: [] },
+        },
+      },
+      ciba_mode: {
+        variantInfo: {
+          displayName: "CIBA Mode",
+          description: "The CIBA notification mode to test.",
+        },
+        variantValues: {
+          ping: { configurationFields: [] },
+          poll: { configurationFields: [] },
+        },
+      },
       client_auth_type: {
         variantInfo: {
           displayName: "Client Authentication Type",
@@ -310,26 +335,6 @@ export const MOCK_GUIDED_PLANS = [
           connectid_au: { configurationFields: [] },
         },
       },
-      ciba_mode: {
-        variantInfo: {
-          displayName: "CIBA Mode",
-          description: "The CIBA notification mode to test.",
-        },
-        variantValues: {
-          ping: { configurationFields: [] },
-          poll: { configurationFields: [] },
-        },
-      },
-      client_registration: {
-        variantInfo: {
-          displayName: "Client Registration",
-          description: "How the client is registered.",
-        },
-        variantValues: {
-          static_client: { configurationFields: [] },
-          dynamic_client: { configurationFields: [] },
-        },
-      },
     },
   },
   {
@@ -346,6 +351,16 @@ export const MOCK_GUIDED_PLANS = [
       },
     ],
     variants: {
+      fapi_profile: {
+        variantInfo: {
+          displayName: "FAPI Profile",
+          description: "The FAPI sub-profile to use.",
+        },
+        variantValues: {
+          plain_fapi: { configurationFields: [] },
+          openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
+        },
+      },
       client_auth_type: {
         variantInfo: {
           displayName: "Client Authentication Type",
@@ -364,16 +379,6 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           by_value: { configurationFields: [] },
           pushed: { configurationFields: [] },
-        },
-      },
-      fapi_profile: {
-        variantInfo: {
-          displayName: "FAPI Profile",
-          description: "The FAPI sub-profile to use.",
-        },
-        variantValues: {
-          plain_fapi: { configurationFields: [] },
-          openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
         },
       },
       fapi_response_mode: {
@@ -403,6 +408,16 @@ export const MOCK_GUIDED_PLANS = [
       },
     ],
     variants: {
+      fapi_profile: {
+        variantInfo: {
+          displayName: "FAPI Profile",
+          description: "The FAPI sub-profile to use.",
+        },
+        variantValues: {
+          plain_fapi: { configurationFields: [] },
+          openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
+        },
+      },
       client_auth_type: {
         variantInfo: {
           displayName: "Client Authentication Type",
@@ -421,16 +436,6 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           by_value: { configurationFields: [] },
           pushed: { configurationFields: [] },
-        },
-      },
-      fapi_profile: {
-        variantInfo: {
-          displayName: "FAPI Profile",
-          description: "The FAPI sub-profile to use.",
-        },
-        variantValues: {
-          plain_fapi: { configurationFields: [] },
-          openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
         },
       },
       fapi_response_mode: {

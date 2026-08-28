@@ -2,6 +2,7 @@ package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "credential_format",
+	sortOrder = 70,
 	displayName = "Credential Format",
 	description = "The credential format that will be returned by the Wallet."
 )

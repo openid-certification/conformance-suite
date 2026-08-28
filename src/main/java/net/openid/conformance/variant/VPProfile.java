@@ -2,6 +2,7 @@ package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "vp_profile",
+	sortOrder = 60,
 	displayName = "VP Profile",
 	description = "The VP Profile to use for the tests. Defaults to HAIP",
 	defaultValue="haip"

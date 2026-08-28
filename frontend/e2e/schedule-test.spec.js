@@ -234,9 +234,14 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const variantSelectors = page.locator("#variantSelectors");
     await expect(variantSelectors).toBeVisible();
 
-    // Should have 3 variant dropdowns (client_auth_type, response_type, server_metadata)
+    // Should have 3 variant dropdowns, rendered in the API's payload order
+    // (sortOrder-ranked names first, then alphabetical — the page no longer
+    // sorts client-side).
     const selects = variantSelectors.locator("select.variant-selector");
     await expect(selects).toHaveCount(3);
+    await expect(selects.nth(0)).toHaveAttribute("data-variant-parameter", "server_metadata");
+    await expect(selects.nth(1)).toHaveAttribute("data-variant-parameter", "response_type");
+    await expect(selects.nth(2)).toHaveAttribute("data-variant-parameter", "client_auth_type");
 
     // Each dropdown has the correct options from the fixture's variantValues
     const authSelect = page.locator("#vp_client_auth_type");
