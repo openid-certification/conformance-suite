@@ -28,7 +28,7 @@
  */
 
 import { renderErrorIntoSlot } from "./log-detail-error-slot.js";
-import { scrollEntryIntoView } from "../components/cts-log-entry.js";
+import { scrollEntryIntoView, flashEntryArrival } from "../components/cts-log-entry.js";
 import { tryGetStorage } from "../components/guided-wizard.js";
 import { selectFindings } from "../components/log-findings.js";
 
@@ -1762,8 +1762,56 @@ function handleScrollToEntry(evt) {
   // collapsed-ancestor reveal step. scrollEntryIntoView handles the wide
   // layout where the host is display:contents (boxless — a bare
   // scrollIntoView would silently no-op) by scrolling the painted
-  // .logItem row instead.
-  scrollEntryIntoView(target, { behavior: "smooth", block: "start" });
+  // .logItem row instead. block: "center" (not "start") keeps preceding
+  // log context visible above the target row instead of pinning it to the
+  // very top of the viewport.
+  scrollEntryIntoView(target, { behavior: "smooth", block: "center" });
+  flashArrivalWhenScrollSettles(target);
+}
+
+/**
+ * Cancels the most recently scheduled flashArrivalWhenScrollSettles() wait,
+ * if any is still pending. Only one jump's landing can be "current" at a
+ * time — without this, clicking a second failure row before the first
+ * jump's scroll settles would leave the first wait armed too, and a single
+ * scrollend (the browser coalesces the redirected scroll into one motion)
+ * would flash both the abandoned first target and the real second one.
+ * @type {(() => void) | null}
+ */
+let cancelPendingArrivalFlash = null;
+
+/**
+ * Flash the landing row once the smooth scroll started by
+ * scrollEntryIntoView has settled — firing mid-scroll would read as noise
+ * rather than "you've arrived" (same post-settle timing schedule-test.html
+ * uses for its own cts-flash-highlight arrival cue). `scrollend` is the
+ * settle signal; the timeout is a safety net for browsers that never fire
+ * it, or when the target was already on screen and nothing scrolled.
+ *
+ * @param {Element} target - The `cts-log-entry` host to flash.
+ * @returns {void}
+ */
+function flashArrivalWhenScrollSettles(target) {
+  if (cancelPendingArrivalFlash) cancelPendingArrivalFlash();
+
+  let settled = false;
+  function finish() {
+    if (settled) return;
+    settled = true;
+    window.removeEventListener("scrollend", finish);
+    clearTimeout(timeoutId);
+    cancelPendingArrivalFlash = null;
+    flashEntryArrival(target);
+  }
+  function cancel() {
+    if (settled) return;
+    settled = true;
+    window.removeEventListener("scrollend", finish);
+    clearTimeout(timeoutId);
+  }
+  window.addEventListener("scrollend", finish, { once: true });
+  const timeoutId = setTimeout(finish, 1000);
+  cancelPendingArrivalFlash = cancel;
 }
 
 /**

@@ -2742,6 +2742,71 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(eventDetail).toMatchObject({ entryId: expect.any(String) });
   });
 
+  test("rapid successive failure-jump clicks only flash the second (latest) target", async ({
+    page,
+  }) => {
+    // flashArrivalWhenScrollSettles() tracks one pending arrival flash at a
+    // time (cancelPendingArrivalFlash in log-detail.js): clicking a second
+    // failure row before the first jump's scroll settles must cancel the
+    // first's pending flash rather than leaving both armed — the browser
+    // coalesces the redirected scroll into one motion, so a single
+    // scrollend would otherwise flash the abandoned first target too.
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        { _id: "f-2", result: "FAILURE", src: "ValidateIdToken", msg: "sig invalid" },
+        { _id: "f-3", result: "FAILURE", src: "CheckTestOutcome", msg: "1 failure" },
+      ],
+    };
+    await setupFailFast(page);
+    await setupV2Routes(page, { testInfo: failedTestInfo, logEntries: MOCK_FAILED_LOG_ENTRIES });
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(failedTestInfo.testId)}`);
+
+    await expect(
+      page.locator("cts-log-detail-header cts-failure-summary .failureText").first(),
+    ).toBeVisible();
+    await expect(page.locator('cts-log-entry[data-entry-id="f-2"] .logItem')).toBeAttached();
+    await expect(page.locator('cts-log-entry[data-entry-id="f-3"] .logItem')).toBeAttached();
+
+    await page.evaluate(() => {
+      /** @type {any} */ (window).__flashLog = [];
+      for (const id of ["f-2", "f-3"]) {
+        const item = document.querySelector(`cts-log-entry[data-entry-id="${id}"] .logItem`);
+        new MutationObserver(() => {
+          /** @type {any} */ (window).__flashLog.push({
+            id,
+            flashing: /** @type {Element} */ (item).hasAttribute("data-flash-arrival"),
+          });
+        }).observe(/** @type {Element} */ (item), {
+          attributes: true,
+          attributeFilter: ["data-flash-arrival"],
+        });
+      }
+    });
+
+    // Dispatch both clicks back-to-back in one JS tick (not two Playwright
+    // .click() calls) — Playwright's own actionability/stability wait would
+    // stall the second click behind the first jump's in-flight smooth
+    // scroll, which defeats the race this test is trying to reproduce.
+    await page.evaluate(() => {
+      const links = document.querySelectorAll(
+        "cts-log-detail-header cts-failure-summary .failureText",
+      );
+      /** @type {HTMLElement} */ (links[0]).click();
+      /** @type {HTMLElement} */ (links[1]).click();
+    });
+
+    await page.waitForTimeout(2500);
+
+    const log = await page.evaluate(() => /** @type {any} */ (window).__flashLog);
+    const f2Events = log.filter((/** @type {any} */ e) => e.id === "f-2");
+    const f3Events = log.filter((/** @type {any} */ e) => e.id === "f-3");
+    expect(f2Events).toHaveLength(0); // cancelled before its flash ever started
+    expect(f3Events.some((/** @type {any} */ e) => e.flashing)).toBe(true);
+    expect(f3Events.at(-1).flashing).toBe(false); // self-cleared
+  });
+
   test("failure summary swaps between header and page-level positions at 1024px breakpoint", async ({
     page,
   }) => {

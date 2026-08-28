@@ -327,6 +327,13 @@ ${typeof publicJwk === "string" ? publicJwk : JSON.stringify(publicJwk)}</pre
 
 const STYLE_ID = "cts-log-entry-styles";
 
+// Duration of the flashEntryArrival() one-shot wash below. Interpolated into
+// the @keyframes animation and reused by flashEntryArrival()'s cleanup timer
+// so the CSS and JS can never drift out of sync (same contract as
+// cts-flash-highlight.js's FLASH_DURATION_MS).
+const FLASH_ARRIVAL_DURATION_MS = 1600;
+const FLASH_ARRIVAL_ATTR = "data-flash-arrival";
+
 // Scoped CSS for the OIDF token-styled log row. Mirrors the design archive's
 // `project/preview/components-log-entry.html` layout but with the 5-column
 // grid called out in U16 (timestamp / severity / http / body / actions).
@@ -448,6 +455,38 @@ const STYLE_TEXT = css`
   cts-log-entry:target .logItem {
     background: var(--orange-50);
     transition: background var(--dur-1) var(--ease-standard);
+  }
+
+  /* JS-driven arrival flash for jumps that don't set the URL fragment (e.g.
+     clicking a failure-summary row via cts-scroll-to-entry) — the :target
+     wash above only fires for hash navigation. flashEntryArrival() toggles
+     data-flash-arrival post-scroll-settle; unlike :target this is a
+     one-shot fade rather than a persistent wash, since there is no
+     fragment change to "un-target" it later. Same (0,2,1)-beating
+     ordering requirement as :target above: must stay after is-fail /
+     is-warn so the flash colour wins on failed/warned rows too. */
+  @media (prefers-reduced-motion: no-preference) {
+    cts-log-entry .logItem[data-flash-arrival] {
+      animation: ctsLogEntryFlashArrival ${FLASH_ARRIVAL_DURATION_MS}ms ease-out;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* No motion: a static wash for the timer-based duration (below) still
+       makes the arrival perceptible; animationend never fires here. */
+    cts-log-entry .logItem[data-flash-arrival] {
+      background: var(--orange-50);
+    }
+  }
+  @keyframes ctsLogEntryFlashArrival {
+    0% {
+      background: transparent;
+    }
+    12% {
+      background: var(--orange-100);
+    }
+    100% {
+      background: transparent;
+    }
   }
 
   /* ── Whole-row disclosure (R1–R7) ──────────────────────────────────────
@@ -1339,4 +1378,90 @@ customElements.define("cts-log-entry", CtsLogEntry);
 export function scrollEntryIntoView(host, options) {
   const box = host.getClientRects().length > 0 ? host : host.querySelector(".logItem");
   (box || host).scrollIntoView(options);
+}
+
+/**
+ * Paint a one-shot "you landed here" flash over an entry's `.logItem` row.
+ * Call after a JS-driven scroll (e.g. a failure-summary jump) has settled —
+ * the deep-link `:target` wash above is CSS-only and only fires for hash
+ * navigation, so jumps that don't touch the URL fragment have no landing
+ * cue without this. Mirrors cts-flash-highlight's contract (attribute
+ * toggle, animationend + timeout cleanup, reduced-motion fallback) but is
+ * applied directly to `.logItem` rather than via that wrapper element: the
+ * wide layout renders `<cts-log-entry>` as `display: contents` (see
+ * scrollEntryIntoView above) inside a live-polling entries list, so
+ * reparenting the row under a wrapper for the flash's duration risks lit-html
+ * losing track of the node mid-poll.
+ *
+ * @param {Element} host - The `cts-log-entry` element that was scrolled into view.
+ * @returns {void}
+ */
+export function flashEntryArrival(host) {
+  const item = /** @type {HTMLElement | null} */ (host.querySelector(".logItem"));
+  if (!item) return;
+  flashItem(item);
+}
+
+/**
+ * Tracks each `.logItem`'s in-flight flash cleanup (its animationend
+ * listener + safety-net timer) so flashItem() can cancel a still-pending
+ * one when re-triggered on the same element, instead of leaving it
+ * stranded. Keyed by element (not id) and a WeakMap so entries are
+ * collected automatically once a row leaves the DOM.
+ * @type {WeakMap<HTMLElement, {timer: ReturnType<typeof setTimeout>, onAnimationEnd: (e: AnimationEvent) => void}>}
+ */
+const pendingFlashes = new WeakMap();
+
+/**
+ * Run the actual flash on a resolved, non-null `.logItem` element. Split out
+ * from flashEntryArrival() so `item`'s non-null HTMLElement type is fixed by
+ * the parameter declaration — TS narrowing from an outer `if (!item) return`
+ * doesn't carry into the nested closures below, but a parameter type does.
+ *
+ * @param {HTMLElement} item - The `.logItem` row to flash.
+ * @returns {void}
+ */
+function flashItem(item) {
+  // Cancel a still-pending flash on this same item (e.g. rapid repeat clicks
+  // on the same failure row) rather than leaving its listener/timer stranded
+  // — mirrors cts-flash-highlight's per-instance _flashTimer cancellation,
+  // adapted to a WeakMap since this is a plain function, not a class with
+  // per-instance state.
+  const prior = pendingFlashes.get(item);
+  if (prior) {
+    clearTimeout(prior.timer);
+    item.removeEventListener("animationend", prior.onAnimationEnd);
+    pendingFlashes.delete(item);
+  }
+
+  const reduce =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Force a reflow before re-adding so a re-trigger mid-flash restarts the
+  // wash from 0% rather than continuing mid-curve.
+  item.removeAttribute(FLASH_ARRIVAL_ATTR);
+  void item.offsetWidth;
+  item.setAttribute(FLASH_ARRIVAL_ATTR, "");
+
+  /** Drop the flash attribute and detach the animationend listener. */
+  function clear() {
+    item.removeEventListener("animationend", onAnimationEnd);
+    item.removeAttribute(FLASH_ARRIVAL_ATTR);
+    pendingFlashes.delete(item);
+  }
+  /** @param {AnimationEvent} e - The bubbled animationend event. */
+  function onAnimationEnd(e) {
+    if (e.animationName !== "ctsLogEntryFlashArrival") return;
+    clear();
+  }
+  item.addEventListener("animationend", onAnimationEnd);
+  // Reduced-motion path: the sole cleanup, since no animation (and thus no
+  // animationend) runs. Motion path: safety net in case animationend is missed.
+  const timer = setTimeout(
+    clear,
+    reduce ? FLASH_ARRIVAL_DURATION_MS : FLASH_ARRIVAL_DURATION_MS + 200,
+  );
+  pendingFlashes.set(item, { timer, onAnimationEnd });
 }

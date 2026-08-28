@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, within, waitFor, spyOn, userEvent } from "storybook/test";
-import "./cts-log-entry.js";
+import { flashEntryArrival } from "./cts-log-entry.js";
 import { __seedSpecLinks, __resetSpecLinks } from "../lib/spec-links.js";
 
 export default {
@@ -1904,6 +1904,51 @@ export const DeepLinkHighlight = {
       if (prevHash) window.location.hash = prevHash;
       else history.replaceState(null, "", window.location.pathname + window.location.search);
     }
+  },
+};
+
+/**
+ * JS-driven arrival flash (flashEntryArrival, exported alongside
+ * scrollEntryIntoView): unlike the :target wash above, this is a one-shot
+ * fade rather than a persistent highlight, and is triggered imperatively —
+ * e.g. by the failure-summary jump-link path in log-detail.js, which has no
+ * URL fragment to key :target off of. Asserts the data-flash-arrival
+ * attribute (and the background it drives) appears immediately and clears
+ * itself afterward with no caller-side cleanup required.
+ */
+export const ArrivalFlash = {
+  render: () => html`<cts-log-entry .entry=${SUCCESS_ENTRY} test-id="flash"></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const host = await waitFor(() => {
+      const el = canvasElement.querySelector("cts-log-entry");
+      if (!el) throw new Error("cts-log-entry did not render");
+      return el;
+    });
+    const item = host.querySelector(".logItem");
+    if (!item) throw new Error(".logItem did not render");
+    const restingBg = getComputedStyle(item).backgroundColor;
+
+    expect(item.hasAttribute("data-flash-arrival")).toBe(false);
+
+    flashEntryArrival(host);
+
+    expect(item.hasAttribute("data-flash-arrival")).toBe(true);
+    await waitFor(
+      () => {
+        expect(getComputedStyle(item).backgroundColor).not.toBe(restingBg);
+      },
+      { timeout: 2000 },
+    );
+
+    // The flash is a fixed-duration one-shot (~1.6s + a timeout safety net)
+    // that clears itself with no caller action — wait past that window.
+    await waitFor(
+      () => {
+        expect(item.hasAttribute("data-flash-arrival")).toBe(false);
+        expect(getComputedStyle(item).backgroundColor).toBe(restingBg);
+      },
+      { timeout: 3000 },
+    );
   },
 };
 
