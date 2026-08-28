@@ -65,6 +65,29 @@ public class CheckForUnexpectedPropertiesInVerifiedClaimsResponse_UnitTest
 			.toList();
 	}
 
+	/** Runs the condition, asserts it did not warn, and returns the message it logged. */
+	private String successMessage(String claimsJson) {
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(Map.class);
+		assertDoesNotThrow(() -> runTest(claimsJson));
+		verify(eventLog, times(1)).log(anyString(), mapCaptor.capture());
+		return (String) mapCaptor.getValue().get("msg");
+	}
+
+	@Test
+	public void testEvaluate_successMessageSaysWhatThisConditionActuallyChecked() {
+		// This condition only looks for unknown properties - whether the input is valid is the
+		// paired structural validator's business - so it must say so whether the schema
+		// validated cleanly or failed on something this condition does not report.
+		assertEquals("No unknown properties were found in the verified_claims response",
+			successMessage("""
+				{
+				  "claims": {"given_name": "Paula"},
+				  "verification": {"trust_framework": "de_aml"}
+				}
+				"""));
+	}
+
 	@Test
 	public void testEvaluate_noError() {
 		assertDoesNotThrow(() -> runTest("""
