@@ -1,19 +1,29 @@
 package net.openid.conformance.ekyc.condition.client;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CheckForUnexpectedPropertiesInVerifiedClaimsRequest_UnitTest {
@@ -33,6 +43,21 @@ class CheckForUnexpectedPropertiesInVerifiedClaimsRequest_UnitTest {
 	protected void runTest(String requestString) {
 		env.putObject("authorization_endpoint_request", JsonParser.parseString(requestString).getAsJsonObject());
 		cond.execute(env);
+	}
+
+	/**
+	 * Runs the condition, asserts it warned, and returns the instance paths it reported as
+	 * unknown properties - so a test can pin the exact set, not just that something was flagged.
+	 */
+	private List<String> unknownPropertyPaths(String requestString) {
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(Map.class);
+		assertThrows(ConditionError.class, () -> runTest(requestString));
+		verify(eventLog, times(1)).log(anyString(), mapCaptor.capture());
+		Object unknownProperties = mapCaptor.getValue().get("unknown_properties");
+		return ((List<?>) unknownProperties).stream()
+			.map(entry -> OIDFJSON.getString(((JsonObject) entry).get("path")))
+			.toList();
 	}
 
 	@Test
@@ -138,12 +163,17 @@ class CheckForUnexpectedPropertiesInVerifiedClaimsRequest_UnitTest {
 
 	@Test
 	public void testEvaluate_unknownPropertyInDocumentDetails() {
-		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_DOCUMENT_DETAILS));
+		// document_details is a spec-defined evidence member reached through an allOf/if/then
+		// branch; the unknown property inside it must not drag document_details itself into
+		// the warning as an "unevaluated" property.
+		assertEquals(List.of("$.id_token.verified_claims.verification.evidence[0].document_details.personal_number"),
+			unknownPropertyPaths(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_DOCUMENT_DETAILS));
 	}
 
 	@Test
 	public void testEvaluate_unknownPropertyInCheckDetails() {
-		assertThrows(ConditionError.class, () -> runTest(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_CHECK_DETAILS));
+		assertEquals(List.of("$.id_token.verified_claims.verification.evidence[0].check_details[0].unknown_field"),
+			unknownPropertyPaths(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_CHECK_DETAILS));
 	}
 
 	@Test
