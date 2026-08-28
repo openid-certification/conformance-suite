@@ -20,7 +20,9 @@
             "properties": {
                 "JWT": {
                     "type": "string"
-                }
+                },
+                "endpoint": false,
+                "access_token": false
             }
         },
         "attachments": {
@@ -146,7 +148,8 @@
                 },
                 "endpoint": {
                     "type": "string"
-                }
+                },
+                "JWT": false
             }
         },
         "distributed_claims_available_def": {

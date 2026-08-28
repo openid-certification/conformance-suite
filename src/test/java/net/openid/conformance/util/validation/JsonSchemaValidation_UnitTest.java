@@ -209,6 +209,74 @@ public class JsonSchemaValidation_UnitTest {
 			result.unknownPropertyErrors().getValidationMessages().stream().map(Error::getProperty).sorted().toList());
 	}
 
+	/**
+	 * A claim source carrying both the aggregated (JWT) and the distributed (endpoint) member.
+	 * The _claim_sources anyOf branches otherwise differ only in which of the two they reject as
+	 * an additional property, so without a discriminator that survives strictness stripping this
+	 * validates cleanly at FAILURE while the strict schema misreports one well-known member as
+	 * an unknown property - the same hazard as the embedded/external attachment branches.
+	 */
+	private static final String CLAIM_SOURCE_MIXING_AGGREGATED_AND_DISTRIBUTED = """
+		{
+		  "_claim_names": {"verified_claims": "src1"},
+		  "_claim_sources": {"src1": {"JWT": "abc", "endpoint": "https://example.com/claims"}}
+		}
+		""";
+
+	@Test
+	public void testValidate_claimSourceMixingAggregatedAndDistributedIsAStructuralFailure() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+		validation.setIgnoreUnknownPropertyStrictness(true);
+
+		JsonSchemaValidationResult result = validation.validate(CLAIM_SOURCE_MIXING_AGGREGATED_AND_DISTRIBUTED);
+
+		assertFalse(result.isValid(), "expected the stripped schema to still reject a mixed claim source");
+	}
+
+	@Test
+	public void testValidate_claimSourceMixingAggregatedAndDistributedAttributesNoUnknownProperties() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		JsonSchemaValidationResult result = validation.validate(CLAIM_SOURCE_MIXING_AGGREGATED_AND_DISTRIBUTED);
+
+		assertFalse(result.structuralErrors().isValid());
+		assertTrue(result.unknownPropertyErrors().isValid(),
+			() -> "JWT and endpoint are both well-known members and must not be reported as unknown, but got: "
+				+ result.unknownPropertyErrors().getValidationMessages());
+	}
+
+	@Test
+	public void testValidate_aggregatedClaimSourceWithAccessTokenAttributesNoUnknownProperties() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		// access_token belongs to a distributed claim source; on an aggregated one it is a
+		// wrong-branch member, not an unknown property.
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "_claim_names": {"verified_claims": "src1"},
+			  "_claim_sources": {"src1": {"JWT": "abc", "access_token": "tok"}}
+			}
+			""");
+
+		assertFalse(result.structuralErrors().isValid());
+		assertTrue(result.unknownPropertyErrors().isValid(),
+			() -> "expected no unknown-property errors but got: " + result.unknownPropertyErrors().getValidationMessages());
+	}
+
+	@Test
+	public void testValidate_aggregatedClaimsSourceIsValid() throws IOException {
+		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
+
+		JsonSchemaValidationResult result = validation.validate("""
+			{
+			  "_claim_names": {"verified_claims": "src1"},
+			  "_claim_sources": {"src1": {"JWT": "abc"}}
+			}
+			""");
+
+		assertTrue(result.isValid(), () -> "expected no errors but got: " + result.getValidationMessages());
+	}
+
 	@Test
 	public void testValidate_distributedClaimsSourceWithoutAccessTokenIsValid() throws IOException {
 		JsonSchemaValidation validation = createEkycResponseSchemaValidation();
