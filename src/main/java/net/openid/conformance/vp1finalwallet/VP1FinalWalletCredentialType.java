@@ -21,6 +21,7 @@ public enum VP1FinalWalletCredentialType {
 
 	EUDI_PID("eudi_pid", "/json/dcql/vp1final-wallet-eudi-pid.json"),
 	MDL("mdl", "/json/dcql/vp1final-wallet-mdl.json"),
+	PHOTO_ID("photoid", "/json/dcql/vp1final-wallet-photoid.json"),
 	CUSTOM("custom", null);
 
 	private final String variantValue;
