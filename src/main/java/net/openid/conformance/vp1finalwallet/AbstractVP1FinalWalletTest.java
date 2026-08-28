@@ -217,7 +217,7 @@ import java.util.concurrent.TimeUnit;
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletCredentialType.class,
-	values = {"mdl"},  // the built-in mDL query is an mdoc query
+	values = {"mdl", "photoid"},  // the built-in mDL and Photo ID queries are mdoc queries
 	whenParameter = VP1FinalWalletCredentialFormat.class,
 	hasValues = "sd_jwt_vc"
 )

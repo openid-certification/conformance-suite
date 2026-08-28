@@ -55,7 +55,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	private static String expectedFormat(VP1FinalWalletCredentialType type) {
 		return switch (type) {
 			case EUDI_PID -> "dc+sd-jwt";
-			case MDL -> "mso_mdoc";
+			case MDL, PHOTO_ID -> "mso_mdoc";
 			case CUSTOM -> throw new IllegalArgumentException("custom has no built-in query");
 		};
 	}
