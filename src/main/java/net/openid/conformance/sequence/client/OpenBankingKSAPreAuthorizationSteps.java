@@ -22,6 +22,7 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenRespon
 import net.openid.conformance.condition.client.ExtractAccountRequestIdFromKSAAccountRequestsEndpointResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.FAPIKSASetClientScopeToAccountsConsentIdOpenId;
+import net.openid.conformance.condition.client.KsaValidateAccessTokenExpiresIn;
 import net.openid.conformance.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -34,6 +35,7 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 	private boolean signedConsent;
+	private boolean enforceTenMinuteTokenLifetime;
 
 	public OpenBankingKSAPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
 		this(secondClient,
@@ -46,11 +48,21 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 	}
 
 	public OpenBankingKSAPreAuthorizationSteps(boolean secondClient, boolean includeXFapiFinancialId, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean signedConsent) {
+		this(secondClient, includeXFapiFinancialId, addClientAuthenticationToTokenEndpointRequest, signedConsent, false);
+	}
+
+	/**
+	 * @param enforceTenMinuteTokenLifetime whether the KSA requirement that the access token
+	 *   expiry is no longer than 10 minutes applies. This comes from the FAPI2-based KSA
+	 *   security profile, so the FAPI1 KSA tests leave it off.
+	 */
+	public OpenBankingKSAPreAuthorizationSteps(boolean secondClient, boolean includeXFapiFinancialId, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean signedConsent, boolean enforceTenMinuteTokenLifetime) {
 		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.includeXFapiFinancialId = includeXFapiFinancialId;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 		this.signedConsent = signedConsent;
+		this.enforceTenMinuteTokenLifetime = enforceTenMinuteTokenLifetime;
 	}
 
 	@Override
@@ -87,6 +99,15 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 			.requirements("RFC6749-5.1")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.dontStopOnFailure());
+
+		if (enforceTenMinuteTokenLifetime) {
+			call(condition(KsaValidateAccessTokenExpiresIn.class)
+				.skipIfObjectMissing("expires_in")
+				.onSkip(Condition.ConditionResult.INFO)
+				.requirements("KSA-OF-1")
+				.onFail(Condition.ConditionResult.FAILURE)
+				.dontStopOnFailure());
+		}
 
 		/* create account request */
 
