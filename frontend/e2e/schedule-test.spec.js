@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { selectPlanViaSearch, selectedPlanRow } from "./helpers/pick-plan.js";
-import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
+import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
 
 /** All available plans including the no-variants plan */
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
@@ -258,6 +258,65 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const metadataSelect = page.locator("#vp_server_metadata");
     await expect(metadataSelect).toBeVisible();
     await expect(metadataSelect.locator("option")).toHaveCount(3); // "--- Select ---" + 2 values
+  });
+
+  test("notApplicableWhen hides excluded options and preselects a sole survivor", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    // The message signing plan (which carries the notApplicableWhen rules)
+    // lives in the guided fixture list, so serve a catalog including it.
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([...ALL_PLANS, ...MOCK_GUIDED_PLANS]),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+
+    // The message signing fixture plan carries notApplicableWhen rules keyed
+    // on fapi_profile, mirroring the AU-CDR @VariantNotApplicableWhen rules.
+    await selectPlanViaSearch(page, "fapi2-message-signing-final-test-plan");
+
+    const authSelect = page.locator("#vp_client_auth_type");
+    const responseSelect = page.locator("#vp_fapi_response_mode");
+    const profileSelect = page.locator("#vp_fapi_profile");
+    await expect(profileSelect).toBeVisible();
+
+    // Before a profile is picked, everything is selectable.
+    await expect(authSelect.locator('option[value="mtls"]')).toBeEnabled();
+    await expect(responseSelect.locator('option[value="plain_response"]')).toBeEnabled();
+
+    // Picking AU-CDR hides the excluded values and, as only one value
+    // remains in each dependent select, preselects the survivors.
+    await profileSelect.selectOption("consumerdataright_au");
+    await expect(authSelect.locator('option[value="mtls"]')).toBeDisabled();
+    await expect(responseSelect.locator('option[value="plain_response"]')).toBeDisabled();
+    await expect(authSelect).toHaveValue("private_key_jwt");
+    await expect(responseSelect).toHaveValue("jarm");
+    await expect(page.locator("#vp_sender_constrain")).toHaveValue("mtls");
+    await expect(page.locator("#vp_fapi_request_method")).toHaveValue("signed_non_repudiation");
+
+    // Switching back to plain_fapi re-enables the hidden values; the
+    // preselected survivors stay selected (they remain valid choices).
+    await profileSelect.selectOption("plain_fapi");
+    await expect(authSelect.locator('option[value="mtls"]')).toBeEnabled();
+    await expect(responseSelect.locator('option[value="plain_response"]')).toBeEnabled();
+    await expect(authSelect).toHaveValue("private_key_jwt");
+    await expect(responseSelect).toHaveValue("jarm");
   });
 
   test("submitting with variants includes variant JSON in POST URL (R6)", async ({ page }) => {

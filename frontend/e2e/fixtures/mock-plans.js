@@ -171,6 +171,7 @@ export const MOCK_GUIDED_PLANS = [
           plain_fapi: { configurationFields: [] },
           ksa: { configurationFields: [] },
           connectid_au: { configurationFields: [] },
+          consumerdataright_au: { configurationFields: [] },
         },
       },
       authorization_request_type: {
@@ -182,6 +183,8 @@ export const MOCK_GUIDED_PLANS = [
           simple: { configurationFields: [] },
           rar: { configurationFields: [] },
         },
+        // mirrors @VariantNotApplicableWhen: AU-CDR permits a single combination
+        notApplicableWhen: { fapi_profile: { consumerdataright_au: ["rar"] } },
       },
       client_auth_type: {
         variantInfo: {
@@ -192,6 +195,8 @@ export const MOCK_GUIDED_PLANS = [
           private_key_jwt: { configurationFields: [] },
           mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
         },
+        // mirrors @VariantNotApplicableWhen: AU-CDR permits a single combination
+        notApplicableWhen: { fapi_profile: { consumerdataright_au: ["mtls"] } },
       },
       fapi_request_method: {
         variantInfo: {
@@ -202,6 +207,8 @@ export const MOCK_GUIDED_PLANS = [
           unsigned: { configurationFields: [] },
           signed_non_repudiation: { configurationFields: [] },
         },
+        // mirrors @VariantNotApplicableWhen: AU-CDR permits a single combination
+        notApplicableWhen: { fapi_profile: { consumerdataright_au: ["unsigned"] } },
       },
       fapi_response_mode: {
         variantInfo: {
@@ -212,6 +219,8 @@ export const MOCK_GUIDED_PLANS = [
           plain_response: { configurationFields: [] },
           jarm: { configurationFields: [] },
         },
+        // mirrors @VariantNotApplicableWhen: AU-CDR permits a single combination
+        notApplicableWhen: { fapi_profile: { consumerdataright_au: ["plain_response"] } },
       },
       openid: {
         variantInfo: {
@@ -222,6 +231,8 @@ export const MOCK_GUIDED_PLANS = [
           plain_oauth: { configurationFields: [] },
           openid_connect: { configurationFields: [] },
         },
+        // mirrors @VariantNotApplicableWhen: AU-CDR permits a single combination
+        notApplicableWhen: { fapi_profile: { consumerdataright_au: ["plain_oauth"] } },
       },
       sender_constrain: {
         variantInfo: {
@@ -232,6 +243,8 @@ export const MOCK_GUIDED_PLANS = [
           mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
           dpop: { configurationFields: [] },
         },
+        // mirrors @VariantNotApplicableWhen: AU-CDR permits a single combination
+        notApplicableWhen: { fapi_profile: { consumerdataright_au: ["dpop"] } },
       },
     },
   },
