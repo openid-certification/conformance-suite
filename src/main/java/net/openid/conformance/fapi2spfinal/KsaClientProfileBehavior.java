@@ -1,6 +1,8 @@
 package net.openid.conformance.fapi2spfinal;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.FAPIKSAValidateConsentScope;
+import net.openid.conformance.condition.as.KsaGenerateAccessTokenExpiration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -66,6 +68,11 @@ public class KsaClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		// KSA RP first calls the token endpoint with client_credentials to obtain an access
 		// token used to create the consent (account-requests), then uses authorization_code.
 		return true;
+	}
+
+	@Override
+	public Class<? extends Condition> getGenerateAccessTokenExpirationCondition() {
+		return KsaGenerateAccessTokenExpiration.class;
 	}
 
 	@Override
