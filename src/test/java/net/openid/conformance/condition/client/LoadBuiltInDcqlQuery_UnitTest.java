@@ -105,4 +105,37 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 		validate.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 		validate.evaluate(env);
 	}
+
+	/**
+	 * The all-mandatory-claims queries must load, be schema valid, use the format the credential
+	 * type implies, and be a superset of the corresponding minimal query's claims (a wallet that
+	 * passes the happy flow must have every claim this module requests available).
+	 */
+	@ParameterizedTest
+	@MethodSource("builtInTypes")
+	public void testEvaluate_allMandatoryClaimsQueryIsValidSupersetOfMinimalQuery(VP1FinalWalletCredentialType type) {
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource());
+		cond.evaluate(env);
+		JsonArray minimalClaims = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY)
+			.getAsJsonArray("credentials").get(0).getAsJsonObject().getAsJsonArray("claims");
+
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getAllMandatoryClaimsDcqlResource());
+		cond.evaluate(env);
+
+		ValidateDCQLQuery validate = new ValidateDCQLQuery();
+		validate.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
+		validate.evaluate(env);
+
+		JsonObject credential = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY)
+			.getAsJsonArray("credentials").get(0).getAsJsonObject();
+		assertEquals(expectedFormat(type), OIDFJSON.getString(credential.get("format")));
+
+		JsonArray allClaims = credential.getAsJsonArray("claims");
+		assertTrue(allClaims.size() > minimalClaims.size(),
+			"the all-mandatory query must request more claims than the minimal one");
+		for (var minimalClaim : minimalClaims) {
+			assertTrue(allClaims.contains(minimalClaim),
+				"the all-mandatory query must include the minimal query's claim " + minimalClaim);
+		}
+	}
 }
