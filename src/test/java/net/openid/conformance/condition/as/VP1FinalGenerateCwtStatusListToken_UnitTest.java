@@ -1,0 +1,91 @@
+package net.openid.conformance.condition.as;
+
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.AbstractRevocationListCwtCondition;
+import net.openid.conformance.condition.client.EnsureMdocNotRevoked;
+import net.openid.conformance.condition.client.ExtractMdocRevocationStatus;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListCwtFormat;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListSignerCertificateProfile;
+import net.openid.conformance.condition.client.VerifyMdocRevocationListCwtSignature;
+import net.openid.conformance.logging.BsonEncoding;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
+public class VP1FinalGenerateCwtStatusListToken_UnitTest {
+
+	private static final String STATUS_LIST_URI =
+		"https://localhost.emobix.co.uk:8443/test/a/alias/statuslists/1";
+	private static final int REVOKED_IDX = 41;
+
+	@Spy
+	private Environment env = new Environment();
+
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
+
+	private VP1FinalGenerateCwtStatusListToken cond;
+
+	@BeforeEach
+	public void setUp() {
+		cond = new VP1FinalGenerateCwtStatusListToken();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+
+		JsonObject reference = new JsonObject();
+		reference.addProperty("uri", STATUS_LIST_URI);
+		reference.addProperty("idx", REVOKED_IDX);
+		env.putObject(AbstractCreateStatusListReference.ENV_KEY, reference);
+	}
+
+	@Test
+	public void testEvaluate_generatesAnMsoRevocationListTheConsumptionConditionsAccept() {
+		cond.execute(env);
+
+		String token = env.getString(VP1FinalGenerateCwtStatusListToken.ENV_KEY);
+		assertThat(token).isNotNull();
+
+		// hand the generated token to the conditions that consume an MSO revocation list
+		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN, token);
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI, STATUS_LIST_URI);
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
+
+		assertDoesNotThrow(() -> run(new ValidateMdocRevocationListCwtFormat()));
+		assertDoesNotThrow(() -> run(new VerifyMdocRevocationListCwtSignature()));
+		// ISO/IEC 18013-5 Table B.9
+		assertDoesNotThrow(() -> run(new ValidateMdocRevocationListSignerCertificateProfile()));
+	}
+
+	@Test
+	public void testEvaluate_marksOddIndicesRevokedAndEvenIndicesValid() {
+		cond.execute(env);
+
+		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN,
+			env.getString(VP1FinalGenerateCwtStatusListToken.ENV_KEY));
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI, STATUS_LIST_URI);
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
+
+		env.putInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX, REVOKED_IDX);
+		assertDoesNotThrow(() -> run(new ExtractMdocRevocationStatus()));
+		assertThrows(ConditionError.class, () -> run(new EnsureMdocNotRevoked()));
+
+		env.putInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX, REVOKED_IDX - 1);
+		assertDoesNotThrow(() -> run(new ExtractMdocRevocationStatus()));
+		assertDoesNotThrow(() -> run(new EnsureMdocNotRevoked()));
+	}
+
+	private void run(Condition condition) {
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		condition.execute(env);
+	}
+}

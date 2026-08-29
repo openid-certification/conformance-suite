@@ -4,7 +4,6 @@ import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectBuilder;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -112,21 +111,16 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		return Instant.now().getEpochSecond();
 	}
 
-	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType) {
-		return createSdJwt(env, publicJWK, privateKey, credentialType, additionalClaims);
-	}
-
 	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType,
 								 Map<String, Object> credentialClaims) {
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		if (credentialSigningJwkEl == null) {
-			throw error("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration");
-		}
-		JWK credentialSigningJwk = null;
+		JWK credentialSigningJwk;
+		JWSAlgorithm signingAlgorithm;
 		try {
-			credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
-		} catch (ParseException e) {
-			throw error("Failed to parse the 'Signing JWK' field in the 'Credential Issuer' section of the test configuration", e, args("signing_jwk", credentialSigningJwkEl));
+			credentialSigningJwk = CredentialSigningJwk.fromConfig(env);
+			signingAlgorithm = CredentialSigningJwk.signingAlgorithm(credentialSigningJwk);
+		} catch (CredentialSigningJwk.Problem e) {
+			throw e.getCause() == null
+				? error(e.getMessage(), e.details()) : error(e.getMessage(), e.getCause(), e.details());
 		}
 
 		// tries to generate a credential that's valid as per https://bmi.usercontent.opencode.de/eudi-wallet/eidas-2.0-architekturkonzept/functions/00-pid-issuance-and-presentation/#pid-contents
@@ -199,7 +193,6 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		builder.putDecoyDigests(3);
 
 		Map<String, Object> claims = builder.build();
-		JWSAlgorithm signingAlgorithm = getSigningAlgorithm(credentialSigningJwk);
 		JWSHeader.Builder headerBuilder = new JWSHeader.Builder(signingAlgorithm)
 			.type(new JOSEObjectType("dc+sd-jwt"));
 		if (credentialSigningJwk.getX509CertChain() != null) {
@@ -222,7 +215,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 			JWSSigner signer = signerFactory.createJWSSigner(credentialSigningJwk, signingAlgorithm);
 			jwt.sign(signer);
 		} catch (JOSEException e) {
-			throw error("Failed to sign SD-JWT credential", e, args("signing_jwk", credentialSigningJwkEl));
+			throw error("Failed to sign SD-JWT credential", e, args("signing_jwk", credentialSigningJwk.toPublicJWK()));
 		}
 
 		// Filter disclosures to only include claims requested in the DCQL query (data minimization)
@@ -317,17 +310,4 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		return filtered;
 	}
 
-	private JWSAlgorithm getSigningAlgorithm(JWK signingJwk) {
-		if (signingJwk.getAlgorithm() != null) {
-			return JWSAlgorithm.parse(signingJwk.getAlgorithm().getName());
-		}
-
-		// Keep historical behavior for EC signing keys if alg is omitted.
-		if (signingJwk instanceof ECKey) {
-			return JWSAlgorithm.ES256;
-		}
-
-		throw error("'Signing JWK' field in the 'Credential Issuer' section of the test configuration must include an 'alg' claim specifying the signing algorithm, as there is no default for this key type",
-			args("kty", signingJwk.getKeyType().getValue(), "kid", signingJwk.getKeyID()));
-	}
 }

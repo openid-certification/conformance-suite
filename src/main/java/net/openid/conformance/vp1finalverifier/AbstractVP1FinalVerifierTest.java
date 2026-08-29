@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AbstractCreateStatusListReference;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationEndpointHttpRequest;
@@ -23,6 +24,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
+import net.openid.conformance.condition.as.CreateValidStatusListReference;
 import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -36,7 +38,10 @@ import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubW
 import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
+import net.openid.conformance.condition.as.EnsureRevocationListRequestAcceptedServedMediaType;
+import net.openid.conformance.condition.as.EnsureRevocationListRequestHasOnlyDefinedQueryParameters;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
+import net.openid.conformance.condition.as.EnsureVerifierFetchedRevocationList;
 import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
@@ -51,6 +56,8 @@ import net.openid.conformance.condition.as.VP1FinalCheckEncryptionKeyNotReused;
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
+import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEnsureDirectPostResponseHasRedirectUriForHaip;
@@ -79,11 +86,15 @@ import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedi
 import net.openid.conformance.condition.client.EnsureClientRequestObjectTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateOwnMdocSigningChainAgainstVical;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
+import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
+import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
@@ -96,10 +107,13 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.HtmlUtils;
+
+import java.util.Base64;
 
 
 @VariantParameters({
@@ -306,6 +320,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		env.putObject(requestId, requestParts);
 
+		if (path.startsWith(AbstractCreateStatusListReference.STATUS_LIST_PATH_PREFIX)) {
+			// never finishes the test: the verifier can fetch the list at any point, including
+			// after the request that does finish it
+			Object response = handleRevocationListRequest(requestId, path);
+			setStatus(Status.WAITING);
+			return response;
+		}
+
 		Object responseObject = handleClientRequestForPath(requestId, path, servletResponse);
 
 		if (finishTestIfAllRequestsAreReceived()) {
@@ -316,6 +338,113 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		return responseObject;
 	}
+
+	/**
+	 * Serves the Token Status List the presented credential references and checks how the
+	 * verifier asked for it.
+	 *
+	 * <p>The request checks are warnings: draft-ietf-oauth-status-list section 8.1 places its
+	 * requirement on the Status Provider, which SHOULD serve the list in response to a GET, and
+	 * only recommends that the Relying Party sends an Accept header, so a verifier that asks in
+	 * some other way is interoperating poorly rather than breaking a requirement placed on it.
+	 *
+	 * <p>The verifier usually fetches the list while the authorization response is being
+	 * delivered to its response_uri, so the checks are logged in whichever block is open at the
+	 * time rather than in one of their own - log blocks do not nest.
+	 */
+	private Object handleRevocationListRequest(String requestId, String path) {
+		String requestedUri = env.getString("base_url") + "/" + path;
+
+		ServedRevocationList served = servedRevocationList(path);
+		String token = served == null ? null : env.getString(served.tokenEnvKey());
+		if (token == null) {
+			eventLog.log(getName(), args(
+				"msg", "The verifier requested a revocation list this test is not serving: either "
+					+ "the presentation has not been sent yet, or this is not the list the "
+					+ "presented credential references.",
+				"requested_uri", requestedUri));
+			return ResponseEntity.notFound().build();
+		}
+
+		call(exec().mapKey("incoming_request", requestId));
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.WARNING, "OTSL-8.1");
+		callAndContinueOnFailure(EnsureRevocationListRequestHasOnlyDefinedQueryParameters.class, ConditionResult.WARNING, "OTSL-8.4");
+		callAndContinueOnFailure(EnsureIncomingRequestBodyIsEmpty.class, ConditionResult.WARNING, "OTSL-8.1");
+		env.putString(EnsureRevocationListRequestAcceptedServedMediaType.SERVED_CONTENT_TYPE_ENV_KEY, served.contentType());
+		callAndContinueOnFailure(EnsureRevocationListRequestAcceptedServedMediaType.class, ConditionResult.WARNING, "OTSL-8.1");
+		call(exec().unmapKey("incoming_request"));
+
+		env.putString(EnsureVerifierFetchedRevocationList.FETCHED_ENV_KEY, "true");
+		eventLog.log(getName(), args(
+			"msg", "The verifier fetched the " + served.description() + " the presented credential references.",
+			"requested_uri", requestedUri));
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_TYPE, served.contentType())
+			.body(served.base64Encoded() ? Base64.getDecoder().decode(token) : token);
+	}
+
+	/**
+	 * A revocation list this test instance serves: the media type it is served as, and where
+	 * its token is in the environment (a CWT is stored base64 encoded, a JWT as it is).
+	 */
+	private record ServedRevocationList(String description, String contentType, String tokenEnvKey,
+			boolean base64Encoded) {
+	}
+
+	/**
+	 * The revocation list the presented credential references at the given path, or null when
+	 * it references none there.
+	 */
+	private ServedRevocationList servedRevocationList(String path) {
+		if (path.equals(env.getString(AbstractCreateStatusListReference.ENV_KEY, "path"))) {
+			if (getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL) {
+				return new ServedRevocationList("status list", StatusListCwt.CONTENT_TYPE,
+					VP1FinalGenerateCwtStatusListToken.ENV_KEY, true);
+			}
+			return new ServedRevocationList("status list",
+				JwtStatusListTokenClaimsBuilder.CONTENT_TYPE,
+				VP1FinalGenerateJwtStatusListToken.ENV_KEY, false);
+		}
+		return null;
+	}
+
+	/**
+	 * Whether a verifier that did not fetch the revocation list of a credential that is not
+	 * revoked is warned about it.
+	 *
+	 * <p>Every credential these tests present references a revocation list this test instance
+	 * serves, so a verifier that checked the credential's status must have fetched it. For a
+	 * valid credential a missing fetch only means the verifier does not check revocation, which
+	 * {@link EnsureVerifierFetchedRevocationList} explains no specification makes mandatory, so
+	 * it is a warning.
+	 */
+	protected boolean warnIfValidCredentialStatusNotChecked() {
+		return true;
+	}
+
+	@Override
+	protected void endOfTestChecks() {
+		JsonObject reference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
+		if (reference == null) {
+			// the credential carries no revocation information, or none was presented
+			return;
+		}
+
+		String[] requirements = getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL
+			? new String[] { "ISO18013-5-12.3.6.1", "OTSL-8.3" }
+			: new String[] { "SDJWTVC-3.4", "OTSL-8.3" };
+
+		if (OIDFJSON.getBoolean(reference.get("revoked"))) {
+			// the list is the only way the verifier can learn the credential is revoked, and each
+			// test instance serves its own at a URI no earlier run used, so a verifier that never
+			// fetched it cannot have rejected the presentation for the reason the module tests
+			callAndContinueOnFailure(EnsureVerifierFetchedRevocationList.class, ConditionResult.FAILURE, requirements);
+		} else if (warnIfValidCredentialStatusNotChecked()) {
+			callAndContinueOnFailure(EnsureVerifierFetchedRevocationList.class, ConditionResult.WARNING, requirements);
+		}
+	}
+
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
@@ -573,16 +702,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
-			case SD_JWT_VC -> {
-				createSdJwtCredential();
-			}
-			case ISO_MDL -> {
-				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
-				createIsoMdlSessionTranscript();
-				callAndStopOnFailure(CreateMdocCredential.class);
-			}
-		}
+		createCredential();
+
 		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-8.1");
 
 		customizeAuthorizationEndpointResponseParams();
@@ -639,6 +760,59 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
 		return viewToReturn;
+	}
+
+	/**
+	 * Creates the credential the emulated wallet presents, in the format the selected variant
+	 * asks for, around the two hooks that give it its revocation information: the reference is
+	 * allocated before the credential is created, because the credential carries it, and the
+	 * list it points at is generated straight afterwards.
+	 */
+	protected void createCredential() {
+		createRevocationListReference();
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
+			case SD_JWT_VC -> {
+				createSdJwtCredential();
+			}
+			case ISO_MDL -> {
+				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
+				createIsoMdlSessionTranscript();
+				callAndStopOnFailure(CreateMdocCredential.class);
+			}
+		}
+		generateRevocationListToken();
+	}
+
+	/**
+	 * Allocates the reference to a revocation list that the presented credential will carry. The
+	 * happy flows reference a Token Status List index the served list marks as valid, so that
+	 * verifiers exercise the status fetch on a good credential; the tests presenting a revoked
+	 * credential override this to allocate a reference the served list revokes.
+	 */
+	protected void createRevocationListReference() {
+		callAndStopOnFailure(CreateValidStatusListReference.class, statusListReferenceRequirements());
+	}
+
+	/** The clauses that define the status list reference the presented credential carries. */
+	protected String[] statusListReferenceRequirements() {
+		return getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL
+			? new String[] { "OTSL-6.3.2", "ISO18013-5-12.3.6.2" }
+			: new String[] { "OTSL-6.2" };
+	}
+
+	/**
+	 * Generates the revocation list the allocated reference points at. It is generated as soon
+	 * as the credential exists so that it is ready to serve however quickly the verifier fetches
+	 * it.
+	 */
+	protected void generateRevocationListToken() {
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
+			case SD_JWT_VC ->
+				callAndStopOnFailure(VP1FinalGenerateJwtStatusListToken.class, "OTSL-5.1");
+			case ISO_MDL ->
+				callAndStopOnFailure(VP1FinalGenerateCwtStatusListToken.class, "OTSL-5.2",
+					"ISO18013-5-12.3.6.3");
+		}
 	}
 
 	protected void createSdJwtCredential() {

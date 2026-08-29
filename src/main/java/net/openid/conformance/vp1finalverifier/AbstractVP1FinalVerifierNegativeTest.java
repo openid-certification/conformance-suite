@@ -30,6 +30,17 @@ public abstract class AbstractVP1FinalVerifierNegativeTest extends AbstractVP1Fi
 		}
 	}
 
+	/**
+	 * No warning in a negative module: the presentation is invalid for a reason that has nothing
+	 * to do with revocation, and a verifier that rejects it before it looks at the status is
+	 * behaving correctly - draft-ietf-oauth-status-list section 8.3 tells it not to evaluate the
+	 * status of a token it has already found invalid.
+	 */
+	@Override
+	protected boolean warnIfValidCredentialStatusNotChecked() {
+		return false;
+	}
+
 	@Override
 	protected void createScreenshotPlaceholder() {
 		callAndStopOnFailure(ExpectVerifierRejectedPresentationPage.class, "OID4VP-1FINAL-8.2");
