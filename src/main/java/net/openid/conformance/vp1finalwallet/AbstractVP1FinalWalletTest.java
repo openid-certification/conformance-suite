@@ -302,10 +302,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
 		env.putString("credential_format", credentialFormat.toString());
 		credentialType = getVariant(VP1FinalWalletCredentialType.class);
-		if (credentialType.getDcqlResource() != null) {
+		String builtInDcqlResource = builtInDcqlResource();
+		if (builtInDcqlResource != null) {
 			// the presence of this string is what makes the authorization request sequence use the
 			// suite's built-in query instead of the one from the test configuration
-			env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, credentialType.getDcqlResource());
+			env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, builtInDcqlResource);
 		}
 		requestMethod = getVariant(VP1FinalWalletRequestMethod.class);
 		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
@@ -463,6 +464,24 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					throw new RuntimeException("web-origin client id scheme not valid for multi-signed requests");
 			}
 		}
+	}
+
+	/**
+	 * The built-in DCQL query resource for the selected credential type, or null to use the
+	 * query from the test configuration. Overridden by modules that use a different built-in
+	 * query, e.g. the one requesting every mandatory data element.
+	 */
+	protected String builtInDcqlResource() {
+		return credentialType.getDcqlResource();
+	}
+
+	/**
+	 * Checks that the disclosed claims satisfy the DCQL query. Overridden by modules that need to
+	 * check some claims at a different severity, e.g. the PID picture (portrait) claim in the
+	 * all-mandatory-claims module.
+	 */
+	protected void validateDisclosedClaimsMatchDcqlQuery() {
+		callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 	}
 
 	protected void completeClientConfiguration() {
@@ -784,7 +803,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateCredentialVctMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.3.5");
-				callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+				validateDisclosedClaimsMatchDcqlQuery();
 				callAndContinueOnFailure(CheckOnlyRequestedClaimsDisclosed.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");

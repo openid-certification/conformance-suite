@@ -43,6 +43,22 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 
 	private static final Gson gson = new Gson();
 
+	/**
+	 * The PID picture (portrait) claim: a data URL containing a base64-encoded JPEG as required by
+	 * the PID Rulebook. A tiny generated placeholder image rather than a real portrait.
+	 */
+	private static final String PLACEHOLDER_PORTRAIT_DATA_URL = "data:image/jpeg;base64,"
+		+ "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4"
+		+ "UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Nj"
+		+ "Y2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAFAAQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcI"
+		+ "CQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRol"
+		+ "JicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ip"
+		+ "qrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAA"
+		+ "AAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLR"
+		+ "ChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaX"
+		+ "mJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEA"
+		+ "PwCnRRRWZqf/2Q==";
+
 	protected final Map<String, Object> additionalClaims;
 
 	protected AbstractCreateSdJwtCredential() {
@@ -148,10 +164,14 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 				disclosures.add(builder.putSDClaim("nationalities", List.of(element)));
 
 				SDObjectBuilder pobBuilder = new SDObjectBuilder();
-				disclosures.add(pobBuilder.putSDClaim("country", "DD"));
+				disclosures.add(pobBuilder.putSDClaim("country", "FR"));
 				Map<String, Object> placeOfBirth = pobBuilder.build();
 
 				disclosures.add(builder.putSDClaim("place_of_birth", placeOfBirth));
+
+				disclosures.add(builder.putSDClaim("issuing_authority", "Test Issuing Authority"));
+				disclosures.add(builder.putSDClaim("issuing_country", "FR"));
+				disclosures.add(builder.putSDClaim("picture", PLACEHOLDER_PORTRAIT_DATA_URL));
 			}
 		}
 
