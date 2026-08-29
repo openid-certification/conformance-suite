@@ -20,6 +20,12 @@ public final class StatusListCwt {
 	public static final long CLAIM_STATUS_LIST = 65533;
 	public static final long CLAIM_TTL = 65534;
 
+	/** Media type of an identifier list in CWT format (ISO/IEC 18013-5 12.3.6.4). */
+	public static final String IDENTIFIER_LIST_CONTENT_TYPE = "application/identifierlist+cwt";
+
+	/** CWT claim key of the IdentifierList structure, ISO/IEC 18013-5 12.3.6.4. */
+	public static final long CLAIM_IDENTIFIER_LIST = 65530;
+
 	private StatusListCwt() {
 		// constants holder
 	}

@@ -36,8 +36,7 @@ public abstract class AbstractCreateStatusListReference extends AbstractConditio
 			? EvenOddStatusListContents.allocateRevokedIndices(1, random)
 			: EvenOddStatusListContents.allocateValidIndices(1, random)).get(0);
 
-		JsonObject reference = RevocationListReference.allocate(env,
-			RevocationListReference.MECHANISM_STATUS_LIST, RevocationListReference.STATUS_LIST_PATH_PREFIX);
+		JsonObject reference = RevocationListReference.allocate(env, RevocationListReference.MECHANISM_STATUS_LIST);
 		reference.addProperty("idx", idx);
 		env.putObject(RevocationListReference.ENV_KEY, reference);
 

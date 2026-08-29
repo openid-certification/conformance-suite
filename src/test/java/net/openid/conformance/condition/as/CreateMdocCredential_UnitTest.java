@@ -210,6 +210,21 @@ public class CreateMdocCredential_UnitTest {
 		assertThat(statusList.getCertificate()).isNull();
 	}
 
+	@Test
+	public void testEvaluate_referencesTheIdentifierListWhenOneWasAllocated() throws Exception {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObjectFromJsonString(RevocationListReference.ENV_KEY, """
+			{"mechanism": "identifier_list", "uri": "https://example.com/test/a/alias/identifierlists/1", "id": "AQIDBA=="}""");
+
+		cond.execute(env);
+
+		RevocationStatus status = msoOfPresentedMdoc().getRevocationStatus();
+		assertThat(status).isInstanceOf(RevocationStatus.IdentifierList.class);
+		RevocationStatus.IdentifierList identifierList = (RevocationStatus.IdentifierList) status;
+		assertThat(identifierList.getUri()).isEqualTo("https://example.com/test/a/alias/identifierlists/1");
+		assertThat(identifierList.getId().toByteArray(0, 4)).containsExactly(1, 2, 3, 4);
+	}
+
 	private MobileSecurityObject msoOfPresentedMdoc() throws Exception {
 		parseCredential();
 		return MdocUtil.parseMso(Base64.getDecoder().decode(env.getString("mdoc_credential_cbor")));
