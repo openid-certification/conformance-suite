@@ -35,7 +35,8 @@ public class CreateMdocCredential extends AbstractCondition {
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
 		// When the test allocated a revocation list reference, the mock wallet's mdocs are
-		// provisioned with the MSO status element of ISO/IEC 18013-5 12.3.6.2 pointing at it.
+		// provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2
+		// defines the two mechanisms it can use.
 		RevocationStatus revocationStatus = null;
 		JsonObject reference = env.getObject(RevocationListReference.ENV_KEY);
 		if (reference != null) {
@@ -43,6 +44,9 @@ public class CreateMdocCredential extends AbstractCondition {
 			revocationStatus = switch (OIDFJSON.getString(reference.get("mechanism"))) {
 				case RevocationListReference.MECHANISM_STATUS_LIST ->
 					testAppUtils.statusListRevocationStatus(uri, OIDFJSON.getInt(reference.get("idx")));
+				case RevocationListReference.MECHANISM_IDENTIFIER_LIST ->
+					testAppUtils.identifierListRevocationStatus(uri,
+						Base64.getDecoder().decode(OIDFJSON.getString(reference.get("id"))));
 				default -> throw error("Unknown revocation list mechanism",
 					args("revocation_list_reference", reference));
 			};

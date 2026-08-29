@@ -5,10 +5,10 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Checks that the verifier fetched the revocation list the presented credential references,
- * its Token Status List, which the test instance serves itself (the serving handler records the
- * fetch in the environment). A verifier that never fetched the list cannot have checked the
- * credential's revocation status.
+ * Checks that the verifier fetched the revocation list the presented credential references -
+ * its Token Status List or, for an mdoc using that mechanism, its identifier list - which the
+ * test instance serves itself (the serving handler records the fetch in the environment). A
+ * verifier that never fetched the list cannot have checked the credential's revocation status.
  *
  * <p>No specification makes the fetch mandatory: draft-ietf-oauth-sd-jwt-vc section 3.4 says
  * the status SHOULD be checked when the claim is present, ISO/IEC 18013-5 12.3.6.1 makes
