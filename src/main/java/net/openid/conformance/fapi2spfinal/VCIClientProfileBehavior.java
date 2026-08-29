@@ -57,12 +57,16 @@ import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCer
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
+import net.openid.conformance.oauth.statuslists.StatusListCwt;
+import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateCwtStatusListToken;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Base64;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -503,14 +507,26 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				response = ResponseEntity.notFound().build();
 			} else {
 				env.putString("current_status_list_id", statusListId);
-				module.doCallAndContinueOnFailure(VCIGenerateJwtStatusListToken.class,
-					ConditionResult.INFO, "OTSL-5.1");
-				String currentStatusListJwt = env.getString("current_status_list_jwt");
 				// TODO add cors headers
 				// TODO handle time query parameter, see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-15#section-8.4
-				response = ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt")
-					.body(currentStatusListJwt);
+				if (wantsCwtStatusList(env)) {
+					// mdoc holders ask for the CWT representation, the only one ISO/IEC 18013-5
+					// 12.3.6.3 permits for an MSO revocation list
+					module.doCallAndContinueOnFailure(VCIGenerateCwtStatusListToken.class,
+						ConditionResult.INFO, "OTSL-5.2", "ISO18013-5-12.3.6.3");
+					String currentStatusListCwt = env.getString("current_status_list_cwt");
+					response = ResponseEntity.ok()
+						.header(HttpHeaders.CONTENT_TYPE, StatusListCwt.CONTENT_TYPE)
+						.body(currentStatusListCwt == null
+							? null : Base64.getDecoder().decode(currentStatusListCwt));
+				} else {
+					module.doCallAndContinueOnFailure(VCIGenerateJwtStatusListToken.class,
+						ConditionResult.INFO, "OTSL-5.1");
+					String currentStatusListJwt = env.getString("current_status_list_jwt");
+					response = ResponseEntity.ok()
+						.header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt")
+						.body(currentStatusListJwt);
+				}
 			}
 		}
 
@@ -518,8 +534,25 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		return response;
 	}
 
-	static String getStatusListUrl(Environment env, String statusListId) {
-		return env.getString("server", "issuer") + STATUSLISTS_PATH + "/" + statusListId;
+	/**
+	 * Whether the request asked for the CWT representation of the status list. The JWT
+	 * representation stays the default, so a request without an Accept header (or one that only
+	 * asks for the JWT representation) is served as before.
+	 */
+	private static boolean wantsCwtStatusList(Environment env) {
+		String accept = env.getString("status_list_endpoint_request", "headers.accept");
+		return accept != null && accept.toLowerCase(Locale.ROOT)
+			.contains(StatusListCwt.CONTENT_TYPE);
+	}
+
+	/**
+	 * The URL of one of the Token Status Lists the emulated issuer serves. The single source of
+	 * the {@code statuslists/} path: the status list aggregation response, the tokens the status
+	 * list endpoint signs and the status references embedded in issued credentials must all agree.
+	 */
+	public static String getStatusListUrl(Environment env, String statusListId) {
+		String issuer = env.getString("server", "issuer");
+		return (issuer == null ? "" : issuer) + STATUSLISTS_PATH + "/" + statusListId;
 	}
 
 	/**

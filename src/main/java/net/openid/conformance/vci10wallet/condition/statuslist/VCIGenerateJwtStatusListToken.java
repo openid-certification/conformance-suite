@@ -8,6 +8,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
+import net.openid.conformance.fapi2spfinal.VCIClientProfileBehavior;
+import net.openid.conformance.oauth.statuslists.EvenOddStatusListContents;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 
@@ -22,23 +24,13 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 	public Environment evaluate(Environment env) {
 
 		String currentStatusListId = env.getString("current_status_list_id");
-		int bits = 1;
+		int bits = EvenOddStatusListContents.BITS;
 
-		// Large enough to cover the indices the emulated issuer allocates per credential; must stay in
-		// step with CreateSdJwtCredential.STATUS_LIST_ENTRIES (which only allocates even indices).
-		int maxEntries = 256;
-		byte[] rawEntries = new byte[maxEntries];
-		for (int i = 0; i < rawEntries.length; i++) {
-			// mark every token value with an even index as valid
-			rawEntries[i] = (byte)(i % 2 == 0 ? TokenStatusList.Status.VALID.getTypeValue() : TokenStatusList.Status.INVALID.getTypeValue());
-		}
-
-		TokenStatusList statusList = TokenStatusList.create(rawEntries, bits);
+		TokenStatusList statusList = EvenOddStatusListContents.create();
 		String encodedStatusList = statusList.encodeStatusList();
 
-		String issuerUrl = env.getString("server", "issuer");
-
-		String currentStatusListUri = issuerUrl + "statuslists/" + currentStatusListId;
+		String currentStatusListUri =
+			VCIClientProfileBehavior.getStatusListUrl(env, currentStatusListId);
 
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(10 * 60);
