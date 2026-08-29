@@ -1,7 +1,14 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AbstractStatusListCwtCondition;
+import net.openid.conformance.condition.client.CheckMdocCredentialStatus;
+import net.openid.conformance.condition.client.EnsureContentTypeStatusListCwt;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.FetchMdocStatusListToken;
+import net.openid.conformance.condition.client.ValidateStatusListSignerCertificateProfile;
+import net.openid.conformance.condition.client.ValidateStatusListTokenCwtFormat;
+import net.openid.conformance.condition.client.VerifyStatusListTokenCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateMatchesIssuingCountry;
@@ -62,6 +69,7 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}
+		validateMsoRevocationList();
 		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
 		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
 		// responsible for its credentials' provenance, so it is only a WARNING.
@@ -87,5 +95,52 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				.onSkip(ConditionResult.INFO);
 		}
 		call(chainValidation);
+	}
+
+	/**
+	 * ISO/IEC 18013-5 12.3.6: when the MSO carries a status_list element, fetch the referenced
+	 * MSO revocation list and check it. The Status structure is optional ("An MSO may contain the
+	 * Status structure"), so {@link FetchMdocStatusListToken} logs a skip and writes no
+	 * {@code mdoc_status_list_token} when it is absent, which skips everything below.
+	 *
+	 * <p>Retrieval and format problems are only a warning for presentation, where the wallet
+	 * under test does not control the credential's issuer; a revoked credential is always a
+	 * failure. The Table B.9 certificate profile is a warning either way, matching how the
+	 * document signer certificate profile checks are called above.
+	 */
+	private void validateMsoRevocationList() {
+		ConditionResult retrievalSeverity = isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING;
+
+		callAndContinueOnFailure(FetchMdocStatusListToken.class, retrievalSeverity, "ISO18013-5-12.3.6.2");
+		call(condition(EnsureContentTypeStatusListCwt.class)
+			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.5", "OTSL-8.2"));
+		call(condition(ValidateStatusListTokenCwtFormat.class)
+			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(retrievalSeverity)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.3"));
+		call(condition(VerifyStatusListTokenCwtSignature.class)
+			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(retrievalSeverity)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.3"));
+		call(condition(ValidateStatusListSignerCertificateProfile.class)
+			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-B.9"));
+		call(condition(CheckMdocCredentialStatus.class)
+			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.FAILURE)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.1"));
 	}
 }
