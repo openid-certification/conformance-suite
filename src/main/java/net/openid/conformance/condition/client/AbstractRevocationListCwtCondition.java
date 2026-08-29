@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.oauth.statuslists.CwtIdentifierListTokenBuilder;
 import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -86,7 +87,8 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	public static final String ENV_STATUS = "mdoc_revocation_status";
 
 	/** Media type of an identifier list in CWT format (ISO/IEC 18013-5 12.3.6.4). */
-	public static final String IDENTIFIER_LIST_CWT_CONTENT_TYPE = "application/identifierlist+cwt";
+	public static final String IDENTIFIER_LIST_CWT_CONTENT_TYPE =
+		CwtIdentifierListTokenBuilder.IDENTIFIER_LIST_CWT_CONTENT_TYPE;
 
 	/** CWT claim key of the IdentifierList structure, ISO/IEC 18013-5 12.3.6.4. */
 	protected static final long CWT_CLAIM_IDENTIFIER_LIST = 65530;

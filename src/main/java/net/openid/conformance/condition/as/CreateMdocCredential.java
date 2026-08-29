@@ -14,6 +14,7 @@ import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
+import org.multipaz.revocation.RevocationStatus;
 import org.multipaz.testapp.TestAppUtils;
 
 import java.util.ArrayList;
@@ -33,14 +34,21 @@ public class CreateMdocCredential extends AbstractCondition {
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
-		// When the test allocated a status list reference, the mock wallet's mdocs are
-		// provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2.
-		String statusListUri = null;
-		Long statusListIndex = null;
+		// When the test allocated a revocation list reference, the mock wallet's mdocs are
+		// provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2
+		// defines the two mechanisms it can use, and at most one of the two references exists.
+		RevocationStatus revocationStatus = null;
 		JsonObject statusListReference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
-		if (statusListReference != null) {
-			statusListUri = OIDFJSON.getString(statusListReference.get("uri"));
-			statusListIndex = (long) OIDFJSON.getInt(statusListReference.get("idx"));
+		JsonObject identifierListReference =
+			env.getObject(CreateRevokedIdentifierListReference.ENV_KEY);
+		if (identifierListReference != null) {
+			revocationStatus = testAppUtils.identifierListRevocationStatus(
+				OIDFJSON.getString(identifierListReference.get("uri")),
+				Base64.getDecoder().decode(OIDFJSON.getString(identifierListReference.get("id"))));
+		} else if (statusListReference != null) {
+			revocationStatus = testAppUtils.statusListRevocationStatus(
+				OIDFJSON.getString(statusListReference.get("uri")),
+				(long) OIDFJSON.getInt(statusListReference.get("idx")));
 		}
 
 		String requestedDocType = null;
@@ -69,7 +77,7 @@ public class CreateMdocCredential extends AbstractCondition {
 		}
 
 		byte[] mdoc = testAppUtils.generateDeviceResponse(sessionTranscript, requestedDocType, requestedClaims,
-			statusListUri, statusListIndex);
+			revocationStatus);
 		String mdocBase64 = Base64URL.encode(mdoc).toString();
 		env.putString("credential", mdocBase64);
 

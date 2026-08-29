@@ -23,10 +23,16 @@ import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponsePa
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
+import net.openid.conformance.condition.as.CreateRevokedIdentifierListReference;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.CreateValidStatusListReference;
 import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
+import net.openid.conformance.condition.as.EnsureVerifierFetchedIdentifierList;
+import net.openid.conformance.condition.as.EnsureRevocationListRequestAcceptedServedMediaType;
+import net.openid.conformance.condition.as.EnsureRevocationListRequestQueryWasEmpty;
+import net.openid.conformance.condition.as.EnsureRevocationListRequestUsedGet;
 import net.openid.conformance.condition.as.EnsureVerifierFetchedStatusList;
+import net.openid.conformance.condition.as.VP1FinalRevocationListRequest;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
@@ -55,6 +61,7 @@ import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadata
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
+import net.openid.conformance.condition.as.VP1FinalGenerateIdentifierListToken;
 import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
@@ -308,6 +315,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
+		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)
+			|| CreateRevokedIdentifierListReference.IDENTIFIER_LIST_PATH.equals(path)) {
+			// recorded rather than checked here: these handlers run without the test lock (see
+			// below), which calling conditions requires. finaliseChecks() checks it at the end.
+			env.putObject(VP1FinalRevocationListRequest.ENV_KEY, requestParts);
+		}
 		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)) {
 			// served without moving the test to RUNNING: that takes the test lock, which is
 			// held for the whole of the authorization endpoint handler - including the POST of
@@ -317,6 +330,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			// environment, so this handler only has to read it, which needs no lock (the
 			// environment is backed by a concurrent map).
 			return handleStatusListRequest();
+		}
+		if (CreateRevokedIdentifierListReference.IDENTIFIER_LIST_PATH.equals(path)) {
+			// lock-free for the same reason as the status list above
+			return handleIdentifierListRequest();
 		}
 		setStatus(Status.RUNNING);
 
@@ -350,11 +367,38 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		env.putString(EnsureVerifierFetchedStatusList.FETCHED_ENV_KEY, "true");
+		env.putString(VP1FinalRevocationListRequest.SERVED_CONTENT_TYPE_ENV_KEY, contentType);
 		eventLog.log(getName(), "The verifier fetched the status list the presented credential references.");
 
 		return ResponseEntity.ok()
 			.header(HttpHeaders.CONTENT_TYPE, contentType)
 			.body(isMdoc ? Base64.getDecoder().decode(token) : token);
+	}
+
+	/**
+	 * Serves the identifier list (ISO/IEC 18013-5 12.3.6.4) an mdoc's MSO references, for the
+	 * tests that use that revocation mechanism instead of the status list one. Lock-free, exactly
+	 * as {@link #handleStatusListRequest()} is and for the same deadlock reason.
+	 */
+	private Object handleIdentifierListRequest() {
+		String token = env.getString(VP1FinalGenerateIdentifierListToken.ENV_KEY);
+
+		if (token == null) {
+			eventLog.log(getName(), "The verifier requested the identifier list before the "
+				+ "presentation was sent, so there is no identifier list to serve yet.");
+			return ResponseEntity.notFound().build();
+		}
+
+		env.putString(EnsureVerifierFetchedIdentifierList.FETCHED_ENV_KEY, "true");
+		env.putString(VP1FinalRevocationListRequest.SERVED_CONTENT_TYPE_ENV_KEY,
+			VP1FinalGenerateIdentifierListToken.IDENTIFIER_LIST_CWT_CONTENT_TYPE);
+		eventLog.log(getName(), "The verifier fetched the identifier list the presented credential "
+			+ "references.");
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_TYPE,
+				VP1FinalGenerateIdentifierListToken.IDENTIFIER_LIST_CWT_CONTENT_TYPE)
+			.body(Base64.getDecoder().decode(token));
 	}
 
 	/**
@@ -395,9 +439,43 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				.onSkip(ConditionResult.INFO)
 				.onFail(severity)
 				.dontStopOnFailure());
+			call(condition(EnsureVerifierFetchedIdentifierList.class)
+				.skipIfObjectsMissing(CreateRevokedIdentifierListReference.ENV_KEY)
+				.onSkip(ConditionResult.INFO)
+				.onFail(severity)
+				.dontStopOnFailure());
+			checkRevocationListRequest();
 		} finally {
 			clearLock();
 		}
+	}
+
+	/**
+	 * Checks how the verifier asked for the revocation list, for the tests that serve one. These
+	 * are warnings: the specification's normative language is on the Status Provider, so a
+	 * verifier that fetches the list in some other way is interoperating poorly rather than
+	 * breaking a requirement placed on it.
+	 */
+	private void checkRevocationListRequest() {
+		call(condition(EnsureRevocationListRequestUsedGet.class)
+			.skipIfObjectsMissing(VP1FinalRevocationListRequest.ENV_KEY)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("OTSL-8.1"));
+		call(condition(EnsureRevocationListRequestQueryWasEmpty.class)
+			.skipIfObjectsMissing(VP1FinalRevocationListRequest.ENV_KEY)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("OTSL-8.4"));
+		call(condition(EnsureRevocationListRequestAcceptedServedMediaType.class)
+			.skipIfObjectsMissing(VP1FinalRevocationListRequest.ENV_KEY)
+			.skipIfStringsMissing(VP1FinalRevocationListRequest.SERVED_CONTENT_TYPE_ENV_KEY)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("OTSL-8.1"));
 	}
 
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){

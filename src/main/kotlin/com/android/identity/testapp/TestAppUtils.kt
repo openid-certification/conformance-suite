@@ -80,20 +80,19 @@ object TestAppUtils {
 	// documentStoreInit() replaces wholesale, so provisioning and the lookups that
 	// follow it must run as one critical section across concurrently executing modules.
 	//
-	// statusListUri and statusListIndex, when both set, are referenced from the MSO of every
-	// provisioned mdoc so the verifier looks the presented credential up in that Token Status
-	// List; when null the MSO carries no status element, as ISO/IEC 18013-5 12.3.6.2 permits.
+	// revocationStatus, when set, is referenced from the MSO of every provisioned mdoc so the
+	// verifier looks the presented credential up in that revocation list; when null the MSO
+	// carries no status element, as ISO/IEC 18013-5 12.3.6.2 permits.
 	@JvmOverloads
 	@Synchronized
 	fun generateDeviceResponse(
 		sessionTranscript: ByteArray,
 		requestedDocType: String? = null,
 		requestedClaims: Map<String, Set<String>>? = null,
-		statusListUri: String? = null,
-		statusListIndex: Long? = null
+		revocationStatus: RevocationStatus? = null
 	): ByteArray {
 		return runBlocking {
-			documentStoreInit(statusListUri, statusListIndex)
+			documentStoreInit(revocationStatus)
 			generateEncodedDeviceResponse(sessionTranscript, requestedDocType, requestedClaims)
 		}
 	}
@@ -204,12 +203,28 @@ object TestAppUtils {
         UtopiaMovieTicket.getDocumentType()
     )
 
+	/**
+	 * The MSO status element referencing a Token Status List entry (ISO/IEC 18013-5 12.3.6.3).
+	 *
+	 * @param statusListUri the URI the status list is published at
+	 * @param statusListIndex the index of these MSOs in that list
+	 */
+	fun statusListRevocationStatus(statusListUri: String, statusListIndex: Long): RevocationStatus =
+		RevocationStatus.StatusList(statusListIndex.toInt(), statusListUri, null)
+
+	/**
+	 * The MSO status element using the identifier_list revocation mechanism of ISO/IEC 18013-5
+	 * 12.3.6.4 rather than the status list one.
+	 *
+	 * @param identifierListUri the URI the identifier list is published at
+	 * @param identifier the Identifier naming these MSOs in that list
+	 */
+	fun identifierListRevocationStatus(identifierListUri: String, identifier: ByteArray): RevocationStatus =
+		RevocationStatus.IdentifierList(ByteString(identifier), identifierListUri, null)
+
 	var documentStore: DocumentStore? = null
 
-	private suspend fun documentStoreInit(
-		statusListUri: String? = null,
-		statusListIndex: Long? = null
-	) {
+	private suspend fun documentStoreInit(revocationStatus: RevocationStatus? = null) {
 		docTypeToDocumentId.clear()
 		val storage = EphemeralStorage()
 		val softwareSecureArea = SoftwareSecureArea.create(storage)
@@ -232,8 +247,7 @@ object TestAppUtils {
 			deviceKeyAlgorithm = Algorithm.ESP256,
 			deviceKeyMacAlgorithm = Algorithm.ECDH_P256,
 			numCredentialsPerDomain = 1,
-			statusListUri = statusListUri,
-			statusListIndex = statusListIndex
+			revocationStatus = revocationStatus
 		)
 	}
 
@@ -276,8 +290,7 @@ object TestAppUtils {
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
-        statusListUri: String? = null,
-        statusListIndex: Long? = null,
+        revocationStatus: RevocationStatus? = null,
     ) {
         require(deviceKeyAlgorithm.isSigning)
         require(deviceKeyMacAlgorithm == Algorithm.UNSET || deviceKeyMacAlgorithm.isKeyAgreement)
@@ -292,8 +305,7 @@ object TestAppUtils {
             DrivingLicense.getDocumentType(),
             "Erika",
             "Erika's Driving License",
-            statusListUri,
-            statusListIndex
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -306,8 +318,7 @@ object TestAppUtils {
             PhotoID.getDocumentType(),
             "Erika",
             "Erika's Photo ID",
-            statusListUri,
-            statusListIndex
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -320,8 +331,7 @@ object TestAppUtils {
             PhotoID.getDocumentType(),
             "Erika #2",
             "Erika's Photo ID #2",
-            statusListUri,
-            statusListIndex
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -334,8 +344,7 @@ object TestAppUtils {
             EUPersonalID.getDocumentType(),
             "Erika",
             "Erika's EU PID",
-            statusListUri,
-            statusListIndex
+            revocationStatus
         )
         provisionDocument(
             documentStore,
@@ -348,8 +357,7 @@ object TestAppUtils {
             UtopiaMovieTicket.getDocumentType(),
             "Erika",
             "Erika's Movie Ticket",
-            statusListUri,
-            statusListIndex
+            revocationStatus
         )
     }
 
@@ -371,8 +379,7 @@ object TestAppUtils {
         documentType: DocumentType,
         givenNameOverride: String,
         displayName: String,
-        statusListUri: String? = null,
-        statusListIndex: Long? = null
+        revocationStatus: RevocationStatus? = null
     ): String {
         val document = documentStore.createDocument(
             displayName = displayName,
@@ -404,8 +411,7 @@ object TestAppUtils {
                 dsKey = dsKey,
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride,
-                statusListUri = statusListUri,
-                statusListIndex = statusListIndex
+                revocationStatus = revocationStatus
             )
         }
 
@@ -449,16 +455,11 @@ object TestAppUtils {
         dsKey: AsymmetricKey.X509Certified,
         numCredentialsPerDomain: Int,
         givenNameOverride: String,
-        statusListUri: String? = null,
-        statusListIndex: Long? = null
-    ) {
         // ISO/IEC 18013-5 12.3.6.2: the MSO's status element carries the reference to the MSO
-        // revocation list. Absent unless the test asked for one.
-        val revocationStatus = if (statusListUri != null && statusListIndex != null) {
-            RevocationStatus.StatusList(statusListIndex.toInt(), statusListUri, null)
-        } else {
-            null
-        }
+        // revocation list, using either the status list or the identifier list mechanism. Absent
+        // unless the test asked for one.
+        revocationStatus: RevocationStatus? = null
+    ) {
         val issuerNamespaces = buildIssuerNamespaces {
             for ((nsName, ns) in documentType.mdocDocumentType?.namespaces!!) {
                 addNamespace(nsName) {
