@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.testapp.VciMdocUtils;
@@ -62,9 +63,18 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			throw error("doctype is missing for credential configuration", args("credential_configuration", env.getObject("credential_configuration")));
 		}
 
-		// Optionally get custom issuer signing key from configuration
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		String issuerSigningJwk = credentialSigningJwkEl != null ? credentialSigningJwkEl.toString() : null;
+		// mdocs are always signed by the suite's own document signer certificate, minted under the
+		// suite's mdoc IACA root, so that wallets which trust that root (e.g. via the interop VICAL
+		// it is listed in) can validate the credentials we issue. The configured signing JWK is for
+		// SD-JWT VCs only; see issue #1663 for parameterizing the mdoc key material.
+		if (env.getElementFromObject("config", "credential.signing_jwk") != null) {
+			log("The 'Signing JWK' field in the 'Credential Issuer' section of the test configuration"
+				+ " is used for SD-JWT VC credentials only. mdoc credentials are signed by the"
+				+ " conformance suite's own document signer certificate, issued under its mdoc IACA"
+				+ " root certificate, which is served at /mdoc-iaca-root.pem and must be configured"
+				+ " as a trust anchor in the wallet under test.",
+				args("iaca_root_pem", TestKeysAndCerts.IACA_ROOT_CERT_PEM));
+		}
 
 		// Allocate a distinct, unpredictable status list index for each credential so that the
 		// credentials in a batch cannot be correlated through a shared status reference
@@ -77,7 +87,7 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			Long statusListIndex = statusListUri == null ? null : statusIndices.get(i);
 			// Create the mdoc credential for this key
 			String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType,
-				issuerSigningJwk, null, statusListUri, statusListIndex);
+				null, null, statusListUri, statusListIndex);
 
 			JsonObject credentialObj = new JsonObject();
 			credentialObj.addProperty("credential", mdocB64url);
