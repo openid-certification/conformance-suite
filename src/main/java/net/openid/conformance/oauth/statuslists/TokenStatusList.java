@@ -28,9 +28,24 @@ public class TokenStatusList {
 		}
 	}
 
-	public static byte[] decodeStatusList(String encodedStatusList) throws Exception {
+	/**
+	 * Decodes a status list whose compressed byte array is available directly rather than
+	 * base64url encoded — the CWT format carries {@code lst} as a CBOR byte string
+	 * (draft-ietf-oauth-status-list section 5.2).
+	 */
+	public static TokenStatusList decodeCompressed(byte[] compressedStatusList, int bits) {
+		try {
+			return new TokenStatusList(inflate(compressedStatusList), bits);
+		} catch (Exception e) {
+			throw new TokenStatusListException("Could not decode compressed status list representation", e);
+		}
+	}
 
-		byte[] compressed = Base64.getUrlDecoder().decode(encodedStatusList);
+	public static byte[] decodeStatusList(String encodedStatusList) throws Exception {
+		return inflate(Base64.getUrlDecoder().decode(encodedStatusList));
+	}
+
+	private static byte[] inflate(byte[] compressed) throws Exception {
 
 		Inflater inflater = new Inflater(); // ZLIB format
 		inflater.setInput(compressed);
