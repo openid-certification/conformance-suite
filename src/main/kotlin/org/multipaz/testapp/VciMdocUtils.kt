@@ -185,6 +185,14 @@ object VciMdocUtils {
 		out.toByteArray()
 	}
 
+	// Both ISO/IEC 18013-5 13.4.6 and ISO/IEC TS 23220-2 6.3.2.2 anchor the age elements at the
+	// MSO validFrom; validFrom is signedAt, which "now" approximates to well within a day.
+	private fun ageAt(birthDate: java.time.LocalDate, instant: Instant): Int =
+		java.time.Period.between(
+			birthDate,
+			java.time.LocalDate.ofInstant(java.time.Instant.ofEpochSecond(instant.epochSeconds), java.time.ZoneOffset.UTC)
+		).years
+
 	private fun subjectCountry(cert: X509Cert): String? {
 		val holder = org.bouncycastle.cert.X509CertificateHolder(cert.encoded.toByteArray())
 		val rdns = holder.subject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.C)
@@ -227,11 +235,12 @@ object VciMdocUtils {
 			}
 			"eu.europa.ec.eudi.pid.1" -> {
 				// EU Personal ID
+				val birthDate = java.time.LocalDate.of(1980, 5, 23)
 				addNamespace("eu.europa.ec.eudi.pid.1") {
 					addDataElement("family_name", Tstr("Dupont"))
 					addDataElement("given_name", Tstr("Jean"))
-					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1980-05-23")))
-					addDataElement("age_in_years", Uint(44u))
+					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(birthDate.toString())))
+					addDataElement("age_in_years", Uint(ageAt(birthDate, now).toULong()))
 					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
 					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))
@@ -244,9 +253,6 @@ object VciMdocUtils {
 				// edition. These are the elements Annex C Table 1 marks as mandatory.
 				// 23220-2 says the age elements are calculated from the date picked for birth_date.
 				val birthDate = java.time.LocalDate.of(1985, 3, 15)
-				val ageInYears = java.time.Period.between(birthDate,
-					java.time.LocalDate.ofInstant(
-						java.time.Instant.ofEpochSecond(now.epochSeconds), java.time.ZoneOffset.UTC)).years
 				addNamespace("org.iso.23220.1") {
 					addDataElement("family_name", Tstr("Mustermann"))
 					addDataElement("given_name", Tstr("Erika"))
@@ -258,7 +264,7 @@ object VciMdocUtils {
 					addDataElement("issuing_country", Tstr(issuingCountry))
 					addDataElement("age_over_18", Simple.TRUE)
 					// Annex C Table 1 marks these "R" (recommended)
-					addDataElement("age_in_years", Uint(ageInYears.toULong()))
+					addDataElement("age_in_years", Uint(ageAt(birthDate, now).toULong()))
 					addDataElement("age_birth_year", Uint(birthDate.year.toULong()))
 				}
 			}
