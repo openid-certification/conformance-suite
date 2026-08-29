@@ -7,6 +7,8 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAut
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureMdocAgeInYearsConsistentWithBirthDate;
+import net.openid.conformance.condition.client.EnsureMdocAgeOverElementsConsistentWithBirthDate;
 import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureIssuedMdocMdlElementsAreDefined;
@@ -440,6 +442,10 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 						ConditionResult.WARNING, "ISO23220-4-C");
 					callAndContinueOnFailure(EnsureMdocPhotoIdElementValuesAreValid.class,
 						ConditionResult.FAILURE, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureMdocAgeOverElementsConsistentWithBirthDate.class,
+						ConditionResult.FAILURE, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
+					callAndContinueOnFailure(EnsureMdocAgeInYearsConsistentWithBirthDate.class,
+						ConditionResult.WARNING, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
 				}
 			}
 		};

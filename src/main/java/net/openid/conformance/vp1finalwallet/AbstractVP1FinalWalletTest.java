@@ -74,6 +74,8 @@ import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfig
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureMdocDeviceSignedElementsEmpty;
+import net.openid.conformance.condition.client.EnsureMdocAgeInYearsConsistentWithBirthDate;
+import net.openid.conformance.condition.client.EnsureMdocAgeOverElementsConsistentWithBirthDate;
 import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsurePresentedMdocMdlElementsAreDefined;
@@ -717,6 +719,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					ConditionResult.FAILURE, "ISO18013-5-13.4.2");
 				callAndContinueOnFailure(EnsureMdocPhotoIdElementValuesAreValid.class,
 					ConditionResult.FAILURE, "ISO23220-4-C");
+				callAndContinueOnFailure(EnsureMdocAgeOverElementsConsistentWithBirthDate.class,
+					ConditionResult.FAILURE, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
+				callAndContinueOnFailure(EnsureMdocAgeInYearsConsistentWithBirthDate.class,
+					ConditionResult.WARNING, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
 
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateMdocDocTypeMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
