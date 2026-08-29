@@ -17,4 +17,11 @@ public @interface VariantParameter {
 
 	String defaultValue() default "";
 
+	/**
+	 * Sort order for the UI; lower values sort first. Parameters sharing a variant name
+	 * must declare the same value (enforced when VariantService is constructed); ties
+	 * sort by variant name.
+	 */
+	int sortOrder() default 1000;
+
 }

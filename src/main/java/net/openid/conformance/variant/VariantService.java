@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,6 +61,17 @@ public class VariantService {
 
 		this.variantParametersByClass = inClassesWithAnnotation(VariantParameter.class)
 				.collect(toMap(identity(), VariantService::wrapParameter));
+
+		// Fail fast if parameters sharing a variant name disagree on sortOrder — the UI
+		// ordering would otherwise silently differ between plans.
+		variantParametersByClass.values().stream()
+				.collect(groupingBy(p -> p.variantParameter.name()))
+				.forEach((name, params) -> {
+					if (params.stream().mapToInt(p -> p.variantParameter.sortOrder()).distinct().count() > 1) {
+						throw new RuntimeException("Variant parameters named '%s' declare different sortOrder values: %s".formatted(
+								name, params.stream().map(p -> p.parameterClass.getName()).sorted().collect(joining(", "))));
+					}
+				});
 
 		this.testModulesByClass = inClassesWithAnnotation(PublishTestModule.class)
 				.collect(toMap(identity(), this::wrapModule));
@@ -230,6 +242,11 @@ public class VariantService {
 	private static boolean isAllValuesWildcard(VariantNotApplicableWhen a) {
 		return a.values().length == 1 && a.values()[0].equals("*");
 	}
+
+	// UI ordering for variant parameters: by sortOrder, ties broken by variant name
+	private static final Comparator<ParameterHolder<?>> BY_SORT_ORDER =
+			Comparator.comparingInt((ParameterHolder<?> p) -> p.variantParameter.sortOrder())
+					.thenComparing(p -> p.variantParameter.name());
 
 	public static class ParameterHolder<T extends Enum<T>> {
 
@@ -800,7 +817,8 @@ public class VariantService {
 			}
 
 			return values.entrySet().stream()
-					.collect(toMap(e -> e.getKey().variantParameter.name(),
+					.sorted(Map.Entry.comparingByKey(BY_SORT_ORDER))
+					.collect(toOrderedMap(e -> e.getKey().variantParameter.name(),
 							e -> {
 								ParameterHolder<?> p = e.getKey();
 								Set<String> allowed = e.getValue();
@@ -1043,7 +1061,8 @@ public class VariantService {
 
 		public Object getVariantSummary() {
 			return parameters.stream()
-					.collect(toMap(p -> p.parameter.variantParameter.name(),
+					.sorted(Comparator.comparing(p -> p.parameter, BY_SORT_ORDER))
+					.collect(toOrderedMap(p -> p.parameter.variantParameter.name(),
 							p -> {
 								Map<String, Object> result = new HashMap<>();
 								result.put("variantInfo", Map.of("displayName", p.parameter.variantParameter.displayName(),

@@ -2,6 +2,7 @@ package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "fapi_profile",
+	sortOrder = 50,
 	displayName = "FAPI Profile",
 	description = "The FAPI sub-profile to use. For servers compliant with the Australian Consumer Data Right standards, please pick consumerdataright_au and also select private_key_jwt client authentication. If in doubt select plain_fapi."
 )

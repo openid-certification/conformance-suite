@@ -4,6 +4,7 @@ import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "client_registration",
+	sortOrder = 30,
 	displayName = "Client Registration Type",
 	description = "Client registration type for establishing trust between an RP and an OP that have no prior explicit configuration or registration between them. "
 )
