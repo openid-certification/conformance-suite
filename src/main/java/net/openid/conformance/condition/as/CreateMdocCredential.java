@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
+import kotlinx.io.bytestring.ByteString;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -35,7 +36,8 @@ public class CreateMdocCredential extends AbstractCondition {
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
 		// When the test allocated a revocation list reference, the mock wallet's mdocs are
-		// provisioned with the MSO status element of ISO/IEC 18013-5 12.3.6.2 pointing at it.
+		// provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2
+		// defines the two mechanisms it can use.
 		RevocationStatus revocationStatus = null;
 		JsonObject reference = env.getObject(RevocationListReference.ENV_KEY);
 		if (reference != null) {
@@ -44,6 +46,11 @@ public class CreateMdocCredential extends AbstractCondition {
 				// ISO/IEC 18013-5 12.3.6.5: the status_list element names the list and the MSO's index
 				case RevocationListReference.MECHANISM_STATUS_LIST ->
 					new RevocationStatus.StatusList(OIDFJSON.getInt(reference.get("idx")), uri, null);
+				// ISO/IEC 18013-5 12.3.6.4: the identifier_list element names the list and the MSO's identifier
+				case RevocationListReference.MECHANISM_IDENTIFIER_LIST -> {
+					byte[] id = Base64.getDecoder().decode(OIDFJSON.getString(reference.get("id")));
+					yield new RevocationStatus.IdentifierList(new ByteString(id, 0, id.length), uri, null);
+				}
 				default -> throw error("Unknown revocation list mechanism",
 					args("revocation_list_reference", reference));
 			};

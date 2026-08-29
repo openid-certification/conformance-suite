@@ -10,9 +10,9 @@ import org.apache.commons.lang3.RandomStringUtils;
  * {@code revocation_list_reference} by the condition that allocates it; a test presenting a
  * credential without revocation information allocates none.
  *
- * <p>Every reference has the {@code mechanism} it uses, the {@code uri} the list is published at
- * and that URI's {@code path} relative to the test instance's base url, plus what identifies the
- * credential on the list: {@code idx} for a status list.
+ * <p>Every reference has the {@code mechanism} it uses and the {@code uri} the list is published
+ * at, plus what identifies the credential on the list: {@code idx} for a status list, the base64
+ * encoded {@code id} for an identifier list.
  *
  * <p>The URI ends in a random path segment. A test instance's base url stays the same from one
  * run to the next when the test configuration sets an alias, and draft-ietf-oauth-status-list
@@ -26,30 +26,37 @@ public final class RevocationListReference {
 	/** The Token Status List mechanism of draft-ietf-oauth-status-list. */
 	public static final String MECHANISM_STATUS_LIST = "status_list";
 
+	/** The identifier list mechanism of ISO/IEC 18013-5 12.3.6.4. */
+	public static final String MECHANISM_IDENTIFIER_LIST = "identifier_list";
+
 	/**
 	 * Prefix of the path, relative to the test instance's base url, that a status list is served
 	 * from; the random segment that follows it is allocated per test instance.
 	 */
 	public static final String STATUS_LIST_PATH_PREFIX = "statuslists/";
 
+	/** The same, for an identifier list. */
+	public static final String IDENTIFIER_LIST_PATH_PREFIX = "identifierlists/";
+
 	private RevocationListReference() {
 	}
 
 	/** Whether a request to the given path is one for a revocation list. */
 	public static boolean isRevocationListPath(String path) {
-		return path.startsWith(STATUS_LIST_PATH_PREFIX);
+		return path.startsWith(STATUS_LIST_PATH_PREFIX) || path.startsWith(IDENTIFIER_LIST_PATH_PREFIX);
 	}
 
 	/**
-	 * Starts a reference of the given mechanism at a fresh URI under the given path prefix, for
-	 * the caller to add the credential's place on the list to and store.
+	 * Starts a reference of the given mechanism at a fresh URI under that mechanism's path
+	 * prefix, for the caller to add the credential's place on the list to and store.
 	 */
-	static JsonObject allocate(Environment env, String mechanism, String pathPrefix) {
+	static JsonObject allocate(Environment env, String mechanism) {
+		String pathPrefix = MECHANISM_STATUS_LIST.equals(mechanism)
+			? STATUS_LIST_PATH_PREFIX : IDENTIFIER_LIST_PATH_PREFIX;
 		String path = pathPrefix + RandomStringUtils.secure().nextAlphanumeric(20);
 
 		JsonObject reference = new JsonObject();
 		reference.addProperty("mechanism", mechanism);
-		reference.addProperty("path", path);
 		reference.addProperty("uri", env.getString("base_url") + "/" + path);
 		return reference;
 	}
