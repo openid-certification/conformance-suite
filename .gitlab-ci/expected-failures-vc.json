@@ -271,6 +271,17 @@
         "comment": "Wallet receives an mdoc marked revoked in its MSO revocation list from the verifier negative test"
     },
     {
+        "test-name": "oid4vp-1final-wallet-happy-flow",
+        "variant": {
+            "credential_format": "iso_mdl"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-mdoc-negative-identifier-list.json",
+        "current-block": "Direct post endpoint",
+        "condition": "CheckMdocCredentialIdentifierListStatus",
+        "expected-result": "failure",
+        "comment": "Wallet receives an mdoc whose MSO identifier appears in its identifier list from the verifier negative test"
+    },
+    {
         "test-name": "oid4vp-1final-verifier-invalid-session-transcript",
         "variant": {
             "credential_format": "iso_mdl",
