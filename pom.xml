@@ -208,17 +208,17 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.100.0</version>
+			<version>0.101.0-20260828.212955-74</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.100.0</version>
+			<version>0.101.0-20260828.212955-73</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-utopia-jvm</artifactId>
-			<version>0.100.0</version>
+			<version>0.101.0-20260828.212955-71</version>
 		</dependency>
 
 		<dependency>
@@ -281,6 +281,18 @@
 
 		<!-- introduced when migrating to springboot 2.4 -->
 	</dependencies>
+
+	<!-- TEMPORARY, do not merge as-is: pinned multipaz 0.101.0 snapshot (exact timestamped
+	     build, contains the RICAL serialNumber parse fix from multipaz PR #1920). Replace
+	     with the 0.101.0 release (due ~2026-09-05) and delete this repository block. -->
+	<repositories>
+		<repository>
+			<id>sonatype-central-snapshots</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+			<releases><enabled>false</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
+	</repositories>
 	<build>
 		<plugins>
 			<plugin>
