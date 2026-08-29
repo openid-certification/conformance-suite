@@ -199,7 +199,33 @@ object VicalTestFixtures {
 	fun generateBrainpoolSigner(): VicalSigner = generateSigner(curve = EcCurve.BRAINPOOLP256R1)
 
 	/** A test IACA root with a document signer certificate issued by it. */
-	class IssuerPki(val iacaCert: X509Cert, val dsKey: EcPrivateKey, val dsCert: X509Cert)
+	class IssuerPki(
+		val iacaCert: X509Cert,
+		val dsKey: EcPrivateKey,
+		val dsCert: X509Cert,
+		val iacaKey: EcPrivateKey
+	)
+
+	/** Mints another end-entity leaf under the given PKI's IACA, e.g. a status list signer. */
+	@JvmStatic
+	fun mintLeafUnderIaca(pki: IssuerPki, commonName: String): Pair<EcPrivateKey, X509Cert> {
+		val key = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
+		val cert = runBlocking {
+			X509Cert.Builder(
+				key.publicKey,
+				AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(pki.iacaCert)), pki.iacaKey),
+				ASN1Integer(3L),
+				X500Name.fromName("CN=$commonName,O=OpenID Foundation,C=UT"),
+				X500Name.fromName(pki.iacaCert.subject.name),
+				Clock.System.now() - 1.days,
+				Clock.System.now() + 90.days
+			).includeSubjectKeyIdentifier(true)
+				.setAuthorityKeyIdentifierToCertificate(pki.iacaCert)
+				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
+				.build()
+		}
+		return Pair(key, cert)
+	}
 
 	/** Generates a test IACA root CA and a DS certificate signed by it. */
 	@JvmStatic
@@ -236,7 +262,7 @@ object VicalTestFixtures {
 				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
 				.build()
 		}
-		return IssuerPki(iacaCert, dsKey, dsCert)
+		return IssuerPki(iacaCert, dsKey, dsCert, iacaKey)
 	}
 
 	/** PEM-encodes a certificate. */

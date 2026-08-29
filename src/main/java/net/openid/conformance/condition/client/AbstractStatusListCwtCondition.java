@@ -40,6 +40,12 @@ public abstract class AbstractStatusListCwtCondition extends AbstractCondition {
 	/** Environment object holding the status list token HTTP response (status and headers). */
 	public static final String ENV_STATUS_LIST_RESPONSE = "mdoc_status_list_token_endpoint_response";
 
+	/**
+	 * The optional Certificate element of the MSO's status reference (base64 DER), the explicit
+	 * trust point for the revocation list's x5chain when present (ISO/IEC 18013-5 12.3.6.2).
+	 */
+	public static final String ENV_STATUS_REFERENCE_CERTIFICATE = "mdoc_status_reference_certificate";
+
 	// CWT claim keys, draft-ietf-oauth-status-list section 5.2
 	protected static final long CWT_CLAIM_SUB = 2;
 	protected static final long CWT_CLAIM_EXP = 4;

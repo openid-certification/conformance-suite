@@ -88,6 +88,27 @@ final class StatusListCwtTestFixtures {
 	}
 
 	/**
+	 * A well formed status list token signed by the given key, with the given certificate chain
+	 * in the protected header - for the certification path checks, whose fixtures need chains
+	 * issued by a specific CA rather than the self-signed signer the other helpers use.
+	 */
+	static byte[] statusListTokenSignedBy(String uri, org.multipaz.crypto.EcPrivateKey key,
+			X509CertChain chain) throws Exception {
+		Map<CoseLabel, DataItem> protectedHeaders = new LinkedHashMap<>();
+		protectedHeaders.put(new CoseNumberLabel(COSE_LABEL_ALG),
+			DataItemExtensionsKt.toDataItem(
+				Algorithm.ES256.getCoseAlgorithmIdentifier().intValue()));
+		protectedHeaders.put(new CoseNumberLabel(COSE_LABEL_TYP),
+			new Tstr(AbstractStatusListCwtCondition.STATUS_LIST_CWT_CONTENT_TYPE));
+		protectedHeaders.put(new CoseNumberLabel(COSE_LABEL_X5CHAIN), chain.toDataItem());
+
+		CoseSign1 coseSign1 = sign(
+			new org.multipaz.crypto.AsymmetricKey.X509CertifiedExplicit(chain, key, Algorithm.ES256),
+			claimsSet(uri), protectedHeaders);
+		return Cbor.INSTANCE.encode(new Tagged(Tagged.COSE_SIGN1, coseSign1.toDataItem()));
+	}
+
+	/**
 	 * A status list token whose protected header declares RS256 (COSE algorithm identifier -257),
 	 * which ISO 18013-5 12.3.6.3 does not permit. The signature bytes are arbitrary; the format
 	 * condition rejects the token before any signature check.

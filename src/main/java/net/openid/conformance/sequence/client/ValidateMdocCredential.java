@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeStatusListCwt;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.FetchMdocStatusListToken;
 import net.openid.conformance.condition.client.ValidateStatusListSignerCertificateProfile;
+import net.openid.conformance.condition.client.ValidateStatusListTokenCwtCertificateChain;
 import net.openid.conformance.condition.client.ValidateStatusListTokenCwtFormat;
 import net.openid.conformance.condition.client.VerifyStatusListTokenCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
@@ -130,6 +131,12 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			.onFail(retrievalSeverity)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-12.3.6.3"));
+		call(condition(ValidateStatusListTokenCwtCertificateChain.class)
+			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(retrievalSeverity)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.2"));
 		call(condition(ValidateStatusListSignerCertificateProfile.class)
 			.skipIfStringsMissing(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN)
 			.onSkip(ConditionResult.INFO)

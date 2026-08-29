@@ -62,6 +62,12 @@ public class FetchMdocStatusListToken extends AbstractStatusListCwtCondition {
 
 		String uri = statusList.getUri();
 		int idx = statusList.getIdx();
+		if (statusList.getCertificate() != null) {
+			// the optional Certificate element is the explicit trust point for the revocation
+			// list's x5chain (12.3.6.2); recorded for ValidateStatusListTokenCwtCertificateChain
+			env.putString(ENV_STATUS_REFERENCE_CERTIFICATE,
+				Base64.getEncoder().encodeToString(statusList.getCertificate().getEncoded().toByteArray(0, statusList.getCertificate().getEncoded().getSize())));
+		}
 
 		ResponseEntity<byte[]> response;
 		try {
@@ -98,6 +104,7 @@ public class FetchMdocStatusListToken extends AbstractStatusListCwtCondition {
 		env.removeNativeValue(ENV_STATUS_LIST_TOKEN);
 		env.removeNativeValue(ENV_STATUS_LIST_URI);
 		env.removeNativeValue(ENV_STATUS_LIST_IDX);
+		env.removeNativeValue(ENV_STATUS_REFERENCE_CERTIFICATE);
 	}
 
 	protected ResponseEntity<byte[]> fetchStatusListToken(Environment env, String uri) throws Exception {
