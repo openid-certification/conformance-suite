@@ -1,0 +1,67 @@
+{
+	"credentials": [
+		{
+			"id": "my_credential",
+			"format": "dc+sd-jwt",
+			"meta": {
+				"vct_values": [
+					"urn:eudi:pid:1"
+				]
+			},
+			"claims": [
+				{
+					"id": "family_name",
+					"path": [
+						"family_name"
+					]
+				},
+				{
+					"id": "given_name",
+					"path": [
+						"given_name"
+					]
+				},
+				{
+					"id": "birthdate",
+					"path": [
+						"birthdate"
+					]
+				},
+				{
+					"id": "place_of_birth",
+					"path": [
+						"place_of_birth"
+					]
+				},
+				{
+					"id": "nationalities",
+					"path": [
+						"nationalities"
+					]
+				},
+				{
+					"id": "issuing_authority",
+					"path": [
+						"issuing_authority"
+					]
+				},
+				{
+					"id": "issuing_country",
+					"path": [
+						"issuing_country"
+					]
+				},
+				{
+					"id": "picture",
+					"path": [
+						"picture"
+					]
+				}
+			],
+			"claim_sets": [
+				["family_name", "given_name", "birthdate", "place_of_birth", "nationalities", "issuing_authority", "issuing_country", "picture"],
+				["family_name", "given_name", "birthdate", "place_of_birth", "nationalities", "issuing_authority", "issuing_country"]
+			]
+		}
+	]
+}

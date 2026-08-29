@@ -103,6 +103,7 @@ public class LogEntryHelper {
 		specLinks.put("ISO18013-7-", "https://www.iso.org/standard/82772.html#");
 		specLinks.put("ISO23220-2-", "https://www.iso.org/standard/86782.html#");
 		specLinks.put("ISO23220-4-", "https://www.iso.org/standard/86785.html#");
+		specLinks.put("PIDRULEBOOK-", "https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#");
 		specLinks.put("CDR-", "https://consumerdatastandardsaustralia.github.io/standards/#");
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");

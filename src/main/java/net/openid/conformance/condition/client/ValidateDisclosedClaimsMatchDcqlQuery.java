@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -28,19 +27,16 @@ public class ValidateDisclosedClaimsMatchDcqlQuery extends AbstractCondition {
 				args("credential_id", credentialId, "dcql_query", dcqlQuery));
 		}
 
-		// TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
-		// does not yet honor DCQL claim_sets semantics when deciding which claims are required.
-		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
+		Set<List<String>> requestedClaimPaths = requiredClaimPaths(matchingCredential);
 		if (requestedClaimPaths.isEmpty()) {
 			log("DCQL credential entry has no claims, skipping claims validation");
 			return env;
 		}
 
-		JsonElement decodedEl = env.getElementFromObject("sdjwt", "decoded");
-		if (decodedEl == null || !decodedEl.isJsonObject()) {
+		JsonObject decoded = DcqlQueryUtils.getDecodedSdJwtClaims(env);
+		if (decoded == null) {
 			throw error("No decoded SD-JWT claims found in environment");
 		}
-		JsonObject decoded = decodedEl.getAsJsonObject();
 
 		List<List<String>> missingClaimPaths = new ArrayList<>();
 		for (List<String> claimPath : requestedClaimPaths) {
@@ -61,5 +57,16 @@ public class ValidateDisclosedClaimsMatchDcqlQuery extends AbstractCondition {
 			args("requested_claim_paths", requestedClaimPaths,
 				"decoded_credential", decoded));
 		return env;
+	}
+
+	/**
+	 * The claim paths whose absence causes this condition to fail. Subclasses may exempt specific
+	 * claims so the caller can check them separately at a different severity.
+	 *
+	 * TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
+	 * does not yet honor DCQL claim_sets semantics when deciding which claims are required.
+	 */
+	protected Set<List<String>> requiredClaimPaths(JsonObject matchingCredential) {
+		return DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
 	}
 }
