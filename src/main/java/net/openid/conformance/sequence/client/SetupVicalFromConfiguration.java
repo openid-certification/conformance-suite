@@ -28,16 +28,32 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
  */
 public class SetupVicalFromConfiguration extends AbstractConditionSequence {
 
+	private final ConditionResult fetchFailureSeverity;
+
+	public SetupVicalFromConfiguration() {
+		this(ConditionResult.FAILURE);
+	}
+
+	/**
+	 * @param fetchFailureSeverity severity for failing to fetch a configured 'VICAL URL'. FAILURE
+	 *   where the VICAL is the trust source for the entity under test, so an unfetchable list
+	 *   means the configured check cannot run; WARNING where the VICAL only drives a pre-flight
+	 *   check of the suite's own certificates, which is no verdict on that entity.
+	 */
+	public SetupVicalFromConfiguration(ConditionResult fetchFailureSeverity) {
+		this.fetchFailureSeverity = fetchFailureSeverity;
+	}
+
 	@Override
 	public void evaluate() {
 		callAndStopOnFailure(RegisterVical.class);
 
-		// A FAILURE (the user configured a URL the suite cannot fetch from) but the test
-		// continues; the downstream VICAL checks then skip as no VICAL was registered.
+		// The user configured a URL the suite cannot fetch from, but the test continues;
+		// the downstream VICAL checks then skip as no VICAL was registered.
 		call(condition(CallVicalEndpoint.class)
 			.skipIfStringsMissing("vical_url")
 			.onSkip(ConditionResult.INFO)
-			.onFail(ConditionResult.FAILURE)
+			.onFail(fetchFailureSeverity)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-C.1.7.3"));
 
