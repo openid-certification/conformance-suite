@@ -86,10 +86,12 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	public static final String ENV_STATUS = "mdoc_revocation_status";
 
 	/** Media type of an identifier list in CWT format (ISO/IEC 18013-5 12.3.6.4). */
-	public static final String IDENTIFIER_LIST_CWT_CONTENT_TYPE = "application/identifierlist+cwt";
+	public static final String IDENTIFIER_LIST_CWT_CONTENT_TYPE =
+		StatusListCwt.IDENTIFIER_LIST_CONTENT_TYPE;
 
 	/** CWT claim key of the IdentifierList structure, ISO/IEC 18013-5 12.3.6.4. */
-	protected static final long CWT_CLAIM_IDENTIFIER_LIST = 65530;
+	protected static final long CWT_CLAIM_IDENTIFIER_LIST =
+		StatusListCwt.CLAIM_IDENTIFIER_LIST;
 
 	/** The two MSO revocation mechanisms of ISO/IEC 18013-5 12.3.6 and how their lists differ on the wire. */
 	public enum Mechanism {
