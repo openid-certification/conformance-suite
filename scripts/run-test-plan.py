@@ -1211,13 +1211,17 @@ async def main():
             test = plan_obj["test"]
             modules = test.get("modules", [])
             module_str = ",".join(modules) if modules else test["test_name"]
+            configs = os.path.basename(config)
             op_test = plan_obj.get("op_test")
             if op_test:
+                op_config = op_test.get("config_file")
+                if op_config and os.path.basename(op_config) != configs:
+                    configs += " / " + os.path.basename(op_config)
                 op_modules = op_test.get("modules", [])
                 op_str = ",".join(op_modules) if op_modules else op_test["test_name"]
-                print("{:3d}. {} {{{}}}".format(plan_obj["plan_number"], module_str, op_str))
+                print("{:3d}. {} {{{}}} [{}]".format(plan_obj["plan_number"], module_str, op_str, configs))
             else:
-                print("{:3d}. {}".format(plan_obj["plan_number"], module_str))
+                print("{:3d}. {} [{}]".format(plan_obj["plan_number"], module_str, configs))
         sys.exit(0)
 
     # Parse --rerun filter
