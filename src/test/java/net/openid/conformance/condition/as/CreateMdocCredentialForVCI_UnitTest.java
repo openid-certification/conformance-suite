@@ -10,6 +10,7 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.MdocUtil;
+import net.openid.conformance.util.TestKeysAndCerts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,9 +21,11 @@ import org.multipaz.cose.Cose;
 import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
 import org.multipaz.crypto.X509CertChain;
+import org.multipaz.crypto.X509CertJvmKt;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 import org.multipaz.revocation.RevocationStatus;
 
+import java.security.cert.X509Certificate;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,17 +70,14 @@ public class CreateMdocCredentialForVCI_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
+	/**
+	 * The configured signing JWK is for SD-JWT VCs only: mdocs are always signed with the suite's
+	 * own document signer certificate, issued under its mdoc IACA root, so that wallets which trust
+	 * that root can validate them.
+	 */
 	@Test
-	public void testEvaluate_customSigningKeyProducesValidCredential() {
-		env.putString("proof_type", "jwt");
-		env.putObjectFromJsonString("proof_jwt", "header.jwk", DEVICE_PUBLIC_KEY_JWK);
-		env.putObjectFromJsonString("credential_configuration", """
-			{
-				"doctype": "org.iso.18013.5.1.mDL",
-				"cryptographic_binding_methods_supported": ["jwk"]
-			}
-			""");
-		env.putObjectFromJsonString("config", "credential.signing_jwk", ISSUER_SIGNING_KEY_JWK);
+	public void testEvaluate_ignoresConfiguredSigningKeyAndSignsUnderTheIacaRoot() throws Exception {
+		putCredentialRequest();
 
 		cond.execute(env);
 
@@ -99,8 +99,13 @@ public class CreateMdocCredentialForVCI_UnitTest {
 			.get(new CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN));
 		assertThat(x5chainDataItem).isNotNull();
 		X509CertChain certChain = x5chainDataItem.getAsX509CertChain();
-		String certSubject = certChain.getCertificates().get(0).getSubject().getName();
-		assertThat(certSubject).contains("CN=OIDF Test");
+		assertThat(certChain.getCertificates()).hasSize(1);
+		X509Certificate dsCert = toJava(certChain.getCertificates().get(0));
+		X509Certificate iacaCert = toJava(TestKeysAndCerts.getIacaRootCert());
+		// not the certificate from the configured signing JWK, but the suite's own document signer
+		assertThat(dsCert.getSubjectX500Principal().getName()).doesNotContain("CN=OIDF Test");
+		assertThat(dsCert.getIssuerX500Principal()).isEqualTo(iacaCert.getSubjectX500Principal());
+		dsCert.verify(iacaCert.getPublicKey());
 
 		Environment verifyEnv = new Environment();
 		verifyEnv.putString("mdoc_credential_cbor", Base64.getEncoder().encodeToString(credentialBytes));
@@ -145,6 +150,10 @@ public class CreateMdocCredentialForVCI_UnitTest {
 			}
 			""");
 		env.putObjectFromJsonString("config", "credential.signing_jwk", ISSUER_SIGNING_KEY_JWK);
+	}
+
+	private static X509Certificate toJava(org.multipaz.crypto.X509Cert cert) {
+		return X509CertJvmKt.getJavaX509Certificate(cert);
 	}
 
 	private MobileSecurityObject parseMso() {
