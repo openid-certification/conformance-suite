@@ -188,5 +188,11 @@ public class ValidateStatusListTokenCwtFormat extends AbstractStatusListCwtCondi
 			violations.add("the status_list claim's 'lst' element is not a CBOR byte string;"
 				+ " draft-ietf-oauth-status-list section 5.2 requires the compressed byte array");
 		}
+
+		DataItem aggregationUri = statusList.getOrNull("aggregation_uri");
+		if (aggregationUri != null && !(aggregationUri instanceof Tstr)) {
+			violations.add("the status_list claim's optional 'aggregation_uri' element is not a"
+				+ " CBOR text string");
+		}
 	}
 }

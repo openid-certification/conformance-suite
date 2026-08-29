@@ -69,6 +69,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
+import net.openid.conformance.condition.as.ValidateRequestObjectSignerReaderAuthCertificateProfile;
 import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
@@ -304,6 +305,15 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
+		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)
+			|| CreateRevokedIdentifierListReference.IDENTIFIER_LIST_PATH.equals(path)) {
+			if (req.getParameter("time") != null) {
+				// draft-ietf-oauth-status-list section 8.4: historical resolution is not
+				// supported, so a request with the time query parameter gets a 501
+				return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_IMPLEMENTED)
+					.body("Historical status resolution (the time query parameter) is not supported");
+			}
+		}
 		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)) {
 			// served without moving the test to RUNNING: that takes the test lock, which is
 			// held for the whole of the authorization endpoint handler - including the POST of
@@ -605,6 +615,13 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			.onFail(ConditionResult.FAILURE)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-F.3.2.6"));
+		if (getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL) {
+			// the reader authentication certificate profile is an mdoc concept, and its use is
+			// recommended rather than mandatory - a WARNING, as for the other ISO certificate
+			// profile checks
+			callAndContinueOnFailure(ValidateRequestObjectSignerReaderAuthCertificateProfile.class,
+				ConditionResult.WARNING, "ISO18013-5-B.1.7");
+		}
 		// trust constraints are ecosystem-defined with no concrete types in the spec, so the
 		// suite cannot evaluate them - a WARNING, to be raised per-profile once an ecosystem
 		// defines machine-checkable constraint semantics

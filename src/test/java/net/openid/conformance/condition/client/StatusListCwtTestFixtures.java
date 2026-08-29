@@ -153,8 +153,30 @@ final class StatusListCwtTestFixtures {
 		return Base64.getEncoder().encodeToString(token);
 	}
 
+	/** A well formed status list token whose status_list claim carries the given aggregation_uri item. */
+	static byte[] statusListTokenWithAggregationUri(DataItem aggregationUri) throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
+		X509CertChain chain = signerCertChain(key, CertProfile.CONFORMANT);
+
+		Map<CoseLabel, DataItem> protectedHeaders = new LinkedHashMap<>();
+		protectedHeaders.put(new CoseNumberLabel(COSE_LABEL_ALG),
+			DataItemExtensionsKt.toDataItem(
+				Algorithm.ES256.getCoseAlgorithmIdentifier().intValue()));
+		protectedHeaders.put(new CoseNumberLabel(COSE_LABEL_TYP),
+			new Tstr(AbstractStatusListCwtCondition.STATUS_LIST_CWT_CONTENT_TYPE));
+		protectedHeaders.put(new CoseNumberLabel(COSE_LABEL_X5CHAIN), chain.toDataItem());
+
+		CoseSign1 coseSign1 = sign(signingKey(chain, key), claimsSet(DEFAULT_URI, aggregationUri),
+			protectedHeaders);
+		return Cbor.INSTANCE.encode(new Tagged(Tagged.COSE_SIGN1, coseSign1.toDataItem()));
+	}
+
 	/** The CWT claims set: sub, iat, exp, ttl and the status_list claim. */
 	private static byte[] claimsSet(String uri) {
+		return claimsSet(uri, null);
+	}
+
+	private static byte[] claimsSet(String uri, DataItem aggregationUri) {
 		byte[] rawEntries = new byte[STATUS_LIST_ENTRIES];
 		for (int i = 0; i < rawEntries.length; i++) {
 			rawEntries[i] = (byte) (i % 2 == 0
@@ -167,6 +189,9 @@ final class StatusListCwtTestFixtures {
 		Map<DataItem, DataItem> statusList = new LinkedHashMap<>();
 		statusList.put(new Tstr("bits"), DataItemExtensionsKt.toDataItem(1));
 		statusList.put(new Tstr("lst"), new Bstr(compressed));
+		if (aggregationUri != null) {
+			statusList.put(new Tstr("aggregation_uri"), aggregationUri);
+		}
 
 		long now = Instant.now().getEpochSecond();
 		Map<DataItem, DataItem> claims = new LinkedHashMap<>();

@@ -507,8 +507,12 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			} else {
 				env.putString("current_status_list_id", statusListId);
 				// TODO add cors headers
-				// TODO handle time query parameter, see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-15#section-8.4
-				if (wantsCwtStatusList(env)) {
+				if (env.getString("status_list_endpoint_request", "query_string_params.time") != null) {
+					// draft-ietf-oauth-status-list section 8.4: historical resolution is not
+					// supported, so a request with the time query parameter gets a 501
+					response = ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+						.body("Historical status resolution (the time query parameter) is not supported");
+				} else if (wantsCwtStatusList(env)) {
 					// mdoc holders ask for the CWT representation, the only one ISO/IEC 18013-5
 					// 12.3.6.3 permits for an MSO revocation list
 					module.doCallAndContinueOnFailure(VCIGenerateCwtStatusListToken.class,

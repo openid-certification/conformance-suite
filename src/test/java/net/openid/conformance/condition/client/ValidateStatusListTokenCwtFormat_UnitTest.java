@@ -82,4 +82,24 @@ public class ValidateStatusListTokenCwtFormat_UnitTest {
 		env.putString(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN,
 			StatusListCwtTestFixtures.encode(token));
 	}
+
+	@org.junit.jupiter.api.Test
+	public void testEvaluate_acceptsTextAggregationUri() throws Exception {
+		env.putString(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN,
+			StatusListCwtTestFixtures.encode(StatusListCwtTestFixtures.statusListTokenWithAggregationUri(
+				new org.multipaz.cbor.Tstr("https://issuer.example.com/statuslists"))));
+
+		org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@org.junit.jupiter.api.Test
+	public void testEvaluate_rejectsNonTextAggregationUri() throws Exception {
+		env.putString(AbstractStatusListCwtCondition.ENV_STATUS_LIST_TOKEN,
+			StatusListCwtTestFixtures.encode(StatusListCwtTestFixtures.statusListTokenWithAggregationUri(
+				org.multipaz.cbor.DataItemExtensionsKt.toDataItem(42))));
+
+		net.openid.conformance.condition.ConditionError e = org.junit.jupiter.api.Assertions.assertThrows(
+			net.openid.conformance.condition.ConditionError.class, () -> cond.execute(env));
+		org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("aggregation_uri"), e.getMessage());
+	}
 }
