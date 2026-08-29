@@ -19,22 +19,37 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VP1FinalWalletCredentialType {
 
-	EUDI_PID("eudi_pid", "/json/dcql/vp1final-wallet-eudi-pid.json"),
-	MDL("mdl", "/json/dcql/vp1final-wallet-mdl.json"),
-	PHOTO_ID("photoid", "/json/dcql/vp1final-wallet-photoid.json"),
-	CUSTOM("custom", null);
+	EUDI_PID("eudi_pid", "/json/dcql/vp1final-wallet-eudi-pid.json",
+		"/json/dcql/vp1final-wallet-eudi-pid-all-mandatory.json"),
+	MDL("mdl", "/json/dcql/vp1final-wallet-mdl.json",
+		"/json/dcql/vp1final-wallet-mdl-all-mandatory.json"),
+	PHOTO_ID("photoid", "/json/dcql/vp1final-wallet-photoid.json",
+		"/json/dcql/vp1final-wallet-photoid-all-mandatory.json"),
+	CUSTOM("custom", null, null);
 
 	private final String variantValue;
 	private final String dcqlResource;
+	private final String allMandatoryClaimsDcqlResource;
 
-	private VP1FinalWalletCredentialType(String variantValue, String dcqlResource) {
+	private VP1FinalWalletCredentialType(String variantValue, String dcqlResource,
+			String allMandatoryClaimsDcqlResource) {
 		this.variantValue = variantValue;
 		this.dcqlResource = dcqlResource;
+		this.allMandatoryClaimsDcqlResource = allMandatoryClaimsDcqlResource;
 	}
 
 	/** The suite's built-in DCQL query for this credential type, or null when the tester supplies one. */
 	public String getDcqlResource() {
 		return dcqlResource;
+	}
+
+	/**
+	 * The suite's built-in DCQL query requesting every mandatory data element of this credential
+	 * type, or null when the tester supplies the query (there is no known mandatory set for a
+	 * custom credential).
+	 */
+	public String getAllMandatoryClaimsDcqlResource() {
+		return allMandatoryClaimsDcqlResource;
 	}
 
 	@Override

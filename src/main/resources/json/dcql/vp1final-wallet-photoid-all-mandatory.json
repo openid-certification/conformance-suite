@@ -1,0 +1,67 @@
+{
+	"credentials": [
+		{
+			"id": "my_credential",
+			"format": "mso_mdoc",
+			"meta": {
+				"doctype_value": "org.iso.23220.photoid.1"
+			},
+			"claims": [
+				{
+					"path": [
+						"org.iso.23220.1",
+						"family_name"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"given_name"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"birth_date"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"portrait"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"issue_date"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"expiry_date"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"issuing_authority"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"issuing_country"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"age_over_18"
+					]
+				}
+			]
+		}
+	]
+}

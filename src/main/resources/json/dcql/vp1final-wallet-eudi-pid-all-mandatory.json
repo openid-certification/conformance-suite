@@ -1,0 +1,50 @@
+{
+	"credentials": [
+		{
+			"id": "my_credential",
+			"format": "dc+sd-jwt",
+			"meta": {
+				"vct_values": [
+					"urn:eudi:pid:1"
+				]
+			},
+			"claims": [
+				{
+					"path": [
+						"family_name"
+					]
+				},
+				{
+					"path": [
+						"given_name"
+					]
+				},
+				{
+					"path": [
+						"birthdate"
+					]
+				},
+				{
+					"path": [
+						"place_of_birth"
+					]
+				},
+				{
+					"path": [
+						"nationalities"
+					]
+				},
+				{
+					"path": [
+						"issuing_authority"
+					]
+				},
+				{
+					"path": [
+						"issuing_country"
+					]
+				}
+			]
+		}
+	]
+}
