@@ -1,10 +1,5 @@
 package net.openid.conformance.vci10wallet.condition.statuslist;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.AbstractStatusListCwtCondition;
@@ -14,24 +9,25 @@ import net.openid.conformance.condition.client.VerifyStatusListTokenCwtSignature
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import net.openid.conformance.util.TestKeysAndCerts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.cbor.Cbor;
+import org.multipaz.cbor.DataItem;
+import org.multipaz.cbor.Tagged;
+import org.multipaz.cose.Cose;
+import org.multipaz.cose.CoseNumberLabel;
+import org.multipaz.cose.CoseSign1;
+import org.multipaz.crypto.X509CertChain;
+import org.multipaz.crypto.X509CertJvmKt;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Date;
-import java.util.List;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -57,9 +53,7 @@ public class VCIGenerateCwtStatusListToken_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_generatesTokenTheConsumptionConditionsAccept() throws Exception {
-		env.putObject("server_jwks", jwksWithCertifiedEcKey());
-
+	public void testEvaluate_generatesTokenTheConsumptionConditionsAccept() {
 		cond.execute(env);
 
 		String token = env.getString("current_status_list_cwt");
@@ -80,43 +74,36 @@ public class VCIGenerateCwtStatusListToken_UnitTest {
 		assertThrows(ConditionError.class, () -> run(new CheckMdocCredentialStatus()));
 	}
 
+	/**
+	 * ISO/IEC 18013-5 12.3.6.2: with no Certificate element in the MSO's status element, the
+	 * revocation list signer's certificate must be signed by the CA that signed the MSO signer's
+	 * certificate — the suite's mdoc IACA root.
+	 */
 	@Test
-	public void testEvaluate_rejectsJwksWithoutAnEcPrivateKey() {
-		env.putObject("server_jwks", JsonParser.parseString("{\"keys\":[]}").getAsJsonObject());
+	public void testEvaluate_signerCertificateChainsToTheIacaRoot() throws Exception {
+		cond.execute(env);
 
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		byte[] token = Base64.getDecoder().decode(env.getString("current_status_list_cwt"));
+		Tagged tagged = (Tagged) Cbor.INSTANCE.decode(token);
+		CoseSign1 coseSign1 = CoseSign1.Companion.fromDataItem(tagged.getTaggedItem());
+		DataItem x5chain = coseSign1.getProtectedHeaders()
+			.get(new CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN));
+		assertNotNull(x5chain);
+		X509CertChain certChain = x5chain.getAsX509CertChain();
+		assertThat(certChain.getCertificates()).hasSize(1);
+
+		X509Certificate signerCert = toJava(certChain.getCertificates().get(0));
+		X509Certificate iacaCert = toJava(TestKeysAndCerts.getIacaRootCert());
+		assertThat(signerCert.getIssuerX500Principal()).isEqualTo(iacaCert.getSubjectX500Principal());
+		signerCert.verify(iacaCert.getPublicKey());
+	}
+
+	private static X509Certificate toJava(org.multipaz.crypto.X509Cert cert) {
+		return X509CertJvmKt.getJavaX509Certificate(cert);
 	}
 
 	private void run(net.openid.conformance.condition.Condition condition) {
 		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 		condition.execute(env);
-	}
-
-	private JsonObject jwksWithCertifiedEcKey() throws Exception {
-		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
-
-		X500Name name = new X500Name("C=UT,CN=OIDF Status List Signer");
-		X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
-			name,
-			new BigInteger(80, new SecureRandom()),
-			new Date(System.currentTimeMillis() - 60_000),
-			new Date(System.currentTimeMillis() + 3600_000),
-			name,
-			SubjectPublicKeyInfo.getInstance(key.toECPublicKey().getEncoded()));
-		JcaX509ExtensionUtils extensionUtils = new JcaX509ExtensionUtils();
-		builder.addExtension(Extension.subjectKeyIdentifier, false,
-			extensionUtils.createSubjectKeyIdentifier(key.toECPublicKey()));
-		builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
-		byte[] der = builder
-			.build(new JcaContentSignerBuilder("SHA256withECDSA").build(key.toECPrivateKey()))
-			.getEncoded();
-
-		ECKey withChain = new ECKey.Builder(key)
-			.x509CertChain(List.of(com.nimbusds.jose.util.Base64.encode(der)))
-			.build();
-
-		JsonObject jwks = new JsonObject();
-		jwks.add("keys", JsonParser.parseString("[" + withChain.toJSONString() + "]").getAsJsonArray());
-		return jwks;
 	}
 }
