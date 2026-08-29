@@ -8,6 +8,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
+import net.openid.conformance.oauth.statuslists.EvenOddStatusListContents;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 
@@ -22,9 +23,9 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 	public Environment evaluate(Environment env) {
 
 		String currentStatusListId = env.getString("current_status_list_id");
-		int bits = VCIStatusListContents.BITS;
+		int bits = EvenOddStatusListContents.BITS;
 
-		TokenStatusList statusList = VCIStatusListContents.create();
+		TokenStatusList statusList = EvenOddStatusListContents.create();
 		String encodedStatusList = statusList.encodeStatusList();
 
 		String issuerUrl = env.getString("server", "issuer");
