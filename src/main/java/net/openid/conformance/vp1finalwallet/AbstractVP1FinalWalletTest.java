@@ -98,8 +98,10 @@ import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
+import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
+import net.openid.conformance.condition.client.ValidateConfiguredClientCertificatesAgainstRical;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClient2IdToIncludeClientIdScheme;
@@ -183,7 +185,13 @@ import java.util.concurrent.TimeUnit;
 	"client.client_id"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
-	"client.client_id"
+	"client.client_id",
+	"client.rical",
+	"client.rical_url"
+})
+@VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_hash", configurationFields = {
+	"client.rical",
+	"client.rical_url"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post", configurationFields = {
 	"server.authorization_endpoint"
@@ -471,6 +479,20 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			if (requestMethod == VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED) {
 				callAndContinueOnFailure(CheckIfSecondClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
 			}
+		}
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_SAN_DNS
+			|| clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_HASH) {
+			// register and validate the optionally configured RICAL, then pre-flight check
+			// that the suite's own request signing chains are covered by it - a wallet
+			// trusting the RICAL is expected to reject the request otherwise. A WARNING as
+			// this reports on the test configuration, not on the wallet under test.
+			call(sequence(SetupRicalFromConfiguration.class));
+			call(condition(ValidateConfiguredClientCertificatesAgainstRical.class)
+				.skipIfObjectsMissing("rical")
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("ISO18013-5-F.3.2.6"));
 		}
 	}
 

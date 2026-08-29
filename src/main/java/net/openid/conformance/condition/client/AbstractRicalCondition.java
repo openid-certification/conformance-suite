@@ -157,6 +157,46 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 	}
 
 	/**
+	 * Evaluates a certificate chain against the RICAL's listed reader CAs via multipaz's
+	 * RicalTrustManager (Annex F.3.2.6), validating CA validity intervals.
+	 */
+	protected org.multipaz.trustmanagement.TrustResult verifyChainAgainstRical(
+			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
+		try {
+			org.multipaz.trustmanagement.RicalTrustManager trustManager =
+				new org.multipaz.trustmanagement.RicalTrustManager(signedRical, "rical");
+			kotlin.time.Instant now = kotlin.time.Instant.Companion.fromEpochMilliseconds(System.currentTimeMillis());
+			return kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				// true = also validate the validity intervals of CA certificates in the chain
+				(scope, continuation) -> trustManager.verify(chainCerts, now, true, continuation)
+			);
+		} catch (Exception e) {
+			throw error("Failed to evaluate the certificate chain against the RICAL", e);
+		}
+	}
+
+	/**
+	 * F.3.2.6: the CertificateInfo of the first (bottom-up) chain certificate listed in the
+	 * RICAL governs the trust constraints; locates it (by certificate or SKI, since a renewed
+	 * CA keeping its key has a new certificate) to report constraints and entry detail.
+	 */
+	protected org.multipaz.mdoc.rical.RicalCertificateInfo findFirstMatchingRicalEntry(
+			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
+		for (X509Cert chainCert : chainCerts) {
+			byte[] chainCertSki = chainCert.getSubjectKeyIdentifier();
+			for (org.multipaz.mdoc.rical.RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
+				if (certInfo.getCertificate().equals(chainCert)
+					|| (chainCertSki != null
+						&& java.util.Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), chainCertSki))) {
+					return certInfo;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Re-encodes the RICAL payload with each certificateInfos entry's serialNumber replaced by
 	 * the biguint encoding of the embedded certificate's serial number, unless it already is a
 	 * biguint. The COSE signature of the returned bytes is NOT valid for the rewritten payload;
