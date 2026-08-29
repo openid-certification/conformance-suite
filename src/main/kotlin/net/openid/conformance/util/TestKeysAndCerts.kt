@@ -49,6 +49,10 @@ import kotlin.time.Duration.Companion.days
  * strict verifiers rejected it. Only the DS certificate goes into x5chain; verifiers under
  * test should be configured to trust the IACA root certificate.
  *
+ * The MSO revocation list signer certificate ([statusListSignerKey]) is minted under the same
+ * root, following the profile in ISO/IEC 18013-5 Table B.9, so that a verifier that trusts the
+ * IACA root can verify the status list the suite serves for the mdocs it presents.
+ *
  * Parameterizing this key material via the test configuration is tracked in issue #1663.
  */
 object TestKeysAndCerts {
@@ -100,8 +104,30 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	val documentSignerCert: X509Cert
 		get() = documentSignerKey.certChain.certificates.first()
 
+	/**
+	 * Key for signing an MSO revocation list (a Status List Token in CWT format, see
+	 * ISO/IEC 18013-5 12.3.6.3), with a runtime-minted certificate issued by the same IACA root
+	 * as the document signer certificate. 12.3.6.2 says that when the MSO's status element
+	 * carries no Certificate element — the suite does not include one — the top-level
+	 * certificate of the revocation list's x5chain must be signed by the certificate that signed
+	 * the certificate in the MSO's x5chain, i.e. by the IACA. The certificate follows the MSO
+	 * revocation list signer profile in ISO/IEC 18013-5 Table B.9, which unlike the document
+	 * signer profile has no extended key usage (the Token Status List EKU OID is still TBD) and
+	 * no mandatory CRL distribution point.
+	 */
+	@JvmStatic
+	val statusListSignerKey: AsymmetricKey.X509CertifiedExplicit
+		get() = currentStatusListSignerKey()
+
+	@JvmStatic
+	val statusListSignerCert: X509Cert
+		get() = statusListSignerKey.certChain.certificates.first()
+
 	private var cachedDocumentSignerKey: AsymmetricKey.X509CertifiedExplicit? = null
 	private var cachedDocumentSignerKeyMintedAt: kotlin.time.Instant? = null
+
+	private var cachedStatusListSignerKey: AsymmetricKey.X509CertifiedExplicit? = null
+	private var cachedStatusListSignerKeyMintedAt: kotlin.time.Instant? = null
 
 	// Re-minted daily (and so never served anywhere near its expiry): frequent rotation keeps
 	// regeneration a routine event, so nothing can quietly start depending on one specific DS
@@ -119,30 +145,54 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		}
 	}
 
-	private fun mintDocumentSignerKey(): AsymmetricKey.X509CertifiedExplicit {
+	// Rotated daily for the same reason as the document signer certificate.
+	@Synchronized
+	private fun currentStatusListSignerKey(): AsymmetricKey.X509CertifiedExplicit {
+		val cached = cachedStatusListSignerKey
+		val mintedAt = cachedStatusListSignerKeyMintedAt
+		if (cached != null && mintedAt != null && Clock.System.now() < mintedAt + 1.days) {
+			return cached
+		}
+		return mintStatusListSignerKey().also {
+			cachedStatusListSignerKey = it
+			cachedStatusListSignerKeyMintedAt = Clock.System.now()
+		}
+	}
+
+	/**
+	 * Mints an EC leaf certificate under the IACA root, with the parts ISO/IEC 18013-5 Annex B
+	 * requires of every leaf it issues: a CSPRNG serial, the subject naming rules of Table B.3
+	 * (countryName and stateOrProvinceName equal to the IACA's, plus a common name), a subject
+	 * key identifier, an authority key identifier matching the IACA's subject key identifier and
+	 * a critical key usage asserting digitalSignature only. [addProfileExtensions] adds whatever
+	 * else the specific leaf profile calls for.
+	 */
+	private fun mintLeafUnderIaca(
+		commonName: String,
+		validityDays: Long,
+		addProfileExtensions: (X509v3CertificateBuilder) -> Unit
+	): AsymmetricKey.X509CertifiedExplicit {
 		val iacaHolder = X509CertificateHolder(iacaRootCert.encoded.toByteArray())
 		val iacaPrivateKey = KeyFactory.getInstance("EC").generatePrivate(
 			PKCS8EncodedKeySpec(decodePemBody(IACA_ROOT_KEY_PEM))
 		)
 
-		val dsEcKey = ECKeyGenerator(Curve.P_256).generate()
+		val leafEcKey = ECKeyGenerator(Curve.P_256).generate()
 
 		// uniform on [0, 2^159); max(ONE) only guards the astronomically improbable zero
 		val serial = BigInteger(159, SecureRandom()).max(BigInteger.ONE)
 
-		// Table B.3 subject rules: countryName mandatory and equal to the IACA's;
-		// stateOrProvinceName mandatory (same value) because the IACA carries it; CN mandatory.
 		val subject = X500NameBuilder(BCStyle.INSTANCE)
 			.addRDN(BCStyle.C, "US")
 			.addRDN(BCStyle.ST, "State of Utopia")
 			.addRDN(BCStyle.L, "San Ramon")
 			.addRDN(BCStyle.O, "OpenID Foundation")
-			.addRDN(BCStyle.CN, "certification.openid.net mdoc DS")
+			.addRDN(BCStyle.CN, commonName)
 			.build()
 
 		val now = System.currentTimeMillis()
 		val notBefore = Date(now - 5L * 60 * 1000)
-		val notAfter = Date(now + 90L * 24 * 60 * 60 * 1000)
+		val notAfter = Date(now + validityDays * 24 * 60 * 60 * 1000)
 
 		val builder = X509v3CertificateBuilder(
 			iacaHolder.subject,
@@ -150,58 +200,80 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 			notBefore,
 			notAfter,
 			subject,
-			SubjectPublicKeyInfo.getInstance(dsEcKey.toECPublicKey().encoded)
+			SubjectPublicKeyInfo.getInstance(leafEcKey.toECPublicKey().encoded)
 		)
 
 		val extensionUtils = JcaX509ExtensionUtils()
 		val iacaSki = SubjectKeyIdentifier.fromExtensions(iacaHolder.extensions)
 		builder.addExtension(
 			Extension.subjectKeyIdentifier, false,
-			extensionUtils.createSubjectKeyIdentifier(dsEcKey.toECPublicKey())
+			extensionUtils.createSubjectKeyIdentifier(leafEcKey.toECPublicKey())
 		)
 		builder.addExtension(
 			Extension.authorityKeyIdentifier, false,
 			AuthorityKeyIdentifier(iacaSki.keyIdentifier)
 		)
 		builder.addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature))
-		builder.addExtension(
-			Extension.extendedKeyUsage, true,
-			ExtendedKeyUsage(KeyPurposeId.getInstance(ASN1ObjectIdentifier(MDL_DS_EKU_OID)))
+
+		addProfileExtensions(builder)
+
+		val signer = JcaContentSignerBuilder("SHA256withECDSA").build(iacaPrivateKey)
+		val leafCert = X509Cert(ByteString(builder.build(signer).encoded))
+
+		val leafPrivateKey = EcPrivateKeyDoubleCoordinate(
+			EcCurve.P256,
+			leafEcKey.d.decode(),
+			leafEcKey.x.decode(),
+			leafEcKey.y.decode()
 		)
-		builder.addExtension(
-			Extension.issuerAlternativeName, false,
-			GeneralNames(GeneralName(GeneralName.rfc822Name, "certification@oidf.org"))
-		)
-		// Placeholder URI carried over from the previous certificate; Table B.3 makes the
-		// extension mandatory but the suite does not operate a CRL.
-		builder.addExtension(
-			Extension.cRLDistributionPoints, false,
-			CRLDistPoint(
-				arrayOf(
-					DistributionPoint(
-						DistributionPointName(
-							GeneralNames(
-								GeneralName(GeneralName.uniformResourceIdentifier, "http://example.com/myca.crl")
-							)
-						),
-						null,
-						null
+		return AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(leafCert)), leafPrivateKey)
+	}
+
+	/**
+	 * MSO revocation list signer certificate, ISO/IEC 18013-5 Table B.9. Beyond what every leaf
+	 * gets: no extended key usage — Table B.9 makes it optional and the OID it names
+	 * (oauthStatusSigning) is still TBD in the Token Status List specification — and no CRL
+	 * distribution point, which Table B.9 also makes optional.
+	 */
+	private fun mintStatusListSignerKey(): AsymmetricKey.X509CertifiedExplicit =
+		// well under Table B.9's 1187-day maximum, matching the document signer's 90 days
+		mintLeafUnderIaca("certification.openid.net mdoc status list signer", 90) { }
+
+	/**
+	 * Document signer certificate, ISO/IEC 18013-5 Table B.3. Beyond what every leaf gets: the
+	 * critical mdlDS extended key usage, the issuer alternative name and a CRL distribution
+	 * point (mandatory in Table B.3, though the suite does not operate a CRL). The 90-day
+	 * validity is well under Table B.3's 457-day maximum.
+	 */
+	private fun mintDocumentSignerKey(): AsymmetricKey.X509CertifiedExplicit =
+		mintLeafUnderIaca("certification.openid.net mdoc DS", 90) { builder ->
+			builder.addExtension(
+				Extension.extendedKeyUsage, true,
+				ExtendedKeyUsage(KeyPurposeId.getInstance(ASN1ObjectIdentifier(MDL_DS_EKU_OID)))
+			)
+			builder.addExtension(
+				Extension.issuerAlternativeName, false,
+				GeneralNames(GeneralName(GeneralName.rfc822Name, "certification@oidf.org"))
+			)
+			// Placeholder URI carried over from the previous certificate; Table B.3 makes the
+			// extension mandatory but the suite does not operate a CRL.
+			builder.addExtension(
+				Extension.cRLDistributionPoints, false,
+				CRLDistPoint(
+					arrayOf(
+						DistributionPoint(
+							DistributionPointName(
+								GeneralNames(
+									GeneralName(GeneralName.uniformResourceIdentifier, "http://example.com/myca.crl")
+								)
+							),
+							null,
+							null
+						)
 					)
 				)
 			)
-		)
-
-		val signer = JcaContentSignerBuilder("SHA256withECDSA").build(iacaPrivateKey)
-		val dsCert = X509Cert(ByteString(builder.build(signer).encoded))
-
-		val dsPrivateKey = EcPrivateKeyDoubleCoordinate(
-			EcCurve.P256,
-			dsEcKey.d.decode(),
-			dsEcKey.x.decode(),
-			dsEcKey.y.decode()
-		)
-		return AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(dsCert)), dsPrivateKey)
-	}
+		}
 
 	private fun decodePemBody(pem: String): ByteArray {
 		val body = pem.lines()
