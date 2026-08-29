@@ -174,7 +174,9 @@ object RicalTestFixtures {
 		nextUpdate: Instant? = Clock.System.now() + 30.days,
 		id: Long? = 1L,
 		omit: Set<String> = emptySet(),
-		extraKeys: Map<String, DataItem> = emptyMap()
+		extraKeys: Map<String, DataItem> = emptyMap(),
+		// last so the existing positional Java call sites keep working
+		notAfter: Instant? = null
 	): DataItem {
 		return buildCborMap {
 			if ("version" !in omit) put("version", Tstr(version))
@@ -182,6 +184,7 @@ object RicalTestFixtures {
 			if ("date" !in omit) put("date", tdate(date))
 			if (type != null && "type" !in omit) put("type", Tstr(type))
 			if (nextUpdate != null && "nextUpdate" !in omit) put("nextUpdate", tdate(nextUpdate))
+			if (notAfter != null && "notAfter" !in omit) put("notAfter", tdate(notAfter))
 			if (id != null && "id" !in omit) put("id", Uint(id.toULong()))
 			if ("certificateInfos" !in omit) {
 				put("certificateInfos", buildCborArray { certificateInfos.forEach { add(it) } })
@@ -248,7 +251,8 @@ object RicalTestFixtures {
 	 * stores it as the authorization_request_object, the way the VP verifier tests do.
 	 */
 	@JvmStatic
-	fun putSignedRequestObject(env: Environment, pki: ReaderPki) {
+	@JvmOverloads
+	fun putSignedRequestObject(env: Environment, pki: ReaderPki, includeX5c: Boolean = true) {
 		val readerKey = pki.readerKey as EcPrivateKeyDoubleCoordinate
 		val nimbusKey = com.nimbusds.jose.jwk.ECKey.Builder(
 			com.nimbusds.jose.jwk.Curve.P_256,
@@ -257,10 +261,14 @@ object RicalTestFixtures {
 		)
 			.d(com.nimbusds.jose.util.Base64URL.encode(readerKey.d))
 			.build()
-		val header = JWSHeader.Builder(JWSAlgorithm.ES256)
+		val headerBuilder = JWSHeader.Builder(JWSAlgorithm.ES256)
 			.type(JOSEObjectType("oauth-authz-req+jwt"))
-			.x509CertChain(listOf(com.nimbusds.jose.util.Base64.encode(pki.readerCert.encoded.toByteArray())))
-			.build()
+		if (includeX5c) {
+			headerBuilder.x509CertChain(
+				listOf(com.nimbusds.jose.util.Base64.encode(pki.readerCert.encoded.toByteArray()))
+			)
+		}
+		val header = headerBuilder.build()
 		val claims = JWTClaimsSet.Builder()
 			.claim("client_id", "x509_san_dns:verifier.example.com")
 			.claim("response_type", "vp_token")
@@ -272,6 +280,38 @@ object RicalTestFixtures {
 		val requestObject = JsonObject()
 		requestObject.addProperty("value", jwt.serialize())
 		env.putObject("authorization_request_object", requestObject)
+	}
+
+	/**
+	 * Stores a client JWKS whose signing key carries the reader certificate in its x5c, the way
+	 * the wallet tests' client configuration does.
+	 */
+	@JvmStatic
+	@JvmOverloads
+	fun putClientJwks(
+		env: Environment,
+		pki: ReaderPki,
+		envKey: String = "client_jwks",
+		includeX5c: Boolean = true
+	) {
+		val readerKey = pki.readerKey as EcPrivateKeyDoubleCoordinate
+		val jwkBuilder = com.nimbusds.jose.jwk.ECKey.Builder(
+			com.nimbusds.jose.jwk.Curve.P_256,
+			com.nimbusds.jose.util.Base64URL.encode(readerKey.x),
+			com.nimbusds.jose.util.Base64URL.encode(readerKey.y)
+		)
+			.d(com.nimbusds.jose.util.Base64URL.encode(readerKey.d))
+			.keyUse(com.nimbusds.jose.jwk.KeyUse.SIGNATURE)
+		if (includeX5c) {
+			jwkBuilder.x509CertChain(
+				listOf(com.nimbusds.jose.util.Base64.encode(pki.readerCert.encoded.toByteArray()))
+			)
+		}
+		val jwk = jwkBuilder.build()
+		val jwks = com.google.gson.JsonParser.parseString(
+			"""{"keys":[${jwk.toJSONString()}]}"""
+		).asJsonObject
+		env.putObject(envKey, jwks)
 	}
 
 	// Java-friendly Instant helpers for tests
