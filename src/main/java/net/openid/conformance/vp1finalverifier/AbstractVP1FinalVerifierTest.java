@@ -27,6 +27,7 @@ import net.openid.conformance.condition.as.CreateRevokedIdentifierListReference;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.CreateValidStatusListReference;
 import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
+import net.openid.conformance.condition.as.EnsureVerifierFetchedIdentifierList;
 import net.openid.conformance.condition.as.EnsureVerifierFetchedStatusList;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -381,6 +382,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			return ResponseEntity.notFound().build();
 		}
 
+		env.putString(EnsureVerifierFetchedIdentifierList.FETCHED_ENV_KEY, "true");
 		eventLog.log(getName(), "The verifier fetched the identifier list the presented credential "
 			+ "references.");
 
@@ -404,6 +406,15 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				? ConditionResult.FAILURE : ConditionResult.WARNING)
 			.dontStopOnFailure()
 			.requirements("HAIP-7-2.2.2.2"));
+		// the identifier list mechanism counterpart of the check above; ISO/IEC 18013-5 (unlike
+		// HAIP for the status list) states no requirement on the verifier fetching it, so this is
+		// a warning under every profile
+		call(condition(EnsureVerifierFetchedIdentifierList.class)
+			.skipIfObjectsMissing(CreateRevokedIdentifierListReference.ENV_KEY)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.2"));
 		super.fireTestFinished();
 	}
 
