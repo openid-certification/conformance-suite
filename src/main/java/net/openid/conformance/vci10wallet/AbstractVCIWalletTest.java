@@ -1442,8 +1442,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			", variant credential_format: " + vciCredentialFormat);
 
 		if ("mso_mdoc".equals(requestedFormat)) {
-			// mdoc format - the doctype is in credential_configuration.doctype
-			callAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-G.1");
+			// mdoc format - the doctype is in credential_configuration.doctype. Under HAIP the
+			// MSO references the emulated issuer's status list, matching the SD-JWT branch below;
+			// see the comment there for why this can't go through profileBehavior.
+			String mdocStatusListUri = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP
+				? VCIHaipClientProfileBehavior.buildStatusListUri(env) : null;
+			callAndStopOnFailure(new CreateMdocCredentialForVCI(mdocStatusListUri), "OID4VCI-1FINALA-G.1");
 		} else {
 			// SD-JWT VC format (dc+sd-jwt or default). The HAIP status_list reference is
 			// shared with the FAPI2SP-outer dispatch via the static builder so both paths

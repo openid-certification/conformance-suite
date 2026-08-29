@@ -10,8 +10,10 @@ import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.testapp.VciMdocUtils;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -21,6 +23,31 @@ import java.util.Set;
  * and needs to create a mdoc credential in response to a credential request.
  */
 public class CreateMdocCredentialForVCI extends AbstractCondition {
+
+	/**
+	 * Size of the Token Status List served by the emulated issuer. Status list indices are
+	 * allocated from this range, so it must match the list the status list endpoint serves
+	 * (which marks even indices valid).
+	 */
+	private static final int STATUS_LIST_ENTRIES = 256;
+
+	private final SecureRandom random = new SecureRandom();
+
+	/**
+	 * The Token Status List to reference from the MSO's status element (ISO/IEC 18013-5
+	 * 12.3.6.2), or null to issue credentials without revocation information. Supplied by the
+	 * profiles that require it, mirroring how {@code CreateSdJwtCredential} receives the
+	 * SD-JWT status claim.
+	 */
+	private final String statusListUri;
+
+	public CreateMdocCredentialForVCI() {
+		this(null);
+	}
+
+	public CreateMdocCredentialForVCI(String statusListUri) {
+		this.statusListUri = statusListUri;
+	}
 
 	@Override
 	@PostEnvironment(required = "credential_issuance")
@@ -39,10 +66,18 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		String issuerSigningJwk = credentialSigningJwkEl != null ? credentialSigningJwkEl.toString() : null;
 
+		// Allocate a distinct, unpredictable status list index for each credential so that the
+		// credentials in a batch cannot be correlated through a shared status reference
+		// (ISO/IEC 18013-5 12.3.6.5, Token Status List section 12.5 / 13.3).
+		List<Long> statusIndices = allocateStatusListIndices(publicJwkJsonList.size());
+
 		JsonArray credentials = new JsonArray();
-		for (String publicJwkJson : publicJwkJsonList) {
+		for (int i = 0; i < publicJwkJsonList.size(); i++) {
+			String publicJwkJson = publicJwkJsonList.get(i);
+			Long statusListIndex = statusListUri == null ? null : statusIndices.get(i);
 			// Create the mdoc credential for this key
-			String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType, issuerSigningJwk);
+			String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType,
+				issuerSigningJwk, null, statusListUri, statusListIndex);
 
 			JsonObject credentialObj = new JsonObject();
 			credentialObj.addProperty("credential", mdocB64url);
@@ -56,6 +91,8 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			log("Created mdoc credential (IssuerSigned) for VCI",
 				args("mdoc_b64url", mdocB64url,
 					"doctype", docType,
+					"status_list_uri", statusListUri,
+					"status_list_idx", statusListIndex,
 					"cbor_diagnostic", diagnostics));
 		}
 
@@ -67,6 +104,20 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			args("credentials", credentials, "credential_count", credentials.size()));
 
 		return env;
+	}
+
+	/**
+	 * Picks {@code count} distinct, unpredictable status list indices from the served list. Only
+	 * the even indices are used because the status list endpoint marks even bits valid; the
+	 * selection is shuffled rather than sequential so it does not form a predictable sequence.
+	 */
+	private List<Long> allocateStatusListIndices(int count) {
+		List<Long> validIndices = new ArrayList<>();
+		for (long i = 0; i < STATUS_LIST_ENTRIES; i += 2) {
+			validIndices.add(i);
+		}
+		Collections.shuffle(validIndices, random);
+		return validIndices.subList(0, Math.min(count, validIndices.size()));
 	}
 
 	/**
