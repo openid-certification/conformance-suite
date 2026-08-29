@@ -61,8 +61,21 @@ public final class CwtStatusListTokenBuilder {
 	public static byte[] build(String uri, Instant iat, Instant exp, long ttlSeconds, int bits,
 			byte[] compressedStatusList, AsymmetricKey signingKey, Algorithm algorithm,
 			X509CertChain certChain) throws Exception {
+		return build(uri, iat, exp, ttlSeconds, bits, compressedStatusList, signingKey, algorithm,
+			certChain, null);
+	}
 
-		byte[] payload = buildClaimsSet(uri, iat, exp, ttlSeconds, bits, compressedStatusList);
+	/**
+	 * As {@link #build(String, Instant, Instant, long, int, byte[], AsymmetricKey, Algorithm,
+	 * X509CertChain)}, additionally embedding the optional aggregation_uri element in the
+	 * status_list claim (draft-ietf-oauth-status-list section 4.3) when non-null.
+	 */
+	public static byte[] build(String uri, Instant iat, Instant exp, long ttlSeconds, int bits,
+			byte[] compressedStatusList, AsymmetricKey signingKey, Algorithm algorithm,
+			X509CertChain certChain, String aggregationUri) throws Exception {
+
+		byte[] payload = buildClaimsSet(uri, iat, exp, ttlSeconds, bits, compressedStatusList,
+			aggregationUri);
 
 		Map<CoseLabel, DataItem> protectedHeaders = new LinkedHashMap<>();
 		protectedHeaders.put(new CoseNumberLabel(Cose.COSE_LABEL_ALG),
@@ -84,10 +97,13 @@ public final class CwtStatusListTokenBuilder {
 	}
 
 	private static byte[] buildClaimsSet(String uri, Instant iat, Instant exp, long ttlSeconds,
-			int bits, byte[] compressedStatusList) {
+			int bits, byte[] compressedStatusList, String aggregationUri) {
 		Map<DataItem, DataItem> statusListClaim = new LinkedHashMap<>();
 		statusListClaim.put(new Tstr("bits"), DataItemExtensionsKt.toDataItem(bits));
 		statusListClaim.put(new Tstr("lst"), new Bstr(compressedStatusList));
+		if (aggregationUri != null) {
+			statusListClaim.put(new Tstr("aggregation_uri"), new Tstr(aggregationUri));
+		}
 
 		Map<DataItem, DataItem> claims = new LinkedHashMap<>();
 		claims.put(DataItemExtensionsKt.toDataItem(CWT_CLAIM_SUB), new Tstr(uri));
