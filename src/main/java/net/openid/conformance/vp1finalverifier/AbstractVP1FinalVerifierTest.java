@@ -556,16 +556,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
-			case SD_JWT_VC -> {
-				createSdJwtCredential();
-			}
-			case ISO_MDL -> {
-				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
-				createIsoMdlSessionTranscript();
-				callAndStopOnFailure(CreateMdocCredential.class);
-			}
-		}
+		createCredential();
+
 		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-8.1");
 
 		customizeAuthorizationEndpointResponseParams();
@@ -614,6 +606,24 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
 		return viewToReturn;
+	}
+
+	/**
+	 * Creates the credential the emulated wallet presents, in the format the selected variant
+	 * asks for. Tests that need to set something up before the credential exists (e.g. the status
+	 * list reference it carries) override this and call super.
+	 */
+	protected void createCredential() {
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
+			case SD_JWT_VC -> {
+				createSdJwtCredential();
+			}
+			case ISO_MDL -> {
+				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
+				createIsoMdlSessionTranscript();
+				callAndStopOnFailure(CreateMdocCredential.class);
+			}
+		}
 	}
 
 	protected void createSdJwtCredential() {

@@ -31,7 +31,8 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 		VP1FinalVerifierInvalidKbJwtNonce.class,
 		VP1FinalVerifierInvalidKbJwtAud.class,
 		VP1FinalVerifierKbJwtIatInPast.class,
-		VP1FinalVerifierKbJwtIatInFuture.class
+		VP1FinalVerifierKbJwtIatInFuture.class,
+		VP1FinalVerifierPresentRevokedCredential.class
 	);
 
 	@Override
