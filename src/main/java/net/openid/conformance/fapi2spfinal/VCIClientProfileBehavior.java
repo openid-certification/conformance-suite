@@ -57,12 +57,15 @@ import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCer
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
+import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateCwtStatusListToken;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Base64;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -503,19 +506,42 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				response = ResponseEntity.notFound().build();
 			} else {
 				env.putString("current_status_list_id", statusListId);
-				module.doCallAndContinueOnFailure(VCIGenerateJwtStatusListToken.class,
-					ConditionResult.INFO, "OTSL-5.1");
-				String currentStatusListJwt = env.getString("current_status_list_jwt");
 				// TODO add cors headers
 				// TODO handle time query parameter, see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-15#section-8.4
-				response = ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt")
-					.body(currentStatusListJwt);
+				if (wantsCwtStatusList(env)) {
+					// mdoc holders ask for the CWT representation, the only one ISO/IEC 18013-5
+					// 12.3.6.3 permits for an MSO revocation list
+					module.doCallAndContinueOnFailure(VCIGenerateCwtStatusListToken.class,
+						ConditionResult.INFO, "OTSL-5.2", "ISO18013-5-12.3.6.3");
+					String currentStatusListCwt = env.getString("current_status_list_cwt");
+					response = ResponseEntity.ok()
+						.header(HttpHeaders.CONTENT_TYPE, VCIGenerateCwtStatusListToken.STATUS_LIST_CWT_CONTENT_TYPE)
+						.body(currentStatusListCwt == null
+							? null : Base64.getDecoder().decode(currentStatusListCwt));
+				} else {
+					module.doCallAndContinueOnFailure(VCIGenerateJwtStatusListToken.class,
+						ConditionResult.INFO, "OTSL-5.1");
+					String currentStatusListJwt = env.getString("current_status_list_jwt");
+					response = ResponseEntity.ok()
+						.header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt")
+						.body(currentStatusListJwt);
+				}
 			}
 		}
 
 		module.doCall(module.doExec().unmapKey("status_list_endpoint_request").endBlock());
 		return response;
+	}
+
+	/**
+	 * Whether the request asked for the CWT representation of the status list. The JWT
+	 * representation stays the default, so a request without an Accept header (or one that only
+	 * asks for the JWT representation) is served as before.
+	 */
+	private static boolean wantsCwtStatusList(Environment env) {
+		String accept = env.getString("status_list_endpoint_request", "headers.accept");
+		return accept != null && accept.toLowerCase(Locale.ROOT)
+			.contains(VCIGenerateCwtStatusListToken.STATUS_LIST_CWT_CONTENT_TYPE);
 	}
 
 	static String getStatusListUrl(Environment env, String statusListId) {
