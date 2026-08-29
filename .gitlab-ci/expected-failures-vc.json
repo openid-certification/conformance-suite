@@ -256,5 +256,20 @@
         "condition": "ValidateDpopAccessTokenJkt",
         "expected-result": "failure",
         "comment": "The issuer multiple-clients test ends by presenting client 2's access token with client 1's DPoP key on purpose; the emulated issuer must refuse it, which it logs as a failure and answers with 401"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": {
+            "credential_format": "sd_jwt_vc",
+            "client_id_prefix": "x509_san_dns",
+            "request_method": "request_uri_signed",
+            "vp_profile": "plain_vp",
+            "response_mode": "direct_post"
+        },
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "",
+        "condition": "EnsureVerifierFetchedRevocationList",
+        "expected-result": "warning",
+        "comment": "The paired wallet-side module deliberately rejects the request over the unknown transaction_data type, so no credential is validated and the status list is never fetched"
     }
 ]

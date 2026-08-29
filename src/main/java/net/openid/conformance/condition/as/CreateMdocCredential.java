@@ -14,6 +14,7 @@ import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
+import org.multipaz.revocation.RevocationStatus;
 import org.multipaz.testapp.TestAppUtils;
 
 import java.util.ArrayList;
@@ -33,6 +34,19 @@ public class CreateMdocCredential extends AbstractCondition {
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
+		// When the test allocated a revocation list reference, the mock wallet's mdocs are
+		// provisioned with the MSO status element of ISO/IEC 18013-5 12.3.6.2 pointing at it.
+		RevocationStatus revocationStatus = null;
+		JsonObject reference = env.getObject(RevocationListReference.ENV_KEY);
+		if (reference != null) {
+			String uri = OIDFJSON.getString(reference.get("uri"));
+			revocationStatus = switch (OIDFJSON.getString(reference.get("mechanism"))) {
+				case RevocationListReference.MECHANISM_STATUS_LIST ->
+					testAppUtils.statusListRevocationStatus(uri, OIDFJSON.getInt(reference.get("idx")));
+				default -> throw error("Unknown revocation list mechanism",
+					args("revocation_list_reference", reference));
+			};
+		}
 
 		String requestedDocType = null;
 		Map<String, Set<String>> requestedClaims = null;
@@ -59,7 +73,8 @@ public class CreateMdocCredential extends AbstractCondition {
 			requestedClaims = extractMdocRequestedClaims(matchingCredential);
 		}
 
-		byte[] mdoc = testAppUtils.generateDeviceResponse(sessionTranscript, requestedDocType, requestedClaims);
+		byte[] mdoc = testAppUtils.generateDeviceResponse(sessionTranscript, requestedDocType, requestedClaims,
+			revocationStatus);
 		String mdocBase64 = Base64URL.encode(mdoc).toString();
 		env.putString("credential", mdocBase64);
 

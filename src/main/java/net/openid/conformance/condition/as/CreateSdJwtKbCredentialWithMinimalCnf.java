@@ -5,6 +5,8 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.Map;
+
 /**
  * Creates an SD-JWT credential with a minimal cnf.jwk containing only the
  * required fields for the key type (kty, crv, x, y for EC). Optional JWK
@@ -16,7 +18,8 @@ import net.openid.conformance.testmodule.Environment;
 public class CreateSdJwtKbCredentialWithMinimalCnf extends CreateSdJwtKbCredential {
 
 	@Override
-	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType) {
+	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType,
+								 Map<String, Object> credentialClaims) {
 		JWK minimalPublicJWK = publicJWK;
 		if (publicJWK instanceof ECKey ecKey) {
 			try {
@@ -25,6 +28,6 @@ public class CreateSdJwtKbCredentialWithMinimalCnf extends CreateSdJwtKbCredenti
 				throw error("Failed to create minimal EC public JWK", e);
 			}
 		}
-		return super.createSdJwt(env, minimalPublicJWK, privateKey, credentialType);
+		return super.createSdJwt(env, minimalPublicJWK, privateKey, credentialType, credentialClaims);
 	}
 }
