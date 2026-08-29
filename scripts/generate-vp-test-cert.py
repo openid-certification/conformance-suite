@@ -40,6 +40,12 @@ DEFAULT_SANS = [
 # ISO 18013-5 mdl Document Signer Extended Key Usage OID
 MDL_DS_OID = ObjectIdentifier("1.0.18013.5.1.2")
 
+# ISO 18013-5 mdoc reader authentication Extended Key Usage OIDs: mdlReaderAuth
+# (mandatory in the reader auth certificate profile) and the ISO 23220-4
+# mdocReaderAuth OID it recommends alongside
+MDL_READER_AUTH_OID = ObjectIdentifier("1.0.18013.5.1.6")
+MDOC_READER_AUTH_OID = ObjectIdentifier("1.0.23220.4.1.6")
+
 
 # keyUsage with only digitalSignature set, as ISO 18013-5 Table B.3 requires for DS certs
 DIGITAL_SIGNATURE_ONLY = x509.KeyUsage(
@@ -113,11 +119,15 @@ def generate_ca(san_names):
 def generate_ec_jwk(ca_key, ca_cert, san_names, mdoc_ds=False) -> dict:
     """Generate an EC P-256 leaf key + CA-signed cert, return as JWK with x5c.
 
-    With mdoc_ds=False the cert is purpose-neutral (SD-JWT VC signing, OID4VP
-    request-object signing): critical digitalSignature keyUsage, no EKU. With
-    mdoc_ds=True the cert follows the ISO 18013-5 Table B.3 document signer
-    profile (critical mdlDS EKU, issuerAltName, CRL distribution points,
-    <=457 day validity) and must only be used for mdoc issuance.
+    With mdoc_ds=False the cert serves SD-JWT VC signing and OID4VP
+    request-object signing: critical digitalSignature keyUsage plus, so that
+    wallets enforcing the ISO 18013-5 reader authentication certificate profile
+    accept it as an mdoc reader certificate, the mdlReaderAuth (mandatory) and
+    mdocReaderAuth (recommended) EKUs, an issuerAltName and CRL distribution
+    points. With mdoc_ds=True the cert follows the ISO 18013-5 Table B.3
+    document signer profile (critical mdlDS EKU, issuerAltName, CRL
+    distribution points, <=457 day validity) and must only be used for mdoc
+    issuance.
     """
     private_key = ec.generate_private_key(ec.SECP256R1())
 
@@ -138,28 +148,35 @@ def generate_ec_jwk(ca_key, ca_cert, san_names, mdoc_ds=False) -> dict:
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()), critical=False)
         .add_extension(DIGITAL_SIGNATURE_ONLY, critical=True)
     )
+    crl_distribution_points = x509.CRLDistributionPoints([
+        x509.DistributionPoint(
+            full_name=[x509.UniformResourceIdentifier("http://example.com/test-ca.crl")],
+            relative_name=None,
+            reasons=None,
+            crl_issuer=None,
+        )
+    ])
+    issuer_alt_name = x509.IssuerAlternativeName([x509.RFC822Name("certification@oidf.org")])
     if mdoc_ds:
         builder = (
             builder
             .add_extension(x509.ExtendedKeyUsage([MDL_DS_OID]), critical=True)
-            .add_extension(
-                x509.IssuerAlternativeName([x509.RFC822Name("certification@oidf.org")]),
-                critical=False,
-            )
-            .add_extension(
-                x509.CRLDistributionPoints([
-                    x509.DistributionPoint(
-                        full_name=[x509.UniformResourceIdentifier("http://example.com/test-ca.crl")],
-                        relative_name=None,
-                        reasons=None,
-                        crl_issuer=None,
-                    )
-                ]),
-                critical=False,
-            )
+            .add_extension(issuer_alt_name, critical=False)
+            .add_extension(crl_distribution_points, critical=False)
         )
     else:
-        builder = builder.add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+        builder = (
+            builder
+            .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+            # ISO 18013-5 reader authentication certificate profile: mandatory
+            # mdlReaderAuth EKU (mdocReaderAuth recommended alongside), issuerAltName
+            # and CRL distribution points - a wallet enforcing the profile rejects a
+            # reader certificate without them
+            .add_extension(
+                x509.ExtendedKeyUsage([MDL_READER_AUTH_OID, MDOC_READER_AUTH_OID]), critical=True)
+            .add_extension(issuer_alt_name, critical=False)
+            .add_extension(crl_distribution_points, critical=False)
+        )
     cert = builder.sign(ca_key, hashes.SHA256())
 
     x5c_value = base64.b64encode(cert.public_bytes(serialization.Encoding.DER)).decode("ascii")
