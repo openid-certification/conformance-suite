@@ -7,10 +7,20 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAut
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureMdocAgeInYearsConsistentWithBirthDate;
+import net.openid.conformance.condition.client.EnsureMdocAgeOverElementsConsistentWithBirthDate;
+import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureIssuedMdocMdlElementsAreDefined;
+import net.openid.conformance.condition.client.EnsureIssuedMdocPhotoIdElementsAreDefined;
+import net.openid.conformance.condition.client.EnsureMdocPhotoIdConditionalDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureMdocPhotoIdElementValuesAreValid;
+import net.openid.conformance.condition.client.EnsureMdocPhotoIdMandatoryDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureMdocPhotoIdRecommendedDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureSdJwtVcVctMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
+import net.openid.conformance.condition.client.ValidateMdocMsoValidityInfoTimestamps;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
@@ -417,8 +427,28 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					// The check only applies to mDL credentials (it no-ops for other docTypes), and
 					// ISO/IEC 18013-5 defines those mandatory data elements regardless of profile,
 					// so missing elements are always a failure.
+					callAndContinueOnFailure(ValidateMdocMsoValidityInfoTimestamps.class,
+						ConditionResult.FAILURE, "ISO18013-5-12.3.4", "ISO23220-4-A.1.2.4.2");
 					callAndContinueOnFailure(EnsureMdocMdlMandatoryDataElementsPresent.class,
 						ConditionResult.FAILURE, "ISO18013-5-7.2.1");
+					callAndContinueOnFailure(EnsureIssuedMdocMdlElementsAreDefined.class,
+						ConditionResult.WARNING, "ISO18013-5-13.4.1");
+					callAndContinueOnFailure(EnsureMdocMdlElementValuesAreValid.class,
+						ConditionResult.FAILURE, "ISO18013-5-13.4.2");
+					callAndContinueOnFailure(EnsureMdocPhotoIdMandatoryDataElementsPresent.class,
+						ConditionResult.FAILURE, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureMdocPhotoIdRecommendedDataElementsPresent.class,
+						ConditionResult.WARNING, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureMdocPhotoIdConditionalDataElementsPresent.class,
+						ConditionResult.FAILURE, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureIssuedMdocPhotoIdElementsAreDefined.class,
+						ConditionResult.WARNING, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureMdocPhotoIdElementValuesAreValid.class,
+						ConditionResult.FAILURE, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureMdocAgeOverElementsConsistentWithBirthDate.class,
+						ConditionResult.FAILURE, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
+					callAndContinueOnFailure(EnsureMdocAgeInYearsConsistentWithBirthDate.class,
+						ConditionResult.WARNING, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
 				}
 			}
 		};
