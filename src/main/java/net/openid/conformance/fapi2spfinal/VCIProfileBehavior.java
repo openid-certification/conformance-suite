@@ -20,6 +20,7 @@ import net.openid.conformance.condition.client.EnsureMdocPhotoIdRecommendedDataE
 import net.openid.conformance.condition.client.EnsureSdJwtVcVctMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
+import net.openid.conformance.condition.client.ValidateMdocMsoValidityInfoTimestamps;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
@@ -426,6 +427,8 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					// The check only applies to mDL credentials (it no-ops for other docTypes), and
 					// ISO/IEC 18013-5 defines those mandatory data elements regardless of profile,
 					// so missing elements are always a failure.
+					callAndContinueOnFailure(ValidateMdocMsoValidityInfoTimestamps.class,
+						ConditionResult.FAILURE, "ISO18013-5-12.3.4", "ISO23220-4-A.1.2.4.2");
 					callAndContinueOnFailure(EnsureMdocMdlMandatoryDataElementsPresent.class,
 						ConditionResult.FAILURE, "ISO18013-5-7.2.1");
 					callAndContinueOnFailure(EnsureIssuedMdocMdlElementsAreDefined.class,

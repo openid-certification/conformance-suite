@@ -66,13 +66,27 @@ public final class MdocUtil {
 	 */
 	public static MobileSecurityObject parseMso(DataItem issuerSigned) throws MdocParseException {
 		try {
+			return MobileSecurityObject.Companion.fromDataItem(parseMsoDataItem(issuerSigned));
+		} catch (MdocParseException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new MdocParseException("Failed to parse the MSO from the mdoc credential", e);
+		}
+	}
+
+	/**
+	 * The MSO of an already CBOR-decoded IssuerSigned structure as the raw CBOR data item, for
+	 * checks on details of the encoding that {@link #parseMso} hides, such as how the
+	 * validityInfo timestamps are represented.
+	 */
+	public static DataItem parseMsoDataItem(DataItem issuerSigned) throws MdocParseException {
+		try {
 			DataItem issuerAuth = issuerSigned.getOrNull("issuerAuth");
 			if (issuerAuth == null) {
 				throw new MdocParseException("mdoc credential is missing the required 'issuerAuth' field");
 			}
 			CoseSign1 coseSign1 = issuerAuth.getAsCoseSign1();
-			DataItem msoDataItem = Cbor.INSTANCE.decode(coseSign1.getPayload()).getAsTaggedEncodedCbor();
-			return MobileSecurityObject.Companion.fromDataItem(msoDataItem);
+			return Cbor.INSTANCE.decode(coseSign1.getPayload()).getAsTaggedEncodedCbor();
 		} catch (MdocParseException e) {
 			throw e;
 		} catch (Exception e) {
