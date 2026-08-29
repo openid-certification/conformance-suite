@@ -152,6 +152,9 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 				Map<String, Object> placeOfBirth = pobBuilder.build();
 
 				disclosures.add(builder.putSDClaim("place_of_birth", placeOfBirth));
+
+				disclosures.add(builder.putSDClaim("issuing_authority", "Test Issuing Authority"));
+				disclosures.add(builder.putSDClaim("issuing_country", "DD"));
 			}
 		}
 
