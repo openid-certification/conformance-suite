@@ -29,7 +29,10 @@ object VciMdocUtils {
 	 *
 	 * @param devicePublicKeyJwk The device public key from the proof, as a JWK JSON string. Can be null for credentials without holder binding.
 	 * @param docType The mdoc document type (e.g., "eu.europa.ec.eudi.pid.1")
-	 * @param issuerSigningJwk Optional custom issuer signing key (JWK JSON string). If null, uses default test key.
+	 * @param issuerSigningJwk Optional custom issuer signing key (JWK JSON string), used only by unit
+	 *   tests that need a specific chain (e.g. the VICAL fixtures). Production callers pass null, so
+	 *   that every mdoc the suite issues is signed by [TestKeysAndCerts.documentSignerKey] and can be
+	 *   validated against the suite's mdoc IACA root.
 	 * @param statusListUri Optional Token Status List URI to embed in the MSO (with statusListIndex). Used by
 	 *   tests to exercise the status-reference checks; null (the default) means no status reference is included.
 	 * @param statusListIndex Optional Token Status List index to embed in the MSO (with statusListUri).
