@@ -38,12 +38,25 @@ public final class EvenOddStatusListContents {
 	 * (arithmetic) sequence (HAIP section 6.1, Token Status List section 12.5.1).
 	 */
 	public static List<Long> allocateValidIndices(int count, Random random) {
-		List<Long> validIndices = new ArrayList<>();
-		for (long i = 0; i < STATUS_LIST_ENTRIES; i += 2) {
-			validIndices.add(i);
+		return allocateIndices(0, count, random);
+	}
+
+	/**
+	 * Picks {@code count} distinct, unpredictable indices that {@link #create()} marks INVALID,
+	 * for the conditions that create a credential meant to be rejected as revoked. Only the odd
+	 * indices qualify.
+	 */
+	public static List<Long> allocateRevokedIndices(int count, Random random) {
+		return allocateIndices(1, count, random);
+	}
+
+	private static List<Long> allocateIndices(long first, int count, Random random) {
+		List<Long> indices = new ArrayList<>();
+		for (long i = first; i < STATUS_LIST_ENTRIES; i += 2) {
+			indices.add(i);
 		}
-		Collections.shuffle(validIndices, random);
-		return validIndices.subList(0, Math.min(count, validIndices.size()));
+		Collections.shuffle(indices, random);
+		return indices.subList(0, Math.min(count, indices.size()));
 	}
 
 	public static TokenStatusList create() {
