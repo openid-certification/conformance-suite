@@ -36,12 +36,12 @@ public class VP1FinalGenerateCwtStatusListToken extends AbstractCondition {
 	public static final String ENV_KEY = "served_status_list_cwt";
 
 	@Override
-	@PreEnvironment(required = { CreateRevokedStatusListReference.ENV_KEY })
+	@PreEnvironment(required = { AbstractCreateStatusListReference.ENV_KEY })
 	@PostEnvironment(strings = { ENV_KEY })
 	public Environment evaluate(Environment env) {
 
 		String uri = OIDFJSON.getString(
-			env.getElementFromObject(CreateRevokedStatusListReference.ENV_KEY, "uri"));
+			env.getElementFromObject(AbstractCreateStatusListReference.ENV_KEY, "uri"));
 
 		TokenStatusList statusList = EvenOddStatusListContents.create();
 		byte[] compressedStatusList = Base64.getUrlDecoder().decode(statusList.encodeStatusList());

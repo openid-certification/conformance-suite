@@ -37,7 +37,7 @@ public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 	 * a status list reference (the usual case — a status reference is optional).
 	 */
 	protected Map<String, Object> statusClaims(Environment env) {
-		JsonObject reference = env.getObject(CreateRevokedStatusListReference.ENV_KEY);
+		JsonObject reference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
 		if (reference == null) {
 			return additionalClaims;
 		}

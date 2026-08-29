@@ -33,7 +33,7 @@ public class CreateMdocCredential extends AbstractCondition {
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
 		// When the test allocated a status list reference, the mock wallet's mdocs are
 		// (re)provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2.
-		JsonObject statusListReference = env.getObject(CreateRevokedStatusListReference.ENV_KEY);
+		JsonObject statusListReference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
 		if (statusListReference == null) {
 			testAppUtils.initialise();
 		} else {

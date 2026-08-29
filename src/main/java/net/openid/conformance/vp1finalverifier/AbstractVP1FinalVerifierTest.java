@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AbstractCreateStatusListReference;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationEndpointHttpRequest;
@@ -23,6 +24,8 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
+import net.openid.conformance.condition.as.CreateValidStatusListReference;
+import net.openid.conformance.condition.as.EnsureVerifierFetchedStatusList;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
@@ -50,6 +53,8 @@ import net.openid.conformance.condition.as.VP1FinalCheckEncryptionKeyNotReused;
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
+import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEnsureDirectPostResponseHasRedirectUriForHaip;
@@ -96,6 +101,9 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
+
+import java.util.Base64;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -293,6 +301,16 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
+		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)) {
+			// served without moving the test to RUNNING: that takes the test lock, which is
+			// held for the whole of the authorization endpoint handler - including the POST of
+			// the authorization response to the verifier's response_uri. A verifier that checks
+			// the status list before it responds to that POST would therefore deadlock against
+			// itself. The token is generated when the credential is created and stored in the
+			// environment, so this handler only has to read it, which needs no lock (the
+			// environment is backed by a concurrent map).
+			return handleStatusListRequest();
+		}
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
@@ -309,6 +327,46 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		return responseObject;
 	}
+	private Object handleStatusListRequest() {
+		boolean isMdoc = getVariant(VP1FinalVerifierCredentialFormat.class)
+			== VP1FinalVerifierCredentialFormat.ISO_MDL;
+		String contentType = isMdoc
+			? VP1FinalGenerateCwtStatusListToken.STATUS_LIST_CWT_CONTENT_TYPE
+			: VP1FinalGenerateJwtStatusListToken.STATUS_LIST_JWT_CONTENT_TYPE;
+		String token = env.getString(isMdoc
+			? VP1FinalGenerateCwtStatusListToken.ENV_KEY : VP1FinalGenerateJwtStatusListToken.ENV_KEY);
+
+		if (token == null) {
+			eventLog.log(getName(), "The verifier requested the status list before the presentation "
+				+ "was sent, so there is no status list token to serve yet.");
+			return ResponseEntity.notFound().build();
+		}
+
+		env.putString(EnsureVerifierFetchedStatusList.FETCHED_ENV_KEY, "true");
+		eventLog.log(getName(), "The verifier fetched the status list the presented credential references.");
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_TYPE, contentType)
+			.body(isMdoc ? Base64.getDecoder().decode(token) : token);
+	}
+
+	@Override
+	public void fireTestFinished() {
+		// A verifier that never fetched the referenced status list cannot have checked the
+		// credential's status. HAIP requires verifiers to support validating a credential's
+		// status information (HAIP 7-2.2.2.2), so under HAIP a missing fetch is a failure;
+		// outside HAIP checking is the verifier's policy choice and only warned about. Skipped
+		// when no status list reference was created (e.g. the configuration-skipped path).
+		call(condition(EnsureVerifierFetchedStatusList.class)
+			.skipIfObjectsMissing(AbstractCreateStatusListReference.ENV_KEY)
+			.onSkip(ConditionResult.INFO)
+			.onFail(getVariant(VPProfile.class) == VPProfile.HAIP
+				? ConditionResult.FAILURE : ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("HAIP-7-2.2.2.2"));
+		super.fireTestFinished();
+	}
+
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
@@ -614,6 +672,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	 * list reference it carries) override this and call super.
 	 */
 	protected void createCredential() {
+		// must run before the credential is created; the credential carries the reference
+		createStatusListReference();
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
 				createSdJwtCredential();
@@ -624,6 +684,24 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
+		// generate the status list token now so it is ready to serve however quickly the
+		// verifier fetches it - see handleStatusListRequest
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
+			case SD_JWT_VC ->
+				callAndStopOnFailure(VP1FinalGenerateJwtStatusListToken.class, "OTSL-5.1");
+			case ISO_MDL ->
+				callAndStopOnFailure(VP1FinalGenerateCwtStatusListToken.class, "OTSL-5.2",
+					"ISO18013-5-12.3.6.3");
+		}
+	}
+
+	/**
+	 * Allocates the status list reference the presented credential will carry. The happy flows
+	 * reference an index the served status list marks as valid, so that verifiers exercise the
+	 * status fetch on a good credential; negative tests override this to allocate a revoked one.
+	 */
+	protected void createStatusListReference() {
+		callAndStopOnFailure(CreateValidStatusListReference.class, "OTSL-6.2", "ISO18013-5-12.3.6.2");
 	}
 
 	protected void createSdJwtCredential() {

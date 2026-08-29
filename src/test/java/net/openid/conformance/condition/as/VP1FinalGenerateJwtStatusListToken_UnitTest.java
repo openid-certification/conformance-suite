@@ -59,7 +59,7 @@ public class VP1FinalGenerateJwtStatusListToken_UnitTest {
 		JsonObject reference = new JsonObject();
 		reference.addProperty("uri", STATUS_LIST_URI);
 		reference.addProperty("idx", REVOKED_IDX);
-		env.putObject(CreateRevokedStatusListReference.ENV_KEY, reference);
+		env.putObject(AbstractCreateStatusListReference.ENV_KEY, reference);
 
 		credentialSigningKey = certifiedEcKey();
 		env.putObject("config", config(credentialSigningKey));
