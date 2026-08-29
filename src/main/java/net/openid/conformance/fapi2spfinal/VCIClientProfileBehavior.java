@@ -560,6 +560,16 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
+	 * The Token Status List URI to reference from the MSO's status element of issued mdoc
+	 * credentials (ISO/IEC 18013-5 12.3.6.2). Default is none ({@code null}); the HAIP profile
+	 * overrides it, mirroring {@link #additionalSdJwtClaims()} for SD-JWT. Public so the
+	 * wallet's imperative credential-issuance path can read it.
+	 */
+	public String additionalMdocStatusListUri() {
+		return null;
+	}
+
+	/**
 	 * OID4VCI 1.0 Final 7.2 nonce endpoint — generates a fresh c_nonce that the wallet
 	 * binds into the credential request proof JWT. Single-sequence dispatch: condition
 	 * sequence does the validation + generation; response builder reads the prepared
@@ -606,6 +616,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	 */
 	private PathDispatch buildCredentialDispatch() {
 		final Map<String, Object> additionalClaims = additionalSdJwtClaims();
+		final String mdocStatusListUri = additionalMdocStatusListUri();
 		ConditionSequence sequence = new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
@@ -723,7 +734,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					.skipIfElementPresent("vci", "credential_error_response")
 					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE));
-				call(condition(CreateMdocCredentialForVCI.class)
+				call(condition(new CreateMdocCredentialForVCI(mdocStatusListUri))
 					.skipIfElementPresent("vci", "credential_error_response")
 					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "format_mso_mdoc")
