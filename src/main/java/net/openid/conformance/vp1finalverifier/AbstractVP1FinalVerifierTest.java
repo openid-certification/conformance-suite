@@ -80,10 +80,12 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
+import net.openid.conformance.condition.client.ValidateOwnMdocSigningChainAgainstVical;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
+import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -117,6 +119,10 @@ import org.springframework.web.util.HtmlUtils;
 @ConfigurationFields({
 	"client.rical",
 	"client.rical_url"
+})
+@VariantConfigurationFields(parameter = VP1FinalVerifierCredentialFormat.class, value = "iso_mdl", configurationFields = {
+	"credential.vical",
+	"credential.vical_url"
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalVerifierResponseMode.class,
@@ -259,6 +265,19 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// register and validate the optionally configured RICAL used as the trust source for
 		// the verifier's request object signing chain (superseding the single trust anchor)
 		call(sequence(SetupRicalFromConfiguration.class));
+		if (getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL) {
+			// register and validate the optionally configured VICAL, then pre-flight check
+			// that the suite's own mdoc signing chain is covered by it - a verifier trusting
+			// the VICAL is expected to reject the presented mdocs otherwise. A WARNING as
+			// this reports on the suite's VICAL registration, not on the verifier under test.
+			call(sequence(SetupVicalFromConfiguration.class));
+			call(condition(ValidateOwnMdocSigningChainAgainstVical.class)
+				.skipIfObjectsMissing("vical")
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("ISO18013-5-C.1.7.1"));
+		}
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}
