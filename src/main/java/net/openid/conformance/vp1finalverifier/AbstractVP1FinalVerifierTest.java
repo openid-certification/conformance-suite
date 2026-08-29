@@ -25,6 +25,7 @@ import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.CreateValidStatusListReference;
+import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
 import net.openid.conformance.condition.as.EnsureVerifierFetchedStatusList;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -575,6 +576,15 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			.onFail(ConditionResult.FAILURE)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-F.3.2.6"));
+		// trust constraints are ecosystem-defined with no concrete types in the spec, so the
+		// suite cannot evaluate them - a WARNING, to be raised per-profile once an ecosystem
+		// defines machine-checkable constraint semantics
+		call(condition(EnsureMatchedRicalEntryHasNoTrustConstraints.class)
+			.skipIfObjectsMissing("rical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-F.3.2.3"));
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
