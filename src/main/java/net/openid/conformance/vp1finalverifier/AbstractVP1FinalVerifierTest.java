@@ -58,6 +58,7 @@ import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadata
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
+import net.openid.conformance.condition.as.VP1FinalGenerateIdentifierListToken;
 import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
@@ -340,8 +341,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	/**
-	 * Serves the Token Status List the presented credential references and checks how the
-	 * verifier asked for it.
+	 * Serves the revocation list the presented credential references - the Token Status List or,
+	 * for the tests using that mechanism, the identifier list of ISO/IEC 18013-5 12.3.6.4 - and
+	 * checks how the verifier asked for it.
 	 *
 	 * <p>The request checks are warnings: draft-ietf-oauth-status-list section 8.1 places its
 	 * requirement to serve the list in response to a GET on the Status Provider, so a verifier
@@ -350,6 +352,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	 * draft-21: draft-15, which the OTSL requirement links point at, says the Relying Party
 	 * SHOULD send one, but draft-21 dropped that sentence and only defines the media types for
 	 * HTTP content negotiation.
+	 *
+	 * <p>The identifier list gets the same checks, against the same clauses: ISO/IEC 18013-5
+	 * 12.3.6.3 has an MSO revocation list of either mechanism implemented according to the Token
+	 * Status List specification, and 12.3.6.4 lists no deviation for how the list is requested.
 	 *
 	 * <p>The verifier usually fetches the list while the authorization response is being
 	 * delivered to its response_uri, so the checks are logged in whichever block is open at the
@@ -793,6 +799,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	private void generateRevocationListToken() {
 		String mechanism = env.getString(RevocationListReference.ENV_KEY, "mechanism");
 		if (mechanism == null) {
+			return;
+		}
+		if (mechanism.equals(RevocationListReference.MECHANISM_IDENTIFIER_LIST)) {
+			callAndStopOnFailure(VP1FinalGenerateIdentifierListToken.class, "ISO18013-5-12.3.6.3",
+				"ISO18013-5-12.3.6.4");
 			return;
 		}
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
