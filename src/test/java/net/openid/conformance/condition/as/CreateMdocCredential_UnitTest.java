@@ -195,7 +195,7 @@ public class CreateMdocCredential_UnitTest {
 	@Test
 	public void testEvaluate_referencesTheStatusListWhenOneWasAllocated() throws Exception {
 		env.putString("session_transcript", SESSION_TRANSCRIPT);
-		env.putObject(CreateRevokedStatusListReference.ENV_KEY, dcql("""
+		env.putObject(AbstractCreateStatusListReference.ENV_KEY, dcql("""
 			{"uri": "https://example.com/test/a/alias/statuslists/1", "idx": 41}"""));
 
 		cond.execute(env);

@@ -43,12 +43,12 @@ public class VP1FinalGenerateJwtStatusListToken extends AbstractCondition {
 	public static final String ENV_KEY = "served_status_list_jwt";
 
 	@Override
-	@PreEnvironment(required = { "config", CreateRevokedStatusListReference.ENV_KEY })
+	@PreEnvironment(required = { "config", AbstractCreateStatusListReference.ENV_KEY })
 	@PostEnvironment(strings = { ENV_KEY })
 	public Environment evaluate(Environment env) {
 
 		String uri = OIDFJSON.getString(
-			env.getElementFromObject(CreateRevokedStatusListReference.ENV_KEY, "uri"));
+			env.getElementFromObject(AbstractCreateStatusListReference.ENV_KEY, "uri"));
 
 		TokenStatusList statusList = EvenOddStatusListContents.create();
 
