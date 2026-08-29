@@ -34,11 +34,18 @@ public class CreateMdocCredential extends AbstractCondition {
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
-		// When the test allocated a status list reference, the mock wallet's mdocs are
-		// provisioned with the MSO status element of ISO/IEC 18013-5 12.3.6.2 pointing at it.
+		// When the test allocated a revocation list reference, the mock wallet's mdocs are
+		// provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2
+		// defines the two mechanisms it can use, and at most one of the two references exists.
 		RevocationStatus revocationStatus = null;
 		JsonObject statusListReference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
-		if (statusListReference != null) {
+		JsonObject identifierListReference =
+			env.getObject(CreateRevokedIdentifierListReference.ENV_KEY);
+		if (identifierListReference != null) {
+			revocationStatus = testAppUtils.identifierListRevocationStatus(
+				OIDFJSON.getString(identifierListReference.get("uri")),
+				Base64.getDecoder().decode(OIDFJSON.getString(identifierListReference.get("id"))));
+		} else if (statusListReference != null) {
 			revocationStatus = testAppUtils.statusListRevocationStatus(
 				OIDFJSON.getString(statusListReference.get("uri")),
 				OIDFJSON.getInt(statusListReference.get("idx")));

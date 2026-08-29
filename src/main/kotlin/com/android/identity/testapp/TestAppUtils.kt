@@ -212,6 +212,16 @@ object TestAppUtils {
 	fun statusListRevocationStatus(statusListUri: String, statusListIndex: Int): RevocationStatus =
 		RevocationStatus.StatusList(statusListIndex, statusListUri, null)
 
+	/**
+	 * The MSO status element using the identifier_list revocation mechanism of ISO/IEC 18013-5
+	 * 12.3.6.4 rather than the status list one.
+	 *
+	 * @param identifierListUri the URI the identifier list is published at
+	 * @param identifier the Identifier naming these MSOs in that list
+	 */
+	fun identifierListRevocationStatus(identifierListUri: String, identifier: ByteArray): RevocationStatus =
+		RevocationStatus.IdentifierList(ByteString(identifier), identifierListUri, null)
+
 	var documentStore: DocumentStore? = null
 
 	private suspend fun documentStoreInit(revocationStatus: RevocationStatus?) {

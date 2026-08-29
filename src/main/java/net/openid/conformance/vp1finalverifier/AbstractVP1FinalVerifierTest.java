@@ -23,6 +23,7 @@ import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponsePa
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
+import net.openid.conformance.condition.as.CreateRevokedIdentifierListReference;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.CreateValidStatusListReference;
 import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
@@ -57,6 +58,7 @@ import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadata
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
+import net.openid.conformance.condition.as.VP1FinalGenerateIdentifierListToken;
 import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
@@ -93,6 +95,7 @@ import net.openid.conformance.condition.client.ValidateOwnMdocSigningChainAgains
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
+import net.openid.conformance.oauth.statuslists.CwtIdentifierListTokenBuilder;
 import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
 import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.sequence.ValidateJwksSequence;
@@ -320,7 +323,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		env.putObject(requestId, requestParts);
 
-		if (path.startsWith(AbstractCreateStatusListReference.STATUS_LIST_PATH_PREFIX)) {
+		if (path.startsWith(AbstractCreateStatusListReference.STATUS_LIST_PATH_PREFIX)
+			|| path.startsWith(CreateRevokedIdentifierListReference.IDENTIFIER_LIST_PATH_PREFIX)) {
 			// never finishes the test: the verifier can fetch the list at any point, including
 			// after the request that does finish it
 			Object response = handleRevocationListRequest(requestId, path);
@@ -340,8 +344,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	/**
-	 * Serves the Token Status List the presented credential references and checks how the
-	 * verifier asked for it.
+	 * Serves the revocation list the presented credential references - the Token Status List or,
+	 * for the tests using that mechanism, the identifier list of ISO/IEC 18013-5 12.3.6.4 - and
+	 * checks how the verifier asked for it.
 	 *
 	 * <p>The request checks are warnings: draft-ietf-oauth-status-list section 8.1 places its
 	 * requirement on the Status Provider, which SHOULD serve the list in response to a GET, and
@@ -406,6 +411,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				JwtStatusListTokenClaimsBuilder.CONTENT_TYPE,
 				VP1FinalGenerateJwtStatusListToken.ENV_KEY, false);
 		}
+		if (path.equals(env.getString(CreateRevokedIdentifierListReference.ENV_KEY, "path"))) {
+			return new ServedRevocationList("identifier list",
+				CwtIdentifierListTokenBuilder.IDENTIFIER_LIST_CWT_CONTENT_TYPE,
+				VP1FinalGenerateIdentifierListToken.ENV_KEY, true);
+		}
 		return null;
 	}
 
@@ -426,6 +436,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	@Override
 	protected void endOfTestChecks() {
 		JsonObject reference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
+		if (reference == null) {
+			reference = env.getObject(CreateRevokedIdentifierListReference.ENV_KEY);
+		}
 		if (reference == null) {
 			// the credential carries no revocation information, or none was presented
 			return;
