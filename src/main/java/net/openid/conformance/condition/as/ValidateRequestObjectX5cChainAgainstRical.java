@@ -3,18 +3,17 @@ package net.openid.conformance.condition.as;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.SignedJWT;
 import kotlinx.io.bytestring.ByteString;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractRicalCondition;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.crypto.X509Cert;
 import org.multipaz.mdoc.rical.RicalCertificateInfo;
 import org.multipaz.mdoc.rical.SignedRical;
-import org.multipaz.trustmanagement.RicalTrustManager;
 import org.multipaz.trustmanagement.TrustResult;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -70,24 +69,16 @@ public class ValidateRequestObjectX5cChainAgainstRical extends AbstractRicalCond
 		try {
 			verifyRicalCoseSignature(getRicalCoseSign1(getRicalBytes(env)));
 			signedRical = parseSignedRicalLenient(getRicalBytes(env)).signedRical;
+		} catch (ConditionError e) {
+			// the helpers log their own, more specific, failure before throwing
+			throw e;
 		} catch (Exception e) {
 			throw error("The configured RICAL could not be parsed or its COSE signature does not verify, so the request object certificate chain cannot be evaluated against it", e);
 		}
 
 		String ricalProvider = signedRical.getRical().getProvider();
 
-		TrustResult trustResult;
-		try {
-			RicalTrustManager trustManager = new RicalTrustManager(signedRical, "rical");
-			kotlin.time.Instant now = kotlin.time.Instant.Companion.fromEpochMilliseconds(System.currentTimeMillis());
-			trustResult = kotlinx.coroutines.BuildersKt.runBlocking(
-				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				// true = also validate the validity intervals of CA certificates in the chain
-				(scope, continuation) -> trustManager.verify(chainCerts, now, true, continuation)
-			);
-		} catch (Exception e) {
-			throw error("Failed to evaluate the request object certificate chain against the RICAL", e);
-		}
+		TrustResult trustResult = verifyChainAgainstRical(signedRical, chainCerts);
 
 		if (!trustResult.isTrusted()) {
 			throw error("The request object certificate chain does not chain to a reader CA certificate in the configured RICAL",
@@ -96,9 +87,14 @@ public class ValidateRequestObjectX5cChainAgainstRical extends AbstractRicalCond
 					"error", trustResult.getError() == null ? null : trustResult.getError().getMessage()));
 		}
 
-		// F.3.2.6: the CertificateInfo of the first (bottom-up) chain certificate listed in the
-		// RICAL governs the trust constraints; locate it to report constraints and entry detail
-		RicalCertificateInfo governingEntry = findFirstMatchingEntry(signedRical, chainCerts);
+		String trustPathDefect = ricalTrustPathDefect(signedRical, trustResult);
+		if (trustPathDefect != null) {
+			throw error("The request object certificate chain reaches the configured RICAL, but not in a way Annex F accepts: " + trustPathDefect,
+				args("request_object_leaf_subject", leafSubject,
+					"rical_provider", ricalProvider));
+		}
+
+		RicalCertificateInfo governingEntry = findFirstMatchingRicalEntry(signedRical, chainCerts);
 
 		int trustConstraintCount = governingEntry == null || governingEntry.getTrustConstraints() == null
 			? 0 : governingEntry.getTrustConstraints().size();
@@ -119,20 +115,5 @@ public class ValidateRequestObjectX5cChainAgainstRical extends AbstractRicalCond
 					? null : signedRical.getRical().getNotAfter().toString()));
 
 		return env;
-	}
-
-	private RicalCertificateInfo findFirstMatchingEntry(SignedRical signedRical, List<X509Cert> chainCerts) {
-		for (X509Cert chainCert : chainCerts) {
-			byte[] chainCertSki = chainCert.getSubjectKeyIdentifier();
-			for (RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
-				// match by certificate or SKI (a renewed CA keeping its key has a new certificate)
-				if (certInfo.getCertificate().equals(chainCert)
-					|| (chainCertSki != null
-						&& Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), chainCertSki))) {
-					return certInfo;
-				}
-			}
-		}
-		return null;
 	}
 }

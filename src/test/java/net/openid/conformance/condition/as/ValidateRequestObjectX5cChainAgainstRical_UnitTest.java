@@ -70,13 +70,64 @@ public class ValidateRequestObjectX5cChainAgainstRical_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_failsWhenRequestObjectHasNoX5c() {
+		// the x509_san_dns / x509_hash prefixes reference the certificate in the x5c header, so
+		// a request object without one leaves nothing to evaluate against the RICAL
+		RicalTestFixtures.putSignedRequestObject(env, pki, false);
+		RicalTestFixtures.putRical(env, RicalTestFixtures.goodSignedRical(List.of(pki.getCaCert())));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("x5c"), e.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_failsWhenListedEntryIsNotATrustAnchor() {
+		// F.3.2.6: the trust anchor is the CertificateInfo with isTrustAnchor true that is
+		// highest in the path - a chain reaching only isTrustAnchor=false entries is not trusted,
+		// though multipaz's RicalTrustManager makes a trust point of every listed entry
+		RicalTestFixtures.putSignedRequestObject(env, pki);
+		RicalTestFixtures.putRical(env, RicalTestFixtures.sign(RicalTestFixtures.buildRicalMap(
+			List.of(RicalTestFixtures.certificateInfo(pki.getCaCert(), false)))));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("isTrustAnchor"), e.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_failsWhenRicalNotAfterHasPassed() {
+		// F.3.2.5: "if present, notAfter shall not be in the past" - an expired list's entries
+		// cannot be used as trust anchors
+		RicalTestFixtures.putSignedRequestObject(env, pki);
+		RicalTestFixtures.putRical(env, RicalTestFixtures.sign(RicalTestFixtures.buildRicalMap(
+			List.of(RicalTestFixtures.certificateInfo(pki.getCaCert())),
+			"1.0", "OIDF Test RICAL Provider", RicalTestFixtures.past(),
+			RicalTestFixtures.READER_AUTHENTICATION_TYPE, RicalTestFixtures.soon(), 1L,
+			java.util.Set.of(), java.util.Map.of(), RicalTestFixtures.past())));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("notAfter"), e.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_passesWhenReaderCertificateItselfListed() {
+		// the RICAL may list the end-entity certificate rather than its CA
+		RicalTestFixtures.putSignedRequestObject(env, pki);
+		RicalTestFixtures.putRical(env, RicalTestFixtures.sign(RicalTestFixtures.buildRicalMap(
+			List.of(RicalTestFixtures.certificateInfo(pki.getReaderCert())))));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_failsWhenRicalSignatureBroken() {
 		RicalTestFixtures.putSignedRequestObject(env, pki);
 		byte[] rical = RicalTestFixtures.goodSignedRical(List.of(pki.getCaCert()));
 		rical[rical.length / 2] ^= 0x01;
 		RicalTestFixtures.putRical(env, rical);
 
+		// the specific failure from the signature check itself, not the caller's generic wrapper:
+		// the helpers log their own finding before throwing, so that is the one reported
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("could not be parsed or its COSE signature"), e.getMessage());
+		assertTrue(e.getMessage().contains("COSE_Sign1 signature verification failed"), e.getMessage());
 	}
 }
