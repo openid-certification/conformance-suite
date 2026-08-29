@@ -269,5 +269,35 @@
         "condition": "CheckMdocCredentialStatus",
         "expected-result": "failure",
         "comment": "Wallet receives an mdoc marked revoked in its MSO revocation list from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-invalid-session-transcript",
+        "variant": {
+            "credential_format": "iso_mdl",
+            "client_id_prefix": "x509_san_dns",
+            "request_method": "request_uri_signed",
+            "vp_profile": "plain_vp",
+            "response_mode": "direct_post"
+        },
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "",
+        "condition": "EnsureVerifierFetchedStatusList",
+        "expected-result": "warning",
+        "comment": "The paired wallet-side happy flow stops at ParseCredentialAsMdoc because of the deliberately invalid session transcript, so it never reaches the credential validation that fetches the status list"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": {
+            "credential_format": "sd_jwt_vc",
+            "client_id_prefix": "x509_san_dns",
+            "request_method": "request_uri_signed",
+            "vp_profile": "plain_vp",
+            "response_mode": "direct_post"
+        },
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "",
+        "condition": "EnsureVerifierFetchedStatusList",
+        "expected-result": "warning",
+        "comment": "The paired wallet-side module deliberately rejects the request over the unknown transaction_data type, so no credential is validated and the status list is never fetched"
     }
 ]
