@@ -106,7 +106,7 @@
         }
     ],
     "credential": {
-        "trust_anchor_pem": "-----BEGIN CERTIFICATE-----\nMIIB2zCCAYKgAwIBAgIUGshG5IBh5Uc8zPKLF72p0okHZbAwCgYIKoZIzj0EAwIw\nOTELMAkGA1UEBhMCREUxKjAoBgNVBAMMIU9wZW5JRDRWQ0kgQ29uZm9ybWFuY2Ug\nVGVzdHMgUm9vdDAeFw0yNjA4MjIxOTI4MDhaFw0zNTA4MjAxOTI4MDhaMDkxCzAJ\nBgNVBAYTAkRFMSowKAYDVQQDDCFPcGVuSUQ0VkNJIENvbmZvcm1hbmNlIFRlc3Rz\nIFJvb3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQndFrDtZLnC3va3ohDeans\nuPJjoCqsgzEmJ6S23Q7Cyg3VVFFrV0kx/mm/OFgczVDq0OQLcFpjGclJulHihTuX\no2gwZjASBgNVHRMBAf8ECDAGAQH/AgEAMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4E\nFgQUZTPyc00nUaGyduM0eVGu7m5zYXEwIQYDVR0SBBowGIEWY2VydGlmaWNhdGlv\nbkBvaWRmLm9yZzAKBggqhkjOPQQDAgNHADBEAiAhl3rCGxV5AiooRH0ZMr3nAtoG\na6c2ls3bJADe7yzX/wIgG9A8ttuv+MgzobOI4VS0FpMSgBkjptkp7lv4jv0H89w=\n-----END CERTIFICATE-----\n",
+        "trust_anchor_pem": "{mdoc-iaca-root.crt}",
         "status_list_trust_anchor_pem": "{vci-test-root.crt}"
     },
     "options": {
