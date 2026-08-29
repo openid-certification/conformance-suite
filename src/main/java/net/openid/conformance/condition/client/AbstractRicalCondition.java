@@ -109,4 +109,94 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 			throw error("RICAL COSE_Sign1 signature verification failed", e);
 		}
 	}
+
+	/**
+	 * Evaluates a certificate chain against the RICAL's listed reader CAs via multipaz's
+	 * RicalTrustManager (Annex F.3.2.6), validating CA validity intervals.
+	 */
+	protected org.multipaz.trustmanagement.TrustResult verifyChainAgainstRical(
+			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
+		try {
+			org.multipaz.trustmanagement.RicalTrustManager trustManager =
+				new org.multipaz.trustmanagement.RicalTrustManager(signedRical, "rical");
+			kotlin.time.Instant now = kotlin.time.Instant.Companion.fromEpochMilliseconds(System.currentTimeMillis());
+			return kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				// true = also validate the validity intervals of CA certificates in the chain
+				(scope, continuation) -> trustManager.verify(chainCerts, now, true, continuation)
+			);
+		} catch (Exception e) {
+			throw error("Failed to evaluate the certificate chain against the RICAL", e);
+		}
+	}
+
+	/**
+	 * The reason a chain multipaz reports as trusted is not trusted under Annex F, or null when
+	 * the verdict stands. F.3.2.6 uses "the CertificateInfo element with isTrustAnchor set to
+	 * true that is highest in the certificate validation path" as the trust anchor, and F.3.2.5
+	 * requires the RICAL itself to be valid ("if present, notAfter shall not be in the past")
+	 * before its entries are used. RicalTrustManager turns every listed entry into a trust
+	 * point whatever its isTrustAnchor, and does not consider the list's own validity, so a
+	 * chain reaching only an isTrustAnchor=false Sub CA, or reaching an expired list, comes
+	 * back trusted.
+	 */
+	protected String ricalTrustPathDefect(SignedRical signedRical,
+			org.multipaz.trustmanagement.TrustResult trustResult) {
+		kotlin.time.Instant notAfter = signedRical.getRical().getNotAfter();
+		if (notAfter != null && notAfter.toEpochMilliseconds() < System.currentTimeMillis()) {
+			return "the RICAL's own 'notAfter' (" + notAfter + ") is in the past, so ISO/IEC 18013-5"
+				+ " Annex F.3.2.5 does not allow its entries to be used as trust anchors";
+		}
+		for (org.multipaz.trustmanagement.TrustPoint trustPoint : trustResult.getTrustPoints()) {
+			byte[] trustPointSki = trustPoint.getCertificate().getSubjectKeyIdentifier();
+			for (org.multipaz.mdoc.rical.RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
+				if (certInfo.getCertificate().equals(trustPoint.getCertificate())
+					|| (trustPointSki != null
+						&& java.util.Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), trustPointSki))) {
+					if (certInfo.isTrustAnchor()) {
+						return null;
+					}
+					break;
+				}
+			}
+		}
+		return "no RICAL entry on the chain's trust path has 'isTrustAnchor' set to true, which"
+			+ " ISO/IEC 18013-5 Annex F.3.2.6 requires of the certificate used as the trust anchor";
+	}
+
+	/**
+	 * F.3.2.6: "The CertificateInfo element of the first certificate (bottom-up) in the
+	 * certificate chain included in the RICAL shall be used to determine and apply the
+	 * associated Trust Constraints." A chain certificate is listed in its own right when an
+	 * entry carries that certificate or its Subject Key Identifier (a renewed CA keeping its
+	 * key has a new certificate); only if no entry lists it does the entry for its issuer
+	 * govern, which is the usual case since the verifier's x5c typically contains just the
+	 * end-entity certificate. The issuer is identified by the chain certificate's Authority Key
+	 * Identifier, as multipaz's RicalTrustManager does — a subject name alone can be shared by
+	 * an old and a renewed CA, or by an unrelated CA, and would name the wrong entry.
+	 */
+	protected org.multipaz.mdoc.rical.RicalCertificateInfo findFirstMatchingRicalEntry(
+			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
+		for (X509Cert chainCert : chainCerts) {
+			byte[] chainCertSki = chainCert.getSubjectKeyIdentifier();
+			for (org.multipaz.mdoc.rical.RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
+				X509Cert entryCert = certInfo.getCertificate();
+				if (entryCert.equals(chainCert)
+					|| (chainCertSki != null
+						&& java.util.Arrays.equals(entryCert.getSubjectKeyIdentifier(), chainCertSki))) {
+					return certInfo;
+				}
+			}
+			byte[] chainCertAki = chainCert.getAuthorityKeyIdentifier();
+			if (chainCertAki == null) {
+				continue;
+			}
+			for (org.multipaz.mdoc.rical.RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
+				if (java.util.Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), chainCertAki)) {
+					return certInfo;
+				}
+			}
+		}
+		return null;
+	}
 }
