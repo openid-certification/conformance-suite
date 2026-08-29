@@ -247,5 +247,27 @@
         "condition": "WarnOnUnusableJwksKeys",
         "expected-result": "warning",
         "comment": "The paired wallet-ignores-unusable-encryption-key scenario sends client_metadata containing unusable encryption keys (a post-quantum AKP key and a made-up key type) alongside a usable one; the suite correctly warns the unusable keys cannot be used. Scoped to direct_post.jwt: the plain config is also used by the direct_post (unencrypted) happy flow, which has no client_metadata jwks and so must not expect this warning"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative-revoked.json",
+        "current-block": "Verify credential JWT",
+        "condition": "CheckCredentialStatus",
+        "expected-result": "failure",
+        "comment": "Wallet receives a credential marked revoked in its Token Status List from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow",
+        "variant": {
+            "credential_format": "iso_mdl"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-mdoc-negative-revoked.json",
+        "current-block": "Direct post endpoint",
+        "condition": "CheckMdocCredentialStatus",
+        "expected-result": "failure",
+        "comment": "Wallet receives an mdoc marked revoked in its MSO revocation list from the verifier negative test"
     }
 ]

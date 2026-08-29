@@ -75,6 +75,9 @@ public class VP1FinalGenerateJwtStatusListToken_UnitTest {
 		assertThat(jwt.getHeader().getType().toString()).isEqualTo("statuslist+jwt");
 		assertThat(jwt.getHeader().getX509CertChain())
 			.isEqualTo(credentialSigningKey.getX509CertChain());
+		// the public key is embedded so the non-HAIP wallet-side verification path
+		// (VerifyStatusListTokenSignatureUsingEmbeddedJwk) can verify the token
+		assertThat(jwt.getHeader().getJWK()).isEqualTo(credentialSigningKey.toPublicJWK());
 		assertThat(jwt.verify(new ECDSAVerifier(credentialSigningKey.toPublicJWK()))).isTrue();
 
 		assertThat(jwt.getJWTClaimsSet().getSubject()).isEqualTo(STATUS_LIST_URI);

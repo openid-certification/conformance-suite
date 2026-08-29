@@ -70,7 +70,10 @@ public class VP1FinalGenerateJwtStatusListToken extends AbstractCondition {
 		JWSAlgorithm alg = signingAlgorithm(signingJwk);
 
 		JWSHeader.Builder headerBuilder = new JWSHeader.Builder(alg)
-			.type(new JOSEObjectType("statuslist+jwt"));
+			.type(new JOSEObjectType("statuslist+jwt"))
+			// the public key is embedded so verifiers outside HAIP (which mandates the x5c
+			// route) can verify the token without any other key distribution mechanism
+			.jwk(signingJwk.toPublicJWK());
 		if (signingJwk.getX509CertChain() != null) {
 			headerBuilder.x509CertChain(signingJwk.getX509CertChain());
 		}
