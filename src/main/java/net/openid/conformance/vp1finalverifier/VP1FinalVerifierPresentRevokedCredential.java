@@ -1,17 +1,7 @@
 package net.openid.conformance.vp1finalverifier;
 
-import com.google.gson.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.as.CreateRevokedStatusListReference;
-import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
-import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-
-import java.util.Base64;
 
 @PublishTestModule(
 	testName = "oid4vp-1final-verifier-present-revoked-credential",
@@ -43,69 +33,13 @@ import java.util.Base64;
 )
 public class VP1FinalVerifierPresentRevokedCredential extends AbstractVP1FinalVerifierNegativeTest {
 
+	/**
+	 * The reference allocation, status list token generation and serving all live in
+	 * {@link AbstractVP1FinalVerifierTest}, which gives the happy flows a valid index; this test
+	 * only swaps the allocated index for one the served status list marks as revoked.
+	 */
 	@Override
-	protected void createCredential() {
-		// must run before the credential is created; the credential carries the reference
+	protected void createStatusListReference() {
 		callAndStopOnFailure(CreateRevokedStatusListReference.class, "OTSL-6.2", "ISO18013-5-12.3.6.2");
-		super.createCredential();
-	}
-
-	/**
-	 * Generates the status list token before the authorization response is sent, so that it is
-	 * ready to serve however quickly the verifier fetches it — see {@link #handleHttp}.
-	 */
-	@Override
-	protected void customizeAuthorizationEndpointResponseParams() {
-		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
-			case SD_JWT_VC ->
-				callAndStopOnFailure(VP1FinalGenerateJwtStatusListToken.class, "OTSL-5.1");
-			case ISO_MDL ->
-				callAndStopOnFailure(VP1FinalGenerateCwtStatusListToken.class, "OTSL-5.2",
-					"ISO18013-5-12.3.6.3");
-		}
-	}
-
-	/**
-	 * Serves the status list without going through the normal request handling.
-	 *
-	 * <p>{@link AbstractVP1FinalVerifierTest#handleHttp} moves the test to RUNNING, which takes
-	 * the test lock and holds it for the whole of the authorization endpoint handler — including
-	 * the POST of the authorization response to the verifier's response_uri. A verifier that
-	 * checks the status list before it responds to that POST would therefore deadlock against
-	 * itself: its status list request would sit behind the lock until the lock acquisition times
-	 * out. The token is generated before the response is sent and stored in the environment, so
-	 * this handler only has to read it, which needs no lock (the environment is backed by a
-	 * concurrent map).
-	 */
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse,
-			HttpSession session, JsonObject requestParts) {
-		if (CreateRevokedStatusListReference.STATUS_LIST_PATH.equals(path)) {
-			return handleStatusListRequest();
-		}
-		return super.handleHttp(path, req, servletResponse, session, requestParts);
-	}
-
-	private Object handleStatusListRequest() {
-		boolean isMdoc = getVariant(VP1FinalVerifierCredentialFormat.class)
-			== VP1FinalVerifierCredentialFormat.ISO_MDL;
-		String contentType = isMdoc
-			? VP1FinalGenerateCwtStatusListToken.STATUS_LIST_CWT_CONTENT_TYPE
-			: VP1FinalGenerateJwtStatusListToken.STATUS_LIST_JWT_CONTENT_TYPE;
-		String token = env.getString(isMdoc
-			? VP1FinalGenerateCwtStatusListToken.ENV_KEY : VP1FinalGenerateJwtStatusListToken.ENV_KEY);
-
-		if (token == null) {
-			eventLog.log(getName(), "The verifier requested the status list before the presentation "
-				+ "was sent, so there is no status list token to serve yet.");
-			return ResponseEntity.notFound().build();
-		}
-
-		eventLog.log(getName(), "The verifier fetched the status list the presented credential "
-			+ "references; it marks that credential as revoked.");
-
-		return ResponseEntity.ok()
-			.header(HttpHeaders.CONTENT_TYPE, contentType)
-			.body(isMdoc ? Base64.getDecoder().decode(token) : token);
 	}
 }
