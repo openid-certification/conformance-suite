@@ -31,7 +31,15 @@ public class CreateMdocCredential extends AbstractCondition {
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
-		testAppUtils.initialise();
+		// When the test allocated a status list reference, the mock wallet's mdocs are
+		// (re)provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2.
+		JsonObject statusListReference = env.getObject(CreateRevokedStatusListReference.ENV_KEY);
+		if (statusListReference == null) {
+			testAppUtils.initialise();
+		} else {
+			testAppUtils.initialise(OIDFJSON.getString(statusListReference.get("uri")),
+				(long) OIDFJSON.getInt(statusListReference.get("idx")));
+		}
 
 		String requestedDocType = null;
 		Map<String, Set<String>> requestedClaims = null;

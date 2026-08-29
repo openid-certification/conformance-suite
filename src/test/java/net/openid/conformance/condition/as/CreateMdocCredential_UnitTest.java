@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
@@ -11,10 +12,15 @@ import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.MdocUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.cbor.Cbor;
+import org.multipaz.cbor.DataItem;
+import org.multipaz.mdoc.mso.MobileSecurityObject;
+import org.multipaz.revocation.RevocationStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -175,6 +181,43 @@ public class CreateMdocCredential_UnitTest {
 		assertThatExceptionOfType(ConditionError.class)
 			.isThrownBy(() -> cond.execute(env))
 			.withMessageContaining("meta.doctype_value");
+	}
+
+	@Test
+	public void testEvaluate_noStatusElementWithoutAStatusListReference() throws Exception {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+
+		cond.execute(env);
+
+		assertThat(msoOfPresentedMdoc().getRevocationStatus()).isNull();
+	}
+
+	@Test
+	public void testEvaluate_referencesTheStatusListWhenOneWasAllocated() throws Exception {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject(CreateRevokedStatusListReference.ENV_KEY, dcql("""
+			{"uri": "https://example.com/test/a/alias/statuslists/1", "idx": 41}"""));
+
+		cond.execute(env);
+
+		// ISO/IEC 18013-5 12.3.6.2: the MSO's status element references the revocation list
+		RevocationStatus status = msoOfPresentedMdoc().getRevocationStatus();
+		assertThat(status).isInstanceOf(RevocationStatus.StatusList.class);
+		RevocationStatus.StatusList statusList = (RevocationStatus.StatusList) status;
+		assertThat(statusList.getUri()).isEqualTo("https://example.com/test/a/alias/statuslists/1");
+		assertThat(statusList.getIdx()).isEqualTo(41);
+		// no Certificate element, so the revocation list's signer certificate must chain to the
+		// CA that certified the document signer
+		assertThat(statusList.getCertificate()).isNull();
+	}
+
+	private MobileSecurityObject msoOfPresentedMdoc() throws Exception {
+		byte[] deviceResponse = new Base64URL(env.getString("credential")).decode();
+		DataItem documents = Cbor.INSTANCE.decode(deviceResponse).getOrNull("documents");
+		assertThat(documents).isNotNull();
+		DataItem issuerSigned = documents.getAsArray().get(0).getOrNull("issuerSigned");
+		assertThat(issuerSigned).isNotNull();
+		return MdocUtil.parseMso(issuerSigned);
 	}
 
 	private void parseCredential() {

@@ -5,6 +5,8 @@ import com.authlete.sd.SDJWT;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -15,15 +17,29 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateSdJwtKbCredential_UnitTest {
+
+	private static final String SIGNING_JWK = """
+		{
+		    "kty": "EC",
+		    "d": "y2NSNIvlRAEBMFk2bjQcSKbjS1y_NBJQ6jRzIfuIxS0",
+		    "use": "sig",
+		    "crv": "P-256",
+		    "kid": "5H1WLeSx55tMW6JNlvqMfg3O_E0eQPqB8jDSoUn6oiI",
+		    "x": "0_3S7HedSywaxlekdt6Or8pkcR13hQaCPMqt9cuZBVc",
+		    "y": "ZVXSCL3HlnMQWKrwMyIAe5wsAIWd3Eu1misKFr3POdA",
+		    "alg": "ES256"
+		}""";
 
 	private Environment env = new Environment();
 
@@ -154,6 +170,38 @@ public class CreateSdJwtKbCredential_UnitTest {
 		// element disclosure (the "FR" inside nationalities) and any other top-level disclosure
 		// should have been dropped because no kept disclosure references their digest.
 		assertEquals(Set.of("given_name", "family_name"), disclosedClaimNames);
+	}
+
+	@Test
+	public void testEvaluate_noStatusClaimWithoutAStatusListReference() throws Exception {
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
+		env.putObjectFromJsonString("config", "credential.signing_jwk", SIGNING_JWK);
+
+		cond.execute(env);
+
+		assertNull(issuerJwtClaims(env.getString("credential")).getClaim("status"));
+	}
+
+	@Test
+	public void testEvaluate_referencesTheStatusListWhenOneWasAllocated() throws Exception {
+		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
+		env.putObjectFromJsonString("config", "credential.signing_jwk", SIGNING_JWK);
+		env.putObjectFromJsonString(CreateRevokedStatusListReference.ENV_KEY, """
+			{"uri": "https://example.com/test/a/alias/statuslists/1", "idx": 41}""");
+
+		cond.execute(env);
+
+		// draft-ietf-oauth-status-list section 6.2
+		Map<String, Object> status = issuerJwtClaims(env.getString("credential"))
+			.getJSONObjectClaim("status");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> statusList = (Map<String, Object>) status.get("status_list");
+		assertEquals(41, ((Number) statusList.get("idx")).intValue());
+		assertEquals("https://example.com/test/a/alias/statuslists/1", statusList.get("uri"));
+	}
+
+	private JWTClaimsSet issuerJwtClaims(String credential) throws Exception {
+		return SignedJWT.parse(SDJWT.parse(credential).getCredentialJwt()).getJWTClaimsSet();
 	}
 
 	@Test
