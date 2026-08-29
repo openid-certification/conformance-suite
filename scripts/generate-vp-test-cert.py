@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate EC P-256 and RSA signing keys with CA-signed certificates for VP/VCI
+Generate EC P-256 signing keys with CA-signed certificates for VP/VCI
 integration tests.
 
 The certificate includes the provided hostnames as SAN DNS entries, ensuring that
@@ -19,7 +19,7 @@ import sys
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID, ObjectIdentifier
 
 
@@ -177,23 +177,36 @@ def generate_ec_jwk(ca_key, ca_cert, san_names, mdoc_ds=False) -> dict:
     }
 
 
-def generate_rsa_jwk(ca_key, ca_cert, san_names) -> dict:
-    """Generate an RSA 2048 leaf key + CA-signed cert, return as JWK with x5c."""
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+def generate_server_jwk(ca_key, ca_cert, san_names) -> dict:
+    """Generate the EC P-256 server signing leaf + CA-signed cert, return as JWK with x5c.
+
+    This key signs the suite's Token Status List tokens (the ISO 18013-5 MSO
+    revocation list), so the cert follows the Table B.9 MSO revocation list
+    signer profile: EC key, <=1187 day validity, SKI/AKI, critical
+    digitalSignature-only keyUsage, all other extensions non-critical. The
+    Token Status List EKU is omitted: it is optional in Table B.9 and the
+    draft-ietf-oauth-status-list OID is still TBD. The subject copies the
+    issuing CA's country (and state/province, if any) per B.1.1, which
+    requires end-entity certs to match their IACA's values.
+    """
+    private_key = ec.generate_private_key(ec.SECP256R1())
+
+    subject_attrs = []
+    for oid in (NameOID.COUNTRY_NAME, NameOID.STATE_OR_PROVINCE_NAME):
+        values = ca_cert.subject.get_attributes_for_oid(oid)
+        if values:
+            subject_attrs.append(x509.NameAttribute(oid, values[0].value))
+    subject_attrs.append(x509.NameAttribute(NameOID.COMMON_NAME, "OIDF Test Server"))
 
     cert = (
         x509.CertificateBuilder()
-        .subject_name(x509.Name([
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
-            x509.NameAttribute(NameOID.COMMON_NAME, "OIDF Test Server"),
-        ]))
+        .subject_name(x509.Name(subject_attrs))
         .issuer_name(ca_cert.subject)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=3650))
+        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1187))
         .add_extension(x509.SubjectAlternativeName(san_names), critical=False)
-        .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()), critical=False)
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()), critical=False)
         .add_extension(DIGITAL_SIGNATURE_ONLY, critical=True)
@@ -202,21 +215,15 @@ def generate_rsa_jwk(ca_key, ca_cert, san_names) -> dict:
 
     x5c_value = base64.b64encode(cert.public_bytes(serialization.Encoding.DER)).decode("ascii")
     pn = private_key.private_numbers()
-    pub = pn.public_numbers
-    n_bytes = (pub.n.bit_length() + 7) // 8
 
     return {
-        "kty": "RSA",
-        "n": _int_to_base64url(pub.n, n_bytes),
-        "e": _int_to_base64url(pub.e, 3),
-        "d": _int_to_base64url(pn.d, n_bytes),
-        "p": _int_to_base64url(pn.p, (pn.p.bit_length() + 7) // 8),
-        "q": _int_to_base64url(pn.q, (pn.q.bit_length() + 7) // 8),
-        "dp": _int_to_base64url(pn.dmp1, (pn.dmp1.bit_length() + 7) // 8),
-        "dq": _int_to_base64url(pn.dmq1, (pn.dmq1.bit_length() + 7) // 8),
-        "qi": _int_to_base64url(pn.iqmp, (pn.iqmp.bit_length() + 7) // 8),
+        "kty": "EC",
+        "crv": "P-256",
+        "x": _int_to_base64url(pn.public_numbers.x, 32),
+        "y": _int_to_base64url(pn.public_numbers.y, 32),
+        "d": _int_to_base64url(pn.private_value, 32),
         "use": "sig",
-        "alg": "PS256",
+        "alg": "ES256",
         "x5c": [x5c_value],
     }
 
@@ -234,18 +241,33 @@ def main():
     parser.add_argument("--output", help="Write EC credential signing JWK to file")
     parser.add_argument("--second-output", help="Write a second EC credential signing JWK (different key, same CA) to file")
     parser.add_argument("--mdoc-output", help="Write an ISO 18013-5 Table B.3 mdoc DS signing JWK (same CA) to file")
-    parser.add_argument("--server-output", help="Write RSA server signing JWK to file")
+    parser.add_argument("--server-output", help="Write EC server signing JWK (Table B.9 MSO revocation list signer profile) to file")
     parser.add_argument("--ca-output", help="Write CA trust anchor PEM to file")
     parser.add_argument("--ca-key-output", help="Write CA private key as EC JWK to file")
+    parser.add_argument("--ca-key-input", help="Reuse an existing CA: EC private key JWK file (requires --ca-cert-input)")
+    parser.add_argument("--ca-cert-input", help="Reuse an existing CA: certificate PEM file (requires --ca-key-input)")
     parser.add_argument("--json", action="store_true", help="Print EC credential JWK as JSON to stdout")
     args = parser.parse_args()
 
-    if not args.hostname:
+    if bool(args.ca_key_input) != bool(args.ca_cert_input):
+        parser.error("--ca-key-input and --ca-cert-input must be used together")
+
+    if not args.hostname and not args.ca_key_input:
         print("No extra hostnames specified, nothing to do.", file=sys.stderr)
         sys.exit(0)
 
     san_names = _build_san_names(args.hostname)
-    ca_key, ca_cert = generate_ca(san_names)
+    if args.ca_key_input:
+        with open(args.ca_key_input) as f:
+            ca_jwk_in = json.load(f)
+        ca_key = ec.derive_private_key(
+            int.from_bytes(base64.urlsafe_b64decode(ca_jwk_in["d"] + "=="), "big"),
+            ec.SECP256R1(),
+        )
+        with open(args.ca_cert_input, "rb") as f:
+            ca_cert = x509.load_pem_x509_certificate(f.read())
+    else:
+        ca_key, ca_cert = generate_ca(san_names)
     ca_pem = ca_cert.public_bytes(serialization.Encoding.PEM).decode("ascii")
 
     ec_jwk = generate_ec_jwk(ca_key, ca_cert, san_names)
@@ -265,8 +287,8 @@ def main():
         _write_jwk(mdoc_jwk, args.mdoc_output)
 
     if args.server_output:
-        rsa_jwk = generate_rsa_jwk(ca_key, ca_cert, san_names)
-        _write_jwk(rsa_jwk, args.server_output)
+        server_jwk = generate_server_jwk(ca_key, ca_cert, san_names)
+        _write_jwk(server_jwk, args.server_output)
 
     if args.ca_output:
         with open(args.ca_output, "w") as f:
