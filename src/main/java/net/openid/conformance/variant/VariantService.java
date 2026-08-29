@@ -210,37 +210,76 @@ public class VariantService {
 		return new TestPlanHolder(c.asSubclass(TestPlan.class));
 	}
 
+	/**
+	 * Fail fast when an annotation references a variant value string that doesn't exist on the
+	 * parameter's enum — otherwise a renamed or mistyped value silently disables the rule that
+	 * referenced it (an exclusion stops excluding, a configuration field stops appearing, etc.).
+	 */
+	static void requireKnownVariantValue(Class<?> declaringClass, ParameterHolder<?> parameter, String value, String source) {
+		if (!parameter.isKnownValue(value)) {
+			throw new IllegalArgumentException("In %s for %s: '%s' is not a value of variant parameter '%s' (valid values: %s)".formatted(
+					source,
+					declaringClass.getSimpleName(),
+					value,
+					parameter.variantParameter.name(),
+					parameter.valuesAsString()));
+		}
+	}
+
+	// a values list of exactly {"*"} means "all values", see VariantNotApplicableWhen
+	private static boolean isAllValuesWildcard(VariantNotApplicableWhen a) {
+		return a.values().length == 1 && a.values()[0].equals("*");
+	}
+
 	public static class ParameterHolder<T extends Enum<T>> {
 
 		public final VariantParameter variantParameter;
 
 		final Class<T> parameterClass;
+		final List<T> values;
 		final Map<String, T> valuesByString;
 
 		ParameterHolder(Class<T> parameterClass) {
 			this.parameterClass = parameterClass;
 			this.variantParameter = parameterClass.getAnnotation(VariantParameter.class);
-			this.valuesByString = values().stream().collect(toMap(T::toString, identity()));
+			this.values = List.of(parameterClass.getEnumConstants());
+			this.valuesByString = values.stream().collect(toMap(T::toString, identity()));
 			String defaultValue = parameterClass.getAnnotation(VariantParameter.class).defaultValue();
 			if (!defaultValue.equals("")) {
-				this.valuesByString.put("default", this.valuesByString.get(defaultValue));
+				T value = this.valuesByString.get(defaultValue);
+				if (value == null) {
+					throw new IllegalArgumentException("In @VariantParameter for %s: defaultValue '%s' is not one of its values (%s)".formatted(
+							parameterClass.getSimpleName(), defaultValue, valuesAsString()));
+				}
+				this.valuesByString.put("default", value);
 			}
 		}
 
 		// We compare against the toString() value of each constant, so that variant values can include spaces etc.
+		// The literal string "default" also resolves, via the alias key, when the parameter declares a defaultValue.
+		// Unknown strings are an error: silently falling back to the default would hide typos and renamed values.
 		T valueOf(String s) {
 			T v = valuesByString.get(s);
 			if (v == null) {
-				if (valuesByString.containsKey("default")){
-					return valuesByString.get("default");
-				}
-				throw new IllegalArgumentException("Illegal value for variant parameter %s: \"%s\"".formatted(variantParameter.name(), s));
+				throw new IllegalArgumentException("Illegal value for variant parameter %s: \"%s\" (valid values: %s)".formatted(
+						variantParameter.name(), s, valuesAsString()));
 			}
 			return v;
 		}
 
 		List<T> values() {
-			return List.of(parameterClass.getEnumConstants());
+			return values;
+		}
+
+		// The synthetic "default" alias key maps to a constant whose toString differs, so it is
+		// rejected here — unless "default" is genuinely one of the enum's values (e.g. ResponseMode).
+		boolean isKnownValue(String value) {
+			T v = valuesByString.get(value);
+			return v != null && v.toString().equals(value);
+		}
+
+		String valuesAsString() {
+			return values.stream().map(Object::toString).collect(joining(", "));
 		}
 
 		public boolean hasDefault() {
@@ -417,6 +456,13 @@ public class VariantService {
 
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
 			return list.stream().flatMap(moduleListEntry -> {
+				// applicableWhen values are compared as raw strings at selection time, so a typo'd
+				// value would otherwise silently make the entry never applicable
+				for (TestPlan.VariantCondition condition : moduleListEntry.applicableWhen) {
+					ParameterHolder<?> conditionParameter = parameter(condition.parameter);
+					condition.values.forEach(v -> requireKnownVariantValue(planClass, conditionParameter, v, "applicableWhen"));
+				}
+
 				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()
 					.map(variant -> {
 						ParameterHolder<?> p = parameter(variant.key); // used to convert specific enum val into a wildcard one
@@ -448,6 +494,15 @@ public class VariantService {
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				throw new RuntimeException("Couldn't create test plan instance for " + planClass.getSimpleName(), e);
+			}
+
+			for (TestPlan.Variant exclusion : planInstance.variantsNotApplicable()) {
+				ParameterHolder<?> excludedParameter = variantParametersByClass.get(exclusion.key);
+				if (excludedParameter == null) {
+					throw new IllegalArgumentException("In variantsNotApplicable() for %s: not a variant parameter: %s".formatted(
+							planClass.getSimpleName(), exclusion.key.getName()));
+				}
+				requireKnownVariantValue(planClass, excludedParameter, exclusion.value, "variantsNotApplicable()");
 			}
 
 			List<TestPlan.ModuleListEntry> list = planInstance.testModulesWithVariants();
@@ -867,6 +922,20 @@ public class VariantService {
 					inCombinedAnnotations(moduleClass, VariantNotApplicableWhen.class)
 					.collect(groupingBy(a -> moduleParameter.apply(a.parameter()), toList()));
 
+			allValuesNotApplicable.forEach((p, values) ->
+					values.forEach(v -> requireKnownVariantValue(moduleClass, p, v, "@VariantNotApplicable")));
+			requireKnownVariantValues(allConfigurationFields, "@VariantConfigurationFields");
+			requireKnownVariantValues(allHidesConfigurationFields, "@VariantHidesConfigurationFields");
+			requireKnownVariantValues(allSetupMethods, "@VariantSetup");
+			conditionalExclusionAnnotations.forEach((p, annotations) ->
+					annotations.forEach(a -> {
+						if (!isAllValuesWildcard(a)) {
+							Arrays.stream(a.values()).forEach(v -> requireKnownVariantValue(moduleClass, p, v, "@VariantNotApplicableWhen"));
+						}
+						ParameterHolder<?> whenParameter = moduleParameter.apply(a.whenParameter());
+						Arrays.stream(a.hasValues()).forEach(v -> requireKnownVariantValue(moduleClass, whenParameter, v, "@VariantNotApplicableWhen"));
+					}));
+
 			this.parameters = declaredParameters.stream()
 					.map(p -> createTestModuleVariantInfo(
 							p,
@@ -881,6 +950,12 @@ public class VariantService {
 			this.parametersByName = parameters.stream()
 					.map(p -> p.parameter)
 					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
+		}
+
+		/** Validates the value-string keys of a per-parameter map of per-value rules. */
+		private void requireKnownVariantValues(Map<ParameterHolder<?>, ? extends Map<String, ?>> valuesByParameter, String source) {
+			valuesByParameter.forEach((p, byValue) ->
+					byValue.keySet().forEach(v -> requireKnownVariantValue(moduleClass, p, v, source)));
 		}
 
 		/**
@@ -907,7 +982,7 @@ public class VariantService {
 
 				// Determine which values to exclude
 				Set<T> valuesToExclude = new HashSet<>();
-				if (ann.values().length == 1 && ann.values()[0].equals("*")) {
+				if (isAllValuesWildcard(ann)) {
 					// "*" means all values
 					valuesToExclude.addAll(parameter.values());
 				} else {
