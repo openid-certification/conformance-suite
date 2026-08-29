@@ -35,6 +35,7 @@ import org.multipaz.mdoc.request.buildDeviceRequest
 import org.multipaz.mdoc.response.DeviceResponse
 import org.multipaz.mdoc.response.buildDeviceResponse
 import org.multipaz.request.MdocRequestedClaim
+import org.multipaz.revocation.RevocationStatus
 import org.multipaz.sdjwt.SdJwt
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
@@ -192,15 +193,29 @@ object TestAppUtils {
         UtopiaMovieTicket.getDocumentType()
     )
 
-	fun initialise() {
+	/**
+	 * (Re-)provisions the mock wallet's documents.
+	 *
+	 * @param statusListUri Optional Token Status List URI to reference from the MSO of every
+	 *   provisioned mdoc (with [statusListIndex]). Used by tests that need the verifier to look
+	 *   the presented credential up in a status list; null (the default) means the MSO carries no
+	 *   status element, as ISO/IEC 18013-5 12.3.6.2 permits.
+	 * @param statusListIndex Optional Token Status List index to reference from the MSO (with
+	 *   [statusListUri]).
+	 */
+	@JvmOverloads
+	fun initialise(statusListUri: String? = null, statusListIndex: Long? = null) {
 		runBlocking {
-			documentStoreInit();
+			documentStoreInit(statusListUri, statusListIndex);
 		}
 	}
 
 	var documentStore: DocumentStore? = null
 
-	private suspend fun documentStoreInit() {
+	private suspend fun documentStoreInit(
+		statusListUri: String? = null,
+		statusListIndex: Long? = null
+	) {
 		docTypeToDocumentId.clear()
 		val storage = EphemeralStorage()
 		val softwareSecureArea = SoftwareSecureArea.create(storage)
@@ -222,7 +237,9 @@ object TestAppUtils {
 			dsKey = dsKey,
 			deviceKeyAlgorithm = Algorithm.ESP256,
 			deviceKeyMacAlgorithm = Algorithm.ECDH_P256,
-			numCredentialsPerDomain = 1
+			numCredentialsPerDomain = 1,
+			statusListUri = statusListUri,
+			statusListIndex = statusListIndex
 		)
 	}
 
@@ -265,6 +282,8 @@ object TestAppUtils {
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
+        statusListUri: String? = null,
+        statusListIndex: Long? = null,
     ) {
         require(deviceKeyAlgorithm.isSigning)
         require(deviceKeyMacAlgorithm == Algorithm.UNSET || deviceKeyMacAlgorithm.isKeyAgreement)
@@ -278,7 +297,9 @@ object TestAppUtils {
             numCredentialsPerDomain,
             DrivingLicense.getDocumentType(),
             "Erika",
-            "Erika's Driving License"
+            "Erika's Driving License",
+            statusListUri,
+            statusListIndex
         )
         provisionDocument(
             documentStore,
@@ -290,7 +311,9 @@ object TestAppUtils {
             numCredentialsPerDomain,
             PhotoID.getDocumentType(),
             "Erika",
-            "Erika's Photo ID"
+            "Erika's Photo ID",
+            statusListUri,
+            statusListIndex
         )
         provisionDocument(
             documentStore,
@@ -303,6 +326,8 @@ object TestAppUtils {
             PhotoID.getDocumentType(),
             "Erika #2",
             "Erika's Photo ID #2",
+            statusListUri,
+            statusListIndex
         )
         provisionDocument(
             documentStore,
@@ -314,7 +339,9 @@ object TestAppUtils {
             numCredentialsPerDomain,
             EUPersonalID.getDocumentType(),
             "Erika",
-            "Erika's EU PID"
+            "Erika's EU PID",
+            statusListUri,
+            statusListIndex
         )
         provisionDocument(
             documentStore,
@@ -326,7 +353,9 @@ object TestAppUtils {
             numCredentialsPerDomain,
             UtopiaMovieTicket.getDocumentType(),
             "Erika",
-            "Erika's Movie Ticket"
+            "Erika's Movie Ticket",
+            statusListUri,
+            statusListIndex
         )
     }
 
@@ -347,7 +376,9 @@ object TestAppUtils {
         numCredentialsPerDomain: Int,
         documentType: DocumentType,
         givenNameOverride: String,
-        displayName: String
+        displayName: String,
+        statusListUri: String? = null,
+        statusListIndex: Long? = null
     ): String {
         val document = documentStore.createDocument(
             displayName = displayName,
@@ -373,7 +404,9 @@ object TestAppUtils {
                 validUntil = validUntil,
                 dsKey = dsKey,
                 numCredentialsPerDomain = numCredentialsPerDomain,
-                givenNameOverride = givenNameOverride
+                givenNameOverride = givenNameOverride,
+                statusListUri = statusListUri,
+                statusListIndex = statusListIndex
             )
         }
 
@@ -416,8 +449,17 @@ object TestAppUtils {
         validUntil: Instant,
         dsKey: AsymmetricKey.X509Certified,
         numCredentialsPerDomain: Int,
-        givenNameOverride: String
+        givenNameOverride: String,
+        statusListUri: String? = null,
+        statusListIndex: Long? = null
     ) {
+        // ISO/IEC 18013-5 12.3.6.2: the MSO's status element carries the reference to the MSO
+        // revocation list. Absent unless the test asked for one.
+        val revocationStatus = if (statusListUri != null && statusListIndex != null) {
+            RevocationStatus.StatusList(statusListIndex.toInt(), statusListUri, null)
+        } else {
+            null
+        }
         val issuerNamespaces = buildIssuerNamespaces {
             for ((nsName, ns) in documentType.mdocDocumentType?.namespaces!!) {
                 addNamespace(nsName) {
@@ -487,6 +529,7 @@ object TestAppUtils {
                     digestAlgorithm = Algorithm.SHA256,
                     valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
                     deviceKey = mdocCredential.getAttestation().publicKey,
+                    revocationStatus = revocationStatus,
                 )
                 val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))
 
