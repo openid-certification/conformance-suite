@@ -30,6 +30,16 @@ public abstract class AbstractVP1FinalVerifierNegativeTest extends AbstractVP1Fi
 		}
 	}
 
+	/**
+	 * Not checked for negative modules: the presentation is invalid for a reason that has nothing
+	 * to do with revocation, and a verifier that rejects it before it looks at the status is
+	 * behaving correctly. The modules presenting a revoked credential override this again.
+	 */
+	@Override
+	protected ConditionResult revocationListFetchSeverity() {
+		return null;
+	}
+
 	@Override
 	protected void createScreenshotPlaceholder() {
 		callAndStopOnFailure(ExpectVerifierRejectedPresentationPage.class, "OID4VP-1FINAL-8.2");

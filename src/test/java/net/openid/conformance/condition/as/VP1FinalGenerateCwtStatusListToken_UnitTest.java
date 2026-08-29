@@ -50,7 +50,7 @@ public class VP1FinalGenerateCwtStatusListToken_UnitTest {
 		JsonObject reference = new JsonObject();
 		reference.addProperty("uri", STATUS_LIST_URI);
 		reference.addProperty("idx", REVOKED_IDX);
-		env.putObject(CreateRevokedStatusListReference.ENV_KEY, reference);
+		env.putObject(AbstractCreateStatusListReference.ENV_KEY, reference);
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class VP1FinalGenerateCwtStatusListToken_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_marksTheReferencedIndexRevokedAndEvenIndicesValid() {
+	public void testEvaluate_marksOddIndicesRevokedAndEvenIndicesValid() {
 		cond.execute(env);
 
 		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN,

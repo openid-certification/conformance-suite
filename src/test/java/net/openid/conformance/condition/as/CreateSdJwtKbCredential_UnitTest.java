@@ -186,7 +186,7 @@ public class CreateSdJwtKbCredential_UnitTest {
 	public void testEvaluate_referencesTheStatusListWhenOneWasAllocated() throws Exception {
 		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
 		env.putObjectFromJsonString("config", "credential.signing_jwk", SIGNING_JWK);
-		env.putObjectFromJsonString(CreateRevokedStatusListReference.ENV_KEY, """
+		env.putObjectFromJsonString(AbstractCreateStatusListReference.ENV_KEY, """
 			{"uri": "https://example.com/test/a/alias/statuslists/1", "idx": 41}""");
 
 		cond.execute(env);

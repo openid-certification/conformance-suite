@@ -37,7 +37,7 @@ public class CreateMdocCredential extends AbstractCondition {
 		// provisioned with the MSO status element pointing at it — ISO/IEC 18013-5 12.3.6.2.
 		String statusListUri = null;
 		Long statusListIndex = null;
-		JsonObject statusListReference = env.getObject(CreateRevokedStatusListReference.ENV_KEY);
+		JsonObject statusListReference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
 		if (statusListReference != null) {
 			statusListUri = OIDFJSON.getString(statusListReference.get("uri"));
 			statusListIndex = (long) OIDFJSON.getInt(statusListReference.get("idx"));

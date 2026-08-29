@@ -766,6 +766,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			// whilst or after we tidy up.
 			getTestExecutionManager().cancelAllBackgroundTasksExceptFinalisation();
 
+			finaliseChecks();
+
 			if (getResult() == Result.UNKNOWN) {
 				List<?> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
 				if (filledPlaceholders.size() > 0) {
@@ -809,6 +811,19 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			return "done";
 		});
+	}
+
+	/**
+	 * Hook for checks that can only be made once the test has finished, whichever way it
+	 * finished: {@link #fireTestFinished()} and the placeholder watcher in
+	 * {@link #waitForPlaceholders()} both reach this point, so an override here runs on the
+	 * immediate-finish path and on the path that waits for a screenshot upload.
+	 *
+	 * <p>Called on the finalisation thread without the test lock held, and before the test's
+	 * result is decided, so a condition failed here makes the test FAILED rather than REVIEW.
+	 * An override that calls conditions must take the lock itself.
+	 */
+	protected void finaliseChecks() {
 	}
 
 	@Override

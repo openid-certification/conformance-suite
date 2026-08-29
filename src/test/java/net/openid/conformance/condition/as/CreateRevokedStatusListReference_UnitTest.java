@@ -43,7 +43,7 @@ public class CreateRevokedStatusListReference_UnitTest {
 		cond.execute(env);
 
 		assertThat(OIDFJSON.getString(
-			env.getElementFromObject(CreateRevokedStatusListReference.ENV_KEY, "uri")))
+			env.getElementFromObject(AbstractCreateStatusListReference.ENV_KEY, "uri")))
 			.isEqualTo(BASE_URL + "/statuslists/1");
 	}
 
@@ -54,7 +54,7 @@ public class CreateRevokedStatusListReference_UnitTest {
 		cond.execute(env);
 
 		int idx = OIDFJSON.getInt(
-			env.getElementFromObject(CreateRevokedStatusListReference.ENV_KEY, "idx"));
+			env.getElementFromObject(AbstractCreateStatusListReference.ENV_KEY, "idx"));
 		assertThat(idx).isBetween(0, EvenOddStatusListContents.STATUS_LIST_ENTRIES - 1);
 		assertThat(idx % 2).as("only odd indices are revoked in the served list").isEqualTo(1);
 

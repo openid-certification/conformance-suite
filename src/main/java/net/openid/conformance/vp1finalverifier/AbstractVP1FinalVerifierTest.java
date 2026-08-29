@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AbstractCreateStatusListReference;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationEndpointHttpRequest;
@@ -23,7 +24,9 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
+import net.openid.conformance.condition.as.CreateValidStatusListReference;
 import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
+import net.openid.conformance.condition.as.EnsureVerifierFetchedStatusList;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
@@ -51,6 +54,8 @@ import net.openid.conformance.condition.as.VP1FinalCheckEncryptionKeyNotReused;
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalGenerateCwtStatusListToken;
+import net.openid.conformance.condition.as.VP1FinalGenerateJwtStatusListToken;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEnsureDirectPostResponseHasRedirectUriForHaip;
@@ -96,6 +101,9 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
+
+import java.util.Base64;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -300,6 +308,16 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
+		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)) {
+			// served without moving the test to RUNNING: that takes the test lock, which is
+			// held for the whole of the authorization endpoint handler - including the POST of
+			// the authorization response to the verifier's response_uri. A verifier that checks
+			// the status list before it responds to that POST would therefore deadlock against
+			// itself. The token is generated when the credential is created and stored in the
+			// environment, so this handler only has to read it, which needs no lock (the
+			// environment is backed by a concurrent map).
+			return handleStatusListRequest();
+		}
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
@@ -316,6 +334,72 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		return responseObject;
 	}
+	private Object handleStatusListRequest() {
+		boolean isMdoc = getVariant(VP1FinalVerifierCredentialFormat.class)
+			== VP1FinalVerifierCredentialFormat.ISO_MDL;
+		String contentType = isMdoc
+			? VP1FinalGenerateCwtStatusListToken.STATUS_LIST_CWT_CONTENT_TYPE
+			: VP1FinalGenerateJwtStatusListToken.STATUS_LIST_JWT_CONTENT_TYPE;
+		String token = env.getString(isMdoc
+			? VP1FinalGenerateCwtStatusListToken.ENV_KEY : VP1FinalGenerateJwtStatusListToken.ENV_KEY);
+
+		if (token == null) {
+			eventLog.log(getName(), "The verifier requested the status list before the presentation "
+				+ "was sent, so there is no status list token to serve yet.");
+			return ResponseEntity.notFound().build();
+		}
+
+		env.putString(EnsureVerifierFetchedStatusList.FETCHED_ENV_KEY, "true");
+		eventLog.log(getName(), "The verifier fetched the status list the presented credential references.");
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_TYPE, contentType)
+			.body(isMdoc ? Base64.getDecoder().decode(token) : token);
+	}
+
+	/**
+	 * The severity of a missing revocation list fetch for this module, or null when the module
+	 * must not be checked at all.
+	 *
+	 * <p>Every credential these tests present references a revocation list this test instance
+	 * serves, so a verifier that validated the credential's status must have fetched it. Whether
+	 * that says anything about the verifier depends on the module: for a module presenting a
+	 * valid credential a missing fetch only means the verifier does not check revocation, which
+	 * is its own policy choice (no specification makes the fetch mandatory - HAIP 5-2.6 requires
+	 * verifiers to <em>support</em> validating status information, and ISO/IEC 18013-5 12.3.6.1
+	 * makes checking the MSO revocation list optional for the mdoc reader), so it is a WARNING.
+	 * The modules that present a revoked credential override this to FAILURE: there the fetch is
+	 * the only way the verifier can have detected the revocation the module exists to test.
+	 * Negative modules that fail the presentation for an unrelated reason skip the check
+	 * entirely: a verifier that rejects an invalid credential before looking at its status is
+	 * behaving correctly, and draft-ietf-oauth-status-list section 8.3 tells it not to fetch the
+	 * list for a token it has already found invalid.
+	 */
+	protected ConditionResult revocationListFetchSeverity() {
+		return ConditionResult.WARNING;
+	}
+
+	@Override
+	protected void finaliseChecks() {
+		ConditionResult severity = revocationListFetchSeverity();
+		if (severity == null) {
+			return;
+		}
+		// runs on the finalisation thread for both of the ways these tests finish - the verifier
+		// rejecting at the response_uri, and the screenshot upload that follows a success
+		// response - so conditions need the lock taken here
+		acquireLock();
+		try {
+			call(condition(EnsureVerifierFetchedStatusList.class)
+				.skipIfObjectsMissing(AbstractCreateStatusListReference.ENV_KEY)
+				.onSkip(ConditionResult.INFO)
+				.onFail(severity)
+				.dontStopOnFailure());
+		} finally {
+			clearLock();
+		}
+	}
+
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
@@ -635,10 +719,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	/**
 	 * Creates the credential the emulated wallet presents, in the format the selected variant
-	 * asks for. Tests that need to set something up before the credential exists (e.g. the status
-	 * list reference it carries) override this and call super.
+	 * asks for. The status list reference the credential carries is allocated before this runs;
+	 * a test that needs a different credential shape (the identifier list one) overrides this.
 	 */
 	protected void createCredential() {
+		// must run before the credential is created; the credential carries the reference
+		createStatusListReference();
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
 				createSdJwtCredential();
@@ -649,6 +735,24 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
+		// generate the status list token now so it is ready to serve however quickly the
+		// verifier fetches it - see handleStatusListRequest
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
+			case SD_JWT_VC ->
+				callAndStopOnFailure(VP1FinalGenerateJwtStatusListToken.class, "OTSL-5.1");
+			case ISO_MDL ->
+				callAndStopOnFailure(VP1FinalGenerateCwtStatusListToken.class, "OTSL-5.2",
+					"ISO18013-5-12.3.6.3");
+		}
+	}
+
+	/**
+	 * Allocates the status list reference the presented credential will carry. The happy flows
+	 * reference an index the served status list marks as valid, so that verifiers exercise the
+	 * status fetch on a good credential; negative tests override this to allocate a revoked one.
+	 */
+	protected void createStatusListReference() {
+		callAndStopOnFailure(CreateValidStatusListReference.class, "OTSL-6.2", "ISO18013-5-12.3.6.2");
 	}
 
 	protected void createSdJwtCredential() {

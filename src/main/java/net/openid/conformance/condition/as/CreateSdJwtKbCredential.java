@@ -33,11 +33,12 @@ public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 
 	/**
 	 * The {@code status} claim referencing the Token Status List this test instance serves, as
-	 * defined in draft-ietf-oauth-status-list section 6.2, or null when the test did not allocate
-	 * a status list reference (the usual case — a status reference is optional).
+	 * defined in draft-ietf-oauth-status-list section 6.2, or the unchanged additional claims
+	 * when the test allocated no status list reference - which the module presenting a credential
+	 * without revocation information does deliberately, the claim being optional.
 	 */
 	protected Map<String, Object> statusClaims(Environment env) {
-		JsonObject reference = env.getObject(CreateRevokedStatusListReference.ENV_KEY);
+		JsonObject reference = env.getObject(AbstractCreateStatusListReference.ENV_KEY);
 		if (reference == null) {
 			return additionalClaims;
 		}
