@@ -104,21 +104,21 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 			findings.add("required field 'vicalProvider' is missing or not a text string");
 		}
 
-		Long date = tdateMillis(vical.getOrNull("date"), "date", findings, true);
+		Long date = CborStructureChecks.tdateMillis(vical.getOrNull("date"), "date", findings, true);
 		if (date != null && date > now + CLOCK_SKEW_MILLIS) {
 			findings.add("'date' (VICAL issuance) is in the future");
 		}
 		if (date != null && date < EARLIEST_PLAUSIBLE_MILLIS) {
 			findings.add("'date' (VICAL issuance) is implausibly old");
 		}
-		Long nextUpdate = tdateMillis(vical.getOrNull("nextUpdate"), "nextUpdate", findings, false);
+		Long nextUpdate = CborStructureChecks.tdateMillis(vical.getOrNull("nextUpdate"), "nextUpdate", findings, false);
 		if (nextUpdate != null && nextUpdate < now - CLOCK_SKEW_MILLIS) {
 			findings.add("'nextUpdate' is in the past - the VICAL is overdue for an update");
 		}
 		if (nextUpdate != null && nextUpdate > now + FIFTY_YEARS_MILLIS) {
 			findings.add("'nextUpdate' is implausibly far in the future");
 		}
-		Long notAfter = tdateMillis(vical.getOrNull("notAfter"), "notAfter", findings, false);
+		Long notAfter = CborStructureChecks.tdateMillis(vical.getOrNull("notAfter"), "notAfter", findings, false);
 		if (notAfter != null && notAfter < now - CLOCK_SKEW_MILLIS) {
 			findings.add("'notAfter' is in the past - the VICAL is no longer valid");
 		}
@@ -170,13 +170,13 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 		if (serialItem == null) {
 			findings.add(prefix + "required field 'serialNumber' is missing");
 		} else if (cert != null) {
-			BigInteger listed = biguintValue(serialItem);
+			BigInteger listed = CborStructureChecks.biguintValue(serialItem);
 			if (listed == null) {
 				String hint = "";
 				if (serialItem instanceof Tagged && ((Tagged) serialItem).getTagNumber() == Tagged.NEGATIVE_BIGNUM) {
 					hint = " - a serial number whose first byte is 0x80 or above has probably been encoded with the negative-bignum tag by mistake";
 				}
-				findings.add(prefix + "'serialNumber' must be a biguint (a tag 2 unsigned-bignum byte string, or a plain unsigned integer) but is " + describeItem(serialItem) + hint);
+				findings.add(prefix + "'serialNumber' must be a biguint (a tag 2 unsigned-bignum byte string, or a plain unsigned integer) but is " + CborStructureChecks.describeItem(serialItem) + hint);
 			} else {
 				BigInteger actual = new BigInteger(1, cert.getSerialNumber().getValue());
 				if (!listed.equals(actual)) {
@@ -209,11 +209,11 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 		}
 
 		if (cert != null) {
-			Long notBefore = tdateMillis(certInfo.getOrNull("notBefore"), prefix + "notBefore", findings, false);
+			Long notBefore = CborStructureChecks.tdateMillis(certInfo.getOrNull("notBefore"), prefix + "notBefore", findings, false);
 			if (notBefore != null && notBefore != cert.getValidityNotBefore().toEpochMilliseconds()) {
 				findings.add(prefix + "'notBefore' does not match the notBefore of the embedded certificate");
 			}
-			Long notAfter = tdateMillis(certInfo.getOrNull("notAfter"), prefix + "notAfter", findings, false);
+			Long notAfter = CborStructureChecks.tdateMillis(certInfo.getOrNull("notAfter"), prefix + "notAfter", findings, false);
 			if (notAfter != null && notAfter != cert.getValidityNotAfter().toEpochMilliseconds()) {
 				findings.add(prefix + "'notAfter' does not match the notAfter of the embedded certificate");
 			}
@@ -231,66 +231,4 @@ public class ValidateVicalStructure extends AbstractVicalCondition {
 		}
 	}
 
-	/** Returns the epoch millis of a tdate item, or null (adding a finding if required/mistyped). */
-	private Long tdateMillis(DataItem item, String fieldName, List<String> findings, boolean required) {
-		if (item == null) {
-			if (required) {
-				findings.add("required field '" + fieldName + "' is missing");
-			}
-			return null;
-		}
-		try {
-			return item.getAsDateTimeString().toEpochMilliseconds();
-		} catch (Exception e) {
-			findings.add("'" + fieldName + "' is not a valid tdate (tag 0 RFC 3339 date-time string)");
-			return null;
-		}
-	}
-
-	/** Human-readable description of a CBOR item's shape, e.g. "tag 3 (negative bignum) around a byte string". */
-	private String describeItem(DataItem item) {
-		if (item instanceof Tagged) {
-			long tag = ((Tagged) item).getTagNumber();
-			String name;
-			if (tag == Tagged.DATE_TIME_STRING) {
-				name = "date-time string";
-			} else if (tag == Tagged.UNSIGNED_BIGNUM) {
-				name = "unsigned bignum";
-			} else if (tag == Tagged.NEGATIVE_BIGNUM) {
-				name = "negative bignum";
-			} else if (tag == Tagged.ENCODED_CBOR) {
-				name = "embedded CBOR";
-			} else {
-				name = "unrecognized tag";
-			}
-			return "tag " + tag + " (" + name + ") around " + describeItem(((Tagged) item).getTaggedItem());
-		}
-		String type = item.getClass().getSimpleName();
-		switch (type) {
-			case "Uint": return "an unsigned integer";
-			case "Nint": return "a negative integer";
-			case "Bstr": return "a byte string";
-			case "Tstr": return "a text string";
-			case "CborArray": return "an array";
-			case "CborMap": return "a map";
-			default: return "a " + type;
-		}
-	}
-
-	/** Decodes a biguint (tag 2 byte string) or plain unsigned integer, or returns null. */
-	private BigInteger biguintValue(DataItem item) {
-		if (item instanceof Tagged && ((Tagged) item).getTagNumber() == Tagged.UNSIGNED_BIGNUM) {
-			try {
-				return new BigInteger(1, ((Tagged) item).getTaggedItem().getAsBstr());
-			} catch (Exception e) {
-				return null;
-			}
-		}
-		// technically the CDDL requires biguint, but a plain uint encodes the same semantic value
-		try {
-			return BigInteger.valueOf(item.getAsNumber());
-		} catch (Exception e) {
-			return null;
-		}
-	}
 }
