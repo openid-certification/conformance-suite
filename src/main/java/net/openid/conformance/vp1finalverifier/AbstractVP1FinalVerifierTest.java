@@ -61,6 +61,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
+import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
@@ -82,10 +83,12 @@ import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.sequence.ValidateJwksSequence;
+import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
@@ -110,6 +113,10 @@ import org.springframework.web.util.HtmlUtils;
 })
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
 	"client.request_object_trust_anchor_pem"
+})
+@ConfigurationFields({
+	"client.rical",
+	"client.rical_url"
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalVerifierResponseMode.class,
@@ -249,6 +256,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(RegisterClientRequestObjectTrustAnchor.class);
+		// register and validate the optionally configured RICAL used as the trust source for
+		// the verifier's request object signing chain (superseding the single trust anchor)
+		call(sequence(SetupRicalFromConfiguration.class));
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}
@@ -478,6 +488,16 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateRequestObjectAudForVP.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.8");
 
 		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
+
+		// Skipped unless a RICAL is configured. The verifier under test owns its reader
+		// certificate, so a chain that does not validate against the configured reader trust
+		// list is a FAILURE.
+		call(condition(ValidateRequestObjectX5cChainAgainstRical.class)
+			.skipIfObjectsMissing("rical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.FAILURE)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-F.3.2.6"));
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
