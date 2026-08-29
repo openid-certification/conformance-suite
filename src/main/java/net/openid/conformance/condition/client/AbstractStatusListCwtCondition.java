@@ -64,8 +64,18 @@ public abstract class AbstractStatusListCwtCondition extends AbstractCondition {
 	protected record ParsedStatusListCwt(CoseSign1 coseSign1, boolean tagged, DataItem claims) {
 	}
 
+	/**
+	 * The environment string the fetched MSO revocation list is read from. ISO/IEC 18013-5
+	 * 12.3.6.3 gives the status list and identifier list mechanisms the same envelope, so the
+	 * conditions checking that envelope are shared; they differ only in where the token is stored,
+	 * which {@link AbstractIdentifierListCwtCondition} overrides.
+	 */
+	protected String getTokenEnvKey() {
+		return ENV_STATUS_LIST_TOKEN;
+	}
+
 	protected byte[] getStatusListTokenBytes(Environment env) {
-		String encoded = env.getString(ENV_STATUS_LIST_TOKEN);
+		String encoded = env.getString(getTokenEnvKey());
 		if (encoded == null) {
 			throw error("No status list token found in the environment");
 		}
