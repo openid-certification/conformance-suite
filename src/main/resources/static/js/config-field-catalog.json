@@ -113,13 +113,13 @@
           "key": "credential.vical",
           "label": "VICAL",
           "type": "string",
-          "tooltip": "Optional base64-encoded signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List). If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL (taking precedence over the 'Credential Trust Anchor'). Only one of 'VICAL' and 'VICAL URL' may be supplied."
+          "tooltip": "Optional base64-encoded signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List). If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL (taking precedence over the 'Credential Trust Anchor'); in the VP verifier tests the suite instead checks its own mdoc signing chain is covered by the VICAL, as a verifier trusting the VICAL is otherwise expected to reject the presented credentials. Only one of 'VICAL' and 'VICAL URL' may be supplied."
         },
         {
           "key": "credential.vical_url",
           "label": "VICAL URL",
           "type": "string",
-          "tooltip": "Optional HTTPS URL to fetch a signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List) from. If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL. Only one of 'VICAL' and 'VICAL URL' may be supplied."
+          "tooltip": "Optional HTTPS URL to fetch a signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List) from. If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL; in the VP verifier tests the suite instead checks its own mdoc signing chain is covered by the VICAL. Only one of 'VICAL' and 'VICAL URL' may be supplied."
         },
         {
           "key": "vci.credential_configuration_id",
@@ -348,13 +348,13 @@
           "key": "client.rical",
           "label": "RICAL",
           "type": "string",
-          "tooltip": "Optional base64-encoded signed RICAL (ISO/IEC 18013-5 Reader Identity Certificate Authority List). If supplied, the suite checks that the verifier's request object signing certificate chains to a reader CA listed in the RICAL (taking precedence over the 'Request Object Trust Anchor'). Only one of 'RICAL' and 'RICAL URL' may be supplied."
+          "tooltip": "Optional base64-encoded signed RICAL (ISO/IEC 18013-5 Reader Identity Certificate Authority List). In the verifier tests the suite checks that the verifier's request object signing certificate chains to a reader CA listed in the RICAL (taking precedence over the 'Request Object Trust Anchor'); in the wallet tests the suite checks its own request signing certificate is covered by the RICAL, as a wallet trusting the RICAL is otherwise expected to reject the request. Only one of 'RICAL' and 'RICAL URL' may be supplied."
         },
         {
           "key": "client.rical_url",
           "label": "RICAL URL",
           "type": "string",
-          "tooltip": "Optional HTTPS URL to fetch a signed RICAL (ISO/IEC 18013-5 Reader Identity Certificate Authority List) from. If supplied, the suite checks that the verifier's request object signing certificate chains to a reader CA listed in the RICAL. Only one of 'RICAL' and 'RICAL URL' may be supplied."
+          "tooltip": "Optional HTTPS URL to fetch a signed RICAL (ISO/IEC 18013-5 Reader Identity Certificate Authority List) from. In the verifier tests the suite checks that the verifier's request object signing certificate chains to a reader CA listed in the RICAL; in the wallet tests the suite checks its own request signing certificate is covered by the RICAL. Only one of 'RICAL' and 'RICAL URL' may be supplied."
         },
         {
           "key": "client.redirect_uri",

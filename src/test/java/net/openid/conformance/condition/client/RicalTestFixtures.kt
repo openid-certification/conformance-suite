@@ -248,6 +248,29 @@ object RicalTestFixtures {
 		env.putObject("authorization_request_object", requestObject)
 	}
 
+	/**
+	 * Stores a client JWKS whose signing key carries the reader certificate in its x5c, the way
+	 * the wallet tests' client configuration does.
+	 */
+	@JvmStatic
+	@JvmOverloads
+	fun putClientJwks(env: Environment, pki: ReaderPki, envKey: String = "client_jwks") {
+		val readerKey = pki.readerKey as EcPrivateKeyDoubleCoordinate
+		val jwk = com.nimbusds.jose.jwk.ECKey.Builder(
+			com.nimbusds.jose.jwk.Curve.P_256,
+			com.nimbusds.jose.util.Base64URL.encode(readerKey.x),
+			com.nimbusds.jose.util.Base64URL.encode(readerKey.y)
+		)
+			.d(com.nimbusds.jose.util.Base64URL.encode(readerKey.d))
+			.keyUse(com.nimbusds.jose.jwk.KeyUse.SIGNATURE)
+			.x509CertChain(listOf(com.nimbusds.jose.util.Base64.encode(pki.readerCert.encoded.toByteArray())))
+			.build()
+		val jwks = com.google.gson.JsonParser.parseString(
+			"""{"keys":[${jwk.toJSONString()}]}"""
+		).asJsonObject
+		env.putObject(envKey, jwks)
+	}
+
 	// Java-friendly Instant helpers for tests
 	@JvmStatic
 	fun now(): Instant = Clock.System.now()
