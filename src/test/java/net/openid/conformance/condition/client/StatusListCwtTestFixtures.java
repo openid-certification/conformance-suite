@@ -179,12 +179,12 @@ final class StatusListCwtTestFixtures {
 		return Cbor.INSTANCE.encode(new CborMap(claims, false));
 	}
 
-	private static CoseSign1 sign(AsymmetricKey key, byte[] payload,
+	static CoseSign1 sign(AsymmetricKey key, byte[] payload,
 			Map<CoseLabel, DataItem> protectedHeaders) throws InterruptedException {
 		return sign(key, payload, protectedHeaders, Map.of());
 	}
 
-	private static CoseSign1 sign(AsymmetricKey key, byte[] payload,
+	static CoseSign1 sign(AsymmetricKey key, byte[] payload,
 			Map<CoseLabel, DataItem> protectedHeaders, Map<CoseLabel, DataItem> unprotectedHeaders)
 			throws InterruptedException {
 		return (CoseSign1) kotlinx.coroutines.BuildersKt.runBlocking(
@@ -193,12 +193,12 @@ final class StatusListCwtTestFixtures {
 				protectedHeaders, unprotectedHeaders, continuation));
 	}
 
-	private static X509CertChain signerCertChain(ECKey key, CertProfile profile) throws Exception {
+	static X509CertChain signerCertChain(ECKey key, CertProfile profile) throws Exception {
 		byte[] der = signerCertificate(key, profile);
 		return new X509CertChain(List.of(new X509Cert(new ByteString(der, 0, der.length))));
 	}
 
-	private static AsymmetricKey signingKey(X509CertChain chain, ECKey key) {
+	static AsymmetricKey signingKey(X509CertChain chain, ECKey key) {
 		EcPrivateKey privateKey = new EcPrivateKeyDoubleCoordinate(EcCurve.P256,
 			key.getD().decode(), key.getX().decode(), key.getY().decode());
 		return new AsymmetricKey.X509CertifiedExplicit(chain, privateKey, Algorithm.ES256);

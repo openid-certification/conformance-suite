@@ -1,13 +1,20 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AbstractIdentifierListCwtCondition;
 import net.openid.conformance.condition.client.AbstractStatusListCwtCondition;
+import net.openid.conformance.condition.client.CheckMdocCredentialIdentifierListStatus;
 import net.openid.conformance.condition.client.CheckMdocCredentialStatus;
+import net.openid.conformance.condition.client.EnsureContentTypeIdentifierListCwt;
 import net.openid.conformance.condition.client.EnsureContentTypeStatusListCwt;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.FetchMdocIdentifierListToken;
 import net.openid.conformance.condition.client.FetchMdocStatusListToken;
+import net.openid.conformance.condition.client.ValidateIdentifierListSignerCertificateProfile;
+import net.openid.conformance.condition.client.ValidateIdentifierListTokenCwtFormat;
 import net.openid.conformance.condition.client.ValidateStatusListSignerCertificateProfile;
 import net.openid.conformance.condition.client.ValidateStatusListTokenCwtCertificateChain;
+import net.openid.conformance.condition.client.VerifyIdentifierListTokenCwtSignature;
 import net.openid.conformance.condition.client.ValidateStatusListTokenCwtFormat;
 import net.openid.conformance.condition.client.VerifyStatusListTokenCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
@@ -71,6 +78,7 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}
 		validateMsoRevocationList();
+		validateMsoIdentifierList();
 		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
 		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
 		// responsible for its credentials' provenance, so it is only a WARNING.
@@ -149,5 +157,56 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			.onFail(ConditionResult.FAILURE)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-12.3.6.1"));
+	}
+
+	/**
+	 * ISO/IEC 18013-5 12.3.6.4: the identifier list is the other MSO revocation mechanism, used
+	 * when the MSO's status element carries an identifier_list rather than a status_list element.
+	 * The two are mutually exclusive, so exactly one of this block and
+	 * {@link #validateMsoRevocationList()} does any work for a given credential:
+	 * {@link FetchMdocIdentifierListToken} logs a skip and writes no
+	 * {@code mdoc_identifier_list_token} when the MSO carries no identifier_list element, which
+	 * skips everything below.
+	 *
+	 * <p>The envelope, signature and Table B.9 signer profile requirements are the ones 12.3.6.3
+	 * states for both mechanisms, so the severities match the status list block: retrieval and
+	 * format problems are only a warning for presentation, where the wallet under test does not
+	 * control the credential's issuer; a revoked credential is always a failure.
+	 */
+	private void validateMsoIdentifierList() {
+		ConditionResult retrievalSeverity = isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING;
+
+		callAndContinueOnFailure(FetchMdocIdentifierListToken.class, retrievalSeverity,
+			"ISO18013-5-12.3.6.2");
+		call(condition(EnsureContentTypeIdentifierListCwt.class)
+			.skipIfStringsMissing(AbstractIdentifierListCwtCondition.ENV_IDENTIFIER_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.4", "OTSL-8.2"));
+		call(condition(ValidateIdentifierListTokenCwtFormat.class)
+			.skipIfStringsMissing(AbstractIdentifierListCwtCondition.ENV_IDENTIFIER_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(retrievalSeverity)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.3", "ISO18013-5-12.3.6.4"));
+		call(condition(VerifyIdentifierListTokenCwtSignature.class)
+			.skipIfStringsMissing(AbstractIdentifierListCwtCondition.ENV_IDENTIFIER_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(retrievalSeverity)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.3"));
+		call(condition(ValidateIdentifierListSignerCertificateProfile.class)
+			.skipIfStringsMissing(AbstractIdentifierListCwtCondition.ENV_IDENTIFIER_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-B.9"));
+		call(condition(CheckMdocCredentialIdentifierListStatus.class)
+			.skipIfStringsMissing(AbstractIdentifierListCwtCondition.ENV_IDENTIFIER_LIST_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.FAILURE)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.1", "ISO18013-5-12.3.6.4"));
 	}
 }
