@@ -70,14 +70,16 @@ public interface TestPlan {
 
 		/**
 		 * Constructs a new Variant object with a given enum type and value.
-		 * The enum value is converted to its lowercase string representation.
+		 * The enum value is converted via its toString() form, the canonical variant value string
+		 * (for enums whose toString() differs from the lowercased constant name, e.g. "code id_token",
+		 * the lowercased name would not resolve to any value).
 		 *
 		 * @param <T>   The type of the enum.
 		 * @param key   The class of the enum type associated with this variant.
 		 * @param value An enum constant of the specified type, representing the variant value.
 		 */
 		public <T extends Enum<T>> Variant(Class<T> key, T value) {
-			this(key, value.name().toLowerCase());
+			this(key, value.toString());
 		}
 	}
 

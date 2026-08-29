@@ -256,13 +256,13 @@ public class VariantService {
 		}
 
 		// We compare against the toString() value of each constant, so that variant values can include spaces etc.
+		// The literal string "default" also resolves, via the alias key, when the parameter declares a defaultValue.
+		// Unknown strings are an error: silently falling back to the default would hide typos and renamed values.
 		T valueOf(String s) {
 			T v = valuesByString.get(s);
 			if (v == null) {
-				if (valuesByString.containsKey("default")){
-					return valuesByString.get("default");
-				}
-				throw new IllegalArgumentException("Illegal value for variant parameter %s: \"%s\"".formatted(variantParameter.name(), s));
+				throw new IllegalArgumentException("Illegal value for variant parameter %s: \"%s\" (valid values: %s)".formatted(
+						variantParameter.name(), s, valuesAsString()));
 			}
 			return v;
 		}
@@ -456,6 +456,13 @@ public class VariantService {
 
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
 			return list.stream().flatMap(moduleListEntry -> {
+				// applicableWhen values are compared as raw strings at selection time, so a typo'd
+				// value would otherwise silently make the entry never applicable
+				for (TestPlan.VariantCondition condition : moduleListEntry.applicableWhen) {
+					ParameterHolder<?> conditionParameter = parameter(condition.parameter);
+					condition.values.forEach(v -> requireKnownVariantValue(planClass, conditionParameter, v, "applicableWhen"));
+				}
+
 				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()
 					.map(variant -> {
 						ParameterHolder<?> p = parameter(variant.key); // used to convert specific enum val into a wildcard one

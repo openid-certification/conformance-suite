@@ -5,6 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -88,6 +89,26 @@ public final class BrokenVariantFixtures {
 		@Override
 		public List<Variant> variantsNotApplicable() {
 			return List.of(new Variant(ClientAuthType.class, "no_such_value"));
+		}
+	}
+
+	public static class BadApplicableWhenPlan implements TestPlan {
+		@Override
+		public List<ModuleListEntry> testModulesWithVariants() {
+			return List.of(new ModuleListEntry(List.of(), List.of(),
+					List.of(new VariantCondition(ClientAuthType.class, "no_such_value"))));
+		}
+	}
+
+	/**
+	 * A typo'd fixed variant value for a parameter that declares a defaultValue —
+	 * this used to silently resolve to the default instead of failing.
+	 */
+	public static class BadFixedVariantPlan implements TestPlan {
+		@Override
+		public List<ModuleListEntry> testModulesWithVariants() {
+			return List.of(new ModuleListEntry(List.of(),
+					List.of(new Variant(VCIGrantType.class, "no_such_value"))));
 		}
 	}
 

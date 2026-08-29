@@ -79,6 +79,18 @@ class VariantValueValidation_UnitTest {
 	}
 
 	@Test
+	void planApplicableWhenValueMustExist() {
+		assertRejected(() -> variantService.new TestPlanHolder(BrokenVariantFixtures.BadApplicableWhenPlan.class), "applicableWhen");
+	}
+
+	@Test
+	void planFixedVariantValueMustNotFallBackToDefault() {
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> variantService.new TestPlanHolder(BrokenVariantFixtures.BadFixedVariantPlan.class));
+		assertTrue(e.getMessage().contains("no_such_value"), e.getMessage());
+	}
+
+	@Test
 	void planExclusionParameterMustBeVariantParameter() {
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
 				() -> variantService.new TestPlanHolder(BrokenVariantFixtures.NotAVariantParameterPlan.class));
