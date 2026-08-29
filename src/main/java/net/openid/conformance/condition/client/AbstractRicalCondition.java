@@ -178,17 +178,28 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 
 	/**
 	 * F.3.2.6: the CertificateInfo of the first (bottom-up) chain certificate listed in the
-	 * RICAL governs the trust constraints; locates it (by certificate or SKI, since a renewed
-	 * CA keeping its key has a new certificate) to report constraints and entry detail.
+	 * RICAL governs the trust constraints. An entry matches a chain certificate directly (by
+	 * certificate or SKI, since a renewed CA keeping its key has a new certificate) or as its
+	 * issuer (by subject/issuer name and SKI/AKI) — the latter is the usual case, since the
+	 * verifier's x5c typically contains only the end-entity certificate while the RICAL lists
+	 * the CA that issued it.
 	 */
 	protected org.multipaz.mdoc.rical.RicalCertificateInfo findFirstMatchingRicalEntry(
 			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
 		for (X509Cert chainCert : chainCerts) {
 			byte[] chainCertSki = chainCert.getSubjectKeyIdentifier();
+			byte[] chainCertAki = chainCert.getAuthorityKeyIdentifier();
 			for (org.multipaz.mdoc.rical.RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
-				if (certInfo.getCertificate().equals(chainCert)
+				X509Cert entryCert = certInfo.getCertificate();
+				if (entryCert.equals(chainCert)
 					|| (chainCertSki != null
-						&& java.util.Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), chainCertSki))) {
+						&& java.util.Arrays.equals(entryCert.getSubjectKeyIdentifier(), chainCertSki))) {
+					return certInfo;
+				}
+				boolean issuerNameMatches = entryCert.getSubject().getName().equals(chainCert.getIssuer().getName());
+				boolean akiMatches = chainCertAki == null || entryCert.getSubjectKeyIdentifier() == null
+					|| java.util.Arrays.equals(entryCert.getSubjectKeyIdentifier(), chainCertAki);
+				if (issuerNameMatches && akiMatches) {
 					return certInfo;
 				}
 			}
