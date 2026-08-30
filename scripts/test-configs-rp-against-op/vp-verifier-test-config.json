@@ -9,6 +9,24 @@
     },
     "browser": [
         {
+            "comment": "visit the paired wallet test's redirect_uri (its callback endpoint), standing in for the tester's browser completing the verifier's session",
+            "match": "https://*/test/a/*/callback*",
+            "tasks": [
+                {
+                    "task": "Visit wallet-test callback",
+                    "match": "https://*/test/a/*/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "xpath",
+                            "//*",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        },
+        {
             "comment": "capture the suite-served evidence page to fill the verification-result screenshot placeholder without human interaction",
             "match": "https://*/test/a/*/verification-evidence",
             "tasks": [
