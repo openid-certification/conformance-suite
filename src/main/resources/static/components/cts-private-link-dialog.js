@@ -2,6 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import { ref, createRef } from "lit/directives/ref.js";
 import "./cts-modal.js";
 import "./cts-button.js";
+import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-icon.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
@@ -76,6 +77,9 @@ const STYLE_TEXT = css`
     word-break: break-all;
   }
   cts-private-link-dialog .plinkCopy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
     margin-top: var(--space-2);
   }
   cts-private-link-dialog .plinkStatus {
@@ -94,6 +98,12 @@ function ensureStylesInjected() {
   style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
+
+// Fixed subject for the "Send via email" mailto:. Worded to cover both
+// consumers of this dialog — log-detail shares a test log, plan-detail a test
+// plan. The body is the link alone — deliberately no test/plan context is
+// templated in; the user edits the mail in their own client before sending.
+const MAIL_SUBJECT = "OpenID Foundation Conformance Test Results";
 
 // Expiry bounds for the generated link. These are a UI convenience only:
 // the server (AssetSharing.generateSharingToken) enforces exp >= 1 with no
@@ -351,6 +361,18 @@ export class CtsPrivateLinkDialog extends LitElement {
     flashCopyConfirmed(trigger);
   }
 
+  /**
+   * `mailto:` URL for the "Send via email" button, with the link as the whole
+   * body. Rendered as an anchor's href rather than assigned to
+   * `window.location`: a user who has registered a *web* mailto handler
+   * (Gmail, Outlook Web) would otherwise have this page navigated away
+   * underneath them, losing a live-updating log view.
+   * @returns {string} The mailto: URL.
+   */
+  _mailtoUrl() {
+    return `mailto:?subject=${encodeURIComponent(MAIL_SUBJECT)}&body=${encodeURIComponent(this._link)}`;
+  }
+
   _flashCopyButton() {
     this.updateComplete.then(() => {
       const btn = this.querySelector(".plinkCopyBtn");
@@ -404,6 +426,15 @@ export class CtsPrivateLinkDialog extends LitElement {
                   label="Copy to clipboard"
                   @click=${this._handleCopy}
                 ></cts-button>
+                <cts-link-button
+                  class="plinkEmailBtn"
+                  href="${this._mailtoUrl()}"
+                  target="_blank"
+                  variant="secondary"
+                  size="sm"
+                  icon="mail"
+                  label="Send via email"
+                ></cts-link-button>
               </div>
               ${this._copyStatus
                 ? html`<p

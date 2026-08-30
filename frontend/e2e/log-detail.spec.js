@@ -2542,6 +2542,15 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // The Copy-to-clipboard button re-copies on click via writeText.
     await result.locator(".plinkCopyBtn").click();
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteText)).toBe(SHARE_LINK);
+
+    // "Send via email" sits alongside Copy. It is an anchor, so the mailto:
+    // URL itself is assertable without handing off to a mail client.
+    const emailLink = result.locator(".plinkEmailBtn a");
+    await expect(emailLink).toBeVisible();
+    await expect(emailLink).toHaveAttribute(
+      "href",
+      `mailto:?subject=OpenID%20Foundation%20Conformance%20Test%20Results&body=${encodeURIComponent(SHARE_LINK)}`,
+    );
   });
 
   test("Private link: re-opening the dialog clears the previous result", async ({ page }) => {
