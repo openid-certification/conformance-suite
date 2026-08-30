@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
  * Shared base for FAPI2-SP-Final client (RP) grant management test modules.
  *
  * <p>Grant management certification is only meaningful for generic FAPI, where it is an opt-in
- * capability. Every other profile - including the VCI ones,
+ * capability, and for Chile, whose profile requires it. Every other profile - including the VCI ones,
  * and the client credentials grant, which has no authorization flow to produce a grant at all - must
  * not generate these modules. The test plans also exclude those profiles at the plan level, but that
  * guard only fires when a plan is instantiated through the UI/plan API; a module invoked directly with

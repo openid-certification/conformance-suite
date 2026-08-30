@@ -100,10 +100,10 @@ class FAPI2MessageSigningFinalGrantManagementApplicability_UnitTest {
 	}
 
 	@Test
-	void grantManagementModulesAreOnlyApplicableForGenericFapi() {
+	void grantManagementModulesAreOnlyApplicableForGenericFapiAndChile() {
 		// Grant management certification is only meaningful for generic FAPI, where it is an opt-in
-		// capability. Every other profile must not offer it.
-		for (String profile : new String[] { "plain_fapi" }) {
+		// capability, and for Chile, whose profile requires it. Every other profile must not offer it.
+		for (String profile : new String[] { "plain_fapi", "openbanking_chile" }) {
 			VariantSelection selection = new VariantSelection(serverVariant(profile));
 
 			for (String moduleName : GM_MODULE_NAMES) {
@@ -125,6 +125,21 @@ class FAPI2MessageSigningFinalGrantManagementApplicability_UnitTest {
 		}
 	}
 
+	@Test
+	void grantManagementCannotBeDisabledForChile() {
+		// Grant management is part of the Chile profile, so a Chile plan with it turned off is not a
+		// configuration the tester may pick - the modules must still be generated.
+		Map<String, String> variant = serverVariant("openbanking_chile");
+		variant.put("grant_management", "disabled");
+		VariantSelection selection = new VariantSelection(variant);
+
+		for (String moduleName : GM_MODULE_NAMES) {
+			assertThat(variantService.getTestModule(moduleName).isApplicableForVariant(selection))
+				.as("%s must not be applicable for Chile with grant management disabled, "
+					+ "because disabling it is not an option there", moduleName)
+				.isFalse();
+		}
+	}
 
 	@Test
 	void clientGrantManagementModulesAreNotApplicableForClientCredentialsGrant() {
@@ -164,7 +179,7 @@ class FAPI2MessageSigningFinalGrantManagementApplicability_UnitTest {
 
 	@Test
 	void clientGrantManagementModulesAreNotApplicableForVciProfiles() {
-		// Grant management is only certifiable for generic FAPI, so the VCI profiles must not
+		// Grant management is only certifiable for generic FAPI and Chile, so the VCI profiles must not
 		// generate the client (RP) grant management modules even if grant_management is asked for.
 		for (String profile : new String[] { "vci", "vci_haip" }) {
 			Map<String, String> variant = new HashMap<>();

@@ -242,8 +242,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"fapi_client_credentials_grant"}
 )
-// Grant management is only certifiable for generic FAPI, where it is an opt-in capability. Every
-// other profile - including the client credentials grant, which
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability, and for
+// Chile, whose profile requires it. Every other profile - including the client credentials grant, which
 // has no authorization flow to produce a grant at all - must not offer the choice.
 @VariantNotApplicableWhen(
 	parameter = GrantManagement.class,
@@ -251,6 +251,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
 		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
+// Grant management is part of the Chile profile, so it is not something the tester can turn off there
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"disabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"openbanking_chile"}
 )
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
 	"client_attestation.issuer",
@@ -1844,6 +1851,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		initProfileBehavior(new OpenBankingBrazilClientProfileBehavior());
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile")
+	public void setupOpenBankingChile() {
+		initProfileBehavior(new OpenBankingChileClientProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "connectid_au")

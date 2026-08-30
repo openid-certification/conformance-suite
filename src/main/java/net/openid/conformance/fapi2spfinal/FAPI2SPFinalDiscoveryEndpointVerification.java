@@ -44,8 +44,8 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPIOpenIDConnect.class,
 	GrantManagement.class
 })
-// Grant management is only certifiable for generic FAPI, where it is an opt-in capability. Every
-// other profile - including the client credentials grant, which
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability, and for
+// Chile, whose profile requires it. Every other profile - including the client credentials grant, which
 // has no authorization flow to produce a grant at all - must not offer the choice.
 @VariantNotApplicableWhen(
 	parameter = GrantManagement.class,
@@ -53,6 +53,13 @@ import net.openid.conformance.variant.VariantSetup;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
 		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
+// Grant management is part of the Chile profile, so it is not something the tester can turn off there
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"disabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"openbanking_chile"}
 )
 public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFinalDiscoveryEndpointVerification {
 
@@ -99,6 +106,11 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")
 	public void setupKsa() {
 		profileBehavior = new KsaProfileBehavior();
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile")
+	public void setupOpenBankingChile() {
+		profileBehavior = new OpenBankingChileProfileBehavior();
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")

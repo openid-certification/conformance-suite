@@ -261,6 +261,14 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca"
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "connectid_au", configurationFields = {
 	"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
@@ -300,10 +308,10 @@ import java.util.function.Supplier;
 	parameter = ClientAuthType.class,
 	values = {"client_attestation"},
 	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant"}
+	hasValues = {"plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "openbanking_chile", "fapi_client_credentials_grant"}
 )
-// Grant management is only certifiable for generic FAPI, where it is an opt-in capability. Every
-// other profile - including the client credentials grant, which
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability, and for
+// Chile, whose profile requires it. Every other profile - including the client credentials grant, which
 // has no authorization flow to produce a grant at all - must not offer the choice.
 @VariantNotApplicableWhen(
 	parameter = GrantManagement.class,
@@ -311,6 +319,13 @@ import java.util.function.Supplier;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
 		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
+// Grant management is part of the Chile profile, so it is not something the tester can turn off there
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"disabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"openbanking_chile"}
 )
 // VCI profile configuration fields
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
@@ -1344,6 +1359,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "cbuae")
 	public void setupCbuaeFapi() {
 		initProfileBehavior(new CbuaeProfileBehavior());
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile")
+	public void setupOpenBankingChile() {
+		initProfileBehavior(new OpenBankingChileProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")

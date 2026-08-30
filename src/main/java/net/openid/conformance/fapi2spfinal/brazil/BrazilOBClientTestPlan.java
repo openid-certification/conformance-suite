@@ -76,7 +76,7 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalClientTestPlan.testModules);
 
 
-		// grant management is only offered for generic FAPI, so these are marked with
+		// grant management is only offered for generic FAPI and Chile, so these are marked with
 		// VariantNotApplicable for Brazil too
 		modules.remove(FAPI2SPFinalClientTestGrantManagementHappyPath.class);
 		modules.remove(FAPI2SPFinalClientTestGrantManagementQueryAndRevoke.class);
