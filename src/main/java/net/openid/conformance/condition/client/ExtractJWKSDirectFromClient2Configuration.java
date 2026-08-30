@@ -13,6 +13,9 @@ public class ExtractJWKSDirectFromClient2Configuration extends AbstractExtractJW
 	@PostEnvironment(required = { "client_jwks", "client_public_jwks" })
 	public Environment evaluate(Environment env) {
 		JsonElement jwks = env.getElementFromObject("config", "client2.jwks");
+		if (jwks == null) {
+			throw error("'jwks' field is missing from the 'Second client' section in the test configuration");
+		}
 		extractJwks(env, jwks);
 
 		return env;
