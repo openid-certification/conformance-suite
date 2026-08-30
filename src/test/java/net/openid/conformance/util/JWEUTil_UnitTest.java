@@ -1,5 +1,7 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -8,8 +10,10 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -123,6 +127,98 @@ public class JWEUTil_UnitTest {
 			"missing-kid");
 
 		assertNull(jwk);
+	}
+
+	@Test
+	public void selectFirstUsableEncKey_skipsUnusableKeysBeforeAndAfterTheUsableOne() throws Exception {
+		ECKey usableKey = new ECKeyGenerator(Curve.P_256)
+			.algorithm(JWEAlgorithm.ECDH_ES)
+			.keyUse(KeyUse.ENCRYPTION)
+			.keyID("usable")
+			.generate();
+		JsonObject jwks = JsonParser.parseString("""
+			{"keys":[
+				{"kty":"AKP","kid":"pq-before","alg":"ML-KEM-768"},
+				%s,
+				{"kty":"AKP","kid":"pq-after","alg":"ML-KEM-768"}
+			]}""".formatted(usableKey.toPublicJWK().toJSONString())).getAsJsonObject();
+		List<JWKUtil.SkippedJwk> skippedKeys = new ArrayList<>();
+
+		JWK jwk = JWEUtil.selectFirstUsableEncKey(jwks, skippedKeys);
+
+		assertNotNull(jwk);
+		assertEquals("usable", jwk.getKeyID());
+		assertEquals(List.of("pq-before", "pq-after"),
+			skippedKeys.stream().map(s -> OIDFJSON.getString(s.keyJson().getAsJsonObject().get("kid"))).toList());
+		for (JWKUtil.SkippedJwk skipped : skippedKeys) {
+			assertNotNull(skipped.reason());
+		}
+	}
+
+	@Test
+	public void selectFirstUsableEncKey_skipsSigningKeysRecordingWhy() throws Exception {
+		ECKey signingKey = new ECKeyGenerator(Curve.P_256)
+			.keyUse(KeyUse.SIGNATURE)
+			.keyID("sig")
+			.generate();
+		ECKey encryptionKey = new ECKeyGenerator(Curve.P_256)
+			.algorithm(JWEAlgorithm.ECDH_ES)
+			.keyUse(KeyUse.ENCRYPTION)
+			.keyID("enc")
+			.generate();
+		JsonObject jwks = JsonParser.parseString("""
+			{"keys":[%s,%s]}""".formatted(
+				signingKey.toPublicJWK().toJSONString(),
+				encryptionKey.toPublicJWK().toJSONString())).getAsJsonObject();
+		List<JWKUtil.SkippedJwk> skippedKeys = new ArrayList<>();
+
+		JWK jwk = JWEUtil.selectFirstUsableEncKey(jwks, skippedKeys);
+
+		assertNotNull(jwk);
+		assertEquals("enc", jwk.getKeyID());
+		assertEquals(1, skippedKeys.size());
+		assertEquals("sig", OIDFJSON.getString(skippedKeys.get(0).keyJson().getAsJsonObject().get("kid")));
+	}
+
+	@Test
+	public void selectFirstUsableEncKey_selectsAKeyWithoutAUseMember() throws Exception {
+		ECKey keyWithoutUse = new ECKeyGenerator(Curve.P_256)
+			.keyID("no-use")
+			.generate();
+		JsonObject jwks = JsonParser.parseString("""
+			{"keys":[%s]}""".formatted(keyWithoutUse.toPublicJWK().toJSONString())).getAsJsonObject();
+
+		JWK jwk = JWEUtil.selectFirstUsableEncKey(jwks, new ArrayList<>());
+
+		assertNotNull(jwk);
+		assertEquals("no-use", jwk.getKeyID());
+	}
+
+	@Test
+	public void selectFirstUsableEncKey_returnsNullWhenNoKeyIsUsable() throws Exception {
+		ECKey signingKey = new ECKeyGenerator(Curve.P_256)
+			.keyUse(KeyUse.SIGNATURE)
+			.keyID("sig")
+			.generate();
+		JsonObject jwks = JsonParser.parseString("""
+			{"keys":[
+				{"kty":"AKP","kid":"pq","alg":"ML-KEM-768"},
+				%s
+			]}""".formatted(signingKey.toPublicJWK().toJSONString())).getAsJsonObject();
+		List<JWKUtil.SkippedJwk> skippedKeys = new ArrayList<>();
+
+		JWK jwk = JWEUtil.selectFirstUsableEncKey(jwks, skippedKeys);
+
+		assertNull(jwk);
+		assertEquals(2, skippedKeys.size());
+	}
+
+	@Test
+	public void selectFirstUsableEncKey_returnsNullWhenTheSetHasNoKeysArray() {
+		assertNull(JWEUtil.selectFirstUsableEncKey(new JsonObject(), new ArrayList<>()));
+		assertNull(JWEUtil.selectFirstUsableEncKey(
+			JsonParser.parseString("{\"keys\":\"oops\"}").getAsJsonObject(), new ArrayList<>()));
+		assertNull(JWEUtil.selectFirstUsableEncKey(null, new ArrayList<>()));
 	}
 
 	@Test

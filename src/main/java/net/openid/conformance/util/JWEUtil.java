@@ -48,6 +48,37 @@ import java.util.stream.Stream;
 public class JWEUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(JWEUtil.class);
+
+	/**
+	 * Selects the first key in a JWK set JSON object that the recipient of the set could
+	 * actually use for encrypting to its owner: the first key that parses as a supported JOSE
+	 * key type and is not restricted to signing. The set may contain unusable keys (e.g.
+	 * post-quantum keys advertised for crypto agility) that a conformant recipient skips -
+	 * RFC 7517 section 5. Each skipped key is recorded in {@code skippedKeys} - with the reason
+	 * it was skipped - so the calling condition can log it into the test log.
+	 * Returns null when the set contains no usable key (or has no "keys" array at all).
+	 */
+	public static JWK selectFirstUsableEncKey(JsonObject jwksJsonObject, List<JWKUtil.SkippedJwk> skippedKeys) {
+		if (jwksJsonObject == null) {
+			return null;
+		}
+		JWKSet jwkSet;
+		try {
+			jwkSet = JWKUtil.parseJWKSetLeniently(jwksJsonObject.toString(), skippedKeys);
+		} catch (ParseException e) {
+			// not a JWK set object with a "keys" array - no usable key in it
+			return null;
+		}
+		for (JWK jwk : jwkSet.getKeys()) {
+			if (!KeyUse.SIGNATURE.equals(jwk.getKeyUse())) {
+				return jwk;
+			}
+			skippedKeys.add(new JWKUtil.SkippedJwk(
+				JsonParser.parseString(jwk.toJSONString()), "key is restricted to signing (\"use\":\"sig\")"));
+		}
+		return null;
+	}
+
 	/**
 	 * Returns a key that has the correct key type and optionally use=enc,
 	 * or null if no key was found.
