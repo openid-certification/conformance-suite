@@ -8,9 +8,13 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "oid4vp-1final-verifier-invalid-session-transcript",
 	displayName = "OID4VP-1.0-FINAL Verifier: Invalid session transcript",
 	summary = """
-		Creates a credential with a session transcript that uses the wrong nonce value. \
-		The verifier must reject this credential because the mdoc device signature will not \
-		verify against the expected session transcript.
+		Presents an otherwise valid mdoc whose device authentication was computed over an \
+		incorrect session transcript: the wallet builds the OpenID4VPHandover using an \
+		incorrect nonce (the verifier's nonce with 'INVALID' appended) instead of the nonce \
+		from the authorization request, and signs (or MACs) the DeviceAuth over the resulting \
+		session transcript. Everything else about the credential is valid. The verifier must \
+		reject the presentation: recomputing the session transcript with the nonce it actually \
+		sent, the mdoc's device signature or MAC does not verify.
 
 		This test is only applicable for the ISO mDL credential format.
 
