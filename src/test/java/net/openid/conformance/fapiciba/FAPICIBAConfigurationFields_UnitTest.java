@@ -9,6 +9,8 @@ import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +27,16 @@ class FAPICIBAConfigurationFields_UnitTest {
 		"directory.discoveryUrl",
 		"directory.client_id",
 		"directory.apibase"
+	);
+	private static final Set<String> CLIENT_CREDENTIAL_FIELDS = Set.of(
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca"
 	);
 
 	private static VariantService.TestPlanHolder plan;
@@ -60,6 +72,32 @@ class FAPICIBAConfigurationFields_UnitTest {
 			ClientRegistration.DYNAMIC_CLIENT, FAPICIBAProfile.PLAIN_FAPI);
 
 		assertTrue(Collections.disjoint(fields, BRAZIL_DIRECTORY_DCR_FIELDS));
+	}
+
+	@Test
+	void dynamicBrazilClientShowsClientCredentialFields() {
+		Set<String> fields = effectiveFields(
+			ClientRegistration.DYNAMIC_CLIENT, FAPICIBAProfile.OPENBANKING_BRAZIL);
+
+		assertTrue(fields.containsAll(CLIENT_CREDENTIAL_FIELDS));
+	}
+
+	@ParameterizedTest
+	@EnumSource(FAPICIBAProfile.class)
+	void staticClientShowsClientCredentialFields(FAPICIBAProfile profile) {
+		Set<String> fields = effectiveFields(ClientRegistration.STATIC_CLIENT, profile);
+
+		assertTrue(fields.containsAll(CLIENT_CREDENTIAL_FIELDS));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = FAPICIBAProfile.class, names = {
+		"PLAIN_FAPI", "OPENBANKING_UK", "CONNECTID_AU"
+	})
+	void dynamicNonBrazilClientDoesNotShowClientCredentialFields(FAPICIBAProfile profile) {
+		Set<String> fields = effectiveFields(ClientRegistration.DYNAMIC_CLIENT, profile);
+
+		assertTrue(Collections.disjoint(fields, CLIENT_CREDENTIAL_FIELDS));
 	}
 
 	private static Set<String> effectiveFields(

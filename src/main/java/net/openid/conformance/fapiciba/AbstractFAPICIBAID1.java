@@ -180,7 +180,6 @@ import java.util.function.Supplier;
 @ConfigurationFields({
 	"server.discoveryUrl",
 	"client.scope",
-	"client.jwks",
 	"client.hint_type",
 	"client.hint_value",
 	"client.login_hint",
@@ -189,14 +188,7 @@ import java.util.function.Supplier;
 	"client.payment_currency",
 	"client.payment_beneficiary_name",
 	"client.payment_desc",
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca",
 	"client2.scope",
-	"client2.jwks",
-	"mtls2.key",
-	"mtls2.cert",
-	"mtls2.ca",
 	"resource.resourceUrl"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
@@ -205,7 +197,15 @@ import java.util.function.Supplier;
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
 	"client.client_id",
-	"client2.client_id"
+	"client.jwks",
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"client2.client_id",
+	"client2.jwks",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
 	"directory.discoveryUrl",
@@ -219,7 +219,15 @@ import java.util.function.Supplier;
 	"client2.initial_access_token"
 })
 @VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.jwks",
 	"client.org_jwks",
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"client2.jwks",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca",
 	"consent.productType",
 	"resource.consentUrl",
 	"resource.brazilCpf",
