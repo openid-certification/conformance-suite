@@ -119,7 +119,59 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 				"disclosed_elements", disclosedElements,
 				"device_signed_elements", deviceSignedElements));
 
+		logDisclosedImages(doc);
+
 		return env;
+	}
+
+	/** The ISO/IEC 18013-5 and 23220 data elements whose value is an image. */
+	private static final Set<String> IMAGE_ELEMENT_NAMES =
+		Set.of("portrait", "enrolment_portrait_image", "signature_usual_mark");
+
+	/**
+	 * Logs each disclosed image-valued element as an inline image ('img' entries render as an
+	 * image in the log viewer), so a reviewer can see the portrait rather than a byte string.
+	 */
+	private void logDisclosedImages(DeviceResponseParser.Document doc) {
+		for (String namespace : doc.getIssuerNamespaces()) {
+			for (String name : doc.getIssuerEntryNames(namespace)) {
+				if (!IMAGE_ELEMENT_NAMES.contains(name)) {
+					continue;
+				}
+				byte[] image;
+				try {
+					image = doc.getIssuerEntryByteString(namespace, name);
+				} catch (Exception e) {
+					// value checks flag a non-bstr element; this entry is only for display
+					log("The disclosed '" + name + "' element is not a byte string, so it cannot be shown as an image",
+						args("namespace", namespace, "element", name));
+					continue;
+				}
+				log("The disclosed '" + name + "' element as an image",
+					args("namespace", namespace,
+						"element", name,
+						"img", "data:" + sniffImageMediaType(image) + ";base64,"
+							+ Base64.getEncoder().encodeToString(image)));
+			}
+		}
+	}
+
+	/**
+	 * ISO/IEC 18013-5 7.2.2 allows JPEG and JPEG 2000 portraits; sniff which this is so the
+	 * browser gets the right media type (JPEG 2000 only renders in some browsers).
+	 */
+	private static String sniffImageMediaType(byte[] image) {
+		if (image.length >= 3 && (image[0] & 0xff) == 0xff && (image[1] & 0xff) == 0xd8 && (image[2] & 0xff) == 0xff) {
+			return "image/jpeg";
+		}
+		if (image.length >= 6 && (image[0] & 0xff) == 0x00 && image[1] == 0x00 && image[2] == 0x00
+			&& (image[3] & 0xff) == 0x0c && (image[4] & 0xff) == 0x6a && (image[5] & 0xff) == 0x50) {
+			return "image/jp2";
+		}
+		if (image.length >= 4 && (image[0] & 0xff) == 0x89 && image[1] == 0x50 && image[2] == 0x4e && image[3] == 0x47) {
+			return "image/png";
+		}
+		return "image/jpeg";
 	}
 
 }
