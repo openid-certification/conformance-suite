@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class CreateVerifierIsoMdocDCAPISessionTranscript extends AbstractCondition {
+
 	@Override
 	@PreEnvironment(strings = { "client_id", "origin", "nonce" })
 	@PostEnvironment(strings = "session_transcript")
@@ -51,6 +52,7 @@ public class CreateVerifierIsoMdocDCAPISessionTranscript extends AbstractConditi
 			.add(handoverInfoHash)
 			.end()
 			.build();
+		byte[] handoverBytes = Cbor.INSTANCE.encode(handover);
 
 		byte[] sessionTranscript = Cbor.INSTANCE.encode(
 			CborArray.Companion.builder()
@@ -68,10 +70,23 @@ public class CreateVerifierIsoMdocDCAPISessionTranscript extends AbstractConditi
 
 		env.putString("session_transcript", transcript_b64);
 
+		// every input and intermediate of the handover calculation, with all bytes in hex, as
+		// one ordered multi-line string (a map's entries render in arbitrary order in the log
+		// UI) so a mismatching counterparty can compare step by step
+		String calculationDetail = String.join("\n",
+			"origin (utf8 bytes): " + MdocUtil.utf8Hex(origin),
+			"client_id (utf8 bytes): " + MdocUtil.utf8Hex(clientId),
+			"nonce (utf8 bytes): " + MdocUtil.utf8Hex(nonce),
+			"OpenID4VPDCAPIHandoverInfo = CBOR([origin (tstr), client_id (tstr), nonce (tstr)]): " + MdocUtil.hex(handoverInfo),
+			"handoverInfoHash = SHA-256(OpenID4VPDCAPIHandoverInfo): " + MdocUtil.hex(handoverInfoHash),
+			"OpenID4VPDCAPIHandover = CBOR([\"OpenID4VPDCAPIHandover\" (tstr), handoverInfoHash (bstr)]): " + MdocUtil.hex(handoverBytes),
+			"SessionTranscript = CBOR([null, null, OpenID4VPDCAPIHandover]): " + MdocUtil.hex(sessionTranscript));
+
 		log("Created session transcript",
 			args("session_transcript_input", sessionTranscriptInput,
 				"session_transcript_b64", transcript_b64,
-				"cbor_diagnostic", diagnostics));
+				"cbor_diagnostic", diagnostics,
+				"calculation_detail", calculationDetail));
 
 		return env;
 	}
