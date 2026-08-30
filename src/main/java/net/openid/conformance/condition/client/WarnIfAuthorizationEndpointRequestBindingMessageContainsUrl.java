@@ -26,7 +26,7 @@ public class WarnIfAuthorizationEndpointRequestBindingMessageContainsUrl extends
 		String bindingMessage = OIDFJSON.getString(bindingMessageElement);
 		BindingMessageUtils.UrlMatch urlMatch = BindingMessageUtils.findUrl(bindingMessage).orElse(null);
 		if (urlMatch != null) {
-			throw error("'binding_message' in authorization endpoint request contains a URL",
+			throw error("Server accepted a binding_message containing a URL",
 				args("binding_message_contains_url", true,
 					"binding_message_length", bindingMessage.length(),
 					"binding_message_url_match_type", urlMatch.type(),
