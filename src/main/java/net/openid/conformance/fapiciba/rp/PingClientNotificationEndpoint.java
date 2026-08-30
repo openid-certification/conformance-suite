@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.concurrent.TimeUnit;
 
 public class PingClientNotificationEndpoint extends AbstractCondition {
 	public static final String CLIENT_PING_ATTEMPTED = "client_ping_attempted";
@@ -61,6 +62,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 					if (attempt < getMaximumAttempts() && shouldRetry(e)) {
 						log("Retrying the client notification endpoint after a transient HTTP response",
 							args("attempt", attempt, "http_status", e.getStatusCode().value()));
+						waitBeforeRetry(attempt);
 						attempt++;
 						continue;
 					}
@@ -69,6 +71,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 					if (attempt < getMaximumAttempts() && shouldRetry(e)) {
 						log("Retrying the client notification endpoint after a temporary communication failure",
 							args("attempt", attempt, "error", e.getMessage()));
+						waitBeforeRetry(attempt);
 						attempt++;
 						continue;
 					}
@@ -86,6 +89,15 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 	protected boolean shouldRetry(RestClientException e) {
 		return false;
+	}
+
+	protected void waitBeforeRetry(int attempt) {
+		try {
+			TimeUnit.SECONDS.sleep(attempt);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw error("Interrupted while waiting to retry the client notification endpoint", e);
+		}
 	}
 
 	protected void markPingAttemptStarted(Environment env) {
