@@ -13,9 +13,11 @@ import org.multipaz.cbor.CborBuilder;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
+import org.bouncycastle.util.encoders.Hex;
 import org.multipaz.crypto.Algorithm;
 import org.multipaz.crypto.Crypto;
 
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
@@ -23,9 +25,11 @@ import java.util.Set;
 public abstract class AbstractCreateVP1FinalIsoMdocRedirectSessionTranscript extends AbstractCondition {
 	protected void calculateSessionTranscript(Environment env, JsonObject jwkJson, String clientId, String nonce, String responseUri) {
 		byte[] jwkThumbprint = null;
+		String jwkPublicJson = null;
 		if (jwkJson != null) {
 			try {
 				JWK jwk = JWK.parse(jwkJson.toString());
+				jwkPublicJson = jwk.toPublicJWK().toJSONString();
 				// computeThumbprint return base64url, but the spec requires us to use the raw bytes of the hash output
 				jwkThumbprint = jwk.computeThumbprint().decode();
 			} catch (ParseException | JOSEException e) {
@@ -74,6 +78,7 @@ public abstract class AbstractCreateVP1FinalIsoMdocRedirectSessionTranscript ext
 			.add(handoverInfoHash)
 			.end()
 			.build();
+		byte[] handoverBytes = Cbor.INSTANCE.encode(handover);
 
 		byte[] sessionTranscript = Cbor.INSTANCE.encode(
 			CborArray.Companion.builder()
@@ -91,9 +96,24 @@ public abstract class AbstractCreateVP1FinalIsoMdocRedirectSessionTranscript ext
 
 		env.putString("session_transcript", transcript_b64);
 
+		// every input and intermediate of the OID4VP B.2.6.1 OpenID4VPHandover calculation, with
+		// all bytes in hex, as one ordered multi-line string (a map's entries render in arbitrary
+		// order in the log UI) so a mismatching counterparty can compare step by step
+		String calculationDetail = String.join("\n",
+			"client_id (utf8 bytes): " + Hex.toHexString(clientId.getBytes(StandardCharsets.UTF_8)),
+			"nonce (utf8 bytes): " + Hex.toHexString(nonce.getBytes(StandardCharsets.UTF_8)),
+			"response_uri (utf8 bytes): " + Hex.toHexString(responseUri.getBytes(StandardCharsets.UTF_8)),
+			"response encryption JWK (public part): " + (jwkPublicJson != null ? jwkPublicJson : "<none - the handover uses null in place of the thumbprint>"),
+			"jwkThumbprint = RFC 7638 SHA-256 thumbprint of that JWK: " + (jwkThumbprint != null ? Hex.toHexString(jwkThumbprint) : "null"),
+			"OpenID4VPHandoverInfo = CBOR([client_id (tstr), nonce (tstr), jwkThumbprint (bstr, or null), response_uri (tstr)]): " + Hex.toHexString(handoverInfo),
+			"handoverInfoHash = SHA-256(OpenID4VPHandoverInfo): " + Hex.toHexString(handoverInfoHash),
+			"OpenID4VPHandover = CBOR([\"OpenID4VPHandover\" (tstr), handoverInfoHash (bstr)]): " + Hex.toHexString(handoverBytes),
+			"SessionTranscript = CBOR([null, null, OpenID4VPHandover]): " + Hex.toHexString(sessionTranscript));
+
 		log("Created session transcript",
 			args("session_transcript_input", sessionTranscriptInput,
 				"session_transcript_b64", transcript_b64,
-				"cbor_diagnostic", diagnostics));
+				"cbor_diagnostic", diagnostics,
+				"calculation_detail", calculationDetail));
 	}
 }
