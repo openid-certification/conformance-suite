@@ -24,6 +24,22 @@ import java.util.Set;
 public class X509CertificateUtil {
 
 	/**
+	 * Encodes a certificate as PEM, e.g. for inclusion in a log entry's detail so the full
+	 * certificate a check ran against can be inspected. Returns a description of the problem
+	 * instead of throwing when the certificate cannot be re-encoded.
+	 */
+	public static String toPem(X509Certificate certificate) {
+		try {
+			return "-----BEGIN CERTIFICATE-----\n"
+				+ java.util.Base64.getMimeEncoder(64, "\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII))
+					.encodeToString(certificate.getEncoded())
+				+ "\n-----END CERTIFICATE-----";
+		} catch (CertificateException e) {
+			return "certificate could not be encoded: " + e.getMessage();
+		}
+	}
+
+	/**
 	 * Checks if the given certificate is self-signed.
 	 *
 	 * A certificate is considered self-signed if it can be verified using its own public key.
