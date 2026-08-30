@@ -15,6 +15,12 @@ const STYLE_TEXT = css`
     color: var(--fg);
     margin-bottom: var(--space-1);
   }
+  cts-private-link-dialog .plinkPresets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
   cts-private-link-dialog .plinkDays {
     display: block;
     width: 6em;
@@ -85,6 +91,16 @@ function ensureStylesInjected() {
 const MIN_DAYS = 1;
 const MAX_DAYS = 3650;
 const DEFAULT_DAYS = 30;
+
+// One-click expiry presets. Each just sets the days value; the number input
+// stays available for anything else. "1 month" is DEFAULT_DAYS so the dialog
+// opens with a preset already highlighted.
+const EXPIRY_PRESETS = Object.freeze([
+  { label: "1 week", days: 7 },
+  { label: "1 month", days: 30 },
+  { label: "6 months", days: 180 },
+  { label: "1 year", days: 365 },
+]);
 
 /**
  * Shared "Private link" dialog used by both log-detail and plan-detail so the
@@ -164,6 +180,38 @@ export class CtsPrivateLinkDialog extends LitElement {
 
   _onDaysInput(e) {
     this._days = Number(e.target.value);
+  }
+
+  /**
+   * cts-click handler for a preset button; the preset's days live in its
+   * `data-days` attribute (no per-button arrow closures in the template).
+   * @param {Event} e - The cts-click event from the preset cts-button.
+   */
+  _onPresetClick(e) {
+    const days = Number(/** @type {Element} */ (e.currentTarget).getAttribute("data-days"));
+    if (Number.isFinite(days)) this._days = days;
+  }
+
+  _renderPresets() {
+    return html`<div
+      class="plinkPresets"
+      role="group"
+      aria-label="Valid for"
+      data-testid="private-link-presets"
+    >
+      ${EXPIRY_PRESETS.map((preset) => {
+        const active = this._days === preset.days;
+        return html`<cts-button
+          class="plinkPreset"
+          size="xs"
+          variant=${active ? "primary" : "secondary"}
+          aria-pressed=${active ? "true" : "false"}
+          data-days=${preset.days}
+          label=${preset.label}
+          @cts-click=${this._onPresetClick}
+        ></cts-button>`;
+      })}
+    </div>`;
   }
 
   /**
@@ -275,8 +323,10 @@ export class CtsPrivateLinkDialog extends LitElement {
   render() {
     return html`
       <cts-modal ${ref(this._modalRef)} heading="Private link" data-testid="private-link-dialog">
+        <span class="plinkLabel" aria-hidden="true">Valid for</span>
+        ${this._renderPresets()}
         <label class="plinkLabel">
-          Valid for (days, ${MIN_DAYS}–${MAX_DAYS})
+          Custom (days, ${MIN_DAYS}–${MAX_DAYS})
           <input
             class="plinkDays"
             type="number"

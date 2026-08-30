@@ -299,6 +299,9 @@ injectStyles();
  *   toggle's controls relationship reaches assistive tech (host-level
  *   `aria-controls` would sit on the non-focusable custom element). Omitted
  *   when empty.
+ * @property {string} aria-pressed - Forwarded onto the inner `<button>` for
+ *   toggle / preset buttons (`"true"` or `"false"`). Omitted when empty so a
+ *   plain command button is never mis-announced as an on/off toggle.
  * @fires cts-click - When the inner button is activated (not fired while disabled or loading)
  *
  * ## Programmatic activation
@@ -342,6 +345,7 @@ class CtsButton extends LitElement {
     ariaLabel: { type: String, attribute: "aria-label" },
     ariaExpanded: { type: String, attribute: "aria-expanded" },
     ariaControls: { type: String, attribute: "aria-controls" },
+    ariaPressed: { type: String, attribute: "aria-pressed" },
   };
 
   constructor() {
@@ -357,6 +361,7 @@ class CtsButton extends LitElement {
     this.ariaLabel = "";
     this.ariaExpanded = "";
     this.ariaControls = "";
+    this.ariaPressed = "";
   }
 
   connectedCallback() {
@@ -429,6 +434,7 @@ class CtsButton extends LitElement {
     const ariaLabelAttr = this.ariaLabel ? this.ariaLabel : nothing;
     const ariaExpandedAttr = this.ariaExpanded ? this.ariaExpanded : nothing;
     const ariaControlsAttr = this.ariaControls ? this.ariaControls : nothing;
+    const ariaPressedAttr = this.ariaPressed ? this.ariaPressed : nothing;
     return html`<button
       type="${this.type}"
       class="${buttonClass}"
@@ -436,6 +442,7 @@ class CtsButton extends LitElement {
       aria-label=${ariaLabelAttr}
       aria-expanded=${ariaExpandedAttr}
       aria-controls=${ariaControlsAttr}
+      aria-pressed=${ariaPressedAttr}
       @click="${this._handleClick}"
       >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
     >`;
