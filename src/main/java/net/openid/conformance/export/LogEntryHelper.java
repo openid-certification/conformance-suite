@@ -110,6 +110,10 @@ public class LogEntryHelper {
 		specLinks.put("IAVC-", "https://openid.net/specs/openid-ida-verified-claims-1_0.html#section-");
 		specLinks.put("DPOP-", "https://www.rfc-editor.org/rfc/rfc9449#section-");
 		specLinks.put("KSA", "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security");
+		// The FAPI2 KSA profile is not published at a stable public URL, so the PDF is kept under
+		// version control. Exact key: the PDF has no per-requirement anchors, so a "KSA-OF-" prefix
+		// entry would append a meaningless suffix.
+		specLinks.put("KSA-OF-1", "https://gitlab.com/openid/conformance-suite/-/blob/master/library/profiles/ksa-2024.09.01-final-errata1/BRAS21-API%20Security-150626-150843.pdf");
 		specLinks.put("OIDSSF-", "https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-");
 		specLinks.put("CAEPIOP-", "https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-");
 		specLinks.put("OIDRISC-", "https://openid.net/specs/openid-risc-1_0-final.html#section-");
