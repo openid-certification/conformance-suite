@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,6 +76,45 @@ public class AddVP1FinalEncryptionParametersToClientMetadata_UnitTest {
 		env.putObject("client_public_jwks", jwks);
 
 		cond.execute(env);
+	}
+
+	@Test
+	public void testHaipAdvertisesBothEncValuesIgnoringConfiguration() {
+
+		JsonObject clientConfig = JsonParser.parseString("""
+				{
+					"authorization_encrypted_response_alg": "RSA-OAEP",
+					"authorization_encrypted_response_enc": "A256GCM"
+				}
+			""").getAsJsonObject();
+		env.putObject("client", clientConfig);
+		env.putObject("client_public_jwks", jwks);
+		env.putString("vp_profile", "haip");
+
+		cond.execute(env);
+
+		assertEquals(JsonParser.parseString("[\"A128GCM\",\"A256GCM\"]"),
+			env.getElementFromObject("authorization_endpoint_request",
+				"client_metadata.encrypted_response_enc_values_supported"));
+	}
+
+	@Test
+	public void testConfiguredEncValueAdvertisedOutsideHaip() {
+
+		JsonObject clientConfig = JsonParser.parseString("""
+				{
+					"authorization_encrypted_response_enc": "A128CBC-HS256"
+				}
+			""").getAsJsonObject();
+		env.putObject("client", clientConfig);
+		env.putObject("client_public_jwks", jwks);
+		env.putString("vp_profile", "plain_vp");
+
+		cond.execute(env);
+
+		assertEquals(JsonParser.parseString("[\"A128CBC-HS256\"]"),
+			env.getElementFromObject("authorization_endpoint_request",
+				"client_metadata.encrypted_response_enc_values_supported"));
 	}
 
 	@Test

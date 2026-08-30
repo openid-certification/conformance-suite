@@ -42,6 +42,17 @@ public class AddVP1FinalEncryptionParametersToClientMetadata extends AbstractCon
 		String alg = env.getString("client", "authorization_encrypted_response_alg");
 		String enc = env.getString("client", "authorization_encrypted_response_enc");
 
+		// HAIP section 5 fixes the encryption parameters (ECDH-ES, with both A128GCM and
+		// A256GCM advertised), so under HAIP any configured values are ignored - the
+		// configuration fields are hidden in the UI for HAIP tests
+		boolean haip = "haip".equals(env.getString("vp_profile"));
+		if (haip && (alg != null || enc != null)) {
+			log("Ignoring the configured authorization encryption algorithms: HAIP requires ECDH-ES with both A128GCM and A256GCM supported",
+				args("configured_alg", alg, "configured_enc", enc));
+			alg = null;
+			enc = null;
+		}
+
 		if (alg == null) {
 			// get alg from the jwk
 			JsonElement algEl = encKey.get("alg");
@@ -96,7 +107,14 @@ public class AddVP1FinalEncryptionParametersToClientMetadata extends AbstractCon
 		clientMetaData.add("jwks", jwks);
 
 		JsonArray encArray = new JsonArray();
-		encArray.add(enc);
+		if (haip) {
+			// HAIP section 5 requires the verifier's encrypted_response_enc_values_supported to
+			// contain both A128GCM and A256GCM; the suite can decrypt either
+			encArray.add("A128GCM");
+			encArray.add("A256GCM");
+		} else {
+			encArray.add(enc);
+		}
 		clientMetaData.add("encrypted_response_enc_values_supported", encArray);
 
 		log("Added encryption key to client_metadata in authorization endpoint request", args("client_metadata", clientMetaData));
