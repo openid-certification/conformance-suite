@@ -6,6 +6,11 @@ import java.util.regex.Pattern;
 
 public final class BindingMessageUtils {
 
+	/*
+	 * Detect unambiguous URL-like values only. Bare non-www domains and bare IP literals are
+	 * deliberately not matched to avoid false positives in a binding_message. Explicitly recognized
+	 * schemes are http, https, ftp, and mailto; the host/path alternative is scheme-agnostic.
+	 */
 	private static final Pattern URL_PATTERN = Pattern.compile(
 		"(?i)(?<absoluteUrl>\\b(?:https?|ftp)://\\S+)|(?<mailto>\\bmailto:\\S+)|"
 			+ "(?<www>\\bwww\\.[a-z0-9][a-z0-9.-]*\\.[a-z]{2,}(?:/\\S*)?)|"
