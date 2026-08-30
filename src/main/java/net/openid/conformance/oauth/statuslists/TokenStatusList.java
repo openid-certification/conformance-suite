@@ -3,6 +3,7 @@ package net.openid.conformance.oauth.statuslists;
 import java.io.ByteArrayOutputStream;
 import java.io.Serial;
 import java.util.Base64;
+import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -45,6 +46,9 @@ public class TokenStatusList {
 		return inflate(Base64.getUrlDecoder().decode(encodedStatusList));
 	}
 
+	/** Refuse to inflate beyond this, so a decompression bomb cannot exhaust the heap. */
+	private static final int MAX_INFLATED_BYTES = 32 * 1024 * 1024;
+
 	private static byte[] inflate(byte[] compressed) throws Exception {
 
 		Inflater inflater = new Inflater(); // ZLIB format
@@ -55,7 +59,18 @@ public class TokenStatusList {
 			byte[] buffer = new byte[1024];
 			while (!inflater.finished()) {
 				int count = inflater.inflate(buffer);
+				if (count == 0 && !inflater.finished()) {
+					// inflate() makes no progress when the stream is truncated (needs more
+					// input) or requires a preset dictionary; without this check the loop
+					// spins forever, hanging the test that is checking the status list
+					throw new DataFormatException(
+						"the zlib stream ended before the compressed data was complete");
+				}
 				output.write(buffer, 0, count);
+				if (output.size() > MAX_INFLATED_BYTES) {
+					throw new DataFormatException(
+						"the decompressed status list exceeds " + MAX_INFLATED_BYTES + " bytes");
+				}
 			}
 		} finally {
 			inflater.end();
