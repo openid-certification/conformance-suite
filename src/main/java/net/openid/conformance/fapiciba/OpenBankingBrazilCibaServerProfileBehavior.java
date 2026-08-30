@@ -187,18 +187,9 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
-	public ConditionSequence setupResourceEndpointRequestBody() {
-		return null;
-	}
-
-	@Override
 	public ConditionSequence createUpdateResourceRequestSteps(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {
 		return new RefreshTokenRequestSteps(isSecondClient, addTokenEndpointClientAuthentication)
 				.skip(EnsureAccessTokenValuesAreDifferent.class, "");
 	}
 
-	@Override
-	public ConditionSequence validateResourceEndpointResponse() {
-		return null;
-	}
 }

@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.client.AddBindingMessageToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -14,10 +13,4 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"openbanking_brazil"})
 public class FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds extends AbstractFAPICIBAID1 {
 
-	@Override
-	protected void createAuthorizationRequest() {
-		super.createAuthorizationRequest();
-
-		callAndStopOnFailure(AddBindingMessageToAuthorizationEndpointRequest.class, "CIBA-7.1");
-	}
 }
