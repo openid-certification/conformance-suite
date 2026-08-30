@@ -101,7 +101,7 @@ public class ValidateStatusListTokenCwtCertificateChain extends AbstractStatusLi
 
 		logSuccess("The MSO revocation list's x5chain is signed by the same CA as the MSO's signer certificate"
 				+ (trustAnchor != null ? " and validates against the 'Credential Trust Anchor'"
-					: vicalConfigured ? "; the IACA itself is checked against the VICAL by the credential chain validation"
+					: vicalConfigured ? "; the IACA itself is checked against the VICAL later, by ValidateMdocIssuerChainAgainstVical"
 					: "; no trust anchor is configured, so only chain-internal checks were performed"),
 			args("issuer", statusIssuer, "chain_length", statusJavaChain.size()));
 
