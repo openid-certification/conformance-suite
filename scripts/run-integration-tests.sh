@@ -128,8 +128,9 @@ if [ -n "$NGROK_URL" ]; then
     # Generate VP test signing key+cert with ngrok hostname in SAN so x509_san_dns tests work
     if [ "$TEST_SUITE" = "--vc-tests" ]; then
         echo "==> Generating VP test cert with ngrok hostname in SAN..."
-        # Regenerate the CA and its credential signing keys together so they form a
-        # consistent chain. vp-server-jwk.json is NOT regenerated: it signs the status
+        # Regenerate the leaf signing keys under the committed CA so runtime chains
+        # match the CA registered with external trust lists (e.g. the Geneva RICAL).
+        # vp-server-jwk.json is NOT regenerated: it signs the status
         # list tokens for the VCI wallet tests, whose credential chain is the static
         # vci-test-root.crt hierarchy in the configs, so it is minted under that root.
         python3 "${SUITE_DIR}/scripts/generate-vp-test-cert.py" \
@@ -137,7 +138,8 @@ if [ -n "$NGROK_URL" ]; then
             --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json" \
             --second-output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk-2.json" \
             --mdoc-output "${SUITE_DIR}/scripts/certs-keys/vp-mdoc-signing-jwk.json" \
-            --ca-output "${SUITE_DIR}/scripts/certs-keys/vp-signing-ca.crt"
+            --ca-key-input "${SUITE_DIR}/scripts/certs-keys/vp-signing-ca-jwk.json" \
+            --ca-cert-input "${SUITE_DIR}/scripts/certs-keys/vp-signing-ca.crt"
     fi
 fi
 
