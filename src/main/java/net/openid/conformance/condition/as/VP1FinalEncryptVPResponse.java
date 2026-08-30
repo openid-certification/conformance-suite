@@ -6,6 +6,7 @@ import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -33,13 +34,14 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 		}
 
 		JsonObject clientJwks = jwksEl.getAsJsonObject();
-		// just use the alg from the first key for now - this matches the logic in CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted
-		JsonElement algEl;
-		try {
-			algEl = clientJwks.get("keys").getAsJsonArray().get(0).getAsJsonObject().get("alg");
-		} catch (Exception e) {
-			throw error("Couldn't read alg from first key in client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY)));
+		// use the alg from the first key a wallet could actually use - the set may deliberately
+		// lead with unusable keys (the ignores-unusable-encryption-key test); this matches the
+		// key selection in CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted
+		JsonObject encKey = JWEUtil.selectFirstUsableEncKeyJson(clientJwks);
+		if (encKey == null) {
+			throw error("No usable encryption key was found in client_metadata.jwks from the authorization request", args("client_jwks", clientJwks));
 		}
+		JsonElement algEl = encKey.get("alg");
 		if (algEl == null) {
 			throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
 		}
