@@ -2542,6 +2542,10 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // The Copy-to-clipboard button re-copies on click via writeText.
     await result.locator(".plinkCopyBtn").click();
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteText)).toBe(SHARE_LINK);
+
+    // "Send via email" sits alongside Copy. Clicking it navigates to a mailto:
+    // URL, which is not exercisable here, so only its presence is asserted.
+    await expect(result.locator(".plinkEmailBtn")).toBeVisible();
   });
 
   test("Private link: re-opening the dialog clears the previous result", async ({ page }) => {

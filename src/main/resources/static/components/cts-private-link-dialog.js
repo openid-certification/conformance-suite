@@ -59,6 +59,9 @@ const STYLE_TEXT = css`
     word-break: break-all;
   }
   cts-private-link-dialog .plinkCopy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
     margin-top: var(--space-2);
   }
   cts-private-link-dialog .plinkStatus {
@@ -77,6 +80,11 @@ function ensureStylesInjected() {
   style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
+
+// Fixed subject for the "Send via email" mailto:. The body is the link alone —
+// deliberately no test/plan context is templated in; the user edits the mail in
+// their own client before sending.
+const MAIL_SUBJECT = "OpenID Foundation Conformance Test Log";
 
 // Expiry bounds for the generated link. These are a UI convenience only:
 // the server (AssetSharing.generateSharingToken) enforces exp >= 1 with no
@@ -265,6 +273,17 @@ export class CtsPrivateLinkDialog extends LitElement {
     flashCopyConfirmed(trigger);
   }
 
+  /**
+   * Open the user's mail client with the link pre-filled. Navigating to a
+   * `mailto:` URL hands off to the OS handler and leaves the page (and this
+   * dialog) as it is.
+   */
+  _handleEmail() {
+    if (!this._link) return;
+    const body = encodeURIComponent(this._link);
+    window.location.href = `mailto:?subject=${encodeURIComponent(MAIL_SUBJECT)}&body=${body}`;
+  }
+
   _flashCopyButton() {
     this.updateComplete.then(() => {
       const btn = this.querySelector(".plinkCopyBtn");
@@ -313,6 +332,14 @@ export class CtsPrivateLinkDialog extends LitElement {
                   icon="copy"
                   label="Copy to clipboard"
                   @click=${this._handleCopy}
+                ></cts-button>
+                <cts-button
+                  class="plinkEmailBtn"
+                  variant="secondary"
+                  size="sm"
+                  icon="mail"
+                  label="Send via email"
+                  @click=${this._handleEmail}
                 ></cts-button>
               </div>
               ${this._copyStatus

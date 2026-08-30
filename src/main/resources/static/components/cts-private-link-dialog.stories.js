@@ -90,6 +90,7 @@ export const GenerateShowsResult = {
       });
       expect(canvasElement.querySelector(".plinkMessage")?.textContent).toContain("server restart");
       expect(canvasElement.querySelector(".plinkCopyBtn")).toBeTruthy();
+      expect(canvasElement.querySelector(".plinkEmailBtn")).toBeTruthy();
     } finally {
       window.fetch = originalFetch;
     }
