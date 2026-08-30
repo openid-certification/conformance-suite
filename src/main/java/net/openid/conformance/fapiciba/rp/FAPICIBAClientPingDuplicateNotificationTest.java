@@ -58,9 +58,10 @@ public class FAPICIBAClientPingDuplicateNotificationTest extends AbstractFAPICIB
 
 	protected void sendDuplicatePingRequestAndVerifyResponse() {
 		rejectFurtherClientInteractions();
-		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE,
+		callAndContinueOnFailure(PingClientNotificationEndpointAllowingHttpErrorResponse.class,
+			Condition.ConditionResult.WARNING,
 			"CIBA-10.2", "BrazilCIBA-6.2.8", "BrazilCIBA-6.3.4");
-		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE,
+		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.WARNING,
 			"CIBA-10.2");
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING,
 			"CIBA-10.2");

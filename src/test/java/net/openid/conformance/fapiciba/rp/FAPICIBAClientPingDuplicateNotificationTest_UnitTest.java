@@ -44,7 +44,7 @@ public class FAPICIBAClientPingDuplicateNotificationTest_UnitTest {
 	}
 
 	@Test
-	public void rejectsFollowUpBeforeDuplicateAndStartsTimeoutAfterResponse() {
+	public void treatsDuplicateResponseChecksAsWarningsAndStartsTimeoutAfterResponse() {
 		TestableFAPICIBAClientPingDuplicateNotificationTest test =
 			new TestableFAPICIBAClientPingDuplicateNotificationTest();
 
@@ -52,6 +52,9 @@ public class FAPICIBAClientPingDuplicateNotificationTest_UnitTest {
 
 		assertThat(test.startedRejectingFurtherClientInteractions).isTrue();
 		assertThat(test.sentDuplicateAfterStartingRejection).isTrue();
+		assertThat(test.duplicatePingResponseSeverity).isEqualTo(Condition.ConditionResult.WARNING);
+		assertThat(test.not3xxSeverity).isEqualTo(Condition.ConditionResult.WARNING);
+		assertThat(test.noContentSeverity).isEqualTo(Condition.ConditionResult.WARNING);
 		assertThat(test.startedTimeoutAfterDuplicateResponse).isTrue();
 	}
 
@@ -64,6 +67,9 @@ public class FAPICIBAClientPingDuplicateNotificationTest_UnitTest {
 		private boolean sentDuplicateAfterStartingRejection;
 		private boolean duplicateResponseReceived;
 		private boolean startedTimeoutAfterDuplicateResponse;
+		private Condition.ConditionResult duplicatePingResponseSeverity;
+		private Condition.ConditionResult not3xxSeverity;
+		private Condition.ConditionResult noContentSeverity;
 
 		private void completePingRequest() {
 			pingRequestComplete();
@@ -90,15 +96,23 @@ public class FAPICIBAClientPingDuplicateNotificationTest_UnitTest {
 		@Override
 		protected void callAndStopOnFailure(Class<? extends Condition> conditionClass,
 			Condition.ConditionResult onFail, String... requirements) {
-			if (PingClientNotificationEndpoint.class.equals(conditionClass)) {
-				sentDuplicateAfterStartingRejection = startedRejectingFurtherClientInteractions;
-				duplicateResponseReceived = true;
+			if (PingClientNotificationEndpoint.class.isAssignableFrom(conditionClass)) {
+				throw new AssertionError("Duplicate ping response handling must not stop the test");
 			}
 		}
 
 		@Override
 		protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass,
 			Condition.ConditionResult onFail, String... requirements) {
+			if (PingClientNotificationEndpointAllowingHttpErrorResponse.class.equals(conditionClass)) {
+				sentDuplicateAfterStartingRejection = startedRejectingFurtherClientInteractions;
+				duplicateResponseReceived = true;
+				duplicatePingResponseSeverity = onFail;
+			} else if (VerifyPingHttpResponseStatusCodeIsNot3XX.class.equals(conditionClass)) {
+				not3xxSeverity = onFail;
+			} else if (VerifyPingHttpResponseStatusCodeIs204.class.equals(conditionClass)) {
+				noContentSeverity = onFail;
+			}
 		}
 
 		@Override

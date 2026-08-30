@@ -171,6 +171,23 @@ public class PingClientNotificationEndpoint_UnitTest {
 		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
 	}
 
+	@ParameterizedTest
+	@EnumSource(value = HttpStatus.class, names = {"UNAUTHORIZED", "CONFLICT", "INTERNAL_SERVER_ERROR"})
+	public void recordsHttpErrorResponseForDuplicateNotification(HttpStatus responseStatus) {
+		TestablePingClientNotificationEndpointAllowingHttpErrorResponse condition =
+			new TestablePingClientNotificationEndpointAllowingHttpErrorResponse(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(responseStatus.is4xxClientError()
+				? new HttpClientErrorException(responseStatus)
+				: new HttpServerErrorException(responseStatus));
+
+		condition.execute(env);
+
+		assertThat(env.getInteger("client_notification_endpoint_response_http_status"))
+			.isEqualTo(responseStatus.value());
+	}
+
 	@Test
 	public void retriesTransientServerErrorForBrazil() {
 		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
@@ -264,6 +281,22 @@ public class PingClientNotificationEndpoint_UnitTest {
 		private final RestTemplate restTemplate;
 
 		private TestablePingClientNotificationEndpointWithRetriesForBrazil(RestTemplate restTemplate) {
+			this.restTemplate = restTemplate;
+		}
+
+		@Override
+		protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions)
+			throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException,
+			NoSuchAlgorithmException, KeyStoreException, IOException {
+			return restTemplate;
+		}
+	}
+
+	private static class TestablePingClientNotificationEndpointAllowingHttpErrorResponse
+		extends PingClientNotificationEndpointAllowingHttpErrorResponse {
+		private final RestTemplate restTemplate;
+
+		private TestablePingClientNotificationEndpointAllowingHttpErrorResponse(RestTemplate restTemplate) {
 			this.restTemplate = restTemplate;
 		}
 
