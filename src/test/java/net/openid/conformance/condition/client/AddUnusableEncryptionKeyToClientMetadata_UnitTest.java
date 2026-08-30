@@ -65,12 +65,14 @@ public class AddUnusableEncryptionKeyToClientMetadata_UnitTest {
 		JsonArray keys = jwks.getAsJsonArray("keys");
 
 		assertEquals(3, keys.size());
-		assertEquals("usable-p256-key", OIDFJSON.getString(keys.get(0).getAsJsonObject().get("kid")));
-
-		JsonObject pqKey = keys.get(1).getAsJsonObject();
+		// the usable key sits in the middle, an unusable key before and after it, so a wallet
+		// that just selects the first (or last) key fails
+		JsonObject pqKey = keys.get(0).getAsJsonObject();
 		assertEquals("unusable-pq-enc-key", OIDFJSON.getString(pqKey.get("kid")));
 		assertEquals("AKP", OIDFJSON.getString(pqKey.get("kty")));
 		assertEquals("enc", OIDFJSON.getString(pqKey.get("use")));
+
+		assertEquals("usable-p256-key", OIDFJSON.getString(keys.get(1).getAsJsonObject().get("kid")));
 
 		JsonObject unknownKey = keys.get(2).getAsJsonObject();
 		assertEquals("unusable-unknown-enc-key", OIDFJSON.getString(unknownKey.get("kid")));
