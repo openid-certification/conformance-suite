@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 public class FAPICIBAClientPingModePollFallbackTest extends AbstractFAPICIBAClientTest {
 
 	private static final int TERMINAL_POLL_COUNT = 3;
+	private static final int NO_FALLBACK_POLL_GRACE_SECONDS = 2;
 
 	@Override
 	protected boolean shouldSendPingNotification() {
@@ -30,7 +31,26 @@ public class FAPICIBAClientPingModePollFallbackTest extends AbstractFAPICIBAClie
 		callAndStopOnFailure(SetIntervalTo5Seconds.class, "CIBA-7.3", "BrazilCIBA-6.3.4.1");
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		callAndStopOnFailure(SetNextAllowedTokenRequest.class, "CIBA-7.3", "BrazilCIBA-6.3.4.1");
+		scheduleNoFallbackPollCompletion();
 		return HttpStatus.OK;
+	}
+
+	protected void scheduleNoFallbackPollCompletion() {
+		getTestExecutionManager().runInBackground(() -> {
+			long observationSeconds = SetIntervalTo5Seconds.DEFAULT_INTERVAL + NO_FALLBACK_POLL_GRACE_SECONDS;
+			Thread.sleep(observationSeconds * 1000L);
+			if (getStatus().equals(Status.WAITING)) {
+				completeTestIfFallbackPollingWasNotUsed();
+			}
+			return "done";
+		});
+	}
+
+	protected void completeTestIfFallbackPollingWasNotUsed() {
+		if (env.getInteger("token_poll_count") == null) {
+			setStatus(Status.RUNNING);
+			fireTestFinished();
+		}
 	}
 
 	@Override
