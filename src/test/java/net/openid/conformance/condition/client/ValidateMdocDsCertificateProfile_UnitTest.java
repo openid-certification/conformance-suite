@@ -66,15 +66,16 @@ public class ValidateMdocDsCertificateProfile_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_flagsIssuerBindingMismatchAgainstWrongAnchor() throws Exception {
+	public void testEvaluate_skipsIssuerBindingAgainstUnrelatedAnchor() throws Exception {
+		// a leaf-only chain from a different IACA than the configured anchor (e.g. an issuer
+		// trusted via a VICAL) must not have its issuer binding compared against that anchor -
+		// doing so produced bogus issuer/AKI mismatch violations
 		MdocCredentialTestUtil.putCredential(env,
 			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
 		env.putString("credential_trust_anchor_pem",
 			MdocDsCertificateTestFixtures.selfSignedCertPem("CN=Unrelated Anchor"));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(fullError(e).contains("exact binary value"), fullError(e));
-		assertTrue(fullError(e).contains("authority key identifier does not match"), fullError(e));
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test

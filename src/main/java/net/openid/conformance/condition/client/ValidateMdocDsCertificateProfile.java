@@ -8,10 +8,17 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocCertificateProfileChecks;
 import net.openid.conformance.util.MdocUtil;
+import net.openid.conformance.util.X509CertificateUtil;
 import org.multipaz.cbor.DataItem;
+import org.multipaz.crypto.X509Cert;
+import org.multipaz.mdoc.vical.SignedVical;
+import org.multipaz.mdoc.vical.VicalCertificateInfo;
 
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -71,7 +78,8 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 		MdocCertificateProfileChecks.checkCrlDistributionPointsContent(dsCert, violations);
 
 		checkIssuerAlternativeName(dsCert, violations);
-		checkIssuerBinding(dsCert, issuingCertificate(chain, env), violations);
+		X509Certificate issuingCert = issuingCertificate(chain, env);
+		checkIssuerBinding(dsCert, issuingCert, violations);
 
 		Set<String> criticalOids = dsCert.getCriticalExtensionOIDs();
 		if (criticalOids != null) {
@@ -82,29 +90,91 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 			}
 		}
 
+		String issuingCertPem = issuingCert == null
+			? "the issuing IACA certificate is not in the x5chain and could not be located, so the issuer binding checks were skipped"
+			: X509CertificateUtil.toPem(issuingCert);
+
 		if (!violations.isEmpty()) {
 			throw error("The document signer certificate in the mdoc x5chain does not comply with the ISO 18013-5 document signer certificate profile: "
 					+ String.join("; ", violations),
-				args("subject", subject, "violations", violations));
+				args("subject", subject, "violations", violations,
+					"ds_certificate_pem", X509CertificateUtil.toPem(dsCert),
+					"issuing_certificate_pem", issuingCertPem));
 		}
 
 		logSuccess("Document signer certificate complies with the ISO 18013-5 document signer certificate profile",
-			args("subject", subject));
+			args("subject", subject,
+				"ds_certificate_pem", X509CertificateUtil.toPem(dsCert),
+				"issuing_certificate_pem", issuingCertPem));
 		return env;
 	}
 
 	/**
 	 * The certificate that issued the DS certificate: the next certificate in the x5chain when
-	 * intermediates are included, otherwise the configured trust anchor (the IACA root) when
-	 * one is set. Null when neither is available, in which case the binding checks are skipped.
+	 * intermediates are included. For a leaf-only chain the issuer must be located rather than
+	 * assumed: the matching entry of a configured VICAL is authoritative, and the configured
+	 * trust anchor is only used when it actually is the DS certificate's issuer - a credential
+	 * from a different IACA (e.g. one trusted via the VICAL) must not have its issuer binding
+	 * compared against an unrelated anchor. Null when no issuer can be located, in which case
+	 * the binding checks are skipped.
 	 */
 	private X509Certificate issuingCertificate(List<X509Certificate> chain, Environment env) {
 		if (chain.size() > 1) {
 			return chain.get(1);
 		}
+		X509Certificate dsCert = chain.get(0);
+		X509Certificate fromVical = issuingCertificateFromVical(env, dsCert);
+		if (fromVical != null) {
+			return fromVical;
+		}
 		String trustAnchorPem = env.getString("credential_trust_anchor_pem");
 		if (trustAnchorPem != null) {
-			return X509CertUtils.parse(trustAnchorPem);
+			X509Certificate anchor = X509CertUtils.parse(trustAnchorPem);
+			if (anchor != null
+				&& dsCert.getIssuerX500Principal().equals(anchor.getSubjectX500Principal())) {
+				return anchor;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Finds the VICAL entry for the DS certificate's issuer: subject name match, plus key
+	 * identifier match when both certificates carry one (a renewed IACA keeping its subject has
+	 * a different key). Returns null when no VICAL is configured, no entry matches, or the
+	 * VICAL cannot be parsed - VICAL quality problems are reported by the VICAL conditions,
+	 * not here.
+	 */
+	private X509Certificate issuingCertificateFromVical(Environment env, X509Certificate dsCert) {
+		String vicalB64 = env.getString("vical", "value");
+		if (vicalB64 == null) {
+			return null;
+		}
+		try {
+			byte[] vicalBytes = Base64.getDecoder().decode(vicalB64);
+			// signature verification disabled: ValidateVicalSignature reports on the signature
+			SignedVical signedVical = kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> SignedVical.Companion.parse(vicalBytes, true, continuation));
+			byte[] dsAkiValue = dsCert.getExtensionValue(OID_AUTHORITY_KEY_IDENTIFIER);
+			byte[] dsAki = dsAkiValue == null ? null : AuthorityKeyIdentifier.getInstance(
+				JcaX509ExtensionUtils.parseExtensionValue(dsAkiValue)).getKeyIdentifierOctets();
+			for (VicalCertificateInfo certInfo : signedVical.getVical().getCertificateInfos()) {
+				X509Cert iaca = certInfo.getCertificate();
+				X509Certificate javaIaca = (X509Certificate) CertificateFactory.getInstance("X.509")
+					.generateCertificate(new ByteArrayInputStream(
+						iaca.getEncoded().toByteArray(0, iaca.getEncoded().getSize())));
+				byte[] iacaSki = iaca.getSubjectKeyIdentifier();
+				boolean subjectMatches =
+					dsCert.getIssuerX500Principal().equals(javaIaca.getSubjectX500Principal());
+				boolean skiMatches = dsAki == null || iacaSki == null
+					|| java.util.Arrays.equals(dsAki, iacaSki);
+				if (subjectMatches && skiMatches) {
+					return javaIaca;
+				}
+			}
+		} catch (Exception e) {
+			// leave the issuer unlocated; the binding checks are then skipped
 		}
 		return null;
 	}
