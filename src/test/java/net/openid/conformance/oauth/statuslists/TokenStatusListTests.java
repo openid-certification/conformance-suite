@@ -3,7 +3,12 @@ package net.openid.conformance.oauth.statuslists;
 import net.openid.conformance.oauth.statuslists.TokenStatusList.Status;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.util.zip.Deflater;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 public class TokenStatusListTests {
 
@@ -217,6 +222,41 @@ public class TokenStatusListTests {
 		assertEquals(Status.SUSPENDED, statusList.getStatus(934534));
 		assertEquals(Status.STATUS_0X03, statusList.getStatus(1000345));
 		assertEquals(Status.VALID, statusList.getStatus(1000346));
+	}
+
+	@Test
+	public void truncatedZlibStreamFailsInsteadOfHanging() {
+		// a zlib stream cut off before its end used to spin the inflate loop forever,
+		// hanging the test (and its lock) that was checking a received status list
+		byte[] complete = deflate(new byte[1024]);
+		byte[] truncated = java.util.Arrays.copyOf(complete, complete.length - 5);
+
+		assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
+			assertThrows(TokenStatusList.TokenStatusListException.class, () ->
+				TokenStatusList.decodeCompressed(truncated, 1)));
+	}
+
+	@Test
+	public void oversizedDecompressedStatusListIsRejected() {
+		// 48MB of zeros deflates to a few kilobytes; inflating it must stop at the size cap
+		byte[] bomb = deflate(new byte[48 * 1024 * 1024]);
+
+		assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
+			assertThrows(TokenStatusList.TokenStatusListException.class, () ->
+				TokenStatusList.decodeCompressed(bomb, 1)));
+	}
+
+	private static byte[] deflate(byte[] data) {
+		Deflater deflater = new Deflater();
+		deflater.setInput(data);
+		deflater.finish();
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		byte[] buffer = new byte[4096];
+		while (!deflater.finished()) {
+			out.write(buffer, 0, deflater.deflate(buffer));
+		}
+		deflater.end();
+		return out.toByteArray();
 	}
 
 }
