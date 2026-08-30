@@ -21,4 +21,10 @@ public class FAPICIBAClientPingWithWrongAuthReqIdTest extends AbstractFAPICIBACl
 	protected Class<? extends Condition> getPingNotificationCondition() {
 		return PingClientNotificationEndpointWithWrongAuthReqId.class;
 	}
+
+	@Override
+	protected void verifyPingResponse() {
+		callAndContinueOnFailure(WarnIfPingNotificationWithWrongAuthReqIdWasAccepted.class,
+			Condition.ConditionResult.WARNING, "CIBA-10.2");
+	}
 }
