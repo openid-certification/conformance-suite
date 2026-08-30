@@ -657,7 +657,6 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			return handleRequestUriRequest();
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
-
 	}
 
 	private Object handleBrowserApiSubmission(String requestId) {

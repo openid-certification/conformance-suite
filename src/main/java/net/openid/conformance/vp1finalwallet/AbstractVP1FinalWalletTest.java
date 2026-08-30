@@ -1034,7 +1034,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			return handleRequestUriRequest(requestId);
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
-
 	}
 
 	private Object handleBrowserApiSubmission(String requestId) {
