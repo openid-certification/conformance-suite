@@ -29,6 +29,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -200,6 +202,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 			.isEqualTo(HttpStatus.NO_CONTENT.value());
 		verify(restTemplate, times(2))
 			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
+		assertThat(retryCond.getRetryAttemptsWaitedFor()).containsExactly(1);
 	}
 
 	@ParameterizedTest
@@ -279,6 +282,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 	private static class TestablePingClientNotificationEndpointWithRetriesForBrazil
 		extends PingClientNotificationEndpointWithRetriesForBrazil {
 		private final RestTemplate restTemplate;
+		private final List<Integer> retryAttemptsWaitedFor = new ArrayList<>();
 
 		private TestablePingClientNotificationEndpointWithRetriesForBrazil(RestTemplate restTemplate) {
 			this.restTemplate = restTemplate;
@@ -289,6 +293,15 @@ public class PingClientNotificationEndpoint_UnitTest {
 			throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException,
 			NoSuchAlgorithmException, KeyStoreException, IOException {
 			return restTemplate;
+		}
+
+		@Override
+		protected void waitBeforeRetry(int attempt) {
+			retryAttemptsWaitedFor.add(attempt);
+		}
+
+		private List<Integer> getRetryAttemptsWaitedFor() {
+			return retryAttemptsWaitedFor;
 		}
 	}
 
