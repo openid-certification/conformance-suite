@@ -81,10 +81,38 @@ public class CreateMdocCredential extends AbstractCondition {
 		log("Created mdoc presentation",
 			args("mdoc_b64", Base64URL.encode(mdoc).toString(),
 				"cbor_diagnostic", diagnostics,
+				"mso_cbor_diagnostic", msoDiagnostics(mdoc),
 				"requested_docType", requestedDocType,
 				"requested_claims", flattenRequestedClaims(requestedClaims)));
 
 		return env;
+	}
+
+	/**
+	 * The Mobile Security Object in CBOR diagnostic notation. In the DeviceResponse diagnostic
+	 * the MSO appears only as opaque hex: it is the content of the issuerAuth COSE_Sign1's
+	 * payload byte string, which the diagnostic printer does not decode (it only expands
+	 * tag 24 wrapped byte strings). Decoding the payload separately makes the digests,
+	 * validityInfo and status reference readable in the log. Best effort - a presentation
+	 * whose payload cannot be decoded reports that instead.
+	 */
+	private String msoDiagnostics(byte[] mdoc) {
+		try {
+			org.multipaz.cbor.DataItem deviceResponse = Cbor.INSTANCE.decode(mdoc);
+			List<String> perDocument = new ArrayList<>();
+			for (org.multipaz.cbor.DataItem doc : deviceResponse.getOrNull("documents").getAsArray()) {
+				org.multipaz.cbor.DataItem payload =
+					doc.getOrNull("issuerSigned").getOrNull("issuerAuth").getAsArray().get(2);
+				byte[] payloadBytes = ((org.multipaz.cbor.Bstr) payload).getValue();
+				// the payload content is the tag 24 wrapped MobileSecurityObjectBytes, which
+				// the diagnostic printer expands
+				perDocument.add(Cbor.INSTANCE.toDiagnostics(payloadBytes,
+					Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR)));
+			}
+			return String.join("\n", perDocument);
+		} catch (Exception e) {
+			return "<the issuerAuth payload could not be decoded: " + e.getMessage() + ">";
+		}
 	}
 
 	private static JsonObject findFirstMdocCredentialEntry(JsonObject dcqlQuery) {
