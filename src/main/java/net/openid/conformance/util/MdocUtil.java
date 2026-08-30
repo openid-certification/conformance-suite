@@ -7,6 +7,7 @@ import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
+import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cose.Cose;
 import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
@@ -19,10 +20,12 @@ import org.multipaz.crypto.EcPublicKeyOkp;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Helpers for extracting data from mdoc IssuerSigned structures (ISO 18013-5) as received
@@ -77,6 +80,42 @@ public final class MdocUtil {
 			return "<symmetric key - it has no public part>";
 		}
 		return publicJwk.toJSONString();
+	}
+
+	/**
+	 * The Mobile Security Object of an already CBOR-decoded IssuerSigned in diagnostic notation.
+	 * In the IssuerSigned diagnostic the MSO appears only as opaque hex: it is the content of the
+	 * issuerAuth COSE_Sign1's payload byte string, which the diagnostic printer does not decode
+	 * (it only expands tag 24 wrapped byte strings). Decoding the payload separately makes the
+	 * digests, validityInfo and status reference readable in the log. Best effort - a structure
+	 * whose payload cannot be decoded reports that instead of failing the condition.
+	 */
+	public static String msoDiagnostics(DataItem issuerSigned) {
+		try {
+			CoseSign1 issuerAuth = issuerSigned.getOrNull("issuerAuth").getAsCoseSign1();
+			// the payload is the tag 24 wrapped MobileSecurityObjectBytes, which the diagnostic
+			// printer expands
+			return Cbor.INSTANCE.toDiagnostics(issuerAuth.getPayload(),
+				Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
+		} catch (Exception e) {
+			return "<the issuerAuth payload could not be decoded: " + e.getMessage() + ">";
+		}
+	}
+
+	/**
+	 * The Mobile Security Object of every document in an already CBOR-decoded DeviceResponse in
+	 * diagnostic notation, one after another. See {@link #msoDiagnostics(DataItem)}.
+	 */
+	public static String deviceResponseMsoDiagnostics(DataItem deviceResponse) {
+		try {
+			List<String> perDocument = new ArrayList<>();
+			for (DataItem document : deviceResponse.getOrNull("documents").getAsArray()) {
+				perDocument.add(msoDiagnostics(document.getOrNull("issuerSigned")));
+			}
+			return String.join("\n", perDocument);
+		} catch (Exception e) {
+			return "<the documents in the DeviceResponse could not be decoded: " + e.getMessage() + ">";
+		}
 	}
 
 	/**
