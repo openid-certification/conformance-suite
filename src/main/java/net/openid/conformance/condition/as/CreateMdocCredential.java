@@ -10,7 +10,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.DcqlQueryUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
+import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.testapp.TestAppUtils;
 
@@ -59,13 +61,16 @@ public class CreateMdocCredential extends AbstractCondition {
 		}
 
 		byte[] mdoc = testAppUtils.generateDeviceResponse(sessionTranscript, requestedDocType, requestedClaims);
-		env.putString("credential", Base64URL.encode(mdoc).toString());
+		String mdocBase64 = Base64URL.encode(mdoc).toString();
+		env.putString("credential", mdocBase64);
 
-		String diagnostics = Cbor.INSTANCE.toDiagnostics(mdoc,
+		DataItem deviceResponse = Cbor.INSTANCE.decode(mdoc);
+		String diagnostics = Cbor.INSTANCE.toDiagnostics(deviceResponse,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
 		log("Created mdoc presentation",
-			args("mdoc_b64", Base64URL.encode(mdoc).toString(),
+			args("mdoc_b64", mdocBase64,
 				"cbor_diagnostic", diagnostics,
+				"mso_cbor_diagnostic", MdocUtil.deviceResponseMsoDiagnostics(deviceResponse),
 				"requested_docType", requestedDocType,
 				"requested_claims", flattenRequestedClaims(requestedClaims)));
 
