@@ -31,6 +31,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -160,6 +161,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 
 		assertThat(env.getInteger("client_notification_endpoint_response_http_status"))
 			.isEqualTo(HttpStatus.UNAUTHORIZED.value());
+		assertThat(condition.successMessage).isEqualTo("Client notification endpoint rejected the invalid notification");
 	}
 
 	@Test
@@ -324,6 +326,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 	private static class TestablePingClientNotificationEndpointWithoutBearerToken
 		extends PingClientNotificationEndpointWithoutBearerToken {
 		private final RestTemplate restTemplate;
+		private String successMessage;
 
 		private TestablePingClientNotificationEndpointWithoutBearerToken(RestTemplate restTemplate) {
 			this.restTemplate = restTemplate;
@@ -334,6 +337,11 @@ public class PingClientNotificationEndpoint_UnitTest {
 			throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException,
 			NoSuchAlgorithmException, KeyStoreException, IOException {
 			return restTemplate;
+		}
+
+		@Override
+		protected void logSuccess(String msg, Map<String, Object> map) {
+			successMessage = msg;
 		}
 	}
 
