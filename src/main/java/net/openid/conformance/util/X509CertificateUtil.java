@@ -11,10 +11,12 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.PKIXParameters;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +38,109 @@ public class X509CertificateUtil {
 				+ "\n-----END CERTIFICATE-----";
 		} catch (CertificateException e) {
 			return "certificate could not be encoded: " + e.getMessage();
+		}
+	}
+
+	// KeyUsage bit positions, in the order X509Certificate.getKeyUsage() returns them
+	private static final String[] KEY_USAGE_NAMES = {
+		"digitalSignature", "nonRepudiation", "keyEncipherment", "dataEncipherment",
+		"keyAgreement", "keyCertSign", "cRLSign", "encipherOnly", "decipherOnly"
+	};
+
+	/**
+	 * Decodes a certificate into a human readable multi-line description (subject, issuer,
+	 * serial, validity, key, key identifiers, key usage, extensions), for inclusion in a log
+	 * entry's detail next to the PEM so the certificate a check ran against can be read without
+	 * feeding the PEM to another tool. Best effort: a part that cannot be decoded is reported
+	 * in place rather than failing the description.
+	 */
+	public static String describe(X509Certificate cert) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("subject: ").append(cert.getSubjectX500Principal().getName()).append('\n');
+		sb.append("issuer: ").append(cert.getIssuerX500Principal().getName()).append('\n');
+		sb.append("serial (hex): ").append(cert.getSerialNumber().toString(16)).append('\n');
+		sb.append("version: v").append(cert.getVersion()).append('\n');
+		sb.append("notBefore: ").append(cert.getNotBefore().toInstant()).append('\n');
+		sb.append("notAfter: ").append(cert.getNotAfter().toInstant()).append('\n');
+		sb.append("signature algorithm: ").append(cert.getSigAlgName()).append('\n');
+		sb.append("public key algorithm: ").append(cert.getPublicKey().getAlgorithm()).append('\n');
+		sb.append("subjectKeyIdentifier: ").append(keyIdentifier(cert, "2.5.29.14", false)).append('\n');
+		sb.append("authorityKeyIdentifier: ").append(keyIdentifier(cert, "2.5.29.35", true)).append('\n');
+		boolean[] keyUsage = cert.getKeyUsage();
+		if (keyUsage == null) {
+			sb.append("keyUsage: <absent>\n");
+		} else {
+			List<String> usages = new ArrayList<>();
+			for (int i = 0; i < keyUsage.length && i < KEY_USAGE_NAMES.length; i++) {
+				if (keyUsage[i]) {
+					usages.add(KEY_USAGE_NAMES[i]);
+				}
+			}
+			sb.append("keyUsage").append(isCritical(cert, "2.5.29.15") ? " (critical)" : "")
+				.append(": ").append(String.join(", ", usages)).append('\n');
+		}
+		try {
+			List<String> eku = cert.getExtendedKeyUsage();
+			sb.append("extendedKeyUsage").append(isCritical(cert, "2.5.29.37") ? " (critical)" : "")
+				.append(": ").append(eku == null ? "<absent>" : String.join(", ", eku)).append('\n');
+		} catch (CertificateException e) {
+			sb.append("extendedKeyUsage: <could not be decoded: ").append(e.getMessage()).append(">\n");
+		}
+		int bc = cert.getBasicConstraints();
+		sb.append("basicConstraints").append(isCritical(cert, "2.5.29.19") ? " (critical)" : "")
+			.append(": ").append(!hasExtension(cert, "2.5.29.19") ? "<absent>"
+				: bc == -1 ? "CA:FALSE" : "CA:TRUE" + (bc == Integer.MAX_VALUE ? "" : ", pathlen:" + bc))
+			.append('\n');
+		Collection<List<?>> ian;
+		try {
+			ian = cert.getIssuerAlternativeNames();
+			if (ian != null) {
+				sb.append("issuerAlternativeName: ").append(ian).append('\n');
+			}
+		} catch (CertificateParsingException e) {
+			sb.append("issuerAlternativeName: <could not be decoded: ").append(e.getMessage()).append(">\n");
+		}
+		byte[] crlDp = cert.getExtensionValue("2.5.29.31");
+		sb.append("cRLDistributionPoints: ").append(crlDp == null ? "<absent>" : "present").append('\n');
+		sb.append("critical extension OIDs: ").append(oids(cert.getCriticalExtensionOIDs())).append('\n');
+		sb.append("non-critical extension OIDs: ").append(oids(cert.getNonCriticalExtensionOIDs()));
+		return sb.toString();
+	}
+
+	private static boolean hasExtension(X509Certificate cert, String oid) {
+		return cert.getExtensionValue(oid) != null;
+	}
+
+	private static boolean isCritical(X509Certificate cert, String oid) {
+		Set<String> critical = cert.getCriticalExtensionOIDs();
+		return critical != null && critical.contains(oid);
+	}
+
+	private static String oids(Set<String> oids) {
+		return oids == null || oids.isEmpty() ? "<none>" : String.join(", ", new java.util.TreeSet<>(oids));
+	}
+
+	private static String keyIdentifier(X509Certificate cert, String oid, boolean authority) {
+		byte[] value = cert.getExtensionValue(oid);
+		if (value == null) {
+			return "<absent>";
+		}
+		try {
+			org.bouncycastle.asn1.ASN1Primitive parsed =
+				org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils.parseExtensionValue(value);
+			byte[] keyId = authority
+				? org.bouncycastle.asn1.x509.AuthorityKeyIdentifier.getInstance(parsed).getKeyIdentifierOctets()
+				: org.bouncycastle.asn1.x509.SubjectKeyIdentifier.getInstance(parsed).getKeyIdentifier();
+			if (keyId == null) {
+				return "<present, but no keyIdentifier field>";
+			}
+			StringBuilder hex = new StringBuilder(keyId.length * 2);
+			for (byte b : keyId) {
+				hex.append(String.format("%02x", b));
+			}
+			return hex.toString();
+		} catch (Exception e) {
+			return "<could not be decoded: " + e.getMessage() + ">";
 		}
 	}
 

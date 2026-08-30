@@ -85,12 +85,14 @@ public class ValidateStatusListSignerCertificateProfile extends AbstractStatusLi
 			throw error("The MSO revocation list signer certificate does not comply with the"
 					+ " ISO/IEC 18013-5 Table B.9 certificate profile: " + String.join("; ", violations),
 				args("subject", subject, "violations", violations,
-					"signer_certificate_pem", X509CertificateUtil.toPem(signerCert)));
+					"signer_certificate_pem", X509CertificateUtil.toPem(signerCert),
+					"signer_certificate_decoded", X509CertificateUtil.describe(signerCert)));
 		}
 
 		logSuccess("The MSO revocation list signer certificate complies with the ISO/IEC 18013-5"
 			+ " Table B.9 certificate profile", args("subject", subject,
-				"signer_certificate_pem", X509CertificateUtil.toPem(signerCert)));
+				"signer_certificate_pem", X509CertificateUtil.toPem(signerCert),
+				"signer_certificate_decoded", X509CertificateUtil.describe(signerCert)));
 		return env;
 	}
 
