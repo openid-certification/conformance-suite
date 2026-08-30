@@ -409,6 +409,13 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
         except Exception as e:
             traceback.print_exc()
             print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+            # Propagate any nested op_plan results even though this module failed. The nested plan
+            # ran to completion and its result zip was exported and kept, so its results must be
+            # analysed like any other - unlike the ServerUnavailableError path above, there is no
+            # retry that would re-run it under a new plan id and double-count it. Without this, an
+            # rp-against-op pairing reports the driver plan's results only when the outer client
+            # test module happens to reach FINISHED rather than INTERRUPTED, which is a race.
+            plan_results.extend(attempt_plan_results)
             module_info['error'] = str(e)
             record_module_did_not_complete(module_with_variants)
             break

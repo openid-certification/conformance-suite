@@ -330,5 +330,27 @@
         "condition": "WarnOnUnusableJwksKeys",
         "expected-result": "warning",
         "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "fapi_profile": "ksa"
+        },
+        "configuration-filename": "*ksa-fapi2-op-1.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "RequireIssInAuthorizationResponse",
+        "expected-result": "failure",
+        "comment": "Expected by design, not a suite bug. This is the OP-side driver for the fapi2-security-profile-final-client-test-invalid-authorization-response-iss pairing: the 'OP' it talks to is that client test module, which deliberately returns a bad 'iss' in the authorization response. Whether this failure is reported at all is a race - run-test-plan.py only propagates a nested op_plan's results when the outer client test module does not throw, and the outer module ends INTERRUPTED (results dropped) or FINISHED (results reported) depending on whether the driver's token call lands inside the client test's wait window. Listing it here makes the pairing deterministic either way."
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "fapi_profile": "ksa"
+        },
+        "configuration-filename": "*ksa-fapi2-op-1.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckTokenEndpointHttpStatus200",
+        "expected-result": "failure",
+        "comment": "Expected by design, not a suite bug, and always co-occurs with the RequireIssInAuthorizationResponse entry above. The driver logs the bad 'iss' and (by AbstractFAPI2SPFinalServerTestModule's callAndContinueOnFailure) carries on to the token endpoint. In the only case where these results get reported, the client test module acting as the OP has already reached FINISHED, so the token request is rejected with 400 'Illegal test state change: FINISHED -> RUNNING'."
     }
 ]
