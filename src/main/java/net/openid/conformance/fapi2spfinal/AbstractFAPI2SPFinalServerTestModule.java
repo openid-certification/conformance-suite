@@ -342,7 +342,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean isSignedRequest;
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
-	protected Boolean isRarRequest;
+	protected boolean isRarRequest;
 	protected Boolean clientCredentialsGrant;
 	protected FAPI2ProfileBehavior profileBehavior;
 

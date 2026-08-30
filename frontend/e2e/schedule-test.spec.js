@@ -1322,6 +1322,95 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
   });
 
+  // --- conditional variant exclusions (@VariantNotApplicableWhen) ---
+
+  test("a variant left with a single applicable value is auto-selected and marked read-only", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    // MOCK_GUIDED_PLANS carries the FAPI2 plan whose grant_management variant declares
+    // notApplicableWhen against fapi_profile, mirroring the real @VariantNotApplicableWhen pair.
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_GUIDED_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    await selectPlanViaSearch(page, "fapi2-message-signing-final-test-plan");
+
+    const grantManagement = page.locator("#vp_grant_management");
+
+    // Generic FAPI keeps grant management a real opt-in, so the row is shown with both values.
+    await page.locator("#vp_fapi_profile").selectOption("plain_fapi");
+    await expect(grantManagement).toBeVisible();
+
+    // Chile forces grant management on: "disabled" is excluded, leaving one value. There is no choice
+    // left to make, so the value is applied for the user and the control is marked aria-disabled - but
+    // it stays on screen and in the tab order, since the manual form has no review step that would
+    // otherwise show it, and a native `disabled` select is unreachable by keyboard/screen reader.
+    await page.locator("#vp_fapi_profile").selectOption("openbanking_chile");
+    await expect(grantManagement).toBeVisible();
+    await expect(grantManagement).toHaveAttribute("aria-disabled", "true");
+    // aria-disabled, NOT the native `disabled` attribute — that is what keeps it in the tab order.
+    // (Playwright's toBeEnabled() honours aria-disabled, so assert on the property itself.)
+    expect(
+      await grantManagement.evaluate((el) => /** @type {HTMLSelectElement} */ (el).disabled),
+    ).toBe(false);
+    await expect(grantManagement).toHaveValue("enabled");
+
+    // The reason is given in a hint the control points at, not a title tooltip.
+    const forcedHint = page.locator("#vp_grant_management_forced_hint");
+    await expect(forcedHint).toBeVisible();
+    await expect(grantManagement).toHaveAttribute(
+      "aria-describedby",
+      "vp_grant_management_forced_hint",
+    );
+    await expect(grantManagement).not.toHaveAttribute("title", /./);
+
+    // It is reachable with the keyboard, and the forced value is held in place if something does
+    // manage to change it.
+    await grantManagement.focus();
+    await expect(grantManagement).toBeFocused();
+    await grantManagement.evaluate((el) => {
+      const select = /** @type {HTMLSelectElement} */ (el);
+      select.value = "disabled";
+      select.dispatchEvent(new Event("change"));
+    });
+    await expect(grantManagement).toHaveValue("enabled");
+
+    // KSA is the mirror image: "enabled" is excluded, so the forced value is "disabled" instead.
+    await page.locator("#vp_fapi_profile").selectOption("ksa");
+    await expect(grantManagement).toBeVisible();
+    await expect(grantManagement).toHaveAttribute("aria-disabled", "true");
+    await expect(grantManagement).toHaveValue("disabled");
+
+    // Back to generic FAPI: the control is a real choice again, with both values selectable and no
+    // forced-value marking left behind.
+    await page.locator("#vp_fapi_profile").selectOption("plain_fapi");
+    await expect(grantManagement).toBeVisible();
+    await expect(grantManagement).toBeEnabled();
+    await expect(grantManagement).not.toHaveAttribute("aria-disabled", /./);
+    expect(
+      await grantManagement.evaluate((el) => /** @type {HTMLSelectElement} */ (el).disabled),
+    ).toBe(false);
+    await expect(page.locator("#vp_grant_management_forced_hint")).toHaveCount(0);
+    await expect(grantManagement.locator("option:not([disabled])")).toHaveCount(3);
+  });
+
   test("click on a plan row smooth-scrolls #selectionFlash into view AND focuses the first variant select", async ({
     page,
   }) => {

@@ -2113,7 +2113,17 @@
                     selectElement.value = 'select';
                 }
 
-                // Also update visibility of the entire variant selector if ALL options are hidden
+                // Also update visibility of the entire variant selector if ALL options are hidden.
+                //
+                // When exactly one option survives the exclusions the value is forced by the other
+                // variants already selected (e.g. grant_management under the Chile profile). The row
+                // stays visible and is selected for the user, but is disabled: the manual form has no
+                // review step, so hiding it would leave the tester with no way to see a value that is
+                // part of the test they are about to run.
+                //
+                // Only when values were actually hidden, though: a parameter that simply declares a
+                // single value was never narrowed by anything, so it is left for the user (or the
+                // guided-journey bridge) to pick rather than being marked as forced.
                 var visibleOptions = Array.from(options).filter(function(opt) {
                     return opt.value !== 'select' && opt.style.display !== 'none';
                 });
@@ -2122,6 +2132,8 @@
                 if (variantRow) {
                     if (visibleOptions.length === 0) {
                         variantRow.style.display = 'none';
+                        selectElement.disabled = false;
+                        clearForcedVariantMarking(selectElement, variantRow);
                         // Auto-select the first (hidden) option so validation passes
                         var firstRealOption = Array.from(options).find(function(opt) {
                             return opt.value !== 'select';
@@ -2129,20 +2141,65 @@
                         if (firstRealOption) {
                             selectElement.value = firstRealOption.value;
                         }
+                    } else if (visibleOptions.length === 1 && valuesToHide.size > 0) {
+                        variantRow.style.display = '';
+                        selectElement.value = visibleOptions[0].value;
+                        markVariantAsForced(selectElement, variantRow);
                     } else {
                         variantRow.style.display = '';
-                        // Only one applicable value left after hiding some (e.g. AU-CDR
-                        // permits a single combination) - preselect it so the user doesn't
-                        // have to. Only when values were actually hidden: a parameter that
-                        // simply declares a single value is left for the user (or the
-                        // guided-journey bridge) to pick.
-                        if (visibleOptions.length === 1 && valuesToHide.size > 0 &&
-                            (currentValue === 'select' || valuesToHide.has(currentValue))) {
-                            selectElement.value = visibleOptions[0].value;
-                        }
+                        selectElement.disabled = false;
+                        clearForcedVariantMarking(selectElement, variantRow);
                     }
                 }
             });
+        }
+
+        // A variant that the other selections have narrowed to a single applicable value is not the
+        // user's to change, but it must stay reachable: a native `disabled` <select> is removed from
+        // the tab order and its `title` tooltip is not reliably announced, so a keyboard or screen
+        // reader user could not get at a value that is part of the test they are about to run. The
+        // control is therefore left enabled and marked `aria-disabled`, with the value held in place
+        // by the change guard below and the reason given in a visible hint rather than a tooltip.
+        // The disabled <option>s still block the other values in the native picker; the guard covers
+        // the browsers that let a `display: none` option be reached with the keyboard.
+        function markVariantAsForced(selectElement, variantRow) {
+            var forcedValue = selectElement.value;
+            selectElement.disabled = false;
+            selectElement.setAttribute('aria-disabled', 'true');
+            selectElement.dataset.forcedValue = forcedValue;
+            selectElement.removeAttribute('title');
+
+            var hintId = selectElement.id + '_forced_hint';
+            var hint = document.getElementById(hintId);
+            if (!hint) {
+                hint = document.createElement('p');
+                hint.id = hintId;
+                hint.className = 'variant-forced-hint';
+                variantRow.appendChild(hint);
+            }
+            hint.textContent = 'This value is determined by the other options you have selected.';
+            selectElement.setAttribute('aria-describedby', hintId);
+
+            if (!selectElement.dataset.forcedGuardAttached) {
+                selectElement.dataset.forcedGuardAttached = 'true';
+                selectElement.addEventListener('change', function() {
+                    if (selectElement.getAttribute('aria-disabled') === 'true' &&
+                        selectElement.value !== selectElement.dataset.forcedValue) {
+                        selectElement.value = selectElement.dataset.forcedValue;
+                    }
+                });
+            }
+        }
+
+        function clearForcedVariantMarking(selectElement, variantRow) {
+            selectElement.removeAttribute('aria-disabled');
+            selectElement.removeAttribute('aria-describedby');
+            selectElement.removeAttribute('title');
+            delete selectElement.dataset.forcedValue;
+            var hint = document.getElementById(selectElement.id + '_forced_hint');
+            if (hint) {
+                hint.remove();
+            }
         }
 
         function updateConfigFieldVisibility() {

@@ -180,7 +180,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
-		AuthorizationRequestType.class,
+	AuthorizationRequestType.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -786,6 +786,14 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		// response that must cause the client to stop interacting with the server
 		refuseIfStartingShutdown(path);
 
+		return handleClientRequestForMtlsPath(requestId, path);
+	}
+
+	/**
+	 * Dispatches an mTLS request to the endpoint that handles it. Subclasses that add endpoints override
+	 * this rather than {@link #handleHttpMtls}, so that the TLS checks above still run on their requests.
+	 */
+	protected Object handleClientRequestForMtlsPath(String requestId, String path) {
 		if (path.equals("token")) {
 			if (clientAuthType != ClientAuthType.MTLS && !isMTLSConstrain() && !profileRequiresMtlsEverywhere
 					&& !clientRequestsMtlsEndpointAliases()) {
@@ -1115,19 +1123,37 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(profileBehavior.validateParRequestInteractionId());
 
-		ResponseEntity<Object> responseEntity = null;
+		// the use_dpop_nonce challenge has to come first: it is what makes the client repeat the request
+		// with a nonce, and only that repeated request is the one a subclass's custom error is about. A
+		// custom error returned to the first, nonce-less request would end the flow before the DPoP
+		// handshake that every DPoP test depends on had happened at all.
+		ResponseEntity<Object> responseEntity;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
-		}  else {
-			JsonObject parResponse = createPAREndpointResponse();
-			responseEntity = new ResponseEntity<>(parResponse, headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.CREATED);
+		} else {
+			ResponseEntity<Object> customErrorResponse = createPAREndpointCustomErrorResponse();
+			if (customErrorResponse != null) {
+				responseEntity = customErrorResponse;
+			} else {
+				JsonObject parResponse = createPAREndpointResponse();
+				responseEntity = new ResponseEntity<>(parResponse, headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.CREATED);
+			}
 		}
 
 		setStatus(Status.WAITING);
 		call(exec().unmapKey("incoming_request").unmapKey("par_endpoint_http_request"));
 
 		return responseEntity;
+	}
+
+	/**
+	 * Hook for subclasses to return a custom error response from the PAR endpoint.
+	 * Called after request parsing and validation, before the normal PAR response is created.
+	 * Return null to use the default PAR endpoint handling.
+	 */
+	protected ResponseEntity<Object> createPAREndpointCustomErrorResponse() {
+		return null;
 	}
 
 	protected void addCustomValuesToParResponse() {}
