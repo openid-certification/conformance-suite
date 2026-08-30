@@ -1270,5 +1270,15 @@ test.describe("plan-detail.html — also-required banner (R12)", () => {
     // The manual Copy button re-copies via writeText.
     await result.locator(".plinkCopyBtn").click();
     await expect.poll(() => page.evaluate(() => window.__clipboardWriteText)).toBe(SHARE_LINK);
+
+    // "Send via email" is an anchor carrying the mailto: URL. The subject is
+    // worded for both consumers of the shared dialog, so it reads correctly
+    // for a plan as well as a log.
+    const emailLink = result.locator(".plinkEmailBtn a");
+    await expect(emailLink).toBeVisible();
+    await expect(emailLink).toHaveAttribute(
+      "href",
+      `mailto:?subject=OpenID%20Foundation%20Conformance%20Test%20Results&body=${encodeURIComponent(SHARE_LINK)}`,
+    );
   });
 });
