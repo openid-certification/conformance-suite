@@ -62,6 +62,8 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalAustraliaConnectIdRequestObjectWithExpOver10Fails.class,
 		FAPI2SPFinalEnsureRequestObjectWithNbfOver60Fails.class,
 		FAPI2SPFinalAustraliaConnectIdEnsureRequestObjectWithNbfOver15Fails.class,
+		FAPI2SPFinalKsaEnsureRequestObjectWithExpOver10Fails.class,
+		FAPI2SPFinalKsaEnsureRequestObjectWithNbfOver10Fails.class,
 		FAPI2SPFinalEnsureSignedRequestObjectWithRS256Fails.class,
 		FAPI2SPFinalEnsureRequestObjectSignatureAlgorithmIsNotNone.class,
 		FAPI2SPFinalEnsureRequestObjectWithInvalidSignatureFails.class,

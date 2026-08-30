@@ -1523,6 +1523,18 @@ async def main():
             if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oid4vci or oidcc:
                 untested_test_modules.remove(m)
                 continue
+            # The KSA-specific FAPI2 OP modules have no server to run against in CI. Unlike
+            # connectid_au and cbuae, there is no Authlete config for the FAPI2 KSA profile
+            # (only FAPI1, authlete-fapi1-final-mtls-sama.json), so no full
+            # fapi2-message-signing-final-test-plan[fapi_profile=ksa] run exists - the only KSA
+            # FAPI2 coverage is the RP-against-OP pairings, which pin a single positive driver
+            # module. These modules cannot simply be added to a pairing: they are negative tests
+            # that expect an 'invalid_request_object' error, but our emulated OP surfaces the
+            # ConditionError text as the 'error' value instead, so EnsurePARInvalidRequestObjectError
+            # would fail. Covering them for real needs the OP to raise a proper OAuth error.
+            if re.match(r'fapi2-security-profile-final-ksa-', m):
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'server-panva':
             if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test:
                 untested_test_modules.remove(m)

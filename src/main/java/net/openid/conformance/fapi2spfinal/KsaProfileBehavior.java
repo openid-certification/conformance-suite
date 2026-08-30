@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicatesReorderedParams;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256;
+import net.openid.conformance.condition.client.KsaValidateAccessTokenExpiresIn;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingKSAPreAuthorizationSteps;
@@ -29,7 +30,23 @@ public class KsaProfileBehavior extends FAPI2ProfileBehavior {
 			module.isSecondClient(),
 			false, // includeXFapiFinancialId, as for FAPI2 OpenBanking UK
 			module.addClientAuthentication,
-			true); // KSA FAPI2 requires the signed-JWT consent format
+			true, // KSA FAPI2 requires the signed-JWT consent format
+			true); // KSA FAPI2 caps the access token lifetime at 10 minutes
+	}
+
+	@Override
+	public ConditionSequence validateExpiresIn() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(KsaValidateAccessTokenExpiresIn.class)
+					.skipIfObjectMissing("expires_in")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirement("KSA-OF-1")
+					.dontStopOnFailure());
+			}
+		};
 	}
 
 	@Override

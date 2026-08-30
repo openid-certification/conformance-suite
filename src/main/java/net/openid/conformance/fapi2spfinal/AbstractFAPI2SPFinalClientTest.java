@@ -69,7 +69,6 @@ import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLengt
 import net.openid.conformance.condition.as.FAPI2ValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
-import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
@@ -1303,7 +1302,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		} else {
 
 			callAndStopOnFailure(generateSenderConstrainedAccessToken);
-			callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
+			callAndContinueOnFailure(profileBehavior.getGenerateAccessTokenExpirationCondition(), ConditionResult.INFO);
 
 			modifyAccessToken();
 			callAndStopOnFailure(CreateTokenEndpointResponse.class);
