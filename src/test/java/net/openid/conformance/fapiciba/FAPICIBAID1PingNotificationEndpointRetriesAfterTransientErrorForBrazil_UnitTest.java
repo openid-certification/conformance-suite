@@ -14,12 +14,18 @@ import org.springframework.http.ResponseEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -78,6 +84,12 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 
 	@Test
 	public void returnsTransientFailureOnceAndProcessesTheRetry() throws Exception {
+		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
+			"{\"expires_in\":300}");
+		module.performValidateAuthorizationResponse();
+		module.conditionClasses.clear();
+		module.conditionRequirements.clear();
+
 		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
 
 		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
@@ -98,7 +110,15 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	}
 
 	@Test
-	public void acknowledgesAdditionalRetriesWithoutProcessingTheFlowAgain() {
+	public void doesNotScheduleRetryAssertionWhenExpiresInIsMissing() {
+		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
+
+		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+		assertThat(retryTimeoutTask).hasValue(null);
+	}
+
+	@Test
+	public void validatesAdditionalRetriesWithoutProcessingTheFlowAgain() {
 		AtomicReference<Callable<?>> backgroundTask = new AtomicReference<>();
 		TestExecutionManager delayedExecutionManager = mock(TestExecutionManager.class);
 		doAnswer(invocation -> {
@@ -113,12 +133,40 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		ResponseEntity<?> thirdResponse = asResponse(delayedModule.handlePingCallback(new JsonObject()));
 
 		assertThat(thirdResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(delayedModule.verifiedCallbacks).isEqualTo(2);
 		assertThat(delayedModule.processedCallbacks).isZero();
 
 		assertThatCode(backgroundTask.get()::call).doesNotThrowAnyException();
 		assertThat(delayedModule.getEnv().getInteger("notification_endpoint_call_count")).isEqualTo(3);
 		assertThat(delayedModule.processedCallbacks).isEqualTo(1);
 		assertThat(delayedModule.successfulResponses).isEqualTo(1);
+	}
+
+	@Test
+	public void serializesFastRetryWithFirstCallbackStateTransitions() throws Exception {
+		module.blockFirstCallbackVerification = true;
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		try {
+			Future<Object> firstCallback = executor.submit(() -> module.handlePingCallback(new JsonObject()));
+			assertThat(module.firstCallbackVerificationStarted.await(1, TimeUnit.SECONDS)).isTrue();
+
+			CountDownLatch retryStarted = new CountDownLatch(1);
+			Future<Object> retry = executor.submit(() -> {
+				retryStarted.countDown();
+				return module.handlePingCallback(new JsonObject());
+			});
+			assertThat(retryStarted.await(1, TimeUnit.SECONDS)).isTrue();
+			assertThatThrownBy(() -> retry.get(100, TimeUnit.MILLISECONDS))
+				.isInstanceOf(TimeoutException.class);
+
+			module.allowFirstCallbackVerification.countDown();
+			assertThat(asResponse(firstCallback.get()).getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+			assertThat(asResponse(retry.get()).getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+			assertThat(module.statuses).startsWith(TestModule.Status.RUNNING, TestModule.Status.WAITING);
+		} finally {
+			module.allowFirstCallbackVerification.countDown();
+			executor.shutdownNow();
+		}
 	}
 
 	private static ResponseEntity<?> asResponse(Object response) {
@@ -136,6 +184,9 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		private int verifiedCallbacks;
 		private int processedCallbacks;
 		private int successfulResponses;
+		private boolean blockFirstCallbackVerification;
+		private final CountDownLatch firstCallbackVerificationStarted = new CountDownLatch(1);
+		private final CountDownLatch allowFirstCallbackVerification = new CountDownLatch(1);
 
 		private TestablePingRetryModule(TestExecutionManager executionManager) {
 			this.executionManager = executionManager;
@@ -161,6 +212,15 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		@Override
 		protected void verifyNotificationCallback(JsonObject requestParts) {
 			verifiedCallbacks++;
+			if (blockFirstCallbackVerification && verifiedCallbacks == 1) {
+				firstCallbackVerificationStarted.countDown();
+				try {
+					assertThat(allowFirstCallbackVerification.await(1, TimeUnit.SECONDS)).isTrue();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new AssertionError(e);
+				}
+			}
 		}
 
 		@Override

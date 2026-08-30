@@ -41,31 +41,35 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 
 	@Override
 	protected Object handlePingCallback(JsonObject requestParts) {
-		int callCount;
 		synchronized (notificationEndpointCallCountLock) {
-			callCount = notificationEndpointCallCount.incrementAndGet();
-		}
+			int callCount = notificationEndpointCallCount.incrementAndGet();
 
-		if (callCount == 1) {
-			setStatus(Status.RUNNING);
+			if (callCount == 1) {
+				setStatus(Status.RUNNING);
+				verifyNotificationCallback(requestParts);
+				setStatus(Status.WAITING);
+				scheduleRetryAssertion();
+
+				return new ResponseEntity<Object>(
+					"Temporary failure from the CIBA notification endpoint.",
+					HttpStatus.SERVICE_UNAVAILABLE
+				);
+			}
+
+			if (callCount == 2) {
+				return super.handlePingCallback(requestParts);
+			}
+
 			verifyNotificationCallback(requestParts);
-			setStatus(Status.WAITING);
-			scheduleRetryAssertion();
-
-			return new ResponseEntity<Object>(
-				"Temporary failure from the CIBA notification endpoint.",
-				HttpStatus.SERVICE_UNAVAILABLE
-			);
+			return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 		}
-
-		if (callCount == 2) {
-			return super.handlePingCallback(requestParts);
-		}
-
-		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
 	private void scheduleRetryAssertion() {
+		if (authenticationRequestExpiresAt == null) {
+			return;
+		}
+
 		getTestExecutionManager().scheduleInBackground(() -> {
 			synchronized (notificationEndpointCallCountLock) {
 				if (notificationEndpointCallCount.get() != 1 || getStatus() != Status.WAITING) {
@@ -81,11 +85,6 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	}
 
 	private long secondsUntilAuthenticationRequestExpires() {
-		if (authenticationRequestExpiresAt == null) {
-			Integer expiresIn = env.getInteger("backchannel_authentication_endpoint_response", "expires_in");
-			return expiresIn == null ? 0 : expiresIn;
-		}
-
 		long remainingMillis = Duration.between(Instant.now(), authenticationRequestExpiresAt).toMillis();
 		return Math.max(0, (remainingMillis + 999) / 1000);
 	}
