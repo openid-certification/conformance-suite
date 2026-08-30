@@ -112,7 +112,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.HtmlUtils;
 
 
@@ -704,18 +703,21 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 		}
 		if (redirectTo != null) {
+			// Present the verifier's redirect_uri through the usual browser mechanism (a
+			// "visit this url" entry on the test detail page, or the scripted browser when
+			// the configuration has a matching automation entry, as the CI configs do)
+			// rather than abruptly redirecting whichever browser delivered the
+			// authorization request - the verifier's session completes when it is visited.
 			eventLog.log(getName(), args(
-				"msg", "Redirecting the browser that delivered the authorization request to the "
-					+ "verifier's redirect_uri, so the verifier's session can complete there",
-				"redirect_uri", redirectTo,
-				"http", "redirect"));
-			viewToReturn = new RedirectView(redirectTo, false, false, false);
-		} else {
-			viewToReturn = new ModelAndView("resultCaptured",
-				ImmutableMap.of(
-					"returnUrl", "/log-detail.html?log=" + getId()
-				));
+				"msg", "The verifier's redirect_uri must be visited to complete the verifier's "
+					+ "session; it is shown on the test detail page as a URL to visit",
+				"redirect_uri", redirectTo));
+			browser.goToUrl(redirectTo);
 		}
+		viewToReturn = new ModelAndView("resultCaptured",
+			ImmutableMap.of(
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 
 		if (directPostResponseWas2xx()) {
 			// The verifier accepted the response at the response_uri. Whether it actually
