@@ -751,8 +751,15 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
-		// generate the status list token now so it is ready to serve however quickly the
-		// verifier fetches it - see handleStatusListRequest
+		generateStatusListToken();
+	}
+
+	/**
+	 * Generates the status list token now so it is ready to serve however quickly the verifier
+	 * fetches it - see handleStatusListRequest. A test presenting a credential without a status
+	 * reference overrides this to skip generation (there is nothing to serve).
+	 */
+	protected void generateStatusListToken() {
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC ->
 				callAndStopOnFailure(VP1FinalGenerateJwtStatusListToken.class, "OTSL-5.1");
