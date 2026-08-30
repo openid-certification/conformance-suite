@@ -8,6 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.multipaz.cbor.Bstr;
 import org.multipaz.cbor.DataItem;
@@ -21,6 +22,9 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateVicalStructure_UnitTest {
@@ -74,8 +78,8 @@ public class ValidateVicalStructure_UnitTest {
 			kotlin.time.Instant.Companion.parse("2010-06-01T00:00:00Z"), null, 1L,
 			Set.of(), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("date"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("date");
 	}
 
 	@Test
@@ -85,8 +89,8 @@ public class ValidateVicalStructure_UnitTest {
 			kotlin.time.Instant.Companion.parse("2150-01-01T00:00:00Z"), 1L,
 			Set.of(), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("nextUpdate"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("nextUpdate");
 	}
 
 	@Test
@@ -96,8 +100,8 @@ public class ValidateVicalStructure_UnitTest {
 			Set.of(), Map.of(
 				"notAfter", new Tagged(Tagged.DATE_TIME_STRING, new Tstr(VicalTestFixtures.past().toString())))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("notAfter"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("notAfter");
 	}
 
 	@Test
@@ -106,8 +110,8 @@ public class ValidateVicalStructure_UnitTest {
 			"1.0", "OIDF Test VICAL Provider", VicalTestFixtures.now(), VicalTestFixtures.soon(), 1L,
 			Set.of("version"), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("version"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("version");
 	}
 
 	@Test
@@ -116,8 +120,8 @@ public class ValidateVicalStructure_UnitTest {
 			"1.0", "OIDF Test VICAL Provider", VicalTestFixtures.soon(), VicalTestFixtures.soon(), 1L,
 			Set.of(), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("date"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("date");
 	}
 
 	@Test
@@ -126,8 +130,8 @@ public class ValidateVicalStructure_UnitTest {
 			"1.0", "OIDF Test VICAL Provider", VicalTestFixtures.now(), VicalTestFixtures.past(), 1L,
 			Set.of(), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("nextUpdate"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("nextUpdate");
 	}
 
 	@Test
@@ -136,8 +140,8 @@ public class ValidateVicalStructure_UnitTest {
 			"1.0", "OIDF Test VICAL Provider", VicalTestFixtures.now(), VicalTestFixtures.soon(), 1L,
 			Set.of(), Map.of("customField", new Tstr("x"))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("customField"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("customField");
 	}
 
 	@Test
@@ -146,8 +150,8 @@ public class ValidateVicalStructure_UnitTest {
 			List.of("org.iso.18013.5.1.mDL"), new byte[] { 1, 2, 3, 4 }, null, Set.of(), Map.of());
 		putVical(VicalTestFixtures.buildVicalMap(List.of(badSki)));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("ski"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("ski");
 	}
 
 	@Test
@@ -156,8 +160,8 @@ public class ValidateVicalStructure_UnitTest {
 			List.of("org.iso.18013.5.1.mDL"), null, new byte[] { 0x7f, 0x7f }, Set.of(), Map.of());
 		putVical(VicalTestFixtures.buildVicalMap(List.of(badSerial)));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("serialNumber"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("serialNumber");
 	}
 
 	@Test
@@ -170,11 +174,11 @@ public class ValidateVicalStructure_UnitTest {
 			Map.of("serialNumber", new Tagged(Tagged.NEGATIVE_BIGNUM, new Bstr(serialBytes))));
 		putVical(VicalTestFixtures.buildVicalMap(List.of(wrongTagSerial)));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("tag 3 (negative bignum)"), e.getMessage());
-		assertTrue(e.getMessage().contains("negative-bignum tag by mistake"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("tag 3 (negative bignum)");
+		assertFindingLogged("negative-bignum tag by mistake");
 		// the finding names the certificate, not just the array index
-		assertTrue(e.getMessage().contains("CN=OIDF Test VICAL Signer"), e.getMessage());
+		assertFindingLogged("CN=OIDF Test VICAL Signer");
 	}
 
 	@Test
@@ -183,8 +187,8 @@ public class ValidateVicalStructure_UnitTest {
 			List.of(), null, null, Set.of(), Map.of());
 		putVical(VicalTestFixtures.buildVicalMap(List.of(noDocTypes)));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("docType"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("docType");
 	}
 
 	@Test
@@ -194,9 +198,9 @@ public class ValidateVicalStructure_UnitTest {
 			Map.of("notBefore", new Tstr("2020-01-01T00:00:00Z")));
 		putVical(VicalTestFixtures.buildVicalMap(List.of(badNotBefore)));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("certificateInfos[0]"), e.getMessage());
-		assertTrue(e.getMessage().contains("notBefore"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("certificateInfos[0]");
+		assertFindingLogged("notBefore");
 	}
 
 	@Test
@@ -205,7 +209,22 @@ public class ValidateVicalStructure_UnitTest {
 			List.of("org.iso.18013.5.1.mDL"), null, null, Set.of("ski"), Map.of());
 		putVical(VicalTestFixtures.buildVicalMap(List.of(noSki)));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("ski"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("ski");
+	}
+
+	/**
+	 * The per-entry findings are logged in the failure entry's 'findings' detail rather than
+	 * carried in the ConditionError message, so assertions capture the logged map.
+	 */
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private void assertFindingLogged(String text) {
+		ArgumentCaptor<Map> logged = ArgumentCaptor.forClass(Map.class);
+		verify(eventLog, atLeastOnce()).log(anyString(), logged.capture());
+		StringBuilder findings = new StringBuilder();
+		for (Map entry : logged.getAllValues()) {
+			findings.append(entry.get("findings")).append('\n');
+		}
+		assertTrue(findings.toString().contains(text), findings.toString());
 	}
 }
