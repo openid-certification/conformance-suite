@@ -704,6 +704,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 		}
 		if (redirectTo != null) {
+			eventLog.log(getName(), args(
+				"msg", "Redirecting the browser that delivered the authorization request to the "
+					+ "verifier's redirect_uri, so the verifier's session can complete there",
+				"redirect_uri", redirectTo,
+				"http", "redirect"));
 			viewToReturn = new RedirectView(redirectTo, false, false, false);
 		} else {
 			viewToReturn = new ModelAndView("resultCaptured",
