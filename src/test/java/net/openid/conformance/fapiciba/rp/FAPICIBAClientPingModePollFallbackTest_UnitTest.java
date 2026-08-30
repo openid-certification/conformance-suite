@@ -24,6 +24,7 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 			CreateBackchannelEndpointResponse.class,
 			SetNextAllowedTokenRequest.class
 		);
+		assertThat(test.noFallbackPollCompletionScheduled).isTrue();
 	}
 
 	@Test
@@ -69,10 +70,33 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 		assertThat(test.lastStatus).isEqualTo(Status.WAITING);
 	}
 
+	@Test
+	public void completesSuccessfullyWhenClientDoesNotUseOptionalPollFallback() {
+		TestableFallbackTest test = new TestableFallbackTest();
+
+		test.completeIfFallbackPollingWasNotUsed();
+
+		assertThat(test.fireTestFinishedCalled).isTrue();
+		assertThat(test.lastStatus).isEqualTo(Status.RUNNING);
+	}
+
+	@Test
+	public void keepsTestingFallbackBehaviorAfterClientStartsPolling() {
+		TestableFallbackTest test = new TestableFallbackTest();
+		test.getEnv().putInteger("token_poll_count", 1);
+
+		test.completeIfFallbackPollingWasNotUsed();
+
+		assertThat(test.fireTestFinishedCalled).isFalse();
+		assertThat(test.lastStatus).isNull();
+	}
+
 	private static class TestableFallbackTest extends FAPICIBAClientPingModePollFallbackTest {
 
 		private final List<Class<? extends Condition>> conditionCalls = new ArrayList<>();
 		private boolean startedWaitingForTimeout;
+		private boolean noFallbackPollCompletionScheduled;
+		private boolean fireTestFinishedCalled;
 		private Status lastStatus;
 
 		private TestableFallbackTest() {
@@ -105,6 +129,10 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 			return shouldIssueFinalCibaTokenResponse(tokenPollCount);
 		}
 
+		private void completeIfFallbackPollingWasNotUsed() {
+			completeTestIfFallbackPollingWasNotUsed();
+		}
+
 		@Override
 		protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 			conditionCalls.add(conditionClass);
@@ -116,8 +144,18 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 		}
 
 		@Override
+		protected void scheduleNoFallbackPollCompletion() {
+			noFallbackPollCompletionScheduled = true;
+		}
+
+		@Override
 		protected void setStatus(Status newStatus) {
 			lastStatus = newStatus;
+		}
+
+		@Override
+		public void fireTestFinished() {
+			fireTestFinishedCalled = true;
 		}
 	}
 }
