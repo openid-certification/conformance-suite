@@ -101,9 +101,6 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		}
 		String registrationClientPath = env.getString("registration_client_uri", "path");
 		if (registrationClientPath != null && registrationClientPath.equals(path)) {
-			if (isCleanupDelete(requestParts)) {
-				return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
-			}
 			return handleRegistrationClientUriRequest(requestParts);
 		}
 		return super.handleHttpMtls(path, req, res, session, requestParts);
@@ -273,8 +270,8 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 			.mapKey("incoming_request", requestId)
 			.mapKey("token_endpoint_request", requestId));
 		checkMtlsCertificate();
-		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.1");
-		callAndStopOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.1");
+		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.3");
+		callAndStopOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.3");
 		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
