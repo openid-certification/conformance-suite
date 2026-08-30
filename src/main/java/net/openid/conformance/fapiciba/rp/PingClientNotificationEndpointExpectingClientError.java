@@ -11,6 +11,8 @@ public abstract class PingClientNotificationEndpointExpectingClientError extends
 			return super.handleClientResponseException(env, e);
 		}
 		env.putInteger("client_notification_endpoint_response_http_status", e.getStatusCode().value());
+		logSuccess("Client notification endpoint rejected the invalid notification",
+			args("http_status", e.getStatusCode().value()));
 		return env;
 	}
 }
