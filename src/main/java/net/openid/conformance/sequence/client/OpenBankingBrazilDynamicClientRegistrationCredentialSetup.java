@@ -24,6 +24,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.testmodule.Command;
 
 public class OpenBankingBrazilDynamicClientRegistrationCredentialSetup extends AbstractConditionSequence {
 
@@ -76,9 +77,13 @@ public class OpenBankingBrazilDynamicClientRegistrationCredentialSetup extends A
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-		call(exec()
-			.unmapKey("server")
-			.unmapKey("client")
+		Command restoreDirectoryMappings = exec().unmapKey("server");
+		if (secondClient) {
+			restoreDirectoryMappings.mapKey("client", "client2");
+		} else {
+			restoreDirectoryMappings.unmapKey("client");
+		}
+		call(restoreDirectoryMappings
 			.unmapKey("discovery_endpoint_response")
 			.unmapKey("config")
 			.unmapKey("access_token"));
