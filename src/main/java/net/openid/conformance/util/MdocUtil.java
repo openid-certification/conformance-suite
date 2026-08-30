@@ -1,6 +1,7 @@
 package net.openid.conformance.util;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
@@ -60,6 +61,22 @@ public final class MdocUtil {
 	/** The UTF-8 bytes of the given string in lower case hex, as they are fed into CBOR. */
 	public static String utf8Hex(String value) {
 		return HEX.formatHex(value.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * The public part of a response encryption key as JSON, for logging a session transcript
+	 * calculation, or a note in place of it when there is no such key (the handover then carries
+	 * null instead of a thumbprint) or the key is symmetric and so has no public part.
+	 */
+	public static String describeEncryptionJwk(JWK jwk) {
+		if (jwk == null) {
+			return "<none - the handover uses null in place of the thumbprint>";
+		}
+		JWK publicJwk = jwk.toPublicJWK();
+		if (publicJwk == null) {
+			return "<symmetric key - it has no public part>";
+		}
+		return publicJwk.toJSONString();
 	}
 
 	/**
