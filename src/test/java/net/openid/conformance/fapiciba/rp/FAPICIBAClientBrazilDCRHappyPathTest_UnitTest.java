@@ -5,6 +5,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
+import net.openid.conformance.condition.client.CheckIncomingContentTypeIsApplicationJson;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
 import net.openid.conformance.testmodule.Command;
@@ -15,8 +18,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
+
+	@Test
+	public void mtlsRegistrationValidatesMethodAndContentTypeBeforeReadingTheRequest() {
+		TestableFAPICIBAClientBrazilDCRHappyPathTest test =
+			new TestableFAPICIBAClientBrazilDCRHappyPathTest();
+		JsonObject requestParts = new JsonObject();
+		requestParts.addProperty("method", "POST");
+
+		assertThatCode(() -> test.handleHttpMtls("register", null, null, null, requestParts))
+			.doesNotThrowAnyException();
+
+		assertThat(test.conditionCalls)
+			.extracting(ConditionCall::conditionClass)
+			.containsSubsequence(EnsureIncomingRequestMethodIsPost.class, CheckIncomingContentTypeIsApplicationJson.class);
+	}
 
 	@Test
 	public void mtlsCleanupDeleteValidatesClientCertificateAndRegistrationAccessToken() {
@@ -67,6 +86,21 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 		}
 
 		@Override
+		public Status getStatus() {
+			return Status.RUNNING;
+		}
+
+		@Override
+		protected void validateClientJwks() {
+			// Not relevant to registration endpoint dispatch behavior.
+		}
+
+		@Override
+		protected void validateClientConfiguration() {
+			// Not relevant to registration endpoint dispatch behavior.
+		}
+
+		@Override
 		protected void call(Command builder) {
 			builder.getEnvCommands().forEach(command -> command.accept(getEnv()));
 		}
@@ -77,6 +111,9 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 			String... requirements
 		) {
 			conditionCalls.add(new ConditionCall(conditionClass, List.of(requirements)));
+			if (FAPIBrazilRegisterClient.class.equals(conditionClass)) {
+				getEnv().putObject("client", new JsonObject());
+			}
 		}
 
 		@Override
@@ -94,6 +131,12 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 			Condition.ConditionResult onFail,
 			String... requirements
 		) {
+			conditionCalls.add(new ConditionCall(conditionClass, List.of(requirements)));
+		}
+
+		@Override
+		protected void skipIfElementMissing(String objId, String path, Condition.ConditionResult onSkip,
+			Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
 			conditionCalls.add(new ConditionCall(conditionClass, List.of(requirements)));
 		}
 	}

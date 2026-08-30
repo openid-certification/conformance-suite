@@ -48,7 +48,9 @@ import net.openid.conformance.condition.common.CreateRandomRegistrationClientUri
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
+import net.openid.conformance.condition.client.CheckIncomingContentTypeIsApplicationJson;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -141,6 +143,10 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 
 	private Object handleRegistrationEndpointRequest(String requestId) {
 		call(exec().startBlock("Dynamic registration endpoint").mapKey("incoming_request", requestId));
+		callAndStopOnFailure(EnsureIncomingRequestMethodIsPost.class, "RFC7591-3.1");
+		call(exec().mapKey("client_request", requestId));
+		callAndStopOnFailure(CheckIncomingContentTypeIsApplicationJson.class, "RFC7591-3.1");
+		call(exec().unmapKey("client_request"));
 		callAndStopOnFailure(OIDCCExtractDynamicRegistrationRequest.class);
 		validateRegistrationCertificate(requestId);
 		validateSoftwareStatement();
