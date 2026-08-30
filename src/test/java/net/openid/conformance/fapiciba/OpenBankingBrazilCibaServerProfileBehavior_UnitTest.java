@@ -45,7 +45,9 @@ import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaDyna
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -147,6 +149,17 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 		assertThat(credentialSetup).doesNotContain(
 			ExtractMTLSCertificatesFromConfiguration.class,
 			ExtractJWKSDirectFromClientConfiguration.class);
+	}
+
+	@Test
+	public void brazilSecondClientDynamicRegistrationRestoresSecondClientMappingAfterDirectoryCalls() {
+		ConditionSequence credentialSetup = behavior.getClientRegistrationCredentialSetupSteps(true);
+		Environment env = new Environment();
+		env.mapKey("client", "client2");
+
+		executeEnvironmentCommands(credentialSetup, env);
+
+		assertThat(env.getEffectiveKey("client")).isEqualTo("client2");
 	}
 
 	@Test
@@ -277,6 +290,15 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			.filter(ConditionCallBuilder.class::isInstance)
 			.map(ConditionCallBuilder.class::cast)
 			.toList();
+	}
+
+	private void executeEnvironmentCommands(ConditionSequence sequence, Environment env) {
+		sequence.evaluate();
+		sequence.getTestExecutionUnits().stream()
+			.filter(Command.class::isInstance)
+			.map(Command.class::cast)
+			.flatMap(command -> command.getEnvCommands().stream())
+			.forEach(command -> command.accept(env));
 	}
 
 	public static class NoOpClientAuthentication extends AbstractConditionSequence {
