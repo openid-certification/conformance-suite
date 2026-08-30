@@ -3887,19 +3887,24 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     });
   }
 
-  test("URI input: pasted URI's query string is GET to submitUrl", async ({ page }) => {
+  test("URI input: pasted URI's query string is delivered to submitUrl by navigation", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     const testIdLocal = MOCK_TEST_RUNNING.testId;
     const submitUrl = `https://example.com/test/a/alias/authorize`;
     await setupUriInputRoutes(page, testIdLocal, submitUrl);
 
+    // Delivery is a top-level navigation (not a fetch), so the authorization
+    // endpoint's redirect to the verifier's redirect_uri reaches this browser
+    // tab; the route below stands in for that endpoint.
     /** @type {string[]} */
     const captured = [];
     await page.route(
       (url) => url.href.startsWith(submitUrl),
       async (route) => {
         captured.push(route.request().url());
-        await route.fulfill({ status: 200, body: "" });
+        await route.fulfill({ status: 200, contentType: "text/html", body: "<p>delivered</p>" });
       },
     );
 
