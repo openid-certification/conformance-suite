@@ -73,7 +73,7 @@ public class OpenBankingBrazilCibaBindingMessageConditions_UnitTest {
 
 		assertThatThrownBy(() -> cond.execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("contains a URL");
+			.hasMessageContaining("Server accepted a binding_message containing a URL");
 	}
 
 	@Test
@@ -109,7 +109,7 @@ public class OpenBankingBrazilCibaBindingMessageConditions_UnitTest {
 
 		assertThatThrownBy(() -> cond.execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("contains a URL");
+			.hasMessageContaining("Server accepted a binding_message containing a URL");
 	}
 
 	@Test
@@ -122,7 +122,7 @@ public class OpenBankingBrazilCibaBindingMessageConditions_UnitTest {
 
 		assertThatThrownBy(() -> cond.execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("contains a URL");
+			.hasMessageContaining("Server accepted a binding_message containing a URL");
 	}
 
 	@Test
@@ -135,7 +135,7 @@ public class OpenBankingBrazilCibaBindingMessageConditions_UnitTest {
 
 		assertThatThrownBy(() -> cond.execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("contains a URL");
+			.hasMessageContaining("Server accepted a binding_message containing a URL");
 	}
 
 	@Test
