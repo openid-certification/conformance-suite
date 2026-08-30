@@ -133,7 +133,17 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		//negative private key authentication
 		FAPI2SPFinalPAREndpointAsArrayAudienceFails.class,
 		FAPI2SPFinalPAREndpointAsAudienceFails.class,
-		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class
+		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class,
+
+		// Grant Management tests
+		FAPI2SPFinalGrantManagementHappyFlow.class,
+		FAPI2SPFinalGrantManagementMerge.class,
+		FAPI2SPFinalGrantManagementReplace.class,
+		FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails.class,
+		FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails.class,
+		FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails.class,
+		FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant.class,
+		FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant.class
 
 	);
 
@@ -176,6 +186,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 		boolean rar = "rar".equals(authRequestType);
+		boolean grantManagement = "enabled".equals(v.get("grant_management"));
 
 		String certProfile = "FAPI2SP OP";
 
@@ -315,6 +326,10 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 			case "signed_non_repudiation":
 				profiles.add("FAPI2MS OP JAR");
 				break;
+		}
+
+		if (grantManagement) {
+			profiles.add("FAPI2MS OP GM");
 		}
 		switch (responseMode) {
 			case "plain_response":

@@ -108,6 +108,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
 import net.openid.conformance.condition.common.EnsureIncomingTls13;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -156,6 +157,7 @@ import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -181,6 +183,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
+	GrantManagement.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -239,6 +242,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"fapi_client_credentials_grant"}
 )
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability. Every
+// other profile - including the client credentials grant, which
+// has no authorization flow to produce a grant at all - must not offer the choice.
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"enabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
+		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
 	"client_attestation.issuer",
 	"client_attestation.trust_anchor",
@@ -279,6 +292,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected volatile boolean startingShutdown = false;
 
 	protected Boolean profileRequiresMtlsEverywhere;
+
+	protected Boolean isGrantManagement;
 
 	protected long waitTimeoutSeconds = 5;
 
@@ -432,6 +447,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
+		isGrantManagement = getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 
 		profileRequiresMtlsEverywhere = profileBehavior.requiresMtlsEverywhere();
 
@@ -492,6 +508,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
+		}
+
+		if (isGrantManagement) {
+			// without this a spec-following client has no reason to use grant management at all
+			callAndStopOnFailure(GrantManagementSupport.AddGrantManagementToServerConfiguration.class, "GM-7.1");
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -1414,6 +1435,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
 		}
+		if (isGrantManagement) {
+			callAndStopOnFailure(GrantManagementSupport.AddGrantIdToTokenEndpointResponse.class, "GM-5.5");
+		}
+		// last, so a profile can still adjust anything the generic steps above added
 		call(profileBehavior.customizeTokenEndpointResponse());
 	}
 

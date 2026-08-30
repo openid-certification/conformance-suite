@@ -3,6 +3,9 @@ package net.openid.conformance.fapi2spfinal.brazil;
 
 import net.openid.conformance.fapi2spfinal.FAPI2MessageSigningFinalClientTestPlan;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalBrazilClientDCRHappyPathTest;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementHappyPath;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalClientTestGrantManagementQueryAndRevoke;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
@@ -72,6 +75,12 @@ public class BrazilOBClientTestPlan implements TestPlan {
 	public List<TestPlan.ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalClientTestPlan.testModules);
 
+
+		// grant management is only offered for generic FAPI, so these are marked with
+		// VariantNotApplicable for Brazil too
+		modules.remove(FAPI2SPFinalClientTestGrantManagementHappyPath.class);
+		modules.remove(FAPI2SPFinalClientTestGrantManagementQueryAndRevoke.class);
+		modules.remove(FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails.class);
 
 		modules.add(FAPI2SPFinalBrazilClientDCRHappyPathTest.class);
 

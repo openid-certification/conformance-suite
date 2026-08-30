@@ -88,6 +88,12 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 					senderConstrain, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		profiles.add(certProfile);
+
+		// this plan runs the grant management modules when the variant is enabled, so the generated
+		// names have to record that they were part of the run
+		if ("enabled".equals(v.get("grant_management"))) {
+			profiles.add("FAPI2SP RP GM");
+		}
 		return profiles;
 	}
 

@@ -56,7 +56,12 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		FAPI2SPFinalClientTestEnsureJarmSignatureAlgIsNotNone.class,
 
 		//Brazil specific
-		FAPI2SPFinalClientRefreshTokenTest.class
+		FAPI2SPFinalClientRefreshTokenTest.class,
+
+		// Grant Management tests
+		FAPI2SPFinalClientTestGrantManagementHappyPath.class,
+		FAPI2SPFinalClientTestGrantManagementQueryAndRevoke.class,
+		FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails.class
 	);
 
 	@Override
@@ -98,6 +103,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		String clientType = v.get("fapi_client_type");
 		boolean openid = clientType.equals("oidc");
 		boolean rar = "rar".equals(authRequestType);
+		boolean grantManagement = "enabled".equals(v.get("grant_management"));
 
 		String certProfile = "FAPI2SP RP ";
 
@@ -236,6 +242,10 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 			case "signed_non_repudiation":
 				profiles.add( "FAPI2MS RP JAR" );
 				break;
+		}
+
+		if (grantManagement) {
+			profiles.add( "FAPI2MS RP GM" );
 		}
 		switch (responseMode) {
 			case "plain_response":

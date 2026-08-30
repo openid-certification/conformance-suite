@@ -1,0 +1,67 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "https://openid.net/specs/oauth-v2-grant-management.html#section-6.4",
+    "type": "object",
+    "title": "Grant Management query response",
+    "additionalProperties": false,
+    "properties": {
+        "scopes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "scope": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uri"
+                        }
+                    }
+                },
+                "$comment": "GM 6.4: every element may contain a 'scope' field and may contain a 'resource' field; neither is required"
+            }
+        },
+        "claims": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "authorization_details": {
+            "$comment": "https://www.rfc-editor.org/rfc/rfc9396.html#section-2",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "required": ["type"]
+            }
+        },
+        "created_at": {
+            "$comment": "NumericDate: seconds since the epoch",
+            "type": "integer"
+        },
+        "last_updated_at": {
+            "$comment": "The prose of GM 6.4 names this member 'last_updated' while the examples in the same section use 'last_updated_at'; both are accepted",
+            "type": "integer"
+        },
+        "last_updated": {
+            "$comment": "See the comment on 'last_updated_at'",
+            "type": "integer"
+        },
+        "expires_at": {
+            "type": "integer"
+        },
+        "updated_by": {
+            "type": "string",
+            "enum": ["client", "authorization_server"]
+        }
+    }
+}

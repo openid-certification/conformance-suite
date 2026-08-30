@@ -34,6 +34,7 @@ import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
+import net.openid.conformance.condition.client.ExtractGrantedScopeFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.CheckForRequestUriValue;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -113,6 +114,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
@@ -134,6 +136,7 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -153,6 +156,7 @@ import java.util.function.Supplier;
 	FAPI2FinalOPProfile.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
+	GrantManagement.class,
 })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi", configurationFields = {
 	"resource.resourceMethod",
@@ -298,6 +302,16 @@ import java.util.function.Supplier;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant"}
 )
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability. Every
+// other profile - including the client credentials grant, which
+// has no authorization flow to produce a grant at all - must not offer the choice.
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"enabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
+		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
 // VCI profile configuration fields
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
 	"vci.credential_issuer_url",
@@ -344,6 +358,20 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean useDpopAuthCodeBinding;
 	protected boolean isRarRequest;
 	protected Boolean clientCredentialsGrant;
+	protected boolean isGrantManagement;
+
+	/**
+	 * Whether this module needs the grant management API scopes of GM 6.1
+	 * ({@code grant_management_query}/{@code grant_management_revoke}) in its authorization request.
+	 *
+	 * <p>Only the modules that call the grant management endpoint do. Requesting them everywhere would
+	 * add permissions the rest of the plan never uses, altering what the negative-path modules exercise
+	 * and risking an {@code invalid_scope} error from an authorization server that does not grant them to
+	 * every client.
+	 */
+	protected boolean needsGrantManagementApiScopes() {
+		return false;
+	}
 	protected FAPI2ProfileBehavior profileBehavior;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -585,12 +613,16 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		private boolean isOpenId;
 		private boolean isJarm;
 		private boolean usePkce;
+		private boolean isGrantManagement;
+		private boolean needsGrantManagementApiScopes;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
 											boolean isOpenId,
 											boolean isJarm,
 											boolean usePkce,
+											boolean isGrantManagement,
+											boolean needsGrantManagementApiScopes,
 											Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
@@ -598,6 +630,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a conditionsequence within a condition sequence
 			this.usePkce = usePkce;
+			this.isGrantManagement = isGrantManagement;
+			this.needsGrantManagementApiScopes = needsGrantManagementApiScopes;
 			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
 		}
 
@@ -631,6 +665,20 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
 			}
+
+			// RAR is deliberately NOT added here: it is appended by makeCreateAuthorizationRequestSteps
+			// after the profile-customised steps, as it always has been.
+			if (isGrantManagement) {
+				// The grant management API scopes (GM 6.1) authorize calls to the grant management
+				// endpoint, so they are only requested by the modules that actually make one. Asking for
+				// them on every module in the plan would change what the other modules exercise, and
+				// would fail against an authorization server that does not grant them to every client.
+				if (needsGrantManagementApiScopes) {
+					callAndStopOnFailure(GrantManagementSupport.AddGrantManagementScopesToAuthorizationRequest.class, "GM-6.1");
+				}
+				callAndStopOnFailure(GrantManagementSupport.AddGrantManagementActionCreateToAuthorizationRequest.class, "GM-5.2");
+			}
+
 		}
 
 	}
@@ -640,7 +688,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
-		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps);
+
+		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce,
+			isGrantManagement, needsGrantManagementApiScopes(), profileAuthorizationEndpointSetupSteps);
 		profileBehavior.customizeAuthorizationRequestSteps(seq);
 		if (isRarRequest){
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
@@ -865,6 +915,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 		}
 
+		if (isGrantManagement) {
+			// a later refresh must ask only for what was granted (RFC6749-6), and under grant management the
+			// granted scope routinely differs from the configured one, as merge and replace change what the
+			// grant covers. Outside grant management the configured scope continues to be used, so that this
+			// does not change the refresh behaviour of every other FAPI2 test.
+			callAndContinueOnFailure(ExtractGrantedScopeFromTokenEndpointResponse.class, ConditionResult.INFO, "RFC6749-6");
+		}
+
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
@@ -910,6 +968,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		if (isRarRequest){
 			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RFC9396-7");
+		}
+
+		if (isGrantManagement) {
+			callAndStopOnFailure(GrantManagementSupport.ExtractGrantIdFromTokenResponse.class, "GM-5.5");
+			callAndContinueOnFailure(GrantManagementSupport.CheckGrantIdIsUrlSafe.class, Condition.ConditionResult.WARNING, "GM-5.5");
+			// GM 5.5 requires "sufficient entropy" but gives no minimum length, so the suite's length
+			// heuristic can only warn
+			callAndContinueOnFailure(GrantManagementSupport.CheckGrantIdHasSufficientEntropy.class, Condition.ConditionResult.WARNING, "GM-5.5");
 		}
 
 		call(profileBehavior.validateTokenEndpointResponseInteractionId());
@@ -1041,6 +1107,110 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 				++i;
 			}
 		}
+	}
+
+	/**
+	 * Calls the grant management endpoint (GM 6.3), which is a protected resource: under DPoP sender
+	 * constraining the request needs a DPoP proof bound to the grant resource URL, and the AS may ask us to
+	 * repeat the request with a nonce, exactly as for the resource endpoint.
+	 *
+	 * @param callCondition the condition that performs the call
+	 * @param dpopProofSteps the sequence that builds the matching DPoP proof, used only under DPoP
+	 * @param requirements spec requirements to record against the call
+	 */
+	protected void callGrantManagementEndpoint(Class<? extends Condition> callCondition,
+											Class<? extends ConditionSequence> dpopProofSteps,
+											String... requirements) {
+		// as for the resource endpoint, only present a client certificate where the profile or the
+		// sender constraining method calls for one
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			profileRequiresMtlsEverywhere;
+
+		JsonObject mtls = null;
+		if (!mtlsRequired) {
+			mtls = env.getObject("mutual_tls_authentication");
+			env.removeObject("mutual_tls_authentication");
+		}
+
+		try {
+			final int MAX_RETRY = 2;
+			for (int i = 0; i < MAX_RETRY; i++) {
+				callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+				if (isDpop()) {
+					call(sequence(dpopProofSteps));
+				}
+
+				callAndStopOnFailure(callCondition, requirements);
+
+				if (!isDpop() || Strings.isNullOrEmpty(env.getString(GrantManagementSupport.GRANT_MANAGEMENT_DPOP_NONCE_ERROR_KEY))) {
+					break;
+				}
+				// the AS supplied a nonce, so build a new proof containing it and call again
+				if (i == MAX_RETRY - 1) {
+					// otherwise the loop just exits and the tester is left with a bare "Expected HTTP 200"
+					callAndContinueOnFailure(GrantManagementSupport.EnsureGrantManagementDpopNonceRetryWasAccepted.class,
+						ConditionResult.FAILURE, "RFC9449-8.2");
+				}
+			}
+		} finally {
+			if (!mtlsRequired && mtls != null) {
+				env.putObject("mutual_tls_authentication", mtls);
+			}
+		}
+	}
+
+	protected void callGrantManagementQuery() {
+		callGrantManagementEndpoint(GrantManagementSupport.CallGrantManagementEndpointQuery.class,
+			GrantManagementSupport.CreateGrantManagementQueryDpopProofSteps.class, "GM-6.4");
+	}
+
+	protected void callGrantManagementRevoke() {
+		callGrantManagementEndpoint(GrantManagementSupport.CallGrantManagementEndpointRevoke.class,
+			GrantManagementSupport.CreateGrantManagementRevokeDpopProofSteps.class, "GM-6.5");
+	}
+
+	/**
+	 * The validation GM 6.4 calls for on a successful query response: the status, the headers and each of
+	 * the members of the body.
+	 */
+	protected void validateGrantManagementQueryResponse() {
+		// GM 6.4 explicitly permits a 503 from an authorization server under load, so this is not a
+		// conformance failure and must not be reported as one - but nothing about the grant can be checked
+		// without a response, so the test is skipped and the tester asked to run it again.
+		Integer status = env.getInteger(GrantManagementSupport.GRANT_MANAGEMENT_RESPONSE_KEY, "status");
+		if (status != null && status == 503) {
+			String retryAfter = env.getString(GrantManagementSupport.GRANT_MANAGEMENT_RESPONSE_KEY, "headers.retry-after");
+			fireTestSkipped("The grant management endpoint returned HTTP 503, which GM 6.4 permits when the"
+				+ " authorization server is under load. Please retry the test"
+				+ (Strings.isNullOrEmpty(retryAfter) ? "." : ", respecting the 'Retry-After' header of " + retryAfter + "."));
+			return;
+		}
+
+		callAndContinueOnFailure(GrantManagementSupport.EnsureGrantManagementQuerySucceeded.class, ConditionResult.FAILURE, "GM-6.4");
+
+		if (status == null || status != 200) {
+			// the checks below describe what a *successful* response has to look like; running them against
+			// an error response just buries the status failure under a cascade of consequential ones
+			return;
+		}
+
+		callAndContinueOnFailure(GrantManagementSupport.EnsureGrantManagementQueryResponseContentTypeIsJson.class, ConditionResult.FAILURE, "GM-6.4");
+		// GM 6.4 only shows Cache-Control in its non-normative examples
+		callAndContinueOnFailure(GrantManagementSupport.EnsureGrantManagementQueryResponseIsNotCacheable.class, ConditionResult.WARNING, "GM-6.4");
+		callAndContinueOnFailure(GrantManagementSupport.EnsureGrantManagementQueryResponseBodyIsJsonObject.class, ConditionResult.FAILURE, "GM-6.4");
+
+		// the checks below all read the parsed body, so skip them when there is none rather than reporting
+		// the same missing body once per check
+		skipIfElementMissing(GrantManagementSupport.GRANT_MANAGEMENT_RESPONSE_KEY, "body_json", ConditionResult.INFO,
+			GrantManagementSupport.ValidateGrantManagementQueryResponseSchema.class, ConditionResult.FAILURE, "GM-6.4");
+		skipIfElementMissing(GrantManagementSupport.GRANT_MANAGEMENT_RESPONSE_KEY, "body_json", ConditionResult.INFO,
+			GrantManagementSupport.ValidateGrantManagementQueryResponseTimestamps.class, ConditionResult.FAILURE, "GM-6.4");
+		// every member of the response is OPTIONAL per GM 6.4, so the two checks below can only warn
+		skipIfElementMissing(GrantManagementSupport.GRANT_MANAGEMENT_RESPONSE_KEY, "body_json", ConditionResult.INFO,
+			GrantManagementSupport.CheckGrantManagementQueryResponseContainsGrantDetails.class, ConditionResult.WARNING, "GM-6.4");
+		skipIfElementMissing(GrantManagementSupport.GRANT_MANAGEMENT_RESPONSE_KEY, "body_json", ConditionResult.INFO,
+			GrantManagementSupport.CheckForUnexpectedParametersInGrantManagementQueryResponse.class, ConditionResult.WARNING, "GM-6.4");
 	}
 
 	protected void requestProtectedResource() {

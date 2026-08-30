@@ -1,0 +1,31 @@
+package net.openid.conformance.fapi2spfinal;
+
+import net.openid.conformance.testmodule.PublishTestModule;
+
+/**
+ * Happy path client test with Grant Management enabled.
+ * The suite (acting as AS) returns a grant_id in the token response.
+ * The client should complete the flow successfully, accepting the grant_id.
+ */
+@PublishTestModule(
+	testName = "fapi2-security-profile-final-client-test-grant-management-happy-path",
+	displayName = "FAPI2-Security-Profile-Final: client test for happy path with Grant Management",
+	summary = "Tests a 'happy path' flow with Grant Management enabled. Configure your client to send a PAR request with grant_management_action=create (and, per GM 5.2, no grant_id). The suite returns a grant_id in the token response. The client should perform OpenID discovery, call the authorization endpoint, exchange the authorization code for an access token (which will include a grant_id), and make a GET request to the resource endpoint.",
+	profile = "FAPI2-Security-Profile-Final",
+	configurationFields = {
+		"server.jwks",
+		"client.client_id",
+		"client.scope",
+		"client.redirect_uri",
+		"client.certificate",
+		"client.jwks",
+		"waitTimeoutSeconds"
+	}
+)
+public class FAPI2SPFinalClientTestGrantManagementHappyPath extends AbstractFAPI2SPFinalClientTestGrantManagement {
+
+	@Override
+	protected void addCustomValuesToIdToken() {
+		// Do nothing
+	}
+}

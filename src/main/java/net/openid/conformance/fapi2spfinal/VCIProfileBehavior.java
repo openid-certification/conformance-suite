@@ -37,6 +37,7 @@ import net.openid.conformance.testmodule.IterateEnvironmentArray;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
@@ -132,6 +133,8 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		module.profileRequiresMtlsEverywhere = false;
 		// VCI never uses client credentials grant
 		module.clientCredentialsGrant = false;
+		// this override does not call super, so the flag the base sets from the variant is set here too
+		module.isGrantManagement = module.getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 
 		credentialFormat = module.getVariant(VCI1FinalCredentialFormat.class);
 	}

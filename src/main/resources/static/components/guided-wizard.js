@@ -266,6 +266,7 @@ const VALUE_LABELS = {
   sender_constrain: { mtls: "Mutual TLS (mTLS)", dpop: "DPoP" },
   authorization_request_type: { simple: "Simple", rar: "Rich Authorization Requests (RAR)" },
   ciba_mode: { ping: "Ping", poll: "Poll" },
+  grant_management: { enabled: "Enabled", disabled: "Disabled" },
   client_registration: {
     static_client: "Static (pre-registered) client",
     dynamic_client: "Dynamic client registration",

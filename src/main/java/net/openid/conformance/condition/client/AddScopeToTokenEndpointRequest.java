@@ -15,7 +15,18 @@ public class AddScopeToTokenEndpointRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject tokenEndpointRequest = env.getObject("token_endpoint_request_form_parameters");
 
-		String scope = env.getString("client", "scope");
+		// RFC6749-6: a refresh request must not ask for anything beyond what was granted, so where the
+		// granted scope is known (recorded by ExtractGrantedScopeFromTokenEndpointResponse) it takes
+		// precedence over the scope configured for the client
+		String grantedScope = env.getString("client", ExtractGrantedScopeFromTokenEndpointResponse.GRANTED_SCOPE);
+		String scope = grantedScope;
+		String source = "granted by the authorization server";
+
+		if (Strings.isNullOrEmpty(scope)) {
+			scope = env.getString("client", "scope");
+			source = "configured for the client";
+		}
+
 		if (Strings.isNullOrEmpty(scope)) {
 			throw error("scope missing/empty in client object");
 		}
@@ -24,7 +35,7 @@ public class AddScopeToTokenEndpointRequest extends AbstractCondition {
 
 		env.putObject("token_endpoint_request_form_parameters", tokenEndpointRequest);
 
-		logSuccess("Added scope of '"+scope+"' to token endpoint request", tokenEndpointRequest);
+		logSuccess("Added scope of '"+scope+"' ("+source+") to token endpoint request", tokenEndpointRequest);
 
 		return env;
 	}
