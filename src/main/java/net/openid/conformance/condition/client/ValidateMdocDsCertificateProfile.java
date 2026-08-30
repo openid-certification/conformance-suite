@@ -93,19 +93,26 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 		String issuingCertPem = issuingCert == null
 			? "the issuing IACA certificate is not in the x5chain and could not be located, so the issuer binding checks were skipped"
 			: X509CertificateUtil.toPem(issuingCert);
+		String issuingCertDecoded = issuingCert == null
+			? "<no issuing certificate located>"
+			: X509CertificateUtil.describe(issuingCert);
 
 		if (!violations.isEmpty()) {
 			throw error("The document signer certificate in the mdoc x5chain does not comply with the ISO 18013-5 document signer certificate profile: "
 					+ String.join("; ", violations),
 				args("subject", subject, "violations", violations,
 					"ds_certificate_pem", X509CertificateUtil.toPem(dsCert),
-					"issuing_certificate_pem", issuingCertPem));
+					"ds_certificate_decoded", X509CertificateUtil.describe(dsCert),
+					"issuing_certificate_pem", issuingCertPem,
+					"issuing_certificate_decoded", issuingCertDecoded));
 		}
 
 		logSuccess("Document signer certificate complies with the ISO 18013-5 document signer certificate profile",
 			args("subject", subject,
 				"ds_certificate_pem", X509CertificateUtil.toPem(dsCert),
-				"issuing_certificate_pem", issuingCertPem));
+				"ds_certificate_decoded", X509CertificateUtil.describe(dsCert),
+				"issuing_certificate_pem", issuingCertPem,
+				"issuing_certificate_decoded", issuingCertDecoded));
 		return env;
 	}
 

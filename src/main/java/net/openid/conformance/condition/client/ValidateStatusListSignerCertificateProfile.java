@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocCertificateProfileChecks;
+import net.openid.conformance.util.X509CertificateUtil;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
@@ -83,11 +84,15 @@ public class ValidateStatusListSignerCertificateProfile extends AbstractStatusLi
 		if (!violations.isEmpty()) {
 			throw error("The MSO revocation list signer certificate does not comply with the"
 					+ " ISO/IEC 18013-5 Table B.9 certificate profile: " + String.join("; ", violations),
-				args("subject", subject, "violations", violations));
+				args("subject", subject, "violations", violations,
+					"signer_certificate_pem", X509CertificateUtil.toPem(signerCert),
+					"signer_certificate_decoded", X509CertificateUtil.describe(signerCert)));
 		}
 
 		logSuccess("The MSO revocation list signer certificate complies with the ISO/IEC 18013-5"
-			+ " Table B.9 certificate profile", args("subject", subject));
+			+ " Table B.9 certificate profile", args("subject", subject,
+				"signer_certificate_pem", X509CertificateUtil.toPem(signerCert),
+				"signer_certificate_decoded", X509CertificateUtil.describe(signerCert)));
 		return env;
 	}
 
