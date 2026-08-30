@@ -92,9 +92,9 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 
 		assertThat(brazilPingCall.getConditionClass())
 			.isEqualTo(PingClientNotificationEndpointWithRetriesForBrazil.class);
-		assertThat(brazilPingCall.getRequirements()).containsExactly("CIBA", "BrazilCIBA-6.2.8");
+		assertThat(brazilPingCall.getRequirements()).containsExactly("CIBA-10.2", "BrazilCIBA-6.2.8");
 		assertThat(genericPingCall.getConditionClass()).isEqualTo(PingClientNotificationEndpoint.class);
-		assertThat(genericPingCall.getRequirements()).containsExactly("CIBA");
+		assertThat(genericPingCall.getRequirements()).containsExactly("CIBA-10.2");
 	}
 
 	@Test
