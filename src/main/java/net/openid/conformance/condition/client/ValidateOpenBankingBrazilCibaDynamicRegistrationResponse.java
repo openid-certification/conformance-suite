@@ -9,6 +9,8 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends AbstractCondition {
 
@@ -21,7 +23,7 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends Ab
 		JsonObject client = env.getObject("client");
 
 		ensureCibaGrantType(client);
-		ensureMatchesRequest(request, client, "redirect_uris");
+		ensureRedirectUrisMatchRequest(request, client);
 		ensureMatchesRequest(request, client, "jwks_uri");
 		ensureMatchesRequest(request, client, "backchannel_token_delivery_mode");
 		ensureMatchesRequest(request, client, "backchannel_client_notification_endpoint");
@@ -63,12 +65,60 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends Ab
 	}
 
 	private void ensureMatchesRequest(JsonObject request, JsonObject client, String fieldName) {
-		JsonElement requested = request.get(fieldName);
-		JsonElement registered = client.get(fieldName);
-		if (requested == null || registered == null || !requested.equals(registered)) {
-			throw error("Dynamic registration response metadata does not match the request",
+		JsonElement requested = getRequiredRequestMetadata(request, fieldName);
+		JsonElement registered = getRequiredResponseMetadata(client, fieldName);
+		if (!requested.equals(registered)) {
+			throw error("Dynamic registration response metadata does not match the request: " + fieldName,
 				args("field", fieldName, "requested", requested, "registered", registered));
 		}
+	}
+
+	private void ensureRedirectUrisMatchRequest(JsonObject request, JsonObject client) {
+		String fieldName = "redirect_uris";
+		JsonElement requested = getRequiredRequestMetadata(request, fieldName);
+		JsonElement registered = getRequiredResponseMetadata(client, fieldName);
+		Set<String> requestedUris = getRedirectUriSet(requested, "request");
+		Set<String> registeredUris = getRedirectUriSet(registered, "response");
+
+		if (!requestedUris.equals(registeredUris)) {
+			throw error("Dynamic registration response metadata does not match the request: " + fieldName,
+				args("field", fieldName, "requested", requested, "registered", registered));
+		}
+	}
+
+	private JsonElement getRequiredRequestMetadata(JsonObject request, String fieldName) {
+		JsonElement requested = request.get(fieldName);
+		if (requested == null || requested.isJsonNull()) {
+			throw error("Dynamic registration request does not contain required metadata: " + fieldName,
+				args("field", fieldName));
+		}
+		return requested;
+	}
+
+	private JsonElement getRequiredResponseMetadata(JsonObject client, String fieldName) {
+		JsonElement registered = client.get(fieldName);
+		if (registered == null || registered.isJsonNull()) {
+			throw error("Dynamic registration response does not contain required metadata: " + fieldName,
+				args("field", fieldName));
+		}
+		return registered;
+	}
+
+	private Set<String> getRedirectUriSet(JsonElement redirectUrisElement, String source) {
+		if (!redirectUrisElement.isJsonArray()) {
+			throw error("Dynamic registration " + source + " redirect_uris metadata must be an array",
+				args("redirect_uris", redirectUrisElement));
+		}
+
+		Set<String> redirectUris = new HashSet<>();
+		for (JsonElement redirectUri : redirectUrisElement.getAsJsonArray()) {
+			if (!redirectUri.isJsonPrimitive() || !redirectUri.getAsJsonPrimitive().isString()) {
+				throw error("Dynamic registration " + source + " redirect_uris metadata must contain only strings",
+					args("redirect_uris", redirectUrisElement));
+			}
+			redirectUris.add(OIDFJSON.getString(redirectUri));
+		}
+		return redirectUris;
 	}
 
 	private void ensureMatchesRequestIfRequested(JsonObject request, JsonObject client, String fieldName) {
