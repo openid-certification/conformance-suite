@@ -8,6 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.Tstr;
@@ -19,6 +20,9 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateRicalStructure_UnitTest {
@@ -60,8 +64,8 @@ public class ValidateRicalStructure_UnitTest {
 		putRical(RicalTestFixtures.buildRicalMap(List.of(
 			RicalTestFixtures.certificateInfo(pki.getCaCert(), true, null, Set.of("isTrustAnchor"), Map.of()))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("isTrustAnchor"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("isTrustAnchor");
 	}
 
 	@Test
@@ -70,8 +74,8 @@ public class ValidateRicalStructure_UnitTest {
 			"1.0", "OIDF Test RICAL Provider", RicalTestFixtures.now(), null,
 			RicalTestFixtures.soon(), 1L, Set.of(), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("type"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("type");
 	}
 
 	@Test
@@ -81,16 +85,16 @@ public class ValidateRicalStructure_UnitTest {
 			RicalTestFixtures.READER_AUTHENTICATION_TYPE, RicalTestFixtures.soon(), 1L,
 			Set.of(), Map.of("misspelled", new Tstr("value"))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("misspelled"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("misspelled");
 	}
 
 	@Test
 	public void testEvaluate_failsWhenCertificateInfosEmpty() {
 		putRical(RicalTestFixtures.buildRicalMap(List.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("empty"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("empty");
 	}
 
 	@Test
@@ -99,8 +103,8 @@ public class ValidateRicalStructure_UnitTest {
 			RicalTestFixtures.certificateInfo(pki.getCaCert(), true,
 				new byte[] { 1, 2, 3, 4 }, Set.of(), Map.of()))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("ski"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("ski");
 	}
 
 	@Test
@@ -111,8 +115,8 @@ public class ValidateRicalStructure_UnitTest {
 			goodCertInfo(),
 			RicalTestFixtures.certificateInfo(pki.getReaderCert(), false, null, Set.of(), Map.of()))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("aki"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("aki");
 	}
 
 	@Test
@@ -124,8 +128,8 @@ public class ValidateRicalStructure_UnitTest {
 			RicalTestFixtures.certificateInfo(otherPki.getReaderCert(), false, null, Set.of(),
 				Map.of("aki", new org.multipaz.cbor.Bstr(otherPki.getReaderCert().getAuthorityKeyIdentifier()))))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("no path to a trust anchor"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("no path to a trust anchor");
 	}
 
 	@Test
@@ -133,8 +137,8 @@ public class ValidateRicalStructure_UnitTest {
 		putRical(RicalTestFixtures.buildRicalMap(List.of(
 			RicalTestFixtures.certificateInfo(pki.getCaCert(), true, null, Set.of(), Map.of(), true))));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("negative-bignum tag by mistake"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("negative-bignum tag by mistake");
 	}
 
 	@Test
@@ -144,8 +148,8 @@ public class ValidateRicalStructure_UnitTest {
 			RicalTestFixtures.READER_AUTHENTICATION_TYPE, RicalTestFixtures.past(), 1L,
 			Set.of(), Map.of()));
 
-		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("nextUpdate"), e.getMessage());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertFindingLogged("nextUpdate");
 	}
 
 	@Test
@@ -159,5 +163,20 @@ public class ValidateRicalStructure_UnitTest {
 				Map.of("trustContraints", new org.multipaz.cbor.CborArray(new java.util.ArrayList<>(), false))))));
 
 		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	/**
+	 * The per-entry findings are logged in the failure entry's 'findings' detail rather than
+	 * carried in the ConditionError message, so assertions capture the logged map.
+	 */
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private void assertFindingLogged(String text) {
+		ArgumentCaptor<Map> logged = ArgumentCaptor.forClass(Map.class);
+		verify(eventLog, atLeastOnce()).log(anyString(), logged.capture());
+		StringBuilder findings = new StringBuilder();
+		for (Map entry : logged.getAllValues()) {
+			findings.append(entry.get("findings")).append('\n');
+		}
+		assertTrue(findings.toString().contains(text), findings.toString());
 	}
 }

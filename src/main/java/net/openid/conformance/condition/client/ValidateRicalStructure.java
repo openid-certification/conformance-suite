@@ -53,8 +53,6 @@ public class ValidateRicalStructure extends AbstractRicalCondition {
 	private static final long EARLIEST_PLAUSIBLE_MILLIS = java.time.Instant.parse("2019-01-01T00:00:00Z").toEpochMilli();
 	private static final long FIFTY_YEARS_MILLIS = 50L * 365 * 24 * 3600 * 1000;
 
-	// cap the reported findings so a large broken RICAL doesn't produce an enormous log entry
-	private static final int MAX_REPORTED_FINDINGS = 50;
 
 	@Override
 	@PreEnvironment(required = "rical")
@@ -88,13 +86,10 @@ public class ValidateRicalStructure extends AbstractRicalCondition {
 		}
 
 		if (!findings.isEmpty()) {
-			List<String> reported = findings.size() > MAX_REPORTED_FINDINGS
-				? findings.subList(0, MAX_REPORTED_FINDINGS) : findings;
 			JsonArray findingsJson = new JsonArray();
-			reported.forEach(findingsJson::add);
-			String suffix = findings.size() > MAX_REPORTED_FINDINGS
-				? "; ... " + (findings.size() - MAX_REPORTED_FINDINGS) + " further findings not shown" : "";
-			throw error("RICAL structure problems found: " + String.join("; ", reported) + suffix,
+			findings.forEach(findingsJson::add);
+			throw error("The RICAL structure has " + findings.size()
+					+ " problem(s), listed in the detail below",
 				args("findings", findingsJson,
 					"total_findings", findings.size()));
 		}
