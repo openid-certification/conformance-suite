@@ -2586,6 +2586,63 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(result).toHaveCount(0);
   });
 
+  test("Private link: expiry presets drive the days input and the exp query", async ({ page }) => {
+    const SHARE_LINK = "https://example.test/login.html?token=preset";
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+    /** @type {string[]} */
+    const shareUrls = [];
+    await page.route(`**/api/info/${MOCK_TEST_STATUS.testId}/share*`, (route) => {
+      shareUrls.push(route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ link: SHARE_LINK, message: "" }),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
+    await overflow.locator('[data-testid="overflow-trigger"]').click();
+    await overflow.locator('[data-action-id="share-link"]').click();
+
+    const dialog = page.locator('[data-testid="private-link-dialog"]');
+    await expect(dialog).toBeVisible();
+    const presets = dialog.locator('[data-testid="private-link-presets"] .plinkPreset button');
+    const days = dialog.locator(".plinkDays");
+
+    // Four presets, "1 month" (the 30-day default) pressed on open.
+    await expect(presets).toHaveText(["1 week", "1 month", "6 months", "1 year"]);
+    await expect(presets.nth(1)).toHaveAttribute("aria-pressed", "true");
+    await expect(days).toHaveValue("30");
+
+    // Pick "1 year": input follows, pressed state moves, exp=365 is sent.
+    await presets.nth(3).click();
+    await expect(days).toHaveValue("365");
+    await expect(presets.nth(3)).toHaveAttribute("aria-pressed", "true");
+    await expect(presets.nth(1)).toHaveAttribute("aria-pressed", "false");
+    await dialog.locator(".plinkGenerateBtn").click();
+    await expect(dialog.locator('[data-testid="private-link-result"]')).toBeVisible();
+    expect(shareUrls).toHaveLength(1);
+    expect(shareUrls[0]).toContain("exp=365");
+
+    // A custom value un-presses every preset; the input still wins.
+    await days.fill("45");
+    await expect(dialog.locator('.plinkPreset button[aria-pressed="true"]')).toHaveCount(0);
+    await presets.nth(0).click();
+    await expect(days).toHaveValue("7");
+    await dialog.locator(".plinkGenerateBtn").click();
+    await expect.poll(() => shareUrls.length).toBe(2);
+    expect(shareUrls[1]).toContain("exp=7");
+  });
+
   test("Private link: a stale in-flight response cannot clobber a newer result", async ({
     page,
   }) => {
