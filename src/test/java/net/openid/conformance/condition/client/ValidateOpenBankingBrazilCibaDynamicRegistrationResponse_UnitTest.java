@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 
@@ -28,7 +29,10 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 		JsonObject request = JsonParser.parseString("""
 			{
 			  "grant_types": ["urn:openid:params:grant-type:ciba"],
-			  "redirect_uris": ["https://client.example/callback"],
+			  "redirect_uris": [
+			    "https://client.example/callback",
+			    "https://client.example/alternative-callback"
+			  ],
 			  "jwks_uri": "https://directory.example/client.jwks",
 			  "backchannel_token_delivery_mode": "ping",
 			  "backchannel_client_notification_endpoint": "https://client.example/notify",
@@ -51,6 +55,32 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	@Test
 	public void acceptsMatchingOpenBankingBrazilCibaMetadata() {
 		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	public void acceptsRedirectUrisInDifferentOrder() {
+		response.add("redirect_uris", JsonParser.parseString("""
+			[
+			  "https://client.example/alternative-callback",
+			  "https://client.example/callback"
+			]
+			"""));
+
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsChangedRedirectUriSet() {
+		response.add("redirect_uris", JsonParser.parseString("""
+			[
+			  "https://client.example/callback",
+			  "https://client.example/unrequested-callback"
+			]
+			"""));
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("does not match the request: redirect_uris");
 	}
 
 	@Test
@@ -96,10 +126,19 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
-	public void rejectsInlineJwksOrChangedJwksUri() {
+	public void rejectsInlineJwks() {
 		response.add("jwks", JsonParser.parseString("{\"keys\":[]}"));
 
 		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void distinguishesMismatchedResponseMetadata() {
+		response.addProperty("jwks_uri", "https://directory.example/different-client.jwks");
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("does not match the request: jwks_uri");
 	}
 
 	@Test
@@ -127,6 +166,8 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	public void rejectsMissingRequiredResponseMetadata() {
 		response.remove("jwks_uri");
 
-		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("does not contain required metadata: jwks_uri");
 	}
 }
