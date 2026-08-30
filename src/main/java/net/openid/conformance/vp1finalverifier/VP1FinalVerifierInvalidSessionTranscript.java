@@ -16,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		reject the presentation: recomputing the session transcript with the nonce it actually \
 		sent, the mdoc's device signature or MAC does not verify.
 
-		This test is only applicable for the ISO mDL credential format.
+		This test is only applicable for the ISO mdoc credential format.
 
 		The conformance suite acts as a mock web wallet. You must configure your verifier to use \
 		the authorization endpoint url below instead of 'openid4vp://' and then start the flow in \

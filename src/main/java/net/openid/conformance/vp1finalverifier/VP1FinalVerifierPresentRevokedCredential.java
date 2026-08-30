@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 		For the SD-JWT VC credential format the credential carries a 'status.status_list' claim and \
 		the status list is served as a Status List Token in JWT format, signed with the same key \
-		(and certificate chain) as the credential itself. For the ISO mDL credential format the MSO \
+		(and certificate chain) as the credential itself. For the ISO mdoc credential format the MSO \
 		carries the status element of ISO/IEC 18013-5 12.3.6.2 and the status list is served as a \
 		Status List Token in CWT format as 12.3.6.3 requires, signed by a certificate issued by the \
 		same IACA root as the mdoc's document signer certificate - so a verifier configured with the \

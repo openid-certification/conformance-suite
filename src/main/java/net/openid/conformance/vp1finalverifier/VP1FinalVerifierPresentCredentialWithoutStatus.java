@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "OID4VP-1.0-FINAL Verifier: Present a credential without revocation information",
 	summary = """
 		Presents a credential that carries no revocation information at all: for the SD-JWT VC \
-		credential format there is no 'status' claim, and for the ISO mDL credential format the \
+		credential format there is no 'status' claim, and for the ISO mdoc credential format the \
 		Mobile Security Object has no status element. Both are optional (draft-ietf-oauth-status-list \
 		section 6.2; ISO/IEC 18013-5 12.3.6.2 "An MSO may contain the Status structure"), so a \
 		verifier must be able to process such a credential - whether it then accepts it is the \
