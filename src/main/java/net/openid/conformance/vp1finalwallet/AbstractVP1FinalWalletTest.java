@@ -196,6 +196,13 @@ import java.util.concurrent.TimeUnit;
 	"credential.trust_anchor_pem",
 	"credential.status_list_trust_anchor_pem"
 })
+// HAIP fixes the response encryption parameters (ECDH-ES with both A128GCM and A256GCM), so
+// the tester cannot configure them - AddVP1FinalEncryptionParametersToClientMetadata ignores
+// any configured values under HAIP
+@VariantHidesConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
+	"client.authorization_encrypted_response_alg",
+	"client.authorization_encrypted_response_enc"
+})
 // The VICAL-based issuer trust checks only apply to mdoc format credentials; the credential
 // trust anchor also serves as the mdoc IACA trust anchor when no VICAL is configured
 @VariantConfigurationFields(parameter = VP1FinalWalletCredentialFormat.class, value = "iso_mdl", configurationFields = {
@@ -326,6 +333,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		if (responseMode != VP1FinalWalletResponseMode.DC_API && responseMode != VP1FinalWalletResponseMode.DC_API_JWT) {
 			callAndStopOnFailure(CheckAuthorizationEndpointIsValidUri.class);
 		}
+
+		// used by conditions whose behaviour depends on the profile, e.g.
+		// AddVP1FinalEncryptionParametersToClientMetadata
+		env.putString("vp_profile", getVariant(VPProfile.class).toString());
 
 		// Set up the client configuration
 		configureClient();
