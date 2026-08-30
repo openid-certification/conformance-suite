@@ -1280,10 +1280,12 @@ function renderBrowserSlot(browser) {
 
 /**
  * uriInputRequests submit handler. Takes the query string of the pasted
- * URI (everything from the first "?") and GETs it to the row's submitUrl
- * — delivering, e.g., a verifier-under-test's openid4vp:// authorization
- * request to the test's own authorization endpoint. On success the page
- * reloads to pick up the test's progress.
+ * URI (everything from the first "?") and navigates the browser to the
+ * row's submitUrl with it — delivering, e.g., a verifier-under-test's
+ * openid4vp:// authorization request to the test's own authorization
+ * endpoint. The endpoint answers with a redirect to the verifier's
+ * redirect_uri (continuing the verifier's session in this browser) or,
+ * without one, a result page linking back to this log.
  *
  * @param {Event} evt
  */
@@ -1300,16 +1302,12 @@ async function handleSubmitUri(evt) {
   }
   const target = submitUrl + raw.substring(q); // substring includes the leading '?'
   showBusy("Delivering authorization request…");
-  try {
-    const response = await fetch(target, { method: "GET" });
-    if (!response.ok) {
-      throw new Error(await readRunnerError(response));
-    }
-    window.location.reload();
-  } catch (err) {
-    hideBusy();
-    showError(`Failed to deliver authorization request: ${err.message}`);
-  }
+  // Navigate rather than fetch(): the test's authorization endpoint may answer with a
+  // redirect to the verifier's redirect_uri — a cross-origin redirect fetch() cannot
+  // follow (it throws "Failed to fetch") and the user would never reach the verifier's
+  // page. A top-level navigation delivers the request, follows the redirect, and when
+  // there is no redirect the endpoint returns a result page linking back to this log.
+  window.location.href = target;
 }
 
 /**
