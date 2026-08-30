@@ -13,7 +13,9 @@ class BindingMessageUtils_UnitTest {
 		assertAll(
 			() -> assertFalse(BindingMessageUtils.containsUrl("R$ 1.000/mes")),
 			() -> assertFalse(BindingMessageUtils.containsUrl("10.5/10")),
-			() -> assertFalse(BindingMessageUtils.containsUrl("v1.2/final"))
+			() -> assertFalse(BindingMessageUtils.containsUrl("v1.2/final")),
+			() -> assertFalse(BindingMessageUtils.containsUrl("Confirme em banco.com.br")),
+			() -> assertFalse(BindingMessageUtils.containsUrl("Confirme em 192.0.2.1"))
 		);
 	}
 
@@ -36,6 +38,11 @@ class BindingMessageUtils_UnitTest {
 			"www.example.test/[redacted]");
 		assertMatch(
 			"Review example.test/consent",
+			"example.test/consent",
+			"host_path",
+			"example.test/[redacted]");
+		assertMatch(
+			"Review ssh://example.test/consent",
 			"example.test/consent",
 			"host_path",
 			"example.test/[redacted]");
