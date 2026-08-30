@@ -1,5 +1,6 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.Algorithm;
@@ -48,6 +49,42 @@ import java.util.stream.Stream;
 public class JWEUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(JWEUtil.class);
+
+	/**
+	 * Selects the first key in a JWK set JSON object that a wallet could actually use for
+	 * encrypting a response: the first key that parses as a supported JOSE key type and is not
+	 * restricted to signing. A verifier's JWK set may contain unusable keys (e.g. post-quantum
+	 * keys advertised for crypto agility) that a conformant wallet skips - RFC 7517 section 5.
+	 * Returns null when the set contains no usable key.
+	 */
+	public static JsonObject selectFirstUsableEncKeyJson(JsonObject jwksJsonObject) {
+		JsonElement keysEl = jwksJsonObject == null ? null : jwksJsonObject.get("keys");
+		if (keysEl == null || !keysEl.isJsonArray()) {
+			return null;
+		}
+		for (JsonElement keyEl : keysEl.getAsJsonArray()) {
+			JsonObject usable = usableEncKeyOrNull(keyEl);
+			if (usable != null) {
+				return usable;
+			}
+		}
+		return null;
+	}
+
+	private static JsonObject usableEncKeyOrNull(JsonElement keyEl) {
+		if (keyEl == null || !keyEl.isJsonObject()) {
+			return null;
+		}
+		try {
+			JWK jwk = JWK.parse(keyEl.getAsJsonObject().toString());
+			if (!KeyUse.SIGNATURE.equals(jwk.getKeyUse())) {
+				return keyEl.getAsJsonObject();
+			}
+		} catch (ParseException e) {
+			// an unusable key (e.g. an unknown kty) - skip it, as a wallet would
+		}
+		return null;
+	}
 	/**
 	 * Returns a key that has the correct key type and optionally use=enc,
 	 * or null if no key was found.
