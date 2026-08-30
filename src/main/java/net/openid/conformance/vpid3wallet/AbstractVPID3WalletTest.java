@@ -490,7 +490,9 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				break;
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
-				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-ID3-7.3");
+				// a failure - but the 'response' parameter is still there to process, so the
+				// test can continue and check the rest of the response
+				callAndContinueOnFailure(ValidateAuthResponseContainsOnlyResponse.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
 				// currently only supports encrypted-not-signed as used by mdl
 				callAndStopOnFailure(DecryptResponse.class, "OID4VP-ID3-7.3");
 				// FIXME: need to validate jwe header
