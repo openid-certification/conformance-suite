@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.TestModule.Status;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,19 +10,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AbstractFAPICIBAClientPingWithInvalidNotificationTest_UnitTest {
 
 	@Test
-	public void rejectsClientFollowUpBeforeSendingInvalidNotification() {
+	public void allowsGenericClientToPollAfterInvalidNotification() {
 		TestableInvalidNotificationTest test = new TestableInvalidNotificationTest();
+		test.setProfile(FAPICIBAProfile.PLAIN_FAPI);
+
+		test.sendInvalidPing();
+
+		assertThat(test.startedRejectingFurtherClientInteractions).isFalse();
+		assertThat(test.sentInvalidPingAfterStartingRejection).isFalse();
+		assertThat(test.rejectsFurtherInteractionsWhileWaiting()).isFalse();
+		assertThat(test.startedWaitingForTimeout).isFalse();
+	}
+
+	@Test
+	public void rejectsClientFollowUpForBrazilInvalidNotification() {
+		TestableInvalidNotificationTest test = new TestableInvalidNotificationTest();
+		test.setProfile(FAPICIBAProfile.OPENBANKING_BRAZIL);
 
 		test.sendInvalidPing();
 
 		assertThat(test.startedRejectingFurtherClientInteractions).isTrue();
 		assertThat(test.sentInvalidPingAfterStartingRejection).isTrue();
-		assertThat(test.startedWaitingForTimeout).isFalse();
+		assertThat(test.rejectsFurtherInteractionsWhileWaiting()).isTrue();
 	}
 
 	@Test
-	public void waitsForNoClientFollowUpAfterInvalidNotificationResponse() {
+	public void waitsForGenericClientAfterInvalidNotificationResponse() {
 		TestableInvalidNotificationTest test = new TestableInvalidNotificationTest();
+		test.setProfile(FAPICIBAProfile.PLAIN_FAPI);
 
 		test.completePingRequest();
 
@@ -46,6 +62,14 @@ public class AbstractFAPICIBAClientPingWithInvalidNotificationTest_UnitTest {
 
 		private void completePingRequest() {
 			pingRequestComplete();
+		}
+
+		private void setProfile(FAPICIBAProfile profile) {
+			this.profile = profile;
+		}
+
+		private boolean rejectsFurtherInteractionsWhileWaiting() {
+			return shouldRejectFurtherClientInteractionsWhileWaitingForTimeout();
 		}
 
 		@Override

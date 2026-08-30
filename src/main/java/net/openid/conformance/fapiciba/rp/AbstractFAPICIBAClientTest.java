@@ -419,7 +419,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void startWaitingForTimeout() {
-		rejectFurtherClientInteractions();
+		if (shouldRejectFurtherClientInteractionsWhileWaitingForTimeout()) {
+			rejectFurtherClientInteractions();
+		}
 		getTestExecutionManager().runInBackground(() -> {
 			Thread.sleep(5 * 1000);
 			if (getStatus().equals(Status.WAITING)) {
@@ -429,6 +431,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			}
 			return "done";
 		});
+	}
+
+	protected boolean shouldRejectFurtherClientInteractionsWhileWaitingForTimeout() {
+		return true;
 	}
 
 	protected void rejectFurtherClientInteractions() {
