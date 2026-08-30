@@ -809,7 +809,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected void markPingResponseValidatedAndFinishPendingResourceEndpoint() {
 		markPingResponseValidated();
 		if (resourceEndpointCompletionPendingAfterPingResponseValidation()) {
-			fireTestFinished();
+			finishAfterResourceEndpointCompletion();
 			return;
 		}
 		setStatus(Status.WAITING);
@@ -959,6 +959,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			setStatus(Status.WAITING);
 			return;
 		}
+		finishAfterResourceEndpointCompletion();
+	}
+
+	protected void finishAfterResourceEndpointCompletion() {
 		fireTestFinished();
 	}
 

@@ -62,6 +62,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-brazildcr-happypath-test",
 	displayName = "FAPI-CIBA-ID1: Open Finance Brazil client DCR happy path test",
@@ -78,6 +81,12 @@ import org.springframework.http.ResponseEntity;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClientTest {
+
+	private static final long REGISTRATION_CLEANUP_GRACE_PERIOD_SECONDS = 20;
+
+	private final AtomicBoolean registrationCleanupGracePeriodScheduled = new AtomicBoolean(false);
+	private final AtomicBoolean registrationCleanupReceived = new AtomicBoolean(false);
+	private final AtomicBoolean completionStarted = new AtomicBoolean(false);
 
 	@Override
 	protected void configureClient() {
@@ -119,6 +128,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		String registrationClientPath = env.getString("registration_client_uri", "path");
 		if (registrationClientPath != null && registrationClientPath.equals(path)
 			&& isCleanupDelete(requestParts)) {
+			registrationCleanupRequestComplete(false);
 			return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
@@ -279,7 +289,46 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.3");
 		callAndStopOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.3");
 		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
+		registrationCleanupRequestComplete(true);
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
+	}
+
+	private void registrationCleanupRequestComplete(boolean requestHasTestLock) {
+		registrationCleanupReceived.set(true);
+		if (registrationCleanupGracePeriodScheduled.get()
+			&& completionStarted.compareAndSet(false, true)) {
+			if (!requestHasTestLock) {
+				setStatus(Status.RUNNING);
+			}
+			fireTestFinished();
+		} else if (requestHasTestLock) {
+			setStatus(Status.WAITING);
+		}
+	}
+
+	@Override
+	protected void finishAfterResourceEndpointCompletion() {
+		if (registrationCleanupReceived.get() && completionStarted.compareAndSet(false, true)) {
+			fireTestFinished();
+			return;
+		}
+		if (!registrationCleanupGracePeriodScheduled.compareAndSet(false, true)) {
+			setStatus(Status.WAITING);
+			return;
+		}
+
+		eventLog.log(getName(), "Resource flow completed. Waiting up to "
+			+ REGISTRATION_CLEANUP_GRACE_PERIOD_SECONDS
+			+ " seconds for the client registration cleanup request before completing the test.");
+		// Register the fallback before WAITING releases the environment lock, so an incoming
+		// cleanup cannot observe a scheduled grace period before its timer exists.
+		getTestExecutionManager().scheduleInBackground(() -> {
+			if (completionStarted.compareAndSet(false, true)) {
+				setStatus(Status.RUNNING);
+				fireTestFinished();
+			}
+			return null;
+		}, REGISTRATION_CLEANUP_GRACE_PERIOD_SECONDS, TimeUnit.SECONDS);
+		setStatus(Status.WAITING);
 	}
 }
