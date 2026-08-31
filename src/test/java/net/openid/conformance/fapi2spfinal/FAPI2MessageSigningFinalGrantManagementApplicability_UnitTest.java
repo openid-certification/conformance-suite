@@ -29,7 +29,7 @@ class FAPI2MessageSigningFinalGrantManagementApplicability_UnitTest {
 	// One module from the shared GM base, and the two GM modules that keep a different behavioural
 	// parent and declare the profile exclusion inline.
 	private static final List<String> GM_MODULE_NAMES = List.of(
-		"fapi2-security-profile-final-grant-management-happy-flow",
+		"fapi2-security-profile-final-grant-management-query-and-revoke",
 		"fapi2-security-profile-final-grant-management-ensure-wrong-client-cannot-query-grant",
 		"fapi2-security-profile-final-grant-management-ensure-invalid-grant-id-fails"
 	);

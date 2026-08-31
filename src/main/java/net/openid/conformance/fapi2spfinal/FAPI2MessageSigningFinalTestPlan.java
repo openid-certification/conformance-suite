@@ -136,12 +136,11 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class,
 
 		// Grant Management tests
-		FAPI2SPFinalGrantManagementHappyFlow.class,
+		FAPI2SPFinalGrantManagementQueryAndRevoke.class,
 		FAPI2SPFinalGrantManagementMerge.class,
 		FAPI2SPFinalGrantManagementReplace.class,
 		FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails.class,
 		FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails.class,
-		FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails.class,
 		FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant.class,
 		FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant.class
 
