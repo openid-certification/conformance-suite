@@ -108,6 +108,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
 import net.openid.conformance.condition.common.EnsureIncomingTls13;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -156,6 +157,7 @@ import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -180,7 +182,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
-		AuthorizationRequestType.class,
+	AuthorizationRequestType.class,
+	GrantManagement.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -239,6 +242,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"fapi_client_credentials_grant"}
 )
+// Grant management is only certifiable for generic FAPI, where it is an opt-in capability, and for
+// Chile, whose profile requires it. Every other profile - including the client credentials grant, which
+// has no authorization flow to produce a grant at all - must not offer the choice.
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"enabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae",
+		"ksa", "fapi_client_credentials_grant", "vci", "vci_haip"}
+)
+// Grant management is part of the Chile profile, so it is not something the tester can turn off there
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"disabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"openbanking_chile"}
+)
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
 	"client_attestation.issuer",
 	"client_attestation.trust_anchor",
@@ -279,6 +299,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected volatile boolean startingShutdown = false;
 
 	protected Boolean profileRequiresMtlsEverywhere;
+
+	protected Boolean isGrantManagement;
 
 	protected long waitTimeoutSeconds = 5;
 
@@ -432,6 +454,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
+		isGrantManagement = getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 
 		profileRequiresMtlsEverywhere = profileBehavior.requiresMtlsEverywhere();
 
@@ -492,6 +515,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
+		}
+
+		if (isGrantManagement) {
+			// without this a spec-following client has no reason to use grant management at all
+			callAndStopOnFailure(GrantManagementSupport.AddGrantManagementToServerConfiguration.class, "GM-7.1");
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -786,6 +814,14 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		// response that must cause the client to stop interacting with the server
 		refuseIfStartingShutdown(path);
 
+		return handleClientRequestForMtlsPath(requestId, path);
+	}
+
+	/**
+	 * Dispatches an mTLS request to the endpoint that handles it. Subclasses that add endpoints override
+	 * this rather than {@link #handleHttpMtls}, so that the TLS checks above still run on their requests.
+	 */
+	protected Object handleClientRequestForMtlsPath(String requestId, String path) {
 		if (path.equals("token")) {
 			if (clientAuthType != ClientAuthType.MTLS && !isMTLSConstrain() && !profileRequiresMtlsEverywhere
 					&& !clientRequestsMtlsEndpointAliases()) {
@@ -1115,19 +1151,37 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(profileBehavior.validateParRequestInteractionId());
 
-		ResponseEntity<Object> responseEntity = null;
+		// the use_dpop_nonce challenge has to come first: it is what makes the client repeat the request
+		// with a nonce, and only that repeated request is the one a subclass's custom error is about. A
+		// custom error returned to the first, nonce-less request would end the flow before the DPoP
+		// handshake that every DPoP test depends on had happened at all.
+		ResponseEntity<Object> responseEntity;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
-		}  else {
-			JsonObject parResponse = createPAREndpointResponse();
-			responseEntity = new ResponseEntity<>(parResponse, headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.CREATED);
+		} else {
+			ResponseEntity<Object> customErrorResponse = createPAREndpointCustomErrorResponse();
+			if (customErrorResponse != null) {
+				responseEntity = customErrorResponse;
+			} else {
+				JsonObject parResponse = createPAREndpointResponse();
+				responseEntity = new ResponseEntity<>(parResponse, headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.CREATED);
+			}
 		}
 
 		setStatus(Status.WAITING);
 		call(exec().unmapKey("incoming_request").unmapKey("par_endpoint_http_request"));
 
 		return responseEntity;
+	}
+
+	/**
+	 * Hook for subclasses to return a custom error response from the PAR endpoint.
+	 * Called after request parsing and validation, before the normal PAR response is created.
+	 * Return null to use the default PAR endpoint handling.
+	 */
+	protected ResponseEntity<Object> createPAREndpointCustomErrorResponse() {
+		return null;
 	}
 
 	protected void addCustomValuesToParResponse() {}
@@ -1388,6 +1442,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
 		}
+		if (isGrantManagement) {
+			callAndStopOnFailure(GrantManagementSupport.AddGrantIdToTokenEndpointResponse.class, "GM-5.5");
+		}
+		// last, so a profile can still adjust anything the generic steps above added
 		call(profileBehavior.customizeTokenEndpointResponse());
 	}
 
@@ -1793,6 +1851,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		initProfileBehavior(new OpenBankingBrazilClientProfileBehavior());
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile")
+	public void setupOpenBankingChile() {
+		initProfileBehavior(new OpenBankingChileClientProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "connectid_au")

@@ -133,7 +133,16 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		//negative private key authentication
 		FAPI2SPFinalPAREndpointAsArrayAudienceFails.class,
 		FAPI2SPFinalPAREndpointAsAudienceFails.class,
-		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class
+		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class,
+
+		// Grant Management tests
+		FAPI2SPFinalGrantManagementQueryAndRevoke.class,
+		FAPI2SPFinalGrantManagementMerge.class,
+		FAPI2SPFinalGrantManagementReplace.class,
+		FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails.class,
+		FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails.class,
+		FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant.class,
+		FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant.class
 
 	);
 
@@ -176,6 +185,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 		boolean rar = "rar".equals(authRequestType);
+		boolean grantManagement = "enabled".equals(v.get("grant_management"));
 
 		String certProfile = "FAPI2SP OP";
 
@@ -288,6 +298,32 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				return List.of("FAPI2MS OP KSA w/" + getClientAuth(clientAuth));
+			case "openbanking_chile":
+				if (privateKey) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS client authentication is used for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!mtlsBounded) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS sender constraining is supported for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!signedRequest) {
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are supported for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!rar) {
+					throw new RuntimeException("Invalid configuration for %s: RAR is required for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!grantManagement) {
+					throw new RuntimeException("Invalid configuration for %s: Grant Management is required for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				return List.of("FAPI2MS OP CL-OF");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -315,6 +351,10 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 			case "signed_non_repudiation":
 				profiles.add("FAPI2MS OP JAR");
 				break;
+		}
+
+		if (grantManagement) {
+			profiles.add("FAPI2MS OP GM");
 		}
 		switch (responseMode) {
 			case "plain_response":

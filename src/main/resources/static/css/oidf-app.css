@@ -292,6 +292,32 @@ cts-link-button > a:focus,
   outline: none;
   box-shadow: none;
 }
+/* A variant whose applicable values have been narrowed to one by the other
+   selections. The value is not the user's to change, but the control stays
+   focusable and in the tab order: a native `disabled` select is skipped by
+   the keyboard and its `title` is not reliably announced, which would leave
+   a screen-reader user unable to reach a value that is part of the test they
+   are about to run. `aria-disabled` + this readonly styling conveys the same
+   thing; schedule-test.html holds the value in place on change. */
+.cascade-row select[aria-disabled="true"] {
+  color: var(--ink-500);
+  cursor: default;
+}
+.cascade-row .input-group:has(select[aria-disabled="true"]) {
+  background: var(--bg-muted);
+}
+.cascade-row .variant-forced-hint {
+  grid-column: 2;
+  margin: calc(var(--space-1) * -1) 0 0;
+  font-size: var(--fs-12);
+  color: var(--ink-500);
+}
+@media (max-width: 640px) {
+  .cascade-row .variant-forced-hint {
+    grid-column: 1;
+  }
+}
+
 @media (max-width: 640px) {
   .cascade-row {
     grid-template-columns: 1fr;

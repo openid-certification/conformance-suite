@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PostEnvironment;
@@ -13,10 +12,6 @@ import net.openid.conformance.util.http.WwwAuthenticateHeaderValueParser;
 import org.springframework.http.MediaType;
 import org.springframework.http.InvalidMediaTypeException;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This is to call a generic resource server endpoint with an access token using DPoP.
@@ -84,49 +79,14 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 				env.putString("resource_server_dpop_nonce", nonceHeader.nonce());
 			}
 			if(status == 401) {
-				if(null != responseHeaders) {
-					if(responseHeaders.has("www-authenticate")) {
-						JsonArray wwwHeaderArray;
-						if(responseHeaders.get("www-authenticate").isJsonArray()) {
-							wwwHeaderArray = responseHeaders.getAsJsonArray("www-authenticate");
-						} else {
-							wwwHeaderArray = new JsonArray();
-
-							String authenticateValue = OIDFJSON.getString(responseHeaders.get("www-authenticate"));
-							// special case, some issuers send all challenges combined into a single header value, therefore we split up the challenges in WwwAuthenticateHeaderValueParser into separate entries
-							// see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate
-							Map<String, String> extractChallenges = WwwAuthenticateHeaderValueParser.extractChallenges(authenticateValue);
-							for (var entry: extractChallenges.entrySet()) {
-								wwwHeaderArray.add(entry.getValue());
-							}
-						}
-
-						// simple match key=\"value\", assumes only 1 challenge per header value
-						Pattern pattern = Pattern.compile("\\s*([^=]+)=\"([^\"]+)\",*");
-						for(JsonElement wwwHeaderElement : wwwHeaderArray) {
-							String wwwHeader = OIDFJSON.getString(wwwHeaderElement);
-							// Pattern dPopSchemePattern = Pattern.compile("^(DPoP)((\\s*([^=]+)=\"([^\"]+)\",*)+)$");
-							// Auth schemes are case insensitive per RFC9110-11.1
-							if(wwwHeader.toLowerCase().startsWith("dpop ")) {
-								Matcher matcher = pattern.matcher(wwwHeader.substring(5));
-								HashMap<String, String> keyPairs = new HashMap<>();
-								while(matcher.find()) {
-									String key = matcher.group(1);
-									String val = matcher.group(2);
-									keyPairs.put(key, val);
-								}
-								if("use_dpop_nonce".equals(keyPairs.get("error"))) {
-									if(nonceHeader.nonce() == null) {
-										throw error("The resource server returned a 'use_dpop_nonce' error but supplied"
-											+ " no DPoP-Nonce header, leaving no nonce to retry the request with.",
-											args("headers", responseHeaders));
-									}
-									env.putString("resource_server_dpop_nonce", nonceHeader.nonce());
-									env.putString("resource_endpoint_dpop_nonce_error", nonceHeader.nonce());
-								}
-							}
-						}
+				if (WwwAuthenticateHeaderValueParser.hasUseDpopNonceChallenge(responseHeaders)) {
+					if (nonceHeader.nonce() == null) {
+						throw error("The resource server returned a 'use_dpop_nonce' error but supplied"
+							+ " no DPoP-Nonce header, leaving no nonce to retry the request with.",
+							args("headers", responseHeaders));
 					}
+					env.putString("resource_server_dpop_nonce", nonceHeader.nonce());
+					env.putString("resource_endpoint_dpop_nonce_error", nonceHeader.nonce());
 				}
 			}
 		}

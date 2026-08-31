@@ -131,7 +131,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 			JsonObject fullResponse;
 
 			if (requireJsonResponseBody()) {
-				fullResponse = convertJsonResponseForEnvironment("resource", response);
+				fullResponse = convertJsonResponseForEnvironment("resource", response, allowJsonParseFailure());
 			} else {
 				fullResponse = convertResponseForEnvironment("resource", response);
 			}
@@ -151,6 +151,17 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 	}
 
 	protected boolean requireJsonResponseBody() {
+		return false;
+	}
+
+	/**
+	 * Only meaningful when {@link #requireJsonResponseBody()} is true. When set, a missing or unparseable
+	 * body leaves body_json unset instead of failing the condition, so that {@link #handleClientResponse}
+	 * still runs and a separate condition can report the problem at the severity the caller chose. Needed
+	 * wherever the response may legitimately have no JSON body - e.g. a bodyless 401 carrying a DPoP
+	 * use_dpop_nonce challenge (RFC9449-8.2).
+	 */
+	protected boolean allowJsonParseFailure() {
 		return false;
 	}
 

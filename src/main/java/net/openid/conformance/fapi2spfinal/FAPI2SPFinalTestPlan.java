@@ -113,6 +113,8 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			case "cbuae":
 				throw new RuntimeException("CBUAE profile requires the usage of JAR, please use the message signing test plan.");
+			case "openbanking_chile":
+				throw new RuntimeException("Chile profile requires the usage of JAR, please use the message signing test plan.");
 			case "ksa":
 				throw new RuntimeException("KSA profile requires the usage of JAR, please use the message signing test plan.");
 			default:
@@ -144,6 +146,12 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 					senderConstrain, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		profiles.add(certProfile);
+
+		// this plan runs the grant management modules when the variant is enabled, so the generated
+		// names have to record that they were part of the run
+		if ("enabled".equals(v.get("grant_management"))) {
+			profiles.add("FAPI2SP OP GM");
+		}
 		return profiles;
 	}
 }

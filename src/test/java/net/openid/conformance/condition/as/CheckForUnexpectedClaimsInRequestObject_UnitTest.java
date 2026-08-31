@@ -62,6 +62,29 @@ public class CheckForUnexpectedClaimsInRequestObject_UnitTest {
 	 * Test method for {@link CheckForUnexpectedClaimsInRequestObject#evaluate(Environment)}.
 	 */
 	@Test
+	public void testEvaluate_grantManagementClaims() {
+
+		// The grant management request parameters, as per GM section 3.
+		JsonObject authRequestClaims = JsonParser.parseString("{" +
+			"    \"claims\": {" +
+			"	\"client_id\": \"52480754053\"," +
+			"	\"iss\": \"52480754053\"," +
+			"	\"grant_management_action\": \"merge\"," +
+			"	\"grant_id\": \"TSdqirmAxDa0_-DB_1bASQ\"" +
+			"    }" +
+			"}")
+		.getAsJsonObject();
+
+		env.putObject("authorization_request_object", authRequestClaims);
+
+		cond.execute(env);
+
+	}
+
+	/**
+	 * Test method for {@link CheckForUnexpectedClaimsInRequestObject#evaluate(Environment)}.
+	 */
+	@Test
 	public void testEvaluate_misspeltClaim() {
 		assertThrows(ConditionError.class, () -> {
 			// The 'nonce' claim is misspelt.

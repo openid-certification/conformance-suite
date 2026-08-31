@@ -25,6 +25,13 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAsserti
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARTokenEndpointAsAudienceFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRegisteredRedirectUri;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementQueryAndRevoke;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementMerge;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementReplace;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestClaimsParameterIdentityClaims;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -198,6 +205,16 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalCdrRefreshTokenIntrospectionExpiry.class);
 		fapiTestModules.remove(FAPI2SPFinalCdrArrangementAmendmentRevokesOldTokens.class);
 		fapiTestModules.remove(FAPI2SPFinalCdrEnsureUnrecognisedArrangementIdFails.class);
+
+		// Grant management is only offered for generic FAPI and Chile, so these are marked with
+		// VariantNotApplicable for the VCI profiles
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementQueryAndRevoke.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementMerge.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementReplace.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant.class);
 
 		return fapiTestModules;
 	}
