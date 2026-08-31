@@ -23,7 +23,7 @@
     },
     "client": {
         "client_id": "52480754053",
-        "scope": "openid accounts",
+        "scope": "openid accounts grant_management_query grant_management_revoke",
         "jwks": {
             "keys": [
                 {
