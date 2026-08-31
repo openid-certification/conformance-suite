@@ -6,6 +6,8 @@ Runs against a live server in non-dev mode (no DummyUserFilter) with API token
 authentication. Tests cover:
 - Share link (private link) access control for plan sharing
 - Share link access control for test-level sharing
+- Share-link users keep access to ?public=true endpoints (e.g. /api/ui/spec_links,
+  which the shared log-detail page fetches to render spec-reference links)
 - Share-link JWT used directly as Authorization: Bearer on the API chain
 - Unauthenticated access rejection
 - Public access to published plans
@@ -432,7 +434,7 @@ def run_tests():
     runner.check_status("Plan share: can view log-detail page", resp, 200)
 
     # The export endpoints are NOT in the private-link allowlist
-    # (WebSecurityResourceServerConfig.java:75-83 only allows /api/plan/{id},
+    # (the private-link rule in WebSecurityResourceServerConfig only allows /api/plan/{id},
     # /api/info/{id}, /api/log/{id} as single-segment URIs). Private-link
     # users therefore get 403 from the security layer regardless of which plan
     # they target — even the one their share covers.
@@ -506,6 +508,24 @@ def run_tests():
     # allowlist above; the same denyAll branch that blocks /api/token).
     resp = pl_client.get(f"{base_url}api/favorite-plans")
     runner.check_status("Plan share: cannot list favorite plans", resp, 403)
+
+    # ?public=true endpoints (the public matcher) must stay reachable for
+    # private-link users: the shared log-detail page fetches
+    # /api/ui/spec_links?public=true to render spec-reference links, and the
+    # endpoint is world-readable anonymously anyway. Guards the rule ordering in
+    # WebSecurityResourceServerConfig (public permit BEFORE the private-link deny).
+    resp = pl_client.get(f"{base_url}api/ui/spec_links", params={"public": "true"})
+    body = resp.json() if resp.status_code == 200 else None
+    runner.check("Plan share: spec_links?public reachable (log-detail needs it)",
+                 isinstance(body, dict) and len(body) > 0,
+                 f"HTTP {resp.status_code}")
+
+    resp = pl_client.get(f"{base_url}api/ui/spec_links")
+    runner.check_status("Plan share: spec_links without ?public still denied", resp, 403)
+
+    # ...but ?public=true must not open endpoints outside the public matcher
+    resp = pl_client.get(f"{base_url}api/token", params={"public": "true"})
+    runner.check_status("Plan share: ?public does not open the token API", resp, 403)
 
     # Invalid tokens
     print("\n--- 1. Plan sharing: invalid tokens ---")
