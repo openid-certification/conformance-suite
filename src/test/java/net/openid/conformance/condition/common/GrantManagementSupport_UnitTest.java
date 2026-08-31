@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.common;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
@@ -930,6 +931,16 @@ public class GrantManagementSupport_UnitTest {
 	@Test
 	public void revokeBodyCheck_acceptsAnEmptyBody() {
 		env.putObject(GRANT_MANAGEMENT_RESPONSE_KEY, response(204, "{}", null));
+
+		cond(new GrantManagementSupport.EnsureGrantManagementRevokeResponseBodyIsEmpty()).execute(env);
+	}
+
+	@Test
+	public void revokeBodyCheck_acceptsAJsonNullBody() {
+		// the HTTP machinery records a bodyless 204 as body: JsonNull rather than omitting the key
+		JsonObject revokeResponse = response(204, "{}", null);
+		revokeResponse.add("body", JsonNull.INSTANCE);
+		env.putObject(GRANT_MANAGEMENT_RESPONSE_KEY, revokeResponse);
 
 		cond(new GrantManagementSupport.EnsureGrantManagementRevokeResponseBodyIsEmpty()).execute(env);
 	}
