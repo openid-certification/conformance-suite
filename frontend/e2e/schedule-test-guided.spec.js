@@ -458,25 +458,41 @@ test.describe("schedule-test.html — guided journey", () => {
       "Which ecosystem are you certifying for?",
     );
 
+    const heading = page.locator("#guidedStage h1");
+
     // Focus the first radio, arrow to KSA (7th card → 6 presses), commit.
-    // The toBeFocused() check guards against key presses landing before
-    // focus settles under parallel-worker CPU contention.
-    const firstRadio = page.locator('#guidedStage input[name="guidedChoiceGroup"]').first();
-    await firstRadio.focus();
-    await expect(firstRadio).toBeFocused();
+    // The initial render does not move focus, so the radiogroup can be entered
+    // straight away here; the step *transitions* below are the ones that do.
+    const radios = page.locator('#guidedStage input[name="guidedChoiceGroup"]');
+    await radios.first().focus();
+    await expect(radios.first()).toBeFocused();
     for (let i = 0; i < 6; i++) {
       await page.keyboard.press("ArrowDown");
     }
+    // Each arrow moves focus via focusAt(); Enter only commits if it lands on
+    // the radio the arrows walked to, so wait for the walk to finish.
+    await expect(radios.nth(6)).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(page.locator("#guidedStage h1")).toHaveText("What is your role?");
+    await expect(heading).toHaveText("What is your role?");
+
+    // navigate() hands focus to the new step's <h1> from a requestAnimationFrame
+    // callback, so after every transition there is a window between "the new
+    // heading is rendered" and "the wizard has finished moving focus". Taking
+    // focus into the radiogroup inside that window loses it: the pending rAF
+    // fires afterwards and pulls focus back to the <h1>, which has no keydown
+    // handler, so the arrow and commit keys land on nothing and the journey
+    // silently fails to advance. Waiting for the heading to actually hold focus
+    // closes the window.
+    await expect(heading).toBeFocused();
 
     // Arrow to OP and commit with Space.
-    const roleRadio = page.locator('#guidedStage input[name="guidedChoiceGroup"]').first();
-    await roleRadio.focus();
-    await expect(roleRadio).toBeFocused();
+    const roleRadios = page.locator('#guidedStage input[name="guidedChoiceGroup"]');
+    await roleRadios.first().focus();
+    await expect(roleRadios.first()).toBeFocused();
     await page.keyboard.press("ArrowDown");
+    await expect(roleRadios.nth(1)).toBeFocused();
     await page.keyboard.press(" ");
-    await expect(page.locator("#guidedStage h1")).toContainText("Client authentication method");
+    await expect(heading).toContainText("Client authentication method");
   });
 });
 
