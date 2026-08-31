@@ -41,6 +41,7 @@ import net.openid.conformance.condition.client.SetLoginHintToConsentId;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
+import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn;
 import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaDynamicRegistrationResponse;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -68,6 +69,18 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM.class);
 		assertThat(conditionCalls.get(0).getRequirements()).containsExactly("BrazilOB22-5.1.1-1");
 		assertThat(conditionCalls.get(1).getRequirements()).containsExactly("BrazilOB22-6.3");
+	}
+
+	@Test
+	public void validatesBackchannelAuthenticationResponseExpiryForBrazilOnly() {
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
+			behavior.validateBackchannelAuthenticationEndpointResponse());
+
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass)
+			.containsExactly(ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn.class);
+		assertThat(conditionCalls.getFirst().getRequirements()).containsExactly("BrazilCIBA-6.2.6");
+		assertThat(new FAPICIBAServerProfileBehavior().validateBackchannelAuthenticationEndpointResponse())
+			.isNull();
 	}
 
 	@Test

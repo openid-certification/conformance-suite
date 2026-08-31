@@ -140,6 +140,13 @@ public class FAPICIBAServerProfileBehavior {
 	}
 
 	/**
+	 * Validate the profile-specific backchannel authentication endpoint response.
+	 */
+	public ConditionSequence validateBackchannelAuthenticationEndpointResponse() {
+		return null;
+	}
+
+	/**
 	 * Add profile-specific headers to resource endpoint request.
 	 * Default adds auth date and interaction ID for first client only.
 	 */

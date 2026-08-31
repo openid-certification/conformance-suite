@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointWasRetried;
 import net.openid.conformance.runner.TestExecutionManager;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	@Test
 	public void invokesTargetedRetryAssertionWhenAuthenticationRequestExpires() throws Exception {
 		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
-			"{\"expires_in\":300}");
+			"{\"expires_in\":86400}");
 		module.performValidateAuthorizationResponse();
 		module.conditionClasses.clear();
 		module.conditionRequirements.clear();
@@ -68,7 +69,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
 
 		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-		assertThat(retryTimeoutSeconds).hasValue(300);
+		assertThat(retryTimeoutSeconds).hasValue(86_400);
 		assertThat(retryTimeoutTask).doesNotHaveNullValue();
 
 		retryTimeoutTask.get().call();
@@ -85,7 +86,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	@Test
 	public void returnsTransientFailureOnceAndProcessesTheRetry() throws Exception {
 		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
-			"{\"expires_in\":300}");
+			"{\"expires_in\":86400}");
 		module.performValidateAuthorizationResponse();
 		module.conditionClasses.clear();
 		module.conditionRequirements.clear();
@@ -191,6 +192,12 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		private TestablePingRetryModule(TestExecutionManager executionManager) {
 			this.executionManager = executionManager;
 			testType = CIBAMode.PING;
+			setupOpenBankingBrazil();
+		}
+
+		@Override
+		protected void call(ConditionSequence sequence) {
+			// Profile sequence shape and condition behavior are covered by dedicated unit tests.
 		}
 
 		@Override
