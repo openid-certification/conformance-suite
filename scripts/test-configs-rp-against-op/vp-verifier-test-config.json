@@ -2,10 +2,12 @@
     "alias": "oidf-vp-test-wallet",
     "description": "OID4VP RP against OP (verifier test)",
     "client": {
-        "client_id": "{HOSTNAME}"
+        "client_id": "{HOSTNAME}",
+        "rical_url": "https://geneva2026.mdoc.online/trustedlists/Rical.rical"
     },
     "credential": {
-        "signing_jwk": {vp-signing-jwk.json}
+        "signing_jwk": {vp-signing-jwk.json},
+        "vical_url": "https://geneva2026.mdoc.online/trustedlists/Vical.vical"
     },
     "browser": [
         {

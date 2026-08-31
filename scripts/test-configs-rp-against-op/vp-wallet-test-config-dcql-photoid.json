@@ -4,7 +4,13 @@
     "server": {
         "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
     },
+    "credential": {
+        "vical_url": "https://geneva2026.mdoc.online/trustedlists/Vical.vical",
+        "trust_anchor_pem": "{mdoc-iaca-root.crt}",
+        "status_list_trust_anchor_pem": "{mdoc-iaca-root.crt}"
+    },
     "client": {
+        "rical_url": "https://geneva2026.mdoc.online/trustedlists/Rical.rical",
         "jwks": {
             "keys": [
                 {vp-signing-jwk.json}
