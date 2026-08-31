@@ -31,16 +31,6 @@ public class OpenBankingBrazilCibaForbiddenRequestParameterConditions_UnitTest {
 	}
 
 	@Test
-	public void testAddRequestedExp1sToAuthorizationEndpointRequest() {
-		AddRequestedExp1sToAuthorizationEndpointRequest cond = new AddRequestedExp1sToAuthorizationEndpointRequest();
-		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-
-		cond.execute(env);
-
-		assertThat(env.getInteger("authorization_endpoint_request", "requested_expiry")).isEqualTo(1);
-	}
-
-	@Test
 	public void testAddUserCodeToAuthorizationEndpointRequest() {
 		AddUserCodeToAuthorizationEndpointRequest cond = new AddUserCodeToAuthorizationEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);

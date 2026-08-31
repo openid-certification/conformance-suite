@@ -710,6 +710,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdExpiresIn.class, Condition.ConditionResult.FAILURE,"CIBA-7.3");
 
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdInterval.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
+
+		call(profileBehavior.validateBackchannelAuthenticationEndpointResponse());
 	}
 
 	protected void validateErrorFromBackchannelAuthorizationRequestResponse() {
