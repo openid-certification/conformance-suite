@@ -1,0 +1,25 @@
+{
+	"credentials": [
+		{
+			"id": "my_credential",
+			"format": "mso_mdoc",
+			"meta": {
+				"doctype_value": "org.iso.23220.photoid.1"
+			},
+			"claims": [
+				{
+					"path": [
+						"org.iso.23220.1",
+						"family_name"
+					]
+				},
+				{
+					"path": [
+						"org.iso.23220.1",
+						"birth_date"
+					]
+				}
+			]
+		}
+	]
+}
