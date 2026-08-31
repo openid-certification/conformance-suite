@@ -14,7 +14,12 @@ import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
 import { MOCK_LOG_LIST } from "../fixtures/mock-log-list.js";
-import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "../fixtures/mock-plans.js";
+import {
+  MOCK_PLANS,
+  MOCK_PLAN_NO_VARIANTS,
+  MOCK_GUIDED_PLANS,
+  MOCK_PLAN_FILTER_OPTIONS,
+} from "../fixtures/mock-plans.js";
 
 /**
  * Register the three routes every page needs:
@@ -51,6 +56,18 @@ export async function setupCommonRoutes(page, options = {}) {
       body: JSON.stringify(user),
     });
   });
+
+  // Every page hosting <cts-plan-list> asks for the families and plan names its
+  // filter controls offer. It is page furniture like /api/currentuser, so it is
+  // mocked for every spec rather than in each one; a spec that cares about the
+  // values overrides this route after calling setupCommonRoutes.
+  await page.route("**/api/plan/filter-options*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_PLAN_FILTER_OPTIONS),
+    }),
+  );
 
   await page.route("**/api/server", (route) =>
     route.fulfill({

@@ -819,6 +819,44 @@ def run_tests():
     resp = noauth_client.get(f"{base_url}api/token")
     runner.check_status("Unauth: token list rejected", resp, 401)
 
+    resp = noauth_client.request("DELETE", f"{base_url}api/plan",
+                                 params={"owner": "nobody", "confirm": "0"})
+    runner.check_status("Unauth: bulk plan delete rejected", resp, 401)
+
+    resp = noauth_client.get(f"{base_url}api/plan/delete-preview", params={"owner": "nobody"})
+    runner.check_status("Unauth: bulk delete preview rejected", resp, 401)
+
+    resp = noauth_client.get(f"{base_url}api/plan/delete-status")
+    runner.check_status("Unauth: bulk delete status rejected", resp, 401)
+
+    resp = noauth_client.post(f"{base_url}api/plan/delete-cancel")
+    runner.check_status("Unauth: bulk delete cancel rejected", resp, 401)
+
+    # `?public=true` is a way PAST the security chain for these two: the public matcher is
+    # GET /api/plan/?*, and `?*` is any one segment - delete-preview and delete-status
+    # included - so the chain permits them and TestPlanApi's isAdmin() is what refuses them.
+    # The 401s above therefore do not prove these are unreachable; these do.
+    resp = noauth_client.get(f"{base_url}api/plan/delete-preview",
+                             params={"public": "true", "owner": "nobody",
+                                     "owner_iss": "https://accounts.google.com"})
+    runner.check_status("Unauth: bulk delete preview rejected as a public request too", resp, 403)
+
+    resp = noauth_client.get(f"{base_url}api/plan/delete-status", params={"public": "true"})
+    runner.check_status("Unauth: bulk delete status rejected as a public request too", resp, 403)
+
+    # filter-options rides the same matcher, and is deliberately left there: it answers with
+    # the plan REGISTRY - family names, plan names and variant values, the same material
+    # /api/plan/available carries - and with nothing about anybody's data. Pinned so that
+    # stays a decision rather than an accident, body and all.
+    resp = noauth_client.get(f"{base_url}api/plan/filter-options")
+    runner.check_status("Unauth: filter options need authentication", resp, 401)
+
+    resp = noauth_client.get(f"{base_url}api/plan/filter-options", params={"public": "true"})
+    options = resp.json() if resp.status_code == 200 else {}
+    runner.check("Unauth: filter options are public, and are registry data only",
+                 resp.status_code == 200 and set(options) == {"families", "plans", "variants"},
+                 f"HTTP {resp.status_code}, keys={sorted(options)}")
+
     resp = noauth_client.get(f"{base_url}api/favorite-plans")
     runner.check_status("Unauth: favorite plans list rejected", resp, 401)
 
@@ -1373,6 +1411,64 @@ def run_tests():
     runner.check("Metadata: mdoc IACA root cert is publicly reachable as PEM",
                  resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
                  f"HTTP {resp.status_code}")
+
+    # ===================================================================
+    # 4h. BULK PLAN DELETE (ADMIN ONLY)
+    # ===================================================================
+    # Only the denials can be proved here: an API token never carries ROLE_ADMIN
+    # (ApiTokenAuthenticationProvider grants ROLE_USER, and TokenApi refuses to mint a token
+    # for an admin at all), so this harness cannot reach the allowed path however it
+    # authenticates. That half is covered by the Java session tests.
+    print("\n--- 4h. Bulk plan delete (admin only) ---")
+
+    # both halves of the account: a sub names one only within the issuer that minted it, and
+    # this is the scope the delete runs on, so the server refuses a half pair outright
+    bulk_owner = {"owner": user_info.get("sub", "nobody"),
+                  "owner_iss": user_info.get("iss", "https://accounts.google.com")}
+    bulk_params = {**bulk_owner, "confirm": "0"}
+
+    resp = owner_client.request("DELETE", f"{base_url}api/plan", params=bulk_params)
+    runner.check_status("Bulk delete: token user cannot delete plans in bulk", resp, 403)
+
+    resp = owner_client.get(f"{base_url}api/plan/delete-preview", params=bulk_owner)
+    runner.check_status("Bulk delete: token user cannot preview a bulk delete", resp, 403)
+
+    resp = owner_client.get(f"{base_url}api/plan/filter-options")
+    runner.check_status("Filter options: readable by any authenticated user", resp, 200)
+
+    resp = owner_client.get(f"{base_url}api/plan/delete-status")
+    runner.check_status("Bulk delete: token user cannot read the job status", resp, 403)
+
+    resp = owner_client.post(f"{base_url}api/plan/delete-cancel")
+    runner.check_status("Bulk delete: token user cannot cancel a job", resp, 403)
+
+    # a private link user is denied everything outside its allowlist, and this is not in it
+    bulk_pl_client = authenticate_private_link(base_url, plan_jwt, verify_ssl)
+    resp = bulk_pl_client.request("DELETE", f"{base_url}api/plan", params=bulk_params)
+    runner.check_status("Bulk delete: private link user cannot delete plans in bulk", resp, 403)
+    bulk_pl_client.close()
+
+    # none of that deleted anything
+    resp = owner_client.get(f"{base_url}api/plan/{plan_id}")
+    runner.check_status("Bulk delete: the plan is still there after every denial", resp, 200)
+
+    # half an account is refused rather than half applied, on the listing and the delete
+    # alike: a bare sub would mean "everyone with that sub, whoever logged them in"
+    resp = owner_client.get(f"{base_url}api/plan", params={"owner": bulk_owner["owner"]})
+    runner.check_status("Owner filter: a sub without its issuer is refused", resp, 400)
+
+    resp = owner_client.get(f"{base_url}api/plan", params={"owner_iss": bulk_owner["owner_iss"]})
+    runner.check_status("Owner filter: an issuer without a sub is refused", resp, 400)
+
+    # the owner filter narrows a listing and can never widen it
+    if token_2:
+        user_b = second_user_client()
+        resp = user_b.get(f"{base_url}api/plan", params=bulk_owner)
+        ids = _row_ids(resp)
+        runner.check("Bulk delete: ?owner= cannot list another user's plans",
+                     resp.status_code == 200 and ids is not None and plan_id not in ids,
+                     f"HTTP {resp.status_code}, ids={ids}")
+        user_b.close()
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE

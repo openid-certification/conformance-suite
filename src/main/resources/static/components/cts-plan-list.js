@@ -10,10 +10,54 @@ import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-json-view.js";
+import "./cts-spinner.js";
+import "./cts-badge.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import "./cts-plan-status.js";
+import {
+  emptyFilter,
+  hasFilters,
+  toChips,
+  toParams,
+  urlFromFilter,
+  without,
+} from "./plan-list-filter.js";
 
 const PAGE_SIZE = 25;
+
+// The backend's hard cap on `/api/plan?length=`, matching MAX_FILTERED_LOGS
+// in cts-log-list. `PaginationRequest.setLength` rejects anything higher.
+const MAX_PLANS = 1000;
+
+/** How often to ask how far a running bulk delete has got. */
+const BULK_POLL_MS = 2000;
+
+/** What the dialog says while the two slow server round-trips are happening. */
+const COUNTING = "Counting the plans this would delete.";
+const STARTING = "Checking that count still holds, then starting.";
+
+/**
+ * The ages the listing can be narrowed to, as whole years back from today. Age
+ * is the one thing an operator pruning a database actually filters on, and it
+ * is otherwise only expressible by editing `to=` into the URL by hand.
+ * @type {Array<{value: string, label: string, years: number}>}
+ */
+const AGE_PRESETS = [
+  { value: "1y", label: "Over 1 year ago", years: 1 },
+  { value: "2y", label: "Over 2 years ago", years: 2 },
+  { value: "3y", label: "Over 3 years ago", years: 3 },
+  { value: "5y", label: "Over 5 years ago", years: 5 },
+];
+
+/**
+ * @param {number} years - How many whole years back.
+ * @returns {string} That date as `YYYY-MM-DD`, which is what `to` takes.
+ */
+function yearsAgo(years) {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - years);
+  return date.toISOString().slice(0, 10);
+}
 
 const STYLE_ID = "cts-plan-list-styles";
 
@@ -38,12 +82,67 @@ const STYLE_TEXT = css`
     font-family: var(--font-sans);
     color: var(--fg);
   }
+  /* The owner pill is the link; it carries its own chip affordance, so the
+     anchor adds none of its own. */
+  .cts-plan-card-owner-link {
+    text-decoration: none;
+    color: inherit;
+  }
+  .cts-plan-card-owner-link:hover .ownerSub,
+  .cts-plan-card-owner-link:hover .ownerIss {
+    text-decoration: underline;
+  }
+  .cts-plan-list-bulk-limit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+  }
+  .cts-plan-list-bulk-limit input {
+    width: 7ch;
+  }
   .cts-plan-list-toolbar {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
     align-items: center;
     margin-bottom: var(--space-4);
+  }
+  /* What the listing has been narrowed to (a drill-down from the statistics
+     charts, or a shared link). Above the search box, because it scopes the
+     dataset the search then searches. */
+  .cts-plan-list-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+  .cts-plan-list-filters-label {
+    font-size: var(--fs-13);
+    color: var(--fg-soft);
+  }
+  .cts-plan-list-filters-clear {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--fs-13);
+    color: var(--fg-link);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--link-decoration-color);
+    cursor: pointer;
+  }
+  .cts-plan-list-filters-clear:hover {
+    text-decoration-color: currentColor;
+  }
+  .cts-plan-list-filters-clear:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-2);
   }
   .cts-plan-list-search {
     position: relative;
@@ -78,14 +177,16 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
     pointer-events: none;
   }
-  .cts-plan-list-sort {
+  .cts-plan-list-sort,
+  .cts-plan-list-age {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     font-size: var(--fs-13);
     color: var(--fg-soft);
   }
-  .cts-plan-list-sort select {
+  .cts-plan-list-sort select,
+  .cts-plan-list-age select {
     box-sizing: border-box;
     height: var(--control-height);
     padding: 0 36px 0 var(--space-3);
@@ -102,7 +203,10 @@ const STYLE_TEXT = css`
     background-repeat: no-repeat;
     background-position: right 12px center;
   }
-  .cts-plan-list-sort select:focus {
+  /* the copy of these rules for the filter selects dropped this one, so they had no focus ring
+     while Sort had one */
+  .cts-plan-list-sort select:focus,
+  .cts-plan-list-age select:focus {
     outline: none;
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
@@ -283,6 +387,14 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-2);
   }
+  /* Sits above the list (or the empty state), so it reads as a caveat on the
+     WHOLE dataset the search/filter row is scoped to, not as a per-card note.
+     cts-alert is an undeclared custom element (inline by default absent this
+     rule), so display: block is needed for margin-bottom to take effect. */
+  .cts-plan-list-truncation {
+    display: block;
+    margin-bottom: var(--space-3);
+  }
   .cts-plan-list-footer {
     display: flex;
     flex-direction: column;
@@ -337,6 +449,60 @@ function hasNonEmptyConfig(config) {
   return !!config && typeof config === "object" && Object.keys(config).length > 0;
 }
 
+/**
+ * What to tell the reader about a listing request the server refused.
+ *
+ * `TestPlanApi` answers a filter it cannot use with 400 and
+ * `{"error": "<which parameter and why>"}` — the only thing that says WHICH
+ * chip to remove — so that message is preferred over the bare status code.
+ * `message` is accepted alongside it because the statistics endpoint words its
+ * own 400 that way and a mock may do either. Anything else (an empty body, a
+ * proxy's HTML error page, a 500) falls back to the status.
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string>} The message for the alert.
+ */
+/**
+ * The message a failed response carries, if it carries one: the API answers `{"error": "..."}`
+ * — the only thing that says WHICH parameter is wrong — and `message` is accepted alongside it
+ * because the statistics endpoint words its own 400 that way.
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string|null>} That message, or null when there is none to show.
+ */
+async function serverMessage(response) {
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    // not JSON at all; the status code is all there is
+  }
+  return body && typeof body === "object" ? body.error || body.message || null : null;
+}
+
+/**
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string>} The message for the listing's alert.
+ */
+async function failureMessage(response) {
+  const detail = await serverMessage(response);
+  return detail
+    ? `Failed to load test plans: ${detail}`
+    : `Failed to load test plans (HTTP ${response.status})`;
+}
+
+/**
+ * The bulk delete's 400 says which parameter is wrong or what `confirm` should have been, and
+ * its 409 says a delete is already running — all worth showing verbatim.
+ * @param {Response} response - The failed response.
+ * @returns {Promise<string>} The message for the dialog's alert.
+ */
+async function bulkFailureMessage(response) {
+  const detail = await serverMessage(response);
+  if (detail) return detail;
+  return response.status === 403
+    ? "Only an admin can delete plans in bulk"
+    : `Deleting failed (HTTP ${response.status})`;
+}
+
 function formatVariant(variant) {
   if (!variant) return "";
   if (typeof variant === "string") return variant;
@@ -372,6 +538,22 @@ function formatVariant(variant) {
  *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
  *   default (My for authed, Published for anon) before fetching, then trigger
  *   it via `fetchPlans()`. Reflects the `defer-initial-fetch` attribute (KTD3).
+ * @property {import("./plan-list-filter.js").PlanListFilter} filters - What
+ *   the listing is narrowed to: `family`, `plan`, plan-level `variant`
+ *   values, `cert` and the `from`/`to` bounds on `started`. Forwarded to
+ *   `GET /api/plan` (the SERVER applies them — this is not the client-side
+ *   search) and rendered as one removable chip each above the toolbar.
+ *   Property-only, because it is an object: `plans.html` reads it out of
+ *   `location.search` with `planListFilterFromUrl()` and assigns it
+ *   BEFORE the element upgrades, exactly as it sets `is-public`, so the
+ *   connect-time fetch already carries the filter. Removing a chip rewrites
+ *   the page URL (`replaceState`) and refetches.
+ *
+ * DOM hooks for e2e (`data-testid`): `plan-list-item`, `plan-list-link`,
+ * `plan-list-items`, `plan-list-empty`, `plan-list-show-more`,
+ * `plan-list-truncated`, plus the filter row's `plan-filters`,
+ * `plan-filter-<key>` (`family`, `plan`, `cert`, `from`, `variant-<name>`)
+ * and `plan-filters-clear`.
  * @fires cts-plan-navigate - When a plan name is clicked, with
  *   `{ detail: { planId } }`; bubbles and is composed.
  */
@@ -380,14 +562,23 @@ class CtsPlanList extends LitElement {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     deferInitialFetch: { type: Boolean, attribute: "defer-initial-fetch" },
+    filters: { attribute: false },
     _plans: { state: true },
     _loading: { state: true },
     _error: { state: true },
+    _truncated: { state: true },
     _searchText: { state: true },
     _sortKey: { state: true },
     _visibleCount: { state: true },
     _selectedConfig: { state: true },
     _selectedPlanId: { state: true },
+    _bulkPreview: { state: true },
+    _bulkLimit: { state: true },
+    _bulkProgress: { state: true },
+    _bulkError: { state: true },
+    _bulkBusy: { state: true },
+    _bulkBusyLabel: { state: true },
+    _filterOptions: { state: true },
   };
 
   createRenderRoot() {
@@ -400,14 +591,41 @@ class CtsPlanList extends LitElement {
     this.isAdmin = false;
     this.isPublic = false;
     this.deferInitialFetch = false;
+    /** @type {import("./plan-list-filter.js").PlanListFilter} */
+    this.filters = emptyFilter();
     this._plans = [];
     this._loading = true;
     this._error = null;
+    this._truncated = false;
     this._searchText = "";
     this._sortKey = "started-desc";
     this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedPlanId = "";
+    /** @type {{listed: number, deletable: number, kept: number, target: number}|null} */
+    this._bulkPreview = null;
+    // A limit by default, because the first thing anyone should do with this is
+    // delete a small batch and look at the result
+    this._bulkLimit = "100";
+    /** @type {{state: string, plans: number, tests: number, logEntries: number, target: number|null}|null} */
+    this._bulkProgress = null;
+    this._bulkError = null;
+    this._bulkBusy = false;
+    this._bulkBusyLabel = COUNTING;
+    // set when a finished job means the listing is out of date, acted on when
+    // the dialog closes
+    this._bulkNeedsRefresh = false;
+    /**
+     * @type {{
+     *   families: Array<string>,
+     *   plans: Array<{name: string, family: string, retired: boolean}>,
+     *   variants?: Record<string, Record<string, Array<string>>>,
+     * }|null}
+     */
+    this._filterOptions = null;
+    // Non-reactive: the handle of the status poll, cleared on disconnect
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    this._bulkPollTimer = undefined;
     // In-flight `/api/info/<instance>` set so repeated renders (search, sort,
     // show-more, and the re-render the resolution itself triggers) don't fan
     // out duplicate requests for the same instance. Non-reactive — never read
@@ -418,6 +636,11 @@ class CtsPlanList extends LitElement {
     // so the search→sort→slice work happens once per render, not twice.
     // Non-reactive — never read from render itself.
     this._currentView = null;
+    // Monotonic id of the most recent listing request. Two filter changes in
+    // quick succession (a chip removed, then another) are two fetches with no
+    // ordering guarantee between them, and the loser must not overwrite the
+    // winner's rows — or clear its loading state. Non-reactive.
+    this._fetchSeq = 0;
     // Pre-bind handlers wired through Lit EventParts on rendered cards. Lit
     // dispatches with `this` set to the host element of the listener; these
     // must retain this component as `this`.
@@ -427,6 +650,8 @@ class CtsPlanList extends LitElement {
     this._handlePlanLinkClick = this._handlePlanLinkClick.bind(this);
     this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
     this._handleCopyConfig = this._handleCopyConfig.bind(this);
+    this._handleChipRemove = this._handleChipRemove.bind(this);
+    this._handleClearFilters = this._handleClearFilters.bind(this);
   }
 
   connectedCallback() {
@@ -437,6 +662,7 @@ class CtsPlanList extends LitElement {
     // (R17/R19). The list region is supplementary, so a polite live region is
     // appropriate.
     this.setAttribute("aria-live", "polite");
+    this._loadFilterOptions();
     // KTD3: on the no-`public`-param path the page sets `defer-initial-fetch`
     // synchronously so the auth-dependent default resolves before fetching.
     // The list still renders its loading state (`_loading` defaults true) in
@@ -459,6 +685,14 @@ class CtsPlanList extends LitElement {
   }
 
   updated(changedProperties) {
+    // Every filter control carries the value it should show as `data-value`; it is applied
+    // here because a <select> cannot be set before its options exist (see _renderFilterSelect).
+    for (const select of this.querySelectorAll("select[data-value]")) {
+      if (select instanceof HTMLSelectElement) {
+        select.value = select.dataset.value ?? "";
+      }
+    }
+
     // After a render that changed the visible set, fetch the latest result
     // for the modules of the currently-visible cards. Gating to visible cards
     // (rather than every loaded plan) bounds the fan-out: a listing can hold
@@ -477,8 +711,10 @@ class CtsPlanList extends LitElement {
   }
 
   async _fetchPlans() {
+    const seq = ++this._fetchSeq;
     this._loading = true;
     this._error = null;
+    this._truncated = false;
     try {
       // This component fetches the whole listing once and does search / sort /
       // "Show more" entirely client-side, so it must ask the backend for the
@@ -492,28 +728,56 @@ class CtsPlanList extends LitElement {
       // newest-first so that, when the cap truncates, it keeps the newest plans
       // rather than the oldest. The client-side `_sortedPlans` (default
       // `started-desc`) then refines ordering within that set.
-      const params = new URLSearchParams({ length: "1000", order: "started,desc" });
+      const params = new URLSearchParams({ length: String(MAX_PLANS), order: "started,desc" });
       if (this.isPublic) params.set("public", "true");
+      // The drill-down filters are applied by the SERVER, inside the same
+      // owner/admin/public scoping as an unfiltered listing — they can only
+      // narrow what this user could already see. They also matter for the cap
+      // above: filtering server-side is what keeps a 1000-row page from
+      // truncating away the very plans the filter asked for.
+      for (const [key, value] of toParams(this.filters).entries()) params.set(key, value);
       const url = `/api/plan?${params}`;
       const response = await fetch(url);
+      // A later request has already been made, so this answer is stale
+      // whatever it says: dropping it here is what keeps two quick chip
+      // removals from landing out of order.
+      if (seq !== this._fetchSeq) return;
       if (!response.ok) {
-        throw new Error(`Failed to load test plans (HTTP ${response.status})`);
+        throw new Error(await failureMessage(response));
       }
       // Real backend (TestPlanApi.getTestPlansForCurrentUser) returns a
       // PaginationResponse envelope: { draw, recordsTotal, recordsFiltered,
       // data: [...] }. Some test mocks and the storybook MSW handlers
       // return a plain array. Accept both.
       const payload = await response.json();
-      this._plans = Array.isArray(payload)
+      if (seq !== this._fetchSeq) return;
+      const data = Array.isArray(payload)
         ? payload
         : Array.isArray(payload?.data)
           ? payload.data
           : [];
+      this._plans = data;
+      // PaginationRequest.getSliceResponse (server) hands back a SYNTHETIC
+      // recordsTotal — start+length+1 when a next page beyond the 1000-row
+      // cap exists, exactly start+numberOfElements otherwise — so
+      // `recordsTotal > data.length` is precisely "there was more than the
+      // cap could return". A plain array (test mocks / storybook, see above)
+      // carries no such signal and is treated as complete: reaching exactly
+      // MAX_PLANS rows by coincidence is not evidence of truncation the way
+      // it is in cts-log-list, where every consumer is expected to send the
+      // envelope in practice too, but a false positive here would put a
+      // permanent, unremovable warning on any fixture or test double that
+      // returns a bare array.
+      const hasTotal = typeof payload?.recordsTotal === "number";
+      this._truncated = hasTotal && payload.recordsTotal > data.length;
     } catch (err) {
+      if (seq !== this._fetchSeq) return;
       this._error = err instanceof Error ? err.message : String(err);
       this._plans = [];
     } finally {
-      this._loading = false;
+      // A superseded request must not clear the loading state the request that
+      // superseded it set.
+      if (seq === this._fetchSeq) this._loading = false;
     }
   }
 
@@ -549,6 +813,336 @@ class CtsPlanList extends LitElement {
     });
   }
 
+  /**
+   * The parameters that say WHICH plans a bulk delete is about: the same ones
+   * the listing itself was fetched with, so what is deleted is what is on
+   * screen, plus the limit.
+   * @returns {URLSearchParams} Those parameters.
+   */
+  _bulkParams() {
+    // toParams already returns a fresh URLSearchParams, so there is nothing to copy
+    const params = toParams(this.filters);
+    const limit = Number.parseInt(this._bulkLimit, 10);
+    if (Number.isFinite(limit) && limit > 0) params.set("limit", String(limit));
+    return params;
+  }
+
+  /**
+   * Ask what deleting would do, then open the confirmation. Nothing is deleted
+   * until the button in the dialog is pressed.
+   * @returns {Promise<void>} When the dialog is open.
+   */
+  async _openBulkDelete() {
+    this._bulkError = null;
+    this._bulkProgress = null;
+    this._bulkPreview = null;
+    this._bulkBusy = true;
+    this._bulkBusyLabel = COUNTING;
+    await this.updateComplete;
+    // the element may not have upgraded yet on a quick click, and an un-upgraded
+    // one has no show(): waiting for the definition is what stops the button
+    // doing nothing at all
+    await customElements.whenDefined("cts-modal");
+    const modal = /** @type {HTMLElement & { show?: () => void }} */ (
+      this.querySelector("#planBulkDeleteModal")
+    );
+    if (modal && typeof modal.show === "function") modal.show();
+    await this._loadBulkPreview();
+  }
+
+  /** @returns {Promise<void>} When the count is in, or the error is shown. */
+  async _loadBulkPreview() {
+    this._bulkBusy = true;
+    this._bulkBusyLabel = COUNTING;
+    this._bulkError = null;
+    try {
+      const response = await fetch(`/api/plan/delete-preview?${this._bulkParams()}`);
+      if (!response.ok) throw new Error(await bulkFailureMessage(response));
+      this._bulkPreview = await response.json();
+    } catch (err) {
+      this._bulkPreview = null;
+      this._bulkError = err instanceof Error ? err.message : String(err);
+    } finally {
+      this._bulkBusy = false;
+    }
+  }
+
+  /**
+   * @param {Event} event - The input event from the limit box.
+   * @returns {void}
+   */
+  _handleBulkLimitInput(event) {
+    this._bulkLimit = /** @type {HTMLInputElement} */ (event.target).value;
+  }
+
+  /**
+   * How many plans the delete would remove: what the preview said is deletable,
+   * capped by the limit. Derived rather than re-counted, because neither
+   * `listed` nor `deletable` depends on the limit - only this does - and the
+   * count behind them is a scan of every plan, which is far too slow to repeat
+   * on a keystroke. The server recomputes the same number and refuses the
+   * delete if it disagrees.
+   * @returns {number} The number to confirm, and to put on the button.
+   */
+  _bulkTarget() {
+    if (!this._bulkPreview) return 0;
+    const limit = Number.parseInt(this._bulkLimit, 10);
+    return Number.isFinite(limit) && limit > 0
+      ? Math.min(this._bulkPreview.deletable, limit)
+      : this._bulkPreview.deletable;
+  }
+
+  /**
+   * Start deleting. `confirm` is the number the dialog just showed, so a
+   * listing that moved since then stops the request instead of deleting
+   * something else.
+   * @returns {Promise<void>} When the job has started, or the error is shown.
+   */
+  async _confirmBulkDelete() {
+    if (!this._bulkPreview) return;
+    this._bulkBusy = true;
+    // the server counts again before it accepts the confirmation, which on a big
+    // database is another wait - so this must not look like nothing is happening
+    this._bulkBusyLabel = STARTING;
+    this._bulkError = null;
+    try {
+      const params = this._bulkParams();
+      params.set("confirm", String(this._bulkTarget()));
+      const response = await fetch(`/api/plan?${params}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(await bulkFailureMessage(response));
+      this._bulkProgress = await response.json();
+      this._pollBulkStatus();
+    } catch (err) {
+      this._bulkError = err instanceof Error ? err.message : String(err);
+    } finally {
+      this._bulkBusy = false;
+    }
+  }
+
+  /**
+   * Poll until the job stops, then reload the listing so the page shows what
+   * is left.
+   * @returns {void}
+   */
+  _pollBulkStatus() {
+    clearTimeout(this._bulkPollTimer);
+    this._bulkPollTimer = setTimeout(async () => {
+      try {
+        const response = await fetch("/api/plan/delete-status");
+        if (!response.ok) throw new Error(await bulkFailureMessage(response));
+        this._bulkProgress = await response.json();
+      } catch (err) {
+        this._bulkError = err instanceof Error ? err.message : String(err);
+        return;
+      }
+      if (this._bulkProgress && this._bulkProgress.state === "RUNNING") {
+        this._pollBulkStatus();
+      } else {
+        // NOT _fetchPlans() here: it flips the component into its loading state,
+        // which unmounts this dialog mid-sentence and loses the only report of
+        // what was deleted. The listing is refreshed when the dialog is closed.
+        this._bulkNeedsRefresh = true;
+      }
+    }, BULK_POLL_MS);
+  }
+
+  /** @returns {Promise<void>} When the job has been asked to stop. */
+  async _cancelBulkDelete() {
+    try {
+      const response = await fetch("/api/plan/delete-cancel", { method: "POST" });
+      if (response.ok) this._bulkProgress = await response.json();
+    } catch {
+      // the poll reports what actually happened; a failed cancel is not worth
+      // an error of its own
+    }
+  }
+
+  disconnectedCallback() {
+    clearTimeout(this._bulkPollTimer);
+    super.disconnectedCallback();
+  }
+
+  /**
+   * Move what is in the search box into the SERVER's filter, so the listing,
+   * the count and the delete all mean the same set of plans.
+   *
+   * The two searches are not the same search: the box matches any substring of
+   * a plan's name, id, description or variant in rows already fetched, while
+   * the server runs a MongoDB `$text` phrase over the name, description and
+   * certification profile, which matches whole words only. Handing over a
+   * half-typed word therefore finds nothing, which is why this is offered
+   * rather than done automatically.
+   * @returns {void}
+   */
+  _useServerSearch() {
+    const term = this._searchText.trim();
+    if (!term) return;
+    this._searchText = "";
+    this._applyFilters({ ...this.filters, search: term });
+  }
+
+  /**
+   * Which age preset the current `to` bound corresponds to, so the select shows
+   * what the listing is actually narrowed to after a reload or a drill-down.
+   * @returns {string} A preset value, `"custom"` for a bound that is none of
+   *   them, or `""` when the listing is not narrowed by age.
+   */
+  _agePreset() {
+    const to = (this.filters && this.filters.to) || "";
+    if (!to) return "";
+    const match = AGE_PRESETS.find((preset) => yearsAgo(preset.years) === to);
+    return match ? match.value : "custom";
+  }
+
+  /**
+   * @param {Event} event - The change event from the age select.
+   * @returns {void}
+   */
+  _handleAgeChange(event) {
+    const value = /** @type {HTMLSelectElement} */ (event.target).value;
+    const preset = AGE_PRESETS.find((candidate) => candidate.value === value);
+    // "Custom period" is only ever shown for a bound that came from a URL, so
+    // choosing it changes nothing; anything else sets or clears the bound
+    if (value === "custom") return;
+    this._applyFilters({ ...this.filters, to: preset ? yearsAgo(preset.years) : "" });
+  }
+
+  /**
+   * The dialog has been closed, so the listing can be brought up to date now
+   * without taking the result off the screen while it is still being read.
+   * @returns {void}
+   */
+  _handleBulkDeleteClosed() {
+    if (!this._bulkNeedsRefresh) return;
+    this._bulkNeedsRefresh = false;
+    this._bulkProgress = null;
+    this._bulkPreview = null;
+    this._fetchPlans();
+  }
+
+  /**
+   * The families and plan names the listing can be narrowed to.
+   *
+   * A listing cannot offer these from what it has fetched: it holds at most a
+   * thousand plans, while the values worth offering are every family the suite
+   * has and every plan name it has ever published - most of a pruning listing
+   * is made of names it no longer publishes at all. So they come from the
+   * registry, through an endpoint that carries only the names.
+   *
+   * Asked for with `public=true` on the published listing, where the viewer
+   * may not be logged in: the endpoint answers a public request with the same
+   * registry data. Failure is still not an error: the two controls simply
+   * stay hidden.
+   * @returns {Promise<void>} When they are loaded, or given up on.
+   */
+  async _loadFilterOptions() {
+    try {
+      const response = await fetch(
+        `/api/plan/filter-options${this.isPublic ? "?public=true" : ""}`,
+      );
+      if (!response.ok) return;
+      const options = await response.json();
+      if (Array.isArray(options?.families) && Array.isArray(options?.plans)) {
+        this._filterOptions = options;
+      }
+    } catch {
+      // offline, or an endpoint that is not there: the controls stay hidden
+    }
+  }
+
+  /**
+   * @returns {Array<{name: string, family: string, retired: boolean}>} The plan
+   *   names worth offering: those of the chosen family, or all of them.
+   */
+  _plansToOffer() {
+    const plans = this._filterOptions?.plans ?? [];
+    const family = (this.filters && this.filters.family) || "";
+    return family ? plans.filter((plan) => plan.family === family) : plans;
+  }
+
+  /**
+   * @param {Event} event - The change event from the family select.
+   * @returns {void}
+   */
+  _handleFamilyChange(event) {
+    const family = /** @type {HTMLSelectElement} */ (event.target).value;
+    const next = { ...this.filters, family };
+    // a plan of another family would leave the two contradicting each other,
+    // which the server answers with an empty listing rather than an error
+    if (
+      next.plan &&
+      family &&
+      !this._filterOptions?.plans.some((plan) => plan.name === next.plan && plan.family === family)
+    ) {
+      next.plan = "";
+    }
+    this._applyFilters(next);
+  }
+
+  /**
+   * @param {Event} event - The change event from the immutable select.
+   * @returns {void}
+   */
+  _handleImmutableChange(event) {
+    const immutable = /** @type {HTMLSelectElement} */ (event.target).value;
+    this._applyFilters({ ...this.filters, immutable });
+  }
+
+  /**
+   * The variant parameters of the plan the listing is narrowed to, and the
+   * values each may take.
+   *
+   * Only ever for ONE plan: a variant parameter means nothing without the plan
+   * that defines it - `client_auth_type` belongs to a dozen plans and
+   * `ciba_mode` to four - so these controls appear once a plan is chosen and
+   * not before. A plan the suite no longer publishes has no entry, because the
+   * registry is where the values come from; its variant chips still show if
+   * the URL carries them.
+   * @returns {Array<{name: string, values: Array<string>}>} Those parameters.
+   */
+  _variantsToOffer() {
+    const plan = (this.filters && this.filters.plan) || "";
+    const forPlan = plan ? this._filterOptions?.variants?.[plan] : null;
+    if (!forPlan) return [];
+    return Object.keys(forPlan)
+      .sort()
+      .map((name) => ({ name, values: forPlan[name] }));
+  }
+
+  /**
+   * @param {Event} event - The change event from one of the variant selects.
+   * @returns {void}
+   */
+  _handleVariantChange(event) {
+    const select = /** @type {HTMLSelectElement} */ (event.target);
+    const name = select.dataset.variant;
+    if (!name) return;
+    const variant = { ...(this.filters.variant || {}) };
+    if (select.value) {
+      variant[name] = select.value;
+    } else {
+      delete variant[name];
+    }
+    this._applyFilters({ ...this.filters, variant });
+  }
+
+  /**
+   * @param {Event} event - The change event from the plan select.
+   * @returns {void}
+   */
+  _handlePlanChange(event) {
+    const plan = /** @type {HTMLSelectElement} */ (event.target).value;
+    // a variant chosen for the previous plan may not exist on this one, and
+    // would then match nothing at all
+    const keep = plan ? (this._filterOptions?.variants?.[plan] ?? {}) : {};
+    const variant = Object.fromEntries(
+      Object.entries(this.filters.variant || {}).filter(([name, value]) =>
+        (keep[name] || []).includes(value),
+      ),
+    );
+    this._applyFilters({ ...this.filters, plan, variant });
+  }
+
   _handleConfigButtonClick(event) {
     const planId = event.currentTarget.dataset.planId;
     const plan = this._plans.find((p) => p._id === planId);
@@ -581,6 +1175,44 @@ class CtsPlanList extends LitElement {
 
   _handleShowMoreClick() {
     this._visibleCount += PAGE_SIZE;
+  }
+
+  /**
+   * Remove one filter: the chip that was clicked names it.
+   * @param {Event} event - `cts-badge-click` from the chip.
+   * @returns {void}
+   */
+  _handleChipRemove(event) {
+    const key = /** @type {HTMLElement} */ (event.currentTarget).dataset.filterKey;
+    if (!key) return;
+    this._applyFilters(without(this.filters, key));
+  }
+
+  /**
+   * Drop every filter at once.
+   * @returns {void}
+   */
+  _handleClearFilters() {
+    this._applyFilters(emptyFilter());
+  }
+
+  /**
+   * Adopt a narrower (or wider) filter: mirror it into the page URL and
+   * refetch, because the server is what applies it.
+   *
+   * `replaceState`, not `pushState`: removing a chip is a change to the view,
+   * not navigation, and the way back to the statistics page that linked here
+   * must stay one press of Back away. The rewrite preserves `?public`, so
+   * clearing a filter cannot silently switch the Published tab back to My.
+   * @param {import("./plan-list-filter.js").PlanListFilter} next - The filter to move to.
+   * @returns {void}
+   */
+  _applyFilters(next) {
+    this.filters = next;
+    this._visibleCount = PAGE_SIZE;
+    const search = urlFromFilter(next, window.location.search);
+    window.history.replaceState(null, "", window.location.pathname + search + window.location.hash);
+    this._fetchPlans();
   }
 
   _searchedPlans(rows) {
@@ -782,7 +1414,22 @@ class CtsPlanList extends LitElement {
             ? html`
                 <span class="cts-plan-card-meta-item">
                   <span class="cts-plan-card-meta-key">Owner</span>
-                  ${this._renderOwner(plan.owner)}
+                  <a
+                    class="cts-plan-card-owner-link"
+                    href="plans.html${urlFromFilter(
+                      {
+                        ...this.filters,
+                        // both halves: a sub names an account only within its issuer, and
+                        // this same narrowing is what a bulk delete is aimed with
+                        owner: plan.owner.sub || "",
+                        owner_iss: plan.owner.iss || "",
+                      },
+                      window.location.search,
+                    )}"
+                    title="Show only this owner's plans"
+                    data-testid="plan-owner-link"
+                    >${this._renderOwner(plan.owner)}</a
+                  >
                 </span>
               `
             : nothing}
@@ -808,7 +1455,262 @@ class CtsPlanList extends LitElement {
     `;
   }
 
+  /**
+   * The "Filtered by" row: one removable chip per active filter, and a Clear
+   * all shortcut once there is more than one to remove.
+   *
+   * Each chip is `clickable` (not merely `interactive`): the badge IS the
+   * click target and nothing wraps it, so it carries `role="button"`,
+   * keyboard activation and the stronger affordance ring — per the badge
+   * affordance rule in CLAUDE.md.
+   * @returns {unknown} The row, or nothing when the listing is unfiltered.
+   */
+  _renderFilters() {
+    const chips = toChips(this.filters);
+    if (chips.length === 0) return nothing;
+    return html`
+      <div class="cts-plan-list-filters" data-testid="plan-filters">
+        <span class="cts-plan-list-filters-label">Filtered by</span>
+        ${repeat(
+          chips,
+          (chip) => chip.key,
+          (chip) => html`
+            <cts-badge
+              variant="secondary"
+              clickable
+              icon="close-md"
+              label=${chip.label}
+              aria-label=${chip.removeLabel}
+              data-testid="plan-filter-${chip.key}"
+              data-filter-key=${chip.key}
+              @cts-badge-click=${this._handleChipRemove}
+            ></cts-badge>
+          `,
+        )}
+        ${chips.length > 1
+          ? html`<button
+              type="button"
+              class="cts-plan-list-filters-clear"
+              data-testid="plan-filters-clear"
+              @click=${this._handleClearFilters}
+            >
+              Clear all
+            </button>`
+          : nothing}
+        ${this.isAdmin && !this.isPublic
+          ? html`<cts-button
+                variant="danger"
+                size="sm"
+                icon="trash-empty"
+                label="Delete these plans..."
+                data-testid="plan-bulk-delete"
+                ?disabled=${Boolean(this._searchText)}
+                title=${this._searchText
+                  ? "The search box narrows only what is shown here, not what a delete would " +
+                    "remove. Search on the server instead, or clear the box."
+                  : "Delete every plan these filters match"}
+                @cts-click=${this._openBulkDelete}
+              ></cts-button>
+              ${this._searchText
+                ? html`<button
+                    type="button"
+                    class="cts-plan-list-filters-clear"
+                    data-testid="plan-bulk-delete-server-search"
+                    title="Ask the server for the plans matching this term, so it becomes part of
+                      the listing - and of what a delete would remove. Whole words only."
+                    @click=${this._useServerSearch}
+                  >
+                    Search on the server instead
+                  </button>`
+                : nothing}`
+          : nothing}
+      </div>
+    `;
+  }
+
+  /**
+   * The confirmation, and then the progress of the job it starts. Only ever
+   * reachable with a filter active, because the button that opens it lives in
+   * the row of filter chips - which is also what the server insists on.
+   * @returns {unknown} The dialog.
+   */
+  _renderBulkDeleteModal() {
+    const preview = this._bulkPreview;
+    const progress = this._bulkProgress;
+    const running = progress?.state === "RUNNING";
+    return html`
+      <cts-modal
+        id="planBulkDeleteModal"
+        heading="Delete these test plans?"
+        size="md"
+        @cts-modal-close=${this._handleBulkDeleteClosed}
+      >
+        ${this._bulkError
+          ? html`<cts-alert variant="danger" data-testid="plan-bulk-delete-error"
+              >${this._bulkError}</cts-alert
+            >`
+          : nothing}
+        ${progress
+          ? html`
+              <p data-testid="plan-bulk-delete-progress">
+                <strong>${progress.state === "RUNNING" ? "Deleting" : progress.state}</strong>
+                — ${progress.plans.toLocaleString()} of ${(progress.target ?? 0).toLocaleString()}
+                plans, ${progress.tests.toLocaleString()} test runs and
+                ${progress.logEntries.toLocaleString()} log entries removed.
+              </p>
+              ${running
+                ? html`<cts-button
+                    variant="secondary"
+                    label="Stop"
+                    data-testid="plan-bulk-delete-stop"
+                    @cts-click=${this._cancelBulkDelete}
+                  ></cts-button>`
+                : nothing}
+            `
+          : html`
+              <p>
+                This deletes every plan matching the filters below - not just the ones on this page
+                - along with every test run in them and every log entry of those runs. It cannot be
+                undone.
+              </p>
+              <ul>
+                ${repeat(
+                  toChips(this.filters),
+                  (chip) => chip.key,
+                  (chip) => html`<li>${chip.label}</li>`,
+                )}
+              </ul>
+              <label class="cts-plan-list-bulk-limit">
+                <span>Delete at most</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  aria-label="Most plans to delete"
+                  data-testid="plan-bulk-delete-limit"
+                  .value=${this._bulkLimit}
+                  @input=${this._handleBulkLimitInput}
+                />
+                <span>plans, oldest first. Leave empty for all of them.</span>
+              </label>
+              ${this._bulkBusy && !this._bulkError
+                ? html`<p data-testid="plan-bulk-delete-counting">
+                    <cts-spinner size="sm" label=${this._bulkBusyLabel}></cts-spinner>
+                    ${this._bulkBusyLabel} On a large database this takes a few seconds.
+                  </p>`
+                : nothing}
+              ${preview && !this._bulkBusy
+                ? html`<p data-testid="plan-bulk-delete-counts">
+                    ${preview.listed.toLocaleString()} plans match.
+                    <strong>${this._bulkTarget().toLocaleString()} will be deleted.</strong>
+                    ${preview.kept > 0
+                      ? html`${preview.kept.toLocaleString()} are kept because they are immutable or
+                        published.`
+                      : nothing}
+                  </p>`
+                : nothing}
+              <cts-button
+                variant="danger"
+                icon="trash-empty"
+                label=${preview && !this._bulkBusy
+                  ? `Delete ${this._bulkTarget().toLocaleString()} plans`
+                  : "Delete"}
+                ?disabled=${this._bulkBusy || !preview || this._bulkTarget() === 0}
+                data-testid="plan-bulk-delete-confirm"
+                @cts-click=${this._confirmBulkDelete}
+              ></cts-button>
+            `}
+      </cts-modal>
+    `;
+  }
+
+  /**
+   * One control per variant parameter of the chosen plan, on their own row: a plan can define a
+   * dozen, which would not fit beside the other controls.
+   * @returns {unknown} The row, or nothing when no plan is chosen.
+   */
+  _renderVariantControls() {
+    const variants = this._variantsToOffer();
+    if (variants.length === 0) return nothing;
+    const chosen = (this.filters && this.filters.variant) || {};
+    return html`
+      <div class="cts-plan-list-toolbar" data-testid="plan-variant-controls">
+        ${repeat(
+          variants,
+          (variant) => variant.name,
+          (variant) =>
+            this._renderFilterSelect({
+              label: variant.name,
+              aria: `Only show plans with this ${variant.name}`,
+              testid: `plan-variant-${variant.name}`,
+              variant: variant.name,
+              value: chosen[variant.name] || "",
+              options: [
+                { value: "", label: "Any" },
+                ...variant.values.map((value) => ({ value, label: value })),
+              ],
+              onChange: this._handleVariantChange,
+            }),
+        )}
+      </div>
+    `;
+  }
+
+  /**
+   * One filter control: a labelled `<select>` carrying the value it should show.
+   *
+   * That value is applied in {@link updated}, after the options exist, because neither obvious
+   * alternative works. `.value` on the `<select>` is committed by Lit before its `<option>`
+   * children are created, so the assignment is dropped and the control falls back to its first
+   * option — reading "Any" beside a chip that says otherwise. Marking the option instead does
+   * not survive either: the browser selects the first as they are appended. Naming the element
+   * by `data-value` keeps production behaviour off the e2e hooks and means a new control needs
+   * no edit in `updated`.
+   * @param {object} control - The control to render.
+   * @param {string} control.label - The visible label.
+   * @param {string} control.aria - The select's accessible name.
+   * @param {string} control.testid - Its `data-testid`.
+   * @param {string} control.value - The value currently selected.
+   * @param {Array<{value: string, label: string}>} control.options - Its options, "any" first.
+   * @param {(event: Event) => void} control.onChange - The change handler.
+   * @param {string} [control.variant] - The variant parameter, for the variant controls.
+   * @returns {unknown} The control.
+   */
+  _renderFilterSelect({ label, aria, testid, value, options, onChange, variant = undefined }) {
+    return html`
+      <label class="cts-plan-list-age">
+        <span>${label}</span>
+        <select
+          aria-label=${aria}
+          data-testid=${testid}
+          data-variant=${ifDefined(variant)}
+          data-value=${value}
+          @change=${onChange}
+        >
+          ${repeat(
+            options,
+            (option) => option.value,
+            (option) => html`<option value=${option.value}>${option.label}</option>`,
+          )}
+        </select>
+      </label>
+    `;
+  }
+
+  /** @returns {Array<{value: string, label: string}>} The age options, "Any time" first. */
+  _ageOptions() {
+    const options = [
+      { value: "", label: "Any time" },
+      ...AGE_PRESETS.map((preset) => ({ value: preset.value, label: preset.label })),
+    ];
+    // a bound that is none of the presets came from a hand-edited URL or a drill-down; it is
+    // offered so the control can show it rather than claiming the listing spans any time
+    if (this._agePreset() === "custom") options.push({ value: "custom", label: "Custom period" });
+    return options;
+  }
+
   _renderSearchAndSort() {
+    const filters = this.filters || emptyFilter();
     return html`
       <div class="cts-plan-list-toolbar">
         <label class="cts-plan-list-search">
@@ -821,6 +1723,58 @@ class CtsPlanList extends LitElement {
             @input=${this._handleSearchInput}
           />
         </label>
+        ${this._filterOptions
+          ? html`
+              ${this._renderFilterSelect({
+                label: "Family",
+                aria: "Only show plans of this spec family",
+                testid: "plan-family-filter",
+                value: filters.family || "",
+                options: [
+                  { value: "", label: "Any family" },
+                  ...this._filterOptions.families.map((family) => ({
+                    value: family,
+                    label: family,
+                  })),
+                ],
+                onChange: this._handleFamilyChange,
+              })}
+              ${this._renderFilterSelect({
+                label: "Plan",
+                aria: "Only show plans with this name",
+                testid: "plan-name-filter",
+                value: filters.plan || "",
+                options: [
+                  { value: "", label: "Any plan" },
+                  ...this._plansToOffer().map((plan) => ({
+                    value: plan.name,
+                    label: plan.retired ? `${plan.name} (retired)` : plan.name,
+                  })),
+                ],
+                onChange: this._handlePlanChange,
+              })}
+            `
+          : nothing}
+        ${this._renderFilterSelect({
+          label: "Immutable",
+          aria: "Only show plans that are immutable, or only those that are not",
+          testid: "plan-immutable-filter",
+          value: filters.immutable || "",
+          options: [
+            { value: "", label: "Any" },
+            { value: "true", label: "Yes" },
+            { value: "false", label: "No" },
+          ],
+          onChange: this._handleImmutableChange,
+        })}
+        ${this._renderFilterSelect({
+          label: "Started",
+          aria: "Only show plans older than",
+          testid: "plan-age-filter",
+          value: this._agePreset(),
+          options: this._ageOptions(),
+          onChange: this._handleAgeChange,
+        })}
         <label class="cts-plan-list-sort">
           <span>Sort</span>
           <select
@@ -867,6 +1821,29 @@ class CtsPlanList extends LitElement {
   }
 
   /**
+   * The fetch hit the backend's 1000-plan cap: the listing is not everything
+   * that matches, just the newest 1000. Rendered above the list (and above
+   * the empty state, since a search can legitimately narrow a truncated
+   * fetch down to zero visible rows without the underlying dataset stopping
+   * being incomplete) so it reads as a caveat on the whole result, in both
+   * the filtered and the unfiltered case.
+   * @returns {unknown} The notice, or nothing when the listing is complete.
+   */
+  _renderTruncationNotice() {
+    if (!this._truncated) return nothing;
+    return html`
+      <cts-alert
+        variant="warning"
+        class="cts-plan-list-truncation"
+        data-testid="plan-list-truncated"
+      >
+        Showing the newest ${MAX_PLANS.toLocaleString()} matching plans — narrow the filters or the
+        date range (for example use a weekly view) to see all of them.
+      </cts-alert>
+    `;
+  }
+
+  /**
    * Render the empty state, branched by why the list is empty so the copy
    * matches the user's situation (R18). Every non-search empty state offers a
    * "Schedule test" action — on the My view, on the Published view, and for
@@ -882,6 +1859,11 @@ class CtsPlanList extends LitElement {
    *   universal entry point, not a fix for this specific emptiness (scheduling a
    *   test starts a private run, not a published plan); that copy/CTA seam is
    *   deliberate;
+   * - the listing is filtered (a drill-down from the statistics charts, or a
+   *   shared link) → say the filters are what emptied it and offer the way
+   *   out. The action is a real link to the same listing without them, so it
+   *   works with the keyboard, the middle button and JavaScript turned off,
+   *   and it preserves `?public`;
    * - otherwise (the My view, or an anonymous / unknown-auth visitor) → guide
    *   the user to schedule their first test, with the Schedule-test action,
    *   plus a secondary "View published plans" action so an empty personal
@@ -897,6 +1879,18 @@ class CtsPlanList extends LitElement {
           icon="folder"
           heading="No plans match your search"
           body="Try a different search term to widen the results."
+          data-testid="plan-list-empty"
+        ></cts-empty-state>
+      `;
+    }
+    if (hasFilters(this.filters)) {
+      return html`
+        <cts-empty-state
+          icon="folder"
+          heading="No plans match these filters"
+          body="No test plan in this view was started in that period, or matches that family, plan, variant or certification profile."
+          cta-label="Clear filters"
+          cta-href="plans.html${urlFromFilter(emptyFilter(), window.location.search)}"
           data-testid="plan-list-empty"
         ></cts-empty-state>
       `;
@@ -919,12 +1913,37 @@ class CtsPlanList extends LitElement {
   }
 
   render() {
+    return html`
+      ${this._renderBody()}
+      ${this.isAdmin && !this.isPublic ? this._renderBulkDeleteModal() : nothing}
+    `;
+  }
+
+  /**
+   * The listing itself, in whichever of its three states it is in.
+   *
+   * Kept apart from {@link render} so the bulk-delete dialog can sit OUTSIDE
+   * it: this returns early while a fetch is in flight, and a dialog rendered in
+   * here would not exist to be opened during a refetch, and would be torn down
+   * mid-sentence by the refetch that follows a delete - taking the only report
+   * of what was deleted off the screen with it.
+   * @returns {unknown} The body.
+   */
+  _renderBody() {
     if (this._loading) {
-      return html`${this._renderSearchAndSort()} ${this._renderLoading()}`;
+      // The filter row is part of the page's scope, not of the result: it
+      // must not flash out and back in around every refetch.
+      return html`${this._renderFilters()} ${this._renderSearchAndSort()}
+      ${this._renderVariantControls()} ${this._renderLoading()}`;
     }
 
     if (this._error) {
+      // The filter row survives a failed fetch too: a filter is what can CAUSE
+      // the failure (a hand-edited `variant.<bad>` is a 400), so hiding the
+      // chips would leave the reader an error with no way to see what was
+      // asked for, let alone clear it.
       return html`
+        ${this._renderFilters()}
         <cts-alert variant="danger" role="alert">
           <strong>Error:</strong> ${this._error}
         </cts-alert>
@@ -936,9 +1955,19 @@ class CtsPlanList extends LitElement {
     const { sorted, visible } = view;
     const hasMore = sorted.length > visible.length;
     const hasSearch = this._searchText.trim().length > 0;
+    // Once truncated, `sorted.length` is a lower bound, not an exact count,
+    // for as long as it still reflects the untouched, cap-sized fetch — a
+    // local search narrowing it below the cap IS an exact count of the (still
+    // possibly incomplete) fetched set, so the "+" only applies while nothing
+    // has trimmed it below the cap yet, mirroring cts-log-list's marker rule.
+    const sortedCountLabel =
+      this._truncated && sorted.length >= MAX_PLANS
+        ? `${sorted.length.toLocaleString()}+`
+        : `${sorted.length.toLocaleString()}`;
 
     return html`
-      ${this._renderSearchAndSort()}
+      ${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderVariantControls()}
+      ${this._renderTruncationNotice()}
       ${sorted.length === 0
         ? this._renderEmpty(hasSearch)
         : html`
@@ -957,7 +1986,7 @@ class CtsPlanList extends LitElement {
                 variant="secondary"
                 size="md"
                 data-testid="plan-list-show-more"
-                label="Show more (${visible.length} of ${sorted.length})"
+                label="Show more (${visible.length} of ${sortedCountLabel})"
                 @cts-click=${this._handleShowMoreClick}
               ></cts-button>
             `

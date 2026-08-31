@@ -38,14 +38,21 @@ public interface TestPlanService {
 	JsonObject getModuleConfig(String planId, String moduleName);
 
 	/**
-	 * @return
+	 * Lists the plans the current user may see: all of them for an admin, their own
+	 * otherwise.
+	 *
+	 * @param page   the page to return
+	 * @param filter the narrowing asked for within that scoping
 	 */
-	PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page);
+	PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page, PlanListFilter filter, PlanOwner owner);
 
 	/**
+	 * Lists the published plans, which anyone may see.
 	 *
+	 * @param page   the page to return
+	 * @param filter the narrowing asked for within that scoping
 	 */
-	PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page);
+	PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter, PlanOwner owner);
 
 	/**
 	 * @param id
