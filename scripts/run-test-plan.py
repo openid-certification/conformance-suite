@@ -1611,7 +1611,7 @@ async def main():
                 "fapi-ciba-id1-ensure-authorization-request-with-invalid-login-hint-fails-for-brazil",
                 "fapi-ciba-id1-ensure-authorization-request-with-url-binding-message-warns-for-brazil",
                 "fapi-ciba-id1-ensure-authorization-request-with-user-code-fails-for-brazil",
-                "fapi-ciba-id1-ensure-requested-expiry-is-ignored-for-brazil"
+                "fapi-ciba-id1-ensure-requested-expiry-zero-fails-for-brazil"
             }
             # These modules deliberately send requests that the OFBR RP test correctly rejects,
             # so they cannot be exercised by pairing the OP and RP test suites in CI.
