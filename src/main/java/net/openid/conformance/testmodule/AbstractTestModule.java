@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.common.UnexpectedHttpRequestReceived;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
@@ -1289,12 +1290,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
+		return unexpectedHttpRequest(path, requestParts);
 	}
 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
+		return unexpectedHttpRequest(path, requestParts);
 	}
 
 	@Override
@@ -1304,7 +1305,32 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			// (as at least one existing client, the one we use in the client_test oidcc tests, queries the oauth location first)
 			return new ResponseEntity<>(Map.of("error", "this test doesn't support the path '" + path + "'"), HttpStatus.NOT_FOUND);
 		}
-		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
+		return unexpectedHttpRequest(path, requestParts);
+	}
+
+	/**
+	 * Called when an HTTP request arrives for a path neither the test module nor any of its
+	 * parent classes serve. The request is reported as a FAILURE (via a condition, so it shows
+	 * in the test log and result) and answered with a 404, and the test continues - a stray
+	 * request (e.g. a wallet probing sub-paths of the request_uri) must not interrupt a test
+	 * that is still waiting for the real interaction.
+	 */
+	protected Object unexpectedHttpRequest(String path, JsonObject requestParts) {
+		JsonObject unexpected = new JsonObject();
+		unexpected.addProperty("path", path);
+		if (requestParts != null && requestParts.has("method")) {
+			unexpected.add("method", requestParts.get("method"));
+		}
+
+		// the http request arrives on its own thread without the test lock, so take it while
+		// the condition runs, as request handlers do
+		setStatus(Status.RUNNING);
+		env.putObject(UnexpectedHttpRequestReceived.ENV_KEY, unexpected);
+		callAndContinueOnFailure(UnexpectedHttpRequestReceived.class, Condition.ConditionResult.FAILURE);
+		env.removeObject(UnexpectedHttpRequestReceived.ENV_KEY);
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<>(Map.of("error", "The test does not serve the path '" + path + "'"), HttpStatus.NOT_FOUND);
 	}
 
 	@Override
