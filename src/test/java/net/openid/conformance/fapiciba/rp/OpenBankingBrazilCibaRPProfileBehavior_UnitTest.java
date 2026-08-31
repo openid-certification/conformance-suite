@@ -98,15 +98,28 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 	}
 
 	@Test
-	public void validatesBrazilBackchannelRequestBoundariesAndAuthorizesConsent() {
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(behavior.applyProfileSpecificBackchannelRequestChecks());
+	public void acceptsOptionalPositiveRequestedExpiryForBrazil() {
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
+			behavior.applyProfileSpecificBackchannelRequestChecks());
 
-		assertThat(conditionClasses).containsExactly(
-			EnsureBackchannelRequestDoesNotContainRequestedExpiryForBrazil.class,
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass).containsExactly(
+			BackchannelRequestRequestedExpiryIsAnInteger.class,
 			EnsureBackchannelRequestObjectDoesNotContainUserCode.class,
 			EnsureBackchannelRequestObjectBindingMessageDoesNotContainUrl.class,
 			EnsureLoginHintEqualsConsentId.class,
 			FAPIBrazilChangeConsentStatusToAuthorized.class);
+		assertThat(conditionCalls.getFirst().getRequirements())
+			.containsExactly("CIBA-7.1", "CIBA-7.1.1", "BrazilCIBA-6.3.7");
+	}
+
+	@Test
+	public void configuresDataConsentAuthenticationRequestMaximum() {
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
+			behavior.applyProfileSpecificBackchannelEndpointResponse());
+
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass)
+			.containsExactly(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.class);
+		assertThat(conditionCalls.getFirst().getRequirements()).containsExactly("BrazilCIBA-6.2.6");
 	}
 
 	@Test
@@ -118,7 +131,6 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 		assertThat(conditionClasses)
 			.containsExactly(BackchannelRequestRequestedExpiryIsAnInteger.class)
 			.doesNotContain(
-				EnsureBackchannelRequestDoesNotContainRequestedExpiryForBrazil.class,
 				EnsureBackchannelRequestObjectDoesNotContainUserCode.class,
 				EnsureLoginHintEqualsConsentId.class);
 	}
