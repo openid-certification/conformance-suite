@@ -42,10 +42,22 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 			throw error("No usable encryption key was found in client_metadata.jwks from the authorization request", args("client_jwks", clientJwks));
 		}
 		JsonElement algEl = encKey.get("alg");
-		if (algEl == null) {
-			throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
+		String alg;
+		if (algEl != null) {
+			alg = OIDFJSON.getString(algEl);
+		} else {
+			// The missing alg is already flagged as a failure by
+			// VP1FinalValidateClientMetadataJwksForEncryptedResponse; fall back to the draft-era
+			// authorization_encrypted_response_alg client_metadata value (not part of OID4VP 1.0
+			// Final) if the verifier sent one, so the rest of the flow can still be exercised.
+			JsonElement fallbackAlgEl = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.authorization_encrypted_response_alg");
+			if (fallbackAlgEl == null) {
+				throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
+			}
+			alg = OIDFJSON.getString(fallbackAlgEl);
+			log("The encryption key in client_metadata.jwks does not contain an alg value (reported as a failure by a previous condition) - continuing using the value of the client_metadata authorization_encrypted_response_alg parameter, which is not defined in OID4VP 1.0 Final",
+				args("alg", alg, "client_jwks", clientJwks));
 		}
-		String alg = OIDFJSON.getString(algEl);
 
 		// and just use the first enc - if there's not one default to A128GCM as per OID4VP spec
 		JsonElement encValuesSupported = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.encrypted_response_enc_values_supported");
