@@ -205,7 +205,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	}
 
 	@Test
-	public void citesCurrentBeta1SectionsForPingModeAndLoginHint() {
+	public void citesCurrentBeta2SectionsForPingModeAndLoginHint() {
 		List<ConditionCallBuilder> conditionCalls = getConditionCalls(behavior.onConfigure());
 
 		assertThat(conditionCalls).hasSize(2);
