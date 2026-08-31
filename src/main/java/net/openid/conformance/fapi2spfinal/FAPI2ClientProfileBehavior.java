@@ -7,6 +7,7 @@ import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfi
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
+import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -412,6 +413,23 @@ public class FAPI2ClientProfileBehavior {
 	}
 
 	/**
+	 * The condition that checks for unexpected members of the authorization request's
+	 * claims parameter. CDR overrides with a variant that also accepts the CDR-defined
+	 * sharing_duration and cdr_arrangement_id members.
+	 */
+	public Class<? extends Condition> getCheckForUnexpectedClaimsInClaimsParameterCondition() {
+		return net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter.class;
+	}
+
+	/**
+	 * The condition that generates the PAR endpoint response. CDR overrides with a
+	 * variant using a request_uri lifetime within the CDR-permitted 10-90 seconds.
+	 */
+	public Class<? extends Condition> getCreatePAREndpointResponseCondition() {
+		return CreatePAREndpointResponse.class;
+	}
+
+	/**
 	 * Profile-specific id_token claim customization that runs <em>immediately after</em>
 	 * {@code GenerateIdTokenClaims} and before c_hash / s_hash / at_hash are added.
 	 * Brazil overrides to add CPF/CPNJ claims here.
@@ -445,6 +463,22 @@ public class FAPI2ClientProfileBehavior {
 	 */
 	public ConditionSequence customizeUserInfoResponse() {
 		return null;
+	}
+
+	/**
+	 * Profile-specific customization of the token endpoint response, run after
+	 * {@code CreateTokenEndpointResponse} (CDR adds cdr_arrangement_id).
+	 */
+	public ConditionSequence customizeTokenEndpointResponse() {
+		return null;
+	}
+
+	/**
+	 * Whether the emulated authorization server rotates refresh tokens on refresh
+	 * grants. CDR overrides to {@code false} (rotation is not permitted).
+	 */
+	public boolean shouldRotateRefreshTokens() {
+		return true;
 	}
 
 	// --- Accounts endpoint hooks ---

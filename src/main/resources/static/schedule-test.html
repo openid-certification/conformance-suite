@@ -2131,6 +2131,15 @@
                         }
                     } else {
                         variantRow.style.display = '';
+                        // Only one applicable value left after hiding some (e.g. AU-CDR
+                        // permits a single combination) - preselect it so the user doesn't
+                        // have to. Only when values were actually hidden: a parameter that
+                        // simply declares a single value is left for the user (or the
+                        // guided-journey bridge) to pick.
+                        if (visibleOptions.length === 1 && valuesToHide.size > 0 &&
+                            (currentValue === 'select' || valuesToHide.has(currentValue))) {
+                            selectElement.value = visibleOptions[0].value;
+                        }
                     }
                 }
             });

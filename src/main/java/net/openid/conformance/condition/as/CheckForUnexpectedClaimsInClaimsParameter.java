@@ -15,6 +15,10 @@ public class CheckForUnexpectedClaimsInClaimsParameter extends AbstractCondition
 		"id_token"
 	);
 
+	protected List<String> getExpectedClaims() {
+		return expectedClaims;
+	}
+
 	@Override
 	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	public Environment evaluate(Environment env) {
@@ -28,7 +32,7 @@ public class CheckForUnexpectedClaimsInClaimsParameter extends AbstractCondition
 		}
 
 		for (String claim : claimsParameter.keySet()) {
-			if (expectedClaims.contains(claim)) {
+			if (getExpectedClaims().contains(claim)) {
 				continue;
 			}
 

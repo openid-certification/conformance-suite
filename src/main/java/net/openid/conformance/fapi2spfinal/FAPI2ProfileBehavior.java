@@ -8,6 +8,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
@@ -16,6 +17,7 @@ import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
+import net.openid.conformance.condition.client.FAPI2ValidateJarmSigningAlg;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
@@ -198,6 +200,29 @@ public class FAPI2ProfileBehavior {
 	}
 
 	/**
+	 * Validate the signing algorithm of a JARM authorization response.
+	 * Default permits the FAPI2 algorithms.
+	 */
+	public ConditionSequence validateJarmSigningAlg() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(FAPI2ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
+			}
+		};
+	}
+
+	/**
+	 * Requirement tags for the check that refresh tokens are not rotated, for
+	 * profiles that prohibit rotation (Brazil, CDR). Returns null when rotation
+	 * is permitted, in which case the check is not performed.
+	 */
+	public String[] refreshTokenRotationProhibitedRequirements() {
+		// plain FAPI: refresh token rotation is permitted
+		return null;
+	}
+
+	/**
 	 * Profile-specific id_token validation (e.g., encryption checks).
 	 * Default does nothing.
 	 */
@@ -247,6 +272,20 @@ public class FAPI2ProfileBehavior {
 				callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
 				callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 				callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CID-SP-4.2-12", "CDR-http-headers");
+			}
+		};
+	}
+
+	/**
+	 * Change profile-specific headers for the happy flow's additional resource endpoint
+	 * request, exercising an alternative value of the customer-presence headers.
+	 * Default switches x-fapi-customer-ip-address to an IPv6 address.
+	 */
+	public ConditionSequence addAlternateResourceEndpointProfileHeaders() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(AddIpV6FapiCustomerIpAddressToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-4");
 			}
 		};
 	}

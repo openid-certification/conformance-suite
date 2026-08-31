@@ -1535,6 +1535,10 @@ async def main():
             if re.match(r'fapi2-security-profile-final-ksa-', m):
                 untested_test_modules.remove(m)
                 continue
+            # we run the AU-CDR happy path op-against-rp, but not the CDR-specific negative/amendment modules
+            if re.match(r'fapi2-security-profile-final-cdr-', m):
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'server-panva':
             if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test:
                 untested_test_modules.remove(m)

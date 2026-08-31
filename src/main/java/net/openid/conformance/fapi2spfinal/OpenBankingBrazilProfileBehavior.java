@@ -51,6 +51,11 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
+	public String[] refreshTokenRotationProhibitedRequirements() {
+		return new String[] { "BrazilOB-5.2.2-15" };
+	}
+
+	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
 		return this::createOBBPreauthSteps;
 	}

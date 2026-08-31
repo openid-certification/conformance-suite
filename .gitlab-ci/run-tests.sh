@@ -137,6 +137,9 @@ _makeFapiTestPart1() {
     # this driver plan apart from the happy path pairing's, which uses the same module
     TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=mtls][fapi_request_method=signed_non_repudiation][fapi_client_type=oidc][sender_constrain=mtls][fapi_profile=ksa][fapi_response_mode=plain_response][authorization_request_type=simple]:fapi2-security-profile-final-client-test-invalid-authorization-response-iss{fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=mtls][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=ksa][fapi_response_mode=plain_response][authorization_request_type=simple]:fapi2-security-profile-final-par-without-duplicate-parameters}${SUITE_DIR}/scripts/test-configs-rp-against-op/ksa-fapi2-op-1.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/ksa-fapi2-rp.json"
 
+    #FAPI2 AU-CDR (CD210) - jarm, op against rp
+    TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_client_type=oidc][sender_constrain=mtls][fapi_profile=consumerdataright_au][fapi_response_mode=jarm][authorization_request_type=simple]:fapi2-security-profile-final-client-test-happy-path{fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=consumerdataright_au][fapi_response_mode=jarm][authorization_request_type=simple]:fapi2-security-profile-final-par-without-duplicate-parameters}${SUITE_DIR}/scripts/test-configs-rp-against-op/cdr-fapi2-op.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/cdr-fapi2-rp.json"
+
 
 }
 

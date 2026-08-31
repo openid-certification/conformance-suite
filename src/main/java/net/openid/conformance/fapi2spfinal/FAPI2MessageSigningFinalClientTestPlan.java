@@ -109,16 +109,32 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 			case "plain_fapi":
 				break;
 			case "consumerdataright_au":
-				certProfile = "AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				if (jarm) {
-					throw new RuntimeException("Invalid configuration for %s: JARM is not used in AU-CDR".formatted(
+				if (!signedRequest) {
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				break;
+				if (!mtlsBounded) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS sender constraining is used for AU-CDR".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!jarm) {
+					throw new RuntimeException("Invalid configuration for %s: JARM responses are required for AU-CDR".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (rar) {
+					throw new RuntimeException("Invalid configuration for %s: RAR is not used for AU-CDR".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!openid) {
+					throw new RuntimeException("Invalid configuration for %s: OpenID must be selected for AU-CDR".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				// as there's only one possible correct configuration, stop here and return just the name
+				return List.of("FAPI2MS RP AU-CDR");
 			case "openbanking_brazil":
 				return List.of( "FAPI2MS RP BR-OF");
 			case "connectid_au":
