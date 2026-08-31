@@ -1,7 +1,7 @@
 package net.openid.conformance.authzen;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.Set;
@@ -25,6 +25,8 @@ import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
+import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
+import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -57,7 +59,8 @@ import net.openid.conformance.variant.VariantSetup;
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "discovery", configurationFields = {
 	"pdp.policy_decision_point",
-	"pdp.jwks"
+	"pdp.jwks",
+	"pdp.metadata_issuer"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "client_secret_basic", configurationFields = {
 	"client.client_id",
@@ -159,15 +162,27 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 				// it do we validate it, verify its signature against the configured PDP JWK
 				// Set, and apply its precedence over the plain JSON metadata so the
 				// downstream checks validate the signed (authoritative) values.
-				if(!Strings.isNullOrEmpty(env.getString("pdp", "signed_metadata"))) {
+				// The gate inspects the raw JsonElement rather than reading it as a string:
+				// a non-string signed_metadata (number, object, array) is a protocol error that
+				// ExtractPDPSignedMetadata is there to report, so it has to reach the sequence
+				// instead of throwing an UnexpectedTypeException out of the gate itself.
+				JsonElement signedMetadataElement = env.getElementFromObject("pdp", "signed_metadata");
+				if(signedMetadataElement != null && !signedMetadataElement.isJsonNull()) {
 					eventLog.startBlock("Verify signed metadata");
 					callAndStopOnFailure(EnsurePDPJwksConfigured.class, "RFC7517-4");
+					// Check the expected issuer before it is compared against the JWT, so a malformed
+					// value is reported as the configuration error it is rather than as a PDP mismatch.
+					callAndStopOnFailure(ValidatePDPMetadataIssuer.class, "AUTHZEN-9.1.3", "AUTHZEN-11.8", "RFC7519-4.1.1");
 					// Validate PDP keys and disallow asymmetrical private key, symmetrical key signatures are allowed by spec but will get warning
 					call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
 						.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2")));
 					call(sequence(ValidateDiscoverySignedMetadata.class));
 					callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
 					eventLog.endBlock();
+				} else {
+					// A 'Signed Metadata Issuer' only applies to a signed_metadata JWT. Ignoring it in
+					// silence would leave a tester who expected signed metadata reading a clean log.
+					callAndContinueOnFailure(WarnUnusedSignedMetadataIssuer.class, ConditionResult.WARNING, "AUTHZEN-9.1.3");
 				}
 				break;
 			case STATIC:
@@ -184,7 +199,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		env.mapKey("server", "pdp");
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
 		if (serverSupportsDiscovery) {
-			callAndContinueOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, ConditionResult.FAILURE, "AUTHZEN-9.2.3");
+			// §9.2.3: "If these values are not identical, the data contained in the response MUST NOT
+			// be used." Everything after this point runs against the endpoints that response names, so
+			// this is stop-on-failure, matching how ValidateDiscoverySignedMetadata treats a
+			// signed_metadata JWT whose values must not be applied.
+			callAndStopOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, "AUTHZEN-9.2.3");
 			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");

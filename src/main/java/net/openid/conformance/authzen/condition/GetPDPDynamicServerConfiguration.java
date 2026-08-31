@@ -34,7 +34,7 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		}
 		String pdpDecisionPoint = env.getString("config", "pdp.policy_decision_point");
 		if (Strings.isNullOrEmpty(pdpDecisionPoint)) {
-			throw error("'Policy Decision Point Identifier' field is missing from the 'PDP' section in the test configuration (required to derive the discovery URL when using dynamic server configuration)", args("config", env.getObject("config")));
+			throw error("'PDP Identifier' field is missing from the 'AuthZEN' section in the test configuration (required to derive the discovery URL when using dynamic server configuration)", args("config", env.getObject("config")));
 		}
 		String discoveryUrl = deriveDiscoveryUrl(pdpDecisionPoint);
 
@@ -95,10 +95,10 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		try {
 			uri = new URI(pdpDecisionPoint);
 		} catch (URISyntaxException e) {
-			throw error("'Policy Decision Point Identifier' field in the test configuration is not a valid URL", e, args("policy_decision_point", pdpDecisionPoint));
+			throw error("'PDP Identifier' field in the test configuration is not a valid URL", e, args("policy_decision_point", pdpDecisionPoint));
 		}
 		if (uri.getScheme() == null || uri.getRawAuthority() == null) {
-			throw error("'Policy Decision Point Identifier' field in the test configuration must be an absolute URL with a scheme and host", args("policy_decision_point", pdpDecisionPoint));
+			throw error("'PDP Identifier' field in the test configuration must be an absolute URL with a scheme and host", args("policy_decision_point", pdpDecisionPoint));
 		}
 		String path = uri.getRawPath();
 		String newPath;

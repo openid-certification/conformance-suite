@@ -18,9 +18,17 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * verifiable signature ...". AuthZEN metadata defines no {@code jwks_uri}, so the
  * trusted verification key is provided out of band via the test configuration.
  *
- * <p>When the metadata carries no {@code signed_metadata}, or no PDP JWK Set is
- * configured, signature verification is skipped (and logged); when both are
- * present, a signature that does not verify against the configured key(s) fails.
+ * <p>Metadata carrying {@code signed_metadata} can only be checked against a key, so a
+ * missing or empty PDP JWK Set fails rather than silently skipping verification — an
+ * unverified signature is not evidence of a valid one. {@link EnsurePDPJwksConfigured}
+ * fails first for the same reason in {@link net.openid.conformance.authzen.AbstractAuthzenPDPTest},
+ * which is the only caller; the check here keeps the condition safe on its own.
+ *
+ * <p>For the same reason the condition never reports success without having verified something:
+ * it runs only inside {@link ValidateDiscoverySignedMetadata}, behind a gate that fires only when
+ * {@code signed_metadata} is present and behind {@link ExtractPDPSignedMetadata}, which has already
+ * rejected an absent or non-string value — so every one of those cases is a failure here, not a
+ * no-op to log and pass.
  */
 public class VerifyAuthzenSignedMetadataSignature extends AbstractVerifyJwsSignature {
 
@@ -29,8 +37,10 @@ public class VerifyAuthzenSignedMetadataSignature extends AbstractVerifyJwsSigna
 	public Environment evaluate(Environment env) {
 		JsonElement signedMetadataElem = env.getElementFromObject("pdp", "signed_metadata");
 		if (signedMetadataElem == null || signedMetadataElem.isJsonNull()) {
-			logSuccess("Discovery metadata does not contain `signed_metadata`; no signature to verify");
-			return env;
+			// Nothing reaches this condition unless the metadata carried signed_metadata, so absence here
+			// is a broken precondition rather than a PDP that simply did not sign its metadata. Report it
+			// as a failure — reporting success would claim a signature had been checked when none exists.
+			throw error("Discovery metadata does not contain `signed_metadata`; nothing to verify.");
 		}
 		if (!signedMetadataElem.isJsonPrimitive() || !signedMetadataElem.getAsJsonPrimitive().isString()) {
 			throw error("`signed_metadata` must be a JWT string", args("signed_metadata", signedMetadataElem));
@@ -39,10 +49,9 @@ public class VerifyAuthzenSignedMetadataSignature extends AbstractVerifyJwsSigna
 
 		JsonElement jwksElem = env.getElementFromObject("config", "pdp.jwks");
 		if (jwksElem == null || !jwksElem.isJsonObject() || jwksElem.getAsJsonObject().size() == 0) {
-			log("`signed_metadata` is present but no 'PDP JWK Set' is configured in the test configuration; "
-				+ "skipping signature verification. Provide the PDP's public signing key(s) in the 'PDP JWK Set' "
-				+ "field to verify the signed_metadata signature.");
-			return env;
+			throw error("The PDP's discovery metadata contains `signed_metadata`, but the 'PDP JWK Set' field is "
+				+ "empty or missing from the 'AuthZEN' section in the test configuration, so the signature cannot "
+				+ "be verified. Supply the PDP's public signing key(s) there.");
 		}
 
 		JsonObject jwks = normalizeToJwkSet(jwksElem.getAsJsonObject());

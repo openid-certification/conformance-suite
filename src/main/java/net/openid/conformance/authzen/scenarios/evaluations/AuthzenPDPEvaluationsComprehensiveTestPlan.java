@@ -3,9 +3,35 @@ package net.openid.conformance.authzen.scenarios.evaluations;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
+/**
+ * Superset of {@link AuthzenPDPEvaluationsTestPlan} that additionally exercises the
+ * OPTIONAL parts of the Access Evaluations API.
+ *
+ * <p>Section 7.1.2.1 defines three evaluation semantics, but {@code options} — and with it
+ * {@code evaluations_semantic} — is an OPTIONAL request member, so a conformant PDP may
+ * implement only the {@code execute_all} default. The three short-circuiting modules below
+ * therefore cannot sit in a plan a PDP is expected to pass in full:
+ *
+ * <ul>
+ *   <li>{@link AuthzenPDPEvaluationsDenyOnFirstDenyTest} and
+ *       {@link AuthzenPDPEvaluationsPermitOnFirstPermitTest} require the short circuit to be
+ *       observable on the wire (a truncated {@code evaluations} array), which a PDP that does
+ *       not implement the option cannot produce;</li>
+ *   <li>{@link AuthzenPDPEvaluationsUnknownSemanticValueTest} requires HTTP 400 for an
+ *       unrecognized value, which presupposes the option is implemented at all — a PDP that
+ *       ignores {@code options} answers 200.</li>
+ * </ul>
+ *
+ * <p>Run this plan to check a PDP that does claim support for the short-circuiting semantics;
+ * run {@link AuthzenPDPEvaluationsTestPlan} for the certification-track subset.
+ *
+ * <p>The module list is a superset of {@link AuthzenPDPEvaluationsTestPlan}'s and must stay
+ * one — {@code AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest} fails the build if a
+ * module is added to that plan without being added here.
+ */
 @PublishTestPlan(
-	testPlanName = "authzen-pdp-evaluations-test-plan",
-	displayName = "AuthZEN 1.0: PDP server test for batch evaluations - alpha tests (not currently part of certification program)",
+	testPlanName = "authzen-pdp-evaluations-comprehensive-test-plan",
+	displayName = "Comprehensive AuthZEN PDP server test (Not part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
@@ -16,13 +42,12 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
-		// evaluations_semantic option (Section 7.1.2.1). The execute_all default is what the
-		// fixture-decisions module above already relies on; this one asks for it explicitly.
-		// The short-circuiting semantics are OPTIONAL for a PDP to support, so requiring them
-		// (or requiring an unknown value to be rejected, which presupposes the option is
-		// implemented) would fail conformant PDPs that omit the feature; they are covered by
-		// AuthzenPDPEvaluationsComprehensiveTestPlan instead.
+		// evaluations_semantic option (Section 7.1.2.1), including the OPTIONAL
+		// short-circuiting semantics that AuthzenPDPEvaluationsTestPlan leaves out
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
+		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
+		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
+		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
 		// Per-eval overrides top-level defaults (Section 7.1.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
 		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
@@ -50,5 +75,5 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.class,
 	}
 )
-public class AuthzenPDPEvaluationsTestPlan implements TestPlan {
+public class AuthzenPDPEvaluationsComprehensiveTestPlan implements TestPlan {
 }

@@ -1,9 +1,12 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -33,9 +36,10 @@ import static org.mockito.Mockito.mock;
  * <p>Two failure shapes are possible:
  * <ul>
  *   <li>stop-on-failure sub-conditions ({@link ExtractPDPSignedMetadata}, {@link ValidatePDPSignedMetadataAlg},
- *       {@link VerifyAuthzenSignedMetadataSignature}, {@link ValidatePDPSignedMetadataIss}) throw a
- *       {@link TestFailureException};</li>
- *   <li>continue-on-failure sub-conditions (iat / exp / nbf / nested signed_metadata) leave the module
+ *       {@link VerifyAuthzenSignedMetadataSignature}, {@link ValidatePDPSignedMetadataIss} and the
+ *       {@code exp} / {@code nbf} checks, whose JWT must not be applied over the plain metadata when it
+ *       has expired or is not yet valid) throw a {@link TestFailureException};</li>
+ *   <li>continue-on-failure sub-conditions ({@code iat}, nested signed_metadata) leave the module
  *       {@link Result} at {@code FAILED} or {@code WARNING} without throwing.</li>
  * </ul>
  *
@@ -50,6 +54,8 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 
 	private static final String PDP_ISSUER = "https://pdp.example.com";
 
+	private static final String THIRD_PARTY_ISSUER = "https://other.example.com";
+
 	private Harness module;
 
 	@BeforeEach
@@ -58,13 +64,34 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		TestInstanceEventLog eventLog = mock(TestInstanceEventLog.class);
 		TestInfoService infoService = mock(TestInfoService.class);
 		module.setProperties("UNIT-TEST", Map.of("sub", "unit-test"), eventLog, null, infoService, null, null);
-		// config carries the trusted PDP identifier; no 'pdp.jwks' is configured, so the signature verification
-		// sub-condition is skipped and the structural checks (alg / iss / claims) are what's under test here.
+		putConfig(null);
+	}
+
+	/** Declare a third-party attester as the expected `signed_metadata` issuer. */
+	private void configureMetadataIssuer(String issuer) {
+		putConfig(issuer);
+	}
+
+	/**
+	 * Test configuration: the trusted PDP identifier, the key the metadata below is MACed with (the
+	 * sequence fails without one, since a signature it cannot check is no evidence of a valid one),
+	 * and optionally a third-party 'Signed Metadata Issuer'.
+	 */
+	private void putConfig(String metadataIssuer) {
 		JsonObject config = new JsonObject();
 		JsonObject pdpCfg = new JsonObject();
 		pdpCfg.addProperty("policy_decision_point", PDP_ISSUER);
+		pdpCfg.add("jwks", hmacJwks());
+		if (metadataIssuer != null) {
+			pdpCfg.addProperty("metadata_issuer", metadataIssuer);
+		}
 		config.add("pdp", pdpCfg);
 		module.putObject("config", config);
+	}
+
+	private static JsonObject hmacJwks() {
+		JWKSet jwks = new JWKSet(new OctetSequenceKey.Builder(HMAC_SECRET).build());
+		return JsonParser.parseString(jwks.toString(false)).getAsJsonObject();
 	}
 
 	private void putSignedMetadata(String token) {
@@ -90,18 +117,27 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 
 	@Test
 	public void missingIssuer_failsResult() throws Exception {
-		// ValidatePDPSignedMetadataIss is called continue-on-failure with explicit FAILURE, so the test result is
-		// FAILED but no exception is thrown.
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().subject("not-an-issuer").build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
 		assertTrue(e.getMessage().contains("MUST contain an `iss` (issuer) claim"));
 	}
 
 	@Test
-	public void issuerMismatch_failsResult() throws Exception {
-		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer("https://other.example.com").build()));
+	public void issuerMismatch_throws() throws Exception {
+		// No 'Signed Metadata Issuer' is configured, so the metadata is expected to be self-attested.
+		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(THIRD_PARTY_ISSUER).build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
 		assertTrue(e.getMessage().contains("issuer mismatch"));
+	}
+
+	@Test
+	public void configuredMetadataIssuer_succeeds() throws Exception {
+		// AuthZEN §11.8 permits the attesting party to differ from the PDP; the tester declares it via
+		// the 'Signed Metadata Issuer' config field.
+		configureMetadataIssuer(THIRD_PARTY_ISSUER);
+		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(THIRD_PARTY_ISSUER).build()));
+		module.runSequence();
+		assertEquals(Result.UNKNOWN, module.getResult());
 	}
 
 	@Test
@@ -110,7 +146,8 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		pdp.addProperty("signed_metadata", 123);
 		module.putObject("pdp", pdp);
 		// ExtractPDPSignedMetadata is called stop-on-failure, so the sequence aborts with a TestFailureException.
-		assertThrows(TestFailureException.class, () -> module.runSequence());
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("must be a JWT string"));
 	}
 
 	@Test
@@ -122,18 +159,60 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 	@Test
 	public void algNone_failsResult() {
 		// A structurally valid unsecured JWT (alg=none, empty signature). It parses, so ExtractPDPSignedMetadata
-		// passes, but ValidatePDPSignedMetadataAlg rejects 'none' (continue-on-failure with explicit FAILURE).
+		// passes, and ValidatePDPSignedMetadataAlg rejects 'none' stop-on-failure.
 		String header = Base64URL.encode("{\"alg\":\"none\"}").toString();
 		String payload = Base64URL.encode("{\"iss\":\"" + PDP_ISSUER + "\"}").toString();
 		putSignedMetadata(header + "." + payload + ".");
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("Invalid PDP signed_metadata alg"));
+		assertTrue(e.getMessage().contains("`alg: none`"), e.getMessage());
 	}
 
 	@Test
-	public void expiredExp_failsResult() throws Exception {
+	public void unknownAlg_throws() {
+		// An `alg` the JOSE library cannot map to a key type. Previously this passed the alg check and
+		// then crashed VerifyAuthzenSignedMetadataSignature with a NullPointerException.
+		String header = Base64URL.encode("{\"alg\":\"FOO256\"}").toString();
+		String payload = Base64URL.encode("{\"iss\":\"" + PDP_ISSUER + "\"}").toString();
+		putSignedMetadata(header + "." + payload + ".AAAA");
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("not a registered JWS signature or MAC algorithm"));
+	}
+
+	@Test
+	public void jweAlg_throws() {
+		// 'dir' is a JWE key management algorithm, not a JWS one, but KeyType.forAlgorithm() maps it
+		// to oct — so it used to pass the alg check and fail later in signature verification.
+		String header = Base64URL.encode("{\"alg\":\"dir\"}").toString();
+		String payload = Base64URL.encode("{\"iss\":\"" + PDP_ISSUER + "\"}").toString();
+		putSignedMetadata(header + "." + payload + ".AAAA");
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("not a registered JWS signature or MAC algorithm"));
+	}
+
+	@Test
+	public void expiredExp_aborts() throws Exception {
+		// Expired signed metadata MUST NOT be applied over the plain metadata, so the sequence stops
+		// rather than continuing into ApplySignedMetadataPrecedence.
 		Date past = new Date(System.currentTimeMillis() - 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).expirationTime(past).build()));
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("exp claim is invalid"));
+	}
+
+	@Test
+	public void futureNbf_aborts() throws Exception {
+		Date future = new Date(System.currentTimeMillis() + 3600_000L);
+		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).notBeforeTime(future).build()));
+		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
+		assertTrue(e.getMessage().contains("nbf claim is invalid"));
+	}
+
+	@Test
+	public void futureIat_failsResultWithoutAborting() throws Exception {
+		// RFC 7519 attaches no validity requirement to `iat`, so unlike exp/nbf it does not make the
+		// metadata unusable: the failure is recorded but the sequence runs to completion.
+		Date future = new Date(System.currentTimeMillis() + 3600_000L);
+		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).issueTime(future).build()));
 		module.runSequence();
 		assertEquals(Result.FAILED, module.getResult());
 	}

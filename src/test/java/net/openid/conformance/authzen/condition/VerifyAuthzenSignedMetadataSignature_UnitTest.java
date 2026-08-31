@@ -23,6 +23,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class VerifyAuthzenSignedMetadataSignature_UnitTest {
@@ -78,17 +79,31 @@ class VerifyAuthzenSignedMetadataSignature_UnitTest {
 	}
 
 	@Test
-	public void noSignedMetadata_succeeds() throws Exception {
+	public void noSignedMetadata_fails() throws Exception {
+		// Unreachable through ValidateDiscoverySignedMetadata, which only runs when signed_metadata is
+		// present and puts ExtractPDPSignedMetadata ahead of this condition. Reaching it anyway means a
+		// broken precondition, and reporting success would claim a signature was checked when none exists.
 		putSignedMetadata(null);
 		putConfigJwks(jwkSet(genKey()));
-		cond.execute(env);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("nothing to verify"), e.getMessage());
 	}
 
 	@Test
-	public void signedMetadataButNoJwksConfigured_skips() throws Exception {
+	public void signedMetadataButNoJwksConfigured_fails() throws Exception {
+		// Without a key there is nothing to check the signature against, and an unverified signature
+		// must not be reported as a verified one.
 		putSignedMetadata(sign(genKey(), "https://pdp.example.com"));
 		putConfigJwks(null);
-		cond.execute(env);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("'PDP JWK Set' field is empty or missing"), e.getMessage());
+	}
+
+	@Test
+	public void signedMetadataButEmptyJwksConfigured_fails() throws Exception {
+		putSignedMetadata(sign(genKey(), "https://pdp.example.com"));
+		putConfigJwks(new JsonObject());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test

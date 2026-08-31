@@ -13,6 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
@@ -55,9 +56,25 @@ class EnsurePolicyDecisionPointMatchesIssuer_UnitTest {
 	@Test
 	public void trailingSlashMismatch_fails() {
 		// §9.2.3 requires identical match — trailing-slash normalization was
-		// intentionally removed (commit f27f2772c).
+		// intentionally removed (commit f27f2772c). The caller stops the test on this, so the message
+		// has to name the near-miss rather than leave the tester diffing two URLs by eye.
 		put("https://pdp.example.com", "https://pdp.example.com/");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("differ only in a trailing '/'"), e.getMessage());
+	}
+
+	@Test
+	public void caseMismatch_fails() {
+		put("https://PDP.example.com", "https://pdp.example.com");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("differ only in case"), e.getMessage());
+	}
+
+	@Test
+	public void whitespaceMismatch_fails() {
+		put("https://pdp.example.com ", "https://pdp.example.com");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("surrounding whitespace"), e.getMessage());
 	}
 
 	@Test
