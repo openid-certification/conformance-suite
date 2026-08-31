@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends an authorisation request containing a cdr_arrangement_id that the Data Holder cannot recognise. The CDR standards require such requests to be rejected, either at the PAR endpoint or at the authorization endpoint.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "openbanking_chile", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
 public class FAPI2SPFinalCdrEnsureUnrecognisedArrangementIdFails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
