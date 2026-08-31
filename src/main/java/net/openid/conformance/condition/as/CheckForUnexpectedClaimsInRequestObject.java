@@ -53,7 +53,10 @@ public class CheckForUnexpectedClaimsInRequestObject extends AbstractCondition {
 		// as per https://www.iana.org/go/rfc9396
 		"authorization_details",
 		// as per https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html
-		"purpose"
+		"purpose",
+		// as per https://openid.net/specs/oauth-v2-grant-management.html#section-3
+		"grant_management_action",
+		"grant_id"
 	);
 
 	// as per https://www.rfc-editor.org/rfc/rfc9101#section-4
