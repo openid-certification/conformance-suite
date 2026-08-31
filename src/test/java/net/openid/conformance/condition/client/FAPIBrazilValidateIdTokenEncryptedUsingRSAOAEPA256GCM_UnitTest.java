@@ -12,54 +12,59 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class FAPIBrazilValidateIdTokenExp_UnitTest {
+public class FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private FAPIBrazilValidateIdTokenExp cond;
+	private FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM cond;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new FAPIBrazilValidateIdTokenExp();
+		cond = new FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	private void addIdToken(long exp) {
-		JsonObject claims = new JsonObject();
-		claims.addProperty("exp", exp);
-		JsonObject idToken = new JsonObject();
-		idToken.add("claims", claims);
-		env.putObject("id_token", idToken);
-	}
-
 	@Test
-	public void testExpReasonable() {
-		// 200 days from now satisfies the 180-day minimum
-		addIdToken(Instant.now().getEpochSecond() + 200 * 86400);
+	public void succeedsForRequiredAlgorithmAndEncryptionMethod() {
+		env.putString("id_token", "jwe_header.alg", "RSA-OAEP");
+		env.putString("id_token", "jwe_header.enc", "A256GCM");
+
 		cond.execute(env);
 	}
 
 	@Test
-	public void testExpMillisAsSeconds() {
+	public void failsWhenIdTokenIsNotEncrypted() {
 		assertThrows(ConditionError.class, () -> {
-			addIdToken(Instant.now().getEpochSecond() * 1000);
+			env.putObject("id_token", new JsonObject());
+
 			cond.execute(env);
 		});
 	}
 
 	@Test
-	public void testExpTooShort() {
+	public void failsForWrongAlgorithm() {
 		assertThrows(ConditionError.class, () -> {
-			addIdToken(Instant.now().getEpochSecond() + 3600);
+			env.putString("id_token", "jwe_header.alg", "RSA-OAEP-256");
+			env.putString("id_token", "jwe_header.enc", "A256GCM");
+
 			cond.execute(env);
 		});
 	}
+
+	@Test
+	public void failsForWrongEncryptionMethod() {
+		assertThrows(ConditionError.class, () -> {
+			env.putString("id_token", "jwe_header.alg", "RSA-OAEP");
+			env.putString("id_token", "jwe_header.enc", "A128CBC-HS256");
+
+			cond.execute(env);
+		});
+	}
+
 }

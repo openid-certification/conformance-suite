@@ -142,6 +142,8 @@ import org.springframework.http.ResponseEntity;
 public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+	private static final String CLIENT_PING_RESPONSE_VALIDATED = "client_ping_response_validated";
+	private static final String RESOURCE_ENDPOINT_COMPLETION_PENDING_AFTER_PING_RESPONSE_VALIDATION = "resource_endpoint_completion_pending_after_ping_response_validation";
 
 	protected FAPICIBAProfile profile;
 	protected ClientAuthType clientAuthType;
@@ -203,7 +205,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected void onConfigurationCompleted() { }
 
-	protected void validateClientConfiguration() { }
+	protected void validateClientConfiguration() {
+		call(profileBehavior.applyProfileSpecificClientConfigurationValidation());
+	}
 
 	protected void backchannelEndpointCallComplete() {
 		setStatus(Status.WAITING);
@@ -212,6 +216,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected void tokenEndpointCallComplete() {
 		callAndStopOnFailure(SetNextAllowedTokenRequest.class);
 		setStatus(Status.WAITING);
+	}
+
+	protected void cibaTokenEndpointCallComplete(HttpStatus statusCode) {
+		if (HttpStatus.OK.equals(statusCode)) {
+			setStatus(Status.WAITING);
+		} else {
+			tokenEndpointCallComplete();
+		}
 	}
 
 	protected HttpStatus createBackchannelResponse() {
@@ -233,9 +245,17 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected void customizeUserInfoEndpointResponseHeaders() { }
 
 	protected void sendPingRequestAndVerifyResponse() {
-		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+		call(profileBehavior.getPingNotificationEndpointCallSteps());
 		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
+	}
+
+	protected boolean shouldSendPingNotification() {
+		return true;
+	}
+
+	protected boolean shouldValidateConfiguredNotificationEndpoint() {
+		return true;
 	}
 
 	@Override
@@ -274,7 +294,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		profileBehavior.exposeProfileSpecificEndpoints();
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
-		callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
+		if (shouldValidateConfiguredNotificationEndpoint()) {
+			callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
+		}
 
 		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
@@ -372,6 +394,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "userinfo":
 				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
+				if (!profileBehavior.acceptsGenericAccountsEndpoint()) {
+					throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+				}
 				return accountsEndpoint(requestId);
 			default:
 				if (profileBehavior.claimsProfileSpecificMtlsPath(path)) {
@@ -394,7 +419,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void startWaitingForTimeout() {
-		this.startingShutdown = true;
+		if (shouldRejectFurtherClientInteractionsWhileWaitingForTimeout()) {
+			rejectFurtherClientInteractions();
+		}
 		getTestExecutionManager().runInBackground(() -> {
 			Thread.sleep(5 * 1000);
 			if (getStatus().equals(Status.WAITING)) {
@@ -404,6 +431,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			}
 			return "done";
 		});
+	}
+
+	protected boolean shouldRejectFurtherClientInteractionsWhileWaitingForTimeout() {
+		return true;
+	}
+
+	protected void rejectFurtherClientInteractions() {
+		this.startingShutdown = true;
 	}
 
 	protected void configureClient() {
@@ -544,7 +579,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 		customizeTokenEndpointResponseHeaders();
-		tokenEndpointCallComplete();
+		cibaTokenEndpointCallComplete(statusCode);
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
@@ -556,7 +591,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private HttpStatus createTokenEndpointResponseForCiba() {
 		callAndStopOnFailure(IncrementTokenEndpointPollCount.class);
 		int tokenPollCount = env.getInteger("token_poll_count");
-		if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
+		if (shouldIssueFinalCibaTokenResponse(tokenPollCount)) {
 			issueAccessToken();
 			issueRefreshToken();
 			issueIdToken();
@@ -629,22 +664,38 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	/**
-	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
+	 * The default FAPI-CIBA profile does not encrypt id_tokens, even when id_token_encrypted_response_alg is set
 	 * "5.2.3.1.  ID Token as detached signature" reads:
 	 *  "5. shall support both signed and signed & encrypted ID Tokens."
 	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
-	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
-	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 *  encryption enabled. Profiles that require encrypted id_tokens can override this with profile-specific steps.
 	 */
-	protected void encryptIdToken() { }
+	protected void encryptIdToken() {
+		call(profileBehavior.applyProfileSpecificIdTokenEncryption());
+	}
 
 	protected boolean clientHasPolledEnough(int tokenPollCount) {
 		return tokenPollCount > 2;
 	}
 
+	protected boolean shouldIssueFinalCibaTokenResponse(int tokenPollCount) {
+		return clientPingAttempted()
+			|| clientWasPinged()
+			|| clientHasPolledEnough(tokenPollCount);
+	}
+
+	private boolean clientPingAttempted() {
+		Boolean clientPingAttempted = env.getBoolean(PingClientNotificationEndpoint.CLIENT_PING_ATTEMPTED);
+		return CIBAMode.PING.equals(cibaMode) && clientPingAttempted != null && clientPingAttempted;
+	}
+
 	private boolean clientWasPinged() {
 		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
 		return CIBAMode.PING.equals(cibaMode) && clientWasPinged != null && clientWasPinged;
+	}
+
+	protected boolean clientPingResponseValidated() {
+		return Boolean.TRUE.equals(env.getBoolean(CLIENT_PING_RESPONSE_VALIDATED));
 	}
 
 	protected Object userinfoEndpoint(String requestId) {
@@ -714,7 +765,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
-			spawnThreadForPing();
+			if (shouldSendPingNotification()) {
+				spawnThreadForPing();
+			}
 		}
 
 		JsonObject headerJson = env.getObject("backchannel_endpoint_response_headers");
@@ -735,11 +788,39 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 			sendPingRequestAndVerifyResponse();
 
+			ensurePingCompletionCanRun();
 			call(exec().endBlock());
-			setStatus(Status.WAITING);
+			pingRequestComplete();
 
 			return "done";
 		});
+	}
+
+	private void ensurePingCompletionCanRun() {
+		if (!env.getLock().isHeldByCurrentThread()) {
+			setStatus(Status.RUNNING);
+		}
+	}
+
+	protected void pingRequestComplete() {
+		markPingResponseValidatedAndFinishPendingResourceEndpoint();
+	}
+
+	protected void markPingResponseValidatedAndFinishPendingResourceEndpoint() {
+		markPingResponseValidated();
+		if (resourceEndpointCompletionPendingAfterPingResponseValidation()) {
+			finishAfterResourceEndpointCompletion();
+			return;
+		}
+		setStatus(Status.WAITING);
+	}
+
+	protected void markPingResponseValidated() {
+		env.putBoolean(CLIENT_PING_RESPONSE_VALIDATED, true);
+	}
+
+	private boolean resourceEndpointCompletionPendingAfterPingResponseValidation() {
+		return Boolean.TRUE.equals(env.getBoolean(RESOURCE_ENDPOINT_COMPLETION_PENDING_AFTER_PING_RESPONSE_VALIDATION));
 	}
 
 	// This method is for the most part a copy of validateRequestObjectForAuthorizationEndpointRequest() in AbstractFAPI1AdvancedFinalClientTest.
@@ -873,7 +954,20 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void resourceEndpointCallComplete() {
+		if (shouldDeferResourceEndpointCompletionUntilPingResponseValidated()) {
+			env.putBoolean(RESOURCE_ENDPOINT_COMPLETION_PENDING_AFTER_PING_RESPONSE_VALIDATION, true);
+			setStatus(Status.WAITING);
+			return;
+		}
+		finishAfterResourceEndpointCompletion();
+	}
+
+	protected void finishAfterResourceEndpointCompletion() {
 		fireTestFinished();
+	}
+
+	protected boolean shouldDeferResourceEndpointCompletionUntilPingResponseValidated() {
+		return clientPingAttempted() && !clientPingResponseValidated();
 	}
 
 	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {

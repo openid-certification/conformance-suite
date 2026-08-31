@@ -2,10 +2,14 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
+import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
+import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
+import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -55,6 +59,34 @@ public class FAPICIBAServerProfileBehavior {
 		return null;
 	}
 
+	public ConditionSequence getClientRegistrationCredentialSetupSteps(boolean secondClient) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
+				callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
+				callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
+			}
+		};
+	}
+
+	public ConditionSequence getClientRegistrationKeyPublicationSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
+			}
+		};
+	}
+
+	public boolean shouldUseInitialAccessTokenForRegistration() {
+		return true;
+	}
+
+	public ConditionSequence getClientRegistrationResponseValidationSteps() {
+		return null;
+	}
+
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
 		return null;
 	}
@@ -73,6 +105,14 @@ public class FAPICIBAServerProfileBehavior {
 
 	public boolean shouldKeepBackchannelAuthenticationEndpointAlias(ClientAuthType authType) {
 		return authType == ClientAuthType.MTLS;
+	}
+
+	public boolean shouldCallTokenEndpointBeforePingNotification() {
+		return true;
+	}
+
+	public boolean shouldAddBindingMessageToAuthorizationEndpointRequest() {
+		return true;
 	}
 
 	// --- Action methods returning ConditionSequence (null = no-op) ---
@@ -185,6 +225,14 @@ public class FAPICIBAServerProfileBehavior {
 	 * Profile-specific expires_in validation. Default does nothing.
 	 */
 	public ConditionSequence validateExpiresIn() {
+		return null;
+	}
+
+	/**
+	 * Profile-specific token endpoint ID Token validation after standard extraction and claims checks.
+	 * Default does nothing.
+	 */
+	public ConditionSequence validateTokenEndpointIdToken() {
 		return null;
 	}
 }

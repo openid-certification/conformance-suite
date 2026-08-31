@@ -33,6 +33,15 @@ public class FAPICIBARPProfileBehavior {
 		};
 	}
 
+	public ConditionSequence getPingNotificationEndpointCallSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+			}
+		};
+	}
+
 	public ConditionSequence applyProfileSpecificServerAuthAlgSetup() {
 		return new AbstractConditionSequence() {
 			@Override
@@ -80,6 +89,10 @@ public class FAPICIBARPProfileBehavior {
 		return false;
 	}
 
+	public boolean acceptsGenericAccountsEndpoint() {
+		return true;
+	}
+
 	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
 		throw new UnsupportedOperationException("No profile-specific mTLS path handler is configured");
 	}
@@ -112,6 +125,10 @@ public class FAPICIBARPProfileBehavior {
 					.dontStopOnFailure());
 			}
 		};
+	}
+
+	public ConditionSequence applyProfileSpecificClientConfigurationValidation() {
+		return null;
 	}
 
 	public ConditionSequence applyProfileSpecificBackchannelEndpointResponse() {
@@ -151,5 +168,9 @@ public class FAPICIBARPProfileBehavior {
 
 	public Class<? extends Condition> getSignIdTokenCondition() {
 		return SignIdToken.class;
+	}
+
+	public ConditionSequence applyProfileSpecificIdTokenEncryption() {
+		return null;
 	}
 }

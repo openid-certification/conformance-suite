@@ -36,12 +36,24 @@ public class ExtractRequestObjectFromBackchannelEndpointRequest extends Abstract
 			}
 			env.putObject("backchannel_request_object", jsonObjectForJwt);
 
-			logSuccess("Parsed request object", args("request_object", jsonObjectForJwt));
+			logSuccess("Parsed request object", args("request_object", sanitizedRequestObjectForLogging(jsonObjectForJwt)));
 
 			return env;
 
 		} catch (ParseException e) {
 			throw error("Couldn't parse request object", e, args("request", requestObjectString));
 		}
+	}
+
+	private JsonObject sanitizedRequestObjectForLogging(JsonObject requestObject) {
+		JsonObject sanitized = requestObject.deepCopy();
+		JsonObject claims = sanitized.has("claims") && sanitized.get("claims").isJsonObject()
+			? sanitized.getAsJsonObject("claims")
+			: null;
+		if (claims != null && claims.has("binding_message")) {
+			claims.addProperty("binding_message", "[redacted]");
+			sanitized.addProperty("value", "[redacted because binding_message is present]");
+		}
+		return sanitized;
 	}
 }

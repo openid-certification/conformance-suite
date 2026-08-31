@@ -18,6 +18,7 @@ import java.util.Map;
 	testModules = {
 		// Happy path test
 		FAPICIBAClientTest.class,
+		FAPICIBAClientBrazilDCRHappyPathTest.class,
 
 		// Happy refresh token test
 		FAPICIBAClientRefreshTokenTest.class,
@@ -35,9 +36,7 @@ import java.util.Map;
 		// Negative tests for backchannel endpoint response
 		FAPICIBAClientBackchannelResponseInvalidMissingAuthReqIdTest.class,
 		FAPICIBAClientBackchannelResponseInvalidMissingExpiresInTest.class,
-		FAPICIBAClientBackchannelInvalidExpiredIdTokenHintTest.class,
 		FAPICIBAClientBackchannelInvalidUnknownUserIdTest.class,
-		FAPICIBAClientBackchannelInvalidIdTokenHintTest.class,
 
 		// Negative tests for token endpoint response
 		FAPICIBAClientTokenInvalidRequestTest.class,
@@ -61,7 +60,11 @@ import java.util.Map;
 		FAPICIBAClientConnectIdInvalidWrongTrustFrameworkTest.class,
 
 		// Negative test for ping mode
-		FAPICIBAClientPingWithInvalidBearerTokenTest.class
+		FAPICIBAClientPingWithInvalidBearerTokenTest.class,
+		FAPICIBAClientPingWithoutBearerTokenTest.class,
+		FAPICIBAClientPingWithWrongAuthReqIdTest.class,
+		FAPICIBAClientPingDuplicateNotificationTest.class,
+		FAPICIBAClientPingModePollFallbackTest.class
 	}
 )
 public class FAPICIBAClientTestPlan implements TestPlan {

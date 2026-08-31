@@ -32,6 +32,7 @@ import java.util.Map;
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
+		FAPICIBAID1EnsureAuthorizationRequestWithUrlBindingMessageWarnsForBrazil.class,
 
 		// Negative tests for request objects
 		FAPICIBAID1EnsureRequestObjectMissingAudFails.class,
@@ -53,6 +54,8 @@ import java.util.Map;
 
 		// Negative tests for hints
 		FAPICIBAID1EnsureAuthorizationRequestWithMultipleHintsFails.class,
+		FAPICIBAID1EnsureAuthorizationRequestWithUserCodeFailsForBrazil.class,
+		FAPICIBAID1EnsureAuthorizationRequestWithInvalidLoginHintFailsForBrazil.class,
 
 		// Negative tests for token endpoint
 		FAPICIBAID1EnsureWrongAuthenticationRequestIdInTokenEndpointRequest.class,
@@ -75,6 +78,7 @@ import java.util.Map;
 		FAPICIBAID1PingNotificationEndpointReturns403.class,
 		FAPICIBAID1PingNotificationEndpointReturns401AndRequireServerDoesNotRetry.class,
 		FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest.class,
+		FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBrazil.class,
 
 		// FAPI specific
 		FAPICIBAID1EnsureBackchannelAuthorizationRequestWithoutRequestFails.class,

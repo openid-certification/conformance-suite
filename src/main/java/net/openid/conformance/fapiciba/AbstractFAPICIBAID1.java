@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.AddCibaUserCodeFalseToDynamicRegi
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddHintToAuthorizationEndpointRequest;
@@ -32,7 +31,6 @@ import net.openid.conformance.condition.client.AddIdTokenSigningAlgPS256ToDynami
 import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddJtiToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
-import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.AddScopeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
@@ -100,15 +98,12 @@ import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenRespo
 import net.openid.conformance.condition.client.ExtractRtHash;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenExp;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
-import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -185,7 +180,6 @@ import java.util.function.Supplier;
 @ConfigurationFields({
 	"server.discoveryUrl",
 	"client.scope",
-	"client.jwks",
 	"client.hint_type",
 	"client.hint_value",
 	"client.login_hint",
@@ -194,14 +188,7 @@ import java.util.function.Supplier;
 	"client.payment_currency",
 	"client.payment_beneficiary_name",
 	"client.payment_desc",
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca",
 	"client2.scope",
-	"client2.jwks",
-	"mtls2.key",
-	"mtls2.cert",
-	"mtls2.ca",
 	"resource.resourceUrl"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
@@ -210,7 +197,20 @@ import java.util.function.Supplier;
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
 	"client.client_id",
-	"client2.client_id"
+	"client.jwks",
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"client2.client_id",
+	"client2.jwks",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+	"directory.discoveryUrl",
+	"directory.client_id",
+	"directory.apibase"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name",
@@ -219,12 +219,22 @@ import java.util.function.Supplier;
 	"client2.initial_access_token"
 })
 @VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.jwks",
 	"client.org_jwks",
-	"client.acr_value",
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"client2.jwks",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca",
 	"consent.productType",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
+	"directory.discoveryUrl",
+	"directory.client_id",
+	"directory.apibase",
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
@@ -256,16 +266,6 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "connectid_au", configurationFields = {
 	"client.hint_type",
 	"client.hint_value"
-})
-@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.jwks",
-	"mtls.cert",
-	"mtls.key",
-	"mtls.ca",
-	"client2.jwks",
-	"mtls2.cert",
-	"mtls2.key",
-	"mtls2.ca"
 })
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
@@ -366,8 +366,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenExp.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-6.2");
 		}
 	}
 
@@ -477,7 +477,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			eventLog.startBlock("First client: registering client using dynamic client registration");
 			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
-			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			if (profileBehavior.shouldUseInitialAccessTokenForRegistration()) {
+				callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			} else {
+				env.removeNativeValue("initial_access_token");
+			}
 			registerClient();
 			break;
 		}
@@ -512,7 +516,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
 			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
-			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			if (profileBehavior.shouldUseInitialAccessTokenForRegistration()) {
+				callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
+			} else {
+				env.removeNativeValue("initial_access_token");
+			}
 			registerClient();
 			break;
 		}
@@ -541,12 +549,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
 		env.putString("client_name", env.getString("dynamic_registration_request", "client_name"));
 
-		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
-		callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
-		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
+		call(profileBehavior.getClientRegistrationCredentialSetupSteps(isSecondClient()));
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
-		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
+		call(profileBehavior.getClientRegistrationKeyPublicationSteps());
 		callAndStopOnFailure(AddCibaUserCodeFalseToDynamicRegistrationRequest.class);
 
 		switch (testType) {
@@ -576,8 +582,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
 
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
-
-		// TODO: we currently do little verification of the dynamic registration response
+		call(profileBehavior.getClientRegistrationResponseValidationSteps());
 
 		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
 		// copy it across.
@@ -659,13 +664,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(AddHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
 
 
-		// The spec also defines these parameters that we don't currently set:
-		// binding_message
-		// user_code
-
-		// FIXME: this will need tweaking for OB tests; we don't need a binding message there as the
-		// intent id contains sufficient context
-		callAndStopOnFailure(AddBindingMessageToAuthorizationEndpointRequest.class, "FAPI-CIBA-5.2.2-2");
+		// user_code is not set by the base happy path.
+		if (profileBehavior.shouldAddBindingMessageToAuthorizationEndpointRequest()) {
+			callAndStopOnFailure(AddBindingMessageToAuthorizationEndpointRequest.class, "FAPI-CIBA-5.2.2-2");
+		}
 
 		modeSpecificAuthorizationEndpointRequest();
 	}
@@ -725,21 +727,31 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performPostAuthorizationResponse() {
-
-		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
-		// As there's no way the user could have authenticated this request, we assume we will get a
-		// authorization_pending error back
-		eventLog.startBlock(currentClientString() + "Call token endpoint expecting pending");
-		callTokenEndpointForCibaGrant();
-		verifyTokenEndpointResponseIsPendingOrSlowDown();
-		eventLog.endBlock();
-
 		long delaySeconds = 5;
 		Integer interval = env.getInteger("backchannel_authentication_endpoint_response", "interval");
 		if (interval != null && interval > 5) {
 			// ignore intervals lower than 5; we don't want to fill the log or exhaust our retries too quickly
 			delaySeconds = interval;
 		}
+
+		if (profileBehavior.shouldCallTokenEndpointBeforePingNotification()) {
+			delaySeconds = callTokenEndpointBeforeAuthenticationAndReturnDelay(delaySeconds);
+		}
+
+		callAutomatedEndpoint();
+
+		waitForAuthenticationToComplete(delaySeconds);
+
+	}
+
+	protected long callTokenEndpointBeforeAuthenticationAndReturnDelay(long delaySeconds) {
+		// Call token endpoint; 'ping' mode clients are allowed (but not required) to do this.
+		// As there's no way the user could have authenticated this request, we assume we will get a
+		// authorization_pending error back.
+		eventLog.startBlock(currentClientString() + "Call token endpoint expecting pending");
+		callTokenEndpointForCibaGrant();
+		verifyTokenEndpointResponseIsPendingOrSlowDown();
+		eventLog.endBlock();
 
 		try {
 			Thread.sleep(delaySeconds * 1000);
@@ -767,10 +779,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			}
 		}
 
-		callAutomatedEndpoint();
-
-		waitForAuthenticationToComplete(delaySeconds);
-
+		return delaySeconds;
 	}
 
 	protected void performAuthorizationRequest() {
@@ -984,6 +993,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureIdTokenContainsKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 
 		performProfileIdTokenValidation();
+		call(profileBehavior.validateTokenEndpointIdToken());
 
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
