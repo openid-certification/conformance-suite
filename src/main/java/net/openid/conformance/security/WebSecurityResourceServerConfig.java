@@ -79,6 +79,11 @@ public class WebSecurityResourceServerConfig {
 		http.requestCache(cache -> cache.requestCache(new NullRequestCache()));
 
 		http.authorizeHttpRequests(requests -> {
+			// Must come BEFORE the private-link deny rule (first match wins): whatever is
+			// reachable anonymously via ?public=true must stay reachable for private-link
+			// viewers too (e.g. /api/ui/spec_links, needed by shared log-detail pages).
+			requests.requestMatchers(getPublicMatcher()).permitAll();
+
 			requests.requestMatchers(request -> {
 				if (!authenticationFacade.isPrivateLinkUser()) {
 					return false; // not a private link user, don't apply this rule
@@ -97,7 +102,6 @@ public class WebSecurityResourceServerConfig {
 				return true; // deny everything else
 			}).denyAll();
 
-			requests.requestMatchers(getPublicMatcher()).permitAll();
 			requests.requestMatchers(getApiMatcher()).authenticated();
 			// deny access for any unmatched API routes
 			requests.anyRequest().denyAll();
