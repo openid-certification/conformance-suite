@@ -2,7 +2,9 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -51,10 +53,7 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 		if (encKey == null) {
 			throw error("No usable encryption key was found in client_metadata.jwks from the authorization request", args("client_jwks", clientJwks));
 		}
-		if (encKey.getAlgorithm() == null) {
-			throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
-		}
-		String alg = encKey.getAlgorithm().getName();
+		String alg = resolveResponseAlg(env, encKey, clientJwks);
 
 		// and just use the first enc - if there's not one default to A128GCM as per OID4VP spec
 		JsonElement encValuesSupported = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.encrypted_response_enc_values_supported");
@@ -91,6 +90,40 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 		env.putObject("direct_post_request_form_parameters", formParams);
 
 		return env;
+	}
+
+	/**
+	 * The JWE alg to encrypt the response with: the alg of the encryption key the verifier
+	 * published, or, when the key does not carry one, the draft-era
+	 * authorization_encrypted_response_alg client_metadata value if the verifier sent that
+	 * instead. The missing alg is itself reported as a failure by
+	 * VP1FinalValidateClientMetadataJwksForEncryptedResponse, so falling back here only lets the
+	 * rest of the flow be exercised; it does not excuse the verifier.
+	 */
+	private String resolveResponseAlg(Environment env, JWK encKey, JsonObject clientJwks) {
+		if (encKey.getAlgorithm() != null) {
+			return encKey.getAlgorithm().getName();
+		}
+		JsonElement fallbackAlgEl = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.authorization_encrypted_response_alg");
+		if (fallbackAlgEl == null) {
+			throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
+		}
+		String alg = OIDFJSON.getString(fallbackAlgEl);
+		// encrypt() reselects the key from the jwks by the key type the alg implies, so an alg for
+		// a different key type would encrypt to a key other than the one selected here - whose
+		// thumbprint the mdoc session transcript already commits to.
+		KeyType algKeyType = JWEUtil.keyTypeForEncryptionAlg(JWEAlgorithm.parse(alg));
+		if (algKeyType == null) {
+			throw error("The encryption key in client_metadata.jwks has no alg value, and the client_metadata authorization_encrypted_response_alg value is not an RSA or ECDH-ES algorithm, so it cannot be used in its place",
+				args("alg", alg, "client_jwks", clientJwks));
+		}
+		if (!encKey.getKeyType().equals(algKeyType)) {
+			throw error("The encryption key in client_metadata.jwks has no alg value, and the client_metadata authorization_encrypted_response_alg value is for a different type of key than that key, so it cannot be used in its place",
+				args("alg", alg, "alg_key_type", algKeyType.getValue(), "selected_key_type", encKey.getKeyType().getValue(), "client_jwks", clientJwks));
+		}
+		log("The encryption key in client_metadata.jwks does not contain an alg value (reported as a failure by a previous condition) - continuing using the value of the client_metadata authorization_encrypted_response_alg parameter, which is not defined in OID4VP 1.0 Final",
+			args("alg", alg, "client_jwks", clientJwks));
+		return alg;
 	}
 
 }
