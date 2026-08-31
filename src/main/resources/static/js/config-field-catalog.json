@@ -180,7 +180,7 @@
           "key": "server.authorization_endpoint",
           "label": "authorization_endpoint",
           "type": "string",
-          "tooltip": "Full URL to server's authorization endpoint. When testing a wallet use 'openid4vp://' or similar."
+          "tooltip": "Full URL to server's authorization endpoint. When testing a wallet use 'openid4vp://', 'haip-vp://' or similar."
         },
         {
           "key": "server.token_endpoint",
