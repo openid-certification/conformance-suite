@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.fapiciba.OpenBankingBrazilCibaProfileConstants;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -11,11 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateBackchannelEndpointResponse_UnitTest {
@@ -49,30 +46,40 @@ public class CreateBackchannelEndpointResponse_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_usesConsentExpirationWhenPresent() {
-		JsonObject consentResponse = new JsonObject();
-		JsonObject data = new JsonObject();
-		data.addProperty("expirationDateTime", Instant.now().plus(120, ChronoUnit.SECONDS).truncatedTo(ChronoUnit.SECONDS).toString());
-		consentResponse.add("data", data);
-		env.putObject("consent_response", consentResponse);
-		env.putInteger("requested_expiry", 30);
+	public void setsProfileMaximumAsInteger() {
+		SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry setter =
+			new SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry();
+		setter.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
-		cond.execute(env);
+		setter.execute(env);
 
-		int expiresIn = env.getInteger("backchannel_endpoint_response", "expires_in");
-		assertTrue(expiresIn <= 120 && expiresIn >= 100, "expires_in should be based on consent expiration");
+		assertEquals(86_400,
+			env.getInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY));
 	}
 
 	@Test
-	public void testEvaluate_clampsToOneSecondWhenConsentAlreadyExpired() {
-		JsonObject consentResponse = new JsonObject();
-		JsonObject data = new JsonObject();
-		data.addProperty("expirationDateTime", Instant.now().minus(5, ChronoUnit.SECONDS).truncatedTo(ChronoUnit.SECONDS).toString());
-		consentResponse.add("data", data);
-		env.putObject("consent_response", consentResponse);
-
+	public void usesProfileMaximumWhenRequestedExpiryIsAbsent() {
+		env.putInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY,
+			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
 		cond.execute(env);
+		assertEquals(86_400, env.getInteger("backchannel_endpoint_response", "expires_in"));
+	}
 
-		assertEquals(1, env.getInteger("backchannel_endpoint_response", "expires_in"));
+	@Test
+	public void usesRequestedExpiryWhenItDoesNotExceedProfileMaximum() {
+		env.putInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY,
+			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+		env.putInteger("requested_expiry", 30);
+		cond.execute(env);
+		assertEquals(30, env.getInteger("backchannel_endpoint_response", "expires_in"));
+	}
+
+	@Test
+	public void capsRequestedExpiryAtProfileMaximum() {
+		env.putInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY,
+			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+		env.putInteger("requested_expiry", 86_401);
+		cond.execute(env);
+		assertEquals(86_400, env.getInteger("backchannel_endpoint_response", "expires_in"));
 	}
 }
