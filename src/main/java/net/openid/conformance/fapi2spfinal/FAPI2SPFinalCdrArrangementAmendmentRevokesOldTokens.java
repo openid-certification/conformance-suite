@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test authorises normally, then authorises a second time passing the cdr_arrangement_id from the first consent in the request object to amend the existing arrangement. Once the new consent is established and new tokens have been issued, the CDR standards require the Data Holder to have revoked the tokens from the original consent, so using the original refresh token and access token must then fail.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "openbanking_chile", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
 public class FAPI2SPFinalCdrArrangementAmendmentRevokesOldTokens extends AbstractFAPI2SPFinalServerTestModule {
 
 	private boolean amendingArrangement = false;

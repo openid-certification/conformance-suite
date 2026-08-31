@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test requests authorisation with a negative sharing_duration. The CDR standards say the authorisation SHOULD fail, either at the PAR endpoint or at the authorization endpoint; as this is only a SHOULD, a Data Holder that allows the authorisation to complete receives a warning rather than a failure.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "openbanking_chile", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
 public class FAPI2SPFinalCdrEnsureNegativeSharingDurationFails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
