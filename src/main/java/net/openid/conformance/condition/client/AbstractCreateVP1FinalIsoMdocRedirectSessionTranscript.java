@@ -22,13 +22,24 @@ import java.util.Set;
 
 public abstract class AbstractCreateVP1FinalIsoMdocRedirectSessionTranscript extends AbstractCondition {
 	protected void calculateSessionTranscript(Environment env, JsonObject jwkJson, String clientId, String nonce, String responseUri) {
-		byte[] jwkThumbprint = null;
+		JWK jwk = null;
 		if (jwkJson != null) {
 			try {
-				JWK jwk = JWK.parse(jwkJson.toString());
+				jwk = JWK.parse(jwkJson.toString());
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		calculateSessionTranscript(env, jwk, clientId, nonce, responseUri);
+	}
+
+	protected void calculateSessionTranscript(Environment env, JWK jwk, String clientId, String nonce, String responseUri) {
+		byte[] jwkThumbprint = null;
+		if (jwk != null) {
+			try {
 				// computeThumbprint return base64url, but the spec requires us to use the raw bytes of the hash output
 				jwkThumbprint = jwk.computeThumbprint().decode();
-			} catch (ParseException | JOSEException e) {
+			} catch (JOSEException e) {
 				throw new RuntimeException(e);
 			}
 		}

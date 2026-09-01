@@ -25,8 +25,10 @@ import net.openid.conformance.testmodule.Environment;
  * <p>Per RFC 7517 section 5, a recipient SHOULD ignore keys in a JWK Set whose values are out of the
  * supported ranges, rather than rejecting the whole set. Run this condition immediately after
  * {@code AddVP1FinalEncryptionParametersToClientMetadata} (or its VPID2 equivalent), which places the
- * usable key in the set. If the wallet behaves correctly, the suite's later {@code DecryptResponse}
- * succeeds using the usable key.
+ * usable key in the set. The usable key ends up in the middle, with an unusable key before and after
+ * it, so a wallet that simply selects the first key of the set fails, and so does one that selects
+ * the last (rather than the first key it can use). If the wallet behaves correctly, the suite's
+ * later {@code DecryptResponse} succeeds using the usable key.
  */
 public class AddUnusableEncryptionKeyToClientMetadata extends AbstractCondition {
 
@@ -63,13 +65,18 @@ public class AddUnusableEncryptionKeyToClientMetadata extends AbstractCondition 
 				+ "This condition must run after the encryption parameters have been added to client_metadata.");
 		}
 
-		JsonArray keys = jwks.getAsJsonArray("keys");
+		// the usable key goes in the MIDDLE, an unusable key before and after it, so a wallet
+		// that just selects the first key of the set fails, and so does one that selects the
+		// last (rather than the first key it can actually use)
+		JsonArray keys = new JsonArray();
 		keys.add(JsonParser.parseString(UNUSABLE_PQ_ENC_KEY).getAsJsonObject());
+		keys.addAll(jwks.getAsJsonArray("keys"));
 		keys.add(JsonParser.parseString(UNUSABLE_UNKNOWN_ENC_KEY).getAsJsonObject());
+		jwks.add("keys", keys);
 
 		log("Added two unusable encryption keys (a post-quantum-shaped key with a non-existent parameter "
-			+ "set, and a made-up key type) to client_metadata.jwks. A conformant wallet must ignore them "
-			+ "and encrypt to the usable key (RFC 7517 section 5).",
+			+ "set, and a made-up key type) to client_metadata.jwks, one before and one after the usable "
+			+ "key. A conformant wallet must ignore them and encrypt to the usable key (RFC 7517 section 5).",
 			args("client_metadata_jwks", jwks));
 
 		return env;
