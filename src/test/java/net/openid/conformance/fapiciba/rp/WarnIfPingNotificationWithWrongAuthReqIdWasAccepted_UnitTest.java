@@ -33,6 +33,16 @@ public class WarnIfPingNotificationWithWrongAuthReqIdWasAccepted_UnitTest {
 	}
 
 	@Test
+	public void declaresMissingResponseStatusAsPreconditionFailure() {
+		WarnIfPingNotificationWithWrongAuthReqIdWasAccepted condition = condition();
+
+		assertThatThrownBy(() -> condition.execute(new Environment()))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("[pre]")
+			.hasMessageContaining("client_notification_endpoint_response_http_status");
+	}
+
+	@Test
 	public void wrongAuthReqIdModuleUsesWarningSeverity() {
 		TestableWrongAuthReqIdTest test = new TestableWrongAuthReqIdTest();
 

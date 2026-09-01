@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +66,24 @@ public class FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM_UnitTest {
 
 			cond.execute(env);
 		});
+	}
+
+	@Test
+	public void reportsConditionErrorWhenAlgorithmIsMissing() {
+		env.putString("id_token", "jwe_header.enc", "A256GCM");
+
+		assertThatThrownBy(() -> cond.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("RSA-OAEP");
+	}
+
+	@Test
+	public void reportsConditionErrorWhenEncryptionMethodIsMissing() {
+		env.putString("id_token", "jwe_header.alg", "RSA-OAEP");
+
+		assertThatThrownBy(() -> cond.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("A256GCM");
 	}
 
 }
