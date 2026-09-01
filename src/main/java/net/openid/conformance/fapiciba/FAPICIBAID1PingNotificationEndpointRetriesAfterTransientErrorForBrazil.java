@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.client.AddRequestedExp60sToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointWasRetried;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ping-notification-endpoint-retries-after-transient-error-for-brazil",
 	displayName = "FAPI-CIBA-ID1: Brazil ping notification is retried after a transient endpoint error",
-	summary = "The client's notification endpoint returns HTTP 503 for the first valid ping notification. The authorization server must retry delivery, after which the endpoint returns HTTP 204 and the flow completes normally.",
+	summary = "This test requests a 60-second authentication lifetime and returns HTTP 503 for the first valid ping notification. The authorization server must retry delivery, after which the endpoint returns HTTP 204 and the flow completes normally.",
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = {"poll"})
@@ -28,6 +29,14 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	private final AtomicInteger notificationEndpointCallCount = new AtomicInteger();
 	private final Object notificationEndpointCallCountLock = new Object();
 	private Instant authenticationRequestExpiresAt;
+
+	@Override
+	protected void createAuthorizationRequest() {
+		super.createAuthorizationRequest();
+		// Bound the no-retry verdict while leaving time for authentication and retry backoff.
+		callAndStopOnFailure(AddRequestedExp60sToAuthorizationEndpointRequest.class,
+			"CIBA-7.1", "BrazilCIBA-6.3.7");
+	}
 
 	@Override
 	protected void performValidateAuthorizationResponse() {
