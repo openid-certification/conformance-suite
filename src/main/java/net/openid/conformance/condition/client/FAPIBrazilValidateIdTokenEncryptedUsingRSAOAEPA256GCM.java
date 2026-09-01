@@ -18,8 +18,8 @@ public class FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM extends Abstr
 		}
 
 		JsonObject jweHeader = jweHeaderElement.getAsJsonObject();
-		String alg = OIDFJSON.getString(jweHeader.get("alg"));
-		String enc = OIDFJSON.getString(jweHeader.get("enc"));
+		String alg = OIDFJSON.getStringOrNull(jweHeader.get("alg"));
+		String enc = OIDFJSON.getStringOrNull(jweHeader.get("enc"));
 
 		if (!"RSA-OAEP".equals(alg)) {
 			throw error("ID Token must be encrypted using RSA-OAEP algorithm", args("actual_alg", alg));
