@@ -1,9 +1,11 @@
 package net.openid.conformance.condition.client;
 
+import java.util.Set;
+
 public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest extends AbstractCheckErrorFromBackchannelAuthenticationEndpointError {
 
 	@Override
-	protected String getExpectedError() {
-		return "invalid_request";
+	protected Set<String> getExpectedErrors() {
+		return Set.of("invalid_request");
 	}
 }
