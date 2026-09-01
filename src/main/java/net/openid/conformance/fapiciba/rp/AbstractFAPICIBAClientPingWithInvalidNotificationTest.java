@@ -16,6 +16,8 @@ public abstract class AbstractFAPICIBAClientPingWithInvalidNotificationTest exte
 
 	@Override
 	protected boolean shouldRejectFurtherClientInteractionsWhileWaitingForTimeout() {
+		// CIBA Core 10.1 permits a ping-mode client to poll. OFBR 6.3.4.1 restricts polling to a
+		// fallback after notification failure detection, so only the Brazil profile is shut down here.
 		return FAPICIBAProfile.OPENBANKING_BRAZIL.equals(profile);
 	}
 
