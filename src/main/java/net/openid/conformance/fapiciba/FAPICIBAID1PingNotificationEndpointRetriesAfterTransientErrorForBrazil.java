@@ -80,15 +80,21 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		}
 
 		getTestExecutionManager().scheduleInBackground(() -> {
-			synchronized (notificationEndpointCallCountLock) {
-				if (notificationEndpointCallCount.get() != 1 || getStatus() != Status.WAITING) {
-					return "done";
-				}
-
-				setStatus(Status.RUNNING);
-				env.putInteger(NOTIFICATION_ENDPOINT_CALL_COUNT, notificationEndpointCallCount.get());
-				callAndStopOnFailure(EnsureNotificationEndpointWasRetried.class, "BrazilCIBA-6.2.8");
+			if (notificationEndpointCallCount.get() != 1 || !setStatusRunningIfWaiting()) {
+				return "done";
 			}
+
+			int callCount;
+			synchronized (notificationEndpointCallCountLock) {
+				callCount = notificationEndpointCallCount.get();
+			}
+			if (callCount != 1) {
+				setStatus(Status.WAITING);
+				return "done";
+			}
+
+			env.putInteger(NOTIFICATION_ENDPOINT_CALL_COUNT, callCount);
+			callAndStopOnFailure(EnsureNotificationEndpointWasRetried.class, "BrazilCIBA-6.2.8");
 			return "done";
 		}, secondsUntilAuthenticationRequestExpires(), TimeUnit.SECONDS);
 	}

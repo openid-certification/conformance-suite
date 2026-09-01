@@ -1,16 +1,23 @@
 package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.info.ImageService;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.runner.TestExecutionManager;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 /**
  * Regression test for https://gitlab.com/openid/conformance-suite/-/work_items/1827: acquiring the
@@ -42,6 +49,23 @@ public class AbstractTestModuleLockTimeout_UnitTest {
 
 		void doAcquireLock() {
 			acquireLock();
+		}
+
+		void initialize() {
+			setProperties("lock-test", Map.of(), mock(TestInstanceEventLog.class), mock(BrowserControl.class),
+				mock(TestInfoService.class), mock(TestExecutionManager.class), mock(ImageService.class));
+		}
+
+		void waitForInteraction() {
+			setStatus(Status.WAITING);
+		}
+
+		boolean resumeIfWaiting() {
+			return setStatusRunningIfWaiting();
+		}
+
+		boolean lockIsHeldByCurrentThread() {
+			return env.getLock().isHeldByCurrentThread();
 		}
 	}
 
@@ -79,5 +103,29 @@ public class AbstractTestModuleLockTimeout_UnitTest {
 			release.countDown();
 			holder.join(5000);
 		}
+	}
+
+	@Test
+	public void resumeIfWaitingChangesStatusAndKeepsLock() {
+		LockTimeoutTestModule module = new LockTimeoutTestModule();
+		module.initialize();
+		module.waitForInteraction();
+
+		assertThat(module.resumeIfWaiting()).isTrue();
+		assertThat(module.getStatus()).isEqualTo(TestModule.Status.RUNNING);
+		assertThat(module.lockIsHeldByCurrentThread()).isTrue();
+
+		module.waitForInteraction();
+		assertThat(module.lockIsHeldByCurrentThread()).isFalse();
+	}
+
+	@Test
+	public void resumeIfWaitingLeavesOtherStatusAndReleasesLock() {
+		LockTimeoutTestModule module = new LockTimeoutTestModule();
+		module.initialize();
+
+		assertThat(module.resumeIfWaiting()).isFalse();
+		assertThat(module.getStatus()).isEqualTo(TestModule.Status.CREATED);
+		assertThat(module.lockIsHeldByCurrentThread()).isFalse();
 	}
 }

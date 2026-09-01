@@ -193,6 +193,44 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		}
 	}
 
+	@Test
+	public void retryIsNotBlockedWhileDeadlineTaskWaitsForTestLock() throws Exception {
+		AtomicReference<Callable<?>> timeoutTask = new AtomicReference<>();
+		TestExecutionManager delayedExecutionManager = mock(TestExecutionManager.class);
+		doAnswer(invocation -> {
+			timeoutTask.set(invocation.getArgument(0));
+			return null;
+		}).when(delayedExecutionManager).scheduleInBackground(any(), anyLong(), eq(TimeUnit.SECONDS));
+		TestablePingRetryModule delayedModule = new TestablePingRetryModule(delayedExecutionManager);
+		delayedModule.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
+			"{\"expires_in\":60}");
+		delayedModule.performValidateAuthorizationResponse();
+		delayedModule.handlePingCallback(new JsonObject());
+		delayedModule.blockDeadlineStatusTransition = true;
+
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		try {
+			Future<?> deadline = executor.submit(() -> {
+				try {
+					timeoutTask.get().call();
+				} catch (Exception e) {
+					throw new AssertionError(e);
+				}
+			});
+			assertThat(delayedModule.deadlineStatusTransitionStarted.await(1, TimeUnit.SECONDS)).isTrue();
+
+			Future<Object> retry = executor.submit(() -> delayedModule.handlePingCallback(new JsonObject()));
+
+			assertThat(asResponse(retry.get(1, TimeUnit.SECONDS)).getStatusCode())
+				.isEqualTo(HttpStatus.NO_CONTENT);
+			delayedModule.allowDeadlineStatusTransition.countDown();
+			assertThatCode(() -> deadline.get(1, TimeUnit.SECONDS)).doesNotThrowAnyException();
+		} finally {
+			delayedModule.allowDeadlineStatusTransition.countDown();
+			executor.shutdownNow();
+		}
+	}
+
 	private static ResponseEntity<?> asResponse(Object response) {
 		assertThat(response).isInstanceOf(ResponseEntity.class);
 		return (ResponseEntity<?>) response;
@@ -209,8 +247,11 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		private int processedCallbacks;
 		private int successfulResponses;
 		private boolean blockFirstCallbackVerification;
+		private boolean blockDeadlineStatusTransition;
 		private final CountDownLatch firstCallbackVerificationStarted = new CountDownLatch(1);
 		private final CountDownLatch allowFirstCallbackVerification = new CountDownLatch(1);
+		private final CountDownLatch deadlineStatusTransitionStarted = new CountDownLatch(1);
+		private final CountDownLatch allowDeadlineStatusTransition = new CountDownLatch(1);
 
 		private TestablePingRetryModule(TestExecutionManager executionManager) {
 			this.executionManager = executionManager;
@@ -244,6 +285,24 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		protected void setStatus(TestModule.Status newStatus) {
 			currentStatus = newStatus;
 			statuses.add(newStatus);
+		}
+
+		@Override
+		protected boolean setStatusRunningIfWaiting() {
+			if (blockDeadlineStatusTransition) {
+				deadlineStatusTransitionStarted.countDown();
+				try {
+					assertThat(allowDeadlineStatusTransition.await(2, TimeUnit.SECONDS)).isTrue();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new AssertionError(e);
+				}
+			}
+			if (currentStatus != TestModule.Status.WAITING) {
+				return false;
+			}
+			setStatus(TestModule.Status.RUNNING);
+			return true;
 		}
 
 		@Override

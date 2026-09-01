@@ -886,6 +886,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	/**
+	 * Atomically changes the test status from {@link Status#WAITING} to
+	 * {@link Status#RUNNING}. The method returns {@code false} and releases the
+	 * test lock when another thread changed the status before the lock was
+	 * acquired.
+	 */
+	protected boolean setStatusRunningIfWaiting() {
+		return setStatusInternal(Status.RUNNING, Status.WAITING);
+	}
+
 	/*
 	 * Test status state machine:
 	 *
@@ -899,6 +909,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *
 	 */
 	private void setStatusInternal(Status newStatus) {
+		setStatusInternal(newStatus, null);
+	}
+
+	private boolean setStatusInternal(Status newStatus, Status expectedOldStatus) {
 		try {
 			final boolean hadLockOnEntry = env.getLock().isHeldByCurrentThread();
 
@@ -910,6 +924,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				logger.info(getId() + ": setStatus(" + newStatus.toString() + "): lock acquired, current status = " + getStatus().toString());
 			}
 			Status oldStatus = getStatus(); // must be after lock is taken
+			if (expectedOldStatus != null && oldStatus != expectedOldStatus) {
+				if (!hadLockOnEntry) {
+					clearLock();
+				}
+				return false;
+			}
 
 			if (newStatus == Status.RUNNING) {
 				if (hadLockOnEntry) {
@@ -1025,6 +1045,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				// test status until after it's been updated, etc.
 				clearLock();
 			}
+			return true;
 		} catch (Exception | Error e) {
 			// It's really best if we don't exit with the lock held, ensuring any other threads trying to take the
 			// lock won't end up blocked forever.
