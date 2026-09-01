@@ -59,6 +59,15 @@ public class FAPICIBAServerProfileBehavior {
 		return null;
 	}
 
+	/**
+	 * Set up credentials for the client currently selected in the environment.
+	 *
+	 * <p>The default sequence uses the active client, JWK, and mTLS mappings, so it does not need to
+	 * inspect {@code secondClient}. Profile implementations can use the flag when their credential
+	 * source is outside those mappings, as the Open Finance Brazil Directory configuration is.</p>
+	 *
+	 * @param secondClient whether the selected client is the second client
+	 */
 	public ConditionSequence getClientRegistrationCredentialSetupSteps(boolean secondClient) {
 		return new AbstractConditionSequence() {
 			@Override
