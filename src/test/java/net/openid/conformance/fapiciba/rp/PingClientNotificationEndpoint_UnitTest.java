@@ -23,6 +23,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -32,6 +34,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -225,7 +229,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 	@Test
 	public void retriesTemporaryCommunicationFailureForBrazil() {
 		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
-			.thenThrow(new ResourceAccessException("Connection reset"))
+			.thenThrow(new ResourceAccessException("Connection reset", new SocketException("Connection reset")))
 			.thenReturn(new ResponseEntity<>("", HttpStatus.NO_CONTENT));
 
 		retryCond.execute(env);
@@ -233,6 +237,27 @@ public class PingClientNotificationEndpoint_UnitTest {
 		assertThat(env.getInteger("client_notification_endpoint_response_http_status"))
 			.isEqualTo(HttpStatus.NO_CONTENT.value());
 		verify(restTemplate, times(2))
+			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
+	}
+
+	@Test
+	public void doesNotRetryUnknownHostFailureForBrazil() {
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new ResourceAccessException("Unknown host", new UnknownHostException("rp.example.com")));
+
+		assertThatThrownBy(() -> retryCond.execute(env)).isInstanceOf(ConditionError.class);
+		verify(restTemplate)
+			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
+	}
+
+	@Test
+	public void doesNotRetryTlsHandshakeFailureForBrazil() {
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new ResourceAccessException("TLS handshake failed",
+				new SSLHandshakeException("Certificate rejected")));
+
+		assertThatThrownBy(() -> retryCond.execute(env)).isInstanceOf(ConditionError.class);
+		verify(restTemplate)
 			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
 	}
 
