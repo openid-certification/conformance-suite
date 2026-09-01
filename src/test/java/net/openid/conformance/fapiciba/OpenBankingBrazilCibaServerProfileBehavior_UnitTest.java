@@ -9,6 +9,9 @@ import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistratio
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
@@ -23,14 +26,18 @@ import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncry
 import net.openid.conformance.condition.client.FAPIBrazilAddSoftwareStatementRedirectUrisToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckUserCodeParameterNotSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractJwksUriFromSoftwareStatement;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
@@ -103,12 +110,36 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 
 	@Test
 	public void validatesBrazilCibaDiscoveryRestrictions() {
-		List<Class<? extends Condition>> conditionClasses = getConditionClasses(
-			behavior.getProfileSpecificDiscoveryChecks().get());
+		ConditionSequence discoveryChecks = behavior.getProfileSpecificDiscoveryChecks().get();
+		List<Class<? extends Condition>> conditionClasses = getConditionClasses(discoveryChecks);
 
 		assertThat(conditionClasses).contains(
 			FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing.class,
 			FAPIBrazilCibaCheckUserCodeParameterNotSupported.class);
+	}
+
+	@Test
+	public void discoveryChecksCiteFinalBrazilSecurityProfile() {
+		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
+			behavior.getProfileSpecificDiscoveryChecks().get());
+
+		assertThat(getRequirements(conditionCalls, CheckDiscEndpointClaimsParameterSupported.class))
+			.containsExactly("OIDCD-3", "BrazilOB22-5.1-4");
+		assertThat(getRequirements(conditionCalls, CheckDiscEndpointAcrClaimSupported.class))
+			.containsExactly("BrazilOB22-5.1-5", "BrazilOB22-5.1-6");
+		assertThat(getRequirements(conditionCalls,
+			FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class))
+			.containsExactly("BrazilOB22-5.1-5");
+		assertThat(getRequirements(conditionCalls, FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class))
+			.containsExactly("BrazilOB22-5.1-6");
+		assertThat(getRequirements(conditionCalls, CheckDiscEndpointUserinfoEndpoint.class))
+			.containsExactly("BrazilOB22-5.1-7");
+		assertThat(getRequirements(conditionCalls,
+			FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep.class))
+			.containsExactly("BrazilOB22-6.3");
+		assertThat(getRequirements(conditionCalls,
+			FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm.class))
+			.containsExactly("BrazilOB22-6.3");
 	}
 
 	@Test
@@ -303,6 +334,15 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			.filter(ConditionCallBuilder.class::isInstance)
 			.map(ConditionCallBuilder.class::cast)
 			.toList();
+	}
+
+	private String[] getRequirements(List<ConditionCallBuilder> conditionCalls,
+		Class<? extends Condition> conditionClass) {
+		return conditionCalls.stream()
+			.filter(call -> call.getConditionClass() == conditionClass)
+			.findFirst()
+			.orElseThrow()
+			.getRequirements();
 	}
 
 	private void executeEnvironmentCommands(ConditionSequence sequence, Environment env) {

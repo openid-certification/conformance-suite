@@ -200,7 +200,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 
 		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
 			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE,
-			"BrazilOB-6.2");
+			"BrazilOB22-6.2");
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class,
 			Condition.ConditionResult.FAILURE, "OIDCR-2");
 		callAndStopOnFailure(FAPIBrazilValidateIdTokenEncryptionConfig.class,
@@ -209,7 +209,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE,
-			"BrazilOB-6.2");
+			"BrazilOB22-6.2");
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class,
 			Condition.ConditionResult.FAILURE, "OIDCR-2");
 		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
