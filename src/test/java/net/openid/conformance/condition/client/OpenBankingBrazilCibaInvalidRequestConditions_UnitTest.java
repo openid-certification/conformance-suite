@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
-public class OpenBankingBrazilCibaForbiddenRequestParameterConditions_UnitTest {
+public class OpenBankingBrazilCibaInvalidRequestConditions_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -39,6 +39,17 @@ public class OpenBankingBrazilCibaForbiddenRequestParameterConditions_UnitTest {
 		cond.execute(env);
 
 		assertThat(env.getInteger("authorization_endpoint_request", "requested_expiry")).isZero();
+	}
+
+	@Test
+	public void testAddRequestedExpNegative1sToAuthorizationEndpointRequest() {
+		AddRequestedExpNegative1sToAuthorizationEndpointRequest cond =
+			new AddRequestedExpNegative1sToAuthorizationEndpointRequest();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+
+		cond.execute(env);
+
+		assertThat(env.getInteger("authorization_endpoint_request", "requested_expiry")).isEqualTo(-1);
 	}
 
 	@Test
