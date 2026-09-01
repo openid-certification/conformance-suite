@@ -1108,7 +1108,10 @@ public class GrantManagementSupport {
 		@Override
 		@PreEnvironment(required = GRANT_MANAGEMENT_RESPONSE_KEY)
 		public Environment evaluate(Environment env) {
-			String body = env.getString(GRANT_MANAGEMENT_RESPONSE_KEY, "body");
+			// a 204 response has no body, which the HTTP machinery records as JsonNull -
+			// env.getString() would reject that rather than return null
+			JsonElement bodyElement = env.getElementFromObject(GRANT_MANAGEMENT_RESPONSE_KEY, "body");
+			String body = bodyElement == null || bodyElement.isJsonNull() ? null : OIDFJSON.getString(bodyElement);
 
 			if (!Strings.isNullOrEmpty(body)) {
 				throw error("The grant management revoke response contained a body. GM 6.5 requires the"

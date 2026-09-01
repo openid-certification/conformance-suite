@@ -361,5 +361,14 @@
         "condition": "CheckTokenEndpointHttpStatus200",
         "expected-result": "failure",
         "comment": "Expected by design, not a suite bug, and always co-occurs with the RequireIssInAuthorizationResponse entry above. The driver logs the bad 'iss' and (by AbstractFAPI2SPFinalServerTestModule's callAndContinueOnFailure) carries on to the token endpoint. In the only case where these results get reported, the client test module acting as the OP has already reached FINISHED, so the token request is rejected with 400 'Illegal test state change: FINISHED -> RUNNING'."
+    },
+    {
+        "test-name": "fapi2-security-profile-final-grant-management-ensure-wrong-client-cannot-revoke-grant",
+        "variant": "*",
+        "configuration-filename": "authlete*.json",
+        "current-block": "Client 2 attempts to revoke Client 1's grant",
+        "condition": "EnsureGrantManagementEndpointReturns403Or404",
+        "expected-result": "failure",
+        "comment": "Authlete returns 204 when a client revokes another client's grant; GM-6.6 requires 403 or 404 (wrong-client query is correctly rejected, only revoke lacks the ownership check)"
     }
 ]
