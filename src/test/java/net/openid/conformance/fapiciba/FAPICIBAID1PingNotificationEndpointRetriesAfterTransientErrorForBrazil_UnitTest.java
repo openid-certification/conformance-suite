@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddRequestedExp60sToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointWasRetried;
 import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -59,9 +60,19 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	}
 
 	@Test
+	public void requestsShortExpiryForRetryDeadline() {
+		module.createAuthorizationRequest();
+
+		assertThat(module.conditionClasses)
+			.endsWith(AddRequestedExp60sToAuthorizationEndpointRequest.class);
+		assertThat(module.conditionRequirements)
+			.endsWith(List.of("CIBA-7.1", "BrazilCIBA-6.3.7"));
+	}
+
+	@Test
 	public void invokesTargetedRetryAssertionWhenAuthenticationRequestExpires() throws Exception {
 		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
-			"{\"expires_in\":86400}");
+			"{\"expires_in\":60}");
 		module.performValidateAuthorizationResponse();
 		module.conditionClasses.clear();
 		module.conditionRequirements.clear();
@@ -69,7 +80,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
 
 		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-		assertThat(retryTimeoutSeconds).hasValue(86_400);
+		assertThat(retryTimeoutSeconds).hasValue(60);
 		assertThat(retryTimeoutTask).doesNotHaveNullValue();
 
 		retryTimeoutTask.get().call();
@@ -86,7 +97,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	@Test
 	public void returnsTransientFailureOnceAndProcessesTheRetry() throws Exception {
 		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
-			"{\"expires_in\":86400}");
+			"{\"expires_in\":60}");
 		module.performValidateAuthorizationResponse();
 		module.conditionClasses.clear();
 		module.conditionRequirements.clear();
