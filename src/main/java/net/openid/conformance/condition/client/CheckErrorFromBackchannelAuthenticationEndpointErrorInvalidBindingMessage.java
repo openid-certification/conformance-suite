@@ -1,9 +1,11 @@
 package net.openid.conformance.condition.client;
 
+import java.util.Set;
+
 public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage extends AbstractCheckErrorFromBackchannelAuthenticationEndpointError {
 
 	@Override
-	protected String getExpectedError() {
-		return "invalid_binding_message";
+	protected Set<String> getExpectedErrors() {
+		return Set.of("invalid_binding_message");
 	}
 }
