@@ -957,7 +957,7 @@ public class GrantManagementSupport {
 		 */
 		@Override
 		protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-			JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
+			JsonSchemaValidationResult structuralErrors = validationResult.structuralErrors();
 			if (!structuralErrors.isValid()) {
 				super.onValidationFailure(env, structuralErrors, input);
 			}
