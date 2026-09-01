@@ -247,13 +247,13 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 	private void validateCibaRegistrationMetadata() {
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestContainsCibaGrantType.class, "CIBA-4");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestUsesPingMode.class,
-			"BrazilCIBA-6.2.2");
+			"BrazilCIBA-6.3.8");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestNotificationEndpointIsHttps.class,
 			"CIBA-4");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestSigningAlgIsPS256.class,
 			"BrazilOB22-6.2");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestUserCodeIsAbsentOrFalse.class,
-			"BrazilCIBA-6.2.4");
+			"BrazilCIBA-6.3.5");
 	}
 
 	private JsonObject registerClient() {

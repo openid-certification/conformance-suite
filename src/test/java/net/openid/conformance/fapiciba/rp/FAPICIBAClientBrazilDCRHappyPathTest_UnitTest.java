@@ -8,6 +8,8 @@ import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHe
 import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenEncryptionConfig;
+import net.openid.conformance.condition.as.dynregistration.FAPICIBAEnsureRegistrationRequestUserCodeIsAbsentOrFalse;
+import net.openid.conformance.condition.as.dynregistration.FAPICIBAEnsureRegistrationRequestUsesPingMode;
 import net.openid.conformance.condition.client.CheckIncomingContentTypeIsApplicationJson;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
@@ -67,6 +69,21 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 			.doesNotContain(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class);
 		assertThat(test.requirementsFor(FAPIBrazilValidateIdTokenEncryptionConfig.class))
 			.containsExactly("BrazilOB22-5.1.1-1", "BrazilOB22-6.3", "BrazilCIBA-6.3.8");
+	}
+
+	@Test
+	public void dynamicRegistrationMetadataChecksCiteConfidentialClientRequirements() {
+		TestableFAPICIBAClientBrazilDCRHappyPathTest test =
+			new TestableFAPICIBAClientBrazilDCRHappyPathTest();
+		JsonObject requestParts = new JsonObject();
+		requestParts.addProperty("method", "POST");
+
+		test.handleHttpMtls("register", null, null, null, requestParts);
+
+		assertThat(test.requirementsFor(FAPICIBAEnsureRegistrationRequestUsesPingMode.class))
+			.containsExactly("BrazilCIBA-6.3.8");
+		assertThat(test.requirementsFor(FAPICIBAEnsureRegistrationRequestUserCodeIsAbsentOrFalse.class))
+			.containsExactly("BrazilCIBA-6.3.5");
 	}
 
 	@Test
