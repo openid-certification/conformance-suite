@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ExtractRequestObjectFromBackchannelEndpointRequest_UnitTest {
 
 	@Test
-	public void parsedRequestObjectLogRedactsBindingMessageAndJwtValue() throws Exception {
+	public void parsedRequestObjectLogIncludesBindingMessageAndJwtValue() throws Exception {
 		CapturingEventLog capturingEventLog = new CapturingEventLog();
 		TestInstanceEventLog eventLog = new TestInstanceEventLog("UNIT-TEST", Map.of(), capturingEventLog);
 		ExtractRequestObjectFromBackchannelEndpointRequest cond =
@@ -29,14 +29,15 @@ public class ExtractRequestObjectFromBackchannelEndpointRequest_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		Environment env = new Environment();
 		String bindingMessage = "Review https://example.test/consent";
+		String requestObject = createSignedJwt(bindingMessage);
 
-		cond.processRequestObjectString(createSignedJwt(bindingMessage), env);
+		cond.processRequestObjectString(requestObject, env);
 
 		JsonObject loggedRequestObject = (JsonObject) capturingEventLog.lastMap.get("request_object");
 		assertThat(OIDFJSON.getString(loggedRequestObject.getAsJsonObject("claims").get("binding_message")))
-			.isEqualTo("[redacted]");
+			.isEqualTo(bindingMessage);
 		assertThat(OIDFJSON.getString(loggedRequestObject.get("value")))
-			.isEqualTo("[redacted because binding_message is present]");
+			.isEqualTo(requestObject);
 		assertThat(env.getString("backchannel_request_object", "claims.binding_message"))
 			.isEqualTo(bindingMessage);
 	}
