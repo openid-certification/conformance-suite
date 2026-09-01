@@ -71,10 +71,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	summary = "Tests that an Open Finance Brazil CIBA client dynamically registers over mTLS using a valid "
 		+ "Directory software statement, then completes the normal Data Consent, CIBA ping, token, encrypted "
 		+ "ID Token, and resources flow.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = FAPICIBAProfile.class,
 	values = { "plain_fapi", "openbanking_uk", "connectid_au" })

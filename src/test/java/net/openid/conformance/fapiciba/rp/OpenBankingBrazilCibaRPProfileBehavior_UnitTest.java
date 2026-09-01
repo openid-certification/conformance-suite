@@ -14,7 +14,6 @@ import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncrypt
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.SignIdToken;
-import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -164,8 +163,7 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 	@Test
 	public void usesStandardIdTokenSigningCondition() {
 		assertThat(behavior.getSignIdTokenCondition())
-			.isEqualTo(SignIdToken.class)
-			.isNotEqualTo(SignIdTokenWithX5tS256.class);
+			.isEqualTo(SignIdToken.class);
 	}
 
 	@Test
