@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,6 +39,7 @@ class FAPICIBAConfigurationFields_UnitTest {
 		"mtls2.cert",
 		"mtls2.ca"
 	);
+	private static final String BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD = "client.brazil_ciba_maximum_expiry";
 
 	private static VariantService.TestPlanHolder plan;
 	private static JsonObject variantSummary;
@@ -80,6 +82,24 @@ class FAPICIBAConfigurationFields_UnitTest {
 			ClientRegistration.DYNAMIC_CLIENT, FAPICIBAProfile.OPENBANKING_BRAZIL);
 
 		assertTrue(fields.containsAll(CLIENT_CREDENTIAL_FIELDS));
+	}
+
+	@ParameterizedTest
+	@EnumSource(ClientRegistration.class)
+	void brazilClientShowsMaximumExpiryField(ClientRegistration clientRegistration) {
+		Set<String> fields = effectiveFields(clientRegistration, FAPICIBAProfile.OPENBANKING_BRAZIL);
+
+		assertTrue(fields.contains(BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = FAPICIBAProfile.class, names = {
+		"PLAIN_FAPI", "OPENBANKING_UK", "CONNECTID_AU"
+	})
+	void nonBrazilClientDoesNotShowMaximumExpiryField(FAPICIBAProfile profile) {
+		Set<String> fields = effectiveFields(ClientRegistration.STATIC_CLIENT, profile);
+
+		assertFalse(fields.contains(BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD));
 	}
 
 	@ParameterizedTest

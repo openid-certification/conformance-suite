@@ -13,10 +13,10 @@ public class SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry extends 
 	@PostEnvironment(integers = ENVIRONMENT_KEY)
 	public Environment evaluate(Environment env) {
 		env.putInteger(ENVIRONMENT_KEY,
-			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+			OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
 		logSuccess("Set Open Finance Brasil data consent authentication request maximum expiry",
 			args("maximum_expiry_seconds",
-				OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS));
+				OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS));
 		return env;
 	}
 }

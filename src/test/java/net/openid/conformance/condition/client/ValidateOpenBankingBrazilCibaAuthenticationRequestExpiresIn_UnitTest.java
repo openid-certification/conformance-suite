@@ -29,12 +29,90 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 		condition = new ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn();
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env.putObject("authorization_endpoint_request", new JsonObject());
+		env.putObject("client", new JsonObject());
 	}
 
 	@Test
-	public void absentRequestedExpiryRequiresDataConsentMaximum() {
-		putResponseExpiresIn(86_400);
+	public void absentRequestedExpiryMayUseProductSpecificMaximumBelowDefaultCeiling() {
+		putResponseExpiresIn(3_600);
 		condition.execute(env);
+	}
+
+	@Test
+	public void configuredMaximumMakesAbsentRequestedExpiryExact() {
+		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		putResponseExpiresIn(3_600);
+
+		condition.execute(env);
+	}
+
+	@Test
+	public void configuredMaximumRejectsLowerExpiresInWhenRequestedExpiryIsAbsent() {
+		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		putResponseExpiresIn(3_599);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("expires_in does not match Open Finance Brasil requested_expiry rules");
+	}
+
+	@Test
+	public void requestedExpiryAboveDefaultCeilingMayUseLowerProductSpecificMaximum() {
+		env.getObject("authorization_endpoint_request").addProperty("requested_expiry", 86_401);
+		putResponseExpiresIn(3_600);
+
+		condition.execute(env);
+	}
+
+	@Test
+	public void requestedExpiryAboveConfiguredMaximumRequiresExactMaximum() {
+		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		env.getObject("authorization_endpoint_request").addProperty("requested_expiry", 3_601);
+		putResponseExpiresIn(3_599);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("expires_in does not match Open Finance Brasil requested_expiry rules");
+	}
+
+	@Test
+	public void expiresInAboveDefaultCeilingFailsWhenRequestedExpiryIsAbsent() {
+		putResponseExpiresIn(86_401);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("expires_in is outside the permitted Open Finance Brasil range");
+	}
+
+	@Test
+	public void nonPositiveExpiresInFailsWhenRequestedExpiryIsAbsent() {
+		putResponseExpiresIn(0);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("expires_in must be a positive integer");
+	}
+
+	@Test
+	public void invalidConfiguredMaximumFailsWithTestConfigurationLabel() {
+		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "not-an-integer");
+		putResponseExpiresIn(3_600);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("'Brazil CIBA maximum expiry' field")
+			.hasMessageContaining("in the test configuration");
+	}
+
+	@Test
+	public void nonPositiveConfiguredMaximumFailsWithTestConfigurationLabel() {
+		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "0");
+		putResponseExpiresIn(3_600);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("'Brazil CIBA maximum expiry' field")
+			.hasMessageContaining("in the test configuration");
 	}
 
 	@Test
@@ -86,6 +164,18 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 		assertThatThrownBy(() -> condition.execute(env))
 			.isInstanceOf(ConditionError.class)
 			.hasMessageContaining("expires_in is missing or is not a JSON number");
+	}
+
+	@Test
+	public void fractionalExpiresInFails() {
+		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		JsonObject response = new JsonObject();
+		response.addProperty("expires_in", 3_600.5);
+		env.putObject("backchannel_authentication_endpoint_response", response);
+
+		assertThatThrownBy(() -> condition.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("expires_in must be a positive integer");
 	}
 
 	private void putResponseExpiresIn(int expiresIn) {

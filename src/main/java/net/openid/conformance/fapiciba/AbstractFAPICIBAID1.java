@@ -235,7 +235,8 @@ import java.util.function.Supplier;
 	"directory.discoveryUrl",
 	"directory.client_id",
 	"directory.apibase",
-	"directory.keystore"
+	"directory.keystore",
+	"client.brazil_ciba_maximum_expiry"
 })
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
