@@ -1,6 +1,7 @@
 package net.openid.conformance.condition;
 
 import com.google.gson.JsonObject;
+import com.networknt.schema.SchemaRegistry;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidation;
 import net.openid.conformance.util.validation.JsonSchemaValidationException;
@@ -8,6 +9,7 @@ import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public abstract class AbstractJsonSchemaBasedValidation extends AbstractCondition {
 
@@ -28,8 +30,9 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 			JsonSchemaValidationResult validationResult = jsonSchemaValidation.validate(inputJsonObject);
 			if (!validationResult.isValid()) {
 				onValidationFailure(env, validationResult, input);
+			} else {
+				onValidationSuccess(env, input);
 			}
-			onValidationSuccess(env, input);
 		} catch (IOException e) {
 			throw new RuntimeException("JSON Schema based input validation failed", e);
 		}
@@ -46,7 +49,30 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 	}
 
 	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {
-		return new JsonSchemaValidation(input.getSchemaResource());
+		JsonSchemaValidation validation = new JsonSchemaValidation(input.getSchemaResource());
+		validation.setIgnoreUnknownPropertyStrictness(ignoreUnknownPropertyStrictness());
+		validation.setSchemaBuilderCustomizer(schemaBuilderCustomizer());
+		return validation;
+	}
+
+	/**
+	 * Schema registry customizer applied when the schema is built (e.g. to map cross-document
+	 * $refs onto classpath resources); null (the default) for none.
+	 */
+	protected Consumer<SchemaRegistry.Builder> schemaBuilderCustomizer() {
+		return null;
+	}
+
+	/**
+	 * Structural validators (called with FAILURE) that have a paired unknown-property condition
+	 * (called with WARNING) can override this to return true so that unknown properties never fail
+	 * them, not even indirectly via composite oneOf/anyOf errors; see
+	 * {@link JsonSchemaValidation#setIgnoreUnknownPropertyStrictness}. Before enabling this for a
+	 * schema, check it has no oneOf branches discriminated only by {@code additionalProperties:
+	 * false} - removing the keyword would let such a payload match more than one branch.
+	 */
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return false;
 	}
 
 }

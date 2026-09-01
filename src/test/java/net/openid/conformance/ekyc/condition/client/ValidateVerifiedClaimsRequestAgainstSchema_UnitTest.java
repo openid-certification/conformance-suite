@@ -347,27 +347,20 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noError_vouch_can_contain_document_details_without_document_branch_validation() {
+	public void testEvaluate_noError_essential_on_evidence_type() {
+		// IDA section 5.3 allows essential on requested elements; evidence/type is no exception.
 		String request = """
 			{
 			  "claims": {
 			    "id_token": {
 			      "verified_claims": {
-			        "claims": {
-			          "given_name": null
-			        },
+			        "claims": {"given_name": null},
 			        "verification": {
-			          "trust_framework": {
-			            "value": "de_aml"
-			          },
-			          "evidence": [
-			            {
-			              "type": {
-			                "value": "vouch"
-			              },
-			              "document_details": "ignored-for-vouch"
-			            }
-			          ]
+			          "trust_framework": {"value": "de_aml"},
+			          "evidence": [{
+			            "type": {"essential": true, "value": "document"},
+			            "document_details": {"type": null}
+			          }]
 			        }
 			      }
 			    }
@@ -376,6 +369,78 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 			""";
 
 		assertDoesNotThrow(() -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_fail_values_on_evidence_type() {
+		// IDA section 5.4: "The values sub-element shall not be used for the evidence/type
+		// field." - a shall-not, so it must fail this (FAILURE) condition rather than only
+		// the unknown-property warning.
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {"given_name": null},
+			        "verification": {
+			          "trust_framework": {"value": "de_aml"},
+			          "evidence": [{
+			            "type": {"values": ["document", "vouch"]}
+			          }]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertThrows(ConditionError.class, () -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_fail_evidence_type_without_value() {
+		// IDA section 5.4: "The RP therefore shall specify this type by including the type field
+		// including a suitable value sub-element value." - a shall, so an evidence entry whose
+		// type has no value must fail this (FAILURE) condition.
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {"given_name": null},
+			        "verification": {
+			          "trust_framework": {"value": "de_aml"},
+			          "evidence": [{
+			            "type": {"essential": true}
+			          }]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertThrows(ConditionError.class, () -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_noError_unknown_property_in_document_details() {
+		// Unknown properties are reported (as a warning) by
+		// CheckForUnexpectedPropertiesInVerifiedClaimsRequest, not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_DOCUMENT_DETAILS));
+	}
+
+	@Test
+	public void testEvaluate_noError_unknown_property_in_check_details() {
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.REQUEST_UNKNOWN_PROPERTY_IN_CHECK_DETAILS));
+	}
+
+	@Test
+	public void testEvaluate_noError_vouch_can_contain_document_details_without_document_branch_validation() {
+		// Fields from a non-matching evidence branch are unevaluated properties; they are
+		// reported (as a warning) by CheckForUnexpectedPropertiesInVerifiedClaimsRequest,
+		// not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.REQUEST_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE));
 	}
 
 	@Test
@@ -442,5 +507,12 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 			""";
 
 		assertThrows(ConditionError.class, () -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_claimsNotAnObjectIsAConditionErrorNotACrash() {
+		assertThrows(ConditionError.class, () -> runTest("""
+			{"claims": "not-an-object"}
+			"""));
 	}
 }

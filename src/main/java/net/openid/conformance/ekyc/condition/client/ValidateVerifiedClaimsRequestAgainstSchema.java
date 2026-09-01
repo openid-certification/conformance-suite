@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidationInput;
-import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 public class ValidateVerifiedClaimsRequestAgainstSchema extends AbstractEkycSchemaBasedValidation {
 
@@ -17,12 +16,15 @@ public class ValidateVerifiedClaimsRequestAgainstSchema extends AbstractEkycSche
 		return new JsonSchemaValidationInput("verified_claims request", SCHEMA_RESOURCE, claims);
 	}
 
+	/**
+	 * Unknown properties are surfaced (as a warning) by
+	 * {@link CheckForUnexpectedPropertiesInVerifiedClaimsRequest}, not by this condition, per
+	 * IAVC 5.2 ("Implementations shall ignore any sub-element not defined in this specification or
+	 * extensions of this specification").
+	 */
 	@Override
-	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
-		if (!structuralErrors.isValid()) {
-			super.onValidationFailure(env, structuralErrors, input);
-		}
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return true;
 	}
 
 	@Override
@@ -32,6 +34,10 @@ public class ValidateVerifiedClaimsRequestAgainstSchema extends AbstractEkycSche
 		if (!authorizationRequest.has("claims")) {
 			logSuccess("No claims to validate against request schema");
 			return env;
+		}
+		if (!authorizationRequest.get("claims").isJsonObject()) {
+			throw error("The claims member of the authorization request is not a JSON object",
+				args("claims", authorizationRequest.get("claims")));
 		}
 
 		return super.evaluate(env);

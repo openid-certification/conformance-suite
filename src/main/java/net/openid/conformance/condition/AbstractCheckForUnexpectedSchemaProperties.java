@@ -17,8 +17,12 @@ import java.util.Set;
 
 /**
  * Base class for conditions that check for unknown/additional properties in schema-validated JSON.
- * Filters validation messages to only report additionalProperties errors, ignoring structural
- * errors (which are handled by the main validator condition).
+ * Reports only the errors {@link JsonSchemaValidationResult#unknownPropertyErrors()} attributes to
+ * unknown properties (which excludes sibling oneOf/anyOf branches' additionalProperties artefacts).
+ * Structural errors are never reported here - those are handled by the paired structural validator
+ * condition - but they do not suppress this condition either: unknown properties that can still be
+ * attributed reliably (the attribution errs towards under-reporting inside a structurally failed
+ * oneOf/anyOf) are warned about even in an otherwise invalid input.
  *
  * Subclasses may override {@link #getAllowUnexpectedFieldsConfigKey()} to let a test configuration
  * suppress the warning for specific known-extension property names that the schema does not (yet)
@@ -26,33 +30,59 @@ import java.util.Set;
  */
 public abstract class AbstractCheckForUnexpectedSchemaProperties extends AbstractJsonSchemaBasedValidation {
 
+	/**
+	 * A clean schema validation means nothing to report here, not that the input as a whole is
+	 * valid - that is the paired structural validator's verdict to give. Say what this condition
+	 * checked, in the same words as the failure path's equivalent outcome below.
+	 */
+	@Override
+	protected void onValidationSuccess(Environment env, JsonSchemaValidationInput input) {
+		logNoUnknownProperties(input);
+	}
+
+	private void logNoUnknownProperties(JsonSchemaValidationInput input) {
+		logSuccess("No unknown properties were found in the " + input.getInputName(),
+			args("input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
+	}
+
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult additionalPropsResult = validationResult.onlyUnknownPropertyErrors();
-		if (!additionalPropsResult.isValid()) {
-			Set<String> ignored = getIgnoredPropertyNames(env);
-			List<JsonObject> unknownProps = new ArrayList<>();
-			for (Error msg : additionalPropsResult.getValidationMessages()) {
-				if (ignored.contains(msg.getProperty())) {
-					continue;
-				}
-				JsonObject entry = new JsonObject();
-				entry.addProperty("property", msg.getProperty());
-				entry.addProperty("path", JsonSchemaValidation.toInstancePropertyPath(msg.getInstanceLocation(), msg.getProperty()));
-				unknownProps.add(entry);
+		// Structural errors are reported by the paired structural validation condition (run with
+		// FAILURE); this condition only reports the unknown properties unknownPropertyErrors()
+		// can attribute reliably.
+		Set<String> ignored = getIgnoredPropertyNames(env);
+		List<JsonObject> unknownProps = new ArrayList<>();
+		List<String> allowListed = new ArrayList<>();
+		for (Error msg : validationResult.unknownPropertyErrors().getValidationMessages()) {
+			String path = JsonSchemaValidation.toInstancePropertyPath(msg.getInstanceLocation(), msg.getProperty());
+			if (ignored.contains(msg.getProperty())) {
+				allowListed.add(path);
+				continue;
 			}
-			if (!unknownProps.isEmpty()) {
-				String configKey = getAllowUnexpectedFieldsConfigKey();
-				String suppressHint = configKey != null
-					? " If these are known extensions, add their names to the '" + configKey + "' array in the test configuration to suppress this warning."
-					: "";
-				throw error("Unknown properties were found in the " + input.getInputName()
-						+ ". This may indicate the sender has misunderstood the spec, or it may be using extensions the test suite is unaware of."
-						+ suppressHint
-						+ " If they are derived from a specification, please open an issue at " + NEW_ISSUE_URL + " (or, if you are unable to, email " + SUPPORT_EMAIL + ") so the test suite can be updated.",
-					args("unknown_properties", unknownProps, "input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
-			}
+			JsonObject entry = new JsonObject();
+			entry.addProperty("property", msg.getProperty());
+			entry.addProperty("path", path);
+			unknownProps.add(entry);
 		}
+		if (unknownProps.isEmpty()) {
+			if (allowListed.isEmpty()) {
+				logNoUnknownProperties(input);
+			} else {
+				logSuccess("The only unknown properties found in the " + input.getInputName()
+						+ " are allow-listed in the '" + getAllowUnexpectedFieldsConfigKey() + "' array in the test configuration",
+					args("allow_listed_properties", allowListed, "input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
+			}
+			return;
+		}
+		String configKey = getAllowUnexpectedFieldsConfigKey();
+		String suppressHint = configKey != null
+			? " If these are known extensions, add their names to the '" + configKey + "' array in the test configuration to suppress this warning."
+			: "";
+		throw error("Unknown properties were found in the " + input.getInputName()
+				+ ". This may indicate the sender has misunderstood the spec, or it may be using extensions the test suite is unaware of."
+				+ suppressHint
+				+ " If they are derived from a specification, please open an issue at " + NEW_ISSUE_URL + " (or, if you are unable to, email " + SUPPORT_EMAIL + ") so the test suite can be updated.",
+			args("unknown_properties", unknownProps, "input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
 	}
 
 	/**
