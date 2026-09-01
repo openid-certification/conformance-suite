@@ -130,9 +130,11 @@ if [ -n "$NGROK_URL" ]; then
         echo "==> Generating VP test cert with ngrok hostname in SAN..."
         # Regenerate the leaf signing keys under the committed CA so runtime chains
         # match the CA registered with external trust lists (e.g. the Geneva RICAL).
-        # vp-server-jwk.json is NOT regenerated: it signs the status
-        # list tokens for the VCI wallet tests, whose credential chain is the static
-        # vci-test-root.crt hierarchy in the configs, so it is minted under that root.
+        # vp-server-jwk.json is NOT regenerated: it signs the VCI wallet tests' status
+        # list tokens and is minted under certs-keys/vci-test-root.crt.
+        # To re-mint it, run this script's generator by hand with --ca-key-input
+        # certs-keys/vci-test-root-key.json --ca-cert-input certs-keys/vci-test-root.crt
+        # --server-output certs-keys/vp-server-jwk.json, and commit the result.
         python3 "${SUITE_DIR}/scripts/generate-vp-test-cert.py" \
             --hostname "$NGROK_HOSTNAME" \
             --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json" \
