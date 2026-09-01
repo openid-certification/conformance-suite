@@ -79,6 +79,8 @@ public class OpenBankingBrazilDynamicClientRegistrationCredentialSetup extends A
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 		Command restoreDirectoryMappings = exec().unmapKey("server");
 		if (secondClient) {
+			// mapKey replaces the temporary client -> directory_client mapping directly. Unmapping it
+			// first would expose the first client's unmapped "client" key instead of restoring client2.
 			restoreDirectoryMappings.mapKey("client", "client2");
 		} else {
 			restoreDirectoryMappings.unmapKey("client");
