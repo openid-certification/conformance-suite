@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.as.FetchClientKeys;
 import net.openid.conformance.condition.as.GenerateRegistrationAccessToken;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
@@ -21,6 +20,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirect
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenEncryptionConfig;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSSASignature;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSoftwareStatementIat;
@@ -163,8 +163,6 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 
 		env.mapKey("client", "dynamic_registration_request");
 		validateClientRegistrationMetadata();
-		callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
-			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 		env.unmapKey("client");
 
 		validateBrazilRegistrationMetadata();
@@ -218,6 +216,8 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 			"BrazilOB-6.2");
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class,
 			Condition.ConditionResult.FAILURE, "OIDCR-2");
+		callAndStopOnFailure(FAPIBrazilValidateIdTokenEncryptionConfig.class,
+			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3", "BrazilCIBA-6.3.8");
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
