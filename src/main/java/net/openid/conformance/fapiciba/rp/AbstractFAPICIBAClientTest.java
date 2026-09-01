@@ -792,7 +792,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 			sendPingRequestAndVerifyResponse();
 
-			ensurePingCompletionCanRun();
+			if (!ensurePingCompletionCanRun()) {
+				return "done";
+			}
 			call(exec().endBlock());
 			pingRequestComplete();
 
@@ -800,10 +802,15 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		});
 	}
 
-	private void ensurePingCompletionCanRun() {
-		if (!env.getLock().isHeldByCurrentThread()) {
-			setStatus(Status.RUNNING);
-		}
+	/**
+	 * The outbound notification condition releases the test lock while it waits for the client's
+	 * HTTP response. The client can synchronously redeem the {@code auth_req_id} and call a resource
+	 * endpoint during that interval, and that endpoint can leave the test in {@link Status#WAITING}
+	 * or finish it. Continue the ping thread only while it still owns the lock, or when it can
+	 * atomically resume a waiting test. A terminal test must not be changed back to RUNNING.
+	 */
+	private boolean ensurePingCompletionCanRun() {
+		return env.getLock().isHeldByCurrentThread() || setStatusRunningIfWaiting();
 	}
 
 	protected void pingRequestComplete() {
