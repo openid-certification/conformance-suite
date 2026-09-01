@@ -294,6 +294,17 @@ describe("buildConfigFormSchema", () => {
     expect(section.intro).toContain("/mdoc-iaca-root.pem");
   });
 
+  it("renders the Brazil CIBA maximum expiry field from the real catalog", () => {
+    const plan = { configurationFields: ["client.brazil_ciba_maximum_expiry"] };
+    const { schema, uiSchema } = buildConfigFormSchema(plan, CATALOG_REAL);
+    const field = schema.properties["client.brazil_ciba_maximum_expiry"];
+    const section = uiSchema.sections.find((candidate) => candidate.key === "client");
+
+    expect(field.title).toBe("Brazil CIBA maximum expiry");
+    expect(field.description).toContain("product or service rule being tested");
+    expect(section.fields).toContain("client.brazil_ciba_maximum_expiry");
+  });
+
   it("omits sections whose catalog fields are all outside the applicable set", () => {
     const plan = { configurationFields: ["alias"] };
     const { uiSchema } = buildConfigFormSchema(plan, CATALOG);

@@ -60,7 +60,7 @@ public class CreateBackchannelEndpointResponse_UnitTest {
 	@Test
 	public void usesProfileMaximumWhenRequestedExpiryIsAbsent() {
 		env.putInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY,
-			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+			OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
 		cond.execute(env);
 		assertEquals(86_400, env.getInteger("backchannel_endpoint_response", "expires_in"));
 	}
@@ -68,7 +68,7 @@ public class CreateBackchannelEndpointResponse_UnitTest {
 	@Test
 	public void usesRequestedExpiryWhenItDoesNotExceedProfileMaximum() {
 		env.putInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY,
-			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+			OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
 		env.putInteger("requested_expiry", 30);
 		cond.execute(env);
 		assertEquals(30, env.getInteger("backchannel_endpoint_response", "expires_in"));
@@ -77,7 +77,7 @@ public class CreateBackchannelEndpointResponse_UnitTest {
 	@Test
 	public void capsRequestedExpiryAtProfileMaximum() {
 		env.putInteger(SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.ENVIRONMENT_KEY,
-			OpenBankingBrazilCibaProfileConstants.DATA_CONSENT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+			OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
 		env.putInteger("requested_expiry", 86_401);
 		cond.execute(env);
 		assertEquals(86_400, env.getInteger("backchannel_endpoint_response", "expires_in"));

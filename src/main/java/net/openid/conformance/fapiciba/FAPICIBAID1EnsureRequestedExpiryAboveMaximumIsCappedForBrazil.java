@@ -1,6 +1,6 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.client.AddRequestedExp86401sToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRequestedExpiryAboveConfiguredMaximumToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -8,7 +8,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-requested-expiry-above-maximum-is-capped-for-brazil",
 	displayName = "FAPI-CIBA-ID1: Ensure requested_expiry is capped for Brazil",
-	summary = "This test requests an authentication lifetime one second above the Open Finance Brasil data-consent maximum and requires expires_in to be capped at 86400 seconds.",
+	summary = "This test requests an authentication lifetime one second above the configured Open Finance Brasil product or service maximum. The authorization server must return an expires_in value that does not exceed that maximum.",
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = FAPICIBAProfile.class,
@@ -19,7 +19,7 @@ public class FAPICIBAID1EnsureRequestedExpiryAboveMaximumIsCappedForBrazil
 	@Override
 	protected void createAuthorizationRequest() {
 		super.createAuthorizationRequest();
-		callAndStopOnFailure(AddRequestedExp86401sToAuthorizationEndpointRequest.class,
+		callAndStopOnFailure(AddRequestedExpiryAboveConfiguredMaximumToAuthorizationEndpointRequest.class,
 			"BrazilCIBA-6.2.6");
 	}
 }
