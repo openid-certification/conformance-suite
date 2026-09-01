@@ -813,11 +813,26 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		performAuthorizationRequest();
 
+		if (handleAuthorizationEndpointErrorResponse()) {
+			eventLog.endBlock();
+			fireTestFinished();
+			return;
+		}
+
 		performValidateAuthorizationResponse();
+		performAdditionalAuthorizationResponseValidation();
 
 		eventLog.endBlock();
 
 		performPostAuthorizationResponse();
+	}
+
+	protected boolean handleAuthorizationEndpointErrorResponse() {
+		return false;
+	}
+
+	protected void performAdditionalAuthorizationResponseValidation() {
+		// No additional response validation by default.
 	}
 
 	protected void waitForPollingAuthenticationToComplete(long delaySeconds) {

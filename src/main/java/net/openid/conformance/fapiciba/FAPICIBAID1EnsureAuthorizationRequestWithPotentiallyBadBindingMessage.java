@@ -28,35 +28,16 @@ public class FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessa
 	}
 
 	@Override
-	protected void performAuthorizationFlow() {
-
-		performPreAuthorizationSteps();
-
-		eventLog.startBlock(currentClientString() + "Call backchannel authentication endpoint");
-
-		createAuthorizationRequest();
-
-		performAuthorizationRequest();
-
+	protected boolean handleAuthorizationEndpointErrorResponse() {
 		JsonObject callbackParams = env.getObject("backchannel_authentication_endpoint_response");
-
-		if (callbackParams != null && callbackParams.has("error")) {
-
-			validateErrorFromBackchannelAuthorizationRequestResponse();
-
-			callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage.class, Condition.ConditionResult.FAILURE, "CIBA-13");
-
-			fireTestFinished();
-
-		} else {
-
-			performValidateAuthorizationResponse();
-
-			eventLog.endBlock();
-
-			performPostAuthorizationResponse();
-
+		if (callbackParams == null || !callbackParams.has("error")) {
+			return false;
 		}
+
+		validateErrorFromBackchannelAuthorizationRequestResponse();
+		callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage.class,
+			Condition.ConditionResult.FAILURE, "CIBA-13");
+		return true;
 	}
 
 	@Override
