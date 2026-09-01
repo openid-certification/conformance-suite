@@ -125,17 +125,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 			throw new TestFailureException(getId(),
 				"Open Finance Brazil dynamic client registration must use the mTLS registration endpoint");
 		}
-		String registrationClientPath = env.getString("registration_client_uri", "path");
-		if (registrationClientPath != null && registrationClientPath.equals(path)
-			&& isCleanupDelete(requestParts)) {
-			registrationCleanupRequestComplete(false);
-			return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
-		}
 		return super.handleHttp(path, req, res, session, requestParts);
-	}
-
-	private boolean isCleanupDelete(JsonObject requestParts) {
-		return "DELETE".equals(OIDFJSON.getString(requestParts.get("method")));
 	}
 
 	private String storeIncomingRequestAndCheckTls(JsonObject requestParts) {
@@ -289,19 +279,16 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.3");
 		callAndStopOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.3");
 		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
-		registrationCleanupRequestComplete(true);
+		registrationCleanupRequestComplete();
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
-	private void registrationCleanupRequestComplete(boolean requestHasTestLock) {
+	private void registrationCleanupRequestComplete() {
 		registrationCleanupReceived.set(true);
 		if (registrationCleanupGracePeriodScheduled.get()
 			&& completionStarted.compareAndSet(false, true)) {
-			if (!requestHasTestLock) {
-				setStatus(Status.RUNNING);
-			}
 			fireTestFinished();
-		} else if (requestHasTestLock) {
+		} else {
 			setStatus(Status.WAITING);
 		}
 	}

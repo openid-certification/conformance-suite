@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -149,7 +150,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 	}
 
 	@Test
-	public void plainHttpCleanupDuringGracePeriodFinishesWithoutWaitingForFallback() throws Exception {
+	public void plainHttpCleanupFailsAndDoesNotCompleteTheTest() {
 		TestableFAPICIBAClientBrazilDCRHappyPathTest test =
 			new TestableFAPICIBAClientBrazilDCRHappyPathTest();
 		test.getEnv().putString("registration_client_uri", "path", "clienturi/test");
@@ -157,13 +158,10 @@ public class FAPICIBAClientBrazilDCRHappyPathTest_UnitTest {
 		requestParts.addProperty("method", "DELETE");
 		test.completeResourceEndpointCall();
 
-		test.handleHttp("clienturi/test", null, null, null, requestParts);
+		assertThatThrownBy(() -> test.handleHttp("clienturi/test", null, null, null, requestParts))
+			.hasMessageContaining("Got unexpected HTTP call to clienturi/test");
 
-		assertThat(test.finishCount).isEqualTo(1);
-
-		test.runScheduledFinishTask();
-
-		assertThat(test.finishCount).isEqualTo(1);
+		assertThat(test.finishCount).isZero();
 	}
 
 	@Test
