@@ -43,20 +43,11 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn extends
 
 		JsonElement expiresInElement = env.getElementFromObject(
 			"backchannel_authentication_endpoint_response", "expires_in");
-		if (expiresInElement == null || !expiresInElement.isJsonPrimitive()
-			|| !expiresInElement.getAsJsonPrimitive().isNumber()) {
-			throw error("expires_in is missing or is not a JSON number",
+		Integer actualExpiresIn = getPositiveInteger(expiresInElement);
+		if (actualExpiresIn == null) {
+			log("Skipped Open Finance Brasil expires_in relationship validation because CIBA-Core validation handles missing or invalid expires_in",
 				args("expires_in", expiresInElement));
-		}
-
-		int actualExpiresIn;
-		try {
-			actualExpiresIn = new BigDecimal(OIDFJSON.getNumber(expiresInElement).toString()).intValueExact();
-		} catch (ArithmeticException e) {
-			throw error("expires_in must be a positive integer", args("expires_in", expiresInElement));
-		}
-		if (actualExpiresIn <= 0) {
-			throw error("expires_in must be a positive integer", args("expires_in", expiresInElement));
+			return env;
 		}
 
 		boolean exactValueRequired = maximumExpiry.explicitlyConfigured()
@@ -85,5 +76,19 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn extends
 			"maximum_expiry_explicitly_configured", maximumExpiry.explicitlyConfigured(),
 			"actual_expires_in", actualExpiresIn));
 		return env;
+	}
+
+	private Integer getPositiveInteger(JsonElement element) {
+		if (element == null || !element.isJsonPrimitive()
+			|| !element.getAsJsonPrimitive().isNumber()) {
+			return null;
+		}
+
+		try {
+			int value = new BigDecimal(OIDFJSON.getNumber(element).toString()).intValueExact();
+			return value > 0 ? value : null;
+		} catch (ArithmeticException | NumberFormatException e) {
+			return null;
+		}
 	}
 }

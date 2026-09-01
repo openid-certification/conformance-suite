@@ -57,6 +57,7 @@ import java.util.Map;
 		FAPICIBAID1EnsureAuthorizationRequestWithUserCodeFailsForBrazil.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithInvalidLoginHintFailsForBrazil.class,
 		FAPICIBAID1EnsureRequestedExpiryZeroFailsForBrazil.class,
+		FAPICIBAID1EnsureRequestedExpiryNegativeFailsForBrazil.class,
 
 		// Negative tests for token endpoint
 		FAPICIBAID1EnsureWrongAuthenticationRequestIdInTokenEndpointRequest.class,

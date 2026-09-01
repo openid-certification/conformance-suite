@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddRequestedExp60sToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointWasRetried;
+import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn;
 import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +69,16 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 			.endsWith(AddRequestedExp60sToAuthorizationEndpointRequest.class);
 		assertThat(module.conditionRequirements)
 			.endsWith(List.of("CIBA-7.1", "BrazilCIBA-6.3.7"));
+	}
+
+	@Test
+	public void wiresBrazilExpiryValidationIntoAuthorizationResponseValidation() {
+		module.performValidateAuthorizationResponse();
+
+		assertThat(module.conditionClasses)
+			.endsWith(ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn.class);
+		assertThat(module.conditionRequirements)
+			.endsWith(List.of("BrazilCIBA-6.2.6"));
 	}
 
 	@Test
@@ -208,7 +220,14 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 
 		@Override
 		protected void call(ConditionSequence sequence) {
-			// Profile sequence shape and condition behavior are covered by dedicated unit tests.
+			sequence.evaluate();
+			sequence.getTestExecutionUnits().stream()
+				.filter(ConditionCallBuilder.class::isInstance)
+				.map(ConditionCallBuilder.class::cast)
+				.forEach(builder -> {
+					conditionClasses.add(builder.getConditionClass());
+					conditionRequirements.add(List.of(builder.getRequirements()));
+				});
 		}
 
 		@Override

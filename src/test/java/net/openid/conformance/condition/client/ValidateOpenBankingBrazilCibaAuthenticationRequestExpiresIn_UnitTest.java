@@ -85,12 +85,10 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 	}
 
 	@Test
-	public void nonPositiveExpiresInFailsWhenRequestedExpiryIsAbsent() {
+	public void nonPositiveExpiresInIsLeftToCoreValidation() {
 		putResponseExpiresIn(0);
 
-		assertThatThrownBy(() -> condition.execute(env))
-			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("expires_in must be a positive integer");
+		condition.execute(env);
 	}
 
 	@Test
@@ -147,35 +145,29 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 	}
 
 	@Test
-	public void missingExpiresInFails() {
+	public void missingExpiresInIsLeftToCoreValidation() {
 		env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
 
-		assertThatThrownBy(() -> condition.execute(env))
-			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("expires_in is missing or is not a JSON number");
+		condition.execute(env);
 	}
 
 	@Test
-	public void stringExpiresInFails() {
+	public void stringExpiresInIsLeftToCoreValidation() {
 		JsonObject response = new JsonObject();
 		response.addProperty("expires_in", "86400");
 		env.putObject("backchannel_authentication_endpoint_response", response);
 
-		assertThatThrownBy(() -> condition.execute(env))
-			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("expires_in is missing or is not a JSON number");
+		condition.execute(env);
 	}
 
 	@Test
-	public void fractionalExpiresInFails() {
+	public void fractionalExpiresInIsLeftToCoreValidation() {
 		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
 		JsonObject response = new JsonObject();
 		response.addProperty("expires_in", 3_600.5);
 		env.putObject("backchannel_authentication_endpoint_response", response);
 
-		assertThatThrownBy(() -> condition.execute(env))
-			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("expires_in must be a positive integer");
+		condition.execute(env);
 	}
 
 	private void putResponseExpiresIn(int expiresIn) {
