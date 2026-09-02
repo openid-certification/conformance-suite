@@ -3,14 +3,13 @@ package net.openid.conformance.openid.ssf;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "openid-ssf-transmitter-caep-test-plan",
-	displayName = "OpenID Shared Signals Framework 1.0 Final/CAEP Interop Profile: Transmitter (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
+	displayName = "OpenID Shared Signals Framework 1.0 Final/CAEP Interop Profile: Transmitter - alpha tests (not currently part of certification program - please email certification@oidf.org)",
 	summary = """
 		Collection of tests to verify the behavior of an OpenID Shared Signals Framework Transmitter
 		against the CAEP Interop Profile 1.0.
@@ -50,11 +49,6 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 		return List.of(new ModuleListEntry(testModules, List.of(
 			new Variant(SsfProfile.class, SsfProfile.CAEP_INTEROP)
 		)));
-	}
-
-	@Override
-	public List<String> certificationProfileName(VariantSelection variants) {
-		return List.of("OpenID SSF Transmitter 1.0 Final+CAEP-Interop-1.0-ID2");
 	}
 
 }
