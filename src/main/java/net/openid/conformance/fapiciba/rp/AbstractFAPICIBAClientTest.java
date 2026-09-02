@@ -127,7 +127,8 @@ import org.springframework.http.ResponseEntity;
 	"client.scope"
 })
 @VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.keystore"
+	"directory.keystore",
+	"client.brazil_ciba_maximum_expiry"
 })
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
 	"client.backchannel_client_notification_endpoint"

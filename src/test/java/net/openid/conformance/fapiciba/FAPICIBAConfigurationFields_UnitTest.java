@@ -43,6 +43,8 @@ class FAPICIBAConfigurationFields_UnitTest {
 
 	private static VariantService.TestPlanHolder plan;
 	private static JsonObject variantSummary;
+	private static VariantService.TestPlanHolder clientPlan;
+	private static JsonObject clientVariantSummary;
 
 	@BeforeAll
 	static void setUp() {
@@ -50,6 +52,9 @@ class FAPICIBAConfigurationFields_UnitTest {
 		plan = variantService.getTestPlan("fapi-ciba-id1-test-plan");
 		assertNotNull(plan);
 		variantSummary = new Gson().toJsonTree(plan.getVariantSummary()).getAsJsonObject();
+		clientPlan = variantService.getTestPlan("fapi-ciba-id1-client-test-plan");
+		assertNotNull(clientPlan);
+		clientVariantSummary = new Gson().toJsonTree(clientPlan.getVariantSummary()).getAsJsonObject();
 	}
 
 	@Test
@@ -102,6 +107,26 @@ class FAPICIBAConfigurationFields_UnitTest {
 		assertFalse(fields.contains(BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD));
 	}
 
+	@Test
+	void brazilRpEmulatorShowsMaximumExpiryField() {
+		Set<String> fields = effectiveFields(
+			clientPlan,
+			clientVariantSummary,
+			Map.of("fapi_ciba_profile", FAPICIBAProfile.OPENBANKING_BRAZIL.toString()));
+
+		assertTrue(fields.contains(BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD));
+	}
+
+	@Test
+	void plainFapiRpEmulatorDoesNotShowMaximumExpiryField() {
+		Set<String> fields = effectiveFields(
+			clientPlan,
+			clientVariantSummary,
+			Map.of("fapi_ciba_profile", FAPICIBAProfile.PLAIN_FAPI.toString()));
+
+		assertFalse(fields.contains(BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD));
+	}
+
 	@ParameterizedTest
 	@EnumSource(FAPICIBAProfile.class)
 	void staticClientShowsClientCredentialFields(FAPICIBAProfile profile) {
@@ -122,21 +147,29 @@ class FAPICIBAConfigurationFields_UnitTest {
 
 	private static Set<String> effectiveFields(
 		ClientRegistration clientRegistration, FAPICIBAProfile profile) {
-		Set<String> fields = new HashSet<>(plan.configurationFields());
-		for (Map<String, Object> module : plan.getTestModulesWithConfigFields()) {
+		return effectiveFields(
+			plan,
+			variantSummary,
+			Map.of(
+				"client_registration", clientRegistration.toString(),
+				"fapi_ciba_profile", profile.toString()));
+	}
+
+	private static Set<String> effectiveFields(
+		VariantService.TestPlanHolder selectedPlan,
+		JsonObject selectedVariantSummary,
+		Map<String, String> selection) {
+		Set<String> fields = new HashSet<>(selectedPlan.configurationFields());
+		for (Map<String, Object> module : selectedPlan.getTestModulesWithConfigFields()) {
 			Object moduleFields = module.get("configurationFields");
 			if (moduleFields instanceof Collection<?> collection) {
 				collection.stream().map(String::valueOf).forEach(fields::add);
 			}
 		}
 
-		Set<String> hiddenFields = new HashSet<>(plan.hidesConfigurationFields());
-		Map<String, String> selection = Map.of(
-			"client_registration", clientRegistration.toString(),
-			"fapi_ciba_profile", profile.toString()
-		);
+		Set<String> hiddenFields = new HashSet<>(selectedPlan.hidesConfigurationFields());
 		selection.forEach((parameter, value) -> {
-			JsonObject variantValue = variantSummary
+			JsonObject variantValue = selectedVariantSummary
 				.getAsJsonObject(parameter)
 				.getAsJsonObject("variantValues")
 				.getAsJsonObject(value);

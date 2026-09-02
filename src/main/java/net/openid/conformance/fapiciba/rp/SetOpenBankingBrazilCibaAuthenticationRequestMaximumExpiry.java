@@ -2,7 +2,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.fapiciba.OpenBankingBrazilCibaProfileConstants;
+import net.openid.conformance.fapiciba.OpenBankingBrazilCibaMaximumExpiry;
 import net.openid.conformance.testmodule.Environment;
 
 public class SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry extends AbstractCondition {
@@ -12,11 +12,17 @@ public class SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry extends 
 	@Override
 	@PostEnvironment(integers = ENVIRONMENT_KEY)
 	public Environment evaluate(Environment env) {
-		env.putInteger(ENVIRONMENT_KEY,
-			OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS);
+		OpenBankingBrazilCibaMaximumExpiry.MaximumExpiry maximumExpiry;
+		try {
+			maximumExpiry = OpenBankingBrazilCibaMaximumExpiry.resolve(env);
+		} catch (IllegalArgumentException e) {
+			throw error(e.getMessage());
+		}
+
+		env.putInteger(ENVIRONMENT_KEY, maximumExpiry.seconds());
 		logSuccess("Set Open Finance Brasil data consent authentication request maximum expiry",
-			args("maximum_expiry_seconds",
-				OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS));
+			args("maximum_expiry_seconds", maximumExpiry.seconds(),
+				"maximum_expiry_explicitly_configured", maximumExpiry.explicitlyConfigured()));
 		return env;
 	}
 }
