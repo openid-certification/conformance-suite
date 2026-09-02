@@ -2,6 +2,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.fapiciba.OpenBankingBrazilCibaMaximumExpiry;
 import net.openid.conformance.testmodule.Environment;
 
@@ -10,6 +11,7 @@ public class SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry extends 
 	public static final String ENVIRONMENT_KEY = "backchannel_authentication_request_maximum_expiry";
 
 	@Override
+	@PreEnvironment(required = "config")
 	@PostEnvironment(integers = ENVIRONMENT_KEY)
 	public Environment evaluate(Environment env) {
 		OpenBankingBrazilCibaMaximumExpiry.MaximumExpiry maximumExpiry;

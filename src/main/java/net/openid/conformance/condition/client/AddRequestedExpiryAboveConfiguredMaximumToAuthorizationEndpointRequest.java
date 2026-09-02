@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 public class AddRequestedExpiryAboveConfiguredMaximumToAuthorizationEndpointRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "authorization_endpoint_request")
+	@PreEnvironment(required = {"config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		OpenBankingBrazilCibaMaximumExpiry.MaximumExpiry maximumExpiry;
