@@ -228,9 +228,13 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected HttpStatus createBackchannelResponse() {
-		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
+	}
+
+	protected final HttpStatus createProfileSpecificBackchannelResponse() {
+		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
+		return createBackchannelResponse();
 	}
 
 	protected void createIntermediateTokenResponse() {
@@ -764,7 +768,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().mapKey("incoming_request", requestId));
 		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 
-		HttpStatus httpStatus = createBackchannelResponse();
+		HttpStatus httpStatus = createProfileSpecificBackchannelResponse();
 		call(profileBehavior.addFapiInteractionIdToBackchannelEndpointResponse());
 
 		if(CIBAMode.PING.equals(cibaMode)) {
