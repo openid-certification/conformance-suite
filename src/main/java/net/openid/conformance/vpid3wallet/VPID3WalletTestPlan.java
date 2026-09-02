@@ -10,7 +10,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-id3-wallet-test-plan",
-	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a wallet (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
+	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a wallet - alpha tests (not part of certification program - use the OID4VP 1.0 Final HAIP wallet plan to certify)",
 	profile = TestPlan.ProfileNames.wallettest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,
 	specVersion = TestPlan.SpecVersionNames.oid4vpId3
@@ -39,6 +39,12 @@ public class VPID3WalletTestPlan implements TestPlan {
 			)
 		);
 	}
+	/**
+	 * This plan is not part of the certification program - the OID4VP 1.0 Final HAIP wallet plan
+	 * is what wallets certify against - so no profile name is returned. The method is still
+	 * overridden because it is the only hook that runs at plan creation time, and it is where the
+	 * variant combinations this plan cannot support are rejected.
+	 */
 	@Override
 	public List<String> certificationProfileName(VariantSelection variant) {
 
@@ -47,9 +53,6 @@ public class VPID3WalletTestPlan implements TestPlan {
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
 		String clientIDScheme = v.get("client_id_scheme");
-		String queryLanguage = v.get("query_language");
-
-		String certProfile = "OID4VPID3+draft24 Wallet";
 
 		if (responseMode.equals(VPID3WalletResponseMode.DC_API.toString()) ||
 			responseMode.equals(VPID3WalletResponseMode.DC_API_JWT.toString())) {
@@ -73,9 +76,7 @@ public class VPID3WalletTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode + " " + queryLanguage;
-
-		return List.of(certProfile);
+		return List.of();
 	}
 
 }
