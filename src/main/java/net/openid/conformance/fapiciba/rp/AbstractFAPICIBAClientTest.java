@@ -789,22 +789,29 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	private void spawnThreadForPing() {
 		getTestExecutionManager().runInBackground(() -> {
-			int secondsUntilPing = 10;
-			Thread.sleep(secondsUntilPing * 1000L);
+			waitBeforePing();
 
 			call(exec().startBlock("OP calls the client notification endpoint"));
 			setStatus(Status.RUNNING);
 
-			sendPingRequestAndVerifyResponse();
+			try {
+				sendPingRequestAndVerifyResponse();
+			} finally {
+				call(exec().endBlock());
+			}
 
 			if (!ensurePingCompletionCanRun()) {
 				return "done";
 			}
-			call(exec().endBlock());
 			pingRequestComplete();
 
 			return "done";
 		});
+	}
+
+	protected void waitBeforePing() throws InterruptedException {
+		int secondsUntilPing = 10;
+		Thread.sleep(secondsUntilPing * 1000L);
 	}
 
 	/**

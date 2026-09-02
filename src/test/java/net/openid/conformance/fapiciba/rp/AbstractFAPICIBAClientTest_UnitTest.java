@@ -2,14 +2,22 @@ package net.openid.conformance.fapiciba.rp;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 public class AbstractFAPICIBAClientTest_UnitTest {
 
@@ -119,11 +127,44 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 		assertThat(test.accountsEndpointCalled).isFalse();
 	}
 
+	@Test
+	public void closesPingLogBlockWhenTerminalTestCannotResume() throws Exception {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+
+		test.runPingTaskWithCompletionBlocked();
+
+		assertThat(test.endedLogBlock).isTrue();
+		assertThat(test.pingRequestCompleteCalled).isFalse();
+	}
+
+	@Test
+	public void closesPingLogBlockWhenNotificationValidationFails() {
+		TestableFAPICIBAClientTest test = new TestableFAPICIBAClientTest();
+		test.failPingRequest = true;
+
+		assertThatThrownBy(test::runPingTaskWithCompletionBlocked)
+			.isInstanceOf(IllegalStateException.class);
+		assertThat(test.endedLogBlock).isTrue();
+		assertThat(test.pingRequestCompleteCalled).isFalse();
+	}
+
 	private static class TestableFAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 
 		private boolean fireTestFinishedCalled;
 		private Status lastStatus;
 		private boolean accountsEndpointCalled;
+		private final TestExecutionManager executionManager = mock(TestExecutionManager.class);
+		private final AtomicReference<Callable<?>> backgroundTask = new AtomicReference<>();
+		private boolean endedLogBlock;
+		private boolean pingRequestCompleteCalled;
+		private boolean failPingRequest;
+
+		private TestableFAPICIBAClientTest() {
+			doAnswer(invocation -> {
+				backgroundTask.set(invocation.getArgument(0));
+				return null;
+			}).when(executionManager).runInBackground(any());
+		}
 
 		private void setCibaMode(CIBAMode cibaMode) {
 			this.cibaMode = cibaMode;
@@ -142,6 +183,14 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 			return shouldIssueFinalCibaTokenResponse(tokenPollCount);
 		}
 
+		private void runPingTaskWithCompletionBlocked() throws Exception {
+			Method spawnThreadForPing = AbstractFAPICIBAClientTest.class
+				.getDeclaredMethod("spawnThreadForPing");
+			spawnThreadForPing.setAccessible(true);
+			spawnThreadForPing.invoke(this);
+			backgroundTask.get().call();
+		}
+
 		@Override
 		public void fireTestFinished() {
 			fireTestFinishedCalled = true;
@@ -155,6 +204,34 @@ public class AbstractFAPICIBAClientTest_UnitTest {
 		@Override
 		protected void call(Command builder) {
 			builder.getEnvCommands().forEach(command -> command.accept(getEnv()));
+			endedLogBlock = endedLogBlock || builder.isEndBlock();
+		}
+
+		@Override
+		public TestExecutionManager getTestExecutionManager() {
+			return executionManager;
+		}
+
+		@Override
+		protected void sendPingRequestAndVerifyResponse() {
+			if (failPingRequest) {
+				throw new IllegalStateException("Notification validation failed");
+			}
+		}
+
+		@Override
+		protected void waitBeforePing() {
+			// Do not delay the background completion behavior under test.
+		}
+
+		@Override
+		protected boolean setStatusRunningIfWaiting() {
+			return false;
+		}
+
+		@Override
+		protected void pingRequestComplete() {
+			pingRequestCompleteCalled = true;
 		}
 
 		@Override
