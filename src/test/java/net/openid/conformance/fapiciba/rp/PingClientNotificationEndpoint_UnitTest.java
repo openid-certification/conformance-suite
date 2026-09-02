@@ -5,6 +5,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import org.apache.hc.core5.http.NoHttpResponseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -230,6 +231,21 @@ public class PingClientNotificationEndpoint_UnitTest {
 	public void retriesTemporaryCommunicationFailureForBrazil() {
 		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
 			.thenThrow(new ResourceAccessException("Connection reset", new SocketException("Connection reset")))
+			.thenReturn(new ResponseEntity<>("", HttpStatus.NO_CONTENT));
+
+		retryCond.execute(env);
+
+		assertThat(env.getInteger("client_notification_endpoint_response_http_status"))
+			.isEqualTo(HttpStatus.NO_CONTENT.value());
+		verify(restTemplate, times(2))
+			.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
+	}
+
+	@Test
+	public void retriesMissingHttpResponseForBrazil() {
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new ResourceAccessException("No response",
+				new NoHttpResponseException("rp.example.com failed to respond")))
 			.thenReturn(new ResponseEntity<>("", HttpStatus.NO_CONTENT));
 
 		retryCond.execute(env);
