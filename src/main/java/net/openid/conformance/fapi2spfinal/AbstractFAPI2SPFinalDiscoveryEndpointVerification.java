@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndp
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsConfiguredScopes;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInServerMetadata;
 import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
@@ -169,6 +170,8 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		}
 
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
+		skipIfElementMissing("server", "scopes_supported", Condition.ConditionResult.INFO,
+			CheckDiscEndpointScopesSupportedContainsConfiguredScopes.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
 		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
