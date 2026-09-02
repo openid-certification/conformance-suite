@@ -14,6 +14,7 @@ import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddConfiguredScopesToServerConfiguration;
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
@@ -445,6 +446,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
 		}
+
+		call(condition(AddConfiguredScopesToServerConfiguration.class).requirement("OIDCD-3"));
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (fapiClientType == FAPIClientType.OIDC) {

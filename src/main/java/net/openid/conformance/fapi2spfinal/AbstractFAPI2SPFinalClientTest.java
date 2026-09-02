@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddConfiguredScopesToServerConfiguration;
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
@@ -589,6 +590,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 		adjustServerConfigurationForMtlsEndpointAliasesVariant();
+
+		call(condition(AddConfiguredScopesToServerConfiguration.class).requirement("OIDCD-3"));
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (fapiClientType == FAPIClientType.OIDC && !profileBehavior.isClientCredentialsGrantOnly()) {
