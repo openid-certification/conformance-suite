@@ -625,8 +625,8 @@ public class LogApi {
 	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.",
-		description = "The multipart request may also carry a 'certificationOfConformancePdf' part (the signed certification of conformance)"
-			+ " — the CI tooling sends one — but the current implementation does not read it; the PDF is not included in the produced zip."
+		description = "The signed certification of conformance is not part of the package; it is submitted through the"
+			+ " certification request form instead. Any other multipart part is ignored."
 			+ " The 200 response carries a Content-Disposition attachment header with the package filename.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully",

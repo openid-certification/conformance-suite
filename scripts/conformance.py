@@ -172,20 +172,24 @@ class Conformance(object):
         profiling showed exporthtml at ~4.4% of CI JVM wall."""
         return await self._download_plan_export('export', plan_id, path)
 
-    async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
+    async def create_certification_package(self, plan_id, *, rp_logs_zip_path = None, output_zip_directory = "./"):
         """
         Create a complete certification package zip file which is written
         to the directory specified by the 'output_zip_directory' parameter.
         Calling this function will additionally publish and mark the test plan as immutable.
 
+        The signed Certification of Conformance PDF is no longer part of the package
+        and is submitted through the certification request form instead, so this no
+        longer takes a path to one. The remaining arguments are keyword-only, so a
+        call written against the old signature fails rather than silently sending the
+        PDF as the client logs zip.
+
         :param plan_id:         The plan id for which to create the package.
-        :conformance_pdf_path:  The path to the signed Certification of Conformance PDF document.
         :rp_logs_zip_path:      Required for RP tests and is the path to the client logs zip file.
         :output_zip_directory:  The (already existing) directory to which the certification package zip file is written.
         """
-        certificationOfConformancePdf = open(conformance_pdf_path, 'rb')
         clientSideData = open(rp_logs_zip_path, 'rb') if rp_logs_zip_path is not None else open(os.devnull, 'rb')
-        files = { 'certificationOfConformancePdf': certificationOfConformancePdf, 'clientSideData': clientSideData}
+        files = { 'clientSideData': clientSideData}
         try:
             async with httpx.AsyncClient() as multipartClient:
                 multipartClient.headers = self.httpclient.headers.copy()
@@ -204,7 +208,6 @@ class Conformance(object):
                         f.write(chunk)
                 print("Certification package zip for plan id {} written to {}".format(plan_id, full_path))
         finally:
-            certificationOfConformancePdf.close();
             clientSideData.close();
 
     async def create_test_plan(self, name, configuration, variant=None):
