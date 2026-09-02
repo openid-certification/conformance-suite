@@ -48,7 +48,6 @@ public class GenerateServerConfiguration extends AbstractCondition {
 
 		JsonArray scopes = new JsonArray();
 		scopes.add("openid");
-		scopes.add("accounts");
 		server.add("scopes_supported", scopes);
 
 		server.addProperty("request_parameter_supported", true);

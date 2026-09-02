@@ -14,10 +14,12 @@ import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddConfiguredScopesToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
@@ -338,6 +340,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(condition(AddSubjectTypesSupportedToServerConfiguration.class).requirement("OIDCD-3"));
+			// the Brazil profile replaces this below with the scopes that profile defines
+			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class).requirement("OIDCD-3"));
 		}
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
@@ -416,6 +420,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			exposeMtlsPath("par_endpoint", "par");
 		}
+
+		call(condition(AddConfiguredScopesToServerConfiguration.class).requirement("OIDCD-3"));
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (fapiClientType == FAPIClientType.OIDC) {

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddConfiguredScopesToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
@@ -301,6 +302,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		profileBehavior.exposeProfileSpecificEndpoints();
+
+		call(condition(AddConfiguredScopesToServerConfiguration.class).requirement("OIDCD-3"));
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (shouldValidateConfiguredNotificationEndpoint()) {
