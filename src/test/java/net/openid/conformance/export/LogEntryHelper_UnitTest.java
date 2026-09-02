@@ -54,4 +54,14 @@ public class LogEntryHelper_UnitTest {
 		assertThat(helper.getRequirementLink("BrazilOB22-6.3"))
 			.isEqualTo(spec + "6.3.-Encryption-algorithm-considerations");
 	}
+
+	@Test
+	public void brazilFapi22SectionPrefixDoesNotMatchASeparateLongerSection() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		String spec = "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1675395195/" +
+			"EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+-+v2.2.0#";
+
+		assertThat(helper.getRequirementLink("BrazilOB22-5.12"))
+			.isEqualTo(spec + "5.12");
+	}
 }

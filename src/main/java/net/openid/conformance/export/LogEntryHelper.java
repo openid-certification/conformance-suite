@@ -134,7 +134,9 @@ public class LogEntryHelper {
 
 		// Confluence heading fragments include the heading text, not only its section number. Keep
 		// the requirement label separate from the published heading fragment so logs retain precise
-		// requirement identifiers while links navigate to the corresponding section.
+		// requirement identifiers while links navigate to the corresponding section. Section labels
+		// match exactly or use a hyphen-delimited requirement suffix, so nested entries do not depend
+		// on insertion order and unrelated longer section numbers cannot match a shorter section.
 		specSectionLinks = new LinkedHashMap<>();
 		String brazilCiba = specLinks.get("BrazilCIBA-");
 		specSectionLinks.put("BrazilCIBA-6.2.2", brazilCiba + "6.2.2.-CIBA-delivery-modes");
@@ -299,7 +301,8 @@ public class LogEntryHelper {
 
 	public String getRequirementLink(String requirement) {
 		for (Map.Entry<String, String> sectionLink : specSectionLinks.entrySet()) {
-			if (requirement.startsWith(sectionLink.getKey())) {
+			String sectionRequirement = sectionLink.getKey();
+			if (requirement.equals(sectionRequirement) || requirement.startsWith(sectionRequirement + "-")) {
 				return sectionLink.getValue();
 			}
 		}
