@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.testmodule.Environment;
+import org.apache.hc.core5.http.NoHttpResponseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
@@ -32,7 +33,9 @@ public class PingClientNotificationEndpointWithRetriesForBrazil extends PingClie
 		}
 
 		for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
-			if (cause instanceof SocketException || cause instanceof SocketTimeoutException) {
+			if (cause instanceof SocketException
+				|| cause instanceof SocketTimeoutException
+				|| cause instanceof NoHttpResponseException) {
 				return true;
 			}
 		}
