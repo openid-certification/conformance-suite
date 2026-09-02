@@ -9,6 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @ExtendWith(MockitoExtension.class)
 public class LogApi_UnitTest {
 
@@ -823,5 +830,24 @@ public class LogApi_UnitTest {
 				break;
 			}
 		}
+	}
+
+	@Test
+	public void hasCertificationProfile_trueWhenAProfileNameIsPresent() {
+		assertTrue(LogApi.hasCertificationProfile(List.of("Basic OP")));
+		assertTrue(LogApi.hasCertificationProfile(List.of("FAPI2SP Final OP w/ MTLS", "FAPI2MS ID1 OP w/ Private Key")));
+		// a blank entry alongside a real one doesn't make the plan uncertifiable
+		assertTrue(LogApi.hasCertificationProfile(Arrays.asList("", "Basic OP")));
+	}
+
+	@Test
+	public void hasCertificationProfile_falseWhenNoUsableProfileName() {
+		// a plan class that doesn't override TestPlan.certificationProfileName
+		assertFalse(LogApi.hasCertificationProfile(Collections.emptyList()));
+		// plans created before the field existed have no value stored
+		assertFalse(LogApi.hasCertificationProfile(null));
+		// a null or blank entry is not a profile name
+		assertFalse(LogApi.hasCertificationProfile(Collections.singletonList(null)));
+		assertFalse(LogApi.hasCertificationProfile(List.of("   ")));
 	}
 }

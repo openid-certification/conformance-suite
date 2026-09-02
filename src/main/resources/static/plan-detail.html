@@ -514,13 +514,24 @@
                         // / SKIPPED do not block certification — only an
                         // explicit FAILED does. cts-plan-actions renders the
                         // button when this property is true.
+                        //
+                        // A plan with no certification profile is not part of
+                        // the certification program, so hide the button there
+                        // too — POSTing to /api/plan/{id}/certificationpackage
+                        // would be refused with a 422 no_certification_profile.
                         var finished = modulesData.filter(function (m) {
                             return m.status === 'FINISHED';
                         });
                         var hasFailed = finished.some(function (m) {
                             return m.result === 'FAILED';
                         });
-                        actionsEl.canCertify = finished.length > 0 && !hasFailed;
+                        var certProfiles = data.certificationProfileName;
+                        var hasCertProfile = Array.isArray(certProfiles)
+                            ? certProfiles.some(function (name) {
+                                return typeof name === 'string' && name.trim() !== '';
+                            })
+                            : typeof certProfiles === 'string' && certProfiles.trim() !== '';
+                        actionsEl.canCertify = finished.length > 0 && !hasFailed && hasCertProfile;
 
                         // R28 deep-link follow-on: for each FAILED row,
                         // fetch the test log once and resolve the first
