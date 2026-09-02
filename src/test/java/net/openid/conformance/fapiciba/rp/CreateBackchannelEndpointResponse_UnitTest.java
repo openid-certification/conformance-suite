@@ -61,7 +61,9 @@ public class CreateBackchannelEndpointResponse_UnitTest {
 	public void setsConfiguredProfileMaximum() {
 		JsonObject client = new JsonObject();
 		client.addProperty("brazil_ciba_maximum_expiry", "3600");
-		env.putObject("client", client);
+		JsonObject config = new JsonObject();
+		config.add("client", client);
+		env.putObject("config", config);
 		SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry setter =
 			new SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry();
 		setter.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);

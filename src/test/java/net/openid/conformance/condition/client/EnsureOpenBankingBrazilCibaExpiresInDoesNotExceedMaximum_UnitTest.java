@@ -22,6 +22,9 @@ public class EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum_UnitTest {
 		condition = new EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum();
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env.putObject("client", new JsonObject());
+		JsonObject config = new JsonObject();
+		config.add("client", new JsonObject());
+		env.putObject("config", config);
 	}
 
 	@Test
@@ -62,7 +65,7 @@ public class EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum_UnitTest {
 
 	@Test
 	public void rejectsInvalidConfiguredMaximumWithTestConfigurationLabel() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "not-an-integer");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "not-an-integer");
 		putResponseExpiresIn(3_600);
 
 		assertThatThrownBy(() -> condition.execute(env))
@@ -72,12 +75,16 @@ public class EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum_UnitTest {
 	}
 
 	private void setConfiguredMaximum(int seconds) {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", seconds);
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", seconds);
 	}
 
 	private void putResponseExpiresIn(int seconds) {
 		JsonObject response = new JsonObject();
 		response.addProperty("expires_in", seconds);
 		env.putObject("backchannel_authentication_endpoint_response", response);
+	}
+
+	private JsonObject configuredClient() {
+		return env.getObject("config").getAsJsonObject("client");
 	}
 }
