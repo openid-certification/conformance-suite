@@ -7,12 +7,11 @@ import net.openid.conformance.fapiciba.OpenBankingBrazilCibaMaximumExpiry;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.math.BigDecimal;
-
 public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {
+		"config",
 		"authorization_endpoint_request",
 		"backchannel_authentication_endpoint_response"
 	})
@@ -43,7 +42,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn extends
 
 		JsonElement expiresInElement = env.getElementFromObject(
 			"backchannel_authentication_endpoint_response", "expires_in");
-		Integer actualExpiresIn = getPositiveInteger(expiresInElement);
+		Integer actualExpiresIn = OpenBankingBrazilCibaMaximumExpiry.parsePositiveInteger(expiresInElement);
 		if (actualExpiresIn == null) {
 			log("Skipped Open Finance Brasil expires_in relationship validation because CIBA-Core validation handles missing or invalid expires_in",
 				args("expires_in", expiresInElement));
@@ -76,19 +75,5 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn extends
 			"maximum_expiry_explicitly_configured", maximumExpiry.explicitlyConfigured(),
 			"actual_expires_in", actualExpiresIn));
 		return env;
-	}
-
-	private Integer getPositiveInteger(JsonElement element) {
-		if (element == null || !element.isJsonPrimitive()
-			|| !element.getAsJsonPrimitive().isNumber()) {
-			return null;
-		}
-
-		try {
-			int value = new BigDecimal(OIDFJSON.getNumber(element).toString()).intValueExact();
-			return value > 0 ? value : null;
-		} catch (ArithmeticException | NumberFormatException e) {
-			return null;
-		}
 	}
 }

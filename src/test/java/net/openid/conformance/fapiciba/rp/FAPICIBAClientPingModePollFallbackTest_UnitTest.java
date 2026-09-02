@@ -119,6 +119,9 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 		private TestableFallbackTest() {
 			cibaMode = CIBAMode.PING;
 			setupOpenBankingBrazil();
+			JsonObject config = new JsonObject();
+			config.add("client", new JsonObject());
+			env.putObject("config", config);
 		}
 
 		private boolean pingNotificationShouldBeSent() {

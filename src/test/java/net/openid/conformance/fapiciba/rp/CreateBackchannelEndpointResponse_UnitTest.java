@@ -30,6 +30,9 @@ public class CreateBackchannelEndpointResponse_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env.putObject("backchannel_endpoint_http_request", new JsonObject());
 		env.putObject("backchannel_request_object", new JsonObject());
+		JsonObject config = new JsonObject();
+		config.add("client", new JsonObject());
+		env.putObject("config", config);
 	}
 
 	@Test

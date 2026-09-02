@@ -28,6 +28,8 @@ public class FAPICIBAID1EnsureRequestedExpiryAboveMaximumIsCappedForBrazil
 	@Override
 	protected void performValidateAuthorizationResponse() {
 		super.performValidateAuthorizationResponse();
+		// Keep the module's defining assertion explicit even though the Brazil profile validation
+		// enforces the same upper bound, so this module cannot silently degrade to a happy path.
 		callAndContinueOnFailure(
 			EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum.class,
 			Condition.ConditionResult.FAILURE,

@@ -37,6 +37,20 @@ public final class OpenBankingBrazilCibaMaximumExpiry {
 		}
 	}
 
+	public static Integer parsePositiveInteger(JsonElement element) {
+		if (element == null || !element.isJsonPrimitive()
+			|| !element.getAsJsonPrimitive().isNumber()) {
+			return null;
+		}
+
+		try {
+			int value = new BigDecimal(OIDFJSON.getNumber(element).toString()).intValueExact();
+			return value > 0 ? value : null;
+		} catch (ArithmeticException | NumberFormatException e) {
+			return null;
+		}
+	}
+
 	private static IllegalArgumentException invalidConfiguration() {
 		return new IllegalArgumentException("'%s' field in the 'Client' section must be a positive integer no greater than %d in the test configuration"
 			.formatted(CONFIGURATION_FIELD_LABEL, Integer.MAX_VALUE - 1));
