@@ -8,7 +8,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "openid-ssf-transmitter-test-plan",
-	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
+	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter test - alpha tests (not part of certification program - use the CAEP Interop transmitter plan to certify)",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Transmitter.",
 	profile = TestPlan.ProfileNames.ssftest,
 	specFamily = TestPlan.SpecFamilyNames.ssf
