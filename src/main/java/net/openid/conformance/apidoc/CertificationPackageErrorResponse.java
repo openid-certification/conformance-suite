@@ -6,7 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 
 @Schema(description = "Certification package could not be prepared because tests failed or are "
-	+ "incomplete (or the plan id is unknown). Note: a 422 can also be returned with an empty "
+	+ "incomplete, the plan id is unknown, or the plan has no certification profile (it is not part "
+	+ "of the certification program). Note: a 422 can also be returned with an empty "
 	+ "body when the plan could not be marked immutable.")
 public record CertificationPackageErrorResponse(
 	@Schema(description = "Error code", example = "failed_or_incomplete_tests") String error,
@@ -18,5 +19,6 @@ public record CertificationPackageErrorResponse(
 	@Schema(description = "Id of the plan instance") String testPlanId,
 	@Schema(description = "The plan's variant selection, as a string") String variant,
 	@JsonProperty("failed_tests")
-	@Schema(description = "Per-module details of the failing or incomplete tests, keyed by module name") Map<String, Object> failedTests) {
+	@Schema(description = "Per-module details of the failing or incomplete tests, keyed by module name; "
+		+ "absent for the no_certification_profile error") Map<String, Object> failedTests) {
 }
