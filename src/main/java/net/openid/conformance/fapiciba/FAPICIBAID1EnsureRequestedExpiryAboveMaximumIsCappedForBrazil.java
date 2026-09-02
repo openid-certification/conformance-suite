@@ -1,6 +1,8 @@
 package net.openid.conformance.fapiciba;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddRequestedExpiryAboveConfiguredMaximumToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -20,6 +22,15 @@ public class FAPICIBAID1EnsureRequestedExpiryAboveMaximumIsCappedForBrazil
 	protected void createAuthorizationRequest() {
 		super.createAuthorizationRequest();
 		callAndStopOnFailure(AddRequestedExpiryAboveConfiguredMaximumToAuthorizationEndpointRequest.class,
+			"BrazilCIBA-6.2.6");
+	}
+
+	@Override
+	protected void performValidateAuthorizationResponse() {
+		super.performValidateAuthorizationResponse();
+		callAndContinueOnFailure(
+			EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum.class,
+			Condition.ConditionResult.FAILURE,
 			"BrazilCIBA-6.2.6");
 	}
 }
