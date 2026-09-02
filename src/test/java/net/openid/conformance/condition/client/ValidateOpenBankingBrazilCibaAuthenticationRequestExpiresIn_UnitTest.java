@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +31,9 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env.putObject("authorization_endpoint_request", new JsonObject());
 		env.putObject("client", new JsonObject());
+		JsonObject config = new JsonObject();
+		config.add("client", new JsonObject());
+		env.putObject("config", config);
 	}
 
 	@Test
@@ -40,7 +44,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 
 	@Test
 	public void configuredMaximumMakesAbsentRequestedExpiryExact() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "3600");
 		putResponseExpiresIn(3_600);
 
 		condition.execute(env);
@@ -48,7 +52,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 
 	@Test
 	public void configuredMaximumRejectsLowerExpiresInWhenRequestedExpiryIsAbsent() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "3600");
 		putResponseExpiresIn(3_599);
 
 		assertThatThrownBy(() -> condition.execute(env))
@@ -66,7 +70,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 
 	@Test
 	public void requestedExpiryAboveConfiguredMaximumRequiresExactMaximum() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "3600");
 		env.getObject("authorization_endpoint_request").addProperty("requested_expiry", 3_601);
 		putResponseExpiresIn(3_599);
 
@@ -93,7 +97,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 
 	@Test
 	public void invalidConfiguredMaximumFailsWithTestConfigurationLabel() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "not-an-integer");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "not-an-integer");
 		putResponseExpiresIn(3_600);
 
 		assertThatThrownBy(() -> condition.execute(env))
@@ -104,7 +108,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 
 	@Test
 	public void nonPositiveConfiguredMaximumFailsWithTestConfigurationLabel() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "0");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "0");
 		putResponseExpiresIn(3_600);
 
 		assertThatThrownBy(() -> condition.execute(env))
@@ -135,6 +139,17 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 	}
 
 	@Test
+	public void usesConfiguredMaximumWhileSecondClientIsActive() {
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", 60);
+		env.putObject("client2", new JsonObject());
+		env.mapKey("client", "client2");
+		env.getObject("authorization_endpoint_request").addProperty("requested_expiry", 300);
+		putResponseExpiresIn(60);
+
+		assertThatCode(() -> condition.execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
 	public void mismatchedExpiresInFails() {
 		env.getObject("authorization_endpoint_request").addProperty("requested_expiry", 10);
 		putResponseExpiresIn(11);
@@ -162,7 +177,7 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 
 	@Test
 	public void fractionalExpiresInIsLeftToCoreValidation() {
-		env.getObject("client").addProperty("brazil_ciba_maximum_expiry", "3600");
+		configuredClient().addProperty("brazil_ciba_maximum_expiry", "3600");
 		JsonObject response = new JsonObject();
 		response.addProperty("expires_in", 3_600.5);
 		env.putObject("backchannel_authentication_endpoint_response", response);
@@ -174,5 +189,9 @@ public class ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn_UnitTes
 		JsonObject response = new JsonObject();
 		response.addProperty("expires_in", expiresIn);
 		env.putObject("backchannel_authentication_endpoint_response", response);
+	}
+
+	private JsonObject configuredClient() {
+		return env.getObject("config").getAsJsonObject("client");
 	}
 }

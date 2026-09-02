@@ -15,7 +15,9 @@ public final class OpenBankingBrazilCibaMaximumExpiry {
 	}
 
 	public static MaximumExpiry resolve(Environment env) {
-		JsonElement configuredMaximum = env.getElementFromObject("client", CONFIGURATION_FIELD);
+		// The active client is replaced after DCR and mapped to client2 in two-client tests.
+		JsonElement configuredMaximum = env.getElementFromObject(
+			"config", "client." + CONFIGURATION_FIELD);
 		if (configuredMaximum == null) {
 			return new MaximumExpiry(
 				OpenBankingBrazilCibaProfileConstants.DEFAULT_AUTHENTICATION_REQUEST_MAXIMUM_EXPIRY_SECONDS,
