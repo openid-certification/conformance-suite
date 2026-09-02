@@ -69,9 +69,23 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 				return super.handlePingCallback(requestParts);
 			}
 
-			verifyNotificationCallback(requestParts);
+			validateAdditionalPingCallback(requestParts);
 			return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 		}
+	}
+
+	private void validateAdditionalPingCallback(JsonObject requestParts) {
+		// HTTP request threads do not own the test lock. Validate the duplicate on a worker only if
+		// the test is still waiting; the main retry flow may already be running or finished.
+		getTestExecutionManager().tryRunInBackground(() -> {
+			if (!setStatusRunningIfWaiting()) {
+				return "done";
+			}
+
+			verifyNotificationCallback(requestParts);
+			setStatus(Status.WAITING);
+			return "done";
+		});
 	}
 
 	private void scheduleRetryAssertion() {

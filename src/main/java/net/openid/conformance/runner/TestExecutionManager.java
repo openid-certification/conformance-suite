@@ -134,6 +134,19 @@ public class TestExecutionManager {
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
 	}
 
+	/**
+	 * Atomically submits a background task unless test finalisation has started.
+	 *
+	 * @return {@code true} when the task was submitted; otherwise {@code false}
+	 */
+	public synchronized boolean tryRunInBackground(Callable<?> callable) {
+		if (finalisationStarted) {
+			return false;
+		}
+		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
+		return true;
+	}
+
 	public synchronized void scheduleInBackground(Callable<?> callable, long amount, TimeUnit timeUnit) {
 		if (finalisationStarted) {
 			throw new RuntimeException("runInBackground called after runFinalisationTaskInBackground()");
