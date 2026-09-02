@@ -19,7 +19,7 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "ekyc-test-plan-oidccore",
-	displayName = "OpenID for IDA using OpenID Connect Core",
+	displayName = "OpenID for IDA using OpenID Connect Core (not currently part of certification program - please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.ekyctest,
 	specFamily = TestPlan.SpecFamilyNames.ekyc,
 	testModules = {
