@@ -781,6 +781,37 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator('[data-testid="certify-btn"]')).toHaveCount(0);
   });
 
+  test("certify button stays hidden when the plan has no certification profile", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    // A plan whose class doesn't override certificationProfileName is not
+    // part of the certification program; the server refuses the package
+    // with a 422 no_certification_profile, so don't offer the button.
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, certificationProfileName: [] }),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Same readiness signal as the FAILED-module test above: the action
+    // rail is rendered, so canCertify has been computed.
+    await expect(page.locator('[data-testid="private-link-btn"]')).toBeVisible();
+    await expect(
+      page.locator('#planItems .module-row cts-badge[label="PASSED"]').first(),
+    ).toBeVisible();
+
+    await expect(page.locator('[data-testid="certify-btn"]')).toHaveCount(0);
+  });
+
   test("R28 deep-link composes ?public=true with the #LOG fragment correctly", async ({ page }) => {
     await setupFailFast(page);
 

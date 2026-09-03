@@ -625,14 +625,14 @@ public class LogApi {
 	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = APPLICATION_ZIP_VALUE)
 	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
 	@Operation(operationId = "prepareCertificationPackage", summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.",
-		description = "The multipart request may also carry a 'certificationOfConformancePdf' part (the signed certification of conformance)"
-			+ " — the CI tooling sends one — but the current implementation does not read it; the PDF is not included in the produced zip."
+		description = "The signed certification of conformance is not part of the package; it is submitted through the"
+			+ " certification request form instead. Any other multipart part is ignored."
 			+ " The 200 response carries a Content-Disposition attachment header with the package filename.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Prepared successfully",
 			content = @Content(mediaType = APPLICATION_ZIP_VALUE, schema = @Schema(type = "string", format = "binary"))),
 		@ApiResponse(responseCode = "403", description = "Could not publish plan", content = @Content),
-		@ApiResponse(responseCode = "422", description = "Tests failed/incomplete or plan id unknown (JSON body), or the plan could not be marked immutable (empty body)",
+		@ApiResponse(responseCode = "422", description = "Tests failed/incomplete, plan id unknown, or the plan has no certification profile (JSON body), or the plan could not be marked immutable (empty body)",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CertificationPackageErrorResponse.class)))
 	})
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
@@ -647,18 +647,76 @@ public class LogApi {
 		}
 
 		JsonObject failedTests = getFailedOrIncompleteTests(id, false);
-		if(failedTests.isEmpty()) {
-			// Publish plan and make immutable only if there are no failed/incomplete tests
-			if (!planService.publishTestPlan(id, "everything")) {
-				return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-			}
-			if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
-				return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_CONTENT);
-			}
-			return exportPlanAsZip(id, true, false, true, clientSideData.orElse(null));
-		} else {
+		if (!failedTests.isEmpty()) {
 			return createJsonErrorResponseEntity(failedTests);
 		}
+
+		JsonObject noCertificationProfile = getMissingCertificationProfileError(id);
+		if (!noCertificationProfile.isEmpty()) {
+			return createJsonErrorResponseEntity(noCertificationProfile);
+		}
+
+		// Publish plan and make immutable only if there are no failed/incomplete tests
+		if (!planService.publishTestPlan(id, "everything")) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+		if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
+			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_CONTENT);
+		}
+		return exportPlanAsZip(id, true, false, true, clientSideData.orElse(null));
+	}
+
+	/**
+	 * A plan whose class returns no certification profile name for the selected variant is not part
+	 * of a certification program (or the profile name has not been implemented yet), so a submission
+	 * package for it cannot be processed. Reject before the plan is published and made immutable —
+	 * both of those are irreversible for the user.
+	 *
+	 * <p>The profile name is evaluated once, when the plan is created, and stored on the plan
+	 * document, so this reads what the plan was created with rather than re-evaluating it.
+	 *
+	 * @return an error object, or an empty object if the plan has a certification profile
+	 */
+	private JsonObject getMissingCertificationProfileError(String planId) {
+		Object testPlan = planService.getTestPlan(planId);
+
+		List<String> certificationProfileName = null;
+		String planName = "";
+		String variant = "";
+
+		if (testPlan instanceof PublicPlan plan) {
+			certificationProfileName = plan.getCertificationProfileName();
+			planName = plan.getPlanName();
+			variant = plan.getVariant() != null ? plan.getVariant().toString() : variant;
+		} else if (testPlan instanceof Plan plan) {
+			certificationProfileName = plan.getCertificationProfileName();
+			planName = plan.getPlanName();
+			variant = plan.getVariant() != null ? plan.getVariant().toString() : variant;
+		}
+
+		JsonObject error = new JsonObject();
+		if (hasCertificationProfile(certificationProfileName)) {
+			return error;
+		}
+		error.addProperty("error", "no_certification_profile");
+		error.addProperty("error_description", "This test plan has no certification profile, so it is not "
+			+ "part of the certification program and a certification package cannot be created for it. "
+			+ "If you believe this test plan should be certifiable, please contact certification@oidf.org.");
+		error.addProperty("plan_name", planName);
+		error.addProperty("test_plan_id", planId);
+		error.addProperty("variant", variant);
+		return error;
+	}
+
+	/**
+	 * @param certificationProfileName the plan's stored certification profile names, may be null
+	 * @return true if at least one non-blank profile name is present
+	 */
+	static boolean hasCertificationProfile(List<String> certificationProfileName) {
+		if (certificationProfileName == null) {
+			return false;
+		}
+		return certificationProfileName.stream().anyMatch(name -> name != null && !name.isBlank());
 	}
 
 	private ResponseEntity<StreamingResponseBody> createJsonErrorResponseEntity(JsonObject json) {

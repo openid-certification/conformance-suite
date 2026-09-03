@@ -11,7 +11,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-wallet-test-plan",
-	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a wallet - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a wallet - alpha tests (not part of certification program - use the HAIP wallet plan to certify)",
 	profile = TestPlan.ProfileNames.wallettest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,
 	specVersion = TestPlan.SpecVersionNames.oid4vp1Final
@@ -53,16 +53,20 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	/**
+	 * This plan is not part of the certification program - the HAIP wallet plan is what
+	 * wallets certify against - so no profile name is returned. The method is still overridden
+	 * because it is the only hook that runs at plan creation time, and it is where the variant
+	 * combinations this plan cannot support are rejected.
+	 */
 	@Override
 	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String responseMode = v.get("response_mode");
-		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
 		String clientIDPrefix = v.get("client_id_prefix");
-
-		String certProfile = "OID4VP-1.0-FINAL Wallet";
 
 		if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_SIGNED.toString()) ||
 			requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED.toString())) {
@@ -93,9 +97,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
-
-		return List.of(certProfile);
+		return List.of();
 	}
 
 }
