@@ -5,8 +5,8 @@ import { segmentVariant, NOT_RUN_FILTER_VALUE } from "../js/module-status.js";
 
 // One module per palette entry, in plan order. Covers every segmentVariant
 // branch: resolved PASSED/FAILED/WARNING/REVIEW, RUNNING, FINISHED+SKIPPED
-// (→ skip), a never-run module (no instances → skip), and a has-run-but-
-// unresolved module (→ pending).
+// (→ skip, its own hue), a never-run module (no instances → neutral), and a
+// has-run-but-unresolved module (→ pending).
 const PALETTE_MODULES = [
   {
     testModule: "test-passed",
@@ -52,7 +52,7 @@ const PALETTE_MODULES = [
     result: "SKIPPED",
     _statusResolved: true,
   },
-  // never run → static skip
+  // never run → static neutral
   { testModule: "test-not-run" },
   // has an instance but status not yet fetched → pending (pulsing)
   { testModule: "test-pending", instances: ["i-pend"] },
@@ -66,7 +66,7 @@ const EXPECTED_CLASS = [
   "cts-pst-seg--review",
   "cts-pst-seg--running",
   "cts-pst-seg--skip",
-  "cts-pst-seg--skip",
+  "cts-pst-seg--neutral",
   "cts-pst-seg--pending",
 ];
 
@@ -106,6 +106,11 @@ export const PaletteOverview = {
       expect(segments[2].getAttribute("aria-label")).toBe(
         "test-warning (client_auth_type=mtls): warning",
       );
+      // The word follows the module's real status, not the fill colour: a
+      // SKIPPED verdict reads "skipped", a never-run module "not run" (both
+      // once collapsed to "no result").
+      expect(segments[5].getAttribute("aria-label")).toBe("test-skipped: skipped");
+      expect(segments[6].getAttribute("aria-label")).toBe("test-not-run: not run");
       expect(segments[7].getAttribute("aria-label")).toBe("test-pending: checking status");
     });
   },
@@ -119,8 +124,8 @@ export const VariantHelperContract = {
     html`<cts-plan-status mode="overview" .modules=${PALETTE_MODULES}></cts-plan-status>`,
 
   async play() {
-    // never-run (no instances) → skip
-    expect(segmentVariant({ instances: [] })).toBe("skip");
+    // never-run (no instances) → neutral
+    expect(segmentVariant({ instances: [] })).toBe("neutral");
     // has instances but unresolved → pending
     expect(segmentVariant({ instances: ["a"] })).toBe("pending");
     // resolved → statusBadgeVariant result
@@ -377,7 +382,7 @@ export const FilterDimsNonMatching = {
 
 // R9/U5 boundary, exercised through the dimming path: the "Not yet run" filter
 // selects a never-run module but NOT a FINISHED+SKIPPED one (raw status/result,
-// not the collapsed skip variant).
+// not the colour variant).
 export const NotYetRunFilterSkipsFinishedSkipped = {
   render: () => html`
     <cts-plan-status

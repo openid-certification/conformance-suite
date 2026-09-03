@@ -1338,7 +1338,7 @@ class CtsLogViewer extends LitElement {
    */
   _renderCountBadges(counts, filterable) {
     return Object.entries(counts).map(([result, count]) => {
-      const variant = COUNT_BADGE_VARIANTS[result] || "skip";
+      const variant = COUNT_BADGE_VARIANTS[result] || "neutral";
       if (!filterable) {
         return html`<cts-badge variant="${variant}" label="${result} (${count})"></cts-badge>`;
       }

@@ -1362,7 +1362,7 @@ export const StatusBarFinishedPassed = {
 
     await step("PASSED + FINISHED badges and the Repeat primary render", async () => {
       expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
-      expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
+      expect(bar.querySelector('cts-badge[variant="neutral"][label="FINISHED"]')).toBeTruthy();
       expect(within(bar).getByText(/Repeat/)).toBeInTheDocument();
     });
 

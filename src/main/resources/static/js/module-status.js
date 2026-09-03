@@ -36,12 +36,17 @@ const RESULT_VARIANTS = {
  * of `fail` red (GitLab #1858/#1859). `status` is consulted only when there is
  * no settled result.
  *
- * - null/empty status                 -> "skip" (PENDING — neutral until run)
+ * `skip` is reserved for the SKIPPED verdict (its own hue): a module that RAN
+ * and reported it could not exercise the feature. Everything with nothing to
+ * report — never run, still waiting, a verdict-less interruption — is the grey
+ * `neutral`, so a skipped module is visibly different from one not yet run.
+ *
+ * - null/empty status                 -> "neutral" (PENDING — nothing until run)
  * - any settled result (regardless of FINISHED vs INTERRUPTED status):
  *     PASSED -> "pass", FAILED -> "fail", WARNING -> "warn",
  *     REVIEW -> "review", SKIPPED -> "skip"
  * - else RUNNING                      -> "running"
- * - else (WAITING, bare INTERRUPTED, UNKNOWN) -> "skip"
+ * - else (WAITING, bare INTERRUPTED, UNKNOWN) -> "neutral"
  * @param {string|null|undefined} status - Module status: null/undefined,
  *   "RUNNING", "WAITING", "INTERRUPTED", or "FINISHED".
  * @param {string|null|undefined} result - Module result: "PASSED", "FAILED",
@@ -49,10 +54,10 @@ const RESULT_VARIANTS = {
  * @returns {string} Canonical cts-badge variant.
  */
 export function statusBadgeVariant(status, result) {
-  if (!status) return "skip";
+  if (!status) return "neutral";
   if (result && RESULT_VARIANTS[result]) return RESULT_VARIANTS[result];
   if (status === "RUNNING") return "running";
-  return "skip";
+  return "neutral";
 }
 
 /**
@@ -84,11 +89,12 @@ export function statusLabel(status, result) {
  * `cts-plan-list._statusVariantFor` so the pending-vs-settled-vs-resolved logic
  * lives in one place rather than being re-derived per component (KTD3):
  *
- * - never-run module (no instances) → static `skip` (neutral gray)
+ * - never-run module (no instances) → static `neutral` (gray)
  * - has run, status not yet fetched (`_statusResolved !== true`) → `pending`
- *   (gray, pulsing) — distinct from the static `skip` of a never-run module
+ *   (gray, pulsing) — distinct from the static `neutral` of a never-run module
  * - status resolved → the concrete variant from `statusBadgeVariant`
- *   (a fetch failure settles status/result undefined → `skip`)
+ *   (a fetch failure settles status/result undefined → `neutral`; a SKIPPED
+ *   verdict is `skip`, which has its own hue)
  *
  * Each surface MUST set `_statusResolved = true` when it merges the resolved
  * `{ status, result }` — in BOTH the success and the error/404 branches —
@@ -96,13 +102,39 @@ export function statusLabel(status, result) {
  * @param {{instances?: string[], status?: string, result?: string,
  *   _statusResolved?: boolean}} mod - A plan module entry.
  * @returns {string} The segment status variant (one of `pass`, `fail`, `warn`,
- *   `running`, `review`, `skip`, `pending`).
+ *   `running`, `review`, `skip`, `neutral`, `pending`).
  */
 export function segmentVariant(mod) {
   const hasInstance = Array.isArray(mod.instances) && mod.instances.length > 0;
-  if (!hasInstance) return "skip";
+  if (!hasInstance) return "neutral";
   if (mod._statusResolved) return statusBadgeVariant(mod.status, mod.result);
   return "pending";
+}
+
+/**
+ * The status word for a plan module *segment*'s accessible name and tooltip
+ * ("<module>: <word>"). Derived from the module's real status/result via
+ * `statusLabel`, NOT from the collapsed colour variant: `segmentVariant` folds
+ * several states into one grey, and a variant-keyed word once made a genuinely
+ * SKIPPED module read as "no result". Shares `segmentVariant`'s branch
+ * structure so the word and the fill never disagree about which state a
+ * segment is in.
+ *
+ * - never-run module (no instances) → "not run"
+ * - has run, status not yet fetched → "checking status"
+ * - resolved → the lower-cased `statusLabel` ("passed", "skipped",
+ *   "running", "interrupted", …); a resolved-but-empty status (a 404'd fetch)
+ *   labels PENDING, which reads as "not run".
+ * @param {{instances?: string[], status?: string, result?: string,
+ *   _statusResolved?: boolean}} mod - A plan module entry.
+ * @returns {string} The lower-case status word.
+ */
+export function segmentStatusWord(mod) {
+  const hasInstance = Array.isArray(mod.instances) && mod.instances.length > 0;
+  if (!hasInstance) return "not run";
+  if (!mod._statusResolved) return "checking status";
+  const label = statusLabel(mod.status, mod.result);
+  return label === "PENDING" ? "not run" : label.toLowerCase();
 }
 
 /**
@@ -119,9 +151,9 @@ export const NOT_RUN_FILTER_VALUE = "NOT_RUN";
  * narrowing, R9) so the two never drift.
  *
  * Matching reads the module's RAW `{ status, result }`, NOT the collapsed
- * `segmentVariant` — `statusBadgeVariant` maps both null-status and
- * FINISHED+SKIPPED to `skip`, so a variant-keyed filter would wrongly catch a
- * genuinely SKIPPED module under "Not yet run". So:
+ * `segmentVariant` — a variant folds several raw states together (e.g. a
+ * never-run module and a 404'd fetch are both `neutral`), so keying the filter
+ * on it would be lossy. So:
  *
  * - `NOT_RUN_FILTER_VALUE` matches a never-run module (no instances) or one
  *   that resolved to a null status — NOT a FINISHED+SKIPPED module.
