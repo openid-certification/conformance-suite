@@ -60,11 +60,10 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 			return env;
 		}
 
-		JsonElement decodedEl = env.getElementFromObject("sdjwt", "decoded");
-		if (decodedEl == null || !decodedEl.isJsonObject()) {
+		JsonObject decoded = DcqlQueryUtils.getDecodedSdJwtClaims(env);
+		if (decoded == null) {
 			throw error("No decoded SD-JWT claims found in environment");
 		}
-		JsonObject decoded = decodedEl.getAsJsonObject();
 
 		// Set of digests referenced from the JWT body and from object property disclosures.
 		// An array element disclosure whose digest is not in this set is orphan: nothing reveals

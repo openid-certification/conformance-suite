@@ -104,6 +104,19 @@ public class DcqlQueryUtils {
 	}
 
 	/**
+	 * Read the decoded SD-JWT claims object from the <code>sdjwt.decoded</code> environment entry,
+	 * or null when it is absent or not an object. Callers raise their own condition error on null so
+	 * the failure is reported at their severity.
+	 */
+	public static JsonObject getDecodedSdJwtClaims(Environment env) {
+		JsonElement decodedEl = env.getElementFromObject("sdjwt", "decoded");
+		if (decodedEl == null || !decodedEl.isJsonObject()) {
+			return null;
+		}
+		return decodedEl.getAsJsonObject();
+	}
+
+	/**
 	 * Check whether a full DCQL claim path is present in the decoded credential payload.
 	 *
 	 * TODO: Path handling here is intentionally limited to string-only object traversal. DCQL path
