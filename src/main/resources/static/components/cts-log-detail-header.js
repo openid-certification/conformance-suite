@@ -34,8 +34,8 @@ const RESULT_BADGE_VARIANTS = {
 };
 
 /**
- * Test running-state -> canonical cts-badge variant. FINISHED is neutral
- * (`skip`) because the sibling result badge carries the outcome; WAITING
+ * Test running-state -> canonical cts-badge variant. FINISHED is `neutral`
+ * because the sibling result badge carries the outcome; WAITING
  * uses `warn` because the run is paused on an external event or user
  * action; CONFIGURED uses `warn` because the runner is waiting for the
  * user to press Start (#1862); INTERRUPTED matches RESULT_BADGE_VARIANTS.
@@ -45,7 +45,7 @@ const STATUS_BADGE_VARIANTS = {
   CONFIGURED: "warn",
   RUNNING: "running",
   WAITING: "warn",
-  FINISHED: "skip",
+  FINISHED: "neutral",
   INTERRUPTED: "fail",
 };
 
@@ -1398,7 +1398,7 @@ class CtsLogDetailHeader extends LitElement {
   _renderStatusPill(status) {
     if (!status) return nothing;
     return html`<cts-badge
-      variant="${STATUS_BADGE_VARIANTS[status] || "skip"}"
+      variant="${STATUS_BADGE_VARIANTS[status] || "neutral"}"
       label="${status}"
     ></cts-badge>`;
   }
@@ -1708,7 +1708,7 @@ class CtsLogDetailHeader extends LitElement {
 
   _renderFinishedBar(test) {
     const counts = this._getResultCounts();
-    const resultVariant = RESULT_BADGE_VARIANTS[test.result] || "skip";
+    const resultVariant = RESULT_BADGE_VARIANTS[test.result] || "neutral";
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">

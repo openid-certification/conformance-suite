@@ -162,9 +162,22 @@
   --status-running-bg:     #E5EEF5;
   --status-running-border: #B6CCDF;
 
-  --status-skipped:        var(--ink-500);
-  --status-skipped-bg:     var(--ink-100);
-  --status-skipped-border: var(--ink-200);
+  /* Neutral "nothing to report": a module never run, a status still being
+     fetched, a lifecycle badge (FINISHED/PENDING) with no verdict of its own.
+     Added alongside the archive palette so the Skipped hue below can mean
+     "ran, but could not exercise the feature" and nothing else. */
+  --status-neutral:        var(--ink-500);
+  --status-neutral-bg:     var(--ink-100);
+  --status-neutral-border: var(--ink-200);
+
+  /* Skipped verdict. The archive shipped Skipped as a grey identical to the
+     neutral set above, which made a skipped module indistinguishable from one
+     not yet run (both read as "no result"). Muted violet: the only hue family
+     not already claimed by pass/fail/warning/running/review, and far enough
+     from the warm greys that the two states separate at 12px segment size. */
+  --status-skipped:        #6A5AA8;
+  --status-skipped-bg:     #EEEAF7;
+  --status-skipped-border: #CFC6E8;
 
   /* Teal Review outcome. --status-review is the saturated segment/box FILL
      (cts-plan-status, cts-plan-list); --status-review-bg is the light chip

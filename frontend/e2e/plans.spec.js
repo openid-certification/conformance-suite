@@ -94,7 +94,7 @@ test.describe("plans.html — Plans List", () => {
 
     // Module status segments (cts-plan-status overview bar) resolve from
     // /api/info: a run module recolors to its status, a never-run module stays
-    // a static skip segment. Each segment is keyed by its accessible name
+    // a static neutral segment. Each segment is keyed by its accessible name
     // ("<module>: <status>"); the trailing colon disambiguates id prefixes.
     await expect(
       page.locator(
@@ -110,7 +110,7 @@ test.describe("plans.html — Plans List", () => {
       page.locator(
         "#plansListing [data-testid='plan-status-segment'][aria-label^='oidcc-codereuse:']",
       ),
-    ).toHaveClass(/cts-pst-seg--skip/);
+    ).toHaveClass(/cts-pst-seg--neutral/);
   });
 
   test("navbar brand points at the plans home for authenticated users", async ({ page }) => {

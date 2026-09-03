@@ -403,7 +403,7 @@ All icons render via `<cts-icon name="<kebab>" size="16|20|24">`. The icon libra
 
 ## Badges
 
-All status pills, label chips, and count badges render via `<cts-badge variant="<name>">`. The status palette (`pass` / `fail` / `warn` / `running` / `skip` / `review`) and the utility variants (`primary` / `secondary` / `danger` / `info-subtle`) are token-routed through `oidf-tokens.css`. See `src/main/resources/static/components/cts-badge.js` and Storybook **Components/cts-badge** for the full inventory.
+All status pills, label chips, and count badges render via `<cts-badge variant="<name>">`. The status palette (`pass` / `fail` / `warn` / `running` / `skip` / `neutral` / `review`; `skip` is the SKIPPED verdict only, `neutral` the grey for never-run/pending/unknown) and the utility variants (`primary` / `secondary` / `danger` / `info-subtle`) are token-routed through `oidf-tokens.css`. See `src/main/resources/static/components/cts-badge.js` and Storybook **Components/cts-badge** for the full inventory.
 
 **Affordance rule:** every variant supports two visual states. The state must reflect whether clicking the badge does anything.
 

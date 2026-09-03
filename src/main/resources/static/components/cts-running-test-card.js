@@ -398,7 +398,7 @@ class CtsRunningTestCard extends LitElement {
     const test = this.test;
     if (!test || !test._id) return nothing;
 
-    const badgeVariant = STATUS_BADGE_VARIANTS[test.status] || "skip";
+    const badgeVariant = STATUS_BADGE_VARIANTS[test.status] || "neutral";
     // R19 (amended by #1862): WAITING gets a friendly label so the user can
     // tell at a glance the test is paused, not working — but NOT "Waiting
     // for user input": a WAITING test is often waiting on an incoming

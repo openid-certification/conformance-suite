@@ -25,6 +25,7 @@ const STATUS_VARIANT_CLASSES = {
   warn: "b-warn",
   running: "b-run",
   skip: "b-skip",
+  neutral: "b-neutral",
   review: "b-rev",
   info: "b-info",
 };
@@ -153,12 +154,21 @@ const STYLE_TEXT = css`
     background: var(--status-running-bg);
     color: var(--status-running);
   }
+  /* Skipped verdict: the violet --status-skipped pair. Distinct from the
+     grey b-neutral below so "ran, could not exercise the feature" never
+     reads as "not yet run". */
   cts-badge .b-skip {
     background: var(--status-skipped-bg);
-    /* One ink step darker than --status-skipped (--ink-500) for legible
-       contrast on the light --status-skipped-bg fill. Scoped to the badge
-       so the shared --status-skipped token (consumed by cts-plan-list and
-       cts-log-detail-header) is unchanged. */
+    color: var(--status-skipped);
+  }
+  /* Nothing to report: PENDING / FINISHED lifecycle pills, never-run
+     modules, unknown results. */
+  cts-badge .b-neutral {
+    background: var(--status-neutral-bg);
+    /* One ink step darker than --status-neutral (--ink-500) for legible
+       contrast on the light --status-neutral-bg fill. Scoped to the badge
+       so the shared --status-neutral token (consumed by cts-plan-status)
+       is unchanged. */
     color: var(--ink-600, #4f4940);
   }
   cts-badge .b-rev {
@@ -245,7 +255,8 @@ const STYLE_TEXT = css`
      here (info, running, secondary, the bg-* utilities) keep the
      interactive ring with no inversion; the result-summary filter only
      toggles the six variants below (pass/fail/warn/skip/info-subtle/
-     review), which mirror COUNT_BADGE_VARIANTS in cts-log-viewer. Review
+     review), which mirror COUNT_BADGE_VARIANTS in cts-log-viewer; neutral
+     is pressed by cts-plan-status's "Not run" count badge. Review
      inverts to a darkened-teal fill with light text — the same dark-fill +
      light-text form as the other variants (and as b-info-subtle) so a
      selected Review badge reads identically to a selected INFO badge; see
@@ -266,6 +277,10 @@ const STYLE_TEXT = css`
   cts-badge .b-skip.is-pressed {
     background: var(--status-skipped);
     color: var(--status-skipped-bg);
+  }
+  cts-badge .b-neutral.is-pressed {
+    background: var(--status-neutral);
+    color: var(--status-neutral-bg);
   }
   cts-badge .b-info-subtle.is-pressed {
     background: var(--status-info);
@@ -381,9 +396,12 @@ function buildSpinner() {
 /**
  * Token-styled status badge. The canonical variants are the design-system
  * status palette names: `pass`, `fail`, `warn`, `running`, `skip`,
- * `review`. Each maps to a scoped class (`b-pass` / `b-fail` / `b-warn` /
- * `b-run` / `b-skip` / `b-rev`) that draws color from the
- * `--status-*` token group in `oidf-tokens.css`. Single-line badges use
+ * `neutral`, `review`. Each maps to a scoped class (`b-pass` / `b-fail` /
+ * `b-warn` / `b-run` / `b-skip` / `b-neutral` / `b-rev`) that draws color
+ * from the `--status-*` token group in `oidf-tokens.css`. `skip` is the
+ * SKIPPED verdict only (violet); `neutral` is the grey for states with
+ * nothing to report (PENDING / FINISHED lifecycle pills, never-run
+ * modules, unknown results) — do not use `skip` as a generic fallback. Single-line badges use
  * the pill radius (`--radius-pill`); badges whose label wraps (detected
  * via a `<br>` in the slot) collapse to the 9px corner specified in the
  * design archive.
@@ -399,7 +417,7 @@ function buildSpinner() {
  * canonical status names for any badge that conveys test outcome.
  *
  * @property {string} variant - Canonical status: pass, fail, warn,
- *   running, skip, review, info. Utility (non-status): primary,
+ *   running, skip, neutral, review, info. Utility (non-status): primary,
  *   secondary, danger, info-subtle.
  * @property {string} label - Visible text
  * @property {number} count - Numeric content; overrides `label` when set

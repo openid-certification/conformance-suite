@@ -88,7 +88,7 @@ const MOCK_MODULES_IN_PROGRESS = [
 //     console.warn so the backend anomaly is observable, not silent).
 //   - WAITING is a known TestModule.Status value that has no entry in
 //     RESULT_BADGE_VARIANTS, so the label passes through as "WAITING" and
-//     the variant falls back to "skip" via the `|| "skip"` chain in
+//     the variant falls back to "neutral" via the `|| "neutral"` chain in
 //     `_moduleVariant`.
 const MOCK_MODULES_EDGE_CASES = [
   {
@@ -131,7 +131,7 @@ export const MixedResults = {
       expect(warningBadges[0].getAttribute("variant")).toBe("warn");
       const pendingBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PENDING");
       expect(pendingBadges.length).toBe(2);
-      expect(pendingBadges[0].getAttribute("variant")).toBe("skip");
+      expect(pendingBadges[0].getAttribute("variant")).toBe("neutral");
     });
   },
 };
@@ -159,7 +159,7 @@ export const NoneRun = {
     const badges = canvasElement.querySelectorAll("cts-badge");
     for (const badge of badges) {
       expect(badge.getAttribute("label")).toBe("PENDING");
-      expect(badge.getAttribute("variant")).toBe("skip");
+      expect(badge.getAttribute("variant")).toBe("neutral");
     }
   },
 };
@@ -226,9 +226,9 @@ export const DataShapeEdgeCases = {
       expect(reviewBadge?.getAttribute("variant")).toBe("review");
     });
 
-    await step("WAITING passes through with the skip variant", async () => {
+    await step("WAITING passes through with the neutral variant", async () => {
       const waitingBadge = byLabel("WAITING");
-      expect(waitingBadge?.getAttribute("variant")).toBe("skip");
+      expect(waitingBadge?.getAttribute("variant")).toBe("neutral");
     });
   },
 };

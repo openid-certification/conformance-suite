@@ -272,8 +272,8 @@ export const ModulesDefault = {
     expect(badges[2].getAttribute("variant")).toBe("fail");
     expect(badges[2].getAttribute("label")).toBe("FAILED");
 
-    // Fourth badge: no status -> PENDING (skip palette)
-    expect(badges[3].getAttribute("variant")).toBe("skip");
+    // Fourth badge: no status -> PENDING (neutral palette)
+    expect(badges[3].getAttribute("variant")).toBe("neutral");
     expect(badges[3].getAttribute("label")).toBe("PENDING");
 
     // R28: badges for modules with a test instance are wrapped in an

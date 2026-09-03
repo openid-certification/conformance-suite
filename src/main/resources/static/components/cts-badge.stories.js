@@ -388,7 +388,7 @@ export const NotClickable = {
 export const AllStatusVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
-      ${["pass", "fail", "warn", "running", "skip", "review", "info"].map(
+      ${["pass", "fail", "warn", "running", "skip", "neutral", "review", "info"].map(
         (variant) =>
           html`<cts-badge variant="${variant}" label="${variant.toUpperCase()}"></cts-badge>`,
       )}
@@ -397,8 +397,17 @@ export const AllStatusVariants = {
 
   async play({ canvasElement }) {
     const badges = canvasElement.querySelectorAll("cts-badge .badge");
-    expect(badges.length).toBe(7);
-    const expectedClasses = ["b-pass", "b-fail", "b-warn", "b-run", "b-skip", "b-rev", "b-info"];
+    expect(badges.length).toBe(8);
+    const expectedClasses = [
+      "b-pass",
+      "b-fail",
+      "b-warn",
+      "b-run",
+      "b-skip",
+      "b-neutral",
+      "b-rev",
+      "b-info",
+    ];
     badges.forEach((badge, i) => {
       expect(badge.classList.contains(expectedClasses[i])).toBe(true);
     });
@@ -822,6 +831,7 @@ export const AllVariantsBothStates = {
         "warn",
         "running",
         "skip",
+        "neutral",
         "review",
         "info",
         "secondary",
@@ -835,8 +845,8 @@ export const AllVariantsBothStates = {
 
   async play({ canvasElement }) {
     const badges = canvasElement.querySelectorAll(".badge");
-    // 9 variants × 2 states = 18 badges.
-    expect(badges.length).toBe(18);
+    // 10 variants × 2 states = 20 badges.
+    expect(badges.length).toBe(20);
 
     badges.forEach((badge, i) => {
       const computed = window.getComputedStyle(badge);
@@ -865,7 +875,12 @@ export const AllVariantsBothStates = {
 // review) mirror COUNT_BADGE_VARIANTS in cts-log-viewer.
 
 export const ClickablePressed = {
-  args: { variant: "fail", label: "FAILURE (3)", clickable: true, pressed: true },
+  args: {
+    variant: "fail",
+    label: "FAILURE (3)",
+    clickable: true,
+    pressed: true,
+  },
   render: ({ variant, label, clickable, pressed }) =>
     html`<cts-badge
       variant="${variant}"
@@ -993,7 +1008,12 @@ export const PressedBooleanBinding = {
  * keyboard path (Enter) to confirm `pressed` does not suppress the event.
  */
 export const PressedStillEmitsClick = {
-  args: { variant: "fail", label: "FAILURE (3)", clickable: true, pressed: true },
+  args: {
+    variant: "fail",
+    label: "FAILURE (3)",
+    clickable: true,
+    pressed: true,
+  },
   render: ({ variant, label, clickable, pressed }) =>
     html`<cts-badge
       variant="${variant}"
@@ -1036,7 +1056,7 @@ export const CountVariantsPressed = {
     >
       <strong>Read-only</strong>
       <strong>Pressed</strong>
-      ${["pass", "fail", "warn", "skip", "info-subtle", "review"].flatMap((variant) => [
+      ${["pass", "fail", "warn", "skip", "neutral", "info-subtle", "review"].flatMap((variant) => [
         html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
         html`<cts-badge variant="${variant}" label="${variant}" clickable pressed></cts-badge>`,
       ])}
@@ -1045,8 +1065,8 @@ export const CountVariantsPressed = {
 
   async play({ canvasElement }) {
     const badges = canvasElement.querySelectorAll(".badge");
-    // 6 variants × 2 states = 12 badges.
-    expect(badges.length).toBe(12);
+    // 7 variants × 2 states = 14 badges.
+    expect(badges.length).toBe(14);
 
     badges.forEach((badge, i) => {
       const isPressedColumn = i % 2 === 1;
@@ -1085,7 +1105,7 @@ export const RingIntensityScale = {
       <strong>Interactive</strong>
       <strong>Clickable</strong>
       <strong>Pressed</strong>
-      ${["pass", "fail", "warn", "skip", "info-subtle", "review"].flatMap((variant) => [
+      ${["pass", "fail", "warn", "skip", "neutral", "info-subtle", "review"].flatMap((variant) => [
         html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
         html`<cts-badge variant="${variant}" label="${variant}" interactive></cts-badge>`,
         html`<cts-badge variant="${variant}" label="${variant}" clickable></cts-badge>`,
@@ -1111,8 +1131,8 @@ export const RingIntensityScale = {
     };
 
     await step("the grid renders every variant in all four states", async () => {
-      // 6 variants × 4 states = 24 badges.
-      expect(badges.length).toBe(24);
+      // 7 variants × 4 states = 28 badges.
+      expect(badges.length).toBe(28);
     });
 
     await step("each column carries the expected ring classes", async () => {
