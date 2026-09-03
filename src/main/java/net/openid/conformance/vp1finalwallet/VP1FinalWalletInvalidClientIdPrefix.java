@@ -1,5 +1,7 @@
 package net.openid.conformance.vp1finalwallet;
 
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddInvalidClientIdPrefixToMultiSignedClientIds;
 import net.openid.conformance.condition.client.AddInvalidClientIdPrefixToRequestObject;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -28,8 +30,15 @@ public class VP1FinalWalletInvalidClientIdPrefix extends AbstractVP1FinalWalletT
 
 	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
+		// For multi-signed requests client_id lives in each signature's protected header rather than
+		// the shared payload (OID4VP Appendix A.3.2.2), so corrupt the two client_id strings the signer
+		// reads instead of the request object. This runs before signRequestObject().
+		Class<? extends Condition> corruptClientId = switch (requestMethod) {
+			case REQUEST_URI_MULTISIGNED -> AddInvalidClientIdPrefixToMultiSignedClientIds.class;
+			default -> AddInvalidClientIdPrefixToRequestObject.class;
+		};
 		return super.createAuthorizationRequestSequence()
-			.then(condition(AddInvalidClientIdPrefixToRequestObject.class));
+			.then(condition(corruptClientId));
 	}
 
 	@Override
