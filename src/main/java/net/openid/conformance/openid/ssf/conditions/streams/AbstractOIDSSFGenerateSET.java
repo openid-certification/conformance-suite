@@ -51,8 +51,8 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
-		String serverIssuer = env.getString("ssf", "issuer");
-		String audience = env.getString("config", "ssf.stream.audience");
+		String serverIssuer = getIssuer(env);
+		String audience = getAudience(env);
 
 		try {
 			JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("server_jwks").toString());
@@ -83,7 +83,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 			SignedJWT signedJWT = new SignedJWT(header, claimsSet);
 			signedJWT.sign(signer);
 
-			String setTokenString = signedJWT.serialize();
+			String setTokenString = postProcessSerializedSecurityEventToken(signedJWT.serialize());
 
 			JsonObject setObject = JWTUtil.jwtStringToJsonObjectForEnvironment(setTokenString);
 			setObject.remove("value");
@@ -100,6 +100,23 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 	protected String getCurrentStreamId(Environment env) {
 		return env.getString("ssf", "current_stream_id");
+	}
+
+	protected String getIssuer(Environment env) {
+		return env.getString("ssf", "issuer");
+	}
+
+	protected String getAudience(Environment env) {
+		return env.getString("config", "ssf.stream.audience");
+	}
+
+	/**
+	 * Hook for subclasses that need to alter the serialized SET after signing
+	 * (e.g. to deliberately corrupt the signature for negative tests). The
+	 * default implementation returns the token unchanged.
+	 */
+	protected String postProcessSerializedSecurityEventToken(String setTokenString) {
+		return setTokenString;
 	}
 
 	protected void afterSecurityEventTokenGenerated(Environment env, String streamId, JsonObject streamConfig, String setJti, String setTokenString, JsonObject setObject) {
