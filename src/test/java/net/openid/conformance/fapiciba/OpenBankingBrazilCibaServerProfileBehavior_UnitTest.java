@@ -67,6 +67,12 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	private final OpenBankingBrazilCibaServerProfileBehavior behavior = new OpenBankingBrazilCibaServerProfileBehavior();
 
 	@Test
+	public void usesRegisteredClientAuthenticationMethod() {
+		assertThat(behavior.usesRegisteredClientAuthenticationMethod()).isTrue();
+		assertThat(new FAPICIBAServerProfileBehavior().usesRegisteredClientAuthenticationMethod()).isFalse();
+	}
+
+	@Test
 	public void validatesTokenEndpointIdTokenIsEncrypted() {
 		List<ConditionCallBuilder> conditionCalls = getConditionCalls(
 			behavior.validateTokenEndpointIdToken());
@@ -263,6 +269,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	public void createsDataConsentBeforeBrazilCibaRequest() {
 		TestableFAPICIBAID1 module = new TestableFAPICIBAID1();
 		module.addTokenEndpointClientAuthentication = NoOpClientAuthentication.class;
+		module.profileBehavior = behavior;
 		behavior.setModule(module);
 
 		List<Class<? extends Condition>> conditionClasses = getConditionClasses(

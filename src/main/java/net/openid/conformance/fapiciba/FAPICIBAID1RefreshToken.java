@@ -7,12 +7,9 @@ import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowed
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
-import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-refresh-token",
@@ -22,11 +19,9 @@ import net.openid.conformance.variant.VariantSetup;
 )
 public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
-	public void setupPrivateKeyJwt() {
-		super.setupPrivateKeyJwt();
-		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
+	protected boolean useDefaultClientAssertionAudience() {
+		return false;
 	}
 
 	@Override
@@ -59,7 +54,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
-		call(new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication));
+		call(new RefreshTokenRequestSteps(isSecondClient(), getTokenEndpointClientAuthentication()));
 	}
 
 	@Override
@@ -82,7 +77,7 @@ public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
 			// try client 2's refresh_token with client 1
 			eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
-			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication));
+			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), getTokenEndpointClientAuthentication()));
 			eventLog.endBlock();
 
 			fireTestFinished();
