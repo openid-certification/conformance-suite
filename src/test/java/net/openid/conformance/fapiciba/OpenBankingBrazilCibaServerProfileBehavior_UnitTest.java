@@ -21,6 +21,7 @@ import net.openid.conformance.condition.client.ExtractJWKSDirectFromClient2Confi
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilAddSoftwareStatementRedirectUrisToDynamicRegistrationRequest;
@@ -70,6 +71,14 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	public void usesRegisteredClientAuthenticationMethod() {
 		assertThat(behavior.usesRegisteredClientAuthenticationMethod()).isTrue();
 		assertThat(new FAPICIBAServerProfileBehavior().usesRegisteredClientAuthenticationMethod()).isFalse();
+	}
+
+	@Test
+	public void requiresMtlsForNotificationEndpoint() {
+		assertThat(behavior.notificationEndpointRequiresMTLS()).isTrue();
+		assertThat(new FAPICIBAServerProfileBehavior().notificationEndpointRequiresMTLS()).isFalse();
+		assertThat(getConditionClasses(behavior.validateNotificationEndpointRequest()))
+			.containsExactly(EnsureNotificationEndpointRequestHasClientCertificate.class);
 	}
 
 	@Test

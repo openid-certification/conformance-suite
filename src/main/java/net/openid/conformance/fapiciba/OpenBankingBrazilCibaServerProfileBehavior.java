@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
+import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
@@ -140,6 +141,23 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 		return true;
 	}
 
+	@Override
+	public boolean notificationEndpointRequiresMTLS() {
+		return true;
+	}
+
+	@Override
+	public ConditionSequence validateNotificationEndpointRequest() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(EnsureNotificationEndpointRequestHasClientCertificate.class,
+					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.3.4");
+			}
+		};
+	}
+
+	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
 		return () -> {
 			boolean isSecondClient = module.isSecondClient();

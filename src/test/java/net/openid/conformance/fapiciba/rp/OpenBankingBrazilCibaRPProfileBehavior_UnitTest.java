@@ -15,6 +15,7 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
+import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
@@ -69,6 +70,9 @@ public class OpenBankingBrazilCibaRPProfileBehavior_UnitTest {
 	@Test
 	public void exposesPingOnlyServerConfiguration() {
 		List<ConditionCallBuilder> conditionCalls = getConditionCalls(behavior.applyProfileSpecificServerConfigurationSetup());
+
+		assertThat(conditionCalls).extracting(ConditionCallBuilder::getConditionClass)
+			.startsWith(ExtractMTLSCertificatesFromConfiguration.class);
 
 		ConditionCallBuilder pingModeCall = conditionCalls.stream()
 			.filter(call -> call.getConditionClass().equals(CheckCIBAModeIsPing.class))
