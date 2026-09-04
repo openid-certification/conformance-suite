@@ -65,6 +65,23 @@ public class OIDSSFEnsureTokenScopeSufficient_UnitTest {
 	}
 
 	@Test
+	void manageScopeSatisfiesReadRequirement() {
+		// CAEP Interop Profile §2.7.3: "The ssf.manage scope includes all ssf.read
+		// permissions" — a manage-only token must be able to read and poll.
+		prepareEnv("ssf.manage");
+		createCondition("ssf.read").execute(env);
+		assertFalse(hasError());
+	}
+
+	@Test
+	void readScopeDoesNotSatisfyManageRequirement() {
+		prepareEnv("ssf.read");
+		createCondition("ssf.manage").execute(env);
+		assertTrue(hasError());
+		assertEquals(403, env.getInteger("ssf", "auth_result.status_code"));
+	}
+
+	@Test
 	void failsWhenNoScopeGranted() {
 		prepareEnv(null);
 		createCondition("ssf.read").execute(env);

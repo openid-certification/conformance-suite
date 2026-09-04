@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.SsfConstants;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
@@ -15,9 +16,12 @@ import java.util.Set;
  * <p>
  * Asserts that the scope granted to the dynamic-mode access token (stashed at
  * {@code ssf.current_token_scope} by {@link OIDSSFHandleAuthorizationHeader})
- * includes the scope required for the requested operation — {@code ssf.read}
- * for read/status operations, {@code ssf.manage} for stream-management
- * operations (create/update/replace/delete, verification, subject changes).
+ * is sufficient for the requested operation — {@code ssf.read} for read/status
+ * operations, {@code ssf.manage} for stream-management operations
+ * (create/update/replace/delete, verification, subject changes). Per CAEP
+ * Interop Profile §2.7.3 "The ssf.manage scope includes all ssf.read
+ * permissions", so a token granted only {@code ssf.manage} satisfies an
+ * {@code ssf.read} requirement.
  * <p>
  * Follows the no-throw {@code ssf.auth_result} convention: on insufficient
  * scope it records an {@code insufficient_scope} error with HTTP 403 (RFC 6750
@@ -41,7 +45,7 @@ public class OIDSSFEnsureTokenScopeSufficient extends AbstractOIDSSFHandleReceiv
 			? Set.of()
 			: new LinkedHashSet<>(Arrays.asList(grantedScope.trim().split("\\s+")));
 
-		if (!grantedScopes.contains(requiredScope)) {
+		if (!isSufficient(grantedScopes)) {
 			authResult.add("error", createErrorObj("insufficient_scope",
 				"Access token scope is insufficient for this operation. Required scope: " + requiredScope));
 			authResult.addProperty("status_code", 403);
@@ -54,5 +58,15 @@ public class OIDSSFEnsureTokenScopeSufficient extends AbstractOIDSSFHandleReceiv
 			args("required_scope", requiredScope, "granted_scope", grantedScope));
 
 		return env;
+	}
+
+	protected boolean isSufficient(Set<String> grantedScopes) {
+		if (grantedScopes.contains(requiredScope)) {
+			return true;
+		}
+		// CAEP Interop Profile §2.7.3: "The ssf.manage scope includes all ssf.read
+		// permissions" — a manage-only token may perform read operations.
+		return SsfConstants.SCOPE_SSF_READ.equals(requiredScope)
+			&& grantedScopes.contains(SsfConstants.SCOPE_SSF_MANAGE);
 	}
 }
