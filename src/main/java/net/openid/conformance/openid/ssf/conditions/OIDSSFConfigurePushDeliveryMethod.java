@@ -19,6 +19,8 @@ public class OIDSSFConfigurePushDeliveryMethod extends AbstractCondition {
 
 	protected String createPushDeliveryEndpointUrl(Environment env) {
 
+		// Internal developer knob: deliberately NOT declared in @ConfigurationFields /
+		// the config-field catalog - it exists for suite development setups only.
 		String receiverBaseUrl = env.getString("config", "ssf.receiver.base_url_override");
 		if (receiverBaseUrl == null) {
 			receiverBaseUrl = BaseUrlUtil.resolveEffectiveBaseUrl(env);
