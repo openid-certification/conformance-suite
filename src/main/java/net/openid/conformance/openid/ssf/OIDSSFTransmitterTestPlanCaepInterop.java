@@ -1,8 +1,10 @@
 package net.openid.conformance.openid.ssf;
 
+import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,4 +53,9 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 		)));
 	}
 
+	@Override
+	public List<String> certificationProfileName(VariantSelection variantSelection) {
+		String deliveryMethod = variantSelection.getVariantParameterValue(SsfDeliveryMode.class);
+		return List.of(String.format("%s %s %s", "OIDSSF-1.0-FINAL+CAEPIOP-1.0-FINAL", "Transmitter", deliveryMethod));
+	}
 }
