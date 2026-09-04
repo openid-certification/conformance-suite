@@ -2,7 +2,6 @@ package net.openid.conformance.openid.ssf.conditions.as;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -13,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class OIDSSFValidateRequestedScope_UnitTest {
@@ -54,20 +52,33 @@ public class OIDSSFValidateRequestedScope_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenScopeContainsUnknownValue() {
-		prepareScope("ssf.read openid");
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	void shouldIgnoreNonSsfScopesAndGrantSsfSubset() {
+		// RFC 6749 §3.3 lets the AS ignore unrecognised scope values — a receiver
+		// requesting e.g. "openid ssf.manage" must still obtain a token.
+		prepareScope("openid ssf.manage");
+		assertDoesNotThrow(() -> createCondition().execute(env));
+		assertEquals("ssf.manage", env.getString("scope"));
 	}
 
 	@Test
-	void shouldFailWhenScopeIsMissing() {
+	void shouldGrantDefaultScopesWhenOnlyNonSsfScopesRequested() {
+		prepareScope("openid profile");
+		assertDoesNotThrow(() -> createCondition().execute(env));
+		assertEquals("ssf.read ssf.manage", env.getString("scope"));
+	}
+
+	@Test
+	void shouldGrantDefaultScopesWhenScopeIsMissing() {
+		// RFC 6749 §4.4.2: scope is OPTIONAL for the client_credentials grant.
 		prepareScope(null);
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+		assertDoesNotThrow(() -> createCondition().execute(env));
+		assertEquals("ssf.read ssf.manage", env.getString("scope"));
 	}
 
 	@Test
-	void shouldFailWhenScopeIsBlank() {
+	void shouldGrantDefaultScopesWhenScopeIsBlank() {
 		prepareScope("   ");
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+		assertDoesNotThrow(() -> createCondition().execute(env));
+		assertEquals("ssf.read ssf.manage", env.getString("scope"));
 	}
 }
