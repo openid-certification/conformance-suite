@@ -29,7 +29,7 @@ public class OIDSSFStreamControlNegativeTestReadUnknownStream extends AbstractSt
 		// expect 404	if there is no Event Stream with the given "stream_id" for this Event Receiver
 		eventLog.runBlock("Attempt to read an non existing Stream Configuration a valid access token", () -> {
 			// try to read stream config with valid but unknown stream_id
-			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-7.1.1.2");
+			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-8.1.1.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 			call(exec().unmapKey("endpoint_response"));

@@ -52,7 +52,7 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 			afterStreamVerification(streamId, event);
 		}
 	}
@@ -61,7 +61,7 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 			afterStreamVerification(streamId, event);
 		}
 	}
