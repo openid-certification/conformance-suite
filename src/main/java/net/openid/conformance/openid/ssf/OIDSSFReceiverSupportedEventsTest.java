@@ -64,7 +64,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		// event push and treat it as our cue to start sending the supported events.
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			afterInitialStreamVerification(streamId);
 			return;
 		}
@@ -85,7 +85,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		// supported events.
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			afterInitialStreamVerification(streamId);
 			return;
 		}
