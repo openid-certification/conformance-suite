@@ -328,6 +328,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected String resolveEffectiveIssuer() {
 
+		// Internal developer knob: deliberately NOT declared in @ConfigurationFields /
+		// the config-field catalog - it exists for suite development setups only.
 		String issuer = env.getString("config", "ssf.transmitter.issuer_override");
 		if (issuer == null) {
 			issuer = BaseUrlUtil.resolveEffectiveBaseUrl(env);
