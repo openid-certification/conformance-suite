@@ -80,7 +80,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 			// (the 'SSF Issuer' config field only exists under the discovery variant).
 			eventLog.log(getName(), "Skipping transmitter metadata issuer check: not applicable for static transmitter metadata");
 		}
-		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.3.7");
+		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFOptionalFieldsTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1");

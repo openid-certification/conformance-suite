@@ -36,7 +36,7 @@ public class OIDSSFTransmitterStreamVerificationPollAndAckTest extends AbstractO
 		// validation runs in step 3 on the second poll.
 		eventLog.runBlock("Retrieve first verification event batch via POLL_ONLY", () -> {
 			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
 			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 		});

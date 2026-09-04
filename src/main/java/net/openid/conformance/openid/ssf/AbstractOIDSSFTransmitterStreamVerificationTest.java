@@ -101,8 +101,8 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -118,7 +118,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 
 	protected void triggerVerificationEvent() {
 		eventLog.runBlock("Trigger verification event", () -> {
-			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4.1");
+			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
 			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
@@ -288,7 +288,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 			OIDSSFCallPollEndpoint.PollMode pollMode = attempt == 1 ? initialMode : OIDSSFCallPollEndpoint.PollMode.POLL_ONLY;
 			eventLog.runBlock("Poll for verification events via " + blockPrefix + " (attempt " + attempt + ")", () -> {
 				env.putString("ssf", "poll.mode", pollMode.name());
-				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
 				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			});

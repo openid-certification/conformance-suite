@@ -36,7 +36,7 @@ public class OIDSSFTransmitterStreamVerificationAckOnlyTest extends AbstractOIDS
 
 		eventLog.runBlock("Acknowledge verification event via ACKNOWLEDGE_ONLY", () -> {
 			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
 		});
 	}
 }

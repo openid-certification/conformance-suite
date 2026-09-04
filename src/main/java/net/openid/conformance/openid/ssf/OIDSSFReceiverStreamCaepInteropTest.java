@@ -124,20 +124,20 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		}
 
 		createdStreamId = streamId;
-		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 		callAndContinueOnFailure(new OIDSSFEnsureStreamContainsCaepInteropEvent(streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-3");
 	}
 
 	@Override
 	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
 		readStreamId = streamId;
-		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Lookup for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Lookup for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 	}
 
 	@Override
 	protected void onStatusStatusLookup(String streamId, JsonObject statusOpResult) {
 		readStreamStatusStreamId = streamId;
-		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Status Lookup for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Status Lookup for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 	}
 
 	@Override
@@ -145,7 +145,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 
 			afterInitialStreamVerification(streamId, event);
 			return;
@@ -160,7 +160,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		// needed if SSF Receiver uses poll delivery
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 
 			afterInitialStreamVerification(streamId, event);
 			return;

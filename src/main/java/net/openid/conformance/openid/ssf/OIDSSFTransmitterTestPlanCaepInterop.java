@@ -18,7 +18,7 @@ import java.util.List;
 
 		This plan exercises the following transmitter behavior:
 		 * transmitter metadata document (required and optional fields, authorization schemes, advertised delivery methods and event types)
-		 * stream configuration management: create, read, delete (update/replace are excluded per CAEPIOP 2.3.8 which restricts stream configuration lifecycle operations)
+		 * stream configuration management: create, read, delete (update/replace are excluded: CAEPIOP 2.3.8.2 lists the stream control operations a transmitter MUST support, and update/replace are not among them)
 		 * stream configuration error handling: invalid access tokens, malformed bodies, unknown stream IDs
 		 * stream verification via the transmitter's verification endpoint
 		 * end-to-end CAEP Interop event delivery (session-revoked, credential-change, device-compliance-change — as advertised in events_delivered) over PUSH and POLL
