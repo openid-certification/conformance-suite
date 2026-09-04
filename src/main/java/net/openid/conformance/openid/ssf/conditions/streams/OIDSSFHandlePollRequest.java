@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEventAckConsumer;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFEventErrorConsumer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.EventsBatch;
@@ -19,9 +20,12 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 	protected OIDSSFEventAckConsumer onStreamEventAcknowledged;
 
-	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, OIDSSFEventAckConsumer onStreamEventAcknowledged) {
+	protected OIDSSFEventErrorConsumer onStreamEventErrorReported;
+
+	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, OIDSSFEventAckConsumer onStreamEventAcknowledged, OIDSSFEventErrorConsumer onStreamEventErrorReported) {
 		this.eventStore = eventStore;
 		this.onStreamEventAcknowledged = onStreamEventAcknowledged;
+		this.onStreamEventErrorReported = onStreamEventErrorReported;
 	}
 
 	@Override
@@ -125,6 +129,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 				String jti = entry.getKey();
 				JsonObject errorObj = entry.getValue().getAsJsonObject();
 				eventStore.registerErrorForStreamEvent(streamId, jti, errorObj);
+				onStreamEventErrorReported.accept(streamId, jti, errorObj);
 			}
 		}
 

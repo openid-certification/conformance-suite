@@ -1010,6 +1010,14 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		// NOOP
 	}
 
+	/**
+	 * Called when the receiver reports an error for a delivered SET via the
+	 * {@code setErrs} member of a poll request (RFC 8936 2.4).
+	 */
+	protected void onStreamEventErrorReported(String streamId, String jti, JsonObject error) {
+		// NOOP
+	}
+
 	protected abstract boolean isFinished();
 
 	protected ResponseEntity<?> handleStreamPollingRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -1019,7 +1027,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
-		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
+		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged, this::onStreamEventErrorReported), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
 
 		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
 
