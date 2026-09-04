@@ -36,6 +36,9 @@ public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssue
 
 	@Override
 	protected String getExpectedIssuerUrl(Environment env) {
+		if (getConfigurationUrl(env) == null) {
+			throw error("'SSF Issuer' field is missing from the test configuration; cannot verify the transmitter metadata issuer");
+		}
 		String expectedIssuerUrl = super.getExpectedIssuerUrl(env);
 
 		String metadataSuffix = env.getString("config", "ssf.transmitter.metadata_suffix");
