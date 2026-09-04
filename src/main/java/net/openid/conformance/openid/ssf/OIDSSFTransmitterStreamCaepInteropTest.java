@@ -101,6 +101,10 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 */
 	protected static final int MAX_UNSOLICITED_VERIFICATION_EVENTS = 10;
 
+	protected static final int VERIFICATION_POLL_MAX_ATTEMPTS = 12;
+
+	protected static final int VERIFICATION_POLL_INTERVAL_SECONDS = 5;
+
 	volatile boolean streamDeletedSuccessfully = false;
 
 	/**
@@ -333,22 +337,40 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	}
 
 	protected void retrieveAndAcknowledgeEventsViaPoll() {
-		eventLog.runBlock("Poll for verification event", () -> {
-			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-			validatePollResponseStatus();
-			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
-			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
-		});
+		// Poll repeatedly for the solicited verification event. SSF 1.0 8.1.4.2:
+		// receivers MUST NOT depend on the verification event being transmitted
+		// synchronously or in any particular order relative to the queue - a single
+		// poll right after triggering is not sufficient. The ~60s window follows the
+		// WG expectation recorded on sharedsignals#339.
+		boolean solicitedVerificationFound = false;
+		for (int attempt = 1; attempt <= VERIFICATION_POLL_MAX_ATTEMPTS && !solicitedVerificationFound; attempt++) {
+			int attemptNr = attempt;
+			eventLog.runBlock("Poll for verification event (attempt " + attemptNr + ")", () -> {
+				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
+				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				validatePollResponseStatus();
+				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
+			});
 
-		// Iterate every SET in the poll response, tolerating unsolicited
-		// (stateless) verification events per SSF 1.0 §8.1.4, and require that
-		// at least one solicited (stated) verification event is present — the
-		// transmitter MUST echo the request state per §8.1.4.2.
-		if (!iterateAndValidatePolledVerificationEvents()) {
+			solicitedVerificationFound = iterateAndValidatePolledVerificationEvents();
+
+			if (!solicitedVerificationFound && attempt < VERIFICATION_POLL_MAX_ATTEMPTS) {
+				eventLog.log(getName(), "Solicited verification event not yet delivered; polling again in "
+					+ VERIFICATION_POLL_INTERVAL_SECONDS + "s (attempt " + attemptNr + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
+				try {
+					Thread.sleep(VERIFICATION_POLL_INTERVAL_SECONDS * 1000L);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new TestFailureException(getId(), "Interrupted while waiting for the solicited verification event");
+				}
+			}
+		}
+
+		if (!solicitedVerificationFound) {
 			throw new TestFailureException(getId(),
-				"POLL response did not contain a solicited verification event (with matching 'state') — "
-					+ "transmitter did not echo the state from the verification request (SSF 1.0 §8.1.4.2)");
+				"POLL responses did not contain a solicited verification event (with matching 'state') within the polling window - "
+					+ "transmitter did not echo the state from the verification request (SSF 1.0 8.1.4.2)");
 		}
 
 		Set<String> receivedEventTypes = new LinkedHashSet<>();
