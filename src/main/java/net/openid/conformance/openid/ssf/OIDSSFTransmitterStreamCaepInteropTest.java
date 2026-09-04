@@ -306,7 +306,10 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * populated {@code set_token} / {@code ssf.verification.token}.
 	 */
 	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
-		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
+		// Event types outside the CAEP/SSF families (e.g. RISC or proprietary) are not
+		// forbidden stream content (SSF 1.0 8.1.1 places no such restriction), so an
+		// unrecognised type is a WARNING, not a FAILURE.
+		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 		String eventType = env.getString("ssf", "caep_event.type");
 		if (eventType == null) {
 			return;
@@ -511,7 +514,10 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			env.putString("ssf", "verification.jwt", setToken);
 
 			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
+			// Event types outside the CAEP/SSF families (e.g. RISC or proprietary) are not
+			// forbidden stream content (SSF 1.0 8.1.1 places no such restriction), so an
+			// unrecognised type is a WARNING, not a FAILURE.
+			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 			String eventType = env.getString("ssf", "caep_event.type");
 			if (eventType == null) {
 				continue;
