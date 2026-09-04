@@ -124,6 +124,10 @@ public class FAPICIBAServerProfileBehavior {
 		return true;
 	}
 
+	public boolean usesRegisteredClientAuthenticationMethod() {
+		return false;
+	}
+
 	// --- Action methods returning ConditionSequence (null = no-op) ---
 
 	/**
