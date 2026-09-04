@@ -12,6 +12,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoin
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAllCaepInteropEventsReceived;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureCaepInteropEventReasonAdminPresent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureCaepInteropEventSubjectFormat;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepInteropEventUsesComplexSubject;
@@ -578,18 +579,24 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	protected void validateCaepEventFields(String eventType) {
 		switch (eventType) {
 			case SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE:
-				// No required event-specific fields per CAEP 1.0 Section 3.1
-				eventLog.log(getName(), "Validated session-revoked event (no required event-specific fields)");
+				// CAEP 1.0 3.1 defines no required event-specific fields, but the CAEP
+				// Interop Profile (3.1) requires reason_admin to be a non-empty object.
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.1");
 				break;
 			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepCredentialChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.3");
 				callAndContinueOnFailure(OIDSSFWarnNonStandardCaepCredentialChangeValues.class,
 					Condition.ConditionResult.WARNING, "OIDCAEP-3.3");
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.2");
 				break;
 			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepDeviceComplianceChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.5");
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.3");
 				break;
 			default:
 				eventLog.log(getName(), "Received CAEP event type: " + eventType);
