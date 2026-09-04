@@ -35,10 +35,17 @@ public class OIDSSFEnsureStreamContainsCaepInteropEvent_UnitTest {
 	}
 
 	private void prepareStreamConfig(List<String> eventsRequested) {
+		prepareStreamConfig(eventsRequested, null);
+	}
+
+	private void prepareStreamConfig(List<String> eventsRequested, List<String> eventsDelivered) {
 		JsonObject streamConfig = new JsonObject();
 		streamConfig.addProperty("stream_id", STREAM_ID);
 		if (eventsRequested != null) {
 			streamConfig.add("events_requested", OIDFJSON.convertListToJsonArray(eventsRequested));
+		}
+		if (eventsDelivered != null) {
+			streamConfig.add("events_delivered", OIDFJSON.convertListToJsonArray(eventsDelivered));
 		}
 		JsonObject streams = new JsonObject();
 		streams.add(STREAM_ID, streamConfig);
@@ -88,7 +95,24 @@ public class OIDSSFEnsureStreamContainsCaepInteropEvent_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenEventsRequestedIsMissing() {
+	void shouldPassWhenEventsRequestedMissingButDeliveredContainsInteropEvent() {
+		// SSF 1.0 8.1.1.1 makes events_requested optional - a receiver that omits it
+		// accepts whatever the transmitter delivers, so events_delivered decides.
+		prepareStreamConfig(null, List.of(
+			SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE,
+			SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE
+		));
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
+	void shouldFailWhenEventsRequestedMissingAndDeliveredLacksInteropEvents() {
+		prepareStreamConfig(null, List.of(SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE));
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
+	void shouldFailWhenEventsRequestedAndDeliveredAreBothMissing() {
 		prepareStreamConfig(null);
 		assertThrows(ConditionError.class, () -> createCondition().execute(env));
 	}

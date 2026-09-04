@@ -370,10 +370,14 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String ssfIssuer = env.getString("ssf", "issuer");
 
-		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.POLL) {
-			String pollEndpointUrl = ssfIssuer + "/events";
-			env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
+		// SSF 1.0 8.1.1.1: a stream created without a delivery object defaults to POLL
+		// delivery, regardless of the variant under test - so the poll endpoint URL must
+		// always be available (otherwise the stream config would advertise
+		// "null?stream_id=..." as the poll endpoint_url).
+		String pollEndpointUrl = ssfIssuer + "/events";
+		env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
 
+		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.POLL) {
 			exposeEnvString("ssf_poll_endpoint", "ssf", "poll_endpoint_url");
 		}
 	}

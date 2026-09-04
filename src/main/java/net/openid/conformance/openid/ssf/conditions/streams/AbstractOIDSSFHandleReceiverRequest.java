@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -55,9 +56,18 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 	}
 
 	protected Set<String> computeEventsDelivered(JsonObject streamConfigInput, JsonObject defaultConfig) {
-		List<String> eventsRequested = OIDFJSON.convertJsonArrayToList(streamConfigInput.get("events_requested").getAsJsonArray());
 		List<String> eventsSupported = OIDFJSON.convertJsonArrayToList(defaultConfig.get("events_supported").getAsJsonArray());
-		Set<String> eventsDelivered = new HashSet<>(eventsRequested);
+		JsonElement eventsRequestedEl = streamConfigInput.get("events_requested");
+		if (eventsRequestedEl == null) {
+			// SSF 1.0 8.1.1.1: the create request MAY contain events_requested. When the
+			// receiver does not constrain the set, this emulated transmitter delivers
+			// every event type it supports.
+			return new LinkedHashSet<>(eventsSupported);
+		}
+		if (!eventsRequestedEl.isJsonArray()) {
+			throw error("events_requested must be a JSON array", args("events_requested", eventsRequestedEl));
+		}
+		Set<String> eventsDelivered = new LinkedHashSet<>(OIDFJSON.convertJsonArrayToList(eventsRequestedEl.getAsJsonArray()));
 		eventsDelivered.retainAll(eventsSupported);
 		return eventsDelivered;
 	}
