@@ -33,21 +33,30 @@ public class OIDSSFEnsureStreamContainsCaepInteropEvent extends AbstractConditio
 			throw error("Could not find stream configuration", args("stream_id", streamId));
 		}
 
+		// SSF 1.0 8.1.1.1 makes events_requested optional; a receiver that omits it
+		// accepts whatever the transmitter delivers, so fall back to events_delivered.
 		JsonElement eventsRequestedEl = streamConfig.get("events_requested");
-		List<String> eventsRequested = eventsRequestedEl == null
-			? List.of()
-			: OIDFJSON.convertJsonArrayToList(eventsRequestedEl.getAsJsonArray());
-
-		Set<String> requestedCaepInteropEvents = new LinkedHashSet<>(eventsRequested);
-		requestedCaepInteropEvents.retainAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
-
-		if (requestedCaepInteropEvents.isEmpty()) {
-			throw error("Stream must request at least one of the CAEP Interop event types 'session-revoked', 'credential-change', 'device-compliance-change'",
-				args("stream_id", streamId, "events_requested", eventsRequested, "caep_interop_event_types", SsfEvents.CAEP_INTEROP_EVENT_TYPES));
+		String checkedField = "events_requested";
+		JsonElement effectiveEventsEl = eventsRequestedEl;
+		if (effectiveEventsEl == null || !effectiveEventsEl.isJsonArray()) {
+			checkedField = "events_delivered";
+			effectiveEventsEl = streamConfig.get("events_delivered");
 		}
 
-		logSuccess("Stream requests at least one CAEP Interop event type",
-			args("stream_id", streamId, "requested_caep_interop_event_types", requestedCaepInteropEvents));
+		List<String> effectiveEvents = effectiveEventsEl == null || !effectiveEventsEl.isJsonArray()
+			? List.of()
+			: OIDFJSON.convertJsonArrayToList(effectiveEventsEl.getAsJsonArray());
+
+		Set<String> caepInteropEvents = new LinkedHashSet<>(effectiveEvents);
+		caepInteropEvents.retainAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+
+		if (caepInteropEvents.isEmpty()) {
+			throw error("Stream must include at least one of the CAEP Interop event types 'session-revoked', 'credential-change', 'device-compliance-change'",
+				args("stream_id", streamId, "checked_field", checkedField, "events", effectiveEvents, "caep_interop_event_types", SsfEvents.CAEP_INTEROP_EVENT_TYPES));
+		}
+
+		logSuccess("Stream includes at least one CAEP Interop event type",
+			args("stream_id", streamId, "checked_field", checkedField, "caep_interop_event_types_found", caepInteropEvents));
 
 		return env;
 	}
