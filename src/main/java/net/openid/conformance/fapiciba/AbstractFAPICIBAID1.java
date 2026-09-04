@@ -235,7 +235,8 @@ import java.util.function.Supplier;
 	"directory.discoveryUrl",
 	"directory.client_id",
 	"directory.apibase",
-	"directory.keystore"
+	"directory.keystore",
+	"client.brazil_ciba_maximum_expiry"
 })
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
@@ -710,6 +711,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdExpiresIn.class, Condition.ConditionResult.FAILURE,"CIBA-7.3");
 
 		callAndContinueOnFailure(ValidateAuthenticationRequestIdInterval.class, Condition.ConditionResult.FAILURE, "CIBA-7.3");
+
+		call(profileBehavior.validateBackchannelAuthenticationEndpointResponse());
 	}
 
 	protected void validateErrorFromBackchannelAuthorizationRequestResponse() {
@@ -810,11 +813,26 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		performAuthorizationRequest();
 
+		if (handleAuthorizationEndpointErrorResponse()) {
+			eventLog.endBlock();
+			fireTestFinished();
+			return;
+		}
+
 		performValidateAuthorizationResponse();
+		performAdditionalAuthorizationResponseValidation();
 
 		eventLog.endBlock();
 
 		performPostAuthorizationResponse();
+	}
+
+	protected boolean handleAuthorizationEndpointErrorResponse() {
+		return false;
+	}
+
+	protected void performAdditionalAuthorizationResponseValidation() {
+		// No additional response validation by default.
 	}
 
 	protected void waitForPollingAuthenticationToComplete(long delaySeconds) {

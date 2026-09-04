@@ -25,34 +25,21 @@ public class FAPICIBAID1EnsureAuthorizationRequestWithUrlBindingMessageWarnsForB
 	}
 
 	@Override
-	protected void performAuthorizationFlow() {
-		performPreAuthorizationSteps();
-
-		eventLog.startBlock(currentClientString() + "Call backchannel authentication endpoint");
-
-		createAuthorizationRequest();
-
-		performAuthorizationRequest();
-
+	protected boolean handleAuthorizationEndpointErrorResponse() {
 		JsonObject callbackParams = env.getObject("backchannel_authentication_endpoint_response");
-
-		if (callbackParams != null && callbackParams.has("error")) {
-			validateErrorFromBackchannelAuthorizationRequestResponse();
-
-			callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessageOrInvalidRequest.class,
-				Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.5", "CIBA-13");
-
-			eventLog.endBlock();
-			fireTestFinished();
-		} else {
-			performValidateAuthorizationResponse();
-
-			callAndContinueOnFailure(WarnIfAuthorizationEndpointRequestBindingMessageContainsUrl.class,
-				Condition.ConditionResult.WARNING, "BrazilCIBA-6.2.5");
-
-			eventLog.endBlock();
-
-			performPostAuthorizationResponse();
+		if (callbackParams == null || !callbackParams.has("error")) {
+			return false;
 		}
+
+		validateErrorFromBackchannelAuthorizationRequestResponse();
+		callAndContinueOnFailure(CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessageOrInvalidRequest.class,
+			Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.5", "CIBA-13");
+		return true;
+	}
+
+	@Override
+	protected void performAdditionalAuthorizationResponseValidation() {
+		callAndContinueOnFailure(WarnIfAuthorizationEndpointRequestBindingMessageContainsUrl.class,
+			Condition.ConditionResult.WARNING, "BrazilCIBA-6.2.5");
 	}
 }

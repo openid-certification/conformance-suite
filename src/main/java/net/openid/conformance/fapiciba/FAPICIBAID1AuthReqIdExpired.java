@@ -23,8 +23,7 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 		// Request a 10 second expiry so the expiry wait is short. 10s safely exceeds the pre-expiry
 		// flow (two "expecting pending" polls, the second at ~5s in), so the auth_req_id is still valid
 		// when those run; the AS's expiry clock starts at issuance and we only begin the expiry sleep
-		// ~6s later, so we always wake well past expiry. (If the server ignores requested_expiry - e.g.
-		// Brazil - the test just waits the server's default, as before.)
+		// ~6s later, so we always wake well past expiry.
 		callAndStopOnFailure(AddRequestedExp10sToAuthorizationEndpointRequest.class, "CIBA-11");
 	}
 

@@ -1,6 +1,11 @@
 package net.openid.conformance.fapiciba.rp;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.logging.BsonEncoding;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.Test;
@@ -25,6 +30,16 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 			SetNextAllowedTokenRequest.class
 		);
 		assertThat(test.noFallbackPollCompletionScheduled).isTrue();
+	}
+
+	@Test
+	public void capsRequestedExpiryWhenFallbackModuleOverridesResponseCreation() {
+		TestableFallbackTest test = new TestableFallbackTest();
+
+		test.createBrazilFallbackBackchannelResponse(100_000);
+
+		assertThat(test.getEnv().getInteger("backchannel_endpoint_response", "expires_in"))
+			.isEqualTo(86_400);
 	}
 
 	@Test
@@ -93,14 +108,20 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 
 	private static class TestableFallbackTest extends FAPICIBAClientPingModePollFallbackTest {
 
+		private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 		private final List<Class<? extends Condition>> conditionCalls = new ArrayList<>();
 		private boolean startedWaitingForTimeout;
 		private boolean noFallbackPollCompletionScheduled;
 		private boolean fireTestFinishedCalled;
+		private boolean executeBackchannelResponseConditions;
 		private Status lastStatus;
 
 		private TestableFallbackTest() {
 			cibaMode = CIBAMode.PING;
+			setupOpenBankingBrazil();
+			JsonObject config = new JsonObject();
+			config.add("client", new JsonObject());
+			env.putObject("config", config);
 		}
 
 		private boolean pingNotificationShouldBeSent() {
@@ -109,6 +130,14 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 
 		private HttpStatus createFallbackBackchannelResponse() {
 			return createBackchannelResponse();
+		}
+
+		private void createBrazilFallbackBackchannelResponse(int requestedExpiry) {
+			executeBackchannelResponseConditions = true;
+			env.putObject("backchannel_endpoint_http_request", new JsonObject());
+			env.putObject("backchannel_request_object", new JsonObject());
+			env.putInteger("requested_expiry", requestedExpiry);
+			createProfileSpecificBackchannelResponse();
 		}
 
 		private void createFallbackTokenResponse(int tokenPollCount) {
@@ -136,6 +165,36 @@ public class FAPICIBAClientPingModePollFallbackTest_UnitTest {
 		@Override
 		protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 			conditionCalls.add(conditionClass);
+			if (executeBackchannelResponseConditions
+				&& CreateBackchannelEndpointResponse.class.equals(conditionClass)) {
+				executeCondition(new CreateBackchannelEndpointResponse());
+			}
+		}
+
+		@Override
+		protected void call(ConditionCallBuilder builder) {
+			if (executeBackchannelResponseConditions
+				&& SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry.class.equals(
+					builder.getConditionClass())) {
+				executeCondition(new SetOpenBankingBrazilCibaAuthenticationRequestMaximumExpiry());
+			}
+		}
+
+		@Override
+		protected void call(ConditionSequence sequence) {
+			if (sequence == null) {
+				return;
+			}
+			sequence.evaluate();
+			sequence.getTestExecutionUnits().stream()
+				.filter(ConditionCallBuilder.class::isInstance)
+				.map(ConditionCallBuilder.class::cast)
+				.forEach(this::call);
+		}
+
+		private void executeCondition(Condition condition) {
+			condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+			condition.execute(env);
 		}
 
 		@Override

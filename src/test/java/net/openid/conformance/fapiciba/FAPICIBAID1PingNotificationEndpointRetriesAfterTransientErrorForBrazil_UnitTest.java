@@ -2,8 +2,18 @@ package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddRequestedExp60sToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointWasRetried;
+import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn;
+import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.info.ImageService;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
+import net.openid.conformance.runner.TestRunnerSupport;
+import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.CIBAMode;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +23,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -58,9 +70,29 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	}
 
 	@Test
+	public void requestsShortExpiryForRetryDeadline() {
+		module.createAuthorizationRequest();
+
+		assertThat(module.conditionClasses)
+			.endsWith(AddRequestedExp60sToAuthorizationEndpointRequest.class);
+		assertThat(module.conditionRequirements)
+			.endsWith(List.of("CIBA-7.1", "BrazilCIBA-6.3.7"));
+	}
+
+	@Test
+	public void wiresBrazilExpiryValidationIntoAuthorizationResponseValidation() {
+		module.performValidateAuthorizationResponse();
+
+		assertThat(module.conditionClasses)
+			.endsWith(ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn.class);
+		assertThat(module.conditionRequirements)
+			.endsWith(List.of("BrazilCIBA-6.2.6"));
+	}
+
+	@Test
 	public void invokesTargetedRetryAssertionWhenAuthenticationRequestExpires() throws Exception {
 		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
-			"{\"expires_in\":300}");
+			"{\"expires_in\":60}");
 		module.performValidateAuthorizationResponse();
 		module.conditionClasses.clear();
 		module.conditionRequirements.clear();
@@ -68,7 +100,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		ResponseEntity<?> firstResponse = asResponse(module.handlePingCallback(new JsonObject()));
 
 		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-		assertThat(retryTimeoutSeconds).hasValue(300);
+		assertThat(retryTimeoutSeconds).hasValue(60);
 		assertThat(retryTimeoutTask).doesNotHaveNullValue();
 
 		retryTimeoutTask.get().call();
@@ -85,7 +117,7 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 	@Test
 	public void returnsTransientFailureOnceAndProcessesTheRetry() throws Exception {
 		module.getEnv().putObjectFromJsonString("backchannel_authentication_endpoint_response",
-			"{\"expires_in\":300}");
+			"{\"expires_in\":60}");
 		module.performValidateAuthorizationResponse();
 		module.conditionClasses.clear();
 		module.conditionRequirements.clear();
@@ -119,10 +151,14 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 
 	@Test
 	public void validatesAdditionalRetriesWithoutProcessingTheFlowAgain() {
-		AtomicReference<Callable<?>> backgroundTask = new AtomicReference<>();
+		List<Callable<?>> backgroundTasks = new ArrayList<>();
 		TestExecutionManager delayedExecutionManager = mock(TestExecutionManager.class);
 		doAnswer(invocation -> {
-			backgroundTask.set(invocation.getArgument(0));
+			backgroundTasks.add(invocation.getArgument(0));
+			return true;
+		}).when(delayedExecutionManager).tryRunInBackground(any());
+		doAnswer(invocation -> {
+			backgroundTasks.add(invocation.getArgument(0));
 			return null;
 		}).when(delayedExecutionManager).runInBackground(any());
 		TestablePingRetryModule delayedModule = new TestablePingRetryModule(delayedExecutionManager);
@@ -133,13 +169,88 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		ResponseEntity<?> thirdResponse = asResponse(delayedModule.handlePingCallback(new JsonObject()));
 
 		assertThat(thirdResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(backgroundTasks).hasSize(2);
+		assertThat(delayedModule.verifiedCallbacks).isEqualTo(1);
+		assertThat(delayedModule.processedCallbacks).isZero();
+
+		assertThatCode(backgroundTasks.get(1)::call).doesNotThrowAnyException();
 		assertThat(delayedModule.verifiedCallbacks).isEqualTo(2);
 		assertThat(delayedModule.processedCallbacks).isZero();
 
-		assertThatCode(backgroundTask.get()::call).doesNotThrowAnyException();
+		assertThatCode(backgroundTasks.get(0)::call).doesNotThrowAnyException();
 		assertThat(delayedModule.getEnv().getInteger("notification_endpoint_call_count")).isEqualTo(3);
 		assertThat(delayedModule.processedCallbacks).isEqualTo(1);
 		assertThat(delayedModule.successfulResponses).isEqualTo(1);
+	}
+
+	@Test
+	public void validatesAdditionalRetryWhileHoldingTheTestLock() throws Exception {
+		List<Callable<?>> backgroundTasks = new ArrayList<>();
+		TestExecutionManager delayedExecutionManager = mock(TestExecutionManager.class);
+		doAnswer(invocation -> {
+			backgroundTasks.add(invocation.getArgument(0));
+			return true;
+		}).when(delayedExecutionManager).tryRunInBackground(any());
+		doAnswer(invocation -> {
+			backgroundTasks.add(invocation.getArgument(0));
+			return null;
+		}).when(delayedExecutionManager).runInBackground(any());
+		LockingPingRetryModule lockingModule = new LockingPingRetryModule();
+		lockingModule.initialize(delayedExecutionManager);
+
+		lockingModule.handlePingCallback(new JsonObject());
+		lockingModule.handlePingCallback(new JsonObject());
+		ResponseEntity<?> thirdResponse = asResponse(lockingModule.handlePingCallback(new JsonObject()));
+
+		assertThat(thirdResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(backgroundTasks).hasSize(2);
+		assertThatCode(backgroundTasks.get(1)::call).doesNotThrowAnyException();
+		assertThat(lockingModule.verifiedCallbacks).isEqualTo(2);
+		assertThat(lockingModule.getStatus()).isEqualTo(TestModule.Status.WAITING);
+		assertThat(lockingModule.testLockIsHeldByCurrentThread()).isFalse();
+	}
+
+	@Test
+	public void doesNotValidateAdditionalRetryAfterTestLeavesWaitingState() throws Exception {
+		List<Callable<?>> backgroundTasks = new ArrayList<>();
+		TestExecutionManager delayedExecutionManager = mock(TestExecutionManager.class);
+		doAnswer(invocation -> {
+			backgroundTasks.add(invocation.getArgument(0));
+			return true;
+		}).when(delayedExecutionManager).tryRunInBackground(any());
+		doAnswer(invocation -> {
+			backgroundTasks.add(invocation.getArgument(0));
+			return null;
+		}).when(delayedExecutionManager).runInBackground(any());
+		TestablePingRetryModule delayedModule = new TestablePingRetryModule(delayedExecutionManager);
+
+		delayedModule.handlePingCallback(new JsonObject());
+		delayedModule.handlePingCallback(new JsonObject());
+		delayedModule.handlePingCallback(new JsonObject());
+		delayedModule.currentStatus = TestModule.Status.FINISHED;
+
+		assertThatCode(backgroundTasks.get(1)::call).doesNotThrowAnyException();
+		assertThat(delayedModule.verifiedCallbacks).isEqualTo(1);
+		assertThat(delayedModule.currentStatus).isEqualTo(TestModule.Status.FINISHED);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void ignoresAdditionalRetryAfterFinalisationStarts() {
+		ExecutorCompletionService<Object> backgroundTasks = mock(ExecutorCompletionService.class);
+		TestExecutionManager realExecutionManager = new TestExecutionManager(
+			"ping-retry-finalisation-test", backgroundTasks, mock(AuthenticationFacade.class),
+			mock(TestRunnerSupport.class));
+		LockingPingRetryModule lockingModule = new LockingPingRetryModule();
+		lockingModule.initialize(realExecutionManager);
+
+		lockingModule.handlePingCallback(new JsonObject());
+		lockingModule.handlePingCallback(new JsonObject());
+		realExecutionManager.runFinalisationTaskInBackground(() -> "done");
+
+		assertThatCode(() -> lockingModule.handlePingCallback(new JsonObject()))
+			.doesNotThrowAnyException();
+		assertThat(lockingModule.verifiedCallbacks).isEqualTo(1);
 	}
 
 	@Test
@@ -191,6 +302,19 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		private TestablePingRetryModule(TestExecutionManager executionManager) {
 			this.executionManager = executionManager;
 			testType = CIBAMode.PING;
+			setupOpenBankingBrazil();
+		}
+
+		@Override
+		protected void call(ConditionSequence sequence) {
+			sequence.evaluate();
+			sequence.getTestExecutionUnits().stream()
+				.filter(ConditionCallBuilder.class::isInstance)
+				.map(ConditionCallBuilder.class::cast)
+				.forEach(builder -> {
+					conditionClasses.add(builder.getConditionClass());
+					conditionRequirements.add(List.of(builder.getRequirements()));
+				});
 		}
 
 		@Override
@@ -207,6 +331,15 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 		protected void setStatus(TestModule.Status newStatus) {
 			currentStatus = newStatus;
 			statuses.add(newStatus);
+		}
+
+		@Override
+		protected boolean setStatusRunningIfWaiting() {
+			if (currentStatus != TestModule.Status.WAITING) {
+				return false;
+			}
+			setStatus(TestModule.Status.RUNNING);
+			return true;
 		}
 
 		@Override
@@ -245,6 +378,29 @@ public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBra
 			Condition.ConditionResult onFail, String... requirements) {
 			conditionClasses.add(conditionClass);
 			conditionRequirements.add(List.of(requirements));
+		}
+	}
+
+	private static class LockingPingRetryModule extends FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBrazil {
+
+		private int verifiedCallbacks;
+
+		private void initialize(TestExecutionManager executionManager) {
+			testType = CIBAMode.PING;
+			setProperties("ping-retry-lock-test", Map.of(), mock(TestInstanceEventLog.class),
+				mock(BrowserControl.class), mock(TestInfoService.class), executionManager,
+				mock(ImageService.class));
+			setStatus(Status.WAITING);
+		}
+
+		@Override
+		protected void verifyNotificationCallback(JsonObject requestParts) {
+			assertThat(env.getLock().isHeldByCurrentThread()).isTrue();
+			verifiedCallbacks++;
+		}
+
+		private boolean testLockIsHeldByCurrentThread() {
+			return env.getLock().isHeldByCurrentThread();
 		}
 	}
 }

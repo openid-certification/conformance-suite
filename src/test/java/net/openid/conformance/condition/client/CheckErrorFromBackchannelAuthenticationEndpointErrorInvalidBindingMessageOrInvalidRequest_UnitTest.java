@@ -54,6 +54,11 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
+	@Test
+	public void throwsWhenResponseIsMissing() {
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
 	private void setError(String error) {
 		JsonObject response = new JsonObject();
 		response.addProperty("error", error);

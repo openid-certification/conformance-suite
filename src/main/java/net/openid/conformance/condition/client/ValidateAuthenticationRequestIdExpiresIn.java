@@ -6,6 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.math.BigDecimal;
+
 public class ValidateAuthenticationRequestIdExpiresIn extends AbstractCondition {
 
 	private final double maximumExpiresIn = 356 * 24 * 60 * 60; // 1 year as 30758400 seconds
@@ -23,7 +25,12 @@ public class ValidateAuthenticationRequestIdExpiresIn extends AbstractCondition 
 			throw error("expires_in is not a number!");
 		}
 
-		int expiresIn = OIDFJSON.getInt(jExpiresIn);
+		int expiresIn;
+		try {
+			expiresIn = new BigDecimal(OIDFJSON.getNumber(jExpiresIn).toString()).intValueExact();
+		} catch (ArithmeticException | NumberFormatException e) {
+			throw error("expires_in is not a positive integer!", args("expires_in", jExpiresIn));
+		}
 		if (expiresIn <= 0) {
 			throw error("expires_in is less than or equal zero");
 		}

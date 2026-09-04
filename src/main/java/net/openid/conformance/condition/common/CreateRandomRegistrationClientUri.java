@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.common;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -20,12 +19,8 @@ public class CreateRandomRegistrationClientUri extends AbstractCondition {
 			throw error("Base MTLS URL is empty");
 		}
 
-		// see https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run#ciba-notification-endpoint
-		String externalUrlOverride = env.getString("external_url_override");
-		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
-			baseMtlsUrl = externalUrlOverride;
-		}
-
+		// Registration management is an mTLS-protected resource. The ordinary external URL override
+		// is intended for callback endpoints and must not replace the mTLS base URL here.
 		// https://datatracker.ietf.org/doc/html/rfc7592#appendix-B specifies no particular
 		// form for this uri - we use a random one (rather than one, say, containing the client_id) to
 		// ensure the client does not try to construct the url itself.

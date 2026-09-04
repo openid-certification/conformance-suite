@@ -127,7 +127,8 @@ import org.springframework.http.ResponseEntity;
 	"client.scope"
 })
 @VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.keystore"
+	"directory.keystore",
+	"client.brazil_ciba_maximum_expiry"
 })
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
 	"client.backchannel_client_notification_endpoint"
@@ -228,9 +229,13 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected HttpStatus createBackchannelResponse() {
-		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
+	}
+
+	protected final HttpStatus createProfileSpecificBackchannelResponse() {
+		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
+		return createBackchannelResponse();
 	}
 
 	protected void createIntermediateTokenResponse() {
@@ -764,7 +769,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().mapKey("incoming_request", requestId));
 		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 
-		HttpStatus httpStatus = createBackchannelResponse();
+		HttpStatus httpStatus = createProfileSpecificBackchannelResponse();
 		call(profileBehavior.addFapiInteractionIdToBackchannelEndpointResponse());
 
 		if(CIBAMode.PING.equals(cibaMode)) {
@@ -784,26 +789,40 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	private void spawnThreadForPing() {
 		getTestExecutionManager().runInBackground(() -> {
-			int secondsUntilPing = 10;
-			Thread.sleep(secondsUntilPing * 1000L);
+			waitBeforePing();
 
 			call(exec().startBlock("OP calls the client notification endpoint"));
 			setStatus(Status.RUNNING);
 
-			sendPingRequestAndVerifyResponse();
+			try {
+				sendPingRequestAndVerifyResponse();
+			} finally {
+				call(exec().endBlock());
+			}
 
-			ensurePingCompletionCanRun();
-			call(exec().endBlock());
+			if (!ensurePingCompletionCanRun()) {
+				return "done";
+			}
 			pingRequestComplete();
 
 			return "done";
 		});
 	}
 
-	private void ensurePingCompletionCanRun() {
-		if (!env.getLock().isHeldByCurrentThread()) {
-			setStatus(Status.RUNNING);
-		}
+	protected void waitBeforePing() throws InterruptedException {
+		int secondsUntilPing = 10;
+		Thread.sleep(secondsUntilPing * 1000L);
+	}
+
+	/**
+	 * The outbound notification condition releases the test lock while it waits for the client's
+	 * HTTP response. The client can synchronously redeem the {@code auth_req_id} and call a resource
+	 * endpoint during that interval, and that endpoint can leave the test in {@link Status#WAITING}
+	 * or finish it. Continue the ping thread only while it still owns the lock, or when it can
+	 * atomically resume a waiting test. A terminal test must not be changed back to RUNNING.
+	 */
+	private boolean ensurePingCompletionCanRun() {
+		return env.getLock().isHeldByCurrentThread() || setStatusRunningIfWaiting();
 	}
 
 	protected void pingRequestComplete() {

@@ -62,6 +62,17 @@ public class ValidateAuthenticationRequestIdExpiresIn_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_fractionalNumber() {
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.addProperty("expires_in", 600.5);
+			env.putObject("backchannel_authentication_endpoint_response", o);
+
+			cond.execute(env);
+		});
+	}
+
+	@Test
 	public void testEvaluate_morethanOneYear() {
 		assertThrows(ConditionError.class, () -> {
 			JsonObject o = new JsonObject();

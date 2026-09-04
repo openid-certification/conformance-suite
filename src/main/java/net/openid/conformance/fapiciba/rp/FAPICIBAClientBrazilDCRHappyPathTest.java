@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.FAPIBrazilSetRequiredIdTokenEncryptionConfig;
 import net.openid.conformance.condition.as.FetchClientKeys;
 import net.openid.conformance.condition.as.GenerateRegistrationAccessToken;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
@@ -21,6 +20,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirect
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenEncryptionConfig;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSSASignature;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSoftwareStatementIat;
@@ -71,10 +71,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	summary = "Tests that an Open Finance Brazil CIBA client dynamically registers over mTLS using a valid "
 		+ "Directory software statement, then completes the normal Data Consent, CIBA ping, token, encrypted "
 		+ "ID Token, and resources flow.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = FAPICIBAProfile.class,
 	values = { "plain_fapi", "openbanking_uk", "connectid_au" })
@@ -125,17 +122,7 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 			throw new TestFailureException(getId(),
 				"Open Finance Brazil dynamic client registration must use the mTLS registration endpoint");
 		}
-		String registrationClientPath = env.getString("registration_client_uri", "path");
-		if (registrationClientPath != null && registrationClientPath.equals(path)
-			&& isCleanupDelete(requestParts)) {
-			registrationCleanupRequestComplete(false);
-			return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
-		}
 		return super.handleHttp(path, req, res, session, requestParts);
-	}
-
-	private boolean isCleanupDelete(JsonObject requestParts) {
-		return "DELETE".equals(OIDFJSON.getString(requestParts.get("method")));
 	}
 
 	private String storeIncomingRequestAndCheckTls(JsonObject requestParts) {
@@ -163,8 +150,6 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 
 		env.mapKey("client", "dynamic_registration_request");
 		validateClientRegistrationMetadata();
-		callAndStopOnFailure(FAPIBrazilSetRequiredIdTokenEncryptionConfig.class,
-			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3");
 		env.unmapKey("client");
 
 		validateBrazilRegistrationMetadata();
@@ -215,14 +200,16 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 
 		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
 			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE,
-			"BrazilOB-6.2");
+			"BrazilOB22-6.2");
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class,
 			Condition.ConditionResult.FAILURE, "OIDCR-2");
+		callAndStopOnFailure(FAPIBrazilValidateIdTokenEncryptionConfig.class,
+			"BrazilOB22-5.1.1-1", "BrazilOB22-6.3", "BrazilCIBA-6.3.8");
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE,
-			"BrazilOB-6.2");
+			"BrazilOB22-6.2");
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class,
 			Condition.ConditionResult.FAILURE, "OIDCR-2");
 		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
@@ -257,13 +244,13 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 	private void validateCibaRegistrationMetadata() {
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestContainsCibaGrantType.class, "CIBA-4");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestUsesPingMode.class,
-			"BrazilCIBA-6.2.2");
+			"BrazilCIBA-6.3.8");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestNotificationEndpointIsHttps.class,
 			"CIBA-4");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestSigningAlgIsPS256.class,
 			"BrazilOB22-6.2");
 		callAndStopOnFailure(FAPICIBAEnsureRegistrationRequestUserCodeIsAbsentOrFalse.class,
-			"BrazilCIBA-6.2.4");
+			"BrazilCIBA-6.3.5");
 	}
 
 	private JsonObject registerClient() {
@@ -289,19 +276,16 @@ public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClient
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.3");
 		callAndStopOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.3");
 		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
-		registrationCleanupRequestComplete(true);
+		registrationCleanupRequestComplete();
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
-	private void registrationCleanupRequestComplete(boolean requestHasTestLock) {
+	private void registrationCleanupRequestComplete() {
 		registrationCleanupReceived.set(true);
 		if (registrationCleanupGracePeriodScheduled.get()
 			&& completionStarted.compareAndSet(false, true)) {
-			if (!requestHasTestLock) {
-				setStatus(Status.RUNNING);
-			}
 			fireTestFinished();
-		} else if (requestHasTestLock) {
+		} else {
 			setStatus(Status.WAITING);
 		}
 	}

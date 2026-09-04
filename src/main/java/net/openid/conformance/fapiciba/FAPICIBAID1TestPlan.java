@@ -28,7 +28,7 @@ import java.util.Map;
 		FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
-		FAPICIBAID1EnsureRequestedExpiryIgnoredForBrazil.class,
+		FAPICIBAID1EnsureRequestedExpiryAboveMaximumIsCappedForBrazil.class,
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
@@ -56,6 +56,8 @@ import java.util.Map;
 		FAPICIBAID1EnsureAuthorizationRequestWithMultipleHintsFails.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithUserCodeFailsForBrazil.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithInvalidLoginHintFailsForBrazil.class,
+		FAPICIBAID1EnsureRequestedExpiryZeroFailsForBrazil.class,
+		FAPICIBAID1EnsureRequestedExpiryNegativeFailsForBrazil.class,
 
 		// Negative tests for token endpoint
 		FAPICIBAID1EnsureWrongAuthenticationRequestIdInTokenEndpointRequest.class,

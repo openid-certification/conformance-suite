@@ -375,6 +375,12 @@
           "tooltip": "Organizations's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Only required if 'scope' contains 'payments'."
         },
         {
+          "key": "client.brazil_ciba_maximum_expiry",
+          "label": "Brazil CIBA maximum expiry",
+          "type": "string",
+          "tooltip": "Maximum validity period, in seconds, for approval of the consent or device binding under the Open Finance Brasil product or service rule being tested. If omitted, the suite uses 86400 seconds as a ceiling but permits a lower product-specific expires_in value."
+        },
+        {
           "key": "client.client_secret_jwt_alg",
           "label": "client_secret_jwt_alg",
           "type": "string",

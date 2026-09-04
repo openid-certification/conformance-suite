@@ -22,6 +22,7 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjec
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
+import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn;
 import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaDynamicRegistrationResponse;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -98,15 +99,24 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 				Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.2");
 			callAndContinueOnFailure(FAPIBrazilCibaCheckUserCodeParameterNotSupported.class,
 				Condition.ConditionResult.FAILURE, "BrazilCIBA-6.2.4");
-			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "BrazilOB-5.2.2-3");
-			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class,
+				Condition.ConditionResult.FAILURE, "OIDCD-3", "BrazilOB22-5.1-4");
+			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-5.1-5", "BrazilOB22-5.1-6");
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsCiba.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
-			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
-			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-5.1-5");
+			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class,
+				Condition.ConditionResult.WARNING, "BrazilOB22-5.1-6");
+			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-5.1-7");
+			callAndContinueOnFailure(
+				FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-6.3");
+			callAndContinueOnFailure(
+				FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm.class,
+				Condition.ConditionResult.FAILURE, "BrazilOB22-6.3");
 		}
 	}
 
@@ -169,6 +179,19 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 					.onFail(Condition.ConditionResult.FAILURE)
 					.requirements("BrazilOB-5.2.2-13")
 					.dontStopOnFailure());
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence validateBackchannelAuthenticationEndpointResponse() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(
+					ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn.class,
+					Condition.ConditionResult.FAILURE,
+					"BrazilCIBA-6.2.6");
 			}
 		};
 	}

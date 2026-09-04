@@ -476,5 +476,14 @@
         "condition": "WarnOnUnusableJwksKeys",
         "expected-result": "warning",
         "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
+    },
+    {
+        "test-name": "fapi-ciba-id1-ensure-requested-expiry-above-maximum-is-capped-for-brazil",
+        "variant": "*",
+        "configuration-filename": "*test-configs-rp-against-op/*.json",
+        "current-block": "Validate the JWK set in server JWKS",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "the paired client test under test deliberately publishes unusable keys in its jwks_uri (AddUnusableKeysToServerPublicJwks, RFC 7517 section 5)"
     }
 ]

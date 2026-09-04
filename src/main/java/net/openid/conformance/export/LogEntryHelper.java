@@ -30,13 +30,14 @@ public class LogEntryHelper {
 		"testOwner", "testId", "http", "blockId", "startBlock");
 
 	public static final Map<String, String> specLinks;
+	private static final Map<String, String> specSectionLinks;
 	static{
 		specLinks = new HashMap<>();
 		specLinks.put("BrazilOB-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/245760001/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+1.0+Implementers+Draft+3#section-");
 		specLinks.put("BrazilOB22-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1675395195/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+-+v2.2.0#");
 		specLinks.put("BrazilOBDCR-","https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/246120449/EN+Open+Finance+Brasil+Financial-grade+API+Dynamic+Client+Registration+2.0+RC1+Implementers+Draft+3#section-");
 		specLinks.put("BrazilOPIN-", "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#");
-		specLinks.put("BrazilCIBA-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1799979087/EN+Open+Finance+Brasil+Client+Initiated+Backchannel+Authentication+-+v2.1.0-beta1#");
+		specLinks.put("BrazilCIBA-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/2092204111/EN+Open+Finance+Brasil+Client+Initiated+Backchannel+Authentication+-+v2.1.0-beta2#");
 		specLinks.put("FAPI-R-", "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.");
 		specLinks.put("FAPI-RW-", "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.");
 		specLinks.put("FAPI1-BASE-", "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.");
@@ -130,6 +131,43 @@ public class LogEntryHelper {
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
 		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0.html#section-");
 		specLinks.put("FAPI-ISSUES-", "https://bitbucket.org/openid/fapi/issues/");
+
+		// Confluence heading fragments include the heading text, not only its section number. Keep
+		// the requirement label separate from the published heading fragment so logs retain precise
+		// requirement identifiers while links navigate to the corresponding section. Section labels
+		// match exactly or use a hyphen-delimited requirement suffix, so nested entries do not depend
+		// on insertion order and unrelated longer section numbers cannot match a shorter section.
+		specSectionLinks = new LinkedHashMap<>();
+		String brazilCiba = specLinks.get("BrazilCIBA-");
+		specSectionLinks.put("BrazilCIBA-6.2.2", brazilCiba + "6.2.2.-CIBA-delivery-modes");
+		specSectionLinks.put("BrazilCIBA-6.2.3",
+			brazilCiba + "6.2.3.-login_hint-parameter-and-user-identification");
+		specSectionLinks.put("BrazilCIBA-6.2.4",
+			brazilCiba + "6.2.4.-Client-registration-and-user_code-parameter");
+		specSectionLinks.put("BrazilCIBA-6.2.5", brazilCiba + "6.2.5.-binding_message-parameter");
+		specSectionLinks.put("BrazilCIBA-6.2.6",
+			brazilCiba + "6.2.6.-requested_expiry-parameter-and-the-validity-period-of-the-" +
+				"authentication-request-(expires_in)");
+		specSectionLinks.put("BrazilCIBA-6.2.8",
+			brazilCiba + "6.2.8.-PING-notifications-and-idempotency");
+		specSectionLinks.put("BrazilCIBA-6.3.2", brazilCiba + "6.3.2.-Use-of-login_hint");
+		specSectionLinks.put("BrazilCIBA-6.3.4.1",
+			brazilCiba + "6.3.4.1.-Use-of-poll-mode-as-fallback");
+		specSectionLinks.put("BrazilCIBA-6.3.4", brazilCiba + "6.3.4.-Support-for-ping-mode");
+		specSectionLinks.put("BrazilCIBA-6.3.5",
+			brazilCiba + "6.3.5.-Client-registration-and-user_code-parameter");
+		specSectionLinks.put("BrazilCIBA-6.3.6", brazilCiba + "6.3.6.-binding_message-parameter");
+		specSectionLinks.put("BrazilCIBA-6.3.7", brazilCiba + "6.3.7.-requested_expiry-parameter");
+		specSectionLinks.put("BrazilCIBA-6.3.8",
+			brazilCiba + "6.3.8.-Dynamic-client-registration-(DCR/DCM)");
+
+		String brazilFapi22 = specLinks.get("BrazilOB22-");
+		specSectionLinks.put("BrazilOB22-5.1.1", brazilFapi22 + "5.1.1.-ID-Token");
+		specSectionLinks.put("BrazilOB22-5.1", brazilFapi22 + "5.1.-Authorization-Server");
+		specSectionLinks.put("BrazilOB22-6.2",
+			brazilFapi22 + "6.2.-Signing-algorithm-considerations");
+		specSectionLinks.put("BrazilOB22-6.3",
+			brazilFapi22 + "6.3.-Encryption-algorithm-considerations");
 	}
 
 	private Document logEntry;
@@ -262,6 +300,12 @@ public class LogEntryHelper {
 	}
 
 	public String getRequirementLink(String requirement) {
+		for (Map.Entry<String, String> sectionLink : specSectionLinks.entrySet()) {
+			String sectionRequirement = sectionLink.getKey();
+			if (requirement.equals(sectionRequirement) || requirement.startsWith(sectionRequirement + "-")) {
+				return sectionLink.getValue();
+			}
+		}
 		for(String key : specLinks.keySet()) {
 			if(requirement.startsWith(key)) {
 				return specLinks.get(key) + requirement.substring(key.length());
