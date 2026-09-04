@@ -28,7 +28,7 @@
     },
     {
       "key": "ssf",
-      "title": "SSF Transmitter",
+      "title": "Shared Signals (SSF)",
       "fields": [
         {
           "key": "ssf.transmitter.issuer",
@@ -52,13 +52,7 @@
           "key": "ssf.transmitter.access_token",
           "label": "Transmitter access_token",
           "type": "string",
-          "tooltip": "Access token to use in SSF request. This may be left empty, in which case the request will not contain an access token."
-        },
-        {
-          "key": "ssf.transmitter.push_endpoint",
-          "label": "Push Endpoint URL",
-          "type": "string",
-          "tooltip": "Receiver endpoint URL to push events to on PUSH delivery mode."
+          "tooltip": "Static access token for SSF requests: in transmitter tests the token the suite presents to the transmitter; in receiver tests (static auth mode) the pre-shared token the receiver must present. May be left empty - transmitter-test requests then carry no token, receiver tests generate a random one."
         },
         {
           "key": "ssf.stream.audience",
