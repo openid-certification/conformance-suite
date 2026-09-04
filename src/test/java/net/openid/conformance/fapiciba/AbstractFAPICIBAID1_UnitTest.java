@@ -54,6 +54,28 @@ public class AbstractFAPICIBAID1_UnitTest {
 			.isEqualTo(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class);
 	}
 
+	@Test
+	public void routesBrazilNotificationOnlyOnMtlsEndpoint() {
+		TestableModule module = new TestableModule();
+		module.useProfile(new OpenBankingBrazilCibaServerProfileBehavior());
+
+		assertThat(module.handleHttp("ciba-notification-endpoint", null, null, null, new JsonObject()))
+			.isEqualTo("unexpected");
+		assertThat(module.handleHttpMtls("ciba-notification-endpoint", null, null, null, new JsonObject()))
+			.isEqualTo("ping");
+	}
+
+	@Test
+	public void keepsGenericNotificationOnRegularEndpoint() {
+		TestableModule module = new TestableModule();
+		module.useProfile(new FAPICIBAServerProfileBehavior());
+
+		assertThat(module.handleHttp("ciba-notification-endpoint", null, null, null, new JsonObject()))
+			.isEqualTo("ping");
+		assertThat(module.handleHttpMtls("ciba-notification-endpoint", null, null, null, new JsonObject()))
+			.isEqualTo("unexpected");
+	}
+
 	private static class TestableModule extends AbstractFAPICIBAID1 {
 
 		private final List<String> events = new ArrayList<>();
@@ -78,6 +100,16 @@ public class AbstractFAPICIBAID1_UnitTest {
 
 		private Class<? extends ConditionSequence> resolvedTokenEndpointClientAuthentication() {
 			return getTokenEndpointClientAuthentication();
+		}
+
+		@Override
+		protected Object handlePingCallback(JsonObject requestParts) {
+			return "ping";
+		}
+
+		@Override
+		protected Object unexpectedHttpRequest(String path, JsonObject requestParts) {
+			return "unexpected";
 		}
 
 		@Override

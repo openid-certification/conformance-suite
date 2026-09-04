@@ -1,5 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -32,6 +33,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import javax.net.ssl.SSLHandshakeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -178,6 +180,67 @@ public class PingClientNotificationEndpoint_UnitTest {
 			.thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
 		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
+	}
+
+	@Test
+	public void rejectsClientThatAcceptsPingWithoutMtlsCertificate() {
+		TestablePingClientNotificationEndpointWithoutMTLS condition =
+			new TestablePingClientNotificationEndpointWithoutMTLS(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		env.putObject("mutual_tls_authentication", new JsonObject());
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenReturn(new ResponseEntity<>("", HttpStatus.NO_CONTENT));
+
+		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
+
+		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
+	}
+
+	@Test
+	public void acceptsHttpRejectionOfPingWithoutMtlsCertificate() {
+		TestablePingClientNotificationEndpointWithoutMTLS condition =
+			new TestablePingClientNotificationEndpointWithoutMTLS(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		env.putObject("mutual_tls_authentication", new JsonObject());
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+		condition.execute(env);
+
+		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
+	}
+
+	@Test
+	public void acceptsTlsRejectionOfPingWithoutMtlsCertificate() {
+		TestablePingClientNotificationEndpointWithoutMTLS condition =
+			new TestablePingClientNotificationEndpointWithoutMTLS(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		env.putObject("mutual_tls_authentication", new JsonObject());
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new ResourceAccessException("TLS handshake failed",
+				new SSLHandshakeException("certificate required")));
+
+		condition.execute(env);
+
+		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
+	}
+
+	@Test
+	public void rejectsUnrelatedConnectionFailureWithoutMtlsCertificate() {
+		TestablePingClientNotificationEndpointWithoutMTLS condition =
+			new TestablePingClientNotificationEndpointWithoutMTLS(restTemplate);
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		env.putObject("mutual_tls_authentication", new JsonObject());
+		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
+			.thenThrow(new ResourceAccessException("Connection timed out"));
+
+		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
+
+		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
 	}
 
 	@ParameterizedTest
@@ -383,6 +446,24 @@ public class PingClientNotificationEndpoint_UnitTest {
 		@Override
 		protected void logSuccess(String msg, Map<String, Object> map) {
 			successMessage = msg;
+		}
+	}
+
+	private static class TestablePingClientNotificationEndpointWithoutMTLS
+		extends PingClientNotificationEndpointWithoutMTLS {
+		private final RestTemplate restTemplate;
+		private boolean credentialsWereRemoved;
+
+		private TestablePingClientNotificationEndpointWithoutMTLS(RestTemplate restTemplate) {
+			this.restTemplate = restTemplate;
+		}
+
+		@Override
+		protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions)
+			throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException,
+			NoSuchAlgorithmException, KeyStoreException, IOException {
+			credentialsWereRemoved = !env.containsObject("mutual_tls_authentication");
+			return restTemplate;
 		}
 	}
 

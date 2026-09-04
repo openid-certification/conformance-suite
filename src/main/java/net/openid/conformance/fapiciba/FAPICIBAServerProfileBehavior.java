@@ -128,6 +128,10 @@ public class FAPICIBAServerProfileBehavior {
 		return false;
 	}
 
+	public boolean notificationEndpointRequiresMTLS() {
+		return false;
+	}
+
 	// --- Action methods returning ConditionSequence (null = no-op) ---
 
 	/**
@@ -156,6 +160,13 @@ public class FAPICIBAServerProfileBehavior {
 	 * Validate the profile-specific backchannel authentication endpoint response.
 	 */
 	public ConditionSequence validateBackchannelAuthenticationEndpointResponse() {
+		return null;
+	}
+
+	/**
+	 * Validate a profile-specific client notification endpoint request.
+	 */
+	public ConditionSequence validateNotificationEndpointRequest() {
 		return null;
 	}
 

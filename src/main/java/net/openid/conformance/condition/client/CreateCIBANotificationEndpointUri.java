@@ -12,15 +12,16 @@ public class CreateCIBANotificationEndpointUri extends AbstractCondition {
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(strings = "notification_uri")
 	public Environment evaluate(Environment env) {
-		String baseUrl = env.getString("base_url");
+		boolean mtlsRequired = Boolean.TRUE.equals(env.getBoolean("notification_endpoint_requires_mtls"));
+		String baseUrl = mtlsRequired ? env.getString("base_mtls_url") : env.getString("base_url");
 
-		if (baseUrl.isEmpty()) {
-			throw error("Base URL is empty");
+		if (Strings.isNullOrEmpty(baseUrl)) {
+			throw error(mtlsRequired ? "Base mTLS URL is empty" : "Base URL is empty");
 		}
 
 		// see https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run#ciba-notification-endpoint
 		String externalUrlOverride = env.getString("external_url_override");
-		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+		if (!mtlsRequired && !Strings.isNullOrEmpty(externalUrlOverride)) {
 			baseUrl = externalUrlOverride;
 		}
 

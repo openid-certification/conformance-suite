@@ -10,8 +10,13 @@ public abstract class AbstractFAPICIBAClientPingWithInvalidNotificationTest exte
 		if (shouldRejectFurtherClientInteractionsWhileWaitingForTimeout()) {
 			rejectFurtherClientInteractions();
 		}
-		callAndStopOnFailure(getPingNotificationCondition(), Condition.ConditionResult.FAILURE, "CIBA-10.2");
+		callAndStopOnFailure(getPingNotificationCondition(), Condition.ConditionResult.FAILURE,
+			getPingNotificationRequirements());
 		verifyPingResponse();
+	}
+
+	protected String[] getPingNotificationRequirements() {
+		return new String[] { "CIBA-10.2" };
 	}
 
 	@Override

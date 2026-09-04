@@ -14,6 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -432,10 +433,12 @@ public class ExtractMTLSCertificatesFromConfiguration_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_valueMissing() {
-		assertThrows(ConditionError.class, () -> {
+		env.putObject("config", new JsonObject());
 
-			cond.execute(env);
-		});
+		assertThatThrownBy(() -> cond.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("'mtls.cert' and 'mtls.key' fields")
+			.hasMessageContaining("in the test configuration");
 	}
 
 }

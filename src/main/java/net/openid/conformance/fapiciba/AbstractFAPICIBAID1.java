@@ -430,6 +430,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		testType = getVariant(CIBAMode.class);
 		env.putString("ciba_mode", testType.name());
+		env.putBoolean("notification_endpoint_requires_mtls", profileBehavior.notificationEndpointRequiresMTLS());
 
 		callAndStopOnFailure(CreateCIBANotificationEndpointUri.class);
 
@@ -1091,12 +1092,21 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if (path.equals("ciba-notification-endpoint")) {
+		if (path.equals("ciba-notification-endpoint") && !profileBehavior.notificationEndpointRequiresMTLS()) {
 			return handlePingCallback(requestParts);
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
 
+	}
+
+	@Override
+	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session,
+			JsonObject requestParts) {
+		if (path.equals("ciba-notification-endpoint") && profileBehavior.notificationEndpointRequiresMTLS()) {
+			return handlePingCallback(requestParts);
+		}
+		return super.handleHttpMtls(path, req, res, session, requestParts);
 	}
 
 	protected Object handlePingCallback(JsonObject requestParts) {
@@ -1174,6 +1184,11 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		eventLog.startBlock(currentClientString() + "Verify notification callback");
 
 		env.putObject(envKey, requestParts);
+
+		ConditionSequence profileValidation = profileBehavior.validateNotificationEndpointRequest();
+		if (profileValidation != null) {
+			call(profileValidation);
+		}
 
 		env.mapKey("client_request", envKey);
 
