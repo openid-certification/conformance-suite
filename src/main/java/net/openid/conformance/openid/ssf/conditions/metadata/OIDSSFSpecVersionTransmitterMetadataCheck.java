@@ -21,7 +21,8 @@ public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition
 
 		String specVersion = OIDFJSON.getString(transmitterMetadata.get("spec_version"));
 		if (!isValidVersion(specVersion)) {
-			throw error("Found invalid spec_version field in transmitter_metadata. Must be greater than or equal to 1.0-ID2.", args("spec_version", specVersion));
+			throw error("Found invalid spec_version field in transmitter_metadata. The CAEP Interop Profile (2.3.1) requires the value to be 1_0 or greater.",
+				args("spec_version", specVersion));
 		}
 
 		logSuccess("Found valid spec_version field in transmitter_metadata", args("spec_version", specVersion));
@@ -29,38 +30,39 @@ public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition
 	}
 
 	/**
-	 * Valid according to https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-2.3.1
-	 * @param specVersion
-	 * @return
+	 * CAEP Interop Profile 2.3.1: "The Transmitter Configuration Metadata MUST
+	 * include a spec_version field, and its value MUST be 1_0 or greater."
+	 * <p>
+	 * A trailing classifier such as {@code -ID2} marks an implementer's draft of
+	 * that version, which precedes the version itself - so {@code 1_0-ID2} is NOT
+	 * "1_0 or greater", while e.g. {@code 2_0-ID1} (a draft of a version beyond
+	 * 1_0) is. Malformed values are reported as invalid, never as a crash.
 	 */
 	boolean isValidVersion(String specVersion) {
 
-		if (specVersion == null) {
+		if (specVersion == null || specVersion.isBlank() || specVersion.contains(".")) {
 			return false;
 		}
 
-		if (specVersion.isBlank()) {
+		String[] parts = specVersion.split("-", 2);
+		boolean hasClassifier = parts.length > 1;
+		if (hasClassifier && parts[1].isBlank()) {
+			// e.g. "1_0-": a dangling classifier separator is not a valid version
+			return false;
+		}
+		if (!parts[0].matches("(0|[1-9][0-9]*)_(0|[1-9][0-9]*)")) {
+			// non-numeric or zero-padded components (e.g. "01_0") are not valid
 			return false;
 		}
 
-		if (specVersion.contains(".")) {
-			return false;
-		}
+		String[] versionParts = parts[0].split("_");
+		int major = Integer.parseInt(versionParts[0]);
+		int minor = Integer.parseInt(versionParts[1]);
 
-		String[] parts = specVersion.split("-");
-		String versionPart = parts[0].replace('_', '.');
-		String classifierPart = parts.length > 1 ? parts[1] : null;
-
-		double version = Double.parseDouble(versionPart);
-
-		if (version > 1.0) {
+		if (major > 1 || (major == 1 && minor > 0)) {
 			return true;
 		}
 
-		if (classifierPart == null) {
-			return version >= 1.0;
-		}
-
-		return version == 1.0 && classifierPart.compareTo("ID2") >= 0;
+		return major == 1 && minor == 0 && !hasClassifier;
 	}
 }
