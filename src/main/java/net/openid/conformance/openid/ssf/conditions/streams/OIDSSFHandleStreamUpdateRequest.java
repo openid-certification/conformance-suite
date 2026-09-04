@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
@@ -62,18 +61,19 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 			return env;
 		}
 
-		Set<String> transmitterSuppliedKeys = new HashSet<>(getTransmitterSuppliedStreamConfigKeys());
-		transmitterSuppliedKeys.remove("stream_id"); // ignore stream_id
-
-		Set<String> keysNotAllowedInUpdate = new HashSet<>(transmitterSuppliedKeys);
-		keysNotAllowedInUpdate.retainAll(streamConfigInput.keySet());
-		if (!keysNotAllowedInUpdate.isEmpty()) {
-			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream config update in request body"));
-			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream update request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
-		}
-
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
+
+		/*
+		 * 8.1.1.3: "Transmitter-Supplied properties besides the stream_id MAY be present,
+		 * but they MUST match the expected value. If there is a mismatch, the Transmitter
+		 * MUST respond with a 400 error."
+		 */
+		Set<String> mismatchedKeys = computeMismatchedTransmitterSuppliedProperties(streamConfigInput, streamConfig);
+		if (!mismatchedKeys.isEmpty()) {
+			resultObj.add("error", createErrorObj("bad_request", "Transmitter-supplied properties in request body do not match the current stream configuration"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream update request: Transmitter-supplied properties do not match the expected values (SSF 1.0 8.1.1.3)", args("error", resultObj.get("error"), "mismatched_keys", mismatchedKeys));
+		}
 
 		// Handle updates for events_requested, description, delivery
 		if (streamConfigInput.has("description")) {

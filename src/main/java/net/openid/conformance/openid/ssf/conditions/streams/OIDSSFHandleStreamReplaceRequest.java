@@ -60,14 +60,19 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 			throw error("Failed to handle stream replacement request: Stream not found", args("stream_id", streamId));
 		}
 
-		Set<String> keysNotAllowedInUpdate = checkForInvalidKeysInStreamConfigInput(streamConfigInput);
-		if (!keysNotAllowedInUpdate.isEmpty()) {
-			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream replacement in request body"));
-			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream replacement request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
-		}
-
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
+
+		/*
+		 * 8.1.1.4: "Event Receivers MAY read the configuration first, modify the JSON,
+		 * then PUT it back" — so transmitter-supplied properties MAY be echoed, but per
+		 * 8.1.1.3 they MUST match the expected value; on mismatch respond with 400.
+		 */
+		Set<String> mismatchedKeys = computeMismatchedTransmitterSuppliedProperties(streamConfigInput, streamConfig);
+		if (!mismatchedKeys.isEmpty()) {
+			resultObj.add("error", createErrorObj("bad_request", "Transmitter-supplied properties in request body do not match the current stream configuration"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream replacement request: Transmitter-supplied properties do not match the expected values (SSF 1.0 8.1.1.3)", args("error", resultObj.get("error"), "mismatched_keys", mismatchedKeys));
+		}
 
 		// Handle updates for events_requested, description, delibery
 		if (streamConfigInput.has("description")) {
