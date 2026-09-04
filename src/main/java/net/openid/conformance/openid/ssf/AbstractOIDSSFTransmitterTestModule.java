@@ -98,17 +98,8 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
 	"client.client_secret"
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
-	"client.client_secret",
-	"client.client_secret_jwt_alg"
-})
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
 	"client.jwks"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca"
 })
 @VariantHidesConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"client.client_id",
@@ -124,7 +115,12 @@ import java.util.concurrent.TimeUnit;
 	whenParameter = SsfAuthMode.class, hasValues = "static")
 @VariantNotApplicableWhen(parameter = ClientAuthType.class, values = "*",
 	whenParameter = SsfAuthMode.class, hasValues = "static")
-@VariantNotApplicable(parameter = ClientAuthType.class, values = "client_attestation")
+// client_secret_jwt and mtls client authentication are not implemented for the SSF
+// transmitter tests (mtls additionally needs certificate-bound-token infrastructure);
+// client_attestation is not applicable for SSF.
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"client_attestation", "client_secret_jwt", "mtls"
+})
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
 	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
@@ -248,7 +244,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					callAndStopOnFailure(AddFormBasedClientSecretToRequest.class);
 					break;
 				case CLIENT_SECRET_JWT:
-					throw new UnsupportedOperationException("TODO implement me");
+					// unreachable: excluded via @VariantNotApplicable
+					throw new UnsupportedOperationException("client_secret_jwt is not supported for SSF transmitter tests");
 				case PRIVATE_KEY_JWT:
 
 					callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
@@ -256,7 +253,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					call(sequence(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class));
 					break;
 				case MTLS:
-					throw new UnsupportedOperationException("TODO implement me");
+					// unreachable: excluded via @VariantNotApplicable
+					throw new UnsupportedOperationException("mtls client authentication is not supported for SSF transmitter tests");
 				case NONE:
 					// no authentication configured, fall-through
 				default:
