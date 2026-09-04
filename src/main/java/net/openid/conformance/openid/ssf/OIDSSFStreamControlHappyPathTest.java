@@ -88,7 +88,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 
-			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1", "OIDCAEP-3");
+			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 
 			SsfProfile ssfProfile = getVariant(SsfProfile.class);
 			if (SsfProfile.CAEP_INTEROP.equals(ssfProfile)) {
@@ -155,7 +155,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 				for (StreamStatus status : StreamStatus.values()) {
 					eventLog.log(getName(), "Update stream status to " + status);
-					callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1", "OIDSSF-8.1.2.2");
+					callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 					callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
 					callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");

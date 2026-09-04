@@ -93,7 +93,7 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		// cue that the receiver completed stream verification.
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			afterInitialStreamVerification(streamId);
 		}
 	}
@@ -103,7 +103,7 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		// POLL delivery: the ack of the verification SET is the cue to start.
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			afterInitialStreamVerification(streamId);
 			return;
 		}
