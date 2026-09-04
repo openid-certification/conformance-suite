@@ -43,6 +43,11 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 		this.endpointName = "receiver push endpoint";
 		this.responseEnvironmentKey = "endpoint_response";
 
+		// Remove any response left over from an earlier delivery so follow-up checks
+		// (e.g. the RFC 8935 2.2 202 check) can never run against a stale response
+		// when this delivery fails without producing one.
+		env.removeObject(responseEnvironmentKey);
+
 		log("Call " + endpointName + " for stream_id=" + streamId + " for event " + event.type() + " jti=" + event.jti(),
 			args("stream_id", streamId, "push_endpoint", endpointUri, "jti", event.jti(), "event_type", event.type()));
 
@@ -62,14 +67,51 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 				return handleClientException(env, e);
 			}
 
-			logSuccess("Got " + endpointName + " response", env.getObject(responseEnvironmentKey));
-
-			onSuccess.accept(streamId, event);
+			int status = env.getInteger(responseEnvironmentKey, "status");
+			if (status >= 200 && status < 300) {
+				logSuccess("Got " + endpointName + " response", env.getObject(responseEnvironmentKey));
+				// RFC 8935 2.2: the receiver acknowledges successful transmission with 202.
+				// Only a success response counts as delivered-and-acknowledged; the strict
+				// 202 status check runs separately in the caller.
+				onSuccess.accept(streamId, event);
+			} else {
+				// RFC 8935 2.3: an error response means the receiver rejected the SET -
+				// it must NOT be recorded as a successful delivery/acknowledgement.
+				log("Receiver answered the push delivery with an error status; not treating the SET as acknowledged",
+					args("status", status, "jti", event.jti(), "event_type", event.type(),
+						"response", env.getObject(responseEnvironmentKey)));
+			}
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
+	}
+
+	/**
+	 * When the push call fails without an HTTP response, leave a synthetic
+	 * {@code endpoint_response} (status 0) so follow-up status checks (the RFC 8935
+	 * 2.2 202 check, the invalid-SET rejection check) grade a normal FAILURE
+	 * instead of aborting the whole test on a missing pre-environment key.
+	 */
+	@Override
+	protected Environment handleClientException(Environment env, org.springframework.web.client.RestClientException e) {
+		env.putObject(responseEnvironmentKey, synthesizeFailedResponse());
+		return super.handleClientException(env, e);
+	}
+
+	@Override
+	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
+		env.putObject(responseEnvironmentKey, synthesizeFailedResponse());
+		return super.handleRestClientResponseException(env, e);
+	}
+
+	private com.google.gson.JsonObject synthesizeFailedResponse() {
+		com.google.gson.JsonObject response = new com.google.gson.JsonObject();
+		response.addProperty("endpoint_name", endpointName);
+		// 0 = no HTTP response was received (connection-level failure)
+		response.addProperty("status", 0);
+		return response;
 	}
 
 	protected HttpHeaders createHeaders(String authorizationHeader) {
