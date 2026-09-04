@@ -75,13 +75,21 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 
 	protected void checkDelivery(JsonObject streamConfigInput) {
 
-		JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
-		if (delivery == null) {
+		JsonElement deliveryEl = streamConfigInput.get("delivery");
+		if (deliveryEl == null) {
 			log("No delivery found in stream request, assuming urn:ietf:rfc:8936 (POLL delivery)", args("stream_config", streamConfigInput));
 			return;
 		}
+		if (!deliveryEl.isJsonObject()) {
+			throw error("delivery must be a JSON object", args("delivery", deliveryEl));
+		}
+		JsonObject delivery = deliveryEl.getAsJsonObject();
 
-		String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
+		JsonElement deliveryMethodEl = delivery.get("method");
+		if (deliveryMethodEl == null) {
+			throw error("Required 'method' property missing from delivery object", args("delivery", delivery));
+		}
+		String deliveryMethod = OIDFJSON.getString(deliveryMethodEl);
 		if (!Set.of(DELIVERY_METHOD_POLL_RFC_8936_URI, DELIVERY_METHOD_PUSH_RFC_8935_URI).contains(deliveryMethod)) {
 			throw error("Found unsupported delivery method in stream config", args("delivery_method", deliveryMethod));
 		}
@@ -100,8 +108,16 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 	}
 
 	protected void checkEventsRequested(JsonObject streamConfigInput) {
-		JsonArray eventsRequested = streamConfigInput.getAsJsonArray("events_requested");
-		if (eventsRequested != null && eventsRequested.isEmpty()) {
+		JsonElement eventsRequestedEl = streamConfigInput.get("events_requested");
+		if (eventsRequestedEl == null) {
+			log("No events_requested in stream config (optional per SSF 1.0 8.1.1.1)");
+			return;
+		}
+		if (!eventsRequestedEl.isJsonArray()) {
+			throw error("events_requested must be a JSON array", args("events_requested", eventsRequestedEl));
+		}
+		JsonArray eventsRequested = eventsRequestedEl.getAsJsonArray();
+		if (eventsRequested.isEmpty()) {
 			log("Found empty events_requested in stream config");
 		} else {
 			log("Found events_requested in stream config", args("events_requested", eventsRequested));

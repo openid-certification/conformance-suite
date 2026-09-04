@@ -43,21 +43,28 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 		}
 
 		JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
-		Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
 
 		String streamId = generateStreamId();
 		String ssfIssuer = env.getString("ssf", "issuer");
 		String audience = getStreamAudience(env);
 
 		try {
+			// SSF 1.0 8.1.1.1: all receiver-supplied values (events_requested, delivery,
+			// description) are OPTIONAL - malformed values yield a 400, never a 500.
+			Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
+
 			JsonObject streamConfig = new JsonObject();
 			streamConfig.addProperty("stream_id", streamId);
 			streamConfig.addProperty("iss", ssfIssuer);
 			streamConfig.addProperty("aud", audience);
-			streamConfig.add("description", streamConfigInput.get("description"));
+			if (streamConfigInput.has("description")) {
+				streamConfig.add("description", streamConfigInput.get("description"));
+			}
 			streamConfig.add("events_supported", defaultConfig.get("events_supported"));
 			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
-			streamConfig.add("events_requested", streamConfigInput.getAsJsonArray("events_requested"));
+			if (streamConfigInput.has("events_requested")) {
+				streamConfig.add("events_requested", streamConfigInput.getAsJsonArray("events_requested"));
+			}
 
 			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
 			if (delivery == null) {

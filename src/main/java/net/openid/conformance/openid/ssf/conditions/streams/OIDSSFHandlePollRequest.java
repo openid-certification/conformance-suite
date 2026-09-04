@@ -68,8 +68,23 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 		JsonElement returnImmediatelyEl = pollRequestInput.get("returnImmediately");
 		JsonElement maxEventsEl = pollRequestInput.get("maxEvents");
-		JsonArray ackArrayEl = pollRequestInput.getAsJsonArray("ack");
-		JsonElement setErrsEl = pollRequestInput.getAsJsonObject("setErrs");
+		JsonArray ackArrayEl;
+		JsonElement setErrsEl;
+		boolean returnImmediately;
+		int maxCount;
+		try {
+			// RFC 8936 2.2 defines the request parameter types; malformed values are a
+			// client error (400), never a transmitter crash.
+			ackArrayEl = pollRequestInput.getAsJsonArray("ack");
+			setErrsEl = pollRequestInput.getAsJsonObject("setErrs");
+			returnImmediately = returnImmediatelyEl != null && OIDFJSON.getBoolean(returnImmediatelyEl);
+			maxCount = maxEventsEl != null ? OIDFJSON.getInt(maxEventsEl) : 16;
+		} catch (RuntimeException e) {
+			resultObj.add("error", createErrorObj("invalid_request", "Malformed poll request parameters: 'maxEvents' must be an integer, 'returnImmediately' a boolean, 'ack' a JSON array and 'setErrs' a JSON object (RFC 8936 2.2)"));
+			resultObj.addProperty("status_code", 400);
+			log("Failed to handle stream poll request: malformed request parameters", args("error", resultObj.get("error"), "poll_request", pollRequestInput));
+			return env;
+		}
 
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
@@ -114,10 +129,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		}
 
 		// retrieve events if necessary
-		int maxCount = maxEventsEl != null ? OIDFJSON.getInt(maxEventsEl) : 16;
 		if (maxCount > 0) {
-
-			boolean returnImmediately = returnImmediatelyEl != null && OIDFJSON.getBoolean(returnImmediatelyEl);
 
 			log("Deliver stream events for stream_id=" + streamId, args("maxCount", maxCount, "returnImmediately", returnImmediately));
 			int maxWaitTimeSeconds = 10;
