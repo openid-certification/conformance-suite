@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.WaitFor5Seconds;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoint;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
@@ -18,6 +19,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
@@ -249,6 +251,53 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 			}
 		}
 
+		return false;
+	}
+
+	protected static final int VERIFICATION_POLL_MAX_ATTEMPTS = 12;
+
+	protected static final int VERIFICATION_POLL_INTERVAL_SECONDS = 5;
+
+	/**
+	 * Polls the transmitter until the solicited verification event (carrying the
+	 * echoed {@code state}) appears, or ~60 seconds elapse. SSF 1.0 8.1.4.2:
+	 * "Event Receivers MUST NOT depend on the Verification Event being transmitted
+	 * synchronously or in any particular order relative to the current queue of
+	 * events" - so a single poll right after triggering is not sufficient; the
+	 * event may only become available after a delay or behind other queued SETs.
+	 * The ~60-second window follows the expectation recorded by the WG on
+	 * sharedsignals#339.
+	 * <p>
+	 * The first attempt uses {@code initialMode} (so POLL_AND_ACKNOWLEDGE callers
+	 * acknowledge their previous batch exactly once); retries use POLL_ONLY.
+	 *
+	 * @return {@code true} once a solicited verification event was found and validated
+	 */
+	protected boolean pollForSolicitedVerificationEvent(String blockPrefix, OIDSSFCallPollEndpoint.PollMode initialMode) {
+		for (int attempt = 1; attempt <= VERIFICATION_POLL_MAX_ATTEMPTS; attempt++) {
+			OIDSSFCallPollEndpoint.PollMode pollMode = attempt == 1 ? initialMode : OIDSSFCallPollEndpoint.PollMode.POLL_ONLY;
+			eventLog.runBlock("Poll for verification events via " + blockPrefix + " (attempt " + attempt + ")", () -> {
+				env.putString("ssf", "poll.mode", pollMode.name());
+				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
+			});
+
+			if (iterateAndValidateVerificationEventsInPollResponse(blockPrefix)) {
+				return true;
+			}
+
+			if (attempt < VERIFICATION_POLL_MAX_ATTEMPTS) {
+				eventLog.log(getName(), "Solicited verification event not yet delivered; polling again in "
+					+ VERIFICATION_POLL_INTERVAL_SECONDS + "s (attempt " + attempt + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
+				try {
+					Thread.sleep(VERIFICATION_POLL_INTERVAL_SECONDS * 1000L);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new TestFailureException(getId(), "Interrupted while waiting for the solicited verification event");
+				}
+			}
+		}
 		return false;
 	}
 
