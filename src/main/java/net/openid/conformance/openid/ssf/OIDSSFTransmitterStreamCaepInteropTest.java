@@ -13,6 +13,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificati
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAllCaepInteropEventsReceived;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureCaepInteropEventSubjectFormat;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepInteropEventUsesComplexSubject;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicitedVerificationEventHasNoState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
@@ -550,8 +551,11 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * (i.e. {@code set_token} is already in the environment).
 	 */
 	protected void validateSetCommonAfterParsing() {
-		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
+		// CAEPIOP 2.6: "All events MUST be signed using the RS256 algorithm with a
+		// minimum of 2048-bit keys" - a forged signature or a weak key must FAIL.
+		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
+		callAndContinueOnFailure(OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
