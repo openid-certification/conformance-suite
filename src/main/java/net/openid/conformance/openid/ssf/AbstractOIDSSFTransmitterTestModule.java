@@ -190,7 +190,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		try {
 			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.INFO, "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200Or404.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200Or404.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1.2");
 		} catch (Exception ignore) {
 		}
 		boolean danglingStreamConfigFound = env.getElementFromObject("ssf", "stream") != null && env.getElementFromObject("ssf", "streams") != null;
@@ -198,7 +198,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			try {
 				callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO, "CAEPIOP-2.3.8.2");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs204Or404.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1.5");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs204Or404.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1.5");
 			} catch (Exception ignore) {
 			}
 		}
