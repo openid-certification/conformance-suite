@@ -11,6 +11,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LogEntryHelper_UnitTest {
 
 	@Test
+	public void brazilDcrRequirementLabelsUseVersion21ConfluenceHeadingAnchors() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		String spec = "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1334116474/" +
+			"EN+Open+Finance+Brasil+Dynamic+Client+Registration+-+v2.1.0#";
+
+		assertThat(helper.getRequirementLink("BrazilOBDCR-6.1"))
+			.isEqualTo(spec + "6.1.-Authorization-server");
+		assertThat(helper.getRequirementLink("BrazilOBDCR-7.1-5"))
+			.isEqualTo(spec + "7.1.-Authorization-server");
+		assertThat(helper.getRequirementLink("BrazilOBDCR-7.1.1"))
+			.isEqualTo(spec + "7.1.1.-Applying-Server-Defaults");
+		assertThat(helper.getRequirementLink("BrazilOBDCR-9.3.2-4"))
+			.isEqualTo(spec + "9.3.2.-Client-Maintenance---GET-%2Fregister---PUT-%2Fregister---" +
+				"DELETE-%2Fregister");
+	}
+
+	@Test
 	public void brazilCibaRequirementLabelsUseBeta2ConfluenceHeadingAnchors() {
 		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
 		String spec = "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/2092204111/" +

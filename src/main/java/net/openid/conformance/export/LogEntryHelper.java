@@ -35,7 +35,7 @@ public class LogEntryHelper {
 		specLinks = new HashMap<>();
 		specLinks.put("BrazilOB-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/245760001/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+1.0+Implementers+Draft+3#section-");
 		specLinks.put("BrazilOB22-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1675395195/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+-+v2.2.0#");
-		specLinks.put("BrazilOBDCR-","https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/246120449/EN+Open+Finance+Brasil+Financial-grade+API+Dynamic+Client+Registration+2.0+RC1+Implementers+Draft+3#section-");
+		specLinks.put("BrazilOBDCR-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/1334116474/EN+Open+Finance+Brasil+Dynamic+Client+Registration+-+v2.1.0#");
 		specLinks.put("BrazilOPIN-", "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#");
 		specLinks.put("BrazilCIBA-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/2092204111/EN+Open+Finance+Brasil+Client+Initiated+Backchannel+Authentication+-+v2.1.0-beta2#");
 		specLinks.put("FAPI-R-", "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.");
@@ -138,6 +138,13 @@ public class LogEntryHelper {
 		// match exactly or use a hyphen-delimited requirement suffix, so nested entries do not depend
 		// on insertion order and unrelated longer section numbers cannot match a shorter section.
 		specSectionLinks = new LinkedHashMap<>();
+		String brazilDcr = specLinks.get("BrazilOBDCR-");
+		specSectionLinks.put("BrazilOBDCR-6.1", brazilDcr + "6.1.-Authorization-server");
+		specSectionLinks.put("BrazilOBDCR-7.1.1", brazilDcr + "7.1.1.-Applying-Server-Defaults");
+		specSectionLinks.put("BrazilOBDCR-7.1", brazilDcr + "7.1.-Authorization-server");
+		specSectionLinks.put("BrazilOBDCR-9.3.2",
+			brazilDcr + "9.3.2.-Client-Maintenance---GET-%2Fregister---PUT-%2Fregister---DELETE-%2Fregister");
+
 		String brazilCiba = specLinks.get("BrazilCIBA-");
 		specSectionLinks.put("BrazilCIBA-6.2.2", brazilCiba + "6.2.2.-CIBA-delivery-modes");
 		specSectionLinks.put("BrazilCIBA-6.2.3",
