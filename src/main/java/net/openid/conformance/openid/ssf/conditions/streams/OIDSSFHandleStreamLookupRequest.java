@@ -75,6 +75,14 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 			streams.add(streamConfigResult);
 		}
 
+		if (streams.size() == 1) {
+			// A list response identifies the stream just as well as ?stream_id= - the
+			// stream_id query parameter is optional (SSF 1.0 8.1.1.2: "The GET request
+			// MAY include the stream_id"). Record the id so modules tracking the read
+			// stream also observe list-style reads instead of waiting forever.
+			resultObj.addProperty("stream_id", OIDFJSON.tryGetString(streams.get(0).get("stream_id")));
+		}
+
 		logSuccess("Handled stream lookup request: Found " + streams.size() + " streams",  args("streams", streams));
 		resultObj.add("result", OIDFJSON.convertJsonObjectListToJsonArray(streams));
 		resultObj.addProperty("status_code", 200);
