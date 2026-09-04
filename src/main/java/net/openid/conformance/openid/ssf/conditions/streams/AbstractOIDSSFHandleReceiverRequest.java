@@ -72,6 +72,26 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 		return eventsDelivered;
 	}
 
+	/**
+	 * SSF 1.0 §8.1.1.3 / §8.1.1.4: in update (PATCH) and replace (PUT) requests the
+	 * "Transmitter-Supplied properties besides the stream_id MAY be present, but
+	 * they MUST match the expected value" — on mismatch the transmitter MUST
+	 * respond with 400. Returns the transmitter-supplied keys present in the
+	 * request body whose values differ from the stored stream configuration.
+	 */
+	protected Set<String> computeMismatchedTransmitterSuppliedProperties(JsonObject streamConfigInput, JsonObject storedStreamConfig) {
+		Set<String> mismatched = new HashSet<>();
+		for (String key : getTransmitterSuppliedStreamConfigKeys()) {
+			if ("stream_id".equals(key) || !streamConfigInput.has(key)) {
+				continue;
+			}
+			if (!streamConfigInput.get(key).equals(storedStreamConfig.get(key))) {
+				mismatched.add(key);
+			}
+		}
+		return mismatched;
+	}
+
 	protected Set<String> checkForInvalidKeysInStreamConfigInput(JsonObject streamConfigInput) {
 		Set<String> transmitterSuppliedKeys = new HashSet<>(getTransmitterSuppliedStreamConfigKeys());
 		transmitterSuppliedKeys.remove("stream_id"); // ignore stream_id
