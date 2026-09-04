@@ -13,6 +13,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificati
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
@@ -143,7 +144,13 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	 * {@link #currentVerificationEventHasState()} and {@link #verifyParsedVerificationEventCommon()}).
 	 */
 	protected void parseVerificationEventInResponse() {
-		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			// CAEPIOP 2.6: "All events MUST be signed ..." - a forged signature must
+			// FAIL under the interop profile (the certification target).
+			callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
+		} else {
+			callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
+		}
 		callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 	}
 
@@ -157,6 +164,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	protected void verifyParsedVerificationEventCommon() {
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
+			callAndContinueOnFailure(OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		}
 
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
