@@ -135,6 +135,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
+import net.openid.conformance.condition.client.RejectNonMTLSCIBANotificationEndpoint;
 import net.openid.conformance.condition.common.CheckCIBAServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
@@ -1130,7 +1131,16 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if (path.equals("ciba-notification-endpoint") && !profileBehavior.notificationEndpointRequiresMTLS()) {
+		if (path.equals("ciba-notification-endpoint")) {
+			if (profileBehavior.notificationEndpointRequiresMTLS()) {
+				getTestExecutionManager().runInBackground(() -> {
+					setStatus(Status.RUNNING);
+					callAndStopOnFailure(RejectNonMTLSCIBANotificationEndpoint.class, "BrazilCIBA-6.3.4");
+					return "done";
+				});
+				return new ResponseEntity<>("Use the mTLS notification endpoint: " + env.getString("notification_uri"),
+					HttpStatus.NOT_FOUND);
+			}
 			return handlePingCallback(requestParts);
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
