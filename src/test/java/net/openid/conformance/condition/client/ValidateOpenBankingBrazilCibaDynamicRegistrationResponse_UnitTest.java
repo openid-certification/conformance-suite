@@ -176,6 +176,15 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
+	public void ignoresUnusedJwtSigningAlgorithmForMtlsAuthentication() {
+		for (String method : new String[] { "tls_client_auth", "self_signed_tls_client_auth" }) {
+			response.addProperty("token_endpoint_auth_method", method);
+			response.addProperty("token_endpoint_auth_signing_alg", "RS256");
+			assertDoesNotThrow(() -> condition.execute(env));
+		}
+	}
+
+	@Test
 	public void rejectsAuthenticationMethodOutsideProfile() {
 		response.addProperty("token_endpoint_auth_method", "client_secret_basic");
 
