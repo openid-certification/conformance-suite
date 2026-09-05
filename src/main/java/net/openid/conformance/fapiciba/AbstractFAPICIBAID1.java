@@ -507,6 +507,18 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void onConfigure() {
+		if (testType == CIBAMode.PING
+			&& getVariantOrDefault(ClientRegistration.class, ClientRegistration.STATIC_CLIENT) == ClientRegistration.DYNAMIC_CLIENT) {
+			String registeredEndpoint = env.getString("client", "backchannel_client_notification_endpoint");
+			String notificationUri = env.getString("notification_uri");
+			if (!java.util.Objects.equals(notificationUri, registeredEndpoint)) {
+				// RFC 7591 section 3.2.1 permits substitutions. This is a test limitation, not a
+				// registration protocol violation: this module only serves its exposed callback URI.
+				fireTestSkipped("The authorization server registered notification endpoint '" + registeredEndpoint +
+					"', but this test serves '" + notificationUri + "'. The suite cannot use this registration. " +
+					"Configure the authorization server to retain the requested notification endpoint and rerun the test.");
+			}
+		}
 		String registeredMethod = getRegisteredClientAuthenticationMethod();
 		if (!"tls_client_auth".equals(registeredMethod) && !"self_signed_tls_client_auth".equals(registeredMethod)) {
 			return;
