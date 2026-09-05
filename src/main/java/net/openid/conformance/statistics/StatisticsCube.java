@@ -93,7 +93,8 @@ public class StatisticsCube {
 	 * @param userTuples    the periods each user was active in, per plan, variant and profile
 	 * @param heatCells     runs per day and hour
 	 * @param moduleCells   runs of each test module per month and user
-	 * @param externalHosts the external servers the suite has been pointed at, all time
+	 * @param externalHosts the external servers the suite has been pointed at over the
+	 *                      trailing {@value #MODULE_MONTHS} months
 	 * @param storage       per collection storage counters
 	 * @param tiles         the whole-collection counters behind the summary tiles
 	 * @param resolver      maps plan names to their spec family and entity under test
@@ -135,7 +136,10 @@ public class StatisticsCube {
 		return users;
 	}
 
-	/** @return every run binned by day of the week and hour, with its period keys */
+	/**
+	 * @return every run of the trailing {@value #MODULE_MONTHS} months binned by day of the
+	 *         week and hour, with its period keys
+	 */
 	public List<HeatBin> heat() {
 		return heat;
 	}
@@ -177,7 +181,10 @@ public class StatisticsCube {
 		return resolver.plansForModule(testName);
 	}
 
-	/** @return the external servers the suite has been pointed at, all time */
+	/**
+	 * @return the external servers the suite has been pointed at over the trailing
+	 *         {@value #MODULE_MONTHS} months
+	 */
 	public List<HostRow> externalHosts() {
 		return externalHosts;
 	}
