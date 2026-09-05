@@ -410,7 +410,20 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		if (!profileBehavior.usesRegisteredClientAuthenticationMethod()) {
 			return null;
 		}
-		return env.getString("client", "token_endpoint_auth_method");
+		String registeredMethod = env.getString("client", "token_endpoint_auth_method");
+		ClientAuthType registeredType = switch (registeredMethod == null ? "" : registeredMethod) {
+			case "tls_client_auth", "self_signed_tls_client_auth" -> ClientAuthType.MTLS;
+			case "private_key_jwt" -> ClientAuthType.PRIVATE_KEY_JWT;
+			default -> null;
+		};
+		ClientAuthType selectedType = getVariantOrDefault(ClientAuthType.class, null);
+		if (registeredType != null && selectedType != null && registeredType != selectedType) {
+			eventLog.log(getName(), args("msg", "Using the registered client authentication method instead of the selected variant",
+				"selected_client_auth_type", selectedType.toString(),
+				"registered_token_endpoint_auth_method", registeredMethod,
+				"client_id", env.getString("client", "client_id")));
+		}
+		return registeredMethod;
 	}
 
 	protected ConditionSequence createPrivateKeyJwtBackchannelClientAuthentication() {

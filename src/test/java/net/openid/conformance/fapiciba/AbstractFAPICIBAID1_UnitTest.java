@@ -1,18 +1,26 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.BsonEncoding;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.variant.ClientAuthType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class AbstractFAPICIBAID1_UnitTest {
 
@@ -52,6 +60,23 @@ public class AbstractFAPICIBAID1_UnitTest {
 			.isInstanceOf(AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class);
 		assertThat(module.resolvedTokenEndpointClientAuthentication())
 			.isEqualTo(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class);
+	}
+
+	@Test
+	public void logsWhenRegisteredAuthenticationOverridesSelectedVariant() {
+		AbstractFAPICIBAID1 module = new FAPICIBAID1EnsureOtherScopeOrderSucceeds();
+		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
+		module.setProperties("UNIT-TEST", Map.of(), log, null, mock(TestInfoService.class), null, null);
+		module.setVariant(Map.of(ClientAuthType.class, ClientAuthType.PRIVATE_KEY_JWT));
+		module.setupOpenBankingBrazil();
+		module.setupPrivateKeyJwt();
+		module.getEnv().putObjectFromJsonString("client", "{\"token_endpoint_auth_method\":\"tls_client_auth\"}");
+
+		module.getTokenEndpointClientAuthentication();
+
+		verify(log).log(anyString(), argThat((Map<String, Object> entry) ->
+			"private_key_jwt".equals(entry.get("selected_client_auth_type"))
+				&& "tls_client_auth".equals(entry.get("registered_token_endpoint_auth_method"))));
 	}
 
 	@Test
