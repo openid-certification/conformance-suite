@@ -26,6 +26,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -46,6 +49,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -229,6 +233,39 @@ public class PingClientNotificationEndpoint_UnitTest {
 
 		assertThat(condition.credentialsWereRemoved).isFalse();
 		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
+	}
+
+	@Test
+	public void doesNotHardFailWhenPeerClosesCertlessNotificationConnection() {
+		for (IOException cause : new IOException[] {
+			new SocketException("Connection reset"), new NoHttpResponseException("No response") }) {
+			TestablePingClientNotificationEndpointWithoutMTLS condition =
+				new TestablePingClientNotificationEndpointWithoutMTLS(restTemplate);
+			condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+			env.putObject("mutual_tls_authentication", new JsonObject());
+			doThrow(new ResourceAccessException("Peer closed connection", cause)).when(restTemplate)
+				.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
+
+			condition.execute(env);
+			assertThat(env.getString("notification_without_mtls_rejection")).isEqualTo("connection_closed");
+		}
+	}
+
+	@Test
+	public void unrelatedNetworkErrorsAreNotCertificateRejections() {
+		for (IOException cause : new IOException[] { new ConnectException("Connection refused"),
+			new NoRouteToHostException("No route"), new SocketTimeoutException("Timed out"),
+			new UnknownHostException("Unknown host") }) {
+			TestablePingClientNotificationEndpointWithoutMTLS condition =
+				new TestablePingClientNotificationEndpointWithoutMTLS(restTemplate);
+			condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+			env.putObject("mutual_tls_authentication", new JsonObject());
+			doThrow(new ResourceAccessException("Network error", cause)).when(restTemplate)
+				.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
+
+			assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
+			assertThat(env.getString("notification_without_mtls_rejection")).isNull();
+		}
 	}
 
 	@Test
