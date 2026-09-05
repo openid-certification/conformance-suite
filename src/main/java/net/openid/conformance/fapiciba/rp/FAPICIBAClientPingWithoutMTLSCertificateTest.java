@@ -28,4 +28,10 @@ public class FAPICIBAClientPingWithoutMTLSCertificateTest
 	protected String[] getPingNotificationRequirements() {
 		return new String[] { "CIBA-10.2", "BrazilCIBA-6.3.4" };
 	}
+
+	@Override
+	protected void verifyPingResponse() {
+		callAndContinueOnFailure(WarnIfNotificationRejectionWithoutMTLSIsUncertain.class,
+			Condition.ConditionResult.WARNING, "BrazilCIBA-6.3.4");
+	}
 }
