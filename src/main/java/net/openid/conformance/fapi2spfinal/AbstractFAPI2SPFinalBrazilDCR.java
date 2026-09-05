@@ -246,7 +246,7 @@ public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinal
 	}
 
 	protected void deleteClient() {
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-9.3.2-4.", "RFC7592-2.3");
+		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-9.3.2-4", "RFC7592-2.3");
 		// when we just deregistered the client, so prevent cleanup from trying to do so again
 		JsonObject client = env.getObject("client");
 		client.remove("registration_client_uri");
