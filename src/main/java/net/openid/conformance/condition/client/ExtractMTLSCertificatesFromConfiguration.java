@@ -6,6 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.PEMFormatter;
+import net.openid.conformance.logging.MtlsLogSanitizer;
 import net.openid.conformance.testmodule.Environment;
 
 public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition {
@@ -39,7 +40,8 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 				caString = PEMFormatter.stripPEM(caString);
 			}
 		} catch (IllegalArgumentException e) {
-			throw error("Couldn't decode certificate, key, or CA chain from Base64", e, args("cert", certString, "key", keyString, "ca", Strings.emptyToNull(caString)));
+			throw error("Couldn't decode certificate, key, or CA chain from Base64", e,
+				args("cert", certString, "ca", Strings.emptyToNull(caString)));
 		}
 
 		JsonObject mtls = new JsonObject();
@@ -51,7 +53,7 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 
 		env.putObject("mutual_tls_authentication", mtls);
 
-		logSuccess("Mutual TLS authentication credentials loaded", mtls);
+		logSuccess("Mutual TLS authentication credentials loaded", MtlsLogSanitizer.redact(mtls));
 
 		return env;
 	}

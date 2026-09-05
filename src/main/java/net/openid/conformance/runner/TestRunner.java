@@ -26,6 +26,7 @@ import net.openid.conformance.info.SavedConfigurationService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
+import net.openid.conformance.logging.MtlsLogSanitizer;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.DataUtils;
@@ -431,7 +432,7 @@ public class TestRunner implements DataUtils {
 				"result", Condition.ConditionResult.INFO,
 				"baseUrl", url,
 				"baseMtlsUrl", mtlsUrl,
-				"config", config,
+				"config", MtlsLogSanitizer.redact(config),
 				"alias", alias,
 				"planId", planId,
 				"description", description,

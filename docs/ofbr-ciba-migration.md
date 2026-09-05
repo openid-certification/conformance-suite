@@ -16,6 +16,11 @@ JSON field names are `mtls.cert`, `mtls.key`, and, if needed, `mtls.ca`.
 Without the required credentials, setup stops before the test starts.
 Use test credentials that the notification endpoint accepts, not production keys.
 
+New test logs omit the mTLS private keys from configuration, credential, request,
+and final-environment log entries. Saved configurations and the live test state
+still retain the keys needed to run the tests. This does not remove keys from
+existing logs. If an existing log exposed a production key, replace that key.
+
 The new `fapi-ciba-id1-client-ping-without-mtls-certificate-test` deliberately
 omits this certificate for its negative notification request. It still needs
 the normal configuration so that the missing certificate is the only intended
