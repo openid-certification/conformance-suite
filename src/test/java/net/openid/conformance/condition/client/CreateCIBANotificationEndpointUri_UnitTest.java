@@ -65,6 +65,26 @@ public class CreateCIBANotificationEndpointUri_UnitTest {
 	}
 
 	@Test
+	public void mtlsEndpointDoesNotRequireRegularBaseUrl() {
+		env.putString("base_mtls_url", "https://mtls.example.com");
+		env.putBoolean("notification_endpoint_requires_mtls", true);
+
+		cond.execute(env);
+
+		assertThat(env.getString("notification_uri"))
+			.isEqualTo("https://mtls.example.com/ciba-notification-endpoint");
+	}
+
+	@Test
+	public void mtlsEndpointDoesNotFallBackToRegularBaseUrl() {
+		env.putString("base_url", "https://example.com");
+		env.putBoolean("notification_endpoint_requires_mtls", true);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertThat(env.getString("notification_uri")).isNull();
+	}
+
+	@Test
 	public void testEvaluate_valueEmpty() {
 		assertThrows(ConditionError.class, () -> {
 
