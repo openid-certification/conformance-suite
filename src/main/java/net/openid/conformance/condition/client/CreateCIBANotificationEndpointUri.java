@@ -9,9 +9,11 @@ import net.openid.conformance.testmodule.Environment;
 public class CreateCIBANotificationEndpointUri extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "base_url")
+	@PreEnvironment
 	@PostEnvironment(strings = "notification_uri")
 	public Environment evaluate(Environment env) {
+		// The required base URL depends on the profile, so validate it here rather than requiring
+		// both the regular and mTLS URL unconditionally in @PreEnvironment.
 		boolean mtlsRequired = Boolean.TRUE.equals(env.getBoolean("notification_endpoint_requires_mtls"));
 		String baseUrl = mtlsRequired ? env.getString("base_mtls_url") : env.getString("base_url");
 
