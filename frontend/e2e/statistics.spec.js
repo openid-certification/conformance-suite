@@ -1122,13 +1122,17 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(heatmap.locator(".cts-heatmap-cell")).toHaveCount(7 * 24);
     await expect(heatmap.locator(".cts-heatmap-caption")).toContainText("9,918 runs in this range");
     await expect(heatmap.locator(".cts-heatmap-caption")).toContainText(
-      "All hours are UTC. Sliced by the selected range (12 months) only",
+      "All hours are UTC. Within the last 24 months, sliced by the selected range (12 months) only",
     );
     await expect(heatmap.locator("table tbody tr")).toHaveCount(7);
     await expect(heatmap.locator("table thead th")).toHaveCount(25);
 
-    // External servers: all-time, so a disclosure rather than a section.
+    // External servers: the trailing 24 months, unfiltered — a disclosure
+    // rather than a section.
     const hosts = page.locator('[data-testid="stats-hosts"]');
+    await expect(hosts.locator(".cts-stats-hint")).toContainText(
+      "The top 100 by runs over the last 24 months",
+    );
     await expect(hosts.locator("summary")).toHaveText("External servers under test (6)");
     await expect(hosts.locator("tbody tr")).toHaveCount(6);
     await expect(hosts.locator("tbody tr").first().locator("th")).toHaveText("as.example.com");
@@ -1229,9 +1233,16 @@ test.describe("statistics.html — admin usage dashboard", () => {
     // The caption is the section's contract with the reader: which window, how
     // a user is counted, and which of the filters above reach it.
     await expect(page.locator('[data-testid="stats-modules"]')).toBeVisible();
-    await expect(page.getByText(/counts identified users once per module/)).toContainText(
+    const modulesCaption = page.getByText(/counts identified users once per module/);
+    // The window is BOTH: the cells the server keeps, and the range that was asked for.
+    await expect(modulesCaption).toContainText(
+      "Within the last 24 months, over the selected range",
+    );
+    await expect(modulesCaption).toContainText(
       "family and plan filters apply; variant and certification filters do not",
     );
+    // ...and the heading names the range, because the counts are clipped to it.
+    await expect(page.getByText("Modules (12 months)")).toBeVisible();
 
     await expectChartPainted(page, "stats-modules-runs");
     await expectChartPainted(page, "stats-modules-failing");
@@ -1374,6 +1385,6 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(page.locator('[data-testid="stats-modules-table"]')).toHaveCount(0);
     // The heading and the caption stay: a reader has to be told WHAT is empty.
     await expect(page.locator('[data-testid="stats-modules"]')).toBeVisible();
-    await expect(page.getByText("Modules (last 24 months)")).toBeVisible();
+    await expect(page.getByText("Modules (12 months)")).toBeVisible();
   });
 });

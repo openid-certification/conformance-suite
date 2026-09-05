@@ -117,17 +117,29 @@ const UNEXPECTED_MESSAGE = "The statistics endpoint returned an unexpected respo
  * and also names the tile's `data-testid` (`stat-tile-totalTests`, …).
  * These are whole-database counters: the range and the filter row below them
  * deliberately do not scope them.
+ *
+ * Three of the hints say something the number alone does not, because the
+ * server counts them on a narrower or cheaper basis than a reader would
+ * assume (see `TileRow`): the run total is the collection's own document
+ * count and so an estimate; users are counted over test PLANS, so somebody
+ * who has only ever run standalone tests is not one; and `inProgress` /
+ * `stuck` are scans of the last year rather than of all history, so a run
+ * left hanging in 2023 is not in them.
  * @type {Array<{key: string, label: string, hint: string}>}
  */
 const TILES = [
-  { key: "totalTests", label: "Test runs", hint: "All time" },
+  { key: "totalTests", label: "Test runs", hint: "All time, estimated" },
   { key: "totalPlans", label: "Test plans", hint: "All time" },
-  { key: "totalUsers", label: "Users", hint: "Ever ran a test" },
+  { key: "totalUsers", label: "Users", hint: "Plan owners, all time" },
   { key: "testsLast24h", label: "Runs last 24 h", hint: "Rolling window" },
   { key: "testsLast7d", label: "Runs last 7 d", hint: "Rolling window" },
   { key: "testsLast30d", label: "Runs last 30 d", hint: "Rolling window" },
-  { key: "inProgress", label: "In progress", hint: "Running or waiting" },
-  { key: "stuck", label: "Stuck / abandoned (>24 h)", hint: "Non-terminal, started over 24 h ago" },
+  { key: "inProgress", label: "In progress", hint: "Running or waiting, last year" },
+  {
+    key: "stuck",
+    label: "Stuck / abandoned (>24 h)",
+    hint: "Non-terminal >24 h, within the last year",
+  },
   { key: "certifiedPlans", label: "Certified plans", hint: "Made immutable" },
   { key: "publishedPlans", label: "Published plans", hint: "Visible to everyone" },
 ];
@@ -1265,9 +1277,9 @@ class CtsStatisticsPage extends LitElement {
    * is empty: it explains one bar segment, so it must not compete with the
    * charts it sits under.
    *
-   * All-time and unfiltered, like the tiles: the server does not scope this
-   * list by the query, so narrowing the range does not hide the diagnostic
-   * the admin came for.
+   * All-time and unfiltered (several of the tiles above no longer are): the
+   * server does not scope this list by the query, so narrowing the range
+   * does not hide the diagnostic the admin came for.
    * @param {StatisticsData} data - The current payload.
    * @returns {unknown} The disclosure, or nothing.
    */

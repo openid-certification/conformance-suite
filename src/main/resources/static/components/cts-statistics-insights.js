@@ -96,6 +96,23 @@ function heatmapCellTitle(row, col, value) {
   return `${DAY_LABELS[row]} ${HOUR_LABELS[col]}:00 UTC — ${NUMBER_FORMAT.format(value)} runs`;
 }
 
+/**
+ * What the modules section counts, said before it is read. Two things about
+ * the window, because they are different: the server only keeps module cells
+ * for a trailing 24 months, and within that it counts the range the reader
+ * selected (which the heading names). Then the counting rule, then which of
+ * the filters above reach this section at all.
+ *
+ * A constant rather than text in the template so the sentence survives as one
+ * text node: the formatter would otherwise wrap it, and a reader searching the
+ * page — or a test matching the phrase — would be looking for words a line
+ * break has come between.
+ */
+const MODULES_CAPTION =
+  "Within the last 24 months, over the selected range · counts identified users once per module, " +
+  "however many times a module failed for them · family and plan filters apply; variant and " +
+  "certification filters do not";
+
 const STYLE_ID = "cts-statistics-insights-styles";
 
 const STYLE_TEXT = css`
@@ -254,13 +271,15 @@ function injectStyles() {
  *
  * - distributions are counted under the WHOLE query (range and every filter),
  *   so the page withholds them when nothing matches;
- * - modules are a trailing 24 months narrowed by family and plan ONLY — the
- *   server does not key them by variant or certification profile — which the
- *   section's caption states, and the page withholds them alongside the
- *   distributions when nothing matches (see `_renderInsights` there);
+ * - modules are the selected RANGE within a trailing 24 months, narrowed by
+ *   family and plan ONLY — the server does not key them by variant or
+ *   certification profile — which the section's heading and caption state,
+ *   and the page withholds them alongside the distributions when nothing
+ *   matches (see `_renderInsights` there);
  * - the heatmap is sliced by the RANGE only — the server does not key it by
- *   family — which its caption states;
- * - external hosts are all-time and unfiltered.
+ *   family — within a trailing 24 months the server keeps cells for, which
+ *   its caption states;
+ * - external hosts are the same trailing 24 months, unfiltered.
  *
  * Light DOM (`createRenderRoot()` returns `this`) so the page's design-system
  * tokens and stylesheet reach the rendered markup.
@@ -276,8 +295,8 @@ function injectStyles() {
  *   hides the whole section; an object with no `rows` renders its empty
  *   state, because "no module ran in this window" is an answer.
  * @property {Array<Array<number>>} heatmap - 7 rows (Mon-Sun) × 24 UTC hours.
- * @property {string} rangeLabel - The selected range preset's label, for the
- *   heatmap caption ("12 months").
+ * @property {string} rangeLabel - The selected range preset's label ("12
+ *   months"), for the heatmap caption and the modules heading.
  * @property {Array<{host: string, runs: number, users: number, lastSeen: string}>} hosts -
  *   External servers, busiest first.
  * @property {boolean} narrowed - Whether a family or a plan is selected.
@@ -480,11 +499,8 @@ class CtsStatisticsInsights extends LitElement {
     if (!modules) return nothing;
     const rows = Array.isArray(modules.rows) ? modules.rows : [];
     return html`
-      <h2 class="cts-stats-insights-heading">Modules (last 24 months)</h2>
-      <p class="cts-stats-insights-lead">
-        Last 24 months · counts identified users once per module, however many times a module failed
-        for them · family and plan filters apply; variant and certification filters do not
-      </p>
+      <h2 class="cts-stats-insights-heading">Modules (${this._moduleRange()})</h2>
+      <p class="cts-stats-insights-lead">${MODULES_CAPTION}</p>
       <div class="cts-stats-modules" data-testid="stats-modules">
         ${rows.length === 0
           ? html`
@@ -505,6 +521,29 @@ class CtsStatisticsInsights extends LitElement {
             `}
       </div>
     `;
+  }
+
+  /**
+   * What the heading says the section covers.
+   *
+   * The server clips the modules to the selected range — inside the 24 months
+   * it keeps cells for — so a heading fixed at "last 24 months" would claim
+   * two years of counts while showing one, and a reader comparing a module's
+   * runs against the trend charts above would be comparing two windows. The
+   * range is read off the same `rangeLabel` the heatmap caption uses, so the
+   * words are the ones in the range select.
+   *
+   * A weekly range is qualified rather than repeated verbatim: module cells
+   * are monthly, so the server widens a range of weeks to the whole months
+   * its weeks fall in (`ModuleRanker`), and "26 weeks" on its own would be a
+   * narrower claim than what is counted.
+   * @returns {string} The window, in the range select's own words.
+   */
+  _moduleRange() {
+    const label = String(this.rangeLabel || "").trim();
+    // "All time" is the one preset the modules window is narrower than.
+    if (!label || /^all/i.test(label)) return "last 24 months";
+    return /week/i.test(label) ? `${label}, whole months` : label;
   }
 
   /**
@@ -536,16 +575,21 @@ class CtsStatisticsInsights extends LitElement {
    * @returns {unknown} The listing.
    */
   _renderModuleTable(rows) {
+    // Only worth saying when there IS a tail: at twelve modules or fewer both
+    // charts already plot every row this table has, and a note about what was
+    // cut would send the reader looking for rows that are not there.
+    const cut =
+      rows.length > MODULE_LIMIT
+        ? ` The charts above plot the top ${MODULE_LIMIT} of each ranking; everything past that ` +
+          `is only here.`
+        : "";
     return html`
       <details
         class="cts-stats-disclosure cts-stats-modules-full cts-stats-modules-table"
         data-testid="stats-modules-table"
       >
         <summary>All modules (${NUMBER_FORMAT.format(rows.length)})</summary>
-        <p class="cts-stats-hint">
-          Most-run first, the order the server ranks them in. The charts above plot the top
-          ${MODULE_LIMIT} of each ranking; everything past that is only here.
-        </p>
+        <p class="cts-stats-hint"> Most-run first, the order the server ranks them in.${cut} </p>
         <table class="cts-stats-table">
           <thead>
             <tr>
@@ -587,8 +631,8 @@ class CtsStatisticsInsights extends LitElement {
         <cts-heatmap
           data-testid="stats-heatmap"
           heading="Test runs by day and hour"
-          caption=${`All hours are UTC. Sliced by the selected range${range} only — not by family, ` +
-          `plan, variant or certification profile.`}
+          caption=${`All hours are UTC. Within the last 24 months, sliced by the selected ` +
+          `range${range} only — not by family, plan, variant or certification profile.`}
           value-label="runs"
           .rows=${DAY_LABELS}
           .cols=${HOUR_LABELS}
@@ -602,9 +646,10 @@ class CtsStatisticsInsights extends LitElement {
   // --- External servers -------------------------------------------------
 
   /**
-   * The servers the suite has been pointed at. A disclosure, not a section:
-   * it is a long, all-time list that answers a question an admin asks
-   * occasionally, and it must not compete with the charts above it.
+   * The servers the suite has been pointed at over the last 24 months. A
+   * disclosure, not a section: it is a long list that answers a question an
+   * admin asks occasionally, and it must not compete with the charts above
+   * it.
    * @returns {unknown} The disclosure, or nothing when there are none.
    */
   _renderHosts() {
@@ -614,10 +659,9 @@ class CtsStatisticsInsights extends LitElement {
       <details class="cts-stats-disclosure cts-stats-hosts" data-testid="stats-hosts">
         <summary>External servers under test (${NUMBER_FORMAT.format(hosts.length)})</summary>
         <p class="cts-stats-hint">
-          The top 100 by runs, over the whole history of the database — never scoped by the range or
-          the filters above. Hosts are read from the server, issuer, credential-issuer and
-          entity-identifier URLs in each test's configuration; the suite's own endpoints are
-          excluded.
+          The top 100 by runs over the last 24 months — never scoped by the range or the filters
+          above. Hosts are read from the server, issuer, credential-issuer and entity-identifier
+          URLs in each test's configuration; the suite's own endpoints are excluded.
         </p>
         <table class="cts-stats-table">
           <thead>

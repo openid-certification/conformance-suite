@@ -3,8 +3,9 @@ package net.openid.conformance.statistics;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * One external server the suite has been pointed at, over the whole history of the
- * database. Passed straight through to the client, so the timestamp is a string.
+ * One external server the suite has been pointed at over the trailing
+ * {@value StatisticsCube#MODULE_MONTHS} months. Passed straight through to the client, so
+ * the timestamp is a string.
  *
  * @param host     the host part of the configured issuer, discovery, credential issuer or
  *                 entity identifier URL, lower-cased

@@ -208,7 +208,8 @@ async function moduleChart(canvasElement, testid) {
  * observes, and a callback that mutates therefore re-arms itself in a
  * microtask loop the timeout timer never gets a turn to break.
  * @param {HTMLElement} canvasElement - The story root.
- * @returns {{rows: Array<Array<string>>, headers: Array<string>, summary: string}} Its contents.
+ * @returns {{rows: Array<Array<string>>, headers: Array<string>, summary: string,
+ *   hint: string}} Its contents.
  */
 function moduleTable(canvasElement) {
   const details = /** @type {HTMLDetailsElement} */ (
@@ -218,6 +219,9 @@ function moduleTable(canvasElement) {
   details.open = true;
   return {
     summary: /** @type {HTMLElement} */ (details.querySelector("summary")).textContent.trim(),
+    hint: /** @type {HTMLElement} */ (details.querySelector("p")).textContent
+      .replace(/\s+/g, " ")
+      .trim(),
     headers: [...details.querySelectorAll("thead th")].map((th) => th.textContent.trim()),
     rows: [...details.querySelectorAll("tbody tr")].map((row) =>
       [...row.querySelectorAll("th, td")].map((cell) => cell.textContent.trim()),
@@ -284,6 +288,18 @@ export const Ready = {
       expect(value("certifiedPlans")).toBe("88");
       expect(value("publishedPlans")).toBe("45");
       expect(canvas.getByText("Stuck / abandoned (>24 h)")).toBeInTheDocument();
+      // Three counters are not what a reader would assume from the label
+      // alone — the run total is the collection's own estimate, users are
+      // counted over plans, and the two liveness counters only scan the last
+      // year — so the hints say so.
+      const hint = (/** @type {string} */ key) =>
+        canvasElement
+          .querySelector(`[data-testid="stat-tile-${key}"] .cts-stats-tile-hint`)
+          .textContent.trim();
+      expect(hint("totalTests")).toBe("All time, estimated");
+      expect(hint("totalUsers")).toBe("Plan owners, all time");
+      expect(hint("inProgress")).toBe("Running or waiting, last year");
+      expect(hint("stuck")).toBe("Non-terminal >24 h, within the last year");
     });
 
     await step("the default range is sent to the server, not applied locally", async () => {
@@ -847,6 +863,9 @@ export const PhaseTwoSections = {
       // not follow.
       expect(caption).toMatch(/^[\d,]+ runs in this range\./);
       expect(caption).toContain("All hours are UTC");
+      // The server only keeps heat cells for a trailing 24 months, so the
+      // range is a window INSIDE that and the caption has to say both.
+      expect(caption).toContain("Within the last 24 months");
       expect(caption).toContain("selected range (12 months) only");
       expect(caption).toContain("not by family, plan, variant or certification profile");
       // A family IS selected by now, and the heatmap must not have followed it.
@@ -855,13 +874,16 @@ export const PhaseTwoSections = {
       expect(canvas.getByText("Activity (UTC)")).toBeInTheDocument();
     });
 
-    await step("external servers are a disclosure, all-time and unfiltered", async () => {
+    await step("external servers are a disclosure, 24 months and unfiltered", async () => {
       const hosts = /** @type {HTMLDetailsElement} */ (
         canvasElement.querySelector('[data-testid="stats-hosts"]')
       );
       expect(hosts.open).toBe(false);
       expect(/** @type {HTMLElement} */ (hosts.querySelector("summary")).textContent.trim()).toBe(
         "External servers under test (6)",
+      );
+      expect(hosts.textContent.replace(/\s+/g, " ")).toContain(
+        "The top 100 by runs over the last 24 months",
       );
       expect(hosts.textContent.replace(/\s+/g, " ")).toContain(
         "the suite's own endpoints are excluded",
@@ -890,12 +912,14 @@ export const Modules = {
     await waitForCharts(canvasElement);
 
     await step("the section says what it counts and which filters it follows", async () => {
-      expect(canvas.getByText("Modules (last 24 months)")).toBeInTheDocument();
+      // The default range, not the 24 months of cells the server keeps: the
+      // modules ARE clipped to the range, so the heading has to say which.
+      expect(canvas.getByText("Modules (12 months)")).toBeInTheDocument();
       expect(canvasElement.querySelector('[data-testid="stats-modules"]')).toBeTruthy();
       const caption = canvas
         .getByText(/counts identified users once per module/)
         .textContent.replace(/\s+/g, " ");
-      expect(caption).toContain("Last 24 months");
+      expect(caption).toContain("Within the last 24 months, over the selected range");
       expect(caption).toContain("however many times a module failed for them");
       expect(caption).toContain("family and plan filters apply");
       expect(caption).toContain("variant and certification filters do not");
@@ -948,7 +972,9 @@ export const Modules = {
     });
 
     await step("the table carries every module, with the share as a percentage", async () => {
-      const { summary, headers, rows } = moduleTable(canvasElement);
+      const { summary, hint, headers, rows } = moduleTable(canvasElement);
+      // Fifteen modules, twelve bars: the hint says where the other three went.
+      expect(hint).toContain("The charts above plot the top 12 of each ranking");
       expect(summary).toBe(`All modules (${MOCK_STATS_MODULES.length})`);
       expect(headers).toEqual([
         "Module",
@@ -984,6 +1010,26 @@ export const Modules = {
         "oid4vp-1final-verifier-happy-path",
         "oid4vp-1final-verifier-invalid-nonce",
       ]);
+      // Two modules, two bars: nothing was cut, so the hint no longer claims
+      // anything is only in the table.
+      expect(moduleTable(canvasElement).hint).toBe(
+        "Most-run first, the order the server ranks them in.",
+      );
+    });
+
+    await step("the heading follows the range, because the counts do", async () => {
+      await userEvent.selectOptions(select(canvasElement, "stats-family"), "");
+      await pickRange(canvasElement, "26 weeks");
+      await waitFor(() => {
+        // Module cells are monthly, so a weekly range is answered with the
+        // whole months its weeks fall in — the heading says as much.
+        expect(canvas.getByText("Modules (26 weeks, whole months)")).toBeInTheDocument();
+      }, POLL_TIMEOUT);
+      await pickRange(canvasElement, "All time");
+      await waitFor(() => {
+        // The one range wider than the window the server keeps cells for.
+        expect(canvas.getByText("Modules (last 24 months)")).toBeInTheDocument();
+      }, POLL_TIMEOUT);
     });
 
     await step("a synthetic family has no modules, and the section says so", async () => {
@@ -1038,7 +1084,7 @@ export const ModulesEmpty = {
       expect(canvasElement.querySelector('[data-testid="stats-modules-table"]')).toBeNull();
       // The heading and its caption stay: an empty section still has to say
       // what it would have counted.
-      expect(canvas.getByText("Modules (last 24 months)")).toBeInTheDocument();
+      expect(canvas.getByText("Modules (12 months)")).toBeInTheDocument();
     });
   },
 };

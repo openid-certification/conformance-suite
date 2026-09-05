@@ -1,5 +1,6 @@
 package net.openid.conformance.statistics;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import net.openid.conformance.statistics.AsyncSnapshotCache.State;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Computes the statistics cube from MongoDB, off the request path.
@@ -49,18 +51,68 @@ public class DBStatisticsService implements StatisticsService {
 	public DBStatisticsService(MongoStatisticsSource source, SpecFamilyResolver resolver) {
 		this.source = source;
 		this.resolver = resolver;
-		this.executor = Executors.newSingleThreadExecutor(runnable -> {
-			Thread thread = new Thread(runnable, "statistics-compute");
-			// the snapshot is never worth holding up a shutdown for
-			thread.setDaemon(true);
-			return thread;
-		});
+		this.executor = Executors.newSingleThreadExecutor(daemon("statistics-compute"));
 		this.cache = new AsyncSnapshotCache<>(this::compute, executor, Clock.systemUTC(), TTL, FAILURE_BACKOFF);
 	}
 
 	@Override
 	public State<StatisticsCube> getCube(boolean refresh) {
 		return cache.get(refresh);
+	}
+
+	/**
+	 * Makes sure {@code TEST_INFO} has the {@code {started: 1}} index that every windowed
+	 * pipeline of {@link MongoStatisticsSource} reads through, on a thread of its own so
+	 * that nothing waits for it.
+	 *
+	 * <p>Deliberately not declared with the suite's other indexes in
+	 * {@code DBTestInfoService.createIndexes()}: that runs in a {@code @PostConstruct}
+	 * before the server accepts its first request, and on a production sized {@code
+	 * TEST_INFO} - millions of documents, tens of gigabytes - the build takes longer than
+	 * the pod's liveness probe allows, so the deployment would be killed and restarted
+	 * mid-build, for ever. Not on either statistics executor either: a build of minutes
+	 * would be minutes the first overview sat behind, and the overview does not need the
+	 * index to be correct, only to be quick.
+	 *
+	 * <p>So this is belt and braces. On a big deployment the index is built out of band
+	 * before the release goes out (see {@link MongoStatisticsSource#ensureStartedIndex()} for
+	 * the command) and this finds it already there, which costs one command; on every other deployment - a
+	 * laptop, a review environment, a fresh install - it is a second of work nobody has to
+	 * remember to do. A failure is logged and left alone: the pipelines are all correct
+	 * without the index, they just read more.
+	 */
+	@PostConstruct
+	private void ensureStartedIndexInBackground() {
+		// daemon for the same reason the compute threads are: an index build is never worth
+		// holding a shutdown up for, and the next startup will pick up where this left off
+		Thread thread = new Thread(this::ensureStartedIndex, "statistics-index");
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	/** Runs on the {@code statistics-index} thread; must not throw, there is nobody to catch it. */
+	private void ensureStartedIndex() {
+		Instant startedAt = Instant.now();
+		logger.info("Ensuring TEST_INFO has the {started: 1} index the statistics windows read through; "
+			+ "this is a no-op where it has been built already, and minutes of work where it has not");
+		try {
+			source.ensureStartedIndex();
+			logger.info("TEST_INFO has the {started: 1} index (took {}ms)",
+				Duration.between(startedAt, Instant.now()).toMillis());
+		} catch (RuntimeException e) {
+			logger.warn("Could not create the {started: 1} index of TEST_INFO after {}ms; the statistics "
+					+ "pipelines still work without it, they just read more of the collection",
+				Duration.between(startedAt, Instant.now()).toMillis(), e);
+		}
+	}
+
+	/** @return a thread factory for one background thread; a snapshot is never worth holding up a shutdown for */
+	private static ThreadFactory daemon(String name) {
+		return runnable -> {
+			Thread thread = new Thread(runnable, name);
+			thread.setDaemon(true);
+			return thread;
+		};
 	}
 
 	/** Runs on the {@code statistics-compute} thread; may throw, which the cache records. */
@@ -70,9 +122,9 @@ public class DBStatisticsService implements StatisticsService {
 		List<RunCell> runs = source.runs();
 		List<PlanCell> plans = source.plans();
 		List<UserTuple> users = source.users();
-		List<HeatCell> heat = source.heat();
+		List<HeatCell> heat = source.heat(today);
 		List<ModuleUserCell> modules = source.modules(today);
-		List<HostRow> hosts = source.externalHosts();
+		List<HostRow> hosts = source.externalHosts(today);
 		StatisticsCube cube = new StatisticsCube(runs, plans, users, heat, modules, hosts, source.storage(),
 			source.tiles(startedAt), resolver, today);
 		logger.info("Computed the statistics cube in {}ms: {} run cells, {} plan cells, {} user tuples, "

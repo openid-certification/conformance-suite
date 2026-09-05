@@ -2,6 +2,7 @@ package net.openid.conformance.statistics;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -32,12 +33,18 @@ import java.util.concurrent.TimeUnit;
  * Runs the whole-collection aggregations behind the admin statistics page - the only
  * class in this package that talks to MongoDB.
  *
- * <p>These pipelines group over every document in {@code TEST_INFO} / {@code TEST_PLAN}
- * and cannot use an index, so they are expensive by construction and must never run on a
- * request thread; {@link DBStatisticsService} runs them on a background thread at most
- * once per TTL. Each one groups the collection down to at most a few thousand cells
- * before anything crosses the wire, so what Java receives is small however big the
- * database is.
+ * <p>These pipelines group over whole collections, so they are expensive by construction
+ * and must never run on a request thread; {@link DBStatisticsService} runs them on
+ * background threads at most once per TTL. Each one groups the collection down to at most a
+ * few thousand cells before anything crosses the wire, so what Java receives is small
+ * however big the database is.
+ *
+ * <p>Everything that only needs recent data starts with a {@code $match} on {@code started},
+ * which the {@code {started: 1}} index of {@code TEST_INFO} turns into a range scan instead
+ * of a collection scan - on a production sized database that is the difference between
+ * reading tens of gigabytes and reading a few (see {@link #ensureStartedIndex()} for where
+ * that index comes from). Only the all-time series - the run and plan cubes, which are what
+ * the charts are - still read a whole collection.
  *
  * <p>Deliberately not built on {@code DBTestInfoService} / {@code DBTestPlanService}:
  * those scope every query to the authenticated user, and this computation runs with no
@@ -49,7 +56,23 @@ public class MongoStatisticsSource {
 	/** Identifies these aggregations in {@code currentOp} and the Mongo slow-query log. */
 	private static final String COMMENT = "statistics-overview";
 
-	private static final long MAX_TIME_MINUTES = 10;
+	/**
+	 * How long a statistics pipeline may run before the server kills it.
+	 *
+	 * <p>Generous because these are background computations on a schedule of hours, and the
+	 * alternative to letting a slow one finish is a page that never has a snapshot at all:
+	 * nothing waits on them, the caches serve whatever they last produced, and a runaway is
+	 * still bounded. Read on the server, so it also caps the recomputation the failure
+	 * backoff of {@link DBStatisticsService} is sized against.
+	 */
+	private static final long MAX_TIME_MINUTES = 30;
+
+	/**
+	 * How far back the tile counters look. The {@code stuck} tile has to be windowed like
+	 * everything else for the scan to stay an index range - a non-terminal run that started
+	 * more than a year ago is not news anybody can act on, and the tile says so.
+	 */
+	private static final Duration TILE_WINDOW = Duration.ofDays(365);
 
 	private static final List<String> IN_PROGRESS_STATUSES = List.of("RUNNING", "WAITING");
 
@@ -246,8 +269,10 @@ public class MongoStatisticsSource {
 	 * row per month, module and user, and leaves the {@code iss} and {@code sub} behind.
 	 *
 	 * <p>The window is a string comparison on {@code started}, which {@code TestInfo} writes
-	 * as an ISO-8601 UTC string; it is the only pipeline here with a {@code $match} in front
-	 * of the group, because it is the only one that does not want the whole history.
+	 * as an ISO-8601 UTC string, so the {@code $match} in front of the group is an index
+	 * range rather than a scan of the collection - the same shape as the heatmap, the
+	 * external hosts, the tiles and the version counts, which are all windowed for the same
+	 * reason.
 	 *
 	 * @param nowUtc today in UTC; the window ends with the month it falls in
 	 * @return one cell per month, test module and user. Rows with no test module name, and
@@ -311,16 +336,60 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * When tests are run: every run bucketed by the UTC day and hour it started in.
+	 * Creates the {@code {started: 1}} index of {@code TEST_INFO} unless it is there
+	 * already: the index every windowed pipeline here depends on to be a range of the
+	 * collection rather than the whole of it.
+	 *
+	 * <p>A deployment big enough for that to matter should have had the index built out of
+	 * band before the release went out, off peak, with {@code mongosh} on the pod:
+	 * {@code db.TEST_INFO.createIndex({started: 1})} - minutes of work, a few hundred MB on
+	 * 7 million documents - and this then reads the index list and creates nothing. Where it
+	 * does have to build it, the build is minutes of work on a large collection, so it must
+	 * not happen on any path something waits for: {@link DBStatisticsService} calls this on
+	 * a background thread of its own, and it is not declared with the suite's other indexes
+	 * in {@code DBTestInfoService}, which are built before the server serves its first
+	 * request.
+	 *
+	 * <p>The index is looked for by its key, not its name: production already has one,
+	 * built long ago under the name {@code started} rather than the {@code started_1}
+	 * MongoDB would derive today, and {@code createIndex} for the same key under a different
+	 * name is not a no-op, it fails with {@code IndexOptionsConflict}.
+	 *
+	 * @throws MongoException if the index cannot be created
+	 */
+	void ensureStartedIndex() {
+		Document key = new Document("started", 1);
+		MongoCollection<Document> collection = mongoTemplate.getCollection(DBTestInfoService.COLLECTION);
+		for (Document index : collection.listIndexes()) {
+			if (key.equals(index.get("key"))) {
+				return;
+			}
+		}
+		collection.createIndex(key);
+	}
+
+	/**
+	 * When tests are run: every run of the trailing {@value StatisticsCube#MODULE_MONTHS}
+	 * months bucketed by the UTC day and hour it started in.
 	 *
 	 * <p>Both keys are cut out of the {@code started} string rather than parsed, because
 	 * that is all the heatmap needs; a document whose {@code started} is unusable produces
 	 * keys that do not parse, and {@link StatisticsCube} drops those when it bins the cells.
 	 *
+	 * <p>Windowed like {@link #modules(LocalDate)}, and for the same reason: the heatmap is
+	 * a question about when people work, which nobody asks of a run from four years ago, and
+	 * the window is what lets the {@code {started: 1}} index turn this into a range scan.
+	 * A range older than the window therefore draws an empty heatmap rather than a
+	 * historical one.
+	 *
+	 * @param nowUtc today in UTC; the window ends with the month it falls in
 	 * @return one cell per day and hour that has any runs in it
 	 */
-	public List<HeatCell> heat() {
+	public List<HeatCell> heat(LocalDate nowUtc) {
 		List<Bson> pipeline = List.of(
+			// a string comparison is type-bracketed, so a started written as a BSON date
+			// falls outside the window rather than into it, as it does in versionUsers
+			Aggregates.match(Filters.gte("started", StatisticsCube.oldestModuleMonth(nowUtc))),
 			Aggregates.group(new Document("day", new Document("$substrBytes", List.of(startedAsString(), 0, 10)))
 					.append("hour", new Document("$substrBytes", List.of(startedAsString(), 11, 2))),
 				Accumulators.sum("runs", 1)));
@@ -334,8 +403,8 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * The external servers the suite has been pointed at, over the whole history of the
-	 * database, by descending run count.
+	 * The external servers the suite has been pointed at over the trailing
+	 * {@value StatisticsCube#MODULE_MONTHS} months, by descending run count.
 	 *
 	 * <p>The server under test is named by a different configuration field depending on
 	 * what is being tested, so the first field of {@link #TARGET_URL_FIELDS} that is set
@@ -348,10 +417,19 @@ public class MongoStatisticsSource {
 	 * happen after several URLs have collapsed onto one host - stays server side, and the
 	 * users' {@code iss} and {@code sub} never leave the database.
 	 *
+	 * <p>Windowed like {@link #heat(LocalDate)}: what this answers is who is testing against
+	 * the suite now, and reading the whole of {@code TEST_INFO} - configuration blobs
+	 * included, since the URLs are in them - to answer it is the single most expensive thing
+	 * the overview did. A server nobody has used for two years drops off the list.
+	 *
+	 * @param nowUtc today in UTC; the window ends with the month it falls in
 	 * @return at most {@value #MAX_EXTERNAL_HOSTS} hosts, most used first
 	 */
-	public List<HostRow> externalHosts() {
+	public List<HostRow> externalHosts(LocalDate nowUtc) {
 		List<Bson> pipeline = List.of(
+			// type-bracketed like the heatmap's: a started written as a BSON date is outside
+			// this window, and the host it named is not reported
+			Aggregates.match(Filters.gte("started", StatisticsCube.oldestModuleMonth(nowUtc))),
 			Aggregates.project(Projections.fields(
 				Projections.excludeId(),
 				Projections.computed("url", targetUrl()),
@@ -412,13 +490,24 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * The summary tile counters. One pass over {@code TEST_INFO} for the run counters plus
-	 * a second, much cheaper one for the distinct user count, which cannot be accumulated
-	 * in the same group. {@code started} is stored as an ISO-8601 UTC string, so the
-	 * recency cutoffs are string comparisons.
+	 * The summary tile counters: one range scan over the runs of the last year (see
+	 * {@link #TILE_WINDOW}), plus the two counts that cannot come out of it.
+	 *
+	 * <p>{@code started} is stored as an ISO-8601 UTC string, so both the window and the
+	 * recency cutoffs are string comparisons, and the {@code $match} is an index range
+	 * rather than a scan of the collection. The four recency counters are all inside that
+	 * window already; {@code inProgress} and {@code stuck} are not, strictly - a run that has
+	 * been RUNNING since 2023 is not counted - but a year is well past the point where a
+	 * non-terminal run is going to make progress, and counting them costs a full scan of the
+	 * collection where this costs a range of it.
+	 *
+	 * <p>{@code total} is the collection's own document count rather than a counted scan: it
+	 * is a metadata read whatever the size of the database, and a tile reading
+	 * "7,138,402 tests" does not become wrong in any way a person cares about if the count
+	 * is a few documents stale after an unclean shutdown.
 	 *
 	 * @param now the instant the "last 24 hours / 7 days / 30 days" windows end at
-	 * @return the counters; all zero if the collection is empty
+	 * @return the counters; the windowed ones all zero if nothing has run inside the window
 	 */
 	public TileRow tiles(Instant now) {
 		String cutoff24h = now.minus(Duration.ofHours(24)).toString();
@@ -427,8 +516,10 @@ public class MongoStatisticsSource {
 		Document started = startedAsString();
 
 		List<Bson> pipeline = List.of(
+			// type-bracketed like the other windows: a started written as a BSON date is
+			// outside this one, so the run is in no counter but the estimated total
+			Aggregates.match(Filters.gte("started", now.minus(TILE_WINDOW).toString())),
 			Aggregates.group(null,
-				Accumulators.sum("total", 1),
 				Accumulators.sum("last24h", ifThenOne(new Document("$gte", List.of(started, cutoff24h)))),
 				Accumulators.sum("last7d", ifThenOne(new Document("$gte", List.of(started, cutoff7d)))),
 				Accumulators.sum("last30d", ifThenOne(new Document("$gte", List.of(started, cutoff30d)))),
@@ -438,32 +529,37 @@ public class MongoStatisticsSource {
 					new Document("$in", List.of("$status", NON_TERMINAL_STATUSES)),
 					new Document("$lt", List.of(started, cutoff24h))))))));
 
+		long total = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).estimatedDocumentCount();
 		List<Document> results = aggregate(DBTestInfoService.COLLECTION, pipeline);
 		if (results.isEmpty()) {
-			return new TileRow(0, 0, 0, 0, 0, 0, 0);
+			return new TileRow(total, distinctUsers(), 0, 0, 0, 0, 0);
 		}
 		Document document = results.get(0);
-		return new TileRow(count(document, "total"), distinctUsers(), count(document, "last24h"),
+		return new TileRow(total, distinctUsers(), count(document, "last24h"),
 			count(document, "last7d"), count(document, "last30d"), count(document, "inProgress"),
 			count(document, "stuck"));
 	}
 
 	/**
-	 * @return how many distinct users have ever run a test. Counted over {@code TEST_INFO}
-	 *         rather than over the test plans, so that users who only ever ran standalone
-	 *         tests are not missing from the tile.
+	 * @return how many distinct users have ever created a test plan. Counted over
+	 *         {@code TEST_PLAN} rather than over the runs: it is a full scan of whichever
+	 *         collection it reads, and the plans are an order of magnitude smaller than the
+	 *         runs - which on a production sized database is the difference between seconds
+	 *         and minutes. The price is that somebody who has only ever run standalone tests,
+	 *         never a plan, is not counted; the same basis as the "active users" series,
+	 *         which is counted over plans for its own reasons (see {@link #users()}).
 	 */
 	private long distinctUsers() {
 		List<Bson> pipeline = List.of(
 			// a query - unlike an aggregation expression - does match a missing field
-			// against null, so this drops runs with no owner as well as blank ones
+			// against null, so this drops plans with no owner as well as blank ones
 			Aggregates.match(Filters.and(
 				Filters.nin("owner.iss", Arrays.asList(null, "")),
 				Filters.nin("owner.sub", Arrays.asList(null, "")))),
 			Aggregates.group(new Document("iss", "$owner.iss").append("sub", "$owner.sub")),
 			Aggregates.count("users"));
 
-		List<Document> results = aggregate(DBTestInfoService.COLLECTION, pipeline);
+		List<Document> results = aggregate(DBTestPlanService.COLLECTION, pipeline);
 		return results.isEmpty() ? 0 : count(results.get(0), "users");
 	}
 
@@ -496,11 +592,15 @@ public class MongoStatisticsSource {
 	}
 
 	private List<Document> aggregate(String collection, List<Bson> pipeline) {
+		return aggregate(collection, pipeline, COMMENT);
+	}
+
+	private List<Document> aggregate(String collection, List<Bson> pipeline, String comment) {
 		AggregateIterable<Document> aggregation = mongoTemplate.getCollection(collection)
 			.aggregate(pipeline)
 			.allowDiskUse(true)
 			.maxTime(MAX_TIME_MINUTES, TimeUnit.MINUTES)
-			.comment(COMMENT);
+			.comment(comment);
 		return aggregation.into(new ArrayList<>());
 	}
 

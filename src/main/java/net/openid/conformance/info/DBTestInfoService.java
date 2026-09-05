@@ -213,6 +213,12 @@ public class DBTestInfoService implements TestInfoService {
 		sortedMap.put("description", "text");
 
 		collection.createIndex(new Document(sortedMap));
+
+		// The statistics page wants a {started: 1} index on this collection too, and it is
+		// deliberately not created here: this runs before the server accepts its first
+		// request, and building that index on a production sized TEST_INFO takes long enough
+		// that the pod would fail its liveness probe and be restarted before it finished.
+		// DBStatisticsService builds it in the background instead.
 	}
 
 	@Override

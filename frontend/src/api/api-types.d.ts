@@ -305,6 +305,8 @@ export interface paths {
      *     In addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a cell has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.
      *
      *     `data.modules` covers the trailing 24 months only, is clipped to the range by month whatever the granularity, and honours `family` and `plan` as registry membership - a module belongs to every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` counts only runs by an identified user, since the section counts people and a run written before authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.
+     *
+     *     `data.heatmap` and `data.externalHosts` cover the trailing 24 months, and the summary tiles are windowed too: `inProgress` and `stuck` count runs of the last year, `totalTests` is the run collection's own document count (an estimate to within a few documents) and `totalUsers` counts users who created a test plan, so somebody who has only ever run standalone tests is not in it. Everything else is all time.
      */
     get: operations["getOverview"];
     put?: never;
@@ -671,9 +673,9 @@ export interface components {
       asShort?: number;
       asString?: string;
       asJsonObject?: unknown;
-      jsonPrimitive?: boolean;
       jsonArray?: boolean;
       jsonObject?: boolean;
+      jsonPrimitive?: boolean;
       jsonNull?: boolean;
       asJsonArray?: unknown;
       asJsonPrimitive?: components["schemas"]["JsonPrimitive"];
@@ -688,9 +690,9 @@ export interface components {
       asLong?: number;
       asBoolean?: boolean;
       asJsonObject?: unknown;
-      jsonPrimitive?: boolean;
       jsonArray?: boolean;
       jsonObject?: boolean;
+      jsonPrimitive?: boolean;
       jsonNull?: boolean;
       asJsonArray?: unknown;
       asJsonPrimitive?: unknown;
@@ -719,9 +721,9 @@ export interface components {
       asLong?: number;
       asBoolean?: boolean;
       asJsonObject?: components["schemas"]["JsonObject"];
-      jsonPrimitive?: boolean;
       jsonArray?: boolean;
       jsonObject?: boolean;
+      jsonPrimitive?: boolean;
       jsonNull?: boolean;
       asJsonArray?: components["schemas"]["JsonArray"];
       asJsonPrimitive?: components["schemas"]["JsonPrimitive"];
@@ -763,9 +765,9 @@ export interface components {
       asShort?: number;
       asString?: string;
       asJsonObject?: unknown;
-      jsonPrimitive?: boolean;
       jsonArray?: boolean;
       jsonObject?: boolean;
+      jsonPrimitive?: boolean;
       jsonNull?: boolean;
       asJsonArray?: unknown;
       asJsonPrimitive?: unknown;
