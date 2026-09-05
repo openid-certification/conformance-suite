@@ -28,12 +28,14 @@ import java.util.Map;
  * @param storage          how much space each collection takes up; never filtered
  * @param dimensions       what the filter selects can offer, counted under the current query
  * @param heatmap          runs by day of the week (Monday first) and hour of the day, in
- *                         UTC: 7 rows of 24 counts, filtered by the range but not by
- *                         family, plan, variant or certification profile
+ *                         UTC: 7 rows of 24 counts, over the trailing
+ *                         {@value StatisticsCube#MODULE_MONTHS} months, filtered by the
+ *                         range but not by family, plan, variant or certification profile
  * @param modules          the most run test modules and the ones the most users hit a
  *                         failure on, over the trailing
  *                         {@value StatisticsCube#MODULE_MONTHS} months
- * @param externalHosts    the external servers the suite has been pointed at, all time
+ * @param externalHosts    the external servers the suite has been pointed at over the
+ *                         trailing {@value StatisticsCube#MODULE_MONTHS} months
  * @param unresolvedPlans  the busiest plan names that could not be resolved to a family,
  *                         all time
  */
@@ -56,14 +58,17 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	}
 
 	/**
-	 * @param totalTests     all test runs ever recorded
+	 * @param totalTests     all test runs ever recorded, from the collection's own document
+	 *                       count and so an estimate to within a few documents
 	 * @param totalPlans     all test plans ever created
-	 * @param totalUsers     all users who ever ran a test
+	 * @param totalUsers     all users who ever created a test plan; somebody who has only
+	 *                       ever run standalone tests is not counted (see {@link TileRow})
 	 * @param testsLast24h   runs started in the last 24 hours
 	 * @param testsLast7d    runs started in the last 7 days
 	 * @param testsLast30d   runs started in the last 30 days
-	 * @param inProgress     runs currently RUNNING or WAITING
-	 * @param stuck          non-terminal runs that started more than 24 hours ago
+	 * @param inProgress     runs of the last year currently RUNNING or WAITING
+	 * @param stuck          runs of the last year that are non-terminal and started more
+	 *                       than 24 hours ago
 	 * @param certifiedPlans plans that were made immutable (certification submissions)
 	 * @param publishedPlans plans that were published
 	 */

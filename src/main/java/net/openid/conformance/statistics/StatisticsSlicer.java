@@ -32,8 +32,9 @@ import java.util.Set;
  * <li>the modules table is clipped to the range, by month, and filtered by family and
  * plan, but not by variant or certification profile: a test run records neither in a form
  * the module cells carry - see {@link ModuleRanker};</li>
- * <li>the external hosts and the unresolved plan names are all time, so that narrowing the
- * range does not hide the diagnostics an admin came for.</li>
+ * <li>the unresolved plan names are all time, and the external hosts cover the trailing
+ * {@value StatisticsCube#MODULE_MONTHS} months, so that narrowing the range does not hide
+ * the diagnostics an admin came for.</li>
  * </ul>
  */
 public final class StatisticsSlicer {
