@@ -158,10 +158,9 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends Ab
 					"allowed", ALLOWED_TOKEN_ENDPOINT_AUTH_METHODS));
 		}
 
-		JsonElement signingAlgorithm = client.get("token_endpoint_auth_signing_alg");
+		// OpenID Connect Registration section 2 defines this metadata only for JWT authentication.
+		// An unused server default must not make an mTLS registration fail.
 		if ("private_key_jwt".equals(authMethod)) {
-			ensurePs256(client, "token_endpoint_auth_signing_alg");
-		} else if (signingAlgorithm != null) {
 			ensurePs256(client, "token_endpoint_auth_signing_alg");
 		}
 	}
