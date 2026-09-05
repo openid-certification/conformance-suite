@@ -12,6 +12,9 @@ For user instructions for testing / certifying please see:
 
 https://openid.net/certification/instructions/
 
+For existing Open Finance Brazil CIBA configurations, see the
+[migration notes](docs/ofbr-ciba-migration.md).
+
 To get started as a developer or running the conformance suite locally, see:
 
 https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run
