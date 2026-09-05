@@ -20,6 +20,8 @@ public class CreateCIBANotificationEndpointUri extends AbstractCondition {
 		}
 
 		// see https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run#ciba-notification-endpoint
+		// The override only serves /test/, not /test-mtls/. There is no mTLS override; deployments
+		// must set fintechlabs.base_mtls_url to their publicly reachable mTLS origin.
 		String externalUrlOverride = env.getString("external_url_override");
 		if (!mtlsRequired && !Strings.isNullOrEmpty(externalUrlOverride)) {
 			baseUrl = externalUrlOverride;

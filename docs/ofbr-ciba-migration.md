@@ -23,3 +23,22 @@ transport change.
 
 This implements the notification endpoint mTLS requirement in
 [Open Finance Brazil CIBA 2.1.0 beta2, section 6.3.4](https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/2092204111).
+
+## Server (OP) tests: registered notification endpoint
+
+Brazil server tests now expose `notification_uri` on the suite's mTLS host
+under `/test-mtls/`, instead of the regular host under `/test/`.
+
+For a statically registered client, update `backchannel_client_notification_endpoint`
+at the authorization server to the exact `notification_uri` shown by the new
+test run. Do this before approving the authentication request. An old
+registration that points to `/test/` will no longer reach the Brazil notification
+handler. Dynamic registration sends the new URI automatically.
+
+For a self-hosted suite, set `fintechlabs.base_mtls_url` to the publicly reachable
+mTLS origin. Its proxy must request client certificates and forward the trusted
+certificate header to the suite. The regular `fintechlabs.external_url_override`
+setting (including `EXTERNAL_URL` in the development profile) does not apply to
+mTLS notifications. There is no separate mTLS override: configure the public mTLS
+origin through `fintechlabs.base_mtls_url`. A tunnel that only serves the regular
+HTTP endpoint is not sufficient for these tests.
