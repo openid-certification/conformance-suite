@@ -134,6 +134,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenNotIncludeCHashAnd
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.common.CheckCIBAServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
@@ -1104,6 +1105,19 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session,
 			JsonObject requestParts) {
 		if (path.equals("ciba-notification-endpoint") && profileBehavior.notificationEndpointRequiresMTLS()) {
+			if (!EnsureNotificationEndpointRequestHasClientCertificate.hasClientCertificate(requestParts)) {
+				// Reject before dispatch, including subclasses that supply their own ping response.
+				// Record the conformance failure on a worker that owns the test lock.
+				getTestExecutionManager().runInBackground(() -> {
+					setStatus(Status.RUNNING);
+					eventLog.startBlock(currentClientString() + "Verify notification callback");
+					env.putObject("notification_callback", requestParts);
+					callAndStopOnFailure(EnsureNotificationEndpointRequestHasClientCertificate.class,
+						"BrazilCIBA-6.3.4");
+					return "done";
+				});
+				return new ResponseEntity<>("A mutual TLS client certificate is required.", HttpStatus.UNAUTHORIZED);
+			}
 			return handlePingCallback(requestParts);
 		}
 		return super.handleHttpMtls(path, req, res, session, requestParts);
