@@ -15,6 +15,7 @@ public class FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails extend
 
 	@Override
 	protected void onConfigure() {
+		super.onConfigure();
 		String alg = JWKUtil.getAlgFromClientJwks(env);
 		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
 			// This throws an exception: the test will stop here
