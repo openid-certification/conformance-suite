@@ -494,6 +494,18 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void onConfigure() {
+		String registeredMethod = getRegisteredClientAuthenticationMethod();
+		if (!"tls_client_auth".equals(registeredMethod) && !"self_signed_tls_client_auth".equals(registeredMethod)) {
+			return;
+		}
+		// Registration can change authentication after the selected variants have filtered the plan.
+		// Reapply the module's mTLS exclusion before an assertion-specific test creates requests.
+		for (VariantNotApplicable restriction : getClass().getAnnotationsByType(VariantNotApplicable.class)) {
+			if (restriction.parameter() == ClientAuthType.class && Arrays.asList(restriction.values()).contains("mtls")) {
+				fireTestSkipped("This test requires client assertions, but the registered client authentication method " +
+					"is " + registeredMethod + ". The assertion test is not applicable to this registration.");
+			}
+		}
 	}
 
 	protected void configClient() {
