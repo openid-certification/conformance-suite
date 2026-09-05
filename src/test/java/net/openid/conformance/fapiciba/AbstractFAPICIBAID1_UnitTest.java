@@ -58,10 +58,14 @@ public class AbstractFAPICIBAID1_UnitTest {
 	public void routesBrazilNotificationOnlyOnMtlsEndpoint() {
 		TestableModule module = new TestableModule();
 		module.useProfile(new OpenBankingBrazilCibaServerProfileBehavior());
+		JsonObject headers = new JsonObject();
+		headers.addProperty("x-ssl-cert", "certificate");
+		JsonObject request = new JsonObject();
+		request.add("headers", headers);
 
 		assertThat(module.handleHttp("ciba-notification-endpoint", null, null, null, new JsonObject()))
 			.isEqualTo("unexpected");
-		assertThat(module.handleHttpMtls("ciba-notification-endpoint", null, null, null, new JsonObject()))
+		assertThat(module.handleHttpMtls("ciba-notification-endpoint", null, null, null, request))
 			.isEqualTo("ping");
 	}
 
