@@ -669,7 +669,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		KeyManager[] km = null;
 
 		// initialize MTLS if it's available
-		if (env.containsObject("mutual_tls_authentication")) {
+		if (useMtlsForHttpRequests() && env.containsObject("mutual_tls_authentication")) {
 
 			km = MtlsKeystoreBuilder.configureMtls(env);
 
@@ -747,6 +747,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return 60;
 	}
 
+	/** Allow a negative test to omit credentials without changing the shared environment. */
+	protected boolean useMtlsForHttpRequests() {
+		return true;
+	}
+
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		return createRestTemplate(env, true);
 	}
@@ -785,7 +790,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		// during network I/O (HTTP call + response body buffering); logging happens with the
 		// lock held for deterministic ordering relative to other threads.
 		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log,
-			env.getObject("mutual_tls_authentication"), this.lockManager, env.getLock()));
+			useMtlsForHttpRequests() ? env.getObject("mutual_tls_authentication") : null,
+			this.lockManager, env.getLock()));
 
 		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
 

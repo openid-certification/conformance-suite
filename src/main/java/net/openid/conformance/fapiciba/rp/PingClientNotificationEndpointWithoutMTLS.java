@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba.rp;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.client.RestClientException;
@@ -13,14 +12,9 @@ public class PingClientNotificationEndpointWithoutMTLS extends PingClientNotific
 		"client_rejected_notification_without_mtls";
 
 	@Override
-	@PreEnvironment(required = "client", strings = { "auth_req_id", "client_notification_token" })
+	@PreEnvironment(required = { "client", "mutual_tls_authentication" },
+		strings = { "auth_req_id", "client_notification_token" })
 	public Environment evaluate(Environment env) {
-		JsonObject mtlsCredentials = env.getObject("mutual_tls_authentication");
-		if (mtlsCredentials == null) {
-			throw error("Mutual TLS credentials were not loaded before testing the client notification endpoint");
-		}
-
-		env.removeObject("mutual_tls_authentication");
 		env.removeNativeValue(CLIENT_REJECTED_NOTIFICATION_WITHOUT_MTLS);
 		try {
 			Environment result = super.evaluate(env);
@@ -29,9 +23,14 @@ public class PingClientNotificationEndpointWithoutMTLS extends PingClientNotific
 			}
 			return result;
 		} finally {
-			env.putObject("mutual_tls_authentication", mtlsCredentials);
 			env.removeNativeValue(CLIENT_REJECTED_NOTIFICATION_WITHOUT_MTLS);
 		}
+	}
+
+	@Override
+	protected boolean useMtlsForHttpRequests() {
+		// HTTP I/O releases the test lock. Keep credentials available to concurrent requests.
+		return false;
 	}
 
 	@Override

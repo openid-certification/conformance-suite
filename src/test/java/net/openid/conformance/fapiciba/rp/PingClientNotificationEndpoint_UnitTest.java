@@ -33,7 +33,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import javax.net.ssl.SSLHandshakeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -193,7 +192,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 
 		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
 
-		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(condition.credentialsWereRemoved).isFalse();
 		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
 	}
 
@@ -204,11 +203,15 @@ public class PingClientNotificationEndpoint_UnitTest {
 		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 		env.putObject("mutual_tls_authentication", new JsonObject());
 		when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
-			.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+			.thenAnswer(invocation -> {
+				// Another request can run while the outbound call releases the test lock.
+				assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
+				throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
+			});
 
 		condition.execute(env);
 
-		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(condition.credentialsWereRemoved).isFalse();
 		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
 	}
 
@@ -224,7 +227,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 
 		condition.execute(env);
 
-		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(condition.credentialsWereRemoved).isFalse();
 		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
 	}
 
@@ -239,7 +242,7 @@ public class PingClientNotificationEndpoint_UnitTest {
 
 		assertThatThrownBy(() -> condition.execute(env)).isInstanceOf(ConditionError.class);
 
-		assertThat(condition.credentialsWereRemoved).isTrue();
+		assertThat(condition.credentialsWereRemoved).isFalse();
 		assertThat(env.containsObject("mutual_tls_authentication")).isTrue();
 	}
 
