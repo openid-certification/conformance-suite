@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
@@ -11,6 +12,8 @@ import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticati
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.variant.ClientAuthType;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,8 +91,9 @@ public class AbstractFAPICIBAID1_UnitTest {
 		JsonObject request = new JsonObject();
 		request.add("headers", headers);
 
-		assertThat(module.handleHttp("ciba-notification-endpoint", null, null, null, new JsonObject()))
-			.isEqualTo("unexpected");
+		ResponseEntity<?> wrongHost = (ResponseEntity<?>) module.handleHttp(
+			"ciba-notification-endpoint", null, null, null, new JsonObject());
+		assertThat(wrongHost.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(module.handleHttpMtls("ciba-notification-endpoint", null, null, null, request))
 			.isEqualTo("ping");
 	}
@@ -111,6 +115,7 @@ public class AbstractFAPICIBAID1_UnitTest {
 
 		TestableModule() {
 			eventLog = BsonEncoding.testInstanceEventLog();
+			executionManager = mock(TestExecutionManager.class);
 		}
 
 		private void useProfile(FAPICIBAServerProfileBehavior profileBehavior) {
