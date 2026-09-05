@@ -109,7 +109,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		o.addProperty("msg", "HTTP request");
 		o.addProperty("http", "request");
 		if (mutualTls != null) {
-			o.add("request_mutual_tls", mutualTls);
+			o.add("request_mutual_tls", MtlsLogSanitizer.redact(mutualTls));
 		}
 		log.log(source, o);
 	}

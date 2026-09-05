@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.logging.MtlsLogSanitizer;
 import net.openid.conformance.testmodule.Environment;
 
 public class SaveMutualTLsAuthenticationToConfig extends AbstractCondition {
@@ -28,7 +29,7 @@ public class SaveMutualTLsAuthenticationToConfig extends AbstractCondition {
 		// ExtractMTLSCertificatesFromConfiguration already takes this into account
 		env.putObject("config", "mtls", mtls);
 
-		logSuccess("Mutual TLS authentication credentials saved to config", mtls);
+		logSuccess("Mutual TLS authentication credentials saved to config", MtlsLogSanitizer.redact(mtls));
 
 		return env;
 	}

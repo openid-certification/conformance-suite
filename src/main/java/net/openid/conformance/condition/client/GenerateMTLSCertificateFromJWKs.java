@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.logging.MtlsLogSanitizer;
 import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -87,7 +88,7 @@ public class GenerateMTLSCertificateFromJWKs extends AbstractCondition {
 
 		env.putObject("mutual_tls_authentication", mtls);
 
-		logSuccess("Generated client MTLS certificate", args("mutual_tls_authentication", mtls));
+		logSuccess("Generated client MTLS certificate", args("mutual_tls_authentication", MtlsLogSanitizer.redact(mtls)));
 
 		return env;
 	}

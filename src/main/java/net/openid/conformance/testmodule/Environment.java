@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
+import net.openid.conformance.logging.MtlsLogSanitizer;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -407,11 +408,12 @@ public class Environment {
 
 
 	/*
-	 * prints out the environment as a mostly-json-formatted string
+	 * Prints the environment for diagnostics, without TLS private keys.
 	 */
 	@Override
 	public String toString() {
-		return "Environment: { \"store\" : " + gson.toJson(store, MAP_STRING_JSONOBJECT_TYPE)
+		JsonObject logStore = MtlsLogSanitizer.redact(gson.toJsonTree(store, MAP_STRING_JSONOBJECT_TYPE).getAsJsonObject());
+		return "Environment: { \"store\" : " + logStore
 			+ ", \"keyMap\" : " + gson.toJson(keyMap, MAP_STRING_STRING_TYPE) + " }";
 	}
 
