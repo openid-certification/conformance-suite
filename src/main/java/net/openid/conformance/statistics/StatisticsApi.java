@@ -55,7 +55,8 @@ public class StatisticsApi {
 			+ "counts only runs by an identified user, since the section counts people and a run written before "
 			+ "authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.\n\n"
 			+ "`data.heatmap` and `data.externalHosts` cover the trailing 24 months, and the summary tiles are "
-			+ "windowed too: `inProgress` and `stuck` count runs of the last year, `totalTests` is the run "
+			+ "windowed too: `inProgress` and `stuck` count runs started since the server came up (a run left "
+			+ "RUNNING or WAITING by a restart is not in progress), `totalTests` is the run "
 			+ "collection's own document count (an estimate to within a few documents) and `totalUsers` counts "
 			+ "users who created a test plan, so somebody who has only ever run standalone tests is not in it. "
 			+ "Everything else is all time.")

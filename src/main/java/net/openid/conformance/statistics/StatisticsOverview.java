@@ -85,9 +85,10 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	 * @param testsLast24h   runs started in the last 24 hours
 	 * @param testsLast7d    runs started in the last 7 days
 	 * @param testsLast30d   runs started in the last 30 days
-	 * @param inProgress     runs of the last year currently RUNNING or WAITING
-	 * @param stuck          runs of the last year that are non-terminal and started more
-	 *                       than 24 hours ago
+	 * @param inProgress     runs started since this server came up that are RUNNING or
+	 *                       WAITING; a run left in either state by a restart is not counted
+	 * @param stuck          runs started since this server came up that are non-terminal
+	 *                       and started more than 24 hours ago
 	 * @param certifiedPlans plans that were made immutable (certification submissions)
 	 * @param publishedPlans plans that were published
 	 */
