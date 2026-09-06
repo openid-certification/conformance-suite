@@ -1,7 +1,7 @@
 {
-  "build_time": "2026-08-15T12:52:39Z",
-  "tag": "release-v5.2.2",
+  "build_time": "2026-09-06T14:53:27Z",
+  "tag": "release-v5.2.4",
   "version": "5.2.4",
   "external_ip": null,
-  "revision": "6734e41"
+  "revision": "db10dae"
 }
