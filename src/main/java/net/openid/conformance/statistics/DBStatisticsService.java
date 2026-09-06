@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.management.ManagementFactory;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -106,6 +107,15 @@ public class DBStatisticsService implements StatisticsService {
 		}
 	}
 
+	/**
+	 * @return when this JVM came up. A run still RUNNING or WAITING from before then was
+	 *         orphaned by the restart - the suite keeps running tests in memory - so the
+	 *         in-progress tiles are bounded by it rather than by a calendar window.
+	 */
+	private static Instant serverStartedAt() {
+		return Instant.ofEpochMilli(ManagementFactory.getRuntimeMXBean().getStartTime());
+	}
+
 	/** @return a thread factory for one background thread; a snapshot is never worth holding up a shutdown for */
 	private static ThreadFactory daemon(String name) {
 		return runnable -> {
@@ -127,7 +137,7 @@ public class DBStatisticsService implements StatisticsService {
 		List<HostRow> hosts = source.externalHosts(today);
 		long totalUsers = users.stream().mapToInt(UserTuple::ownerId).distinct().count();
 		StatisticsCube cube = new StatisticsCube(runs, plans, users, heat, modules, hosts, source.storage(),
-			source.tiles(startedAt, totalUsers), resolver, today);
+			source.tiles(startedAt, serverStartedAt(), totalUsers), resolver, today);
 		logger.info("Computed the statistics cube in {}ms: {} run cells, {} plan cells, {} user tuples, "
 				+ "{} heat cells, {} module cells, {} external hosts; {} months, {} weeks",
 			Duration.between(startedAt, Instant.now()).toMillis(),

@@ -118,8 +118,8 @@ const UNEXPECTED_MESSAGE = "The statistics endpoint returned an unexpected respo
  * assume (see `TileRow`): the run total is the collection's own document
  * count and so an estimate; users are counted over test PLANS, so somebody
  * who has only ever run standalone tests is not one; and `inProgress` /
- * `stuck` are scans of the last year rather than of all history, so a run
- * left hanging in 2023 is not in them.
+ * `stuck` count only runs started since the server came up, because a run
+ * left RUNNING or WAITING by a restart was orphaned, not left in progress.
  * @type {Array<{key: string, label: string, hint: string}>}
  */
 const TILES = [
@@ -129,11 +129,11 @@ const TILES = [
   { key: "testsLast24h", label: "Runs last 24 h", hint: "Rolling window" },
   { key: "testsLast7d", label: "Runs last 7 d", hint: "Rolling window" },
   { key: "testsLast30d", label: "Runs last 30 d", hint: "Rolling window" },
-  { key: "inProgress", label: "In progress", hint: "Running or waiting, last year" },
+  { key: "inProgress", label: "In progress", hint: "Running or waiting, since server start" },
   {
     key: "stuck",
     label: "Stuck / abandoned (>24 h)",
-    hint: "Non-terminal >24 h, within the last year",
+    hint: "Non-terminal >24 h, since server start",
   },
   { key: "certifiedPlans", label: "Certified plans", hint: "Made immutable" },
   { key: "publishedPlans", label: "Published plans", hint: "Visible to everyone" },

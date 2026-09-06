@@ -69,12 +69,8 @@ public class MongoStatisticsSource {
 	 */
 	private static final long MAX_TIME_MINUTES = 30;
 
-	/**
-	 * How far back the tile counters look. The {@code stuck} tile has to be windowed like
-	 * everything else for the scan to stay an index range - a non-terminal run that started
-	 * more than a year ago is not news anybody can act on, and the tile says so.
-	 */
-	private static final Duration TILE_WINDOW = Duration.ofDays(365);
+	/** The longest of the rolling recency windows the tiles report. */
+	private static final Duration LONGEST_RECENCY_WINDOW = Duration.ofDays(30);
 
 	private static final List<String> IN_PROGRESS_STATUSES = names(Status.RUNNING, Status.WAITING);
 
@@ -492,47 +488,54 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * The summary tile counters: one range scan over the runs of the last year (see
-	 * {@link #TILE_WINDOW}), plus the total that cannot come out of it.
+	 * The summary tile counters: one range scan over the recent runs, plus the total that
+	 * cannot come out of it.
 	 *
 	 * <p>{@code started} is stored as an ISO-8601 UTC string, so both the window and the
-	 * recency cutoffs are string comparisons, and the {@code $match} is an index range
-	 * rather than a scan of the collection. The four recency counters are all inside that
-	 * window already; {@code inProgress} and {@code stuck} are not, strictly - a run that has
-	 * been RUNNING since 2023 is not counted - but a year is well past the point where a
-	 * non-terminal run is going to make progress, and counting them costs a full scan of the
-	 * collection where this costs a range of it.
+	 * cutoffs are string comparisons, and the {@code $match} is an index range rather than a
+	 * scan of the collection. It reaches back to the earlier of thirty days ago (the longest
+	 * recency counter) and the moment this server started, which is where {@code inProgress}
+	 * and {@code stuck} are bounded: a run still RUNNING or WAITING from before the server
+	 * came up was orphaned by the restart, not left in progress, so it is nobody's problem
+	 * and neither tile counts it.
 	 *
 	 * <p>{@code total} is the collection's own document count rather than a counted scan: it
 	 * is a metadata read whatever the size of the database, and a tile reading
 	 * "7,138,402 tests" does not become wrong in any way a person cares about if the count
 	 * is a few documents stale after an unclean shutdown.
 	 *
-	 * @param now        the instant the "last 24 hours / 7 days / 30 days" windows end at
-	 * @param totalUsers how many distinct users have ever created a test plan: the number
-	 *                   of distinct owners {@link #users()} handed an id to, so the tile
-	 *                   costs no scan of its own and counts users on exactly the basis the
-	 *                   "active users" series does
+	 * @param now             the instant the "last 24 hours / 7 days / 30 days" windows end at
+	 * @param serverStartedAt when this server instance came up; runs started before it
+	 *                        cannot be in progress
+	 * @param totalUsers      how many distinct users have ever created a test plan: the
+	 *                        number of distinct owners {@link #users()} handed an id to, so
+	 *                        the tile costs no scan of its own and counts users on exactly
+	 *                        the basis the "active users" series does
 	 * @return the counters; the windowed ones all zero if nothing has run inside the window
 	 */
-	public TileRow tiles(Instant now, long totalUsers) {
+	public TileRow tiles(Instant now, Instant serverStartedAt, long totalUsers) {
 		String cutoff24h = now.minus(Duration.ofHours(24)).toString();
 		String cutoff7d = now.minus(Duration.ofDays(7)).toString();
-		String cutoff30d = now.minus(Duration.ofDays(30)).toString();
+		String cutoff30d = now.minus(LONGEST_RECENCY_WINDOW).toString();
+		String sinceServerStart = serverStartedAt.toString();
+		Instant oldest = serverStartedAt.isBefore(now.minus(LONGEST_RECENCY_WINDOW))
+			? serverStartedAt : now.minus(LONGEST_RECENCY_WINDOW);
 		Document started = startedAsString();
+		Document sinceRestart = new Document("$gte", List.of(started, sinceServerStart));
 
 		List<Bson> pipeline = List.of(
 			// type-bracketed like the other windows: a started written as a BSON date is
 			// outside this one, so the run is in no counter but the estimated total
-			Aggregates.match(Filters.gte("started", now.minus(TILE_WINDOW).toString())),
+			Aggregates.match(Filters.gte("started", oldest.toString())),
 			Aggregates.group(null,
 				Accumulators.sum("last24h", ifThenOne(new Document("$gte", List.of(started, cutoff24h)))),
 				Accumulators.sum("last7d", ifThenOne(new Document("$gte", List.of(started, cutoff7d)))),
 				Accumulators.sum("last30d", ifThenOne(new Document("$gte", List.of(started, cutoff30d)))),
-				Accumulators.sum("inProgress", ifThenOne(new Document("$in", List.of("$status", IN_PROGRESS_STATUSES)))),
-				// non-terminal but too old to still be making progress
+				Accumulators.sum("inProgress", ifThenOne(new Document("$and", List.of(
+					new Document("$in", List.of("$status", IN_PROGRESS_STATUSES)), sinceRestart)))),
+				// non-terminal, started on this server, and too old to still be making progress
 				Accumulators.sum("stuck", ifThenOne(new Document("$and", List.of(
-					new Document("$in", List.of("$status", NON_TERMINAL_STATUSES)),
+					new Document("$in", List.of("$status", NON_TERMINAL_STATUSES)), sinceRestart,
 					new Document("$lt", List.of(started, cutoff24h))))))));
 
 		long total = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).estimatedDocumentCount();
