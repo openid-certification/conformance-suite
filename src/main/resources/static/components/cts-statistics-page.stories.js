@@ -579,9 +579,8 @@ export const FiltersCascade = {
       await waitFor(() => {
         expect(REQUESTS.at(-1)).toContain("plan=fapi2-security-profile-final-test-plan");
       }, POLL_TIMEOUT);
-      // The server counts dimensions under the whole query, so the payload
-      // now offers this one plan only. Rendering that straight would make the
-      // choice a dead end, so the page keeps the list it had.
+      // The server counts each dimension with its own filter left out, so the
+      // payload still offers the family's other plan alongside this one.
       await waitFor(() => {
         expect(select(canvasElement, "stats-plan").options.length).toBe(3);
       });

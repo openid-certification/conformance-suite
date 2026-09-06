@@ -110,7 +110,7 @@ public final class StatisticsSlicer {
 			RESULT_BUCKETS, freeze(runsByFamily), freeze(plansByFamily), freezeBuckets(resultsByFamily),
 			freeze(certifiedByFamily), cube.familyTotals(),
 			users(cube, filter, granularity, index, periods.size()), tiles(cube), cube.storage(),
-			DimensionCounter.count(cube, filter, granularity, onTheAxis),
+			DimensionCounter.count(cube, query, granularity, onTheAxis),
 			HeatmapBinner.heatmap(cube.heat(), granularity, onTheAxis), ModuleRanker.rank(cube, query),
 			cube.externalHosts(), unresolvedPlans(cube));
 	}
