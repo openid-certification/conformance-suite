@@ -1509,10 +1509,8 @@ def run_tests():
     # to login like any other page; the authenticated non-admin 403 needs a browser session,
     # which this harness cannot make (the page chain ignores bearer tokens), so only the
     # redirect is proved here.
-    stats_noredirect = httpx.Client(verify=verify_ssl, timeout=20, follow_redirects=False)
-    resp = stats_noredirect.get(f"{base_url}statistics.html")
+    resp = unauthenticated_get(base_url, "statistics.html", verify_ssl)
     runner.check_status_in("Statistics: anonymous page request is sent to login", resp, {302, 401, 403})
-    stats_noredirect.close()
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE

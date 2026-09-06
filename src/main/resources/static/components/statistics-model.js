@@ -24,7 +24,19 @@
 // listing's vocabulary, not this page's — `plan-list-filter.js` owns the
 // names, the variant prefix and the order they are written in, and parses
 // them back on the other side. Pure module, no DOM, no cycle.
-import { emptyFilter, toParams as planListParams } from "./plan-list-filter.js";
+import {
+  CERT_PARAM,
+  DAY_MS,
+  FAMILY_PARAM,
+  PLAN_PARAM,
+  SHORT_MONTHS,
+  VARIANT_PREFIX,
+  emptyFilter,
+  text,
+  toParams as planListParams,
+  variantEntries,
+  variantsFromParams,
+} from "./plan-list-filter.js";
 
 /**
  * The statistics payload. Every field is declared as present because the
@@ -92,9 +104,6 @@ import { emptyFilter, toParams as planListParams } from "./plan-list-filter.js";
  * @property {string} colorVar - CSS custom-property name, leading `--` included.
  */
 
-/** Milliseconds in a day; every date step here is a whole number of UTC days. */
-const DAY_MS = 86400000;
-
 /**
  * The range presets, in display order within their group. `periods` is how
  * many periods back the range reaches, counting the current one; `0` means
@@ -123,16 +132,14 @@ export const DEFAULT_RANGE = "12m";
 const RANGE_BY_VALUE = Object.fromEntries(RANGE_PRESETS.map((preset) => [preset.value, preset]));
 
 /**
- * The request/URL parameters this page owns. Anything else in the page's
- * query string is left alone by {@link urlFromState}, so a deep link that
- * also carries someone else's parameter survives a filter change.
+ * The one request/URL parameter this page owns that the plans listing does
+ * not; the filter parameters (`family`, `plan`, `variant.*`, `cert`) are the
+ * listing's own, imported so the drill-down link and this page cannot
+ * disagree about them. Anything else in the page's query string is left
+ * alone by {@link urlFromState}, so a deep link that also carries someone
+ * else's parameter survives a filter change.
  */
 const RANGE_PARAM = "range";
-const FAMILY_PARAM = "family";
-const PLAN_PARAM = "plan";
-const CERT_PARAM = "cert";
-/** Matches `QueryParams.VARIANT_PREFIX` on the server. */
-const VARIANT_PREFIX = "variant.";
 
 /**
  * The seven categorical slots, in rank order: the busiest family all-time
@@ -199,22 +206,6 @@ const BREAKDOWN_SOURCES = {
   certified: "certifiedByFamily",
 };
 
-/** Month names for weekly axis labels; fixed rather than `Intl`, so a label is the same everywhere. */
-const SHORT_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 /**
  * Sum a per-period series, tolerating a missing or non-array one.
  * @param {Array<number>|undefined} list - The series.
@@ -236,14 +227,6 @@ function total(list) {
  */
 function list(value) {
   return Array.isArray(value) ? value : [];
-}
-
-/**
- * @param {string|null|undefined} value - A raw parameter value.
- * @returns {string} It, trimmed, or `""`.
- */
-function text(value) {
-  return typeof value === "string" ? value.trim() : "";
 }
 
 // --- Range presets, URL and request query ------------------------------
@@ -360,16 +343,19 @@ export function sameState(a, b) {
 }
 
 /**
- * The variant parameters of a state, in a stable (alphabetical) order, so
- * that the same filter always produces the same URL and the same request
- * whatever order the user set the selects in.
+ * Write the filter half of a state — everything but the range — into a query,
+ * the same way for the request and for the page URL.
+ * @param {URLSearchParams} params - The query to write into.
  * @param {FilterState} state - The current state.
- * @returns {Array<[string, string]>} Sorted `[name, value]` pairs.
+ * @returns {void}
  */
-function variantEntries(state) {
-  return Object.entries((state && state.variant) || {})
-    .filter(([name, value]) => text(name) !== "" && text(value) !== "")
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+function writeFilters(params, state) {
+  if (text(state && state.family)) params.set(FAMILY_PARAM, text(state.family));
+  if (text(state && state.plan)) params.set(PLAN_PARAM, text(state.plan));
+  for (const [name, value] of variantEntries(state)) {
+    params.set(VARIANT_PREFIX + text(name), text(value));
+  }
+  if (text(state && state.cert)) params.set(CERT_PARAM, text(state.cert));
 }
 
 /**
@@ -385,12 +371,7 @@ export function queryFromState(state, now = new Date()) {
   const { granularity, from } = rangeToQuery(state && state.range, now);
   params.set("granularity", granularity);
   if (from) params.set("from", from);
-  if (text(state && state.family)) params.set(FAMILY_PARAM, text(state.family));
-  if (text(state && state.plan)) params.set(PLAN_PARAM, text(state.plan));
-  for (const [name, value] of variantEntries(state)) {
-    params.set(VARIANT_PREFIX + text(name), text(value));
-  }
-  if (text(state && state.cert)) params.set(CERT_PARAM, text(state.cert));
+  writeFilters(params, state);
   return params;
 }
 
@@ -404,18 +385,11 @@ export function queryFromState(state, now = new Date()) {
 export function stateFromUrl(search) {
   const params = new URLSearchParams(search || "");
   const requested = text(params.get(RANGE_PARAM));
-  /** @type {Record<string, string>} */
-  const variant = {};
-  for (const [key, value] of params.entries()) {
-    if (!key.startsWith(VARIANT_PREFIX)) continue;
-    const name = text(key.slice(VARIANT_PREFIX.length));
-    if (name && text(value)) variant[name] = text(value);
-  }
   return {
     range: RANGE_BY_VALUE[requested] ? requested : DEFAULT_RANGE,
     family: text(params.get(FAMILY_PARAM)),
     plan: text(params.get(PLAN_PARAM)),
-    variant,
+    variant: variantsFromParams(params),
     cert: text(params.get(CERT_PARAM)),
   };
 }
@@ -440,12 +414,7 @@ export function urlFromState(state, search = "") {
     }
   }
   params.set(RANGE_PARAM, rangePreset(state && state.range).value);
-  if (text(state && state.family)) params.set(FAMILY_PARAM, text(state.family));
-  if (text(state && state.plan)) params.set(PLAN_PARAM, text(state.plan));
-  for (const [name, value] of variantEntries(state)) {
-    params.set(VARIANT_PREFIX + text(name), text(value));
-  }
-  if (text(state && state.cert)) params.set(CERT_PARAM, text(state.cert));
+  writeFilters(params, state);
   return `?${params.toString()}`;
 }
 
@@ -621,9 +590,11 @@ export function rememberOptions(previous, data, state) {
   // Every parameter the payload knows about, plus any that is being filtered
   // on — a filter the user cannot see is a filter they cannot clear.
   for (const name of new Set([...Object.keys(fresh), ...Object.keys(filter)])) {
-    const remembered = list(kept.variants && kept.variants[name]);
-    const offered = list(fresh[name]);
-    variants[name] = filter[name] && remembered.length > 0 ? remembered : offered;
+    variants[name] = keepWhenFiltered(
+      kept.variants && kept.variants[name],
+      fresh[name],
+      filter[name],
+    );
   }
 
   return {

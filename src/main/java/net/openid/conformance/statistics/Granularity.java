@@ -24,10 +24,54 @@ import java.util.regex.Pattern;
 public enum Granularity {
 
 	/** Calendar months, kept for the whole history. */
-	MONTH("month", "YYYY-MM"),
+	MONTH("month", "YYYY-MM", "month") {
+		@Override
+		public String periodOf(LocalDate day) {
+			return YearMonth.from(day).toString();
+		}
+
+		@Override
+		public boolean isPeriod(String period) {
+			return parseMonth(period) != null;
+		}
+
+		@Override
+		public String next(String period) {
+			return YearMonth.parse(period).plusMonths(1).toString();
+		}
+
+		@Override
+		String parsePeriod(String value) {
+			YearMonth month = parseMonth(value);
+			return month == null ? null : month.toString();
+		}
+	},
 
 	/** ISO weeks, keyed by their Monday, kept for the trailing window only. */
-	WEEK("week", "YYYY-MM-DD");
+	WEEK("week", "YYYY-MM-DD", "date") {
+		@Override
+		public String periodOf(LocalDate day) {
+			return day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toString();
+		}
+
+		@Override
+		public boolean isPeriod(String period) {
+			LocalDate day = parseDay(period);
+			// a week key is always the Monday the week starts on
+			return day != null && day.getDayOfWeek() == DayOfWeek.MONDAY;
+		}
+
+		@Override
+		public String next(String period) {
+			return LocalDate.parse(period).plusWeeks(1).toString();
+		}
+
+		@Override
+		String parsePeriod(String value) {
+			LocalDate day = parseDay(value);
+			return day == null ? null : periodOf(day);
+		}
+	};
 
 	private static final Pattern MONTH_KEY = Pattern.compile("\\d{4}-\\d{2}");
 
@@ -37,19 +81,17 @@ public enum Granularity {
 
 	private final String format;
 
-	Granularity(String key, String format) {
+	private final String unit;
+
+	Granularity(String key, String format, String unit) {
 		this.key = key;
 		this.format = format;
+		this.unit = unit;
 	}
 
 	/** @return the name this granularity has on the wire, {@code month} or {@code week} */
 	public String key() {
 		return key;
-	}
-
-	/** @return a human readable description of the period key format, for error messages */
-	public String format() {
-		return format;
 	}
 
 	/**
@@ -68,34 +110,23 @@ public enum Granularity {
 	}
 
 	/** @return the period key {@code day} falls in: its month, or the Monday of its ISO week */
-	public String periodOf(LocalDate day) {
-		if (this == MONTH) {
-			return YearMonth.from(day).toString();
-		}
-		return day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toString();
-	}
+	public abstract String periodOf(LocalDate day);
 
 	/**
 	 * @param period a candidate key
 	 * @return true if {@code period} is a key this granularity could have produced - a real
 	 *         month for {@link #MONTH}, a real date that is a Monday for {@link #WEEK}
 	 */
-	public boolean isPeriod(String period) {
-		if (this == MONTH) {
-			return parseMonth(period) != null;
-		}
-		LocalDate day = parseDay(period);
-		// a week key is always the Monday the week starts on
-		return day != null && day.getDayOfWeek() == DayOfWeek.MONDAY;
-	}
+	public abstract boolean isPeriod(String period);
 
 	/** @return the key of the period immediately after {@code period} */
-	public String next(String period) {
-		if (this == MONTH) {
-			return YearMonth.parse(period).plusMonths(1).toString();
-		}
-		return LocalDate.parse(period).plusWeeks(1).toString();
-	}
+	public abstract String next(String period);
+
+	/**
+	 * @param value a value from a request
+	 * @return the key it normalises to, or null if it is not a key of this granularity
+	 */
+	abstract String parsePeriod(String value);
 
 	/**
 	 * Validates a period key that came from a request, and snaps a weekly one to the Monday
@@ -107,19 +138,12 @@ public enum Granularity {
 	 * @throws IllegalArgumentException if the value is not a key of this granularity
 	 */
 	public String normalisePeriod(String parameter, String value) {
-		if (this == MONTH) {
-			YearMonth month = parseMonth(value);
-			if (month != null) {
-				return month.toString();
-			}
-		} else {
-			LocalDate day = parseDay(value);
-			if (day != null) {
-				return periodOf(day);
-			}
+		String period = parsePeriod(value);
+		if (period != null) {
+			return period;
 		}
 		throw new IllegalArgumentException("%s must be a %s in %s format, not '%s'"
-			.formatted(parameter, this == MONTH ? "month" : "date", format, value));
+			.formatted(parameter, unit, format, value));
 	}
 
 	/** @return the month, or null if {@code period} is not a usable {@code YYYY-MM} key */
@@ -135,7 +159,7 @@ public enum Granularity {
 	}
 
 	/** @return the date, or null if {@code period} is not a usable {@code YYYY-MM-DD} key */
-	private static LocalDate parseDay(String period) {
+	static LocalDate parseDay(String period) {
 		if (period == null || !WEEK_KEY.matcher(period).matches()) {
 			return null;
 		}

@@ -1,6 +1,8 @@
 import { LitElement, html, nothing, css } from "lit";
 import "./cts-button.js";
 import {
+  EMPTY_OPTIONS,
+  NUMBER_FORMAT,
   RANGE_PRESETS,
   isFiltered,
   memoiseByArgs,
@@ -22,9 +24,6 @@ const RANGE_GROUPS = [
   { group: "weekly", label: "Weekly range", testid: "stats-range-weekly" },
   { group: "monthly", label: "Monthly range", testid: "stats-range-monthly" },
 ];
-
-/** Option counts are small; group them anyway so 1,024 does not read as 1024. */
-const NUMBER_FORMAT = new Intl.NumberFormat();
 
 /**
  * Render a boolean as an ARIA state string, which only accepts the literal
@@ -201,7 +200,7 @@ class CtsStatisticsFilters extends LitElement {
     /** @type {Array<string>} */
     this.families = [];
     /** @type {FilterOptions} */
-    this.options = { plans: [], variants: {}, certProfiles: [] };
+    this.options = EMPTY_OPTIONS;
     // Rebuilt only when the options or the narrowing change, so a re-render
     // for the busy flag does not walk forty variant parameters again.
     this._visibleVariants = memoiseByArgs(

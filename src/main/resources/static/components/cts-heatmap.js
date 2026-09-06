@@ -1,5 +1,6 @@
 import { LitElement, html, nothing, css } from "lit";
 import {
+  NUMBER_FORMAT,
   heatmapIntensity,
   heatmapMax,
   heatmapScaleSteps,
@@ -163,9 +164,6 @@ function injectStyles() {
   style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
-
-/** Grouped figures, so 1,024 does not read as 1024. */
-const NUMBER_FORMAT = new Intl.NumberFormat();
 
 /** Per-instance id counter, so each `<figure>` can point at its own `<h3>`. */
 let headingSeq = 0;

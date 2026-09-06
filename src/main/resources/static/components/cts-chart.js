@@ -490,7 +490,10 @@ class CtsChart extends LitElement {
     if (!this.isConnected) return;
     this._status = "ready";
     await this.updateComplete;
-    this._syncChart();
+    // Setting _status is itself a plot property, so updated() has normally
+    // built the chart by now; this covers a reconnect, where _status was
+    // already "ready" and no update fired. Never rebuild one that exists.
+    if (!this._chart) this._syncChart();
   }
 
   /** Tear down the live Chart.js instance, if any. */

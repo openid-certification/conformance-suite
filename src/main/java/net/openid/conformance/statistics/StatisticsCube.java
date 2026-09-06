@@ -216,17 +216,13 @@ public class StatisticsCube {
 	}
 
 	/**
-	 * @param variantKey a canonical variant key
+	 * @param variantKey the canonical variant key of a cell in this cube
 	 * @return its parameters; parsed once per distinct key in the cube, so filtering and
-	 *         counting by variant does not re-parse the same string thousands of times
+	 *         counting by variant does not re-parse the same string thousands of times.
+	 *         Empty for a key no cell carries.
 	 */
 	public Map<String, String> variantOf(String variantKey) {
-		if (variantKey == null || variantKey.isEmpty()) {
-			return Map.of();
-		}
-		Map<String, String> parsed = variantsByKey.get(variantKey);
-		// a key that is not in the cube can only come from a filter, so parse it as it comes
-		return parsed == null ? VariantKeys.parse(variantKey) : parsed;
+		return variantKey == null ? Map.of() : variantsByKey.getOrDefault(variantKey, Map.of());
 	}
 
 	/**

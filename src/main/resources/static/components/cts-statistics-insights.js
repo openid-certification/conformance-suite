@@ -7,6 +7,7 @@ import {
   MODULE_LIMIT,
   NUMBER_FORMAT,
   formatShare,
+  rangePreset,
 } from "./statistics-model.js";
 
 /** @typedef {import("./statistics-model.js").Distribution} Distribution */
@@ -295,8 +296,8 @@ function injectStyles() {
  *   hides the whole section; an object with no `rows` renders its empty
  *   state, because "no module ran in this window" is an answer.
  * @property {Array<Array<number>>} heatmap - 7 rows (Mon-Sun) × 24 UTC hours.
- * @property {string} rangeLabel - The selected range preset's label ("12
- *   months"), for the heatmap caption and the modules heading.
+ * @property {string} range - The selected range preset's value ("12m"), for
+ *   the heatmap caption and the modules heading. Empty leaves both unqualified.
  * @property {Array<{host: string, runs: number, users: number, lastSeen: string}>} hosts -
  *   External servers, busiest first.
  * @property {boolean} narrowed - Whether a family or a plan is selected.
@@ -310,7 +311,7 @@ class CtsStatisticsInsights extends LitElement {
     distributions: { attribute: false },
     modules: { attribute: false },
     heatmap: { attribute: false },
-    rangeLabel: { type: String, attribute: "range-label" },
+    range: { type: String },
     hosts: { attribute: false },
     narrowed: { type: Boolean },
     // Reflected so one CSS rule can dim the whole block; see the stylesheet.
@@ -326,7 +327,7 @@ class CtsStatisticsInsights extends LitElement {
     /** @type {Array<Array<number>>} */
     this.heatmap = [];
     /** @type {string} */
-    this.rangeLabel = "";
+    this.range = "";
     /** @type {Array<{host: string, runs: number, users: number, lastSeen: string}>} */
     this.hosts = [];
     /** @type {boolean} */
@@ -537,8 +538,7 @@ class CtsStatisticsInsights extends LitElement {
    * it keeps cells for — so a heading fixed at "last 24 months" would claim
    * two years of counts while showing one, and a reader comparing a module's
    * runs against the trend charts above would be comparing two windows. The
-   * range is read off the same `rangeLabel` the heatmap caption uses, so the
-   * words are the ones in the range select.
+   * words are the preset's own, so they match the range select.
    *
    * A weekly range is qualified rather than repeated verbatim: module cells
    * are monthly, so the server widens a range of weeks to the whole months
@@ -547,10 +547,10 @@ class CtsStatisticsInsights extends LitElement {
    * @returns {string} The window, in the range select's own words.
    */
   _moduleRange() {
-    const label = String(this.rangeLabel || "").trim();
+    const preset = this.range ? rangePreset(this.range) : null;
     // "All time" is the one preset the modules window is narrower than.
-    if (!label || /^all/i.test(label)) return "last 24 months";
-    return /week/i.test(label) ? `${label}, whole months` : label;
+    if (!preset || preset.periods <= 0) return "last 24 months";
+    return preset.granularity === "week" ? `${preset.label}, whole months` : preset.label;
   }
 
   /**
@@ -631,7 +631,7 @@ class CtsStatisticsInsights extends LitElement {
    * @returns {unknown} The activity heatmap section.
    */
   _renderHeatmap() {
-    const range = this.rangeLabel ? ` (${this.rangeLabel})` : "";
+    const range = this.range ? ` (${rangePreset(this.range).label})` : "";
     return html`
       <h2 class="cts-stats-insights-heading">Activity (UTC)</h2>
       <div class="cts-stats-insights-card">

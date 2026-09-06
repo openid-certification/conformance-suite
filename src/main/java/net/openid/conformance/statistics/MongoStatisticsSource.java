@@ -11,6 +11,8 @@ import com.mongodb.client.model.Sorts;
 import net.openid.conformance.info.DBTestInfoService;
 import net.openid.conformance.info.DBTestPlanService;
 import net.openid.conformance.logging.DBEventLog;
+import net.openid.conformance.testmodule.TestModule.Result;
+import net.openid.conformance.testmodule.TestModule.Status;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
@@ -34,8 +36,8 @@ import java.util.concurrent.TimeUnit;
  * class in this package that talks to MongoDB.
  *
  * <p>These pipelines group over whole collections, so they are expensive by construction
- * and must never run on a request thread; {@link DBStatisticsService} runs them on
- * background threads at most once per TTL. Each one groups the collection down to at most a
+ * and must never run on a request thread; {@link DBStatisticsService} runs them on a
+ * background thread at most once per TTL. Each one groups the collection down to at most a
  * few thousand cells before anything crosses the wire, so what Java receives is small
  * however big the database is.
  *
@@ -74,9 +76,10 @@ public class MongoStatisticsSource {
 	 */
 	private static final Duration TILE_WINDOW = Duration.ofDays(365);
 
-	private static final List<String> IN_PROGRESS_STATUSES = List.of("RUNNING", "WAITING");
+	private static final List<String> IN_PROGRESS_STATUSES = names(Status.RUNNING, Status.WAITING);
 
-	private static final List<String> NON_TERMINAL_STATUSES = List.of("CREATED", "CONFIGURED", "RUNNING", "WAITING");
+	private static final List<String> NON_TERMINAL_STATUSES =
+		names(Status.CREATED, Status.CONFIGURED, Status.RUNNING, Status.WAITING);
 
 	/** The collections the storage tiles report on, in the order they are shown. */
 	private static final List<String> STORAGE_COLLECTIONS =
@@ -129,11 +132,11 @@ public class MongoStatisticsSource {
 		List<Bson> pipeline = List.of(
 			Aggregates.group(runsByPlanId,
 				Accumulators.sum("runs", 1),
-				Accumulators.sum("passed", isResult("PASSED")),
-				Accumulators.sum("failed", isResult("FAILED")),
-				Accumulators.sum("warning", isResult("WARNING")),
-				Accumulators.sum("review", isResult("REVIEW")),
-				Accumulators.sum("skipped", isResult("SKIPPED"))),
+				Accumulators.sum("passed", isResult(Result.PASSED)),
+				Accumulators.sum("failed", isResult(Result.FAILED)),
+				Accumulators.sum("warning", isResult(Result.WARNING)),
+				Accumulators.sum("review", isResult(Result.REVIEW)),
+				Accumulators.sum("skipped", isResult(Result.SKIPPED))),
 			planLookup(),
 			Aggregates.project(Projections.fields(
 				Projections.excludeId(),
@@ -271,8 +274,7 @@ public class MongoStatisticsSource {
 	 * <p>The window is a string comparison on {@code started}, which {@code TestInfo} writes
 	 * as an ISO-8601 UTC string, so the {@code $match} in front of the group is an index
 	 * range rather than a scan of the collection - the same shape as the heatmap, the
-	 * external hosts, the tiles and the version counts, which are all windowed for the same
-	 * reason.
+	 * external hosts and the tiles, which are all windowed for the same reason.
 	 *
 	 * @param nowUtc today in UTC; the window ends with the month it falls in
 	 * @return one cell per month, test module and user. Rows with no test module name, and
@@ -287,7 +289,7 @@ public class MongoStatisticsSource {
 					.append("iss", "$owner.iss")
 					.append("sub", "$owner.sub"),
 				Accumulators.sum("runs", 1),
-				Accumulators.sum("failed", isResult("FAILED"))));
+				Accumulators.sum("failed", isResult(Result.FAILED))));
 
 		List<ModuleUserCell> cells = new ArrayList<>();
 		OwnerIds owners = new OwnerIds();
@@ -388,7 +390,7 @@ public class MongoStatisticsSource {
 	public List<HeatCell> heat(LocalDate nowUtc) {
 		List<Bson> pipeline = List.of(
 			// a string comparison is type-bracketed, so a started written as a BSON date
-			// falls outside the window rather than into it, as it does in versionUsers
+			// falls outside the window rather than into it
 			Aggregates.match(Filters.gte("started", StatisticsCube.oldestModuleMonth(nowUtc))),
 			Aggregates.group(new Document("day", new Document("$substrBytes", List.of(startedAsString(), 0, 10)))
 					.append("hour", new Document("$substrBytes", List.of(startedAsString(), 11, 2))),
@@ -491,7 +493,7 @@ public class MongoStatisticsSource {
 
 	/**
 	 * The summary tile counters: one range scan over the runs of the last year (see
-	 * {@link #TILE_WINDOW}), plus the two counts that cannot come out of it.
+	 * {@link #TILE_WINDOW}), plus the total that cannot come out of it.
 	 *
 	 * <p>{@code started} is stored as an ISO-8601 UTC string, so both the window and the
 	 * recency cutoffs are string comparisons, and the {@code $match} is an index range
@@ -506,10 +508,14 @@ public class MongoStatisticsSource {
 	 * "7,138,402 tests" does not become wrong in any way a person cares about if the count
 	 * is a few documents stale after an unclean shutdown.
 	 *
-	 * @param now the instant the "last 24 hours / 7 days / 30 days" windows end at
+	 * @param now        the instant the "last 24 hours / 7 days / 30 days" windows end at
+	 * @param totalUsers how many distinct users have ever created a test plan: the number
+	 *                   of distinct owners {@link #users()} handed an id to, so the tile
+	 *                   costs no scan of its own and counts users on exactly the basis the
+	 *                   "active users" series does
 	 * @return the counters; the windowed ones all zero if nothing has run inside the window
 	 */
-	public TileRow tiles(Instant now) {
+	public TileRow tiles(Instant now, long totalUsers) {
 		String cutoff24h = now.minus(Duration.ofHours(24)).toString();
 		String cutoff7d = now.minus(Duration.ofDays(7)).toString();
 		String cutoff30d = now.minus(Duration.ofDays(30)).toString();
@@ -531,36 +537,10 @@ public class MongoStatisticsSource {
 
 		long total = mongoTemplate.getCollection(DBTestInfoService.COLLECTION).estimatedDocumentCount();
 		List<Document> results = aggregate(DBTestInfoService.COLLECTION, pipeline);
-		if (results.isEmpty()) {
-			return new TileRow(total, distinctUsers(), 0, 0, 0, 0, 0);
-		}
-		Document document = results.get(0);
-		return new TileRow(total, distinctUsers(), count(document, "last24h"),
-			count(document, "last7d"), count(document, "last30d"), count(document, "inProgress"),
-			count(document, "stuck"));
-	}
-
-	/**
-	 * @return how many distinct users have ever created a test plan. Counted over
-	 *         {@code TEST_PLAN} rather than over the runs: it is a full scan of whichever
-	 *         collection it reads, and the plans are an order of magnitude smaller than the
-	 *         runs - which on a production sized database is the difference between seconds
-	 *         and minutes. The price is that somebody who has only ever run standalone tests,
-	 *         never a plan, is not counted; the same basis as the "active users" series,
-	 *         which is counted over plans for its own reasons (see {@link #users()}).
-	 */
-	private long distinctUsers() {
-		List<Bson> pipeline = List.of(
-			// a query - unlike an aggregation expression - does match a missing field
-			// against null, so this drops plans with no owner as well as blank ones
-			Aggregates.match(Filters.and(
-				Filters.nin("owner.iss", Arrays.asList(null, "")),
-				Filters.nin("owner.sub", Arrays.asList(null, "")))),
-			Aggregates.group(new Document("iss", "$owner.iss").append("sub", "$owner.sub")),
-			Aggregates.count("users"));
-
-		List<Document> results = aggregate(DBTestPlanService.COLLECTION, pipeline);
-		return results.isEmpty() ? 0 : count(results.get(0), "users");
+		// count() reads a missing counter as 0, which is what an empty window means
+		Document document = results.isEmpty() ? new Document() : results.get(0);
+		return new TileRow(total, totalUsers, count(document, "last24h"), count(document, "last7d"),
+			count(document, "last30d"), count(document, "inProgress"), count(document, "stuck"));
 	}
 
 	/**
@@ -592,15 +572,11 @@ public class MongoStatisticsSource {
 	}
 
 	private List<Document> aggregate(String collection, List<Bson> pipeline) {
-		return aggregate(collection, pipeline, COMMENT);
-	}
-
-	private List<Document> aggregate(String collection, List<Bson> pipeline, String comment) {
 		AggregateIterable<Document> aggregation = mongoTemplate.getCollection(collection)
 			.aggregate(pipeline)
 			.allowDiskUse(true)
 			.maxTime(MAX_TIME_MINUTES, TimeUnit.MINUTES)
-			.comment(comment);
+			.comment(COMMENT);
 		return aggregation.into(new ArrayList<>());
 	}
 
@@ -702,8 +678,13 @@ public class MongoStatisticsSource {
 			new Document("$ne", List.of(value, ""))));
 	}
 
-	private static Document isResult(String result) {
-		return ifThenOne(new Document("$eq", List.of("$result", result)));
+	private static Document isResult(Result result) {
+		return ifThenOne(new Document("$eq", List.of("$result", result.name())));
+	}
+
+	/** @return the names the statuses are stored under, for a {@code $in} */
+	private static List<String> names(Status... statuses) {
+		return Arrays.stream(statuses).map(Enum::name).toList();
 	}
 
 	/** @return an expression yielding 1 when {@code condition} holds and 0 otherwise. */

@@ -70,7 +70,7 @@ public class DBStatisticsService implements StatisticsService {
 	 * before the server accepts its first request, and on a production sized {@code
 	 * TEST_INFO} - millions of documents, tens of gigabytes - the build takes longer than
 	 * the pod's liveness probe allows, so the deployment would be killed and restarted
-	 * mid-build, for ever. Not on either statistics executor either: a build of minutes
+	 * mid-build, for ever. Not on the statistics executor either: a build of minutes
 	 * would be minutes the first overview sat behind, and the overview does not need the
 	 * index to be correct, only to be quick.
 	 *
@@ -125,8 +125,9 @@ public class DBStatisticsService implements StatisticsService {
 		List<HeatCell> heat = source.heat(today);
 		List<ModuleUserCell> modules = source.modules(today);
 		List<HostRow> hosts = source.externalHosts(today);
+		long totalUsers = users.stream().mapToInt(UserTuple::ownerId).distinct().count();
 		StatisticsCube cube = new StatisticsCube(runs, plans, users, heat, modules, hosts, source.storage(),
-			source.tiles(startedAt), resolver, today);
+			source.tiles(startedAt, totalUsers), resolver, today);
 		logger.info("Computed the statistics cube in {}ms: {} run cells, {} plan cells, {} user tuples, "
 				+ "{} heat cells, {} module cells, {} external hosts; {} months, {} weeks",
 			Duration.between(startedAt, Instant.now()).toMillis(),

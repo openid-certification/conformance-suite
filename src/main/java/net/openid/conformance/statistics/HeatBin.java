@@ -12,10 +12,5 @@ package net.openid.conformance.statistics;
  * @param hour  the hour of the day in UTC, 0 to 23
  * @param runs  runs started in that hour of that day
  */
-public record HeatBin(String month, String week, int dow, int hour, long runs) {
-
-	/** @return the key of the period this bin belongs to at {@code granularity} */
-	public String period(Granularity granularity) {
-		return granularity == Granularity.MONTH ? month : week;
-	}
+public record HeatBin(String month, String week, int dow, int hour, long runs) implements Periodic {
 }

@@ -1,7 +1,6 @@
 package net.openid.conformance.statistics;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +34,7 @@ final class HeatmapBinner {
 	static List<HeatBin> bin(List<HeatCell> cells, String oldestWeek) {
 		List<HeatBin> bins = new ArrayList<>(cells.size());
 		for (HeatCell cell : cells) {
-			LocalDate day = parseDay(cell.day());
+			LocalDate day = Granularity.parseDay(cell.day());
 			int hour = parseHour(cell.hour());
 			if (day == null || hour < 0) {
 				continue;
@@ -72,18 +71,6 @@ final class HeatmapBinner {
 			grid.add(List.copyOf(hours));
 		}
 		return List.copyOf(grid);
-	}
-
-	/** @return the day, or null if the key is not a usable {@code YYYY-MM-DD} date */
-	private static LocalDate parseDay(String day) {
-		if (day == null || day.length() != "YYYY-MM-DD".length()) {
-			return null;
-		}
-		try {
-			return LocalDate.parse(day);
-		} catch (DateTimeParseException e) {
-			return null; // a document whose started field is missing or not a date
-		}
 	}
 
 	/** @return the hour, or -1 if the key is not a usable {@code HH} hour */

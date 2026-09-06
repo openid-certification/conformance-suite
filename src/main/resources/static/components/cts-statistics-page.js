@@ -13,6 +13,7 @@ import { ctsToast } from "../js/cts-toast-api.js";
 import { SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
+  NUMBER_FORMAT,
   NO_PLAN_FAMILY,
   OTHER_RETIRED_FAMILY,
   assignFamilySlots,
@@ -30,7 +31,6 @@ import {
   memoiseByArgs,
   otherBreakdown,
   queryFromState,
-  rangePreset,
   rememberOptions,
   sameState,
   stateFromUrl,
@@ -169,13 +169,6 @@ const PERIOD_NAMES = {
   month: { axis: "Month", unit: "month" },
   week: { axis: "Week starting", unit: "week" },
 };
-
-/**
- * Exact grouped figures ("91,800"), never compacted. The dashboard
- * convention would auto-compact past 10k, but this is an admin console
- * where the difference between 91,800 and 91,842 is the point.
- */
-const NUMBER_FORMAT = new Intl.NumberFormat();
 
 /**
  * Render a boolean as an ARIA state string. Returning the literal union
@@ -424,6 +417,8 @@ class CtsStatisticsPage extends LitElement {
     this._status = "loading";
     /** @type {any} The whole response body, not just `data`. */
     this._payload = null;
+    /** @type {string} The request query `_payload.data` was sliced for. */
+    this._payloadRequest = "";
     /** @type {FilterState} Range and filters; mirrored in the page URL. */
     this._state = defaultFilterState();
     /** @type {StatisticsData|null} Unfiltered, all-time payload: the colour and family-option source. */
@@ -440,8 +435,8 @@ class CtsStatisticsPage extends LitElement {
     this._dismissedErrorAt = "";
     /** @type {Record<string, string>} Family → colour token. */
     this._slots = {};
-    /** @type {"none"|"payload"|"baseline"} Where `_slots` came from. */
-    this._slotSource = "none";
+    /** @type {boolean} True once `_slots` has been assigned from any payload. */
+    this._slotsAdopted = false;
     /**
      * The 202/refreshing poll loop: 2 s for the first 30 s, then 5 s, giving
      * up after 10 minutes.
@@ -535,6 +530,9 @@ class CtsStatisticsPage extends LitElement {
     if (!this._payload) this._status = "loading";
 
     const query = queryFromState(this._state);
+    // What the data is a slice for; `refresh` asks for a newer snapshot but
+    // does not change what is sliced, so it stays out of the key.
+    const request = query.toString();
     if (refresh) query.set("refresh", "true");
 
     try {
@@ -565,7 +563,7 @@ class CtsStatisticsPage extends LitElement {
       this._settle(controller);
       // _apply is inside the try on purpose: a payload that breaks the
       // shaping helpers must surface as the error state, not vanish.
-      this._apply(response, body);
+      this._apply(response, body, request);
     } catch (err) {
       if (controller.signal.aborted) return;
       this._settle(controller);
@@ -635,9 +633,9 @@ class CtsStatisticsPage extends LitElement {
    * @returns {void}
    */
   _adoptSlots(data, fromBaseline) {
-    if (!fromBaseline && this._slotSource !== "none") return;
+    if (!fromBaseline && this._slotsAdopted) return;
     const slots = assignFamilySlots(data);
-    this._slotSource = fromBaseline ? "baseline" : "payload";
+    this._slotsAdopted = true;
     // Identity matters: the chart inputs are memoised on it, so replacing an
     // equal mapping would re-plot all five charts for nothing — which is
     // exactly what the baseline landing a moment after the first payload
@@ -676,9 +674,10 @@ class CtsStatisticsPage extends LitElement {
    * Move the state machine for one response.
    * @param {Response} response - The fetch response.
    * @param {any} body - Its parsed body, or null.
+   * @param {string} request - The query the request was made with.
    * @returns {void}
    */
-  _apply(response, body) {
+  _apply(response, body, request) {
     if (response.status === 401 || response.status === 403) {
       this._poll.stop();
       this._busy = false;
@@ -729,8 +728,23 @@ class CtsStatisticsPage extends LitElement {
       // now that one demonstrably does.
       if (!this._baseline) this._loadBaseline();
     }
-    this._options = rememberOptions(this._options, data, this._state);
-    this._payload = body;
+    // A refreshing poll answers with the SAME snapshot until the recompute
+    // lands; keeping the data object the page already holds means the
+    // memoised chart inputs still hit and nothing is re-plotted for it.
+    // Anything else in the body - the refreshing flag, a new lastError - is
+    // read off the fresh one. The same snapshot sliced for a different
+    // request is different data, hence the request in the test.
+    if (
+      this._payload &&
+      this._payloadRequest === request &&
+      this._payload.computedAt === body.computedAt
+    ) {
+      this._payload = { ...body, data: this._payload.data };
+    } else {
+      this._options = rememberOptions(this._options, data, this._state);
+      this._payload = body;
+      this._payloadRequest = request;
+    }
     this._status = "ready";
 
     if (body.refreshing === true) {
@@ -794,12 +808,7 @@ class CtsStatisticsPage extends LitElement {
    * @returns {void}
    */
   _handleRefresh() {
-    this._poll.stop();
-    // A Refresh clicked while an earlier refresh's error is on screen must
-    // clear that error, not leave a message-less danger alert hanging over
-    // the charts until the response lands. Mirrors _handleRetry.
-    if (this._payload) this._status = "ready";
-    this._load(true);
+    this._restart(true);
   }
 
   /**
@@ -808,9 +817,21 @@ class CtsStatisticsPage extends LitElement {
    * @returns {void}
    */
   _handleRetry() {
+    this._restart(false);
+  }
+
+  /**
+   * Fetch again from a clean slate: end any polling episode, and put a
+   * snapshot still on screen back to being the current state - a request
+   * made while an earlier error is showing must clear that error, not leave
+   * a message-less danger alert hanging over the charts until it lands.
+   * @param {boolean} refresh - Whether to force a recompute.
+   * @returns {void}
+   */
+  _restart(refresh) {
     this._poll.stop();
     if (this._payload) this._status = "ready";
-    this._load(false);
+    this._load(refresh);
   }
 
   /**
@@ -842,9 +863,7 @@ class CtsStatisticsPage extends LitElement {
     if (sameState(this._state, next)) return;
     this._state = { ...next, variant: { ...(next.variant || {}) } };
     this._syncUrl();
-    this._poll.stop();
-    if (this._payload) this._status = "ready";
-    this._load(false);
+    this._restart(false);
   }
 
   /**
@@ -1344,7 +1363,7 @@ class CtsStatisticsPage extends LitElement {
     return html`
       <cts-statistics-insights
         data-testid="stats-insights"
-        range-label=${rangePreset(this._state.range).label}
+        range=${this._state.range}
         ?narrowed=${Boolean(this._state.family || this._state.plan)}
         ?busy=${this._busy}
         .distributions=${distributions}

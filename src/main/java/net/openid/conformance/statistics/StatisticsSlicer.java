@@ -3,6 +3,7 @@ package net.openid.conformance.statistics;
 import net.openid.conformance.statistics.StatisticsOverview.Tiles;
 import net.openid.conformance.statistics.StatisticsOverview.UnresolvedPlan;
 import net.openid.conformance.statistics.StatisticsOverview.Users;
+import net.openid.conformance.testmodule.TestModule.Result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,16 +40,17 @@ import java.util.Set;
  */
 public final class StatisticsSlicer {
 
-	private static final String PASSED = "PASSED";
+	private static final String PASSED = Result.PASSED.name();
 
-	private static final String WARNING = "WARNING";
+	private static final String WARNING = Result.WARNING.name();
 
-	private static final String REVIEW = "REVIEW";
+	private static final String REVIEW = Result.REVIEW.name();
 
-	private static final String FAILED = "FAILED";
+	private static final String FAILED = Result.FAILED.name();
 
-	private static final String SKIPPED = "SKIPPED";
+	private static final String SKIPPED = Result.SKIPPED.name();
 
+	/** The one bucket that is not a {@link Result}: runs that never reached a result at all. */
 	private static final String NEVER_FINISHED = "NEVER_FINISHED";
 
 	/** The result buckets of the stacked results chart, in rendering order. */
