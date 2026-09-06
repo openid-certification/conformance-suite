@@ -12,7 +12,7 @@ import "./cts-time.js";
 import { ctsToast } from "../js/cts-toast-api.js";
 import { aria } from "../lib/aria.js";
 import { injectDataTableStyles } from "./data-table-styles.js";
-import { SnapshotPoll } from "./statistics-poll.js";
+import { POLL_GIVE_UP_MINUTES, SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
   NUMBER_FORMAT,
@@ -82,7 +82,8 @@ function sameSlots(a, b) {
 }
 
 const GIVE_UP_MESSAGE =
-  "Statistics are still being computed after 10 minutes. The server may be busy — try again.";
+  `Statistics are still being computed after ${POLL_GIVE_UP_MINUTES} minutes. ` +
+  "The server may be busy — try again.";
 const FORBIDDEN_MESSAGE = "Statistics are only available to administrators.";
 const UNEXPECTED_MESSAGE = "The statistics endpoint returned an unexpected response.";
 
@@ -290,8 +291,9 @@ function injectStyles() {
  *
  * The endpoint serves a snapshot recomputed in the background at most every
  * 12 hours, so the component has four things to handle beyond a plain fetch:
- * a `202 pending` state it polls through (2 s for the first 30 s, then 5 s,
- * giving up after 10 minutes), a `refreshing: true` flag that means "keep
+ * a `202 pending` state it polls through (2 s for the first 30 s, 5 s for the
+ * next few minutes, then 30 s, giving up after half an hour), a
+ * `refreshing: true` flag that means "keep
  * showing this snapshot, a newer one is on the way", a `lastError` that
  * reports a failed recompute while an older snapshot is still being served,
  * and a `400 invalid` that reports a range or filter the server cannot use.
@@ -390,8 +392,8 @@ class CtsStatisticsPage extends LitElement {
     /** @type {Record<string, string>} Family → color token. */
     this._slots = {};
     /**
-     * The 202/refreshing poll loop: 2 s for the first 30 s, then 5 s, giving
-     * up after 10 minutes.
+     * The 202/refreshing poll loop: 2 s for the first 30 s, 5 s for the next
+     * few minutes, then 30 s, giving up after half an hour.
      * @type {SnapshotPoll}
      */
     this._poll = new SnapshotPoll(
@@ -466,7 +468,11 @@ class CtsStatisticsPage extends LitElement {
     this._abort = controller;
     this._busy = true;
     this._errorMessage = "";
-    if (!this._payload) this._status = "loading";
+    // A poll while the server computes stays "pending": dropping to "loading"
+    // for the round trip and back on the 202 would swap the caption between
+    // "Loading" and "Computing" every few seconds for as long as the
+    // computation takes.
+    if (!this._payload && this._status !== "pending") this._status = "loading";
 
     const query = queryFromState(this._state);
     // What the data is a slice for; `refresh` asks for a newer snapshot but
@@ -909,8 +915,8 @@ class CtsStatisticsPage extends LitElement {
   _renderLoading() {
     // A 202 with a snapshot already on screen is not the first computation:
     // the server restarted and lost its cache, or the TTL expired while the
-    // page was open. Saying "for the first time" over the dimmed charts the
-    // admin is looking at contradicts what they can see.
+    // page was open. The label says it is RE-computing over the dimmed charts
+    // the admin is looking at, rather than contradicting what they can see.
     const label = this._status === "pending" ? this._pendingLabel() : "Loading statistics";
     return html`<cts-loading-state label=${label} data-testid="stats-loading"></cts-loading-state>`;
   }
@@ -920,7 +926,7 @@ class CtsStatisticsPage extends LitElement {
    *   ellipsis, so neither variant carries one.
    */
   _pendingLabel() {
-    return this._payload ? "Recomputing statistics" : "Computing statistics for the first time";
+    return this._payload ? "Recomputing statistics" : "Computing statistics";
   }
 
   /**
