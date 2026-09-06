@@ -319,6 +319,32 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
+	void familyTotalsAreAllTimeAndUnfilteredAndTheSyntheticFamiliesAreNamed() {
+		StatisticsCube cube = cube(
+			List.of(runs("2026-03", null, "oidcc-plan", 5), runs("2019-01", null, "fapi1-plan", 100),
+				new RunCell("2026-03", null, null, true, "", "", 3, 0, 0, 0, 0, 0)),
+			List.of(new PlanCell("2026-03", null, "oidcc-plan", "", "", 2, 1, 0),
+				new PlanCell("2019-01", null, "fapi1-plan", "", "", 4, 0, 0)),
+			List.of());
+
+		// a slice that shows one family over one month...
+		StatisticsOverview overview = slice(cube, query("family", SpecFamilyNames.oidcc, "from", "2026-03"));
+
+		// ...still carries every family's whole history, zero filled in the families' order
+		assertThat(overview.familyTotals().keySet()).containsExactlyElementsOf(overview.families());
+		assertThat(overview.familyTotals().get(SpecFamilyNames.oidcc))
+			.isEqualTo(new StatisticsOverview.FamilyTotals(5, 2, 1));
+		assertThat(overview.familyTotals().get(SpecFamilyNames.fapi1Advanced))
+			.isEqualTo(new StatisticsOverview.FamilyTotals(100, 4, 0));
+		assertThat(overview.familyTotals().get(SpecFamilyResolver.NO_PLAN))
+			.isEqualTo(new StatisticsOverview.FamilyTotals(3, 0, 0));
+		assertThat(overview.familyTotals().get(SpecFamilyNames.oid4vp))
+			.isEqualTo(new StatisticsOverview.FamilyTotals(0, 0, 0));
+		assertThat(overview.syntheticFamilies())
+			.containsExactly(SpecFamilyResolver.NO_PLAN, SpecFamilyResolver.OTHER_RETIRED);
+	}
+
+	@Test
 	void unresolvedPlansAreTheTwentyBusiestUnknownPlanNamesAllTime() {
 		List<RunCell> cells = new ArrayList<>();
 		for (int i = 1; i <= 25; i++) {

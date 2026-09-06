@@ -31,9 +31,9 @@ final class CellFilter {
 		return matches(cube.familyOf(tuple.planName()), tuple.planName(), tuple.variantKey(), tuple.certKey());
 	}
 
-	/** @return the family the runs are charted under: standalone runs are a family of their own */
+	/** @return the family the runs are charted under; see {@link StatisticsCube#familyOfRuns} */
 	String familyOf(RunCell cell) {
-		return cell.standalone() ? SpecFamilyResolver.NO_PLAN : cube.familyOf(cell.planName());
+		return cube.familyOfRuns(cell);
 	}
 
 	/** @return what the runs were testing: standalone runs are not tied to a plan's profile */

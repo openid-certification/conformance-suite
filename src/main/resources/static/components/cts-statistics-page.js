@@ -14,8 +14,6 @@ import { SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
   NUMBER_FORMAT,
-  NO_PLAN_FAMILY,
-  OTHER_RETIRED_FAMILY,
   assignFamilySlots,
   buildChartInputs,
   buildDistributions,
@@ -44,14 +42,6 @@ import {
 
 /** Admin-only endpoint backing the whole page; one payload feeds every chart. */
 const ENDPOINT = "/api/statistics/overview";
-
-/**
- * How many times the unfiltered baseline is asked for. It is retried because
- * the first attempt can land while the very first snapshot is still being
- * computed (202), but it is capped because the page is perfectly usable
- * without it and a poll loop must not turn into two.
- */
-const BASELINE_MAX_ATTEMPTS = 3;
 
 /**
  * Lead line for the tooltip footer that names what the folded "Other"
@@ -93,17 +83,19 @@ function sameSlots(a, b) {
  * Both of these are buckets the cube counts and the plan listing cannot be
  * asked for, so telling the reader to "pick a family" — the advice that fits a
  * click on the folded "Other" series — would be telling them to do what they
- * have already done.
+ * have already done. The DECISION to refuse is the payload's
+ * (`syntheticFamilies`); these are only the words for the two buckets the
+ * server has today, and any other synthetic bucket gets the generic refusal.
  * @type {Record<string, string>}
  */
 const NO_DRILL_DOWN_MESSAGES = {
-  [NO_PLAN_FAMILY]:
+  "No plan":
     "Runs without a plan can't be listed: these are standalone test modules, and the plans list only holds plans.",
-  [OTHER_RETIRED_FAMILY]:
+  "Other / retired":
     "Unresolved plan names aren't in the registry — retired, renamed or hidden — so there is no family the listing can be asked for.",
 };
 
-/** The refusal that fits a click on the folded "Other" series. */
+/** The refusal that fits a click on the folded "Other" series, or any other synthetic bucket. */
 const NO_DRILL_DOWN_DEFAULT =
   "Those runs are not one spec family — pick a family in the filter row to list its plans.";
 
@@ -354,13 +346,11 @@ function injectStyles() {
  * or under a synthetic family, is refused with a toast, because
  * `GET /api/plan` cannot express either.
  *
- * Colour is an identity here: {@link assignFamilySlots} is computed from an
- * UNFILTERED, all-time baseline payload fetched once on load, so no range or
- * filter can repaint a family (under a filter every other family is zero,
- * which would otherwise hand the first hue to whatever was selected). The two
- * requests race, so the first paint waits for the baseline while it is still
- * in flight — a chart is never ranked from the narrowed payload and then
- * re-ranked in front of the reader.
+ * Colour is an identity here: {@link assignFamilySlots} ranks the families
+ * from `familyTotals`, the all-time, unfiltered totals every payload carries,
+ * so no range or filter can repaint a family (under a filter every other
+ * family is zero, which would otherwise hand the first hue to whatever was
+ * selected). The family select's options come from the same totals.
  *
  * DOM hooks for e2e (`data-testid`):
  * `stats-forbidden`, `stats-error`, `stats-retry`, `stats-reset-filters`,
@@ -399,7 +389,6 @@ class CtsStatisticsPage extends LitElement {
     _status: { state: true },
     _payload: { state: true },
     _state: { state: true },
-    _baseline: { state: true },
     _options: { state: true },
     _busy: { state: true },
     _errorMessage: { state: true },
@@ -421,8 +410,6 @@ class CtsStatisticsPage extends LitElement {
     this._payloadRequest = "";
     /** @type {FilterState} Range and filters; mirrored in the page URL. */
     this._state = defaultFilterState();
-    /** @type {StatisticsData|null} Unfiltered, all-time payload: the colour and family-option source. */
-    this._baseline = null;
     /** @type {import("./statistics-model.js").FilterOptions} What the filter selects offer. */
     this._options = EMPTY_OPTIONS;
     /** @type {boolean} A request is in flight, or the server is recomputing. */
@@ -435,8 +422,6 @@ class CtsStatisticsPage extends LitElement {
     this._dismissedErrorAt = "";
     /** @type {Record<string, string>} Family → colour token. */
     this._slots = {};
-    /** @type {boolean} True once `_slots` has been assigned from any payload. */
-    this._slotsAdopted = false;
     /**
      * The 202/refreshing poll loop: 2 s for the first 30 s, then 5 s, giving
      * up after 10 minutes.
@@ -448,12 +433,6 @@ class CtsStatisticsPage extends LitElement {
     );
     /** @type {AbortController|null} */
     this._abort = null;
-    /** @type {AbortController|null} The baseline request's own controller. */
-    this._baselineAbort = null;
-    /** @type {Promise<void>|null} The baseline request, while it is in flight. */
-    this._baselinePromise = null;
-    /** @type {number} How many baseline requests have been made. */
-    this._baselineAttempts = 0;
     // Everything derived from a payload is memoised on the identity of what
     // it is derived from: the page re-renders three times per fetch (busy on,
     // payload, busy off) and <cts-chart> re-plots whenever the array it was
@@ -493,9 +472,6 @@ class CtsStatisticsPage extends LitElement {
     // exactly what was shared; writing it straight back normalises it.
     this._state = stateFromUrl(window.location.search);
     this._syncUrl();
-    // An unfiltered, whole-history view IS the baseline, so asking for it
-    // twice would fetch the same payload twice; _apply adopts it instead.
-    if (isNarrowed(this._state)) this._loadBaseline();
     this._load(false);
   }
 
@@ -505,10 +481,6 @@ class CtsStatisticsPage extends LitElement {
     if (this._abort) {
       this._abort.abort();
       this._abort = null;
-    }
-    if (this._baselineAbort) {
-      this._baselineAbort.abort();
-      this._baselineAbort = null;
     }
   }
 
@@ -549,17 +521,6 @@ class CtsStatisticsPage extends LitElement {
       if (controller.signal.aborted) return;
       const body = await this._readJson(response);
       if (controller.signal.aborted) return;
-      // Colour is an identity, and the ranking that hands it out comes from
-      // the baseline — which a narrowed view (the default 12 months included)
-      // is RACING, not waiting for. Applying this payload first would rank the
-      // families from it and then re-rank them the moment the baseline lands:
-      // every chart repainted in new colours, and the family select reordered,
-      // in front of the reader. Both requests are already in flight, so the
-      // first paint waits at most for the slower of the two; a baseline that
-      // fails or 202s resolves here just the same and the payload is applied
-      // exactly as it was before.
-      if (this._baselinePromise) await this._baselinePromise;
-      if (controller.signal.aborted) return;
       this._settle(controller);
       // _apply is inside the try on purpose: a payload that breaks the
       // shaping helpers must surface as the error state, not vanish.
@@ -572,74 +533,16 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * Fetch the unfiltered, all-time snapshot that colours the charts and fills
-   * the family select. It is the same cached cube the filtered request slices,
-   * so this costs the server one extra slice and nothing else.
-   *
-   * Deliberately silent: a page whose baseline failed still charts everything
-   * it has, falling back to colouring from the first payload it receives.
-   *
-   * The promise is kept, and handed back, so that {@link _load} can wait for
-   * the ranking before it paints rather than adopting one and then the other.
-   * @returns {Promise<void>} Resolves once the baseline has been adopted, or
-   *   given up on; already resolved when there is nothing left to try.
-   */
-  _loadBaseline() {
-    if (this._baselinePromise) return this._baselinePromise;
-    if (this._baseline || this._baselineAttempts >= BASELINE_MAX_ATTEMPTS) return Promise.resolve();
-    this._baselinePromise = this._fetchBaseline().finally(() => {
-      this._baselinePromise = null;
-    });
-    return this._baselinePromise;
-  }
-
-  /**
-   * The baseline request itself. Never called directly — {@link _loadBaseline}
-   * is what guards against a second one and remembers this promise.
-   * @returns {Promise<void>} Resolves however the request ends.
-   */
-  async _fetchBaseline() {
-    this._baselineAttempts += 1;
-    const controller = new AbortController();
-    this._baselineAbort = controller;
-    try {
-      const response = await fetch(ENDPOINT, {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-      });
-      if (controller.signal.aborted) return;
-      const body = await this._readJson(response);
-      if (controller.signal.aborted || !response.ok) return;
-      const data = body && body.data;
-      if (!data || !Array.isArray(data.families)) return;
-      this._baseline = data;
-      this._adoptSlots(data, true);
-    } catch {
-      // Network error, 202 while the first snapshot computes, a 403 — none of
-      // them is worth an alert, because the request the page is really making
-      // reports all three itself.
-    } finally {
-      if (this._baselineAbort === controller) this._baselineAbort = null;
-    }
-  }
-
-  /**
-   * Adopt the family → colour mapping. A filtered payload may only fill in
-   * for a baseline that has not arrived yet, and is never allowed to replace
-   * one: colour is an identity, and a filtered ranking is not one.
+   * Adopt the family → colour mapping from a payload. Every payload ranks the
+   * families the same way (from its all-time `familyTotals`), so any of them
+   * will do, and the mapping is only replaced when it actually differs.
    * @param {StatisticsData} data - The payload to rank families from.
-   * @param {boolean} fromBaseline - True when `data` is the unfiltered baseline.
    * @returns {void}
    */
-  _adoptSlots(data, fromBaseline) {
-    if (!fromBaseline && this._slotsAdopted) return;
+  _adoptSlots(data) {
     const slots = assignFamilySlots(data);
-    this._slotsAdopted = true;
     // Identity matters: the chart inputs are memoised on it, so replacing an
-    // equal mapping would re-plot all five charts for nothing — which is
-    // exactly what the baseline landing a moment after the first payload
-    // would otherwise do.
+    // equal mapping would re-plot all five charts for nothing.
     if (sameSlots(this._slots, slots)) return;
     this._slots = slots;
     this.requestUpdate();
@@ -717,17 +620,7 @@ class CtsStatisticsPage extends LitElement {
       return;
     }
 
-    if (!this._baseline && !isNarrowed(this._state)) {
-      // Nothing is filtered and the range is the whole history, so this
-      // payload is the baseline; a second request would fetch it again.
-      this._baseline = data;
-      this._adoptSlots(data, true);
-    } else {
-      this._adoptSlots(data, false);
-      // A baseline that 202'd on load (no snapshot existed yet) can be had
-      // now that one demonstrably does.
-      if (!this._baseline) this._loadBaseline();
-    }
+    this._adoptSlots(data);
     // A refreshing poll answers with the SAME snapshot until the recompute
     // lands; keeping the data object the page already holds means the
     // memoised chart inputs still hit and nothing is re-plotted for it.
@@ -1183,8 +1076,8 @@ class CtsStatisticsPage extends LitElement {
    * any payload — including one whose range turned out to be empty, so the
    * range that emptied it can be widened again.
    *
-   * The family options come from the unfiltered baseline, so narrowing never
-   * removes the option that would widen things back out.
+   * The family options come from the payload's all-time `familyTotals`, so
+   * narrowing never removes the option that would widen things back out.
    * @param {StatisticsData} data - The current payload.
    * @returns {unknown} The heading and the filter row.
    */
@@ -1198,7 +1091,7 @@ class CtsStatisticsPage extends LitElement {
         plan=${this._state.plan}
         cert=${this._state.cert}
         .variant=${this._state.variant}
-        .families=${this._familyOptions(this._baseline || data)}
+        .families=${this._familyOptions(data)}
         .options=${this._options}
         @cts-filters-change=${this._handleFiltersChange}
       ></cts-statistics-filters>

@@ -60,6 +60,13 @@ public class SpecFamilyResolver {
 	/** Family for runs whose plan is not in the registry (renamed, deleted or hidden). */
 	public static final String OTHER_RETIRED = "Other / retired";
 
+	/**
+	 * The families that are not families: both stand for runs that have no plan in the
+	 * registry, so nothing can be drilled into from them and no colour of their own is worth
+	 * spending on them. Sent to the client as a list so it need not know their names.
+	 */
+	public static final List<String> SYNTHETIC_FAMILIES = List.of(NO_PLAN, OTHER_RETIRED);
+
 	/** The generated map of retired and renamed plan names to their family. */
 	static final String ALIASES = "/statistics/legacy-plan-families.properties";
 

@@ -1,8 +1,11 @@
 package net.openid.conformance.statistics;
 
+import net.openid.conformance.statistics.StatisticsOverview.FamilyTotals;
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -72,6 +75,8 @@ public class StatisticsCube {
 
 	private final SpecFamilyResolver resolver;
 
+	private final Map<String, FamilyTotals> familyTotals;
+
 	private final Map<String, Map<String, String>> variantsByKey;
 
 	private final List<String> monthlyPeriods;
@@ -107,6 +112,7 @@ public class StatisticsCube {
 		this.storage = List.copyOf(storage);
 		this.tiles = tiles;
 		this.resolver = resolver;
+		this.familyTotals = familyTotals(monthlyRuns, monthlyPlans, resolver);
 		this.variantsByKey = parseVariants(monthlyRuns, monthlyPlans, users);
 		this.monthlyPeriods = axis(monthlyRuns, monthlyPlans, users, Granularity.MONTH, nowUtc);
 		this.weeklyPeriods = axis(weeklyRuns, weeklyPlans, users, Granularity.WEEK, nowUtc);
@@ -208,6 +214,39 @@ public class StatisticsCube {
 	/** @return the spec family of {@code planName}, or "Other / retired" if it is unknown */
 	public String familyOf(String planName) {
 		return resolver.familyForPlan(planName);
+	}
+
+	/** @return the family the runs are charted under: standalone runs are a family of their own */
+	public String familyOfRuns(RunCell cell) {
+		return cell.standalone() ? SpecFamilyResolver.NO_PLAN : familyOf(cell.planName());
+	}
+
+	/**
+	 * @return every family's whole history, in {@link #familyOrder()} order and zero filled,
+	 *         computed once here so that what ranks the families never depends on the slice
+	 */
+	public Map<String, FamilyTotals> familyTotals() {
+		return familyTotals;
+	}
+
+	private static Map<String, FamilyTotals> familyTotals(List<RunCell> runs, List<PlanCell> plans,
+			SpecFamilyResolver resolver) {
+		Map<String, long[]> totals = new LinkedHashMap<>();
+		for (String family : resolver.familyOrder()) {
+			totals.put(family, new long[3]);
+		}
+		for (RunCell cell : runs) {
+			String family = cell.standalone() ? SpecFamilyResolver.NO_PLAN : resolver.familyForPlan(cell.planName());
+			totals.get(family)[0] += cell.runs();
+		}
+		for (PlanCell cell : plans) {
+			long[] counters = totals.get(resolver.familyForPlan(cell.planName()));
+			counters[1] += cell.plans();
+			counters[2] += cell.certified();
+		}
+		Map<String, FamilyTotals> frozen = new LinkedHashMap<>();
+		totals.forEach((family, counters) -> frozen.put(family, new FamilyTotals(counters[0], counters[1], counters[2])));
+		return Collections.unmodifiableMap(frozen);
 	}
 
 	/** @return what {@code planName} tests, or "Other / retired" if the plan is unknown */

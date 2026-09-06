@@ -18,11 +18,17 @@ import java.util.Map;
  *                         the {@code YYYY-MM-DD} Mondays of ISO weeks
  * @param granularity      which of the two {@link #periods()} are, {@code month} or {@code week}
  * @param families         every family a series may be keyed by, in a fixed order
+ * @param syntheticFamilies the members of {@link #families()} that stand for runs with no
+ *                         plan in the registry rather than for a spec family; see
+ *                         {@link SpecFamilyResolver#SYNTHETIC_FAMILIES}
  * @param resultBuckets    the test result buckets, in a fixed order
  * @param testRunsByFamily family -&gt; test module runs per period
  * @param plansByFamily    family -&gt; test plans created per period
  * @param resultsByFamily  family -&gt; result bucket -&gt; runs per period
  * @param certifiedByFamily family -&gt; plans made immutable per period, i.e. certification activity
+ * @param familyTotals     family -&gt; its all-time totals, never filtered or clipped to the
+ *                         range: what ranks the families for colour and says which have
+ *                         ever had anything, so neither depends on the current slice
  * @param users            active and first-seen user counts per period, on a plan basis
  * @param tiles            the whole-collection summary counters; never filtered
  * @param storage          how much space each collection takes up; never filtered
@@ -41,10 +47,22 @@ import java.util.Map;
  */
 @Schema(name = "StatisticsOverview")
 public record StatisticsOverview(List<String> periods, String granularity, List<String> families,
-	List<String> resultBuckets, Map<String, List<Long>> testRunsByFamily, Map<String, List<Long>> plansByFamily,
-	Map<String, Map<String, List<Long>>> resultsByFamily, Map<String, List<Long>> certifiedByFamily,
-	Users users, Tiles tiles, List<StorageRow> storage, Dimensions dimensions, List<List<Long>> heatmap,
-	List<Module> modules, List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
+	List<String> syntheticFamilies, List<String> resultBuckets, Map<String, List<Long>> testRunsByFamily,
+	Map<String, List<Long>> plansByFamily, Map<String, Map<String, List<Long>>> resultsByFamily,
+	Map<String, List<Long>> certifiedByFamily, Map<String, FamilyTotals> familyTotals, Users users, Tiles tiles,
+	List<StorageRow> storage, Dimensions dimensions, List<List<Long>> heatmap, List<Module> modules,
+	List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
+
+	/**
+	 * One family's whole history, unfiltered.
+	 *
+	 * @param runs      test module runs ever recorded under it
+	 * @param plans     test plans ever created in it
+	 * @param certified plans of it ever made immutable
+	 */
+	@Schema(name = "StatisticsFamilyTotals")
+	public record FamilyTotals(long runs, long plans, long certified) {
+	}
 
 	/**
 	 * Users on a plan basis: a user is active in the period they created a test plan, which

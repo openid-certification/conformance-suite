@@ -26,7 +26,7 @@ export interface paths {
       cookie?: never;
     };
     /** Get a list of existing tokens */
-    get: operations["getAllTokens"];
+    get: operations["listTokens"];
     put?: never;
     /** Create new token */
     post: operations["createToken"];
@@ -47,7 +47,7 @@ export interface paths {
     put?: never;
     /**
      * Create test module instance
-     * @description Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test
+     * @description Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test. Configuration and startup run in a background task: failures there are not returned from this call — they surface as status INTERRUPTED and in the result field via GET /api/info/{id}, with details in the test log.
      */
     post: operations["createTest"];
     delete?: never;
@@ -66,7 +66,10 @@ export interface paths {
     /** Get test status, results, and exposed strings */
     get: operations["getTestStatus"];
     put?: never;
-    /** Start test by id */
+    /**
+     * Start test by id
+     * @description The start happens in a background task: startup failures are not returned from this call — they surface via GET /api/info/{id} and the test log.
+     */
     post: operations["startTest"];
     /** Cancel test by Id */
     delete: operations["cancelTest"];
@@ -105,11 +108,19 @@ export interface paths {
      *
      *     In addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a plan has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.
      */
-    get: operations["getTestPlansForCurrentUser"];
+    get: operations["listTestPlans"];
     put?: never;
     /** Create test plan */
     post: operations["createTestPlan"];
-    delete?: never;
+    /**
+     * Delete every plan a filtered listing shows, and their tests and logs (admin only)
+     * @description Takes exactly the parameters `GET /api/plan` takes and deletes what that listing would show, so the way to see what this will do is to list it first. Deleting millions of documents is far too long for a request, so the work runs in the background: this returns 202 and `GET /api/plan/delete-status` reports progress.
+     *
+     *     Two kinds of plan are never deleted, whatever is asked for: one a certification package has been downloaded for (`immutable`), and one that has been published, since a link to it may be in circulation. They are left out of the count as well as of the deleting.
+     *
+     *     Refused unless at least one filter is present - there is no way to ask this to delete everything - and unless `confirm` is the number of plans it is about to delete, so that a listing that has changed since it was looked at stops the request rather than deleting something else.
+     */
+    delete: operations["bulkDeleteTestPlans"];
     options?: never;
     head?: never;
     patch?: never;
@@ -126,9 +137,9 @@ export interface paths {
     put?: never;
     /**
      * Get private link to share test plan
-     * @description Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).
+     * @description The returned token can be used directly as 'Authorization: Bearer <token>' on the read-only endpoints GET /api/plan/{id}, GET /api/info/{id}, GET /api/log/{id} and GET /api/currentuser.
      */
-    post: operations["shareLink"];
+    post: operations["shareTestPlan"];
     delete?: never;
     options?: never;
     head?: never;
@@ -178,8 +189,31 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Prepare certification package for a test plan. Also publishes the plan and marks it as immutable. */
-    post: operations["prepareCertificationPackageForTestPlan"];
+    /**
+     * Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.
+     * @description The signed certification of conformance is not part of the package; it is submitted through the certification request form instead. Any other multipart part is ignored. The 200 response carries a Content-Disposition attachment header with the package filename.
+     */
+    post: operations["prepareCertificationPackage"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan/delete-cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Stop the running bulk plan delete (admin only)
+     * @description The job stops at the end of the batch it is in; what it has already deleted stays deleted. Re-running the same request carries on from where it stopped.
+     */
+    post: operations["cancelBulkPlanDelete"];
     delete?: never;
     options?: never;
     head?: never;
@@ -194,10 +228,10 @@ export interface paths {
       cookie?: never;
     };
     /** Get all the images for a test */
-    get: operations["getAllImages"];
+    get: operations["listTestImages"];
     put?: never;
     /** Upload image for a test log */
-    post: operations["uploadImageToNewLogEntry"];
+    post: operations["uploadTestImage"];
     delete?: never;
     options?: never;
     head?: never;
@@ -214,7 +248,7 @@ export interface paths {
     get?: never;
     put?: never;
     /** Upload the image to existing log entry */
-    post: operations["uploadImageToExistingLogEntry"];
+    post: operations["uploadTestImageToPlaceholder"];
     delete?: never;
     options?: never;
     head?: never;
@@ -232,9 +266,9 @@ export interface paths {
     put?: never;
     /**
      * Get private link to share test information
-     * @description Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).
+     * @description The returned token can be used directly as 'Authorization: Bearer <token>' on the read-only endpoints GET /api/plan/{id}, GET /api/info/{id}, GET /api/log/{id} and GET /api/currentuser.
      */
-    post: operations["shareLink_1"];
+    post: operations["shareTest"];
     delete?: never;
     options?: never;
     head?: never;
@@ -251,7 +285,45 @@ export interface paths {
     get?: never;
     put?: never;
     /** Publish a test information */
-    post: operations["publishTestInfo"];
+    post: operations["publishTest"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/favorite-plans": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get the favorited test plans of the current user */
+    get: operations["listFavoritePlans"];
+    put?: never;
+    /** Add a test plan to the current user's favorites */
+    post: operations["addFavoritePlan"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/mdoc-iaca-root.pem": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the certificate used for mdoc signing and verification
+     * @description Returns the IACA root certificate used for mdoc signing and verification
+     */
+    get: operations["mdocIacaRootCert"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -265,7 +337,11 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get: operations["getJwkSet"];
+    /**
+     * Get the public keys used to sign exported logs
+     * @description The JWKS published at this root /jwks endpoint contains only the keys the suite uses to sign downloaded/exported test logs and certification packages (the .sig files in the export zips) — it plays no part in any test protocol flow. Tests that need a protocol-level JWKS publish their own under the per-test /test/... URLs, and private-link share tokens are signed with a different, unpublished key. No authentication is required.
+     */
+    get: operations["getJwks"];
     put?: never;
     post?: never;
     delete?: never;
@@ -281,7 +357,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get Spec Links */
+    /**
+     * Get specification links
+     * @description Map of specification-reference prefix (as used in log entry 'requirements', e.g. 'OIDCC-') to the base URL of that specification.
+     */
     get: operations["getSpecLinks"];
     put?: never;
     post?: never;
@@ -342,7 +421,7 @@ export interface paths {
       cookie?: never;
     };
     /** Long-poll wait until the test's status is one of the requested states */
-    get: operations["waitForState"];
+    get: operations["waitForTestState"];
     put?: never;
     post?: never;
     delete?: never;
@@ -359,7 +438,7 @@ export interface paths {
       cookie?: never;
     };
     /** Get list of running testIDs */
-    get: operations["getAllRunningTestIds"];
+    get: operations["listRunningTestIds"];
     put?: never;
     post?: never;
     delete?: never;
@@ -375,7 +454,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get front-channel external URLs exposed to the [BrowserControl] for a given test */
+    /** Get the front-channel external URL state for a given test */
     get: operations["getBrowserStatus"];
     put?: never;
     post?: never;
@@ -392,8 +471,8 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get list of available TestModule names */
-    get: operations["getAvailableTests"];
+    /** Get the available test modules and their attributes */
+    get: operations["listAvailableTestModules"];
     put?: never;
     post?: never;
     delete?: never;
@@ -409,12 +488,15 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get test plan information by plan id */
+    /**
+     * Get test plan information by plan id
+     * @description Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module.
+     */
     get: operations["getTestPlan"];
     put?: never;
     post?: never;
     /** Delete a test plan and related configuration. Requires the plan to be mutable. */
-    delete: operations["deleteMutableTestPlan"];
+    delete: operations["deleteTestPlan"];
     options?: never;
     head?: never;
     patch?: never;
@@ -437,6 +519,30 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/plan/filter-options": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * The families and plan names a listing can be narrowed to
+     * @description What `GET /api/plan`'s `family` and `plan` parameters accept, so that they can be offered rather than typed. Plan names include the ones the suite no longer publishes - a listing of old plans is mostly made of those, and they are exactly what somebody clearing a database out is looking for - each marked `retired`.
+     *
+     *     Deliberately not `/api/plan/available`, which answers the same question but carries every plan's modules, variants and configuration fields with it: 680 KB against this one's few.
+     *
+     *     Readable on a public request (`?public=true`) as well as by a logged in user: this is the plan registry, the same material `/api/plan/available` already answers with on one, and holds nothing about anybody's data. Pinned by `scripts/run-security-tests.py`.
+     */
+    get: operations["getPlanFilterOptions"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/plan/exporthtml/{id}": {
     parameters: {
       query?: never;
@@ -444,8 +550,11 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Export the full results for this plan as both html and json in a zip */
-    get: operations["exportPlanAsHTML"];
+    /**
+     * Export the full results for this plan as both html and json in a zip
+     * @description The 200 response carries a Content-Disposition attachment header with filename "<planName>-<variant>-<planId>-<date>.zip".
+     */
+    get: operations["exportPlanLogsHtml"];
     put?: never;
     post?: never;
     delete?: never;
@@ -461,8 +570,48 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Export all test logs of plan by plan id */
-    get: operations["exportLogsOfPlan"];
+    /**
+     * Export all test logs of plan by plan id
+     * @description The 200 response carries a Content-Disposition attachment header with filename "<planName>-<variant>-<planId>-<date>.zip".
+     */
+    get: operations["exportPlanLogs"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan/delete-status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** How far the running (or last) bulk plan delete has got (admin only) */
+    get: operations["getBulkPlanDeleteStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan/delete-preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * How many plans a bulk delete would remove, without removing any (admin only)
+     * @description Takes the same parameters as `DELETE /api/plan` and answers what it would do: how many plans the listing shows, how many of those may be deleted, how many are kept because they are immutable or published, and the number to send back as `confirm`.
+     */
+    get: operations["previewBulkPlanDelete"];
     put?: never;
     post?: never;
     delete?: never;
@@ -479,7 +628,7 @@ export interface paths {
       cookie?: never;
     };
     /** Get a list of available test plans and their attributes */
-    get: operations["getAvailableTestPlans"];
+    get: operations["listAvailableTestPlans"];
     put?: never;
     post?: never;
     delete?: never;
@@ -499,7 +648,7 @@ export interface paths {
      * Get all test logs with paging
      * @description Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs
      */
-    get: operations["getAllTests"];
+    get: operations["listTestLogs"];
     put?: never;
     post?: never;
     delete?: never;
@@ -515,8 +664,11 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get test log of given testId */
-    get: operations["getLogResults"];
+    /**
+     * Get test log of given testId
+     * @description Returns the raw log entries sorted by time. Every entry has _id, testId, testOwner, src (the logging component, e.g. a condition class name) and time (milliseconds since the epoch); most carry msg, and common further keys include result (SUCCESS/FAILURE/WARNING/INFO/REVIEW), requirements (spec references), blockId, img/upload (screenshots) plus arbitrary condition-specific data. For a test published as 'summary' and requested with public=true, entries are restricted to result, testName, testId, src and time. An unknown test id yields an empty array, not a 404.
+     */
+    get: operations["getTestLog"];
     put?: never;
     post?: never;
     delete?: never;
@@ -532,8 +684,11 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Export test logs as html by test id */
-    get: operations["exportTestHtml"];
+    /**
+     * Export test logs as html by test id
+     * @description The 200 response carries a Content-Disposition attachment header with filename "test-log-<module>-<variant>-<id>.zip".
+     */
+    get: operations["exportTestLogHtml"];
     put?: never;
     post?: never;
     delete?: never;
@@ -549,8 +704,11 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Export test log by test id */
-    get: operations["export"];
+    /**
+     * Export test log by test id
+     * @description The 200 response carries a Content-Disposition attachment header with filename "test-log-<module>-<variant>-<id>.zip".
+     */
+    get: operations["exportTestLog"];
     put?: never;
     post?: never;
     delete?: never;
@@ -566,7 +724,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get last configuration of current user */
+    /**
+     * Get last configuration of current user
+     * @description The most recently saved configuration document: owner, config, variant, time, and either 'testName' (saved when running a standalone test) or 'planName' (saved when creating a plan).
+     */
     get: operations["getLastConfig"];
     put?: never;
     post?: never;
@@ -585,9 +746,10 @@ export interface paths {
     };
     /**
      * Get information of all test module instances
-     * @description Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to certification@oidf.org
+     * @deprecated
+     * @description This API has been disabled due to performance concerns. If you have a need for it, please email details of your use case to certification@oidf.org Always returns 400.
      */
-    get: operations["getAllTests_1"];
+    get: operations["listAllTestInfo"];
     put?: never;
     post?: never;
     delete?: never;
@@ -621,7 +783,7 @@ export interface paths {
       cookie?: never;
     };
     /** Get current user information */
-    get: operations["getCurrentUserInfo"];
+    get: operations["getCurrentUser"];
     put?: never;
     post?: never;
     delete?: never;
@@ -647,133 +809,193 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/favorite-plans/{planName}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove a test plan from the current user's favorites */
+    delete: operations["removeFavoritePlan"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    JsonArray: {
-      empty?: boolean;
-      /** Format: double */
-      asDouble?: number;
-      /** Format: int32 */
-      asInt?: number;
-      /** Format: int64 */
-      asLong?: number;
-      asBoolean?: boolean;
-      /** Format: float */
-      asFloat?: number;
-      asNumber?: number;
-      /** Format: byte */
-      asByte?: string;
-      /** @deprecated */
-      asCharacter?: string;
-      asBigDecimal?: number;
-      asBigInteger?: number;
-      /** Format: int32 */
-      asShort?: number;
-      asString?: string;
-      asJsonObject?: unknown;
-      jsonArray?: boolean;
-      jsonObject?: boolean;
-      jsonPrimitive?: boolean;
-      jsonNull?: boolean;
-      asJsonArray?: unknown;
-      asJsonPrimitive?: components["schemas"]["JsonPrimitive"];
-      asJsonNull?: components["schemas"]["JsonNull"];
+    /** @description Identity of the user that owns the resource */
+    OwnerId: {
+      /** @description Issuer of the owner's login identity */
+      iss?: string;
+      /** @description Subject of the owner's login identity */
+      sub?: string;
     };
-    JsonNull: {
-      /** Format: double */
-      asDouble?: number;
-      /** Format: int32 */
-      asInt?: number;
-      /** Format: int64 */
-      asLong?: number;
-      asBoolean?: boolean;
-      asJsonObject?: unknown;
-      jsonArray?: boolean;
-      jsonObject?: boolean;
-      jsonPrimitive?: boolean;
-      jsonNull?: boolean;
-      asJsonArray?: unknown;
-      asJsonPrimitive?: unknown;
-      /** Format: float */
-      asFloat?: number;
-      asJsonNull?: unknown;
-      asNumber?: number;
-      /** Format: byte */
-      asByte?: string;
-      /** @deprecated */
-      asCharacter?: string;
-      asBigDecimal?: number;
-      asBigInteger?: number;
-      /** Format: int32 */
-      asShort?: number;
-      asString?: string;
+    /** @description A newly created API token. This is the only response that ever contains the token value itself — store it; it cannot be retrieved again. */
+    TokenCreatedResponse: {
+      /** @description Id of the token (for listing and deletion, not for authentication) */
+      _id?: string;
+      /** @description Owner of the token */
+      owner?: components["schemas"]["OwnerId"];
+      /** @description Reserved; currently always null */
+      info?: unknown;
+      /** @description The bearer token value to use in the Authorization header */
+      token?: string;
+      /**
+       * Format: int64
+       * @description Expiry time in milliseconds since the epoch, or null for a permanent token
+       */
+      expires?: number;
     };
-    /** @description Configuration Json */
-    JsonObject: {
-      empty?: boolean;
-      /** Format: double */
-      asDouble?: number;
-      /** Format: int32 */
-      asInt?: number;
-      /** Format: int64 */
-      asLong?: number;
-      asBoolean?: boolean;
-      asJsonObject?: components["schemas"]["JsonObject"];
-      jsonArray?: boolean;
-      jsonObject?: boolean;
-      jsonPrimitive?: boolean;
-      jsonNull?: boolean;
-      asJsonArray?: components["schemas"]["JsonArray"];
-      asJsonPrimitive?: components["schemas"]["JsonPrimitive"];
-      /** Format: float */
-      asFloat?: number;
-      asJsonNull?: components["schemas"]["JsonNull"];
-      asNumber?: number;
-      /** Format: byte */
-      asByte?: string;
-      /** @deprecated */
-      asCharacter?: string;
-      asBigDecimal?: number;
-      asBigInteger?: number;
-      /** Format: int32 */
-      asShort?: number;
-      asString?: string;
+    /** @description Result of creating a test module instance */
+    TestCreatedResponse: {
+      /**
+       * @description Test module name
+       * @example oidcc-server
+       */
+      name?: string;
+      /**
+       * @description Id of the new test instance; used with /api/info/{id}, /api/runner/{id} and /api/log/{id}
+       * @example qX3wbqjcv0e6qFz
+       */
+      id?: string;
+      /** @description Base URL of this test instance's endpoints */
+      url?: string;
     };
-    JsonPrimitive: {
-      /** Format: double */
-      asDouble?: number;
-      /** Format: int32 */
-      asInt?: number;
-      /** Format: int64 */
-      asLong?: number;
-      asBoolean?: boolean;
-      boolean?: boolean;
-      string?: boolean;
-      number?: boolean;
-      /** Format: float */
-      asFloat?: number;
-      asNumber?: number;
-      /** Format: byte */
-      asByte?: string;
-      /** @deprecated */
-      asCharacter?: string;
-      asBigDecimal?: number;
-      asBigInteger?: number;
-      /** Format: int32 */
-      asShort?: number;
-      asString?: string;
-      asJsonObject?: unknown;
-      jsonArray?: boolean;
-      jsonObject?: boolean;
-      jsonPrimitive?: boolean;
-      jsonNull?: boolean;
-      asJsonArray?: unknown;
-      asJsonPrimitive?: unknown;
-      asJsonNull?: components["schemas"]["JsonNull"];
+    /** @description Error body */
+    ErrorResponse: {
+      /** @description Human-readable description of what went wrong */
+      error?: string;
     };
-    StreamingResponseBody: unknown;
+    /** @description Front-channel interaction state of a running test */
+    BrowserDetail: {
+      /** @description Whether the UI should render the URLs as QR codes (wallet tests) */
+      show_qr_code?: boolean;
+      /** @description URLs the tester (or an automated browser) still needs to visit */
+      urls?: string[];
+      /** @description As 'urls', each with the HTTP method to use */
+      urlsWithMethod?: unknown[];
+      /** @description Pending browser-API interactions, each with the request object and its submission URL */
+      browserApiRequests?: unknown[];
+      /** @description Pending requests for the tester to paste a URI, each with a submission URL and description */
+      uriInputRequests?: unknown[];
+      /** @description URLs already visited */
+      visited?: string[];
+      /** @description As 'visited', each with the HTTP method used */
+      visitedUrlsWithMethod?: unknown[];
+      /** @description State of the automated browser runners processing the URLs */
+      runners?: unknown[];
+    };
+    /** @description Live state of a running test instance. Note this does not include the test's status or result — poll GET /api/info/{id} (or /api/runner/{id}/wait-state) for those. */
+    TestStatusResponse: {
+      /** @description Test module name */
+      name?: string;
+      /** @description Id of the test instance */
+      id?: string;
+      /** @description Name-to-value strings the test exposes to the user (e.g. client_id) */
+      exposed?: {
+        [key: string]: string;
+      };
+      /** @description Owner of the test */
+      owner?: components["schemas"]["OwnerId"];
+      /** @description When the test was created, ISO-8601 */
+      created?: string;
+      /** @description When the test's status last changed, ISO-8601 */
+      updated?: string;
+      /** @description Details of the test's final error, or null when there is none */
+      error?: unknown;
+      /** @description Front-channel interaction state; absent for tests without a browser component */
+      browser?: components["schemas"]["BrowserDetail"];
+    };
+    /** @description One test module within a plan */
+    ModuleEntry: {
+      /**
+       * @description Test module name
+       * @example oidcc-server
+       */
+      testModule?: string;
+      /** @description Module-specific variant values, if any (null otherwise) */
+      variant?: {
+        [key: string]: string;
+      };
+      /** @description Ids of test instances already run for this module (empty at creation) */
+      instances?: string[];
+    };
+    /** @description Result of creating a test plan instance */
+    PlanCreatedResponse: {
+      /**
+       * @description The plan name that was requested
+       * @example oidcc-basic-certification-test-plan
+       */
+      name?: string;
+      /**
+       * @description Id of the new test plan instance
+       * @example Wt3aZAz6PYLOr
+       */
+      id?: string;
+      /** @description The test modules the plan will run, in order */
+      modules?: components["schemas"]["ModuleEntry"][];
+    };
+    /** @description A private link for sharing read-only access */
+    ShareLinkResponse: {
+      /** @description Browser URL that logs a guest in via a one-time token */
+      link?: string;
+      /** @description The JWT on its own, usable as 'Authorization: Bearer <token>' on the read-only endpoints */
+      token?: string;
+      /** @description Informational notice when the private-link signing key is not persistently configured; empty string otherwise */
+      message?: string;
+    };
+    /** @description Result of a publish request */
+    PublishResponse: {
+      /** @description Id of the published test or plan */
+      id?: string;
+      /**
+       * @description The publication state that was set
+       * @enum {string}
+       */
+      publish?: "summary" | "everything";
+    };
+    /** @description Certification package could not be prepared because tests failed or are incomplete, the plan id is unknown, or the plan has no certification profile (it is not part of the certification program). Note: a 422 can also be returned with an empty body when the plan could not be marked immutable. */
+    CertificationPackageErrorResponse: {
+      /**
+       * @description Error code
+       * @example failed_or_incomplete_tests
+       */
+      error?: string;
+      /** @description Human-readable description */
+      error_description?: string;
+      /** @description Name of the plan */
+      plan_name?: string;
+      /** @description Id of the plan instance */
+      test_plan_id?: string;
+      /** @description The plan's variant selection, as a string */
+      variant?: string;
+      /** @description Per-module details of the failing or incomplete tests, keyed by module name; absent for the no_certification_profile error */
+      failed_tests?: {
+        [key: string]: unknown;
+      };
+    };
+    /** @description The current user's favorited plan names */
+    FavoritePlansResponse: {
+      /** @description Plan names, in the order they were favorited */
+      plans?: string[];
+    };
+    /** @description An existing API token; the token value itself is never returned after creation */
+    TokenSummary: {
+      /** @description Id of the token */
+      _id?: string;
+      /**
+       * Format: int64
+       * @description Expiry time in milliseconds since the epoch, or null for a permanent token
+       */
+      expires?: number;
+    };
     StatisticsCertProfile: {
       name?: string;
       /** Format: int64 */
@@ -802,6 +1024,14 @@ export interface components {
       users?: number;
       lastSeen?: string;
     };
+    StatisticsFamilyTotals: {
+      /** Format: int64 */
+      runs?: number;
+      /** Format: int64 */
+      plans?: number;
+      /** Format: int64 */
+      certified?: number;
+    };
     StatisticsLastError: {
       message?: string;
       failedAt?: string;
@@ -821,6 +1051,7 @@ export interface components {
       periods?: string[];
       granularity?: string;
       families?: string[];
+      syntheticFamilies?: string[];
       resultBuckets?: string[];
       testRunsByFamily?: {
         [key: string]: number[];
@@ -835,6 +1066,9 @@ export interface components {
       };
       certifiedByFamily?: {
         [key: string]: number[];
+      };
+      familyTotals?: {
+        [key: string]: components["schemas"]["StatisticsFamilyTotals"];
       };
       users?: components["schemas"]["StatisticsUsers"];
       tiles?: components["schemas"]["StatisticsTiles"];
@@ -924,20 +1158,130 @@ export interface components {
       message?: string;
       failedAt?: string;
     };
-    PaginationRequest: {
-      /** Format: int32 */
-      draw?: number;
-      /** Format: int32 */
-      start?: number;
-      /** Format: int32 */
-      length?: number;
-      search?: string;
-      order?: string;
+    /** @description The test reached one of the requested states */
+    WaitStateReached: {
+      /**
+       * @description The status the test is now in
+       * @enum {string}
+       */
+      state?:
+        | "NOT_YET_CREATED"
+        | "CREATED"
+        | "CONFIGURED"
+        | "RUNNING"
+        | "WAITING"
+        | "INTERRUPTED"
+        | "FINISHED";
     };
-    Document: {
-      empty?: boolean;
-    } & {
-      [key: string]: unknown;
+    /** @description The wait timed out before the test reached any of the requested states */
+    WaitStateTimeout: {
+      /** @description Always true */
+      timeout?: boolean;
+    };
+    /** @description Front-channel URL state for a running test (a subset of the 'browser' object returned by GET /api/runner/{id}) */
+    BrowserStatusResponse: {
+      /** @description Id of the test instance */
+      id?: string;
+      /** @description Whether the UI should render the URLs as QR codes (wallet tests) */
+      show_qr_code?: boolean;
+      /** @description URLs the tester (or an automated browser) still needs to visit */
+      urls?: string[];
+      /** @description URLs already visited */
+      visited?: string[];
+      /** @description State of the automated browser runners processing the URLs */
+      runners?: unknown[];
+    };
+    /** @description DataTables-style pagination envelope */
+    PaginationResponse: {
+      /**
+       * Format: int32
+       * @description The 'draw' value from the request, echoed back
+       */
+      draw?: number;
+      /**
+       * Format: int64
+       * @description Synthetic count, not a true total: start + length + 1 when a further page exists, otherwise start plus the number of records returned
+       */
+      recordsTotal?: number;
+      /**
+       * Format: int64
+       * @description Always the same value as recordsTotal (the suite does not compute a separate filtered count)
+       */
+      recordsFiltered?: number;
+      /** @description The page of records; the item type depends on the endpoint */
+      data?: unknown[];
+    };
+    /** @description Stored information about one test instance. When requested with public=true the same shape is returned minus the 'config' field. */
+    TestInfoResponse: {
+      /** @description Id of the test instance */
+      _id?: string;
+      /** @description Id of the test instance (same value as _id) */
+      testId?: string;
+      /**
+       * @description Test module name
+       * @example oidcc-server
+       */
+      testName?: string;
+      /** @description Selected variant values (a plain name-to-value object; a bare string for pre-variant legacy tests) */
+      variant?: {
+        [key: string]: string;
+      };
+      /**
+       * @description When the test was created, ISO-8601
+       * @example 2026-08-20T13:45:12.345Z
+       */
+      started?: string;
+      /** @description The test configuration JSON (absent when requested with public=true) */
+      config?: unknown;
+      /** @description Free-text description from the configuration, or null */
+      description?: string;
+      /** @description Alias used in the test URLs, or null */
+      alias?: string;
+      /** @description Owner of the test */
+      owner?: components["schemas"]["OwnerId"];
+      /** @description Id of the plan this test belongs to, or null for a standalone test */
+      planId?: string;
+      /**
+       * @description Current lifecycle status of the test
+       * @enum {string}
+       */
+      status?:
+        | "NOT_YET_CREATED"
+        | "CREATED"
+        | "CONFIGURED"
+        | "RUNNING"
+        | "WAITING"
+        | "INTERRUPTED"
+        | "FINISHED";
+      /** @description Conformance suite version that ran the test */
+      version?: string;
+      /** @description Summary line of the test module */
+      summary?: string;
+      /**
+       * @description Publication state: null, 'summary' or 'everything'
+       * @enum {string}
+       */
+      publish?: "summary" | "everything";
+      /**
+       * @description Current result of the test, or null if not yet known
+       * @enum {string}
+       */
+      result?: "PASSED" | "FAILED" | "WARNING" | "REVIEW" | "SKIPPED" | "UNKNOWN";
+    };
+    /** @description The currently authenticated user */
+    CurrentUserResponse: {
+      /** @description Issuer of the user's login identity */
+      iss?: string;
+      /** @description Subject of the user's login identity */
+      sub?: string;
+      /** @description String rendering of the principal map (informational only; use iss/sub) */
+      principal?: string;
+      /** @description Display name from the login provider */
+      displayName?: string;
+      /** @description Whether the user has the admin role */
+      isAdmin?: boolean;
+      /** @description True for a guest logged in via a private share link */
+      isGuest?: boolean;
     };
   };
   responses: never;
@@ -948,7 +1292,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  getAllTokens: {
+  listTokens: {
     parameters: {
       query?: never;
       header?: never;
@@ -963,8 +1307,15 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["TokenSummary"][];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -975,9 +1326,15 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
+    /** @description Pass {"permanent": true} for a token that never expires; anything else (including omitting the field) creates a token valid for 24 hours */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["JsonObject"];
+        /**
+         * @example {
+         *       "permanent": true
+         *     }
+         */
+        "application/json": Record<string, never>;
       };
     };
     responses: {
@@ -987,17 +1344,22 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["TokenCreatedResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description To create a token, you must not be an admin */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
@@ -1008,16 +1370,31 @@ export interface operations {
         test: string;
         /** @description Plan Id */
         plan?: string;
-        /** @description Kind of test variation */
+        /**
+         * @description Variant selection: a JSON object mapping variant parameter names to values; only allowed when creating a standalone test (not from a plan)
+         * @example {
+         *       "server_metadata": "discovery",
+         *       "client_registration": "dynamic_client"
+         *     }
+         */
         variant?: string;
       };
       header?: never;
       path?: never;
       cookie?: never;
     };
+    /** @description The test configuration JSON; required when creating a standalone test, must be omitted when creating from a plan */
     requestBody?: {
       content: {
-        "application/json": components["schemas"]["JsonObject"];
+        /**
+         * @example {
+         *       "alias": "example",
+         *       "server": {
+         *         "discoveryUrl": "https://as.example.com/.well-known/openid-configuration"
+         *       }
+         *     }
+         */
+        "application/json": Record<string, never>;
       };
     };
     responses: {
@@ -1027,9 +1404,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: string;
-          };
+          "application/json": components["schemas"]["TestCreatedResponse"];
         };
       };
       /** @description You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module */
@@ -1037,33 +1412,28 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: string;
-          };
+        content?: never;
+      };
+      /** @description The plan is immutable, so new tests cannot be created in it (note this condition uses 401) / Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
         };
+        content?: never;
       };
       /** @description Insufficient permissions to create test */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: string;
-          };
-        };
+        content?: never;
       };
       /** @description Couldn't find configuration of plan Id you provided */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: string;
-          };
-        };
+        content?: never;
       };
       /** @description There was a failure in creating the test alias */
       409: {
@@ -1071,20 +1441,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: string;
-          };
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Created test failed */
+      /** @description Test creation failed */
       500: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: string;
-          };
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
@@ -1107,21 +1473,22 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["TestStatusResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description The test you were trying to retrieve is not found */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
-        };
+        content?: never;
       };
     };
   };
@@ -1143,17 +1510,22 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["TestStatusResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description The test you were trying to run is not found */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
@@ -1169,23 +1541,28 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Cancelled test successfully */
+      /** @description Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background) */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["TestStatusResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description The test you were trying to cancel is not found */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
@@ -1209,42 +1586,61 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": string;
+        content?: never;
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
         };
+        content?: never;
       };
       /** @description The test you were trying to retrieve is not found */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": string;
-        };
+        content?: never;
       };
       /** @description Couldn't find Browser information */
       503: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": string;
-        };
+        content?: never;
       };
     };
   };
-  getTestPlansForCurrentUser: {
+  listTestPlans: {
     parameters: {
-      query: {
+      query?: {
         /** @description Published data only */
         public?: boolean;
-        page: components["schemas"]["PaginationRequest"];
+        /** @description DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests */
+        draw?: number;
+        /** @description 0-based index of the first record to return */
+        start?: number;
+        /** @description Page size; 0 (or unset) means 10, values above 1000 are rejected */
+        length?: number;
+        /** @description Free-text search term, matched with a MongoDB text search */
+        search?: string;
+        /**
+         * @description Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.
+         * @example started,desc
+         */
+        order?: string;
         /** @description Only list plans of this spec family, as named on the statistics page. */
         family?: string;
         /** @description Only list plans with this exact plan name. */
         plan?: string;
         /** @description Only list plans certified against this certification profile; a plan matches if any one of its profiles is exactly this. */
         cert?: string;
+        /** @description Only list plans belonging to this user, by the `sub` of their account. Has to be sent with `owner_iss`, since a `sub` names an account only within the issuer that minted it. Narrows the listing and can never widen it: anyone but an admin still sees only their own plans, so naming another owner lists nothing. */
+        owner?: string;
+        /** @description The issuer that minted the `owner` sub, as the account was logged in with. */
+        owner_iss?: string;
+        /** @description Only list plans a certification package has been downloaded for (`true`), or only those it has not (`false`). Omit for both. */
+        immutable?: boolean;
         /** @description Only list plans started at or after this point in time; a date (`YYYY-MM-DD`, covering the whole of that day) or a timestamp with a time zone. */
         from?: string;
         /** @description Only list plans started before this point in time, exclusive, in the same format as `from`, so that the bounds of adjacent periods can be passed straight through. */
@@ -1256,13 +1652,13 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Retrieved successfully */
+      /** @description Retrieved successfully; 'data' contains test plan documents (the public projection when public=true) */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["PaginationResponse"];
         };
       };
       /** @description A filter parameter could not be used */
@@ -1271,8 +1667,15 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["ErrorResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -1281,16 +1684,31 @@ export interface operations {
       query: {
         /** @description Plan name */
         planName: string;
-        /** @description Kind of test variation */
+        /**
+         * @description Variant selection: a JSON object mapping variant parameter names to values
+         * @example {
+         *       "server_metadata": "discovery",
+         *       "client_registration": "dynamic_client"
+         *     }
+         */
         variant?: string;
       };
       header?: never;
       path?: never;
       cookie?: never;
     };
+    /** @description The test configuration JSON; may include 'description', 'alias' and 'publish' fields alongside the server/client configuration */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["JsonObject"];
+        /**
+         * @example {
+         *       "alias": "example",
+         *       "server": {
+         *         "discoveryUrl": "https://as.example.com/.well-known/openid-configuration"
+         *       }
+         *     }
+         */
+        "application/json": Record<string, never>;
       };
     };
     responses: {
@@ -1300,32 +1718,31 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["PlanCreatedResponse"];
         };
       };
-      /** @description Unknown variant parameter(s) for the plan */
+      /** @description Unknown variant parameter(s), invalid alias, or no applicable test modules for the variant */
       400: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["ErrorResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Insufficient permissions to create test plan */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
-        };
+        content?: never;
       };
       /** @description Couldn't find test plan for provided plan name */
       404: {
@@ -1333,17 +1750,77 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  shareLink: {
+  bulkDeleteTestPlans: {
+    parameters: {
+      query?: {
+        /** @description Delete at most this many plans, oldest first. Omit to delete all of them. */
+        limit?: number;
+        /** @description The number of plans this will delete, as a check that it is what was seen */
+        confirm?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Deleting has started; poll /api/plan/delete-status */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description No filter was sent, a parameter could not be used, or `confirm` is not what would be deleted */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be an admin to delete plans in bulk */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description A bulk delete is already running */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+    };
+  };
+  shareTestPlan: {
     parameters: {
       query: {
-        /** @description Link expiry days */
+        /**
+         * @description Number of days until the link expires
+         * @example 30
+         */
         exp: string;
       };
       header?: never;
@@ -1361,26 +1838,29 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "application/json": components["schemas"]["ShareLinkResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Insufficient permissions to share plan */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": Record<string, never>;
-        };
+        content?: never;
       };
       /** @description Couldn't find test plan for provided plan Id */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
@@ -1389,14 +1869,20 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Id of test plan that you want publish */
+        /** @description Id of the test plan to publish */
         id: string;
       };
       cookie?: never;
     };
+    /** @description Object with a 'publish' field: 'summary' or 'everything' */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["JsonObject"];
+        /**
+         * @example {
+         *       "publish": "summary"
+         *     }
+         */
+        "application/json": Record<string, never>;
       };
     };
     responses: {
@@ -1406,7 +1892,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["PublishResponse"];
         };
       };
       /** @description 'publish' field is missing or its value is not JsonPrimitive */
@@ -1414,18 +1900,21 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
+        content?: never;
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
         };
+        content?: never;
       };
       /** @description 'publish' value is not valid or couldn't find test plan by provided plan Id */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
@@ -1434,7 +1923,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Id of test plan that you want make mutable again */
+        /** @description Id of the test plan to make mutable again */
         id: string;
       };
       cookie?: never;
@@ -1446,31 +1935,25 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "text/html": Record<string, never>;
-        };
+        content?: never;
       };
-      /** @description Could not find plan */
-      400: {
+      /** @description Missing or invalid bearer token / login session */
+      401: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "text/html": Record<string, never>;
-        };
+        content?: never;
       };
-      /** @description Not authorized */
+      /** @description Not authorized, or the plan could not be found */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "text/html": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  prepareCertificationPackageForTestPlan: {
+  prepareCertificationPackage: {
     parameters: {
       query?: never;
       header?: never;
@@ -1498,44 +1981,76 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
+          "application/zip": string;
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Could not publish plan */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
+        content?: never;
       };
-      /** @description Could not find a plan with the given id */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
-      };
-      /** @description Could not mark the plan as immutable */
+      /** @description Tests failed/incomplete, plan id unknown, or the plan has no certification profile (JSON body), or the plan could not be marked immutable (empty body) */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
+          "application/json": components["schemas"]["CertificationPackageErrorResponse"];
         };
       };
     };
   };
-  getAllImages: {
+  cancelBulkPlanDelete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Asked it to stop */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be an admin */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+    };
+  };
+  listTestImages: {
     parameters: {
       query?: never;
       header?: never;
       path: {
-        /** @description ID of test */
+        /** @description Id of test */
         id: string;
       };
       cookie?: never;
@@ -1551,18 +2066,23 @@ export interface operations {
           "application/json": Record<string, never>;
         };
       };
-      /** @description In order to upload an image, You must be admin or test owner */
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be admin or test owner to list a test's images */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  uploadImageToNewLogEntry: {
+  uploadTestImage: {
     parameters: {
       query?: {
         /** @description Description for image */
@@ -1575,19 +2095,22 @@ export interface operations {
       };
       cookie?: never;
     };
+    /** @description The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test */
     requestBody: {
       content: {
+        /** @example data:image/png;base64,iVBORw0KGgo... */
+        "text/plain": unknown;
         "application/json": string;
       };
     };
     responses: {
-      /** @description Uploaded image successfully */
+      /** @description Uploaded image successfully; returns the new log entry */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "application/json": Record<string, never>;
         };
       };
       /** @description Image validation failure */
@@ -1596,45 +2119,53 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "text/plain": string;
         };
       };
-      /** @description In order to upload an image, You must be admin or test owner */
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be admin or test owner to upload an image */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  uploadImageToExistingLogEntry: {
+  uploadTestImageToPlaceholder: {
     parameters: {
       query?: never;
       header?: never;
       path: {
         /** @description Id of test */
         id: string;
-        /** @description Placeholder which created when the test run */
+        /** @description Id of the image placeholder created while the test ran */
         placeholder: string;
       };
       cookie?: never;
     };
+    /** @description The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test */
     requestBody: {
       content: {
+        /** @example data:image/png;base64,iVBORw0KGgo... */
+        "text/plain": unknown;
         "application/json": string;
       };
     };
     responses: {
-      /** @description Uploaded image successfully */
+      /** @description Uploaded image successfully; returns the updated log entry (empty if no matching unfilled placeholder exists) */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "application/json": Record<string, never>;
         };
       };
       /** @description Image validation failure */
@@ -1643,29 +2174,37 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "text/plain": string;
         };
       };
-      /** @description In order to upload an image, You must be admin or test owner */
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be admin or test owner to upload an image */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  shareLink_1: {
+  shareTest: {
     parameters: {
       query: {
-        /** @description Link expiry days */
+        /**
+         * @description Number of days until the link expires
+         * @example 30
+         */
         exp: string;
       };
       header?: never;
       path: {
-        /** @description Id of test that you want to publish */
+        /** @description Id of the test to share */
         testId: string;
       };
       cookie?: never;
@@ -1678,21 +2217,33 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "application/json": components["schemas"]["ShareLinkResponse"];
         };
       };
-      /** @description Couldn't find test plan for provided plan Id */
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not permitted for private-link (guest) users */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Couldn't find the test (or its plan) for the provided test id */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  publishTestInfo: {
+  publishTest: {
     parameters: {
       query?: never;
       header?: never;
@@ -1702,9 +2253,15 @@ export interface operations {
       };
       cookie?: never;
     };
+    /** @description Object with a 'publish' field: 'summary' or 'everything' */
     requestBody: {
       content: {
-        "application/json": components["schemas"]["JsonObject"];
+        /**
+         * @example {
+         *       "publish": "summary"
+         *     }
+         */
+        "application/json": Record<string, never>;
       };
     };
     responses: {
@@ -1714,7 +2271,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["PublishResponse"];
         };
       };
       /** @description 'publish' field is missing or its value is not JsonPrimitive */
@@ -1722,22 +2279,25 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
+        content?: never;
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
         };
+        content?: never;
       };
       /** @description 'publish' value is not valid */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  getJwkSet: {
+  listFavoritePlans: {
     parameters: {
       query?: never;
       header?: never;
@@ -1746,7 +2306,100 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description OK */
+      /** @description Retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FavoritePlansResponse"];
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  addFavoritePlan: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description An object containing the plan name to favorite */
+    requestBody: {
+      content: {
+        /**
+         * @example {
+         *       "plan": "oidcc-basic-certification-test-plan"
+         *     }
+         */
+        "application/json": Record<string, never>;
+      };
+    };
+    responses: {
+      /** @description Added successfully (idempotent) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FavoritePlansResponse"];
+        };
+      };
+      /** @description Missing or invalid plan name, or the per-user favorites limit is reached */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  mdocIacaRootCert: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The IACA root certificate */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getJwks: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The JWK Set (public keys only) */
       200: {
         headers: {
           [name: string]: unknown;
@@ -1772,10 +2425,15 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: string;
-          };
+          "application/json": Record<string, never>;
         };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -1830,6 +2488,13 @@ export interface operations {
           "application/json": components["schemas"]["StatisticsInvalid"];
         };
       };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description You must be an admin to view statistics */
       403: {
         headers: {
@@ -1866,9 +2531,16 @@ export interface operations {
           "application/json": Record<string, never>;
         };
       };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
-  waitForState: {
+  waitForTestState: {
     parameters: {
       query?: {
         /** @description Comma-separated states to stop on; the call returns once the test's status is one of them */
@@ -1885,16 +2557,23 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Status reached one of the requested states, or timeout fired */
+      /** @description Status reached one of the requested states ({"state": ...}), or the timeout fired ({"timeout": true}) */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json":
+            | components["schemas"]["WaitStateReached"]
+            | components["schemas"]["WaitStateTimeout"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description The test is unknown or you are not authorized */
       404: {
@@ -1902,14 +2581,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  getAllRunningTestIds: {
+  listRunningTestIds: {
     parameters: {
       query?: never;
       header?: never;
@@ -1926,6 +2603,13 @@ export interface operations {
         content: {
           "application/json": string[];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -1947,36 +2631,33 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["BrowserStatusResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description The test you were trying to retrieve is not found */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
-        };
+        content?: never;
       };
       /** @description Couldn't find Browser information */
       503: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
-        };
+        content?: never;
       };
     };
   };
-  getAvailableTests: {
+  listAvailableTestModules: {
     parameters: {
       query?: never;
       header?: never;
@@ -1991,8 +2672,15 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": unknown[];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2020,18 +2708,23 @@ export interface operations {
           "application/json": Record<string, never>;
         };
       };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Couldn't find test plan for provided plan Id */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  deleteMutableTestPlan: {
+  deleteTestPlan: {
     parameters: {
       query?: never;
       header?: never;
@@ -2048,36 +2741,35 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": components["schemas"]["StreamingResponseBody"];
+        content?: never;
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
         };
+        content?: never;
       };
       /** @description Insufficient permissions to delete test plan */
       403: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": components["schemas"]["StreamingResponseBody"];
-        };
+        content?: never;
       };
       /** @description Could not find a plan with the given id, belonging to the user */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": components["schemas"]["StreamingResponseBody"];
-        };
+        content?: never;
       };
       /** @description The plan is immutable and cannot be deleted */
       405: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": components["schemas"]["StreamingResponseBody"];
-        };
+        content?: never;
       };
     };
   };
@@ -2086,7 +2778,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Plan name, use to identify a specific TestPlan */
+        /** @description Plan name, used to identify a specific test plan */
         planName: string;
       };
       cookie?: never;
@@ -2099,91 +2791,26 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "application/json": Record<string, never>;
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Couldn't find test plan for provided plan name */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "*/*": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  exportPlanAsHTML: {
-    parameters: {
-      query?: {
-        /** @description Published data only */
-        public?: boolean;
-      };
-      header?: never;
-      path: {
-        /** @description Id of plan */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Exported successfully */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
-      };
-      /** @description Couldn't find given plan Id */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
-      };
-    };
-  };
-  exportLogsOfPlan: {
-    parameters: {
-      query?: {
-        /** @description Published data only */
-        public?: boolean;
-      };
-      header?: never;
-      path: {
-        /** @description Id of plan */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Exported successfully */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
-      };
-      /** @description Couldn't find given plan Id */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
-      };
-    };
-  };
-  getAvailableTestPlans: {
+  getPlanFilterOptions: {
     parameters: {
       query?: never;
       header?: never;
@@ -2198,17 +2825,139 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "*/*": Record<string, never>;
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  exportPlanLogsHtml: {
+    parameters: {
+      query?: {
+        /** @description Published data only */
+        public?: boolean;
+      };
+      header?: never;
+      path: {
+        /** @description Id of plan */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Exported successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": string;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Couldn't find given plan Id */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  exportPlanLogs: {
+    parameters: {
+      query?: {
+        /** @description Published data only */
+        public?: boolean;
+      };
+      header?: never;
+      path: {
+        /** @description Id of plan */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Exported successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": string;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Couldn't find given plan Id */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getBulkPlanDeleteStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be an admin */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
         };
       };
     };
   };
-  getAllTests: {
+  previewBulkPlanDelete: {
     parameters: {
-      query: {
-        /** @description Published data only */
-        public?: boolean;
-        page: components["schemas"]["PaginationRequest"];
+      query?: {
+        /** @description Delete at most this many plans, oldest first */
+        limit?: number;
       };
       header?: never;
       path?: never;
@@ -2225,12 +2974,107 @@ export interface operations {
           "application/json": Record<string, never>;
         };
       };
+      /** @description A filter parameter could not be used */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description You must be an admin */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
     };
   };
-  getLogResults: {
+  listAvailableTestPlans: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown[];
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listTestLogs: {
     parameters: {
       query?: {
-        /** @description Since when test created */
+        /** @description Published data only */
+        public?: boolean;
+        /** @description DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests */
+        draw?: number;
+        /** @description 0-based index of the first record to return */
+        start?: number;
+        /** @description Page size; 0 (or unset) means 10, values above 1000 are rejected */
+        length?: number;
+        /** @description Free-text search term, matched with a MongoDB text search */
+        search?: string;
+        /**
+         * @description Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.
+         * @example started,desc
+         */
+        order?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Retrieved successfully; note 'data' contains per-test information documents (as GET /api/info/{id}), not log entries */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginationResponse"];
+        };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getTestLog: {
+    parameters: {
+      query?: {
+        /** @description Only return log entries with 'time' greater than this value (milliseconds since the epoch); allows incremental fetching */
         since?: number;
         /** @description Published data only */
         public?: boolean;
@@ -2250,12 +3094,19 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Document"][];
+          "application/json": unknown[];
         };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
-  exportTestHtml: {
+  exportTestLogHtml: {
     parameters: {
       query?: {
         /** @description Published data only */
@@ -2276,21 +3127,26 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
+          "application/zip": string;
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Couldn't find given test Id */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
+        content?: never;
       };
     };
   };
-  export: {
+  exportTestLog: {
     parameters: {
       query?: {
         /** @description Published data only */
@@ -2311,17 +3167,22 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
+          "application/zip": string;
         };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Couldn't find given test Id */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/zip": components["schemas"]["StreamingResponseBody"];
-        };
+        content?: never;
       };
     };
   };
@@ -2334,7 +3195,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Retrieved successfully */
+      /** @description Retrieved successfully; an empty JSON object when the user has no saved configuration */
       200: {
         headers: {
           [name: string]: unknown;
@@ -2343,9 +3204,16 @@ export interface operations {
           "application/json": Record<string, never>;
         };
       };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
-  getAllTests_1: {
+  listAllTestInfo: {
     parameters: {
       query?: never;
       header?: never;
@@ -2354,14 +3222,21 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Retrieved successfully */
-      200: {
+      /** @description Always returned: the API is disabled */
+      400: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": string;
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2386,21 +3261,26 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["TestInfoResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Couldn't find test information for provided testId */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
-        };
+        content?: never;
       };
     };
   };
-  getCurrentUserInfo: {
+  getCurrentUser: {
     parameters: {
       query?: never;
       header?: never;
@@ -2415,8 +3295,15 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": Record<string, never>;
+          "application/json": components["schemas"]["CurrentUserResponse"];
         };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2437,18 +3324,51 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
+        content?: never;
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
         };
+        content?: never;
       };
       /** @description Couldn't find provided token Id */
       404: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          "application/json": Record<string, never>;
+        content?: never;
+      };
+    };
+  };
+  removeFavoritePlan: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Name of the test plan to remove from favorites */
+        planName: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Removed successfully (no-op if not favorited) */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["FavoritePlansResponse"];
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

@@ -39,13 +39,9 @@ import {
  * `variant.<name>` is a 400 — enough for the no-match state, the 400 alert and
  * the cascade to be driven end to end. It deliberately does not clip the axis
  * to `from` (see the fixture's header: Playwright runs on the real clock), so
- * a range preset is asserted on its request, not on a row count.
- *
- * The page also makes a second, deliberately unfiltered request on load — the
- * baseline the family colours and the family select come from. It is the only
- * one with an empty query string, which is how the routes below tell them
- * apart, and it is skipped entirely when the view IS the baseline (All time,
- * no filters).
+ * a range preset is asserted on its request, not on a row count. The family
+ * colours and the family select's options come from the all-time
+ * `familyTotals` every payload carries, so a view is exactly one request.
  *
  * Chart.js is NOT stubbed: `<cts-chart>` lazily injects
  * `/vendor/chart.js/chart.umd.js`, which the e2e static server serves for real,
@@ -104,40 +100,33 @@ const CHART_TESTIDS = [
 
 /**
  * Register the statistics endpoint with a per-call responder and record what
- * was asked for. The recorded strings are URL *search* parts (`""` for the
- * baseline request, `"?granularity=month&from=2025-09"` for a real one), and
- * the count of the non-baseline ones doubles as the poll counter.
+ * was asked for. The recorded strings are URL *search* parts
+ * (`"?granularity=month&from=2025-09"`), and their count doubles as the poll
+ * counter.
  *
  * Responders are module-scope functions rather than inline closures so the
  * `if`s they need stay out of test bodies (`playwright/no-conditional-in-test`).
- * Both default to {@link respondSliced}, which answers the request the way the
+ * The default is {@link respondSliced}, which answers the request the way the
  * endpoint would, so only a spec about the *state machine* (202, refresh, 500,
  * 403) has to name one.
  *
  * @param {import('@playwright/test').Page} page
  * @param {object} [options]
  * @param {(callIndex: number, url: URL) => StatsRouteResponse} [options.respond]
- *   - Called with the 1-based number of the FILTERED request and the parsed
- *   request URL.
- * @param {(callIndex: number, url: URL) => StatsRouteResponse} [options.respondBaseline]
- *   - Answers the unfiltered baseline request.
+ *   - Called with the 1-based request number and the parsed request URL.
  * @returns {Promise<Array<string>>} Search strings, in request order; grows as
  *   the page polls.
  */
 async function setupStatisticsRoute(page, options = {}) {
   const respond = options.respond || respondSliced;
-  const respondBaseline = options.respondBaseline || respondSliced;
   /** @type {Array<string>} */
   const searches = [];
   let calls = 0;
   await page.route(ENDPOINT_GLOB, (route) => {
     const url = new URL(route.request().url());
     searches.push(url.search);
-    // The baseline is a fixed extra request, so it must not move the counter
-    // the per-call responders are driven by.
-    const baseline = url.search === "";
-    calls += baseline ? 0 : 1;
-    const response = baseline ? respondBaseline(calls, url) : respond(calls, url);
+    calls += 1;
+    const response = respond(calls, url);
     if (response.body === undefined) {
       // 403 is documented as having no body at all.
       return route.fulfill({ status: response.status, body: "" });
@@ -150,16 +139,6 @@ async function setupStatisticsRoute(page, options = {}) {
     });
   });
   return searches;
-}
-
-/**
- * The queries of the filtered requests — everything the page asked for on
- * behalf of a control, with the load-time baseline left out.
- * @param {Array<string>} searches - The recorded search strings.
- * @returns {Array<string>} The non-empty ones, in request order.
- */
-function filtered(searches) {
-  return searches.filter((search) => search !== "");
 }
 
 /** @returns {StatsRouteResponse} A settled snapshot, every time. */
@@ -201,11 +180,6 @@ function respondManyCertProfiles(callIndex, url) {
     })),
   };
   return { status: 200, body };
-}
-
-/** @returns {StatsRouteResponse} No snapshot to serve, every time. */
-function respondFailed() {
-  return { status: 500, body: MOCK_STATS_ERROR };
 }
 
 /**
@@ -524,7 +498,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     const tiles = page.locator('[data-testid="stats-tiles"] .cts-stats-tile');
     await expect(tiles).toHaveCount(10, { timeout: POLL_TIMEOUT });
     await expect(loading).toHaveCount(0);
-    expect(filtered(searches).length).toBeGreaterThanOrEqual(3);
+    expect(searches.length).toBeGreaterThanOrEqual(3);
 
     // Ten tiles, exact grouped figures from the fixture.
     for (const [key, value] of Object.entries(READY_TILE_TEXT)) {
@@ -591,11 +565,9 @@ test.describe("statistics.html — admin usage dashboard", () => {
     // A `?refresh=true` on load would make every page view kick off a
     // multi-minute whole-collection aggregation.
     expect(searches.every((search) => !search.includes("refresh"))).toBe(true);
-    // Exactly two requests: the unfiltered baseline and the view itself...
-    expect(searches).toHaveLength(2);
-    expect(searches).toContain("");
-    // ...and the view's one carries the default range, resolved to a period key.
-    expect(filtered(searches)[0]).toMatch(/^\?granularity=month&from=\d{4}-\d{2}$/);
+    // Exactly one request, carrying the default range resolved to a period key.
+    expect(searches).toHaveLength(1);
+    expect(searches[0]).toMatch(/^\?granularity=month&from=\d{4}-\d{2}$/);
     // ...and a settled snapshot (refreshing: false) must not be polled at all.
     await expect(page).toHaveURL(/\?range=12m$/);
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveAttribute(
@@ -648,10 +620,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     page,
   }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, {
-      respond: respondForbidden,
-      respondBaseline: respondForbidden,
-    });
+    const searches = await setupStatisticsRoute(page, { respond: respondForbidden });
     await setupCommonRoutes(page, { user: MOCK_USER });
 
     await page.goto("/statistics.html");
@@ -666,9 +635,8 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(page.locator('[data-testid="stats-tiles"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
     await expect(page.locator("canvas")).toHaveCount(0);
-    // ...and a forbidden response is terminal: the page must not poll it. Only
-    // the baseline and the view itself were ever asked for.
-    expect(searches).toHaveLength(2);
+    // ...and a forbidden response is terminal: the page must not poll it.
+    expect(searches).toHaveLength(1);
 
     // The navbar hides the link from non-admins (belt and braces — the 403 is
     // the authoritative check, the link is just discoverability).
@@ -691,7 +659,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("a database with no runs shows the empty state and zeroed tiles", async ({ page }) => {
     await setupFailFast(page);
-    await setupStatisticsRoute(page, { respond: respondEmpty, respondBaseline: respondEmpty });
+    await setupStatisticsRoute(page, { respond: respondEmpty });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -722,10 +690,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
   test("a 500 shows the server's message and Retry re-requests the snapshot", async ({ page }) => {
     await setupFailFast(page);
-    const searches = await setupStatisticsRoute(page, {
-      respond: respondErrorThenReady,
-      respondBaseline: respondFailed,
-    });
+    const searches = await setupStatisticsRoute(page, { respond: respondErrorThenReady });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");
@@ -737,13 +702,13 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(alert).toContainText("MongoSocketReadException");
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
     // The failure is terminal until the admin acts: no background polling.
-    expect(filtered(searches)).toHaveLength(1);
+    expect(searches).toHaveLength(1);
 
     await page.locator('[data-testid="stats-retry"] button').click();
 
-    await expect.poll(() => filtered(searches).length, { timeout: POLL_TIMEOUT }).toBe(2);
+    await expect.poll(() => searches.length, { timeout: POLL_TIMEOUT }).toBe(2);
     // Retry re-requests the snapshot; it must not force a recompute.
-    expect(filtered(searches)[1]).not.toContain("refresh");
+    expect(searches[1]).not.toContain("refresh");
     await expectChartsPainted(page);
     await expect(alert).toHaveCount(0);
     await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(10);
@@ -761,11 +726,11 @@ test.describe("statistics.html — admin usage dashboard", () => {
     const planSelect = page.locator('[data-testid="stats-plan"]');
     const variantSelect = page.locator('[data-testid="stats-variant-client_auth_type"]');
     const certSelect = page.locator('[data-testid="stats-cert"]');
-    const last = () => filtered(searches).at(-1);
+    const last = () => searches.at(-1);
 
     // Only families that have ever run are offered — "Shared Signals
     // Framework" never did, so it is not in the list. The options come from
-    // the unfiltered baseline, so no filter can take them away.
+    // the payload's all-time familyTotals, so no filter can take them away.
     await expect(familySelect).toHaveAttribute("aria-label", "Spec family");
     await expect(familySelect.locator("option")).toHaveCount(11);
     await expect(familySelect.locator("option").first()).toHaveText("All families");
@@ -916,7 +881,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     // The very first request already carries what the link asked for — the
     // page must not render an unfiltered view and then correct itself.
-    expect(filtered(searches)[0]).toMatch(
+    expect(searches[0]).toMatch(
       /^\?granularity=month&from=\d{4}-\d{2}&family=OID4VP&plan=oid4vp-1final-verifier-test-plan&variant\.fapi_profile=plain_fapi$/,
     );
     await expect(
@@ -935,7 +900,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     // is a weekly request, and the preset strip says which one is on.
     await page.goto("/statistics.html?range=26w&family=FAPI2+Security+Profile");
     await expectChartsPainted(page);
-    expect(filtered(searches).at(-1)).toBe(
+    expect(searches.at(-1)).toBe(
       `?granularity=week&from=${weeksBack(25)}&family=FAPI2+Security+Profile`,
     );
     await expect(
@@ -954,12 +919,11 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     await page.goto("/statistics.html");
     await expectChartsPainted(page);
-    const last = () => filtered(searches).at(-1);
+    const last = () => searches.at(-1);
 
-    // The default view is two requests and no more: the unfiltered baseline
-    // (the colour slots and the family options) and the twelve-month slice.
-    expect(searches).toHaveLength(2);
-    expect(searches).toContain("");
+    // The default view is one request and no more: the twelve-month slice,
+    // which carries the colour ranking and the family options itself.
+    expect(searches).toHaveLength(1);
     expect(last()).toBe(`?granularity=month&from=${monthsBack(11)}`);
 
     // A weekly preset is a different granularity, not a shorter range: the
@@ -996,19 +960,24 @@ test.describe("statistics.html — admin usage dashboard", () => {
     expect(searches.some((search) => search.includes("to="))).toBe(false);
   });
 
-  test("the whole-history view is its own baseline and is fetched once", async ({ page }) => {
+  test("a narrowed view is one request, and still offers every family", async ({ page }) => {
     await setupFailFast(page);
     const searches = await setupStatisticsRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
-    await page.goto("/statistics.html?range=all");
+    // A family and a range that between them zero most of the series...
+    await page.goto("/statistics.html?range=12w&family=OID4VP");
     await expectChartsPainted(page);
 
-    // Unfiltered and all-time IS the baseline, so asking for it twice would
-    // fetch the same payload twice. The empty-query request is not made.
-    expect(searches).toEqual(["?granularity=month"]);
-    // ...and the family select is still fully populated, from that one payload.
+    // ...are one request: the colour ranking and the family options ride on
+    // every payload's all-time familyTotals, so nothing else is fetched.
+    expect(searches).toHaveLength(1);
+    // The family select is fully populated from that narrowed payload,
+    // including the family that retired before the range began.
     await expect(page.locator('[data-testid="stats-family"] option')).toHaveCount(11);
+    await expect(
+      page.locator('[data-testid="stats-family"] option[value="OpenID Connect Logout"]'),
+    ).toHaveCount(1);
   });
 
   test("a filter that matches nothing says so, and one click clears it", async ({ page }) => {
@@ -1041,7 +1010,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await page.locator('[data-testid="stats-no-match-clear"] button').click();
 
     await expect
-      .poll(() => filtered(searches).at(-1), { timeout: POLL_TIMEOUT })
+      .poll(() => searches.at(-1), { timeout: POLL_TIMEOUT })
       .toBe(`?granularity=month&from=${monthsBack(11)}`);
     await expect(page).toHaveURL(/\?range=12m$/);
     await expect(noMatch).toHaveCount(0);
@@ -1070,12 +1039,12 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(page.locator('[data-testid="stats-reset-filters"]')).toHaveCount(1);
     await expect(page.locator('[data-testid="stats-retry"]')).toHaveCount(0);
     // A 400 is terminal until the admin acts: nothing is polled.
-    expect(filtered(searches)).toHaveLength(1);
+    expect(searches).toHaveLength(1);
 
     await page.locator('[data-testid="stats-reset-filters"] button').click();
 
     await expect
-      .poll(() => filtered(searches).at(-1), { timeout: POLL_TIMEOUT })
+      .poll(() => searches.at(-1), { timeout: POLL_TIMEOUT })
       .toBe(`?granularity=month&from=${monthsBack(11)}`);
     await expect(page).toHaveURL(/\?range=12m$/);
     await expect(alert).toHaveCount(0);
@@ -1323,7 +1292,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     await page.goto("/statistics.html");
     await expectChartsPainted(page);
-    const last = () => filtered(searches).at(-1);
+    const last = () => searches.at(-1);
     const rows = disclosureRows(page, "stats-modules-table");
     await expect(rows).toHaveCount(MOCK_STATS_MODULES.length);
 

@@ -45,18 +45,6 @@ const POLL_TIMEOUT = { timeout: 10000 };
 const CHART_COUNT = 5;
 
 /**
- * The page fetches one extra, deliberately unfiltered snapshot on load: it is
- * where the family colours and the family select's options come from, so that
- * no filter can repaint a family or hide the option that would widen things
- * back out. It is the only request with no query string at all.
- * @param {URL} url - The request URL.
- * @returns {boolean} True for that baseline request.
- */
-function isBaseline(url) {
-  return url.search === "";
-}
-
-/**
  * The default handler: answer every request from the fixture the way the
  * server would, applying the query. Records what was asked for.
  * @returns {any} An msw handler for the statistics endpoint.
@@ -65,38 +53,6 @@ function slicingHandler() {
   return http.get(ENDPOINT, ({ request }) => {
     const url = new URL(request.url);
     REQUESTS.push(url.search);
-    return HttpResponse.json(statisticsOverviewFor(url));
-  });
-}
-
-/** @returns {Array<string>} The query strings of the filtered (non-baseline) requests. */
-function filteredRequests() {
-  return REQUESTS.filter((search) => search !== "");
-}
-
-/**
- * The query strings the handler has ANSWERED, in the order it answered them —
- * REQUESTS records when a request was made, which says nothing about which
- * reply landed first. Reset by the story that uses it.
- * @type {Array<string>}
- */
-const ANSWERED = [];
-
-/** How far behind the view's reply the slow baseline lands. */
-const BASELINE_DELAY_MS = 600;
-
-/**
- * Answer as {@link slicingHandler} does, but hold the baseline back so the
- * narrowed view's reply arrives first — the ordering the page has no control
- * over and must not paint twice because of.
- * @returns {any} An msw handler for the statistics endpoint.
- */
-function slowBaselineHandler() {
-  return http.get(ENDPOINT, async ({ request }) => {
-    const url = new URL(request.url);
-    REQUESTS.push(url.search);
-    if (isBaseline(url)) await delay(BASELINE_DELAY_MS);
-    ANSWERED.push(url.search);
     return HttpResponse.json(statisticsOverviewFor(url));
   });
 }
@@ -305,7 +261,7 @@ export const Ready = {
     await step("the default range is sent to the server, not applied locally", async () => {
       // 12 months back from the frozen clock (2026-06-01), open-ended at the
       // top because the server's axis already ends at today.
-      expect(filteredRequests()[0]).toBe("?granularity=month&from=2025-07");
+      expect(REQUESTS[0]).toBe("?granularity=month&from=2025-07");
       // ...and the page URL says the same thing, so the view is shareable.
       expect(location.search).toBe("?range=12m");
     });
@@ -489,7 +445,7 @@ export const Weekly = {
     await step("26 weeks asks the server for weekly cells", async () => {
       await pickRange(canvasElement, "26 weeks");
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe("?granularity=week&from=2025-12-08");
+        expect(REQUESTS.at(-1)).toBe("?granularity=week&from=2025-12-08");
       }, POLL_TIMEOUT);
       expect(location.search).toBe("?range=26w");
     });
@@ -531,7 +487,7 @@ export const Weekly = {
     await step("12 weeks narrows the axis without changing granularity", async () => {
       await pickRange(canvasElement, "12 weeks");
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe("?granularity=week&from=2026-03-16");
+        expect(REQUESTS.at(-1)).toBe("?granularity=week&from=2026-03-16");
       }, POLL_TIMEOUT);
       await waitFor(() => {
         expect(chartTable(canvasElement, "stats-chart-runs").rows.length).toBe(12);
@@ -541,7 +497,7 @@ export const Weekly = {
     await step("going back to a monthly preset restores the monthly axis", async () => {
       await pickRange(canvasElement, "All time");
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe("?granularity=month");
+        expect(REQUESTS.at(-1)).toBe("?granularity=month");
       }, POLL_TIMEOUT);
       await waitFor(() => {
         expect(chartTable(canvasElement, "stats-chart-runs").headers[0]).toBe("Month");
@@ -576,7 +532,7 @@ export const FiltersCascade = {
         "FAPI2 Security Profile",
       );
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe(
+        expect(REQUESTS.at(-1)).toBe(
           "?granularity=month&from=2025-07&family=FAPI2+Security+Profile",
         );
       }, POLL_TIMEOUT);
@@ -621,7 +577,7 @@ export const FiltersCascade = {
         "fapi2-security-profile-final-test-plan",
       );
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toContain("plan=fapi2-security-profile-final-test-plan");
+        expect(REQUESTS.at(-1)).toContain("plan=fapi2-security-profile-final-test-plan");
       }, POLL_TIMEOUT);
       // The server counts dimensions under the whole query, so the payload
       // now offers this one plan only. Rendering that straight would make the
@@ -649,7 +605,7 @@ export const FiltersCascade = {
       expect(variant.options[1].textContent.trim()).toBe("private_key_jwt (88)");
       await userEvent.selectOptions(variant, "mtls");
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toContain("variant.client_auth_type=mtls");
+        expect(REQUESTS.at(-1)).toContain("variant.client_auth_type=mtls");
       }, POLL_TIMEOUT);
     });
 
@@ -659,7 +615,7 @@ export const FiltersCascade = {
         "FAPI2 Security Profile Final",
       );
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toContain("cert=FAPI2+Security+Profile+Final");
+        expect(REQUESTS.at(-1)).toContain("cert=FAPI2+Security+Profile+Final");
       }, POLL_TIMEOUT);
     });
 
@@ -678,7 +634,7 @@ export const FiltersCascade = {
       // nothing on screen to explain why.
       await userEvent.selectOptions(select(canvasElement, "stats-family"), "OID4VP");
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe("?granularity=month&from=2025-07&family=OID4VP");
+        expect(REQUESTS.at(-1)).toBe("?granularity=month&from=2025-07&family=OID4VP");
       }, POLL_TIMEOUT);
       expect(location.search).toBe("?range=12m&family=OID4VP");
       await waitFor(() => {
@@ -703,7 +659,7 @@ export const FiltersCascade = {
       const clear = canvasElement.querySelector('[data-testid="stats-clear-filters"] button');
       await userEvent.click(clear);
       await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe("?granularity=month&from=2025-07");
+        expect(REQUESTS.at(-1)).toBe("?granularity=month&from=2025-07");
       }, POLL_TIMEOUT);
       expect(location.search).toBe("?range=12m");
       await waitFor(() => {
@@ -1109,7 +1065,7 @@ export const DeepLinkedFilters = {
     await waitForCharts(canvasElement);
 
     await step("the shared filters are what the first request asks for", async () => {
-      expect(filteredRequests()[0]).toBe(
+      expect(REQUESTS[0]).toBe(
         "?granularity=month&from=2024-07&family=FAPI1+Advanced" +
           "&plan=fapi1-advanced-final-test-plan&variant.fapi_profile=openbanking_brazil",
       );
@@ -1383,83 +1339,41 @@ export const NoMatch = {
 };
 
 /**
- * The unfiltered, whole-history view IS the baseline the colours and the
- * family options come from, so it must not be fetched twice.
+ * The family colours and the family select's options come from the all-time
+ * `familyTotals` every payload carries, so a narrowed view is one request and
+ * loses nothing: no second, unfiltered request, and no repaint when the
+ * range changes.
  */
-export const WholeHistoryNeedsNoBaseline = {
+export const NarrowedViewIsOneRequest = {
   parameters: { msw: { handlers: [slicingHandler()] } },
   beforeEach() {
-    history.replaceState(null, "", "/iframe.html?range=all");
+    history.replaceState(null, "", "/iframe.html?range=12w&family=OID4VP");
     REQUESTS.length = 0;
   },
   render: () => html`<cts-statistics-page></cts-statistics-page>`,
   async play({ canvasElement, step }) {
     await waitForCharts(canvasElement);
 
-    await step("exactly one request, and no bare baseline one", async () => {
-      expect(REQUESTS).toEqual(["?granularity=month"]);
+    await step("exactly one request", async () => {
+      expect(REQUESTS).toEqual(["?granularity=week&from=2026-03-16&family=OID4VP"]);
     });
 
-    await step("the family options and the colours come from it all the same", async () => {
+    await step("the family options come from it all the same", async () => {
       expect(select(canvasElement, "stats-family").options.length).toBe(11);
-      const labels = runsChartInstance(canvasElement).data.datasets.map((d) => d.label);
-      // Seven categorical families plus the folded tail — the full history, so
-      // the family that retired early is on screen too.
-      expect(labels).toContain("OpenID Connect Logout");
-      expect(labels.at(-1)).toBe("Other");
-    });
-
-    await step("...and narrowing from here does fetch the baseline", async () => {
-      await pickRange(canvasElement, "12 months");
-      await waitFor(() => {
-        expect(filteredRequests().at(-1)).toBe("?granularity=month&from=2025-07");
-      }, POLL_TIMEOUT);
-      // It was already adopted from the first payload, so still no bare one.
-      expect(REQUESTS.filter((search) => search === "")).toHaveLength(0);
-    });
-  },
-};
-
-/**
- * The baseline is the slower of the two requests a narrowed view — the default
- * 12 months included — fires. It is what RANKS the families, and the rank is
- * the colour, so adopting the narrowed payload's own ranking first and the
- * baseline's a moment later would repaint all five charts and reorder the
- * family select in front of the reader. The first paint waits for it instead.
- */
-export const BaselineAnswersAfterTheView = {
-  parameters: { msw: { handlers: [slowBaselineHandler()] } },
-  beforeEach() {
-    ANSWERED.length = 0;
-  },
-  render: () => html`<cts-statistics-page></cts-statistics-page>`,
-  async play({ canvasElement, step }) {
-    await step("the narrowed payload does not paint on its own", async () => {
-      await waitFor(() => {
-        expect(ANSWERED).toEqual(["?granularity=month&from=2025-07"]);
-      }, POLL_TIMEOUT);
-      // Well inside the baseline's delay: without the wait the charts would
-      // be up by now, in colours the baseline is about to change.
-      await delay(BASELINE_DELAY_MS / 3);
-      expect(ANSWERED.length).toBe(1);
-      expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
-    });
-
-    await step("the first paint is already ranked from the baseline", async () => {
-      await waitForCharts(canvasElement);
-      expect(ANSWERED).toContain("");
-      // Busy in the fixture's first two months and retired since, so it is in
-      // the all-time payload only: seeing it here is the baseline's ranking.
+      // Busy in the fixture's first two months and retired since, so it is
+      // only ever in the all-time totals: seeing it here proves the options
+      // are not read off the narrowed series.
       expect(familyOptions(canvasElement)).toContain("OpenID Connect Logout");
     });
 
-    await step("and nothing is repainted or reordered afterwards", async () => {
+    await step("and widening the range repaints nothing", async () => {
       const colours = coloursByFamily(canvasElement);
-      const families = familyOptions(canvasElement);
-      expect(Object.keys(colours).length).toBeGreaterThan(1);
+      await pickRange(canvasElement, "All time");
+      await waitFor(() => {
+        expect(REQUESTS.at(-1)).toBe("?granularity=month&family=OID4VP");
+      }, POLL_TIMEOUT);
       await delay(400);
       expect(coloursByFamily(canvasElement)).toEqual(colours);
-      expect(familyOptions(canvasElement)).toEqual(families);
     });
   },
 };
@@ -1530,13 +1444,6 @@ export const PendingThenReady = {
           let calls = 0;
           return http.get(ENDPOINT, ({ request }) => {
             const url = new URL(request.url);
-            // The baseline request rides along with the real one and must not
-            // move the counter that drives this story.
-            if (isBaseline(url)) {
-              return calls <= 2
-                ? HttpResponse.json(MOCK_STATS_PENDING, { status: 202 })
-                : HttpResponse.json(statisticsOverviewFor(url));
-            }
             calls += 1;
             if (calls <= 2) {
               return HttpResponse.json(MOCK_STATS_PENDING, {
@@ -1570,12 +1477,8 @@ export const PendingThenReady = {
       expect(tiles.length).toBe(10);
     });
 
-    await step("the baseline that 202'd on load is picked up once one exists", async () => {
-      // Without it the family select would be empty and every family would
-      // wear the neutral.
-      await waitFor(() => {
-        expect(select(canvasElement, "stats-family").options.length).toBe(11);
-      }, POLL_TIMEOUT);
+    await step("and the family select is filled from that first payload", async () => {
+      expect(select(canvasElement, "stats-family").options.length).toBe(11);
     });
   },
 };
@@ -1594,7 +1497,6 @@ export const RecomputingOverSnapshot = {
           let calls = 0;
           return http.get(ENDPOINT, ({ request }) => {
             const url = new URL(request.url);
-            if (isBaseline(url)) return HttpResponse.json(statisticsOverviewFor(url));
             calls += 1;
             // 1: the snapshot. 2: the forced recompute finds no cache at all.
             // 3+: the recompute has landed.
@@ -1691,8 +1593,7 @@ export const RefreshingSnapshot = {
         plots += 1;
         return realUpdate(...args);
       };
-      // Let the load settle first: the unfiltered baseline lands a moment
-      // after the first payload and may legitimately re-colour the charts.
+      // Let the load settle first, so only the click's plots are counted.
       await delay(300);
       plots = 0;
       await userEvent.click(button);
@@ -1744,7 +1645,6 @@ export const RefreshAfterFailedRefresh = {
           let calls = 0;
           return http.get(ENDPOINT, async ({ request }) => {
             const url = new URL(request.url);
-            if (isBaseline(url)) return HttpResponse.json(statisticsOverviewFor(url));
             calls += 1;
             // 1: the snapshot. 2: the first Refresh fails. 3: the second
             // Refresh is slow, so the play can observe the interim state.
@@ -1879,7 +1779,6 @@ export const ErrorState = {
           let calls = 0;
           return http.get(ENDPOINT, ({ request }) => {
             const url = new URL(request.url);
-            if (isBaseline(url)) return HttpResponse.error();
             calls += 1;
             // 1: the endpoint is unreachable. 2: it answers, but has no
             // snapshot and could not compute one. 3: it answers 200 with a

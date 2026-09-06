@@ -46,6 +46,8 @@ import {
  * partial object have to say so with a cast.
  * @typedef {object} StatisticsData
  * @property {Array<string>} families - Every family a series may be keyed by, fixed order.
+ * @property {Array<string>} syntheticFamilies - The members of `families` that stand for
+ *   runs with no plan in the registry rather than for a spec family.
  * @property {Array<string>} resultBuckets - Result buckets, fixed order.
  * @property {Array<string>} periods - Contiguous period keys, oldest first: `YYYY-MM`
  *   months or the `YYYY-MM-DD` Mondays of ISO weeks.
@@ -54,6 +56,8 @@ import {
  * @property {Record<string, Array<number>>} plansByFamily - Family → plans per period.
  * @property {Record<string, Record<string, Array<number>>>} resultsByFamily - Family → bucket → runs per period.
  * @property {Record<string, Array<number>>} certifiedByFamily - Family → plans made immutable per period.
+ * @property {Record<string, {runs: number, plans: number, certified: number}>} familyTotals -
+ *   Family → its all-time totals, never filtered or clipped to the range.
  * @property {{activeByPeriod: Array<number>, newByPeriod: Array<number>}} users - User counts per period.
  * @property {Record<string, number>} tiles - Whole-collection counters.
  * @property {StatisticsDimensions} dimensions - What the filter selects can offer.
@@ -161,20 +165,18 @@ export const CATEGORY_COLOR_VARS = [
 export const OTHER_COLOR_VAR = "--chart-other";
 
 /**
- * The two synthetic buckets the server emits alongside the real spec
- * families (`SpecFamilyResolver.NO_PLAN` / `OTHER_RETIRED`). They are part of
- * the API contract, so the names are pinned here rather than sniffed.
+ * Whether a family is one of the synthetic buckets the server emits alongside
+ * the real spec families (`SpecFamilyResolver.SYNTHETIC_FAMILIES`): "this run
+ * had no plan in the registry", not a family. They never take a hue of their
+ * own and nothing can be drilled into from them. The payload names them, so
+ * the client never has to know what they are called.
+ * @param {StatisticsData} data - The payload.
+ * @param {string} family - A family name.
+ * @returns {boolean} True for a synthetic bucket.
  */
-export const NO_PLAN_FAMILY = "No plan";
-export const OTHER_RETIRED_FAMILY = "Other / retired";
-
-/**
- * Buckets that are excluded from the categorical ranking entirely: they are
- * "this run had no family", not a family, so they must never spend one of the
- * seven separable hues. They always wear {@link OTHER_COLOR_VAR}.
- * @type {Set<string>}
- */
-const SYNTHETIC_FAMILIES = new Set([NO_PLAN_FAMILY, OTHER_RETIRED_FAMILY]);
+export function isSyntheticFamily(data, family) {
+  return list(data && data.syntheticFamilies).includes(family);
+}
 
 /** Legend/tooltip label for the folded neutral series. */
 export const OTHER_LABEL = "Other";
@@ -516,7 +518,7 @@ const CERT_JOIN = " | ";
  */
 export function drillDownUrl(state, click, data) {
   const family = text(state && state.family) || text(click && click.family);
-  if (family === OTHER_LABEL || SYNTHETIC_FAMILIES.has(family)) return null;
+  if (family === OTHER_LABEL || isSyntheticFamily(data, family)) return null;
 
   const periods = list(data && data.periods);
   const index = Number(click && click.periodIndex);
@@ -660,29 +662,29 @@ function keepWhenFiltered(remembered, offered, selected) {
  * Real spec families are ranked by their **all-time** run totals (descending,
  * ties broken by the payload's `families` order); the top seven take
  * `--chart-cat-1..7` in rank order and the tail shares `--chart-other`. The
- * two synthetic buckets ({@link SYNTHETIC_FAMILIES}) never enter the ranking
- * at all — however busy "No plan" is, it is not a family and must not spend a
+ * synthetic buckets ({@link isSyntheticFamily}) never enter the ranking at
+ * all — however busy "No plan" is, it is not a family and must not spend a
  * hue that a real one needs.
  *
- * Callers must pass the UNFILTERED, all-time payload, never the one on
- * screen: a family's colour is an identity, so changing the range or any
- * filter must never repaint the charts — and under a filter every other
- * family is zero, which would hand slot 1 to whatever was selected.
- * `cts-statistics-page.js` fetches that baseline once on load and keeps it.
- * @param {StatisticsData} data - The unfiltered, all-time payload.
+ * The ranking is read from `familyTotals`, which every payload carries
+ * unfiltered and unclipped, never from the series on screen: a family's
+ * colour is an identity, so changing the range or any filter must never
+ * repaint the charts — and under a filter every other family is zero, which
+ * would hand slot 1 to whatever was selected.
+ * @param {StatisticsData} data - Any payload.
  * @returns {Record<string, string>} Family → CSS custom-property name.
  */
 export function assignFamilySlots(data) {
   const families = list(data && data.families);
-  const runs = (data && data.testRunsByFamily) || {};
+  const totals = (data && data.familyTotals) || {};
 
   /** @type {Record<string, string>} */
   const slots = {};
   for (const family of families) slots[family] = OTHER_COLOR_VAR;
 
   families
-    .map((family, index) => ({ family, index, runs: total(runs[family]) }))
-    .filter((entry) => !SYNTHETIC_FAMILIES.has(entry.family))
+    .map((family, index) => ({ family, index, runs: familyTotal(totals, family, "runs") }))
+    .filter((entry) => !isSyntheticFamily(data, entry.family))
     .sort((a, b) => b.runs - a.runs || a.index - b.index)
     .slice(0, CATEGORY_COLOR_VARS.length)
     .forEach((entry, rank) => {
@@ -989,21 +991,33 @@ export function hasAnyData(data) {
 /**
  * Families worth offering in the filter select: those with at least one run,
  * plan or certified plan ever — a family with plans but zero runs (e.g. every
- * plan still in progress) is still something a user might filter to. Call
- * with the same unfiltered, all-time baseline {@link assignFamilySlots} gets
- * — options that vanish when the user narrows the range or picks a plan
- * would make the control feel broken.
- * @param {StatisticsData} data - The unfiltered, all-time payload.
+ * plan still in progress) is still something a user might filter to. Read
+ * from `familyTotals`, like {@link assignFamilySlots}, rather than from the
+ * series on screen: options that vanish when the user narrows the range or
+ * picks a plan would make the control feel broken.
+ * @param {StatisticsData} data - Any payload.
  * @returns {Array<string>} Family names in the payload's order.
  */
 export function familiesWithActivity(data) {
   const families = list(data && data.families);
-  const runs = (data && data.testRunsByFamily) || {};
-  const plans = (data && data.plansByFamily) || {};
-  const certified = (data && data.certifiedByFamily) || {};
+  const totals = (data && data.familyTotals) || {};
   return families.filter(
-    (family) => total(runs[family]) > 0 || total(plans[family]) > 0 || total(certified[family]) > 0,
+    (family) =>
+      familyTotal(totals, family, "runs") > 0 ||
+      familyTotal(totals, family, "plans") > 0 ||
+      familyTotal(totals, family, "certified") > 0,
   );
+}
+
+/**
+ * @param {Record<string, any>} totals - The payload's `familyTotals`.
+ * @param {string} family - A family name.
+ * @param {"runs"|"plans"|"certified"} key - Which total.
+ * @returns {number} The total, or 0 when the payload has none for it.
+ */
+function familyTotal(totals, family, key) {
+  const entry = totals[family];
+  return entry ? Number(entry[key]) || 0 : 0;
 }
 
 // --- Distributions, storage and the activity heatmap -------------------

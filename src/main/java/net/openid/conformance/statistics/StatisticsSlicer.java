@@ -106,8 +106,9 @@ public final class StatisticsSlicer {
 			certifiedByFamily.get(family)[at] += cell.certified();
 		}
 
-		return new StatisticsOverview(periods, granularity.key(), families, RESULT_BUCKETS,
-			freeze(runsByFamily), freeze(plansByFamily), freezeBuckets(resultsByFamily), freeze(certifiedByFamily),
+		return new StatisticsOverview(periods, granularity.key(), families, SpecFamilyResolver.SYNTHETIC_FAMILIES,
+			RESULT_BUCKETS, freeze(runsByFamily), freeze(plansByFamily), freezeBuckets(resultsByFamily),
+			freeze(certifiedByFamily), cube.familyTotals(),
 			users(cube, filter, granularity, index, periods.size()), tiles(cube), cube.storage(),
 			DimensionCounter.count(cube, filter, granularity, onTheAxis),
 			HeatmapBinner.heatmap(cube.heat(), granularity, onTheAxis), ModuleRanker.rank(cube, query),

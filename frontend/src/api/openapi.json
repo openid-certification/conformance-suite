@@ -2,16 +2,12 @@
   "openapi": "3.1.0",
   "info": {
     "title": "OpenID Conformance Suite REST APIs",
-    "description": "This page lists the REST APIs for the OpenID Conformance suite. To call APIs you must supply a bearer token, which can be either: <ul>   <li>an API token obtained from the <a href='/tokens.html'>token management page</a> (full access, scoped to the token's owner), or</li>   <li>a share-link JWT issued by <code>POST /api/info/{testId}/share</code> or <code>POST /api/plan/{id}/share</code> (read-only access scoped to the shared plan and its tests).</li> </ul> There is a <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>python script that drives the API</a> available, which is used in our own CI and provides functionality like allowing known failures to be suppressed.",
-    "license": {
-      "name": "MIT License",
-      "url": "https://gitlab.com/openid/conformance-suite/-/blob/master/LICENSE.txt"
-    },
+    "description": "The REST APIs for driving the OpenID Conformance Suite. <h3>Authentication</h3> To call the APIs supply a bearer token, which can be either: <ul>   <li>an API token obtained from the <a href='/tokens.html'>token management page</a> (full access, scoped to the token's owner), or</li>   <li>a share-link JWT issued by POST /api/info/{testId}/share or POST /api/plan/{id}/share (read-only access scoped to the shared plan and its tests).</li> </ul> <h3>Typical workflow</h3> Most users want to run a test plan and collect its results: <ol>   <li>Find the plan to run, its variants and its configuration fields: GET /api/plan/available. (Tip: after creating the plan once in the <a href='/schedule-test.html'>web UI</a>, GET /api/lastconfig returns the plan name, variant selection and configuration JSON needed for the next step.)</li>   <li>Create a plan instance: POST /api/plan?planName=...&amp;variant=... with the configuration JSON. The response contains the plan id and the list of modules to run.</li>   <li>For each module, create a test instance with POST /api/runner?test={testModule}&amp;plan={planId}, then wait for it to finish with GET /api/runner/{id}/wait-state (or by polling GET /api/info/{id}). A test in the WAITING state needs interaction: GET /api/runner/{id} lists any front-channel URLs to visit.</li>   <li>Read the outcome from GET /api/info/{id} (status and result) and the detailed log from GET /api/log/{id}.</li>   <li>Download the plan's results with GET /api/plan/exporthtml/{id}, or prepare a certification package with POST /api/plan/{id}/certificationpackage.</li> </ol> The <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>run-test-plan.py script</a> implements this whole flow (it is what our own CI uses) and adds functionality like suppressing known failures; the tutorial linked below shows how to use it. <p>The <a href='/v3/api-docs'>raw OpenAPI document</a> behind this page can be fed to an OpenAPI client generator.</p>",
     "version": "5.2.4"
   },
   "externalDocs": {
-    "description": "OpenID Conformance Wiki Documentation",
-    "url": "https://gitlab.com/openid/conformance-suite/-/wikis/home"
+    "description": "Step-by-step tutorial: automated conformance testing and certification package creation",
+    "url": "https://gitlab.com/openid/conformance-suite-automated-testing-tutorial"
   },
   "servers": [
     { "url": "https://localhost.emobix.co.uk:8443", "description": "Generated server url" }
@@ -19,50 +15,76 @@
   "security": [{ "bearerAuth": [] }],
   "tags": [
     {
-      "name": "test-runner",
-      "description": "A component that starts, stops, and manages running TestModules"
-    }
+      "name": "Test Plans",
+      "description": "Create and manage test plan instances, and discover the available test plans"
+    },
+    {
+      "name": "Test Runner",
+      "description": "Create, start, monitor, and cancel running test module instances"
+    },
+    {
+      "name": "Test Information",
+      "description": "Per-test metadata: status, results, publishing and sharing"
+    },
+    {
+      "name": "Test Logs",
+      "description": "Test log entries, exports, and screenshot/image attachments"
+    },
+    { "name": "API Tokens", "description": "Manage API tokens for authenticating to this API" },
+    { "name": "User & Preferences", "description": "The current user and their saved preferences" },
+    { "name": "Server", "description": "Information about this conformance suite deployment" }
   ],
   "paths": {
     "/api/token": {
       "get": {
-        "tags": ["token-api"],
+        "tags": ["API Tokens"],
         "summary": "Get a list of existing tokens",
-        "operationId": "getAllTokens",
+        "operationId": "listTokens",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/TokenSummary" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       },
       "post": {
-        "tags": ["token-api"],
+        "tags": ["API Tokens"],
         "summary": "Create new token",
         "operationId": "createToken",
         "requestBody": {
+          "description": "Pass {\"permanent\": true} for a token that never expires; anything else (including omitting the field) creates a token valid for 24 hours",
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/JsonObject" } }
+            "application/json": { "schema": { "type": "object" }, "example": { "permanent": true } }
           },
           "required": true
         },
         "responses": {
           "201": {
             "description": "Created token successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenCreatedResponse" }
+              }
+            }
           },
-          "403": {
-            "description": "To create a token, you must not be an admin",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+          "403": { "description": "To create a token, you must not be an admin" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/runner": {
       "post": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Create test module instance",
-        "description": "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test",
+        "description": "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test. Configuration and startup run in a background task: failures there are not returned from this call — they surface as status INTERRUPTED and in the result field via GET /api/info/{id}, with details in the test log.",
         "operationId": "createTest",
         "parameters": [
           {
@@ -82,14 +104,24 @@
           {
             "name": "variant",
             "in": "query",
-            "description": "Kind of test variation",
+            "description": "Variant selection: a JSON object mapping variant parameter names to values; only allowed when creating a standalone test (not from a plan)",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": { "type": "string" },
+            "example": { "server_metadata": "discovery", "client_registration": "dynamic_client" }
           }
         ],
         "requestBody": {
+          "description": "The test configuration JSON; required when creating a standalone test, must be omitted when creating from a plan",
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/JsonObject" } }
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": {
+                "alias": "example",
+                "server": {
+                  "discoveryUrl": "https://as.example.com/.well-known/openid-configuration"
+                }
+              }
+            }
           }
         },
         "responses": {
@@ -97,48 +129,28 @@
             "description": "Created test successfully",
             "content": {
               "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
+                "schema": { "$ref": "#/components/schemas/TestCreatedResponse" }
               }
             }
           },
           "400": {
-            "description": "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module",
-            "content": {
-              "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
-              }
-            }
+            "description": "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"
           },
-          "403": {
-            "description": "Insufficient permissions to create test",
-            "content": {
-              "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
-              }
-            }
+          "401": {
+            "description": "The plan is immutable, so new tests cannot be created in it (note this condition uses 401) / Missing or invalid bearer token / login session"
           },
-          "404": {
-            "description": "Couldn't find configuration of plan Id you provided",
-            "content": {
-              "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
-              }
-            }
-          },
+          "403": { "description": "Insufficient permissions to create test" },
+          "404": { "description": "Couldn't find configuration of plan Id you provided" },
           "409": {
             "description": "There was a failure in creating the test alias",
             "content": {
-              "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
           },
           "500": {
-            "description": "Created test failed",
+            "description": "Test creation failed",
             "content": {
-              "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
           }
         }
@@ -146,7 +158,7 @@
     },
     "/api/runner/{id}": {
       "get": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Get test status, results, and exposed strings",
         "operationId": "getTestStatus",
         "parameters": [
@@ -162,20 +174,19 @@
           "200": {
             "description": "Retrieved successfully",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestStatusResponse" }
+              }
             }
           },
-          "404": {
-            "description": "The test you were trying to retrieve is not found",
-            "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
-            }
-          }
+          "404": { "description": "The test you were trying to retrieve is not found" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       },
       "post": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Start test by id",
+        "description": "The start happens in a background task: startup failures are not returned from this call — they surface via GET /api/info/{id} and the test log.",
         "operationId": "startTest",
         "parameters": [
           {
@@ -189,16 +200,18 @@
         "responses": {
           "200": {
             "description": "Started test successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestStatusResponse" }
+              }
+            }
           },
-          "404": {
-            "description": "The test you were trying to run is not found",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+          "404": { "description": "The test you were trying to run is not found" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       },
       "delete": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Cancel test by Id",
         "operationId": "cancelTest",
         "parameters": [
@@ -212,19 +225,21 @@
         ],
         "responses": {
           "200": {
-            "description": "Cancelled test successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "description": "Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestStatusResponse" }
+              }
+            }
           },
-          "404": {
-            "description": "The test you were trying to cancel is not found",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+          "404": { "description": "The test you were trying to cancel is not found" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/runner/browser/{id}/visit": {
       "post": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Mark front-channel external URL as visited",
         "operationId": "visitBrowserUrl",
         "parameters": [
@@ -244,27 +259,19 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "Visited url successfully",
-            "content": { "*/*": { "schema": { "type": "string" } } }
-          },
-          "404": {
-            "description": "The test you were trying to retrieve is not found",
-            "content": { "*/*": { "schema": { "type": "string" } } }
-          },
-          "503": {
-            "description": "Couldn't find Browser information",
-            "content": { "*/*": { "schema": { "type": "string" } } }
-          }
+          "204": { "description": "Visited url successfully" },
+          "404": { "description": "The test you were trying to retrieve is not found" },
+          "503": { "description": "Couldn't find Browser information" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan": {
       "get": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Get a list of test plan instances with paging",
         "description": "Which plans are listed is decided by who is asking: an admin sees every plan, anyone else sees their own, and `public=true` lists the published plans. The optional filters below only narrow that listing - the statistics page drills down with them - so none of them can show a plan that would not have been listed anyway.\n\nIn addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a plan has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.",
-        "operationId": "getTestPlansForCurrentUser",
+        "operationId": "listTestPlans",
         "parameters": [
           {
             "name": "public",
@@ -274,10 +281,59 @@
             "schema": { "type": "boolean", "default": false }
           },
           {
-            "name": "page",
+            "name": "draw",
             "in": "query",
-            "required": true,
-            "schema": { "$ref": "#/components/schemas/PaginationRequest" }
+            "description": "DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "0-based index of the first record to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "0-based index of the first record to return"
+            }
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size; 0 (or unset) means 10, values above 1000 are rejected",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "Page size; 0 (or unset) means 10, values above 1000 are rejected"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Free-text search term, matched with a MongoDB text search",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Free-text search term, matched with a MongoDB text search"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.",
+              "example": "started,desc"
+            },
+            "example": "started,desc"
           },
           {
             "name": "family",
@@ -298,6 +354,24 @@
             "schema": { "type": "string", "example": "FAPI-CIBA: Poll w/ MTLS" }
           },
           {
+            "name": "owner",
+            "in": "query",
+            "description": "Only list plans belonging to this user, by the `sub` of their account. Has to be sent with `owner_iss`, since a `sub` names an account only within the issuer that minted it. Narrows the listing and can never widen it: anyone but an admin still sees only their own plans, so naming another owner lists nothing.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "owner_iss",
+            "in": "query",
+            "description": "The issuer that minted the `owner` sub, as the account was logged in with.",
+            "schema": { "type": "string", "example": "https://accounts.google.com" }
+          },
+          {
+            "name": "immutable",
+            "in": "query",
+            "description": "Only list plans a certification package has been downloaded for (`true`), or only those it has not (`false`). Omit for both.",
+            "schema": { "type": "boolean" }
+          },
+          {
             "name": "from",
             "in": "query",
             "description": "Only list plans started at or after this point in time; a date (`YYYY-MM-DD`, covering the whole of that day) or a timestamp with a time zone.",
@@ -312,17 +386,27 @@
         ],
         "responses": {
           "200": {
-            "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "description": "Retrieved successfully; 'data' contains test plan documents (the public projection when public=true)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginationResponse" }
+              }
+            }
           },
           "400": {
             "description": "A filter parameter could not be used",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       },
       "post": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Create test plan",
         "operationId": "createTestPlan",
         "parameters": [
@@ -336,14 +420,24 @@
           {
             "name": "variant",
             "in": "query",
-            "description": "Kind of test variation",
+            "description": "Variant selection: a JSON object mapping variant parameter names to values",
             "required": false,
-            "schema": { "type": "string" }
+            "schema": { "type": "string" },
+            "example": { "server_metadata": "discovery", "client_registration": "dynamic_client" }
           }
         ],
         "requestBody": {
+          "description": "The test configuration JSON; may include 'description', 'alias' and 'publish' fields alongside the server/client configuration",
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/JsonObject" } }
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": {
+                "alias": "example",
+                "server": {
+                  "discoveryUrl": "https://as.example.com/.well-known/openid-configuration"
+                }
+              }
+            }
           },
           "required": true
         },
@@ -351,36 +445,75 @@
           "201": {
             "description": "Created test plan successfully",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PlanCreatedResponse" }
+              }
             }
           },
           "400": {
-            "description": "Unknown variant parameter(s) for the plan",
+            "description": "Unknown variant parameter(s), invalid alias, or no applicable test modules for the variant",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
           },
-          "403": {
-            "description": "Insufficient permissions to create test plan",
-            "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
-            }
-          },
+          "403": { "description": "Insufficient permissions to create test plan" },
           "404": {
             "description": "Couldn't find test plan for provided plan name",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      },
+      "delete": {
+        "tags": ["Test Plans"],
+        "summary": "Delete every plan a filtered listing shows, and their tests and logs (admin only)",
+        "description": "Takes exactly the parameters `GET /api/plan` takes and deletes what that listing would show, so the way to see what this will do is to list it first. Deleting millions of documents is far too long for a request, so the work runs in the background: this returns 202 and `GET /api/plan/delete-status` reports progress.\n\nTwo kinds of plan are never deleted, whatever is asked for: one a certification package has been downloaded for (`immutable`), and one that has been published, since a link to it may be in circulation. They are left out of the count as well as of the deleting.\n\nRefused unless at least one filter is present - there is no way to ask this to delete everything - and unless `confirm` is the number of plans it is about to delete, so that a listing that has changed since it was looked at stops the request rather than deleting something else.",
+        "operationId": "bulkDeleteTestPlans",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Delete at most this many plans, oldest first. Omit to delete all of them.",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32" }
+          },
+          {
+            "name": "confirm",
+            "in": "query",
+            "description": "The number of plans this will delete, as a check that it is what was seen",
+            "required": false,
+            "schema": { "type": "integer", "format": "int64" }
           }
+        ],
+        "responses": {
+          "202": {
+            "description": "Deleting has started; poll /api/plan/delete-status",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "400": {
+            "description": "No filter was sent, a parameter could not be used, or `confirm` is not what would be deleted",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "403": {
+            "description": "You must be an admin to delete plans in bulk",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "409": {
+            "description": "A bulk delete is already running",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/{id}/share": {
       "post": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Get private link to share test plan",
-        "description": "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).",
-        "operationId": "shareLink",
+        "description": "The returned token can be used directly as 'Authorization: Bearer <token>' on the read-only endpoints GET /api/plan/{id}, GET /api/info/{id}, GET /api/log/{id} and GET /api/currentuser.",
+        "operationId": "shareTestPlan",
         "parameters": [
           {
             "name": "id",
@@ -392,98 +525,91 @@
           {
             "name": "exp",
             "in": "query",
-            "description": "Link expiry days",
+            "description": "Number of days until the link expires",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string" },
+            "example": 30
           }
         ],
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ShareLinkResponse" } }
+            }
           },
-          "403": {
-            "description": "Insufficient permissions to share plan",
-            "content": { "*/*": { "schema": { "type": "object" } } }
-          },
-          "404": {
-            "description": "Couldn't find test plan for provided plan Id",
-            "content": { "*/*": { "schema": { "type": "object" } } }
-          }
+          "403": { "description": "Insufficient permissions to share plan" },
+          "404": { "description": "Couldn't find test plan for provided plan Id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/{id}/publish": {
       "post": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Publish a test plan by plan Id",
         "operationId": "publishTestPlan",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of test plan that you want publish",
+            "description": "Id of the test plan to publish",
             "required": true,
             "schema": { "type": "string" }
           }
         ],
         "requestBody": {
+          "description": "Object with a 'publish' field: 'summary' or 'everything'",
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/JsonObject" } }
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": { "publish": "summary" }
+            }
           },
           "required": true
         },
         "responses": {
           "200": {
             "description": "Published test plan successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PublishResponse" } }
+            }
           },
-          "400": {
-            "description": "'publish' field is missing or its value is not JsonPrimitive",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          },
+          "400": { "description": "'publish' field is missing or its value is not JsonPrimitive" },
           "403": {
-            "description": "'publish' value is not valid or couldn't find test plan by provided plan Id",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+            "description": "'publish' value is not valid or couldn't find test plan by provided plan Id"
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/{id}/makemutable": {
       "post": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Make a test plan mutable again (requires administrator privileges)",
         "operationId": "makeTestPlanMutable",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Id of test plan that you want make mutable again",
+            "description": "Id of the test plan to make mutable again",
             "required": true,
             "schema": { "type": "string" }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Made the test plan mutable again successfully",
-            "content": { "text/html": { "schema": { "type": "object" } } }
-          },
-          "400": {
-            "description": "Could not find plan",
-            "content": { "text/html": { "schema": { "type": "object" } } }
-          },
-          "403": {
-            "description": "Not authorized",
-            "content": { "text/html": { "schema": { "type": "object" } } }
-          }
+          "200": { "description": "Made the test plan mutable again successfully" },
+          "403": { "description": "Not authorized, or the plan could not be found" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/{id}/certificationpackage": {
       "post": {
-        "tags": ["log-api"],
+        "tags": ["Test Plans"],
         "summary": "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.",
-        "operationId": "prepareCertificationPackageForTestPlan",
+        "description": "The signed certification of conformance is not part of the package; it is submitted through the certification request form instead. Any other multipart part is ignored. The 200 response carries a Content-Disposition attachment header with the package filename.",
+        "operationId": "prepareCertificationPackage",
         "parameters": [
           {
             "name": "id",
@@ -512,49 +638,50 @@
         "responses": {
           "200": {
             "description": "Prepared successfully",
+            "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } }
+          },
+          "403": { "description": "Could not publish plan" },
+          "422": {
+            "description": "Tests failed/incomplete, plan id unknown, or the plan has no certification profile (JSON body), or the plan could not be marked immutable (empty body)",
             "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CertificationPackageErrorResponse" }
               }
             }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
+    "/api/plan/delete-cancel": {
+      "post": {
+        "tags": ["Test Plans"],
+        "summary": "Stop the running bulk plan delete (admin only)",
+        "description": "The job stops at the end of the batch it is in; what it has already deleted stays deleted. Re-running the same request carries on from where it stopped.",
+        "operationId": "cancelBulkPlanDelete",
+        "responses": {
+          "200": {
+            "description": "Asked it to stop",
+            "content": { "application/json": { "schema": { "type": "object" } } }
           },
           "403": {
-            "description": "Could not publish plan",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+            "description": "You must be an admin",
+            "content": { "application/json": { "schema": { "type": "object" } } }
           },
-          "404": {
-            "description": "Could not find a plan with the given id",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
-          },
-          "422": {
-            "description": "Could not mark the plan as immutable",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
-          }
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/log/{id}/images": {
       "get": {
-        "tags": ["image-api"],
+        "tags": ["Test Logs"],
         "summary": "Get all the images for a test",
-        "operationId": "getAllImages",
+        "operationId": "listTestImages",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "ID of test",
+            "description": "Id of test",
             "required": true,
             "schema": { "type": "string" }
           }
@@ -564,16 +691,14 @@
             "description": "Retrieved successfully",
             "content": { "application/json": { "schema": { "type": "object" } } }
           },
-          "403": {
-            "description": "In order to upload an image, You must be admin or test owner",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+          "403": { "description": "You must be admin or test owner to list a test's images" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       },
       "post": {
-        "tags": ["image-api"],
+        "tags": ["Test Logs"],
         "summary": "Upload image for a test log",
-        "operationId": "uploadImageToNewLogEntry",
+        "operationId": "uploadTestImage",
         "parameters": [
           {
             "name": "id",
@@ -591,30 +716,41 @@
           }
         ],
         "requestBody": {
-          "content": { "application/json": { "schema": { "type": "string" } } },
+          "description": "The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test",
+          "content": {
+            "text/plain": { "example": "data:image/png;base64,iVBORw0KGgo..." },
+            "application/json": { "schema": { "type": "string" } }
+          },
           "required": true
         },
         "responses": {
           "200": {
-            "description": "Uploaded image successfully",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "description": "Uploaded image successfully; returns the new log entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "The log entry document, including the img data-URI"
+                }
+              }
+            }
           },
           "400": {
             "description": "Image validation failure",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "content": {
+              "text/plain": { "schema": { "type": "string", "description": "Plain-text reason" } }
+            }
           },
-          "403": {
-            "description": "In order to upload an image, You must be admin or test owner",
-            "content": { "*/*": { "schema": { "type": "object" } } }
-          }
+          "403": { "description": "You must be admin or test owner to upload an image" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/log/{id}/images/{placeholder}": {
       "post": {
-        "tags": ["image-api"],
+        "tags": ["Test Logs"],
         "summary": "Upload the image to existing log entry",
-        "operationId": "uploadImageToExistingLogEntry",
+        "operationId": "uploadTestImageToPlaceholder",
         "parameters": [
           {
             "name": "id",
@@ -626,74 +762,83 @@
           {
             "name": "placeholder",
             "in": "path",
-            "description": "Placeholder which created when the test run",
+            "description": "Id of the image placeholder created while the test ran",
             "required": true,
             "schema": { "type": "string" }
           }
         ],
         "requestBody": {
+          "description": "The image as a data URI string ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most 500KB decoded and at most 2 images per test",
           "content": {
-            "application/json": {
-              "schema": { "type": "string", "description": "Image should be encoded as a string" }
-            }
+            "text/plain": { "example": "data:image/png;base64,iVBORw0KGgo..." },
+            "application/json": { "schema": { "type": "string" } }
           },
           "required": true
         },
         "responses": {
           "200": {
-            "description": "Uploaded image successfully",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "description": "Uploaded image successfully; returns the updated log entry (empty if no matching unfilled placeholder exists)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "The log entry document, including the img data-URI"
+                }
+              }
+            }
           },
           "400": {
             "description": "Image validation failure",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "content": {
+              "text/plain": { "schema": { "type": "string", "description": "Plain-text reason" } }
+            }
           },
-          "403": {
-            "description": "In order to upload an image, You must be admin or test owner",
-            "content": { "*/*": { "schema": { "type": "object" } } }
-          }
+          "403": { "description": "You must be admin or test owner to upload an image" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/info/{testId}/share": {
       "post": {
-        "tags": ["test-info-api"],
+        "tags": ["Test Information"],
         "summary": "Get private link to share test information",
-        "description": "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).",
-        "operationId": "shareLink_1",
+        "description": "The returned token can be used directly as 'Authorization: Bearer <token>' on the read-only endpoints GET /api/plan/{id}, GET /api/info/{id}, GET /api/log/{id} and GET /api/currentuser.",
+        "operationId": "shareTest",
         "parameters": [
           {
             "name": "testId",
             "in": "path",
-            "description": "Id of test that you want to publish",
+            "description": "Id of the test to share",
             "required": true,
             "schema": { "type": "string" }
           },
           {
             "name": "exp",
             "in": "query",
-            "description": "Link expiry days",
+            "description": "Number of days until the link expires",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string" },
+            "example": 30
           }
         ],
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ShareLinkResponse" } }
+            }
           },
-          "404": {
-            "description": "Couldn't find test plan for provided plan Id",
-            "content": { "*/*": { "schema": { "type": "object" } } }
-          }
+          "403": { "description": "Not permitted for private-link (guest) users" },
+          "404": { "description": "Couldn't find the test (or its plan) for the provided test id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/info/{id}/publish": {
       "post": {
-        "tags": ["test-info-api"],
+        "tags": ["Test Information"],
         "summary": "Publish a test information",
-        "operationId": "publishTestInfo",
+        "operationId": "publishTest",
         "parameters": [
           {
             "name": "id",
@@ -704,54 +849,136 @@
           }
         ],
         "requestBody": {
+          "description": "Object with a 'publish' field: 'summary' or 'everything'",
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/JsonObject" } }
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": { "publish": "summary" }
+            }
           },
           "required": true
         },
         "responses": {
           "200": {
             "description": "Published successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PublishResponse" } }
+            }
+          },
+          "400": { "description": "'publish' field is missing or its value is not JsonPrimitive" },
+          "403": { "description": "'publish' value is not valid" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
+    "/api/favorite-plans": {
+      "get": {
+        "tags": ["User & Preferences"],
+        "summary": "Get the favorited test plans of the current user",
+        "operationId": "listFavoritePlans",
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoritePlansResponse" }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      },
+      "post": {
+        "tags": ["User & Preferences"],
+        "summary": "Add a test plan to the current user's favorites",
+        "operationId": "addFavoritePlan",
+        "requestBody": {
+          "description": "An object containing the plan name to favorite",
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": { "plan": "oidcc-basic-certification-test-plan" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Added successfully (idempotent)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoritePlansResponse" }
+              }
+            }
           },
           "400": {
-            "description": "'publish' field is missing or its value is not JsonPrimitive",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "description": "Missing or invalid plan name, or the per-user favorites limit is reached",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
           },
-          "403": {
-            "description": "'publish' value is not valid",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
+      }
+    },
+    "/mdoc-iaca-root.pem": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns the certificate used for mdoc signing and verification",
+        "description": "Returns the IACA root certificate used for mdoc signing and verification",
+        "operationId": "mdocIacaRootCert",
+        "responses": {
+          "200": {
+            "description": "The IACA root certificate",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "description": "A PEM encoded X.509 certificate" }
+              }
+            }
+          }
+        },
+        "security": []
       }
     },
     "/jwks": {
       "get": {
-        "tags": ["jwks-endpoint"],
-        "operationId": "getJwkSet",
+        "tags": ["Server"],
+        "summary": "Get the public keys used to sign exported logs",
+        "description": "The JWKS published at this root /jwks endpoint contains only the keys the suite uses to sign downloaded/exported test logs and certification packages (the .sig files in the export zips) — it plays no part in any test protocol flow. Tests that need a protocol-level JWKS publish their own under the per-test /test/... URLs, and private-link share tokens are signed with a different, unpublished key. No authentication is required.",
+        "operationId": "getJwks",
         "responses": {
           "200": {
-            "description": "OK",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "description": "The JWK Set (public keys only)",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "A JWK Set as defined by RFC 7517" }
+              }
+            }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/ui/spec_links": {
       "get": {
-        "tags": ["ui-controller"],
-        "summary": "Get Spec Links",
+        "tags": ["Server"],
+        "summary": "Get specification links",
+        "description": "Map of specification-reference prefix (as used in log entry 'requirements', e.g. 'OIDCC-') to the base URL of that specification.",
         "operationId": "getSpecLinks",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
             "content": {
               "application/json": {
-                "schema": { "type": "object", "additionalProperties": { "type": "string" } }
+                "schema": { "type": "object", "description": "Prefix-to-URL map" }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
     "/api/statistics/overview": {
@@ -830,28 +1057,37 @@
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/StatisticsFailed" } }
             }
-          }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/server": {
       "get": {
-        "tags": ["server-info-ui-controller"],
+        "tags": ["Server"],
         "summary": "Get server information",
         "operationId": "getServerInfo",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "'version', plus 'revision'/'tag'/'build_time' when built from git; 'external_ip' is null unless enabled by configuration"
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/runner/{id}/wait-state": {
       "get": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Long-poll wait until the test's status is one of the requested states",
-        "operationId": "waitForState",
+        "operationId": "waitForTestState",
         "parameters": [
           {
             "name": "id",
@@ -877,25 +1113,33 @@
         ],
         "responses": {
           "200": {
-            "description": "Status reached one of the requested states, or timeout fired",
+            "description": "Status reached one of the requested states ({\"state\": ...}), or the timeout fired ({\"timeout\": true})",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/WaitStateReached" },
+                    { "$ref": "#/components/schemas/WaitStateTimeout" }
+                  ]
+                }
+              }
             }
           },
           "404": {
             "description": "The test is unknown or you are not authorized",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
-          }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/runner/running": {
       "get": {
-        "tags": ["test-runner"],
+        "tags": ["Test Runner"],
         "summary": "Get list of running testIDs",
-        "operationId": "getAllRunningTestIds",
+        "operationId": "listRunningTestIds",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
@@ -904,14 +1148,15 @@
                 "schema": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
               }
             }
-          }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/runner/browser/{id}": {
       "get": {
-        "tags": ["test-runner"],
-        "summary": "Get front-channel external URLs exposed to the [BrowserControl] for a given test",
+        "tags": ["Test Runner"],
+        "summary": "Get the front-channel external URL state for a given test",
         "operationId": "getBrowserStatus",
         "parameters": [
           {
@@ -926,41 +1171,43 @@
           "200": {
             "description": "Retrieved successfully",
             "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BrowserStatusResponse" }
+              }
             }
           },
-          "404": {
-            "description": "The test you were trying to retrieve is not found",
-            "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
-            }
-          },
-          "503": {
-            "description": "Couldn't find Browser information",
-            "content": {
-              "application/json": { "schema": { "type": "object", "additionalProperties": {} } }
-            }
-          }
+          "404": { "description": "The test you were trying to retrieve is not found" },
+          "503": { "description": "Couldn't find Browser information" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/runner/available": {
       "get": {
-        "tags": ["test-runner"],
-        "summary": "Get list of available TestModule names",
-        "operationId": "getAvailableTests",
+        "tags": ["Test Runner"],
+        "summary": "Get the available test modules and their attributes",
+        "operationId": "listAvailableTestModules",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "One entry per test module: testName, displayName, profile, configurationFields, variants, summary"
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/{id}": {
       "get": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Get test plan information by plan id",
+        "description": "Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module.",
         "operationId": "getTestPlan",
         "parameters": [
           {
@@ -981,18 +1228,23 @@
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "The plan document" }
+              }
+            }
           },
-          "404": {
-            "description": "Couldn't find test plan for provided plan Id",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+          "404": { "description": "Couldn't find test plan for provided plan Id" },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       },
       "delete": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Delete a test plan and related configuration. Requires the plan to be mutable.",
-        "operationId": "deleteMutableTestPlan",
+        "operationId": "deleteTestPlan",
         "parameters": [
           {
             "name": "id",
@@ -1003,43 +1255,26 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "Deleted successfully",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/StreamingResponseBody" } }
-            }
-          },
-          "403": {
-            "description": "Insufficient permissions to delete test plan",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/StreamingResponseBody" } }
-            }
-          },
+          "204": { "description": "Deleted successfully" },
+          "403": { "description": "Insufficient permissions to delete test plan" },
           "404": {
-            "description": "Could not find a plan with the given id, belonging to the user",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/StreamingResponseBody" } }
-            }
+            "description": "Could not find a plan with the given id, belonging to the user"
           },
-          "405": {
-            "description": "The plan is immutable and cannot be deleted",
-            "content": {
-              "*/*": { "schema": { "$ref": "#/components/schemas/StreamingResponseBody" } }
-            }
-          }
+          "405": { "description": "The plan is immutable and cannot be deleted" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/info/{planName}": {
       "get": {
-        "tags": ["test-plan-api"],
+        "tags": ["Test Plans"],
         "summary": "Get information for one test plan by name",
         "operationId": "getTestPlanInfo",
         "parameters": [
           {
             "name": "planName",
             "in": "path",
-            "description": "Plan name, use to identify a specific TestPlan ",
+            "description": "Plan name, used to identify a specific test plan",
             "required": true,
             "schema": { "type": "string" }
           }
@@ -1047,20 +1282,44 @@
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Plan definition: planName, displayName, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Couldn't find test plan for provided plan name",
-            "content": { "*/*": { "schema": { "type": "object" } } }
-          }
+          "404": { "description": "Couldn't find test plan for provided plan name" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
+      }
+    },
+    "/api/plan/filter-options": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "The families and plan names a listing can be narrowed to",
+        "description": "What `GET /api/plan`'s `family` and `plan` parameters accept, so that they can be offered rather than typed. Plan names include the ones the suite no longer publishes - a listing of old plans is mostly made of those, and they are exactly what somebody clearing a database out is looking for - each marked `retired`.\n\nDeliberately not `/api/plan/available`, which answers the same question but carries every plan's modules, variants and configuration fields with it: 680 KB against this one's few.\n\nReadable on a public request (`?public=true`) as well as by a logged in user: this is the plan registry, the same material `/api/plan/available` already answers with on one, and holds nothing about anybody's data. Pinned by `scripts/run-security-tests.py`.",
+        "operationId": "getPlanFilterOptions",
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
+          }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
     "/api/plan/exporthtml/{id}": {
       "get": {
-        "tags": ["log-api"],
+        "tags": ["Test Plans"],
         "summary": "Export the full results for this plan as both html and json in a zip",
-        "operationId": "exportPlanAsHTML",
+        "description": "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".",
+        "operationId": "exportPlanLogsHtml",
         "parameters": [
           {
             "name": "id",
@@ -1080,28 +1339,19 @@
         "responses": {
           "200": {
             "description": "Exported successfully",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+            "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } }
           },
-          "404": {
-            "description": "Couldn't find given plan Id",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
-          }
+          "404": { "description": "Couldn't find given plan Id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/plan/export/{id}": {
       "get": {
-        "tags": ["log-api"],
+        "tags": ["Test Plans"],
         "summary": "Export all test logs of plan by plan id",
-        "operationId": "exportLogsOfPlan",
+        "description": "The 200 response carries a Content-Disposition attachment header with filename \"<planName>-<variant>-<planId>-<date>.zip\".",
+        "operationId": "exportPlanLogs",
         "parameters": [
           {
             "name": "id",
@@ -1121,70 +1371,188 @@
         "responses": {
           "200": {
             "description": "Exported successfully",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+            "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } }
           },
-          "404": {
-            "description": "Couldn't find given plan Id",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+          "404": { "description": "Couldn't find given plan Id" },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
-    "/api/plan/available": {
+    "/api/plan/delete-status": {
       "get": {
-        "tags": ["test-plan-api"],
-        "summary": "Get a list of available test plans and their attributes",
-        "operationId": "getAvailableTestPlans",
+        "tags": ["Test Plans"],
+        "summary": "How far the running (or last) bulk plan delete has got (admin only)",
+        "operationId": "getBulkPlanDeleteStatus",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "*/*": { "schema": { "type": "object" } } }
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "403": {
+            "description": "You must be an admin",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
-    "/api/log": {
+    "/api/plan/delete-preview": {
       "get": {
-        "tags": ["log-api"],
-        "summary": "Get all test logs with paging",
-        "description": "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs",
-        "operationId": "getAllTests",
+        "tags": ["Test Plans"],
+        "summary": "How many plans a bulk delete would remove, without removing any (admin only)",
+        "description": "Takes the same parameters as `DELETE /api/plan` and answers what it would do: how many plans the listing shows, how many of those may be deleted, how many are kept because they are immutable or published, and the number to send back as `confirm`.",
+        "operationId": "previewBulkPlanDelete",
         "parameters": [
           {
-            "name": "public",
+            "name": "limit",
             "in": "query",
-            "description": "Published data only",
+            "description": "Delete at most this many plans, oldest first",
             "required": false,
-            "schema": { "type": "boolean", "default": false }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": true,
-            "schema": { "$ref": "#/components/schemas/PaginationRequest" }
+            "schema": { "type": "integer", "format": "int32" }
           }
         ],
         "responses": {
           "200": {
             "description": "Retrieved successfully",
             "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "400": {
+            "description": "A filter parameter could not be used",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "403": {
+            "description": "You must be an admin",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
+      }
+    },
+    "/api/plan/available": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "Get a list of available test plans and their attributes",
+        "operationId": "listAvailableTestPlans",
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "One entry per available plan, shaped as GET /api/plan/info/{planName} except each module entry also lists its configurationFields"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
+          }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
+      }
+    },
+    "/api/log": {
+      "get": {
+        "tags": ["Test Logs"],
+        "summary": "Get all test logs with paging",
+        "description": "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs",
+        "operationId": "listTestLogs",
+        "parameters": [
+          {
+            "name": "public",
+            "in": "query",
+            "description": "Published data only",
+            "required": false,
+            "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "draw",
+            "in": "query",
+            "description": "DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "0-based index of the first record to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "0-based index of the first record to return"
+            }
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Page size; 0 (or unset) means 10, values above 1000 are rejected",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "Page size; 0 (or unset) means 10, values above 1000 are rejected"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Free-text search term, matched with a MongoDB text search",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Free-text search term, matched with a MongoDB text search"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Sort specification: a flat comma-separated list of column,direction pairs, e.g. 'started,desc'. Direction is 'asc' unless it is exactly 'desc'.",
+              "example": "started,desc"
+            },
+            "example": "started,desc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully; note 'data' contains per-test information documents (as GET /api/info/{id}), not log entries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginationResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
+          }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
     "/api/log/{id}": {
       "get": {
-        "tags": ["log-api"],
+        "tags": ["Test Logs"],
         "summary": "Get test log of given testId",
-        "operationId": "getLogResults",
+        "description": "Returns the raw log entries sorted by time. Every entry has _id, testId, testOwner, src (the logging component, e.g. a condition class name) and time (milliseconds since the epoch); most carry msg, and common further keys include result (SUCCESS/FAILURE/WARNING/INFO/REVIEW), requirements (spec references), blockId, img/upload (screenshots) plus arbitrary condition-specific data. For a test published as 'summary' and requested with public=true, entries are restricted to result, testName, testId, src and time. An unknown test id yields an empty array, not a 404.",
+        "operationId": "getTestLog",
         "parameters": [
           {
             "name": "id",
@@ -1196,7 +1564,7 @@
           {
             "name": "since",
             "in": "query",
-            "description": "Since when test created",
+            "description": "Only return log entries with 'time' greater than this value (milliseconds since the epoch); allows incremental fetching",
             "required": false,
             "schema": { "type": "integer", "format": "int64" }
           },
@@ -1213,18 +1581,23 @@
             "description": "Retrieved successfully",
             "content": {
               "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Document" } }
+                "schema": { "type": "array", "description": "Log entry documents" }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
     "/api/log/exporthtml/{id}": {
       "get": {
-        "tags": ["log-api"],
+        "tags": ["Test Logs"],
         "summary": "Export test logs as html by test id",
-        "operationId": "exportTestHtml",
+        "description": "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".",
+        "operationId": "exportTestLogHtml",
         "parameters": [
           {
             "name": "id",
@@ -1244,28 +1617,19 @@
         "responses": {
           "200": {
             "description": "Exported successfully",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+            "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } }
           },
-          "404": {
-            "description": "Couldn't find given test Id",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
-          }
+          "404": { "description": "Couldn't find given test Id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/log/export/{id}": {
       "get": {
-        "tags": ["log-api"],
+        "tags": ["Test Logs"],
         "summary": "Export test log by test id",
-        "operationId": "export",
+        "description": "The 200 response carries a Content-Disposition attachment header with filename \"test-log-<module>-<variant>-<id>.zip\".",
+        "operationId": "exportTestLog",
         "parameters": [
           {
             "name": "id",
@@ -1285,53 +1649,54 @@
         "responses": {
           "200": {
             "description": "Exported successfully",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+            "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } }
           },
-          "404": {
-            "description": "Couldn't find given test Id",
-            "content": {
-              "application/zip": {
-                "schema": { "$ref": "#/components/schemas/StreamingResponseBody" }
-              }
-            }
+          "404": { "description": "Couldn't find given test Id" },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
     "/api/lastconfig": {
       "get": {
-        "tags": ["saved-configuration-api"],
+        "tags": ["User & Preferences"],
         "summary": "Get last configuration of current user",
+        "description": "The most recently saved configuration document: owner, config, variant, time, and either 'testName' (saved when running a standalone test) or 'planName' (saved when creating a plan).",
         "operationId": "getLastConfig",
         "responses": {
           "200": {
-            "description": "Retrieved successfully",
+            "description": "Retrieved successfully; an empty JSON object when the user has no saved configuration",
             "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/info": {
       "get": {
-        "tags": ["test-info-api"],
+        "tags": ["Test Information"],
         "summary": "Get information of all test module instances",
-        "description": "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to certification@oidf.org",
-        "operationId": "getAllTests_1",
+        "description": "This API has been disabled due to performance concerns. If you have a need for it, please email details of your use case to certification@oidf.org Always returns 400.",
+        "operationId": "listAllTestInfo",
         "responses": {
-          "200": {
-            "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
-        }
+          "400": {
+            "description": "Always returned: the API is disabled",
+            "content": {
+              "application/json": {
+                "schema": { "type": "string", "description": "Explanatory message (a JSON string)" }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        },
+        "deprecated": true
       }
     },
     "/api/info/{id}": {
       "get": {
-        "tags": ["test-info-api"],
+        "tags": ["Test Information"],
         "summary": "Get test information by test id",
         "operationId": "getTestInfo",
         "parameters": [
@@ -1353,31 +1718,39 @@
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TestInfoResponse" } }
+            }
           },
-          "404": {
-            "description": "Couldn't find test information for provided testId",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+          "404": { "description": "Couldn't find test information for provided testId" },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
           }
-        }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
       }
     },
     "/api/currentuser": {
       "get": {
-        "tags": ["user-info-ui-controller"],
+        "tags": ["User & Preferences"],
         "summary": "Get current user information",
-        "operationId": "getCurrentUserInfo",
+        "operationId": "getCurrentUser",
         "responses": {
           "200": {
             "description": "Retrieved successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CurrentUserResponse" }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     },
     "/api/token/{id}": {
       "delete": {
-        "tags": ["token-api"],
+        "tags": ["API Tokens"],
         "summary": "Delete existing token by token Id",
         "operationId": "deleteToken",
         "parameters": [
@@ -1390,127 +1763,287 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Deleted token successfully",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          },
-          "404": {
-            "description": "Couldn't find provided token Id",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+          "200": { "description": "Deleted token successfully" },
+          "404": { "description": "Couldn't find provided token Id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
+    "/api/favorite-plans/{planName}": {
+      "delete": {
+        "tags": ["User & Preferences"],
+        "summary": "Remove a test plan from the current user's favorites",
+        "operationId": "removeFavoritePlan",
+        "parameters": [
+          {
+            "name": "planName",
+            "in": "path",
+            "description": "Name of the test plan to remove from favorites",
+            "required": true,
+            "schema": { "type": "string" }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed successfully (no-op if not favorited)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoritePlansResponse" }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
         }
       }
     }
   },
   "components": {
     "schemas": {
-      "JsonArray": {
+      "OwnerId": {
         "type": "object",
+        "description": "Identity of the user that owns the resource",
         "properties": {
-          "empty": { "type": "boolean" },
-          "asDouble": { "type": "number", "format": "double" },
-          "asInt": { "type": "integer", "format": "int32" },
-          "asLong": { "type": "integer", "format": "int64" },
-          "asBoolean": { "type": "boolean" },
-          "asFloat": { "type": "number", "format": "float" },
-          "asNumber": { "type": "number" },
-          "asByte": { "type": "string", "format": "byte" },
-          "asCharacter": { "type": "string", "deprecated": true },
-          "asBigDecimal": { "type": "number" },
-          "asBigInteger": { "type": "integer" },
-          "asShort": { "type": "integer", "format": "int32" },
-          "asString": { "type": "string" },
-          "asJsonObject": {},
-          "jsonArray": { "type": "boolean" },
-          "jsonObject": { "type": "boolean" },
-          "jsonPrimitive": { "type": "boolean" },
-          "jsonNull": { "type": "boolean" },
-          "asJsonArray": {},
-          "asJsonPrimitive": { "$ref": "#/components/schemas/JsonPrimitive" },
-          "asJsonNull": { "$ref": "#/components/schemas/JsonNull" }
+          "iss": { "type": "string", "description": "Issuer of the owner's login identity" },
+          "sub": { "type": "string", "description": "Subject of the owner's login identity" }
         }
       },
-      "JsonNull": {
+      "TokenCreatedResponse": {
         "type": "object",
+        "description": "A newly created API token. This is the only response that ever contains the token value itself — store it; it cannot be retrieved again.",
         "properties": {
-          "asDouble": { "type": "number", "format": "double" },
-          "asInt": { "type": "integer", "format": "int32" },
-          "asLong": { "type": "integer", "format": "int64" },
-          "asBoolean": { "type": "boolean" },
-          "asJsonObject": {},
-          "jsonArray": { "type": "boolean" },
-          "jsonObject": { "type": "boolean" },
-          "jsonPrimitive": { "type": "boolean" },
-          "jsonNull": { "type": "boolean" },
-          "asJsonArray": {},
-          "asJsonPrimitive": {},
-          "asFloat": { "type": "number", "format": "float" },
-          "asJsonNull": {},
-          "asNumber": { "type": "number" },
-          "asByte": { "type": "string", "format": "byte" },
-          "asCharacter": { "type": "string", "deprecated": true },
-          "asBigDecimal": { "type": "number" },
-          "asBigInteger": { "type": "integer" },
-          "asShort": { "type": "integer", "format": "int32" },
-          "asString": { "type": "string" }
+          "_id": {
+            "type": "string",
+            "description": "Id of the token (for listing and deletion, not for authentication)"
+          },
+          "owner": { "$ref": "#/components/schemas/OwnerId", "description": "Owner of the token" },
+          "info": { "description": "Reserved; currently always null" },
+          "token": {
+            "type": "string",
+            "description": "The bearer token value to use in the Authorization header"
+          },
+          "expires": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry time in milliseconds since the epoch, or null for a permanent token"
+          }
         }
       },
-      "JsonObject": {
+      "TestCreatedResponse": {
         "type": "object",
-        "description": "Configuration Json",
+        "description": "Result of creating a test module instance",
         "properties": {
-          "empty": { "type": "boolean" },
-          "asDouble": { "type": "number", "format": "double" },
-          "asInt": { "type": "integer", "format": "int32" },
-          "asLong": { "type": "integer", "format": "int64" },
-          "asBoolean": { "type": "boolean" },
-          "asJsonObject": { "$ref": "#/components/schemas/JsonObject" },
-          "jsonArray": { "type": "boolean" },
-          "jsonObject": { "type": "boolean" },
-          "jsonPrimitive": { "type": "boolean" },
-          "jsonNull": { "type": "boolean" },
-          "asJsonArray": { "$ref": "#/components/schemas/JsonArray" },
-          "asJsonPrimitive": { "$ref": "#/components/schemas/JsonPrimitive" },
-          "asFloat": { "type": "number", "format": "float" },
-          "asJsonNull": { "$ref": "#/components/schemas/JsonNull" },
-          "asNumber": { "type": "number" },
-          "asByte": { "type": "string", "format": "byte" },
-          "asCharacter": { "type": "string", "deprecated": true },
-          "asBigDecimal": { "type": "number" },
-          "asBigInteger": { "type": "integer" },
-          "asShort": { "type": "integer", "format": "int32" },
-          "asString": { "type": "string" }
+          "name": {
+            "type": "string",
+            "description": "Test module name",
+            "example": "oidcc-server"
+          },
+          "id": {
+            "type": "string",
+            "description": "Id of the new test instance; used with /api/info/{id}, /api/runner/{id} and /api/log/{id}",
+            "example": "qX3wbqjcv0e6qFz"
+          },
+          "url": { "type": "string", "description": "Base URL of this test instance's endpoints" }
         }
       },
-      "JsonPrimitive": {
+      "ErrorResponse": {
         "type": "object",
+        "description": "Error body",
         "properties": {
-          "asDouble": { "type": "number", "format": "double" },
-          "asInt": { "type": "integer", "format": "int32" },
-          "asLong": { "type": "integer", "format": "int64" },
-          "asBoolean": { "type": "boolean" },
-          "boolean": { "type": "boolean" },
-          "string": { "type": "boolean" },
-          "number": { "type": "boolean" },
-          "asFloat": { "type": "number", "format": "float" },
-          "asNumber": { "type": "number" },
-          "asByte": { "type": "string", "format": "byte" },
-          "asCharacter": { "type": "string", "deprecated": true },
-          "asBigDecimal": { "type": "number" },
-          "asBigInteger": { "type": "integer" },
-          "asShort": { "type": "integer", "format": "int32" },
-          "asString": { "type": "string" },
-          "asJsonObject": {},
-          "jsonArray": { "type": "boolean" },
-          "jsonObject": { "type": "boolean" },
-          "jsonPrimitive": { "type": "boolean" },
-          "jsonNull": { "type": "boolean" },
-          "asJsonArray": {},
-          "asJsonPrimitive": {},
-          "asJsonNull": { "$ref": "#/components/schemas/JsonNull" }
+          "error": {
+            "type": "string",
+            "description": "Human-readable description of what went wrong"
+          }
         }
       },
-      "StreamingResponseBody": {},
+      "BrowserDetail": {
+        "type": "object",
+        "description": "Front-channel interaction state of a running test",
+        "properties": {
+          "show_qr_code": {
+            "type": "boolean",
+            "description": "Whether the UI should render the URLs as QR codes (wallet tests)"
+          },
+          "urls": {
+            "type": "array",
+            "description": "URLs the tester (or an automated browser) still needs to visit",
+            "items": { "type": "string" }
+          },
+          "urlsWithMethod": {
+            "type": "array",
+            "description": "As 'urls', each with the HTTP method to use",
+            "items": {}
+          },
+          "browserApiRequests": {
+            "type": "array",
+            "description": "Pending browser-API interactions, each with the request object and its submission URL",
+            "items": {}
+          },
+          "uriInputRequests": {
+            "type": "array",
+            "description": "Pending requests for the tester to paste a URI, each with a submission URL and description",
+            "items": {}
+          },
+          "visited": {
+            "type": "array",
+            "description": "URLs already visited",
+            "items": { "type": "string" }
+          },
+          "visitedUrlsWithMethod": {
+            "type": "array",
+            "description": "As 'visited', each with the HTTP method used",
+            "items": {}
+          },
+          "runners": {
+            "type": "array",
+            "description": "State of the automated browser runners processing the URLs",
+            "items": {}
+          }
+        }
+      },
+      "TestStatusResponse": {
+        "type": "object",
+        "description": "Live state of a running test instance. Note this does not include the test's status or result — poll GET /api/info/{id} (or /api/runner/{id}/wait-state) for those.",
+        "properties": {
+          "name": { "type": "string", "description": "Test module name" },
+          "id": { "type": "string", "description": "Id of the test instance" },
+          "exposed": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Name-to-value strings the test exposes to the user (e.g. client_id)"
+          },
+          "owner": { "$ref": "#/components/schemas/OwnerId", "description": "Owner of the test" },
+          "created": { "type": "string", "description": "When the test was created, ISO-8601" },
+          "updated": {
+            "type": "string",
+            "description": "When the test's status last changed, ISO-8601"
+          },
+          "error": {
+            "description": "Details of the test's final error, or null when there is none"
+          },
+          "browser": {
+            "$ref": "#/components/schemas/BrowserDetail",
+            "description": "Front-channel interaction state; absent for tests without a browser component"
+          }
+        }
+      },
+      "ModuleEntry": {
+        "type": "object",
+        "description": "One test module within a plan",
+        "properties": {
+          "testModule": {
+            "type": "string",
+            "description": "Test module name",
+            "example": "oidcc-server"
+          },
+          "variant": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Module-specific variant values, if any (null otherwise)"
+          },
+          "instances": {
+            "type": "array",
+            "description": "Ids of test instances already run for this module (empty at creation)",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "PlanCreatedResponse": {
+        "type": "object",
+        "description": "Result of creating a test plan instance",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The plan name that was requested",
+            "example": "oidcc-basic-certification-test-plan"
+          },
+          "id": {
+            "type": "string",
+            "description": "Id of the new test plan instance",
+            "example": "Wt3aZAz6PYLOr"
+          },
+          "modules": {
+            "type": "array",
+            "description": "The test modules the plan will run, in order",
+            "items": { "$ref": "#/components/schemas/ModuleEntry" }
+          }
+        }
+      },
+      "ShareLinkResponse": {
+        "type": "object",
+        "description": "A private link for sharing read-only access",
+        "properties": {
+          "link": {
+            "type": "string",
+            "description": "Browser URL that logs a guest in via a one-time token"
+          },
+          "token": {
+            "type": "string",
+            "description": "The JWT on its own, usable as 'Authorization: Bearer <token>' on the read-only endpoints"
+          },
+          "message": {
+            "type": "string",
+            "description": "Informational notice when the private-link signing key is not persistently configured; empty string otherwise"
+          }
+        }
+      },
+      "PublishResponse": {
+        "type": "object",
+        "description": "Result of a publish request",
+        "properties": {
+          "id": { "type": "string", "description": "Id of the published test or plan" },
+          "publish": {
+            "type": "string",
+            "description": "The publication state that was set",
+            "enum": ["summary", "everything"]
+          }
+        }
+      },
+      "CertificationPackageErrorResponse": {
+        "type": "object",
+        "description": "Certification package could not be prepared because tests failed or are incomplete, the plan id is unknown, or the plan has no certification profile (it is not part of the certification program). Note: a 422 can also be returned with an empty body when the plan could not be marked immutable.",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error code",
+            "example": "failed_or_incomplete_tests"
+          },
+          "error_description": { "type": "string", "description": "Human-readable description" },
+          "plan_name": { "type": "string", "description": "Name of the plan" },
+          "test_plan_id": { "type": "string", "description": "Id of the plan instance" },
+          "variant": {
+            "type": "string",
+            "description": "The plan's variant selection, as a string"
+          },
+          "failed_tests": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Per-module details of the failing or incomplete tests, keyed by module name; absent for the no_certification_profile error"
+          }
+        }
+      },
+      "FavoritePlansResponse": {
+        "type": "object",
+        "description": "The current user's favorited plan names",
+        "properties": {
+          "plans": {
+            "type": "array",
+            "description": "Plan names, in the order they were favorited",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "TokenSummary": {
+        "type": "object",
+        "description": "An existing API token; the token value itself is never returned after creation",
+        "properties": {
+          "_id": { "type": "string", "description": "Id of the token" },
+          "expires": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Expiry time in milliseconds since the epoch, or null for a permanent token"
+          }
+        }
+      },
       "StatisticsCertProfile": {
         "type": "object",
         "properties": {
@@ -1559,6 +2092,14 @@
           "lastSeen": { "type": "string" }
         }
       },
+      "StatisticsFamilyTotals": {
+        "type": "object",
+        "properties": {
+          "runs": { "type": "integer", "format": "int64" },
+          "plans": { "type": "integer", "format": "int64" },
+          "certified": { "type": "integer", "format": "int64" }
+        }
+      },
       "StatisticsLastError": {
         "type": "object",
         "properties": { "message": { "type": "string" }, "failedAt": { "type": "string" } }
@@ -1579,6 +2120,7 @@
           "periods": { "type": "array", "items": { "type": "string" } },
           "granularity": { "type": "string" },
           "families": { "type": "array", "items": { "type": "string" } },
+          "syntheticFamilies": { "type": "array", "items": { "type": "string" } },
           "resultBuckets": { "type": "array", "items": { "type": "string" } },
           "testRunsByFamily": {
             "type": "object",
@@ -1610,6 +2152,10 @@
               "type": "array",
               "items": { "type": "integer", "format": "int64" }
             }
+          },
+          "familyTotals": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/components/schemas/StatisticsFamilyTotals" }
           },
           "users": { "$ref": "#/components/schemas/StatisticsUsers" },
           "tiles": { "$ref": "#/components/schemas/StatisticsTiles" },
@@ -1719,20 +2265,169 @@
           "failedAt": { "type": "string" }
         }
       },
-      "PaginationRequest": {
+      "WaitStateReached": {
         "type": "object",
+        "description": "The test reached one of the requested states",
         "properties": {
-          "draw": { "type": "integer", "format": "int32" },
-          "start": { "type": "integer", "format": "int32" },
-          "length": { "type": "integer", "format": "int32" },
-          "search": { "type": "string" },
-          "order": { "type": "string" }
+          "state": {
+            "type": "string",
+            "description": "The status the test is now in",
+            "enum": [
+              "NOT_YET_CREATED",
+              "CREATED",
+              "CONFIGURED",
+              "RUNNING",
+              "WAITING",
+              "INTERRUPTED",
+              "FINISHED"
+            ]
+          }
         }
       },
-      "Document": {
+      "WaitStateTimeout": {
         "type": "object",
-        "additionalProperties": {},
-        "properties": { "empty": { "type": "boolean" } }
+        "description": "The wait timed out before the test reached any of the requested states",
+        "properties": { "timeout": { "type": "boolean", "description": "Always true" } }
+      },
+      "BrowserStatusResponse": {
+        "type": "object",
+        "description": "Front-channel URL state for a running test (a subset of the 'browser' object returned by GET /api/runner/{id})",
+        "properties": {
+          "id": { "type": "string", "description": "Id of the test instance" },
+          "show_qr_code": {
+            "type": "boolean",
+            "description": "Whether the UI should render the URLs as QR codes (wallet tests)"
+          },
+          "urls": {
+            "type": "array",
+            "description": "URLs the tester (or an automated browser) still needs to visit",
+            "items": { "type": "string" }
+          },
+          "visited": {
+            "type": "array",
+            "description": "URLs already visited",
+            "items": { "type": "string" }
+          },
+          "runners": {
+            "type": "array",
+            "description": "State of the automated browser runners processing the URLs",
+            "items": {}
+          }
+        }
+      },
+      "PaginationResponse": {
+        "type": "object",
+        "description": "DataTables-style pagination envelope",
+        "properties": {
+          "draw": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The 'draw' value from the request, echoed back"
+          },
+          "recordsTotal": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Synthetic count, not a true total: start + length + 1 when a further page exists, otherwise start plus the number of records returned"
+          },
+          "recordsFiltered": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Always the same value as recordsTotal (the suite does not compute a separate filtered count)"
+          },
+          "data": {
+            "type": "array",
+            "description": "The page of records; the item type depends on the endpoint",
+            "items": {}
+          }
+        }
+      },
+      "TestInfoResponse": {
+        "type": "object",
+        "description": "Stored information about one test instance. When requested with public=true the same shape is returned minus the 'config' field.",
+        "properties": {
+          "_id": { "type": "string", "description": "Id of the test instance" },
+          "testId": {
+            "type": "string",
+            "description": "Id of the test instance (same value as _id)"
+          },
+          "testName": {
+            "type": "string",
+            "description": "Test module name",
+            "example": "oidcc-server"
+          },
+          "variant": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Selected variant values (a plain name-to-value object; a bare string for pre-variant legacy tests)"
+          },
+          "started": {
+            "type": "string",
+            "description": "When the test was created, ISO-8601",
+            "example": "2026-08-20T13:45:12.345Z"
+          },
+          "config": {
+            "description": "The test configuration JSON (absent when requested with public=true)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Free-text description from the configuration, or null"
+          },
+          "alias": { "type": "string", "description": "Alias used in the test URLs, or null" },
+          "owner": { "$ref": "#/components/schemas/OwnerId", "description": "Owner of the test" },
+          "planId": {
+            "type": "string",
+            "description": "Id of the plan this test belongs to, or null for a standalone test"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current lifecycle status of the test",
+            "enum": [
+              "NOT_YET_CREATED",
+              "CREATED",
+              "CONFIGURED",
+              "RUNNING",
+              "WAITING",
+              "INTERRUPTED",
+              "FINISHED"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "description": "Conformance suite version that ran the test"
+          },
+          "summary": { "type": "string", "description": "Summary line of the test module" },
+          "publish": {
+            "type": "string",
+            "description": "Publication state: null, 'summary' or 'everything'",
+            "enum": ["summary", "everything"]
+          },
+          "result": {
+            "type": "string",
+            "description": "Current result of the test, or null if not yet known",
+            "enum": ["PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", "UNKNOWN"]
+          }
+        }
+      },
+      "CurrentUserResponse": {
+        "type": "object",
+        "description": "The currently authenticated user",
+        "properties": {
+          "iss": { "type": "string", "description": "Issuer of the user's login identity" },
+          "sub": { "type": "string", "description": "Subject of the user's login identity" },
+          "principal": {
+            "type": "string",
+            "description": "String rendering of the principal map (informational only; use iss/sub)"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Display name from the login provider"
+          },
+          "isAdmin": { "type": "boolean", "description": "Whether the user has the admin role" },
+          "isGuest": {
+            "type": "boolean",
+            "description": "True for a guest logged in via a private share link"
+          }
+        }
       }
     },
     "securitySchemes": {

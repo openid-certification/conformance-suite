@@ -217,6 +217,39 @@ const MONTHLY = seriesFor(MOCK_STATS_MONTHS, "month");
 const WEEKLY = seriesFor(MOCK_STATS_WEEKS, "week");
 
 /**
+ * The families that are not families, as `SpecFamilyResolver.SYNTHETIC_FAMILIES`
+ * names them on every payload.
+ * @type {Array<string>}
+ */
+const SYNTHETIC_FAMILIES = ["No plan", "Other / retired"];
+
+/**
+ * @param {Array<number>} values - A series.
+ * @returns {number} Its sum.
+ */
+function sum(values) {
+  return values.reduce((total, value) => total + value, 0);
+}
+
+/**
+ * Every family's whole history, as `StatisticsCube.familyTotals()` computes
+ * it: the monthly series summed, never filtered and never clipped, on every
+ * payload whatever it was asked for. It is what ranks the families for
+ * colour and fills the family select.
+ * @type {Record<string, {runs: number, plans: number, certified: number}>}
+ */
+const FAMILY_TOTALS = Object.fromEntries(
+  FAMILIES.map((family) => [
+    family,
+    {
+      runs: sum(MONTHLY.testRunsByFamily[family]),
+      plans: sum(MONTHLY.plansByFamily[family]),
+      certified: sum(MONTHLY.certifiedByFamily[family]),
+    },
+  ]),
+);
+
+/**
  * What the filter selects can offer, all-time and unfiltered. Plan names are
  * real ones, so the cascade reads like the live page.
  * @type {any}
@@ -562,14 +595,15 @@ const UNRESOLVED_PLANS = [
 
 /**
  * The snapshot itself — the `data` half of a READY response, unfiltered and
- * monthly, which is exactly what the page's colour/family baseline request
- * (no query parameters at all) asks for.
+ * monthly.
  * @type {any}
  */
 export const MOCK_STATS_DATA = {
   families: FAMILIES,
+  syntheticFamilies: SYNTHETIC_FAMILIES,
   resultBuckets: RESULT_BUCKETS,
   ...MONTHLY,
+  familyTotals: FAMILY_TOTALS,
   tiles: TILES,
   storage: STORAGE,
   dimensions: DIMENSIONS,
@@ -673,6 +707,7 @@ export function statisticsOverviewFor(requestUrl) {
     lastError: null,
     data: {
       families: FAMILIES,
+      syntheticFamilies: SYNTHETIC_FAMILIES,
       resultBuckets: RESULT_BUCKETS,
       periods,
       granularity: weekly ? "week" : "month",
@@ -685,6 +720,7 @@ export function statisticsOverviewFor(requestUrl) {
           clipFamilies(byBucket, first, end, () => weight(name)),
         ]),
       ),
+      familyTotals: FAMILY_TOTALS,
       users: {
         activeByPeriod: base.users.activeByPeriod
           .slice(first, end)
@@ -768,12 +804,16 @@ export const MOCK_STATS_EMPTY = {
   lastError: null,
   data: {
     families: FAMILIES,
+    syntheticFamilies: SYNTHETIC_FAMILIES,
     resultBuckets: RESULT_BUCKETS,
     periods: [],
     granularity: "month",
     testRunsByFamily: Object.fromEntries(FAMILIES.map((family) => [family, []])),
     plansByFamily: Object.fromEntries(FAMILIES.map((family) => [family, []])),
     certifiedByFamily: Object.fromEntries(FAMILIES.map((family) => [family, []])),
+    familyTotals: Object.fromEntries(
+      FAMILIES.map((family) => [family, { runs: 0, plans: 0, certified: 0 }]),
+    ),
     resultsByFamily: {},
     users: { activeByPeriod: [], newByPeriod: [] },
     tiles: {
