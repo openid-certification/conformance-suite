@@ -30,7 +30,8 @@ import {
   memoizeByArgs,
   otherBreakdown,
   queryFromState,
-  rememberOptions,
+  optionsForTransition,
+  optionsFrom,
   sameState,
   stateFromUrl,
   urlFromState,
@@ -590,6 +591,11 @@ class CtsStatisticsPage extends LitElement {
     }
 
     this._adoptSlots(data);
+    // The selects are rebuilt from every payload, including one that repeats
+    // the snapshot on screen: the options on screen may be the trimmed set
+    // `optionsForTransition` left there for a filter change that never got
+    // its own payload.
+    this._options = optionsFrom(data, this._state);
     // A refreshing poll answers with the SAME snapshot until the recompute
     // lands; keeping the data object the page already holds means the
     // memoized chart inputs still hit and nothing is re-plotted for it.
@@ -603,7 +609,6 @@ class CtsStatisticsPage extends LitElement {
     ) {
       this._payload = { ...body, data: this._payload.data };
     } else {
-      this._options = rememberOptions(this._options, data, this._state);
       this._payload = body;
       this._payloadRequest = request;
     }
@@ -723,6 +728,12 @@ class CtsStatisticsPage extends LitElement {
    */
   _applyState(next) {
     if (sameState(this._state, next)) return;
+    if (next.family !== this._state.family || next.plan !== this._state.plan) {
+      // The variant lists on screen belong to the old family or plan; shown
+      // under the new one they are every parameter in the suite until the
+      // payload lands.
+      this._options = optionsForTransition(this._options, next);
+    }
     this._state = { ...next, variant: { ...(next.variant || {}) } };
     this._syncUrl();
     this._restart(false);
