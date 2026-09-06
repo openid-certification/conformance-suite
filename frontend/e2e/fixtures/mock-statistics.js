@@ -269,12 +269,14 @@ const DIMENSIONS = {
     // the filter row nor the distributions section shows it.
     client_registration: [{ value: "dynamic_client", users: 9, plans: 34 }],
   },
+  // One name per entry: a plan certified for several profiles counts under
+  // each of them, so no entry is ever a joined list.
   certProfiles: [
     { name: "FAPI2 Security Profile Final", users: 31, plans: 120 },
-    { name: "Brazil Open Finance | FAPI-CIBA", users: 18, plans: 64 },
+    { name: "Brazil Open Finance", users: 18, plans: 64 },
     { name: "OpenID Connect Basic OP", users: 11, plans: 39 },
     // A long name, so the distribution chart's axis has something to elide.
-    { name: "FAPI2 Message Signing Final | Brazil Open Finance", users: 7, plans: 21 },
+    { name: "FAPI2 Message Signing Final: Brazil Open Finance Phase 3", users: 7, plans: 21 },
   ],
   entities: [
     { entity: "Test an OpenID Provider / Authorization Server", runs: 61200 },

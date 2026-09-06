@@ -2457,7 +2457,7 @@ export interface operations {
         family?: string;
         /** @description Only count this test plan, by name, as listed in `dimensions.plans`. */
         plan?: string;
-        /** @description Only count test plans whose certification profiles are exactly this, as listed in `dimensions.certProfiles`; several profiles are joined with ' | '. */
+        /** @description Only count test plans certified for this profile, as listed in `dimensions.certProfiles`; a plan certified for several profiles matches any one of them. */
         cert?: string;
       };
       header?: never;

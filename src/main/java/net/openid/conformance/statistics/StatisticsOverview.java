@@ -134,7 +134,8 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	}
 
 	/**
-	 * @param name  the certification profile names of the plan, joined with {@code  | }
+	 * @param name  one certification profile name; a plan certified for several counts
+	 *              under each of them
 	 * @param users distinct users who created a plan for it
 	 * @param plans test plans created for it
 	 */
