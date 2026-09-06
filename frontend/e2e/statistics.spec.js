@@ -1232,7 +1232,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
 
     const byFailing = await chartLabels(page, "stats-modules-failing");
     expect(byFailing).toHaveLength(12);
-    // Re-ranked, not the delivered order: the payload arrives sorted by runs.
+    // The server's own failing-users ranking, not the table's order by runs.
     expect(byFailing[0]).toBe("fapi2-message-signing-final-signed-request-object");
     // The module nobody failed is on one chart and not the other.
     expect(byRuns).toContain("oidcc-discovery-endpoint-verification");

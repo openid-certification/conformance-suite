@@ -3,6 +3,7 @@ package net.openid.conformance.statistics;
 import net.openid.conformance.plan.TestPlan.ProfileNames;
 import net.openid.conformance.plan.TestPlan.SpecFamilyNames;
 import net.openid.conformance.statistics.StatisticsOverview.Module;
+import net.openid.conformance.statistics.StatisticsOverview.Modules;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -55,7 +56,7 @@ class StatisticsModules_UnitTest {
 			cell("2026-02", OIDCC, 1, 2, 0),
 			cell("2026-02", OIDCC, 2, 5, 0)), StatisticsQuery.defaults());
 
-		assertThat(overview.modules()).singleElement().satisfies(module -> {
+		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.testName()).isEqualTo(OIDCC);
 			assertThat(module.runs()).isEqualTo(10);
 			assertThat(module.users()).isEqualTo(2);
@@ -74,7 +75,7 @@ class StatisticsModules_UnitTest {
 			// another user who never failed it
 			cell("2026-03", OIDCC, 2, 10, 0)), StatisticsQuery.defaults());
 
-		assertThat(overview.modules()).singleElement().satisfies(module -> {
+		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.runs()).isEqualTo(21);
 			assertThat(module.users()).isEqualTo(2);
 			assertThat(module.failingUsers()).isEqualTo(1);
@@ -89,7 +90,7 @@ class StatisticsModules_UnitTest {
 			cell("2026-03", OIDCC, 2, 1, 1),
 			cell("2026-03", OIDCC, 3, 1, 0)), StatisticsQuery.defaults());
 
-		assertThat(overview.modules()).singleElement().satisfies(module -> {
+		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.failingUsers()).isEqualTo(2);
 			assertThat(module.failingShare()).isEqualTo(0.667, within(1e-9));
 		});
@@ -105,7 +106,7 @@ class StatisticsModules_UnitTest {
 			cell("", OIDCC, 3, 99, 99));
 
 		assertThat(cube.modules()).extracting(ModuleUserCell::month).containsExactly(OLDEST_MONTH);
-		assertThat(slice(cube, StatisticsQuery.defaults()).modules()).singleElement().satisfies(module -> {
+		assertThat(slice(cube, StatisticsQuery.defaults()).modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.runs()).isEqualTo(5);
 			assertThat(module.users()).isEqualTo(1);
 		});
@@ -121,7 +122,7 @@ class StatisticsModules_UnitTest {
 			cell("2099-12", FAPI1, 3, 99, 99));
 
 		assertThat(cube.modules()).extracting(ModuleUserCell::month).containsExactly("2026-03");
-		assertThat(slice(cube, StatisticsQuery.defaults()).modules()).singleElement().satisfies(module -> {
+		assertThat(slice(cube, StatisticsQuery.defaults()).modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.testName()).isEqualTo(OIDCC);
 			assertThat(module.runs()).isEqualTo(5);
 			assertThat(module.users()).isEqualTo(1);
@@ -139,7 +140,7 @@ class StatisticsModules_UnitTest {
 
 		StatisticsOverview overview = slice(cube, query("from", "2026-01", "to", "2026-02"));
 
-		assertThat(overview.modules()).singleElement().satisfies(module -> {
+		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.runs()).isEqualTo(6);
 			assertThat(module.users()).isEqualTo(2);
 			// the only failures are outside the range
@@ -157,7 +158,7 @@ class StatisticsModules_UnitTest {
 		StatisticsOverview overview = slice(cube,
 			query("granularity", "week", "from", "2026-02-23", "to", "2026-03-09"));
 
-		assertThat(overview.modules()).singleElement().extracting(Module::runs).isEqualTo(6L);
+		assertThat(overview.modules().rows()).singleElement().extracting(Module::runs).isEqualTo(6L);
 	}
 
 	@Test
@@ -215,26 +216,56 @@ class StatisticsModules_UnitTest {
 			cells.add(cell("2026-03", "failing-favourite", user, 1, 1));
 		}
 
-		List<Module> modules = slice(cube(cells.toArray(new ModuleUserCell[0])),
-			StatisticsQuery.defaults()).modules();
+		Modules modules = slice(cube(cells.toArray(new ModuleUserCell[0])), StatisticsQuery.defaults()).modules();
 
-		assertThat(modules).hasSize(51);
-		assertThat(modules).extracting(Module::testName)
+		List<Module> rows = modules.rows();
+		assertThat(rows).hasSize(51);
+		assertThat(rows).extracting(Module::testName)
 			.startsWith(name(1), name(2))
 			.contains("failing-favourite")
 			.doesNotContain(name(51), name(60));
 		// sorted by runs, most run first, whichever list a module got in by
-		assertThat(modules).extracting(Module::runs).isSortedAccordingTo(Comparator.reverseOrder());
-		assertThat(modules.get(modules.size() - 1)).isEqualTo(new Module("failing-favourite", 100, 100, 100, 1.0));
+		assertThat(rows).extracting(Module::runs).isSortedAccordingTo(Comparator.reverseOrder());
+		assertThat(rows.get(rows.size() - 1)).isEqualTo(new Module("failing-favourite", 100, 100, 100, 1.0));
+
+		// the two rankings the charts plot, each cut at fifty, in the server's order
+		assertThat(modules.byRuns()).hasSize(50)
+			.startsWith(name(1), name(2))
+			.endsWith(name(50))
+			.doesNotContain("failing-favourite");
+		assertThat(modules.byFailingUsers()).hasSize(50)
+			.startsWith("failing-favourite", name(1), name(2))
+			.endsWith(name(49))
+			.doesNotContain(name(50));
+	}
+
+	@Test
+	void theFailingUsersRankingBreaksATieOnRunsAndThenOnTheName() {
+		StatisticsCube cube = cube(
+			// three modules on one failing user each; b is the busier, a and c are level
+			cell("2026-03", "c-module", 1, 4, 1),
+			cell("2026-03", "a-module", 1, 4, 1),
+			cell("2026-03", "b-module", 1, 9, 1),
+			// most run, never failed: first by runs, last by failing users
+			cell("2026-03", "d-module", 1, 20, 0));
+
+		Modules modules = slice(cube, StatisticsQuery.defaults()).modules();
+
+		assertThat(modules.byRuns()).containsExactly("d-module", "b-module", "a-module", "c-module");
+		assertThat(modules.byFailingUsers()).containsExactly("b-module", "a-module", "c-module", "d-module");
 	}
 
 	@Test
 	void anEmptyCubeHasNoModules() {
-		assertThat(slice(cube(), StatisticsQuery.defaults()).modules()).isEmpty();
+		Modules modules = slice(cube(), StatisticsQuery.defaults()).modules();
+
+		assertThat(modules.rows()).isEmpty();
+		assertThat(modules.byRuns()).isEmpty();
+		assertThat(modules.byFailingUsers()).isEmpty();
 	}
 
 	private static List<String> names(StatisticsOverview overview) {
-		return overview.modules().stream().map(Module::testName).toList();
+		return overview.modules().rows().stream().map(Module::testName).toList();
 	}
 
 	private static String name(int module) {

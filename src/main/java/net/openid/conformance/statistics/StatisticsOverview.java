@@ -39,7 +39,8 @@ import java.util.Map;
  *                         range but not by family, plan, variant or certification profile
  * @param modules          the most run test modules and the ones the most users hit a
  *                         failure on, over the trailing
- *                         {@value StatisticsCube#MODULE_MONTHS} months
+ *                         {@value StatisticsCube#MODULE_MONTHS} months, with the two
+ *                         rankings the charts plot
  * @param externalHosts    the external servers the suite has been pointed at over the
  *                         trailing {@value StatisticsCube#MODULE_MONTHS} months
  * @param unresolvedPlans  the busiest plan names that could not be resolved to a family,
@@ -50,7 +51,7 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	List<String> syntheticFamilies, List<String> resultBuckets, Map<String, List<Long>> testRunsByFamily,
 	Map<String, List<Long>> plansByFamily, Map<String, Map<String, List<Long>>> resultsByFamily,
 	Map<String, List<Long>> certifiedByFamily, Map<String, FamilyTotals> familyTotals, Users users, Tiles tiles,
-	List<StorageRow> storage, Dimensions dimensions, List<List<Long>> heatmap, List<Module> modules,
+	List<StorageRow> storage, Dimensions dimensions, List<List<Long>> heatmap, Modules modules,
 	List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
 
 	/**
@@ -173,6 +174,20 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	 */
 	@Schema(name = "StatisticsModule")
 	public record Module(String testName, long runs, long users, long failingUsers, double failingShare) {
+	}
+
+	/**
+	 * The modules section: every module worth listing, and the two rankings the charts
+	 * draw, ranked here so that the client never has to re-derive an order the server
+	 * already decided (and break ties the same way).
+	 *
+	 * @param rows           the union of the two rankings, most run first: the table
+	 * @param byRuns         the names of the most run modules, most run first
+	 * @param byFailingUsers the names of the modules the most users hit a failure on, most
+	 *                       failed-on first, then the busier module, then the name
+	 */
+	@Schema(name = "StatisticsModules")
+	public record Modules(List<Module> rows, List<String> byRuns, List<String> byFailingUsers) {
 	}
 
 	/**

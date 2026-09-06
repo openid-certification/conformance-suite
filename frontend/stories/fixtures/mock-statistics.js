@@ -549,12 +549,44 @@ function moduleRow(row) {
 }
 
 /**
- * `data.modules` unfiltered, in the server's order (runs descending, ties by
- * name). Exported so a story or a spec can assert against the whole list
- * rather than restating it.
+ * `data.modules.rows` unfiltered, in the server's order (runs descending,
+ * ties by name). Exported so a story or a spec can assert against the whole
+ * list rather than restating it.
  * @type {Array<any>}
  */
 export const MOCK_STATS_MODULES = MODULE_ROWS.map(moduleRow);
+
+/**
+ * Compare two module names the way `ModuleRanker` does: Java's
+ * `String::compareTo`, i.e. UTF-16 code units, not a locale.
+ * @param {any} a - One row.
+ * @param {any} b - The other.
+ * @returns {number} Comparator result.
+ */
+function byName(a, b) {
+  return a.testName < b.testName ? -1 : a.testName > b.testName ? 1 : 0;
+}
+
+/**
+ * `data.modules` the way `ModuleRanker` builds it from a set of rows: the
+ * rows sorted by runs (ties by name) for the table, plus the two rankings the
+ * charts plot — by runs then name, and by failing users then runs then name
+ * — each cut at the server's fifty.
+ * @param {Array<any>} rows - Module rows, in any order.
+ * @returns {{rows: Array<any>, byRuns: Array<string>, byFailingUsers: Array<string>}}
+ *   The payload's modules section.
+ */
+function rankModules(rows) {
+  const byRuns = [...rows].sort((a, b) => b.runs - a.runs || byName(a, b));
+  const byFailingUsers = [...rows].sort(
+    (a, b) => b.failingUsers - a.failingUsers || b.runs - a.runs || byName(a, b),
+  );
+  return {
+    rows: byRuns,
+    byRuns: byRuns.slice(0, 50).map((row) => row.testName),
+    byFailingUsers: byFailingUsers.slice(0, 50).map((row) => row.testName),
+  };
+}
 
 /**
  * `data.modules` under one query. Family and plan narrow it — registry
@@ -565,12 +597,15 @@ export const MOCK_STATS_MODULES = MODULE_ROWS.map(moduleRow);
  * back empty, which is the section's empty state.
  * @param {string} family - The family filter, or `""`.
  * @param {string} plan - The plan filter, or `""`.
- * @returns {Array<any>} The modules to answer with.
+ * @returns {{rows: Array<any>, byRuns: Array<string>, byFailingUsers: Array<string>}}
+ *   The modules section to answer with.
  */
 function narrowModules(family, plan) {
-  return MODULE_ROWS.filter(
-    (row) => (!family || row.family === family) && (!plan || row.planName === plan),
-  ).map(moduleRow);
+  return rankModules(
+    MODULE_ROWS.filter(
+      (row) => (!family || row.family === family) && (!plan || row.planName === plan),
+    ).map(moduleRow),
+  );
 }
 
 /** @type {any} */
@@ -608,7 +643,7 @@ export const MOCK_STATS_DATA = {
   storage: STORAGE,
   dimensions: DIMENSIONS,
   heatmap: HEATMAP,
-  modules: MOCK_STATS_MODULES,
+  modules: rankModules(MOCK_STATS_MODULES),
   externalHosts: EXTERNAL_HOSTS,
   unresolvedPlans: UNRESOLVED_PLANS,
 };
@@ -831,7 +866,7 @@ export const MOCK_STATS_EMPTY = {
     storage: [],
     dimensions: { plans: [], variants: {}, certProfiles: [], entities: [] },
     heatmap: Array.from({ length: 7 }, () => new Array(24).fill(0)),
-    modules: [],
+    modules: { rows: [], byRuns: [], byFailingUsers: [] },
     externalHosts: [],
     unresolvedPlans: [],
   },

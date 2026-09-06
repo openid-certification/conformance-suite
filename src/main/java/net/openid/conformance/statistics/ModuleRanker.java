@@ -1,10 +1,12 @@
 package net.openid.conformance.statistics;
 
 import net.openid.conformance.statistics.StatisticsOverview.Module;
+import net.openid.conformance.statistics.StatisticsOverview.Modules;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,14 +62,19 @@ final class ModuleRanker {
 	 * @param query what to show; its range, family and plan apply, its variant and
 	 *              certification profile filters do not
 	 * @return the union of the {@value #TOP} most run modules and the {@value #TOP} modules
-	 *         the most users hit a failure on, most run first
+	 *         the most users hit a failure on, most run first, plus the two rankings
 	 */
-	static List<Module> rank(StatisticsCube cube, StatisticsQuery query) {
+	static Modules rank(StatisticsCube cube, StatisticsQuery query) {
 		String from = month(query.from());
 		String to = month(query.to());
 		Map<String, Counts> counted = new LinkedHashMap<>();
+		// The family/plan verdict depends only on the module name, of which there are a few
+		// hundred, while the cells are one per month, module and user - so it is memoised
+		// rather than re-derived per cell.
+		Map<String, Boolean> included = new HashMap<>();
 		for (ModuleUserCell cell : cube.modules()) {
-			if (!inRange(cell.month(), from, to) || !matches(cube, query, cell.testName())) {
+			if (!inRange(cell.month(), from, to)
+				|| !included.computeIfAbsent(cell.testName(), testName -> matches(cube, query, testName))) {
 				continue;
 			}
 			Counts counts = counted.computeIfAbsent(cell.testName(), testName -> new Counts());
@@ -88,34 +95,32 @@ final class ModuleRanker {
 
 	/**
 	 * @param modules every module of the slice
-	 * @return the union of the two rankings, ordered by runs. Both are cut at
-	 *         {@value #TOP}: a module can be in the table because a lot of people run it or
-	 *         because a lot of people fail it, and the two lists together are what the
-	 *         client's two charts draw from.
+	 * @return the two rankings, each cut at {@value #TOP}, and their union ordered by runs:
+	 *         a module can be in the table because a lot of people run it or because a lot
+	 *         of people fail it, and each chart plots the head of its own ranking
 	 */
-	private static List<Module> top(List<Module> modules) {
+	private static Modules top(List<Module> modules) {
 		List<Module> byRuns = new ArrayList<>(modules);
 		byRuns.sort(BY_RUNS);
 		List<Module> byFailingUsers = new ArrayList<>(modules);
 		byFailingUsers.sort(BY_FAILING_USERS);
+		List<String> topByRuns = names(byRuns);
+		List<String> topByFailingUsers = names(byFailingUsers);
 
-		Set<String> keep = new HashSet<>();
-		keepTop(byRuns, keep);
-		keepTop(byFailingUsers, keep);
-
-		List<Module> top = new ArrayList<>(keep.size());
+		Set<String> keep = new HashSet<>(topByRuns);
+		keep.addAll(topByFailingUsers);
+		List<Module> rows = new ArrayList<>(keep.size());
 		for (Module module : byRuns) {
 			if (keep.contains(module.testName())) {
-				top.add(module);
+				rows.add(module);
 			}
 		}
-		return List.copyOf(top);
+		return new Modules(List.copyOf(rows), topByRuns, topByFailingUsers);
 	}
 
-	private static void keepTop(List<Module> ranked, Set<String> keep) {
-		for (int at = 0; at < ranked.size() && at < TOP; at++) {
-			keep.add(ranked.get(at).testName());
-		}
+	/** @return the names of the first {@value #TOP} of a ranking, in its order */
+	private static List<String> names(List<Module> ranked) {
+		return ranked.stream().limit(TOP).map(Module::testName).toList();
 	}
 
 	/** @return how many of the module's users hit a failure on it, rounded to three decimals */
