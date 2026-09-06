@@ -98,8 +98,10 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 
 	/**
 	 * The values the filter selects can offer, and how much data is behind each of them,
-	 * counted under the query that produced this payload - so drilling into a family leaves
-	 * only that family's plans, variants and certification profiles to choose from.
+	 * counted under the query that produced this payload with each dimension's own filter
+	 * left out - so drilling into a family leaves only that family's plans, variants and
+	 * certification profiles to choose from, while picking one plan still offers its
+	 * siblings rather than making the choice a dead end.
 	 *
 	 * @param plans        the plans with data, busiest first
 	 * @param variants     variant parameter name -&gt; its values, most used first

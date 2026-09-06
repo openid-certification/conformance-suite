@@ -767,14 +767,19 @@ test.describe("statistics.html — admin usage dashboard", () => {
       .poll(last, { timeout: POLL_TIMEOUT })
       .toContain("plan=fapi2-security-profile-final-test-plan");
     await expect(familySelect).toHaveValue("FAPI2 Security Profile");
+    // The server counts each dimension with its own filter left out, so the
+    // plan's sibling is still on offer: "All plans" plus the family's two.
+    await expect(planSelect.locator("option")).toHaveCount(3);
 
     await variantSelect.selectOption("mtls");
     await expect.poll(last, { timeout: POLL_TIMEOUT }).toContain("variant.client_auth_type=mtls");
+    await expect(variantSelect.locator("option")).toHaveCount(3);
 
     await certSelect.selectOption("FAPI2 Security Profile Final");
     await expect
       .poll(last, { timeout: POLL_TIMEOUT })
       .toContain("cert=FAPI2+Security+Profile+Final");
+    await expect(certSelect.locator("option")).toHaveCount(5);
 
     // Changing the family drops the filters that belonged to the old one:
     // a plan, a certification profile and the variant parameters all belong

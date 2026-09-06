@@ -29,7 +29,8 @@ import {
   memoiseByArgs,
   otherBreakdown,
   queryFromState,
-  rememberOptions,
+  optionsForTransition,
+  optionsFrom,
   sameState,
   stateFromUrl,
   urlFromState,
@@ -634,7 +635,7 @@ class CtsStatisticsPage extends LitElement {
     ) {
       this._payload = { ...body, data: this._payload.data };
     } else {
-      this._options = rememberOptions(this._options, data, this._state);
+      this._options = optionsFrom(data, this._state);
       this._payload = body;
       this._payloadRequest = request;
     }
@@ -754,6 +755,12 @@ class CtsStatisticsPage extends LitElement {
    */
   _applyState(next) {
     if (sameState(this._state, next)) return;
+    if (next.family !== this._state.family || next.plan !== this._state.plan) {
+      // The variant lists on screen belong to the old family or plan; shown
+      // under the new one they are every parameter in the suite until the
+      // payload lands.
+      this._options = optionsForTransition(this._options, next);
+    }
     this._state = { ...next, variant: { ...(next.variant || {}) } };
     this._syncUrl();
     this._restart(false);

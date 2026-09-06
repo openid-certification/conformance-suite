@@ -261,6 +261,43 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
+	void eachDimensionIsCountedWithItsOwnFilterLeftOut() {
+		StatisticsCube cube = cube(
+			List.of(new RunCell("2026-03", null, "oidcc-plan", false, "fapi_profile=plain", "Cert A", 5, 0, 0, 0, 0, 0),
+				new RunCell("2026-03", null, "oidcc-plan", false, "fapi_profile=brazil", "Cert B", 7, 0, 0, 0, 0, 0),
+				new RunCell("2026-03", null, "fapi1-plan", false, "fapi_profile=brazil", "Cert B", 9, 0, 0, 0, 0, 0)),
+			List.of(), List.of());
+
+		// the plan select still offers the sibling (busiest first), everything else narrows to the plan
+		StatisticsOverview.Dimensions byPlan = slice(cube, query("plan", "oidcc-plan")).dimensions();
+		assertThat(byPlan.plans()).extracting(PlanDimension::planName).containsExactly("oidcc-plan", "fapi1-plan");
+		assertThat(byPlan.variants().get("fapi_profile")).extracting(VariantValue::value)
+			.containsExactly("brazil", "plain");
+		assertThat(byPlan.certProfiles()).extracting(CertProfile::name).containsExactly("Cert A", "Cert B");
+		assertThat(byPlan.entities()).extracting(Entity::entity).containsExactly(ProfileNames.rptest);
+
+		// a variant parameter's select offers its other values; the plans narrow to the value
+		StatisticsOverview.Dimensions byVariant = slice(cube, query("variant.fapi_profile", "plain")).dimensions();
+		assertThat(byVariant.plans()).extracting(PlanDimension::planName).containsExactly("oidcc-plan");
+		assertThat(byVariant.variants().get("fapi_profile")).extracting(VariantValue::value)
+			.containsExactly("brazil", "plain");
+		assertThat(byVariant.certProfiles()).extracting(CertProfile::name).containsExactly("Cert A");
+
+		// and the certification profile select offers the other profile
+		StatisticsOverview.Dimensions byCert = slice(cube, query("cert", "Cert A")).dimensions();
+		assertThat(byCert.plans()).extracting(PlanDimension::planName).containsExactly("oidcc-plan");
+		assertThat(byCert.certProfiles()).extracting(CertProfile::name).containsExactly("Cert A", "Cert B");
+
+		// two filters at once: each select leaves out only its own
+		StatisticsOverview.Dimensions both =
+			slice(cube, query("plan", "oidcc-plan", "variant.fapi_profile", "plain")).dimensions();
+		assertThat(both.plans()).extracting(PlanDimension::planName).containsExactly("oidcc-plan");
+		assertThat(both.variants().get("fapi_profile")).extracting(VariantValue::value)
+			.containsExactly("brazil", "plain");
+		assertThat(both.certProfiles()).extracting(CertProfile::name).containsExactly("Cert A");
+	}
+
+	@Test
 	void variantParametersAreOfferedInAStableAlphabeticalOrder() {
 		StatisticsCube cube = cube(List.of(new RunCell("2026-03", null, "oidcc-plan", false,
 			"server_metadata=discovery;client_auth_type=mtls", "", 1, 0, 0, 0, 0, 0)), List.of(), List.of());

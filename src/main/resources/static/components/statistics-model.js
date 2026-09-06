@@ -94,7 +94,7 @@ import {
 
 /**
  * The option lists the filter selects offer. Not simply the current
- * payload's `dimensions`: see {@link rememberOptions}.
+ * payload's `dimensions`: see {@link optionsFrom}.
  * @typedef {object} FilterOptions
  * @property {Array<{planName: string, family: string, runs: number, plans: number}>} plans - Plan options.
  * @property {Record<string, Array<{value: string, users: number, plans: number}>>} variants - Variant options per parameter.
@@ -570,40 +570,55 @@ export const EMPTY_OPTIONS = { plans: [], variants: {}, certProfiles: [] };
  * What the selects should offer, given the payload that just arrived and the
  * filter it was fetched under.
  *
- * The server counts `dimensions` under the WHOLE query, its own dimension
- * included — so once a plan is selected, `dimensions.plans` contains that one
- * plan and nothing else. Rendering that straight into the select would make
- * every choice a dead end (you could clear it, but never switch to a sibling),
- * so the last list seen while that dimension was unfiltered is kept and
- * offered instead. Every other dimension still narrows, which is the point of
- * the cascade.
- * @param {FilterOptions} previous - The options currently on screen.
+ * The server counts each dimension with that dimension's own filter left out,
+ * so a select always offers the alternatives to what is picked and the lists
+ * can be rendered as they come. The one thing added is a variant parameter
+ * that is being filtered on but that the payload does not mention (a stale
+ * deep link): a filter the user cannot see is a filter they cannot clear, so
+ * its select is kept on screen with the selected value alone.
  * @param {StatisticsData} data - The payload that just arrived.
  * @param {FilterState} state - The state it was fetched with.
  * @returns {FilterOptions} The options to render.
  */
-export function rememberOptions(previous, data, state) {
-  const kept = previous || EMPTY_OPTIONS;
+export function optionsFrom(data, state) {
   const dimensions = (data && data.dimensions) || {};
-  const filter = (state && state.variant) || {};
-
   const fresh = /** @type {Record<string, Array<any>>} */ (dimensions.variants || {});
   /** @type {Record<string, Array<any>>} */
   const variants = {};
-  // Every parameter the payload knows about, plus any that is being filtered
-  // on — a filter the user cannot see is a filter they cannot clear.
-  for (const name of new Set([...Object.keys(fresh), ...Object.keys(filter)])) {
-    variants[name] = keepWhenFiltered(
-      kept.variants && kept.variants[name],
-      fresh[name],
-      filter[name],
-    );
+  for (const name of Object.keys(fresh)) variants[name] = list(fresh[name]);
+  for (const name of Object.keys((state && state.variant) || {})) {
+    if (!variants[name]) variants[name] = [];
   }
-
   return {
-    plans: keepWhenFiltered(kept.plans, dimensions.plans, state && state.plan),
+    plans: list(dimensions.plans),
     variants,
-    certProfiles: keepWhenFiltered(kept.certProfiles, dimensions.certProfiles, state && state.cert),
+    certProfiles: list(dimensions.certProfiles),
+  };
+}
+
+/**
+ * The options to show between a family or plan change and the payload that
+ * answers it. The variant lists on screen were counted under the OLD family
+ * or plan, and rendering them under the new one — which is what decides
+ * whether variant selects are shown at all — put every parameter in the
+ * suite on screen for as long as the fetch took. Only a parameter still
+ * being filtered on is kept, with its values, so its select stays there to
+ * clear it; the plan and profile lists are left, they are replaced whole.
+ * @param {FilterOptions} options - The options on screen.
+ * @param {FilterState} next - The state being moved to.
+ * @returns {FilterOptions} The options to show until the next payload.
+ */
+export function optionsForTransition(options, next) {
+  const current = (options && options.variants) || {};
+  /** @type {Record<string, Array<any>>} */
+  const variants = {};
+  for (const name of Object.keys((next && next.variant) || {})) {
+    variants[name] = list(current[name]);
+  }
+  return {
+    plans: list(options && options.plans),
+    variants,
+    certProfiles: list(options && options.certProfiles),
   };
 }
 
@@ -617,7 +632,7 @@ export function rememberOptions(previous, data, state) {
  * something anyway, and a parameter whose values are all the same is left out
  * because there is nothing to choose between. A parameter that is currently
  * being filtered on is ALWAYS offered: the select is the only way to clear it.
- * @param {FilterOptions} options - From {@link rememberOptions}.
+ * @param {FilterOptions} options - From {@link optionsFrom}.
  * @param {FilterState} state - The current filter state.
  * @returns {Record<string, Array<{value: string, users: number, plans: number}>>}
  *   Parameter → values, in the order the payload listed them.
@@ -638,21 +653,6 @@ export function visibleVariants(options, state) {
     }
   }
   return visible;
-}
-
-/**
- * @template T
- * @param {Array<T>} remembered - What was offered before this filter was set.
- * @param {Array<T>|undefined} offered - What the payload offers now.
- * @param {string|undefined} selected - The filter on this dimension, if any.
- * @returns {Array<T>} The list to render.
- */
-function keepWhenFiltered(remembered, offered, selected) {
-  const kept = list(remembered);
-  // A page opened straight onto a filtered link has nothing remembered, so
-  // it falls back to the payload's one-entry list rather than an empty select.
-  if (text(selected) && kept.length > 0) return kept;
-  return list(offered);
 }
 
 // --- Colour slots and datasets -----------------------------------------

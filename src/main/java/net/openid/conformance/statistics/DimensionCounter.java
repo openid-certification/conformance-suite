@@ -9,6 +9,7 @@ import net.openid.conformance.statistics.StatisticsOverview.VariantValue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +21,13 @@ import java.util.TreeMap;
  * Counts what the filter selects can offer - plans, variant values, certification profiles
  * and entities under test - under the query currently being sliced, so that narrowing one
  * filter narrows the choices left in the others.
+ *
+ * <p>Each dimension is counted with its <em>own</em> filter left out (the usual faceted
+ * search rule): the plan select is counted under the query minus its plan, a variant
+ * parameter's select under the query minus that parameter, and so on. Otherwise picking a
+ * plan would leave the plan select offering that one plan, and the only way to a sibling
+ * would be to clear the filter first. Entities are not a filter and are counted under the
+ * whole query.
  *
  * <p>Users are counted <b>distinct</b>: a user who ran twenty plans with the same variant
  * value counts once for it. Plans are the secondary count, which is what makes the
@@ -35,62 +43,111 @@ final class DimensionCounter {
 
 	/**
 	 * @param cube        the cube being sliced
-	 * @param filter      the query's cell filter
+	 * @param query       the query being sliced
 	 * @param granularity the granularity being sliced at
 	 * @param periods     the periods on the axis; cells outside them are not counted
 	 * @return the dimensions of the current slice
 	 */
-	static Dimensions count(StatisticsCube cube, CellFilter filter, Granularity granularity, Set<String> periods) {
+	static Dimensions count(StatisticsCube cube, StatisticsQuery query, Granularity granularity, Set<String> periods) {
+		Facets facets = new Facets(cube, query);
 		Map<String, long[]> plans = new LinkedHashMap<>();
 		Map<String, Long> entities = new LinkedHashMap<>();
 		Map<String, Map<String, Counts>> variants = new TreeMap<>();
 		Map<String, Counts> certProfiles = new LinkedHashMap<>();
 
 		for (RunCell cell : cube.runs(granularity)) {
-			if (!filter.matches(cell) || !periods.contains(cell.period(granularity))) {
+			if (!periods.contains(cell.period(granularity))) {
 				continue;
 			}
-			if (cell.planName() != null) {
+			boolean all = facets.all.matches(cell);
+			if (cell.planName() != null && (all || facets.plans.matches(cell))) {
 				plans.computeIfAbsent(cell.planName(), plan -> new long[2])[0] += cell.runs();
 			}
-			entities.merge(filter.entityOf(cell), cell.runs(), Long::sum);
+			if (all) {
+				entities.merge(facets.all.entityOf(cell), cell.runs(), Long::sum);
+			}
 			// offer the values even when no plan or user has been counted against them yet
 			for (Map.Entry<String, String> parameter : cube.variantOf(cell.variantKey()).entrySet()) {
-				counts(variants, parameter.getKey(), parameter.getValue());
+				if (all || facets.variant(parameter.getKey()).matches(cell)) {
+					counts(variants, parameter.getKey(), parameter.getValue());
+				}
 			}
-			counts(certProfiles, cell.certKey());
+			if (all || facets.certs.matches(cell)) {
+				counts(certProfiles, cell.certKey());
+			}
 		}
 
 		for (PlanCell cell : cube.plans(granularity)) {
-			if (!filter.matches(cell) || !periods.contains(cell.period(granularity))) {
+			if (!periods.contains(cell.period(granularity))) {
 				continue;
 			}
-			if (cell.planName() != null) {
+			boolean all = facets.all.matches(cell);
+			if (cell.planName() != null && (all || facets.plans.matches(cell))) {
 				plans.computeIfAbsent(cell.planName(), plan -> new long[2])[1] += cell.plans();
 			}
 			for (Map.Entry<String, String> parameter : cube.variantOf(cell.variantKey()).entrySet()) {
-				counts(variants, parameter.getKey(), parameter.getValue()).plans += cell.plans();
+				if (all || facets.variant(parameter.getKey()).matches(cell)) {
+					counts(variants, parameter.getKey(), parameter.getValue()).plans += cell.plans();
+				}
 			}
-			Counts profile = counts(certProfiles, cell.certKey());
-			if (profile != null) {
-				profile.plans += cell.plans();
+			if (all || facets.certs.matches(cell)) {
+				Counts profile = counts(certProfiles, cell.certKey());
+				if (profile != null) {
+					profile.plans += cell.plans();
+				}
 			}
 		}
 
 		for (UserTuple tuple : cube.users()) {
-			if (!filter.matches(tuple) || !active(tuple, granularity, periods)) {
+			if (!active(tuple, granularity, periods)) {
 				continue;
 			}
+			boolean all = facets.all.matches(tuple);
 			for (Map.Entry<String, String> parameter : cube.variantOf(tuple.variantKey()).entrySet()) {
-				counts(variants, parameter.getKey(), parameter.getValue()).users.add(tuple.ownerId());
+				if (all || facets.variant(parameter.getKey()).matches(tuple)) {
+					counts(variants, parameter.getKey(), parameter.getValue()).users.add(tuple.ownerId());
+				}
 			}
-			Counts profile = counts(certProfiles, tuple.certKey());
-			if (profile != null) {
-				profile.users.add(tuple.ownerId());
+			if (all || facets.certs.matches(tuple)) {
+				Counts profile = counts(certProfiles, tuple.certKey());
+				if (profile != null) {
+					profile.users.add(tuple.ownerId());
+				}
 			}
 		}
 
 		return new Dimensions(plans(cube, plans), variants(variants), certProfiles(certProfiles), entities(entities));
+	}
+
+	/**
+	 * The filter each dimension is counted under: the whole query for the entities, and the
+	 * query minus its own filter for every select. A cell the whole query matches is matched
+	 * by every relaxed filter too, so the callers test the relaxed ones only when it does not.
+	 */
+	private static final class Facets {
+
+		private final CellFilter all;
+
+		private final CellFilter plans;
+
+		private final CellFilter certs;
+
+		private final Map<String, CellFilter> variants = new HashMap<>();
+
+		private Facets(StatisticsCube cube, StatisticsQuery query) {
+			this.all = new CellFilter(cube, query);
+			this.plans = new CellFilter(cube, query.withoutPlan());
+			this.certs = new CellFilter(cube, query.withoutCert());
+			for (String parameter : query.variant().keySet()) {
+				variants.put(parameter, new CellFilter(cube, query.withoutVariant(parameter)));
+			}
+		}
+
+		/** @return the filter a variant parameter's select is counted under */
+		private CellFilter variant(String parameter) {
+			// a parameter that is not filtered on has nothing to leave out
+			return variants.getOrDefault(parameter, all);
+		}
 	}
 
 	private static boolean active(UserTuple tuple, Granularity granularity, Set<String> periods) {

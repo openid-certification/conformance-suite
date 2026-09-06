@@ -132,6 +132,23 @@ class StatisticsQuery_UnitTest {
 	}
 
 	@Test
+	void aQueryCanBeRelaxedByOneFilterAtATime() {
+		StatisticsQuery query = StatisticsQuery.parse(Map.of(
+			"family", new String[] {"OIDCC"}, "plan", new String[] {"oidcc-plan"},
+			"variant.a", new String[] {"1"}, "variant.b", new String[] {"2"}, "cert", new String[] {"Cert A"}));
+
+		assertThat(query.withoutPlan()).isEqualTo(new StatisticsQuery(Granularity.MONTH, null, null, "OIDCC", null,
+			Map.of("a", "1", "b", "2"), "Cert A"));
+		assertThat(query.withoutCert()).isEqualTo(new StatisticsQuery(Granularity.MONTH, null, null, "OIDCC",
+			"oidcc-plan", Map.of("a", "1", "b", "2"), null));
+		assertThat(query.withoutVariant("a")).isEqualTo(new StatisticsQuery(Granularity.MONTH, null, null, "OIDCC",
+			"oidcc-plan", Map.of("b", "2"), "Cert A"));
+		// relaxing what is not there changes nothing
+		assertThat(query.withoutVariant("c")).isEqualTo(query);
+		assertThat(StatisticsQuery.defaults().withoutPlan()).isEqualTo(StatisticsQuery.defaults());
+	}
+
+	@Test
 	void theVariantMapIsImmutable() {
 		StatisticsQuery query = StatisticsQuery.parse(params("variant.fapi_profile", "plain"));
 

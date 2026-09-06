@@ -1,5 +1,6 @@
 package net.openid.conformance.statistics;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -52,6 +53,26 @@ public record StatisticsQuery(Granularity granularity, String from, String to, S
 		}
 		return new StatisticsQuery(granularity, from, to, QueryParams.first(params, "family"),
 			QueryParams.first(params, "plan"), QueryParams.variant(params), QueryParams.first(params, "cert"));
+	}
+
+	/** @return this query with no plan filter; what the plan select is counted under */
+	public StatisticsQuery withoutPlan() {
+		return new StatisticsQuery(granularity, from, to, family, null, variant, cert);
+	}
+
+	/** @return this query with no certification profile filter; what that select is counted under */
+	public StatisticsQuery withoutCert() {
+		return new StatisticsQuery(granularity, from, to, family, plan, variant, null);
+	}
+
+	/**
+	 * @param parameter a variant parameter name
+	 * @return this query with no filter on that parameter; what its select is counted under
+	 */
+	public StatisticsQuery withoutVariant(String parameter) {
+		Map<String, String> rest = new HashMap<>(variant);
+		rest.remove(parameter);
+		return new StatisticsQuery(granularity, from, to, family, plan, rest, cert);
 	}
 
 	private static String period(Granularity granularity, String parameter, String value) {

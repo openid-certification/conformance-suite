@@ -39,7 +39,8 @@ import {
   queryFromState,
   rangePreset,
   rangeToQuery,
-  rememberOptions,
+  optionsForTransition,
+  optionsFrom,
   resultsDatasets,
   runsDatasets,
   sameState,
@@ -727,89 +728,79 @@ describe("drillDownFamily", () => {
 
 // --- Filter options ----------------------------------------------------
 
-describe("rememberOptions", () => {
-  it("takes the payload's dimensions while nothing is filtered", () => {
-    const options = rememberOptions(EMPTY_OPTIONS, makeData(), defaultFilterState());
-    expect(options.plans.map((plan) => plan.planName)).toEqual(["plan-a", "plan-b", "plan-c"]);
-    expect(Object.keys(options.variants)).toEqual(["client_auth_type", "fapi_profile"]);
-    expect(options.certProfiles).toHaveLength(1);
-  });
-
-  it("keeps the sibling plans a plan filter has removed from the payload", () => {
-    const wide = rememberOptions(EMPTY_OPTIONS, makeData(), defaultFilterState());
-    // The server counts dimensions under the whole query, its own filter
-    // included, so a filtered payload offers exactly what is selected.
-    const narrowed = makeData();
-    narrowed.dimensions.plans = [narrowed.dimensions.plans[0]];
-    const options = rememberOptions(wide, narrowed, {
-      ...defaultFilterState(),
-      plan: "plan-a",
-    });
-    expect(options.plans.map((plan) => plan.planName)).toEqual(["plan-a", "plan-b", "plan-c"]);
-  });
-
-  it("does the same for a variant value and a certification profile", () => {
-    const wide = rememberOptions(EMPTY_OPTIONS, makeData(), defaultFilterState());
-    const narrowed = makeData();
-    narrowed.dimensions.variants.client_auth_type = [{ value: "mtls", users: 4, plans: 12 }];
-    narrowed.dimensions.certProfiles = [];
-    const options = rememberOptions(wide, narrowed, {
-      ...defaultFilterState(),
-      variant: { client_auth_type: "mtls" },
-      cert: "FAPI2 Security Profile Final",
-    });
-    expect(options.variants.client_auth_type.map((value) => value.value)).toEqual([
-      "private_key_jwt",
-      "mtls",
-    ]);
-    expect(options.certProfiles.map((profile) => profile.name)).toEqual([
-      "FAPI2 Security Profile Final",
-    ]);
-  });
-
-  it("still narrows the dimensions that are NOT filtered — that is the cascade", () => {
-    const wide = rememberOptions(EMPTY_OPTIONS, makeData(), defaultFilterState());
+describe("optionsFrom", () => {
+  it("renders the payload's dimensions as they come", () => {
+    // The server counts each dimension with its own filter left out, so a
+    // filtered payload already offers the siblings of what is selected.
     const narrowed = makeData();
     narrowed.dimensions.plans = [narrowed.dimensions.plans[0], narrowed.dimensions.plans[1]];
-    const options = rememberOptions(wide, narrowed, {
-      ...defaultFilterState(),
-      family: "FAPI2 Security Profile",
-    });
+    const options = optionsFrom(narrowed, { ...defaultFilterState(), plan: "plan-a" });
     expect(options.plans.map((plan) => plan.planName)).toEqual(["plan-a", "plan-b"]);
-  });
-
-  it("falls back to the payload when a filtered page is opened cold", () => {
-    // A deep link has nothing remembered; a one-entry select beats an empty one.
-    const narrowed = makeData();
-    narrowed.dimensions.plans = [narrowed.dimensions.plans[2]];
-    const options = rememberOptions(EMPTY_OPTIONS, narrowed, {
-      ...defaultFilterState(),
-      plan: "plan-c",
-    });
-    expect(options.plans.map((plan) => plan.planName)).toEqual(["plan-c"]);
+    expect(Object.keys(options.variants)).toEqual(["client_auth_type", "fapi_profile"]);
+    expect(options.certProfiles).toHaveLength(1);
   });
 
   it("keeps a filtered variant parameter the payload no longer mentions", () => {
     // Otherwise the only control that could clear it would disappear.
     const narrowed = makeData();
     narrowed.dimensions.variants = {};
-    const options = rememberOptions(EMPTY_OPTIONS, narrowed, {
+    const options = optionsFrom(narrowed, {
       ...defaultFilterState(),
       variant: { fapi_profile: "openbanking_brazil" },
     });
-    expect(Object.keys(options.variants)).toEqual(["fapi_profile"]);
+    expect(options.variants).toEqual({ fapi_profile: [] });
   });
 
   it("tolerates a payload with no dimensions at all", () => {
-    const options = rememberOptions(EMPTY_OPTIONS, /** @type {any} */ ({}), defaultFilterState());
-    expect(options).toEqual({ plans: [], variants: {}, certProfiles: [] });
+    expect(optionsFrom(/** @type {any} */ ({}), defaultFilterState())).toEqual({
+      plans: [],
+      variants: {},
+      certProfiles: [],
+    });
+    const malformed = /** @type {any} */ ({ dimensions: { plans: "no", variants: { x: "no" } } });
+    expect(optionsFrom(malformed, defaultFilterState())).toEqual({
+      plans: [],
+      variants: { x: [] },
+      certProfiles: [],
+    });
+  });
+});
+
+describe("optionsForTransition", () => {
+  it("drops the variant lists of the old family and keeps the plan and profile lists", () => {
+    const before = optionsFrom(makeData(), defaultFilterState());
+    const during = optionsForTransition(before, { ...defaultFilterState(), family: "OID4VP" });
+    expect(during.variants).toEqual({});
+    expect(during.plans).toBe(before.plans);
+    expect(during.certProfiles).toBe(before.certProfiles);
+    // ...so nothing is offered until the payload for the new family lands
+    expect(visibleVariants(during, { ...defaultFilterState(), family: "OID4VP" })).toEqual({});
+  });
+
+  it("keeps a parameter that is still filtered on, with its values, so it can be cleared", () => {
+    const before = optionsFrom(makeData(), defaultFilterState());
+    const during = optionsForTransition(before, {
+      ...defaultFilterState(),
+      plan: "plan-b",
+      variant: { client_auth_type: "mtls" },
+    });
+    expect(Object.keys(during.variants)).toEqual(["client_auth_type"]);
+    expect(during.variants.client_auth_type).toBe(before.variants.client_auth_type);
+  });
+
+  it("tolerates missing options", () => {
+    expect(optionsForTransition(/** @type {any} */ (undefined), defaultFilterState())).toEqual({
+      plans: [],
+      variants: {},
+      certProfiles: [],
+    });
   });
 });
 
 describe("visibleVariants", () => {
   /** @returns {any} The options an unfiltered payload produces. */
   function options() {
-    return rememberOptions(EMPTY_OPTIONS, makeData(), defaultFilterState());
+    return optionsFrom(makeData(), defaultFilterState());
   }
 
   it("offers nothing until the view is narrowed to a family or a plan", () => {

@@ -689,33 +689,18 @@ function scaleFamilies(map, weight) {
 }
 
 /**
- * The dimensions under one query. Each dimension is narrowed by every filter,
- * its own included — which is what makes the page's remembered option lists
- * worth having.
+ * The dimensions under one query. The server counts each dimension with its
+ * own filter left out, so picking a plan, a variant value or a certification
+ * profile never narrows its own select: here only the family — which a plan
+ * implies — narrows anything, and it narrows the plans.
  * @param {string} family - The family filter, or `""`.
- * @param {string} plan - The plan filter, or `""`.
- * @param {Record<string, string>} variant - The variant filters.
- * @param {string} cert - The certification profile filter, or `""`.
  * @returns {any} The dimensions.
  */
-function narrowDimensions(family, plan, variant, cert) {
-  const plans = DIMENSIONS.plans.filter(
-    (option) => (!family || option.family === family) && (!plan || option.planName === plan),
-  );
-  const variants = Object.fromEntries(
-    Object.entries(DIMENSIONS.variants).map(([name, values]) => [
-      name,
-      variant[name]
-        ? /** @type {Array<any>} */ (values).filter((option) => option.value === variant[name])
-        : values,
-    ]),
-  );
+function narrowDimensions(family) {
   return {
-    plans,
-    variants,
-    certProfiles: cert
-      ? DIMENSIONS.certProfiles.filter((profile) => profile.name === cert)
-      : DIMENSIONS.certProfiles,
+    plans: DIMENSIONS.plans.filter((option) => !family || option.family === family),
+    variants: DIMENSIONS.variants,
+    certProfiles: DIMENSIONS.certProfiles,
     entities: DIMENSIONS.entities,
   };
 }
@@ -724,7 +709,7 @@ function narrowDimensions(family, plan, variant, cert) {
  * Answer one `GET /api/statistics/overview` request from this fixture: the
  * granularity picks the axis, families outside the filter are zeroed (never
  * removed — the contract is that every family has a series), the dimensions
- * are counted under the whole query INCLUDING their own filter, and the tiles,
+ * are counted with each dimension's own filter left out, and the tiles,
  * storage, heatmap, hosts and unresolved plans are never filtered at all.
  * The axis itself is NOT clipped to `from`/`to` — see the file header.
  *
@@ -780,7 +765,7 @@ export function statisticsOverviewFor(requestUrl) {
       },
       tiles: TILES,
       storage: STORAGE,
-      dimensions: narrowDimensions(family, plan, variant, cert),
+      dimensions: narrowDimensions(family),
       heatmap: HEATMAP,
       modules: narrowModules(family, plan),
       externalHosts: EXTERNAL_HOSTS,
