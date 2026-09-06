@@ -186,7 +186,9 @@ HEADER
     done
 } >"${OUTPUT_FILE}.tmp"
 
-$NPX prettier --parser typescript "${OUTPUT_FILE}.tmp" >"${OUTPUT_FILE}"
+# --config pinned: in --check mode the output lives under /tmp, where prettier
+# would find no config and wrap at 80 columns instead of the frontend's 100.
+$NPX prettier --config "${FRONTEND_DIR}/.prettierrc.json" --parser typescript "${OUTPUT_FILE}.tmp" >"${OUTPUT_FILE}"
 rm -f "${OUTPUT_FILE}.tmp"
 
 if [ "${CHECK}" -eq 1 ]; then
