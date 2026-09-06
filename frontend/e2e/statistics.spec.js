@@ -1096,16 +1096,16 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(heatmap.locator(".cts-heatmap-cell")).toHaveCount(7 * 24);
     await expect(heatmap.locator(".cts-heatmap-caption")).toContainText("9,918 runs in this range");
     await expect(heatmap.locator(".cts-heatmap-caption")).toContainText(
-      "All hours are UTC. Within the last 24 months, sliced by the selected range (12 months) only",
+      "All hours are UTC. Within the last 12 months, sliced by the selected range (12 months) only",
     );
     await expect(heatmap.locator("table tbody tr")).toHaveCount(7);
     await expect(heatmap.locator("table thead th")).toHaveCount(25);
 
-    // External servers: the trailing 24 months, unfiltered — a disclosure
+    // External servers: the trailing 12 months, unfiltered — a disclosure
     // rather than a section.
     const hosts = page.locator('[data-testid="stats-hosts"]');
     await expect(hosts.locator(".cts-stats-hint")).toContainText(
-      "The top 100 by runs over the last 24 months",
+      "The top 100 by runs over the last 12 months",
     );
     await expect(hosts.locator("summary")).toHaveText("External servers under test (6)");
     await expect(hosts.locator("tbody tr")).toHaveCount(6);
@@ -1210,7 +1210,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     const modulesCaption = page.getByText(/counts identified users once per module/);
     // The window is BOTH: the cells the server keeps, and the range that was asked for.
     await expect(modulesCaption).toContainText(
-      "Within the last 24 months, over the selected range",
+      "Within the last 12 months, over the selected range",
     );
     await expect(modulesCaption).toContainText(
       "family and plan filters apply; variant and certification filters do not",

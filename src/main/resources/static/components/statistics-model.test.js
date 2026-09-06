@@ -45,7 +45,7 @@ import {
   runsDatasets,
   sameState,
   stateFromUrl,
-  topN,
+  rankBy,
   urlFromState,
   usersDatasets,
   visibleVariants,
@@ -1395,16 +1395,16 @@ describe("familiesWithActivity", () => {
 
 // --- Distributions -----------------------------------------------------
 
-describe("topN", () => {
+describe("rankBy", () => {
   const valueOf = (/** @type {{n: number}} */ item) => item.n;
 
   it("ranks on the measure being plotted, not on the delivered order", () => {
     // The server ranks certification profiles and variant values by ONE of
-    // the two counts they carry; a "top N" taken off the other one has to be
-    // re-ranked or it is not a top N.
-    const { shown, hidden } = topN([{ n: 1 }, { n: 9 }, { n: 5 }], valueOf, 2);
-    expect(shown.map((item) => item.n)).toEqual([9, 5]);
-    expect(hidden.map((item) => item.n)).toEqual([1]);
+    // the two counts they carry; a ranking taken off the other one has to be
+    // re-sorted or the chart plots the wrong bars first.
+    expect(rankBy([{ n: 1 }, { n: 9 }, { n: 5 }], valueOf).map((item) => item.n)).toEqual([
+      9, 5, 1,
+    ]);
   });
 
   it("breaks ties on the delivered order, so the ranking is stable", () => {
@@ -1413,22 +1413,16 @@ describe("topN", () => {
       { n: 4, id: "b" },
       { n: 4, id: "c" },
     ];
-    expect(topN(items, valueOf, 3).shown.map((item) => item.id)).toEqual(["a", "b", "c"]);
+    expect(rankBy(items, valueOf).map((item) => item.id)).toEqual(["a", "b", "c"]);
   });
 
-  it("hides nothing when the list is shorter than the limit", () => {
-    expect(topN([{ n: 1 }], valueOf, 12).hidden).toEqual([]);
-  });
-
-  it("defaults to the distribution limit", () => {
+  it("keeps every row — the cut belongs to <cts-chart max-bars>", () => {
     const items = Array.from({ length: DISTRIBUTION_LIMIT + 3 }, (_, i) => ({ n: i }));
-    const { shown, hidden } = topN(items, valueOf);
-    expect(shown.length).toBe(DISTRIBUTION_LIMIT);
-    expect(hidden.length).toBe(3);
+    expect(rankBy(items, valueOf).length).toBe(DISTRIBUTION_LIMIT + 3);
   });
 
   it("tolerates a missing list", () => {
-    expect(topN(/** @type {any} */ (undefined), valueOf).shown).toEqual([]);
+    expect(rankBy(/** @type {any} */ (undefined), valueOf)).toEqual([]);
   });
 });
 
@@ -1476,7 +1470,7 @@ describe("distributionDatasets", () => {
 
   it("keeps every row, plotted or not — the data table is not truncated", () => {
     const many = Array.from({ length: 20 }, (_, i) => ({ value: `v${i}`, users: i, plans: i }));
-    const distribution = distributionDatasets(many, spec, 12);
+    const distribution = distributionDatasets(many, spec);
     expect(distribution.labels.length).toBe(20);
     expect(distribution.datasets[0].data.length).toBe(20);
     expect(distribution.extras[0].data.length).toBe(20);

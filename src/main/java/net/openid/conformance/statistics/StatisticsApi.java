@@ -38,7 +38,8 @@ public class StatisticsApi {
 	private AuthenticationFacade authenticationFacade;
 
 	@GetMapping(value = "/statistics/overview", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get suite-wide usage statistics across all users (admin only)",
+	@Operation(operationId = "getStatisticsOverview",
+		summary = "Get suite-wide usage statistics across all users (admin only)",
 		description = "Served from a snapshot that is recomputed in the background at most every 12 hours, "
 			+ "because the underlying aggregations group over the whole test database. "
 			+ "While the first snapshot is being computed the response is 202 and the client should poll. "
@@ -48,13 +49,13 @@ public class StatisticsApi {
 			+ "`variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; "
 			+ "a cell has to match all of them. They cannot be declared individually here because the "
 			+ "parameter names are the variant parameters of every test plan the suite publishes.\n\n"
-			+ "`data.modules` covers the trailing 24 months only, is clipped to the range by month whatever "
+			+ "`data.modules` covers the trailing 12 months only, is clipped to the range by month whatever "
 			+ "the granularity, and honours `family` and `plan` as registry membership - a module belongs to "
 			+ "every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not "
 			+ "apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` "
 			+ "counts only runs by an identified user, since the section counts people and a run written before "
 			+ "authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.\n\n"
-			+ "`data.heatmap` and `data.externalHosts` cover the trailing 24 months, and the summary tiles are "
+			+ "`data.heatmap` and `data.externalHosts` cover the trailing 12 months, and the summary tiles are "
 			+ "windowed too: `inProgress` and `stuck` count runs started since the server came up (a run left "
 			+ "RUNNING or WAITING by a restart is not in progress), `totalTests` is the run "
 			+ "collection's own document count (an estimate to within a few documents) and `totalUsers` counts "

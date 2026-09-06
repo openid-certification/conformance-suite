@@ -1,14 +1,11 @@
 package net.openid.conformance.statistics;
 
-import net.openid.conformance.statistics.StatisticsOverview.Tiles;
-import net.openid.conformance.statistics.StatisticsOverview.UnresolvedPlan;
 import net.openid.conformance.statistics.StatisticsOverview.Users;
 import net.openid.conformance.testmodule.TestModule.Result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -60,8 +57,6 @@ public final class StatisticsSlicer {
 	public static final List<String> RESULT_BUCKETS = List.of(PASSED, WARNING, REVIEW, FAILED, SKIPPED, NEVER_FINISHED);
 
 	/** How many unresolved plan names to report. */
-	private static final int MAX_UNRESOLVED_PLANS = 20;
-
 	private StatisticsSlicer() {
 	}
 
@@ -128,10 +123,10 @@ public final class StatisticsSlicer {
 			freezeBuckets(resultsByFamily, first), freeze(certifiedByFamily, first), cube.familyTotals(),
 			new Users(users.activeByPeriod().subList(first, periods.size()),
 				users.newByPeriod().subList(first, periods.size())),
-			tiles(cube), cube.storage(),
+			cube.summaryTiles(), cube.storage(),
 			DimensionCounter.count(cube, query, granularity, range),
 			HeatmapBinner.heatmap(cube.heat(), granularity, range), ModuleRanker.rank(cube, query),
-			cube.externalHosts(), unresolvedPlans(cube));
+			cube.externalHosts(), cube.unresolvedPlans());
 	}
 
 	/**
@@ -139,27 +134,16 @@ public final class StatisticsSlicer {
 	 *         if none has. The users series count too, so a plan created before the first
 	 *         run of a family still opens its axis.
 	 */
-	@SafeVarargs
-	private static int firstPeriodWithData(int size, Map<String, long[]>... byFamily) {
+	private static int firstPeriodWithData(int size, Map<String, long[]> runs, Map<String, long[]> plans,
+			Map<String, long[]> certified, Users users) {
 		int first = size;
-		for (Map<String, long[]> series : byFamily) {
+		for (Map<String, long[]> series : List.of(runs, plans, certified)) {
 			for (long[] values : series.values()) {
 				first = Math.min(first, firstNonZero(values, first));
 			}
 		}
-		return first;
-	}
-
-	private static int firstPeriodWithData(int size, Map<String, long[]> runs, Map<String, long[]> plans,
-			Map<String, long[]> certified, Users users) {
-		int first = firstPeriodWithData(size, runs, plans, certified);
 		for (List<Long> values : List.of(users.activeByPeriod(), users.newByPeriod())) {
-			for (int at = 0; at < first; at++) {
-				if (values.get(at) != 0) {
-					first = at;
-					break;
-				}
-			}
+			first = Math.min(first, firstNonZero(values, first));
 		}
 		return first;
 	}
@@ -167,6 +151,15 @@ public final class StatisticsSlicer {
 	private static int firstNonZero(long[] values, int limit) {
 		for (int at = 0; at < limit; at++) {
 			if (values[at] != 0) {
+				return at;
+			}
+		}
+		return limit;
+	}
+
+	private static int firstNonZero(List<Long> values, int limit) {
+		for (int at = 0; at < limit; at++) {
+			if (values.get(at) != 0) {
 				return at;
 			}
 		}
@@ -235,44 +228,6 @@ public final class StatisticsSlicer {
 
 	private static String earlier(String period, String candidate) {
 		return candidate.compareTo(period) < 0 ? candidate : period;
-	}
-
-	/** @return the whole-database tiles; plan counts include periods outside the axis */
-	private static Tiles tiles(StatisticsCube cube) {
-		long plans = 0;
-		long certified = 0;
-		long published = 0;
-		for (PlanCell cell : cube.plans(Granularity.MONTH)) {
-			plans += cell.plans();
-			certified += cell.certified();
-			published += cell.published();
-		}
-		TileRow tiles = cube.tiles();
-		return new Tiles(tiles.total(), plans, tiles.totalUsers(), tiles.last24h(), tiles.last7d(), tiles.last30d(),
-			tiles.inProgress(), tiles.stuck(), certified, published);
-	}
-
-	/**
-	 * @return the busiest plan names the statistics cannot attribute to a family, all time and
-	 *         unfiltered. A retired plan name that {@link SpecFamilyResolver}'s alias map knows
-	 *         resolves to its family and so is not listed here: what is left is what nothing in
-	 *         the suite, current or historic, can name.
-	 */
-	private static List<UnresolvedPlan> unresolvedPlans(StatisticsCube cube) {
-		Map<String, Long> runs = new HashMap<>();
-		for (RunCell cell : cube.runs(Granularity.MONTH)) {
-			if (cell.standalone() || cell.planName() == null
-				|| !SpecFamilyResolver.OTHER_RETIRED.equals(cube.familyOf(cell.planName()))) {
-				continue;
-			}
-			runs.merge(cell.planName(), cell.runs(), Long::sum);
-		}
-		return runs.entrySet().stream()
-			.map(entry -> new UnresolvedPlan(entry.getKey(), entry.getValue()))
-			.sorted(Comparator.comparingLong(UnresolvedPlan::runs).reversed()
-				.thenComparing(UnresolvedPlan::planName))
-			.limit(MAX_UNRESOLVED_PLANS)
-			.toList();
 	}
 
 	private static Map<String, Integer> index(List<String> periods) {

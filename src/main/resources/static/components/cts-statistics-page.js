@@ -11,6 +11,7 @@ import "./cts-statistics-insights.js";
 import "./cts-time.js";
 import { ctsToast } from "../js/cts-toast-api.js";
 import { injectDataTableStyles } from "./data-table-styles.js";
+import { injectStatisticsStyles } from "./statistics-styles.js";
 import { POLL_GIVE_UP_MINUTES, SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
@@ -157,6 +158,55 @@ const DRILL_DOWN_LABEL = "List the test plans in";
 const RESULT_DRILL_DOWN_LABEL = "List all test plans, whatever their result, in";
 
 /**
+ * The five trend charts, in the order they are laid out.
+ *
+ * They differ only in what they plot and where a click leads, so they are a
+ * table rather than five near-identical templates. Two of them are the
+ * exceptions worth naming: the users chart is neither stacked nor clickable,
+ * because a headcount does not decompose into families and so there is
+ * nothing to drill into, and it and the results chart are the two with no
+ * per-period tooltip footer.
+ * @typedef {object} TrendChart
+ * @property {string} key - The `view` series to plot, and the chart's testid.
+ * @property {string} heading - Formatted with the period's noun.
+ * @property {string} [clickLabel] - Omitted on a chart that is not clickable.
+ * @property {"family"|"result"} [drillDown] - Which click handler a bar runs.
+ * @property {boolean} [footer] - Whether the series carries a tooltip footer.
+ */
+
+/** @type {Array<TrendChart>} */
+const TREND_CHARTS = [
+  {
+    key: "runs",
+    heading: "Test module runs per %s",
+    clickLabel: DRILL_DOWN_LABEL,
+    drillDown: "family",
+    footer: true,
+  },
+  {
+    key: "plans",
+    heading: "Test plans per %s",
+    clickLabel: DRILL_DOWN_LABEL,
+    drillDown: "family",
+    footer: true,
+  },
+  {
+    key: "results",
+    heading: "Results per %s",
+    clickLabel: RESULT_DRILL_DOWN_LABEL,
+    drillDown: "result",
+  },
+  { key: "users", heading: "Users per %s — by plan owner" },
+  {
+    key: "certified",
+    heading: "Certified plans per %s",
+    clickLabel: DRILL_DOWN_LABEL,
+    drillDown: "family",
+    footer: true,
+  },
+];
+
+/**
  * What one period is called on an axis and in a heading, per granularity.
  * @type {Record<string, {axis: string, unit: string}>}
  */
@@ -184,14 +234,11 @@ const STYLE_TEXT = css`
     font-family: var(--font-sans);
     color: var(--fg);
   }
-  .cts-stats-section-heading {
-    margin: var(--space-6) 0 var(--space-3);
-    font-size: var(--fs-16);
-    font-weight: var(--fw-bold);
-    line-height: var(--lh-snug);
-    color: var(--fg);
-  }
-  .cts-stats-section-heading:first-child {
+  /* The page's first heading opens the document, so it loses the leading
+     space. Scoped to a direct child: the insights section's first heading is
+     also a :first-child, of its own host, and it follows the charts above it.
+     The heading's look itself is in statistics-styles.js. */
+  cts-statistics-page > .cts-stats-section-heading:first-child {
     margin-top: 0;
   }
 
@@ -276,11 +323,6 @@ const STYLE_TEXT = css`
   details.cts-stats-unresolved {
     margin-top: var(--space-5);
   }
-  .cts-stats-unresolved-hint {
-    margin: var(--space-2) 0 0;
-    font-size: var(--fs-12);
-    color: var(--fg-soft);
-  }
 
   /* cts-empty-state centres its own content; the action under it has to be
      centred too, or it reads as belonging to whatever comes next. */
@@ -306,6 +348,7 @@ const STYLE_TEXT = css`
  */
 function injectStyles() {
   injectDataTableStyles();
+  injectStatisticsStyles();
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
@@ -1004,16 +1047,8 @@ class CtsStatisticsPage extends LitElement {
     return html`
       <h2 class="cts-stats-section-heading">Totals</h2>
       <div class="cts-stats-tiles" data-testid="stats-tiles">
-        ${TILES.map(
-          (tile) => html`
-            <div class="cts-stats-tile" data-testid="stat-tile-${tile.key}">
-              <span class="cts-stats-tile-value"
-                >${NUMBER_FORMAT.format(Number(tiles[tile.key]) || 0)}</span
-              >
-              <span class="cts-stats-tile-label">${tile.label}</span>
-              <span class="cts-stats-tile-hint">${tile.hint}</span>
-            </div>
-          `,
+        ${TILES.map((tile) =>
+          this._renderTile(`stat-tile-${tile.key}`, tiles[tile.key], tile.label, tile.hint),
         )}
       </div>
       ${this._renderStorage(data)}
@@ -1034,20 +1069,35 @@ class CtsStatisticsPage extends LitElement {
     return html`
       <h3 class="cts-stats-subheading">Storage</h3>
       <div class="cts-stats-tiles" data-testid="stats-storage">
-        ${storage.map(
-          (row) => html`
-            <div class="cts-stats-tile" data-testid="stat-storage-${row.collection}">
-              <span class="cts-stats-tile-value"
-                >${NUMBER_FORMAT.format(Number(row.count) || 0)}</span
-              >
-              <span class="cts-stats-tile-label">${row.collection} documents</span>
-              <span class="cts-stats-tile-hint">
-                ${formatBytes(row.size)} data · ${formatBytes(row.storageSize)} on disk ·
-                ${formatBytes(row.totalIndexSize)} indexes
-              </span>
-            </div>
-          `,
+        ${storage.map((row) =>
+          this._renderTile(
+            `stat-storage-${row.collection}`,
+            row.count,
+            `${row.collection} documents`,
+            html`${formatBytes(row.size)} data · ${formatBytes(row.storageSize)} on disk ·
+            ${formatBytes(row.totalIndexSize)} indexes`,
+          ),
         )}
+      </div>
+    `;
+  }
+
+  /**
+   * One KPI tile. The counters and the storage row share a mark because they
+   * answer the same kind of question — a whole-database figure that neither
+   * the range nor any filter scopes.
+   * @param {string} testid - The tile's `data-testid`.
+   * @param {unknown} value - The count; anything non-numeric shows as zero.
+   * @param {unknown} label - What the count is of.
+   * @param {unknown} hint - The line under it.
+   * @returns {unknown} The tile.
+   */
+  _renderTile(testid, value, label, hint) {
+    return html`
+      <div class="cts-stats-tile" data-testid=${testid}>
+        <span class="cts-stats-tile-value">${NUMBER_FORMAT.format(Number(value) || 0)}</span>
+        <span class="cts-stats-tile-label">${label}</span>
+        <span class="cts-stats-tile-hint">${hint}</span>
       </div>
     `;
   }
@@ -1125,67 +1175,39 @@ class CtsStatisticsPage extends LitElement {
         data-testid="stats-charts"
         aria-busy=${aria(this._busy)}
       >
-        <div class="cts-stats-chart" data-testid="stats-chart-runs">
-          <cts-chart
-            heading="Test module runs per ${names.unit}"
-            category-label=${names.axis}
-            stacked
-            clickable
-            click-label=${DRILL_DOWN_LABEL}
-            .labels=${view.labels}
-            .datasets=${view.runs.datasets}
-            .tooltipFooter=${view.footers.runs}
-            @cts-chart-click=${this._handleFamilyChartClick}
-          ></cts-chart>
-        </div>
-        <div class="cts-stats-chart" data-testid="stats-chart-plans">
-          <cts-chart
-            heading="Test plans per ${names.unit}"
-            category-label=${names.axis}
-            stacked
-            clickable
-            click-label=${DRILL_DOWN_LABEL}
-            .labels=${view.labels}
-            .datasets=${view.plans.datasets}
-            .tooltipFooter=${view.footers.plans}
-            @cts-chart-click=${this._handleFamilyChartClick}
-          ></cts-chart>
-        </div>
-        <div class="cts-stats-chart" data-testid="stats-chart-results">
-          <cts-chart
-            heading="Results per ${names.unit}"
-            category-label=${names.axis}
-            stacked
-            clickable
-            click-label=${RESULT_DRILL_DOWN_LABEL}
-            .labels=${view.labels}
-            .datasets=${view.results.datasets}
-            @cts-chart-click=${this._handleResultChartClick}
-          ></cts-chart>
-        </div>
-        <div class="cts-stats-chart" data-testid="stats-chart-users">
-          <cts-chart
-            heading="Users per ${names.unit} — by plan owner"
-            category-label=${names.axis}
-            .labels=${view.labels}
-            .datasets=${view.users.datasets}
-          ></cts-chart>
-        </div>
-        <div class="cts-stats-chart" data-testid="stats-chart-certified">
-          <cts-chart
-            heading="Certified plans per ${names.unit}"
-            category-label=${names.axis}
-            stacked
-            clickable
-            click-label=${DRILL_DOWN_LABEL}
-            .labels=${view.labels}
-            .datasets=${view.certified.datasets}
-            .tooltipFooter=${view.footers.certified}
-            @cts-chart-click=${this._handleFamilyChartClick}
-          ></cts-chart>
-        </div>
+        ${TREND_CHARTS.map((chart) => this._renderTrendChart(chart, view, names))}
       </div>
       ${this._renderUnresolved(data)}
+    `;
+  }
+
+  /**
+   * One trend chart.
+   * @param {TrendChart} chart - What to plot and where a click leads.
+   * @param {any} view - The memoised series for the current slice.
+   * @param {any} names - The period's noun and the axis label.
+   * @returns {unknown} The chart.
+   */
+  _renderTrendChart(chart, view, names) {
+    const clickable = chart.drillDown !== undefined;
+    return html`
+      <div class="cts-stats-chart" data-testid="stats-chart-${chart.key}">
+        <cts-chart
+          heading=${chart.heading.replace("%s", names.unit)}
+          category-label=${names.axis}
+          ?stacked=${clickable}
+          ?clickable=${clickable}
+          click-label=${chart.clickLabel ?? nothing}
+          .labels=${view.labels}
+          .datasets=${view[chart.key].datasets}
+          .tooltipFooter=${chart.footer ? view.footers[chart.key] : undefined}
+          @cts-chart-click=${chart.drillDown === "result"
+            ? this._handleResultChartClick
+            : chart.drillDown === "family"
+              ? this._handleFamilyChartClick
+              : undefined}
+        ></cts-chart>
+      </div>
     `;
   }
 
@@ -1207,7 +1229,7 @@ class CtsStatisticsPage extends LitElement {
     return html`
       <details class="cts-stats-unresolved cts-data-disclosure" data-testid="stats-unresolved">
         <summary>Plans not mapped to a spec family (${plans.length})</summary>
-        <p class="cts-stats-unresolved-hint">
+        <p class="cts-stats-hint">
           Retired, renamed or hidden plan names; their runs are counted under “Other / retired”.
         </p>
         <table class="cts-data-table">
@@ -1250,7 +1272,7 @@ class CtsStatisticsPage extends LitElement {
    * matched nothing would still come back with a full dozen bars — a section
    * of traffic sitting directly under a banner saying no runs match these
    * filters. Their own empty state is for the case the server really did
-   * return nothing (a synthetic family, or a quiet 24 months).
+   * return nothing (a synthetic family, or a quiet 12 months).
    * @param {StatisticsData} data - The current payload.
    * @param {boolean} noMatch - Whether the filters matched nothing.
    * @returns {unknown} The insights block.

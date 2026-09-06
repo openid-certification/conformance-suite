@@ -1,17 +1,21 @@
 package net.openid.conformance.statistics;
 
 import net.openid.conformance.statistics.StatisticsOverview.FamilyTotals;
+import net.openid.conformance.statistics.StatisticsOverview.Tiles;
+import net.openid.conformance.statistics.StatisticsOverview.UnresolvedPlan;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 /**
  * Every number the statistics page can show, aggregated as far as it can be without
@@ -51,7 +55,18 @@ public class StatisticsCube {
 	public static final int WEEKS_KEPT = 104;
 
 	/** How many months of module cells are kept, the current month included. */
-	public static final int MODULE_MONTHS = 24;
+	public static final int MODULE_MONTHS = 12;
+
+	/**
+	 * How many months of external hosts are reported. Its own constant rather than
+	 * {@link #MODULE_MONTHS}, although the two are equal today: the pipeline behind it reads
+	 * every run's configuration, which is the most expensive scan of the snapshot, so it is
+	 * the window that would be shortened first.
+	 */
+	public static final int HOST_MONTHS = 12;
+
+	/** How many unattributable plan names the payload lists. */
+	private static final int MAX_UNRESOLVED_PLANS = 20;
 
 	private final List<RunCell> monthlyRuns;
 
@@ -85,6 +100,10 @@ public class StatisticsCube {
 
 	private final List<String> weeklyPeriods;
 
+	private final Tiles summaryTiles;
+
+	private final List<UnresolvedPlan> unresolvedPlans;
+
 	/**
 	 * @param runCells      module runs per period, plan, variant and certification profile
 	 * @param planCells     plans created per period, plan, variant and certification profile
@@ -92,7 +111,7 @@ public class StatisticsCube {
 	 * @param heatCells     runs per day and hour
 	 * @param moduleCells   runs of each test module per month and user
 	 * @param externalHosts the external servers the suite has been pointed at over the
-	 *                      trailing {@value #MODULE_MONTHS} months
+	 *                      trailing {@value #HOST_MONTHS} months
 	 * @param storage       per collection storage counters
 	 * @param tiles         the whole-collection counters behind the summary tiles
 	 * @param resolver      maps plan names to their spec family and entity under test
@@ -102,7 +121,7 @@ public class StatisticsCube {
 	public StatisticsCube(List<RunCell> runCells, List<PlanCell> planCells, List<UserTuple> userTuples,
 			List<HeatCell> heatCells, List<ModuleUserCell> moduleCells, List<HostRow> externalHosts,
 			List<StorageRow> storage, TileRow tiles, SpecFamilyResolver resolver, LocalDate nowUtc) {
-		String oldestWeek = LocalDate.parse(Granularity.WEEK.periodOf(nowUtc)).minusWeeks(WEEKS_KEPT - 1L).toString();
+		String oldestWeek = oldestWeek(nowUtc);
 		this.monthlyRuns = rollUpRuns(runCells, Granularity.MONTH, oldestWeek);
 		this.weeklyRuns = rollUpRuns(runCells, Granularity.WEEK, oldestWeek);
 		this.monthlyPlans = rollUpPlans(planCells, Granularity.MONTH, oldestWeek);
@@ -115,10 +134,12 @@ public class StatisticsCube {
 		this.tiles = tiles;
 		this.resolver = resolver;
 		this.familyTotals = familyTotals(monthlyRuns, monthlyPlans, resolver);
-		this.variantsByKey = parseVariants(monthlyRuns, monthlyPlans, users);
-		this.certsByKey = parseCerts(monthlyRuns, monthlyPlans, users);
+		this.variantsByKey = parseKeys(monthlyRuns, monthlyPlans, users, Keyed::variantKey, VariantKeys::parse);
+		this.certsByKey = parseKeys(monthlyRuns, monthlyPlans, users, Keyed::certKey, CertKeys::names);
 		this.monthlyPeriods = axis(monthlyRuns, monthlyPlans, users, Granularity.MONTH, nowUtc);
 		this.weeklyPeriods = axis(weeklyRuns, weeklyPlans, users, Granularity.WEEK, nowUtc);
+		this.summaryTiles = summaryTiles(monthlyPlans, tiles);
+		this.unresolvedPlans = unresolvedPlans(monthlyRuns, resolver);
 	}
 
 	/** @return the run cells at {@code granularity}; monthly cells cover the whole history */
@@ -155,12 +176,31 @@ public class StatisticsCube {
 
 	/**
 	 * @param nowUtc today in UTC
+	 * @return the Monday of the first ISO week kept: the {@value #WEEKS_KEPT} week long
+	 *         window that ends with the week {@code nowUtc} falls in starts with. Static
+	 *         because the aggregations ask MongoDB for the same window - deriving the week
+	 *         key of a run that predates it is work whose answer is thrown away here.
+	 */
+	public static String oldestWeek(LocalDate nowUtc) {
+		return LocalDate.parse(Granularity.WEEK.periodOf(nowUtc)).minusWeeks(WEEKS_KEPT - 1L).toString();
+	}
+
+	/**
+	 * @param nowUtc today in UTC
 	 * @return the first month of the module window: the month {@value #MODULE_MONTHS}
 	 *         months long window that ends with the month {@code nowUtc} falls in starts
 	 *         with. Static because the aggregation asks MongoDB for the same window.
 	 */
 	public static String oldestModuleMonth(LocalDate nowUtc) {
 		return YearMonth.from(nowUtc).minusMonths(MODULE_MONTHS - 1L).toString();
+	}
+
+	/**
+	 * @param nowUtc today in UTC
+	 * @return the {@code YYYY-MM} key of the first month of the external hosts window
+	 */
+	public static String oldestHostMonth(LocalDate nowUtc) {
+		return YearMonth.from(nowUtc).minusMonths(HOST_MONTHS - 1L).toString();
 	}
 
 	/**
@@ -197,6 +237,55 @@ public class StatisticsCube {
 	/** @return the whole-collection counters behind the summary tiles */
 	public TileRow tiles() {
 		return tiles;
+	}
+
+	/**
+	 * @return the whole-database tiles; plan counts include periods outside the axis. Neither
+	 *         the counters nor the plan totals depend on the slice, so they are summed once
+	 *         here rather than on every request.
+	 */
+	public Tiles summaryTiles() {
+		return summaryTiles;
+	}
+
+	private static Tiles summaryTiles(List<PlanCell> plans, TileRow tiles) {
+		long total = 0;
+		long certified = 0;
+		long published = 0;
+		for (PlanCell cell : plans) {
+			total += cell.plans();
+			certified += cell.certified();
+			published += cell.published();
+		}
+		return new Tiles(tiles.total(), total, tiles.totalUsers(), tiles.last24h(), tiles.last7d(), tiles.last30d(),
+			tiles.inProgress(), tiles.stuck(), certified, published);
+	}
+
+	/**
+	 * @return the busiest plan names the statistics cannot attribute to a family, all time and
+	 *         unfiltered. A retired plan name that {@link SpecFamilyResolver}'s alias map knows
+	 *         resolves to its family and so is not listed here: what is left is what nothing in
+	 *         the suite, current or historic, can name.
+	 */
+	public List<UnresolvedPlan> unresolvedPlans() {
+		return unresolvedPlans;
+	}
+
+	private static List<UnresolvedPlan> unresolvedPlans(List<RunCell> runCells, SpecFamilyResolver resolver) {
+		Map<String, Long> runs = new HashMap<>();
+		for (RunCell cell : runCells) {
+			if (cell.standalone() || cell.planName() == null
+				|| !SpecFamilyResolver.OTHER_RETIRED.equals(resolver.familyForPlan(cell.planName()))) {
+				continue;
+			}
+			runs.merge(cell.planName(), cell.runs(), Long::sum);
+		}
+		return runs.entrySet().stream()
+			.map(entry -> new UnresolvedPlan(entry.getKey(), entry.getValue()))
+			.sorted(Comparator.comparingLong(UnresolvedPlan::runs).reversed()
+				.thenComparing(UnresolvedPlan::planName))
+			.limit(MAX_UNRESOLVED_PLANS)
+			.toList();
 	}
 
 	/**
@@ -388,32 +477,28 @@ public class StatisticsCube {
 		return List.copyOf(usable);
 	}
 
-	private static Map<String, List<String>> parseCerts(List<RunCell> runs, List<PlanCell> plans,
-			List<UserTuple> users) {
-		Map<String, List<String>> parsed = new HashMap<>();
+	/**
+	 * Parse each distinct key the cube mentions exactly once, so that slicing compares
+	 * parsed values rather than re-parsing a key per cell.
+	 *
+	 * @param runs   the run cells
+	 * @param plans  the plan cells
+	 * @param users  the user tuples
+	 * @param keyOf  reads the key off one of them
+	 * @param parse  turns a key into what the slice compares against
+	 * @return every distinct key, parsed
+	 */
+	private static <T> Map<String, T> parseKeys(List<RunCell> runs, List<PlanCell> plans, List<UserTuple> users,
+			Function<Keyed, String> keyOf, Function<String, T> parse) {
+		Map<String, T> parsed = new HashMap<>();
 		for (RunCell cell : runs) {
-			parsed.computeIfAbsent(cell.certKey(), CertKeys::names);
+			parsed.computeIfAbsent(keyOf.apply(cell), parse);
 		}
 		for (PlanCell cell : plans) {
-			parsed.computeIfAbsent(cell.certKey(), CertKeys::names);
+			parsed.computeIfAbsent(keyOf.apply(cell), parse);
 		}
 		for (UserTuple tuple : users) {
-			parsed.computeIfAbsent(tuple.certKey(), CertKeys::names);
-		}
-		return Map.copyOf(parsed);
-	}
-
-	private static Map<String, Map<String, String>> parseVariants(List<RunCell> runs, List<PlanCell> plans,
-			List<UserTuple> users) {
-		Map<String, Map<String, String>> parsed = new HashMap<>();
-		for (RunCell cell : runs) {
-			parsed.computeIfAbsent(cell.variantKey(), VariantKeys::parse);
-		}
-		for (PlanCell cell : plans) {
-			parsed.computeIfAbsent(cell.variantKey(), VariantKeys::parse);
-		}
-		for (UserTuple tuple : users) {
-			parsed.computeIfAbsent(tuple.variantKey(), VariantKeys::parse);
+			parsed.computeIfAbsent(keyOf.apply(tuple), parse);
 		}
 		return Map.copyOf(parsed);
 	}

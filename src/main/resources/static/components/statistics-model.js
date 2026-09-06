@@ -64,7 +64,7 @@ import {
  * @property {Array<object>} storage - Per-collection storage counters.
  * @property {Array<Array<number>>} heatmap - Runs by day of week × hour, UTC.
  * @property {ModulesPayload} modules - The modules section over the trailing
- *   24 months: every module worth listing, plus the two rankings the charts
+ *   12 months: every module worth listing, plus the two rankings the charts
  *   plot; narrowed by family and plan only.
  * @property {Array<object>} externalHosts - External servers tested against, all time.
  * @property {Array<{planName: string, runs: number}>} unresolvedPlans - Busiest unresolved plan names.
@@ -1043,28 +1043,26 @@ export const DISTRIBUTION_LIMIT = 12;
  */
 
 /**
- * Split a ranked list into the head that gets plotted and the tail that does
- * not.
+ * Rank a dimension list by the measure that is about to be plotted.
  *
  * The list is sorted here rather than trusted: the server ranks each
  * dimension by its own measure, which is not always the one being plotted
  * (certification profiles and variant values carry both a user count and a
  * plan count), and a "top 12" taken off a list ranked by something else is
  * not a top 12. Ties keep the delivered order.
+ *
+ * Nothing is cut: `<cts-chart max-bars>` decides how much of the ranking is
+ * plotted, and the data table under it carries the rest.
  * @template T
  * @param {Array<T>} items - The rows.
  * @param {(item: T) => number} valueOf - Reads the measure being ranked on.
- * @param {number} [limit] - How many rows the head keeps.
- * @returns {{shown: Array<T>, hidden: Array<T>}} The head and the tail, both
- *   in rank order.
+ * @returns {Array<T>} The rows, biggest measure first.
  */
-export function topN(items, valueOf, limit = DISTRIBUTION_LIMIT) {
-  const sorted = list(items)
+export function rankBy(items, valueOf) {
+  return list(items)
     .map((item, index) => ({ item, index }))
     .sort((a, b) => valueOf(b.item) - valueOf(a.item) || a.index - b.index)
     .map((entry) => entry.item);
-  const cut = Math.max(0, limit);
-  return { shown: sorted.slice(0, cut), hidden: sorted.slice(cut) };
 }
 
 /**
@@ -1075,18 +1073,15 @@ export function topN(items, valueOf, limit = DISTRIBUTION_LIMIT) {
  * own value would spend the identity channel re-encoding what bar length
  * already shows.
  *
- * The head and the tail are concatenated back together, so the caller hands
- * `<cts-chart>` the WHOLE ranked list and lets `max-bars` decide how much of
- * it is plotted — the data table then carries every row.
+ * The caller hands `<cts-chart>` the WHOLE ranked list and lets `max-bars`
+ * decide how much of it is plotted — the data table then carries every row.
  * @param {Array<any>} items - Dimension rows from the payload.
  * @param {DistributionSpec} spec - Which fields to read.
- * @param {number} [limit] - How many rows are meant to be plotted.
  * @returns {Distribution} The chart inputs.
  */
-export function distributionDatasets(items, spec, limit = DISTRIBUTION_LIMIT) {
+export function distributionDatasets(items, spec) {
   const valueOf = (/** @type {any} */ row) => Number(row && row[spec.value]) || 0;
-  const ranked = topN(items, valueOf, limit);
-  const rows = [...ranked.shown, ...ranked.hidden];
+  const rows = rankBy(items, valueOf);
   const extra = spec.extra || "";
   return {
     labels: rows.map((row) => String((row && row[spec.label]) ?? "")),
@@ -1181,7 +1176,7 @@ export function buildDistributions(dimensions) {
 export const MODULE_LIMIT = 12;
 
 /**
- * One row of `data.modules` — a test module's traffic over the trailing 24
+ * One row of `data.modules` — a test module's traffic over the trailing 12
  * months, under the range and the family/plan filters (variant and
  * certification filters do not apply to it; the section says so).
  * @typedef {object} ModuleRow

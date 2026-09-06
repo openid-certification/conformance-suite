@@ -29,8 +29,8 @@ class StatisticsModules_UnitTest {
 	/** A Thursday; the Monday of its ISO week is 2026-03-09. */
 	private static final LocalDate NOW = LocalDate.of(2026, 3, 12);
 
-	/** The oldest month a 24 month window reaches back to, from {@link #NOW}. */
-	private static final String OLDEST_MONTH = "2024-04";
+	/** The oldest month a 12 month window reaches back to, from {@link #NOW}. */
+	private static final String OLDEST_MONTH = "2025-04";
 
 	private static final TileRow NO_TILES = new TileRow(0, 0, 0, 0, 0, 0, 0);
 

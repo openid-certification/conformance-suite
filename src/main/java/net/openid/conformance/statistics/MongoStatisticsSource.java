@@ -117,12 +117,14 @@ public class MongoStatisticsSource {
 	 * fields in different orders, and {@link VariantKeys#canonical} plus the roll-up in
 	 * {@link StatisticsCube} merge those in Java.
 	 *
+	 * @param nowUtc today in UTC, which the weekly window is measured back from
 	 * @return one cell per month, ISO week, plan name, standalone-ness, variant and
 	 *         certification profile
 	 */
-	public List<RunCell> runs() {
+	public List<RunCell> runs(LocalDate nowUtc) {
+		String oldestWeek = StatisticsCube.oldestWeek(nowUtc);
 		Document runsByPlanId = new Document("month", monthExpression())
-			.append("week", weekExpression())
+			.append("week", weekExpression(oldestWeek))
 			// null for a standalone run; explicit so it survives as a group key
 			.append("planId", new Document("$ifNull", Arrays.asList("$planId", null)));
 		List<Bson> pipeline = List.of(
@@ -166,7 +168,7 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * @param document one grouped row of {@link #runs()}
+	 * @param document one grouped row of {@link #runs(LocalDate)}
 	 * @return the cell it stands for. Where the raw variant sub-document and the raw
 	 *         certification profile list are turned into keys - so a test can feed rows
 	 *         shaped like MongoDB's straight through and see that two plans configured the
@@ -186,12 +188,13 @@ public class MongoStatisticsSource {
 	 * how many of them were made immutable - which is what downloading a certification
 	 * package does - and how many were published.
 	 *
+	 * @param nowUtc today in UTC, which the weekly window is measured back from
 	 * @return one cell per month, ISO week, plan name, variant and certification profile
 	 */
-	public List<PlanCell> plans() {
+	public List<PlanCell> plans(LocalDate nowUtc) {
 		List<Bson> pipeline = List.of(
 			Aggregates.group(new Document("month", monthExpression())
-					.append("week", weekExpression())
+					.append("week", weekExpression(StatisticsCube.oldestWeek(nowUtc)))
 					.append("planName", "$planName")
 					.append("variant", "$variant")
 					.append("cert", "$certificationProfileName"),
@@ -207,7 +210,7 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * @param document one grouped row of {@link #plans()}
+	 * @param document one grouped row of {@link #plans(LocalDate)}
 	 * @return the cell it stands for, keyed exactly as {@link #runCell(Document)} keys a run
 	 *         cell - which is what lets the plan series and the run series be filtered by the
 	 *         same variant and certification profile keys
@@ -227,11 +230,12 @@ public class MongoStatisticsSource {
 	 * series be filtered the same way every other series is: a run only knows which plan
 	 * instance it belonged to, a plan knows what it is.
 	 *
+	 * @param nowUtc today in UTC, which the weekly window is measured back from
 	 * @return one tuple per user, plan, variant and certification profile. Users are
 	 *         identified by a counter rather than by their {@code iss} and {@code sub},
 	 *         which are never needed beyond counting distinct users and are dropped here.
 	 */
-	public List<UserTuple> users() {
+	public List<UserTuple> users(LocalDate nowUtc) {
 		List<Bson> pipeline = List.of(
 			Aggregates.group(new Document("planName", "$planName")
 					.append("variant", "$variant")
@@ -239,7 +243,7 @@ public class MongoStatisticsSource {
 					.append("iss", "$owner.iss")
 					.append("sub", "$owner.sub"),
 				Accumulators.addToSet("months", monthExpression()),
-				Accumulators.addToSet("weeks", weekExpression())));
+				Accumulators.addToSet("weeks", weekExpression(StatisticsCube.oldestWeek(nowUtc)))));
 
 		List<UserTuple> tuples = new ArrayList<>();
 		OwnerIds owners = new OwnerIds();
@@ -402,7 +406,9 @@ public class MongoStatisticsSource {
 
 	/**
 	 * The external servers the suite has been pointed at over the trailing
-	 * {@value StatisticsCube#MODULE_MONTHS} months, by descending run count.
+	 * {@value StatisticsCube#HOST_MONTHS} months, by descending run count. The window is
+	 * shorter than the modules' because this is the snapshot's most expensive scan: it reads
+	 * every run's configuration, which is most of a {@code TEST_INFO} document.
 	 *
 	 * <p>The server under test is named by a different configuration field depending on
 	 * what is being tested, so the first field of {@link #TARGET_URL_FIELDS} that is set
@@ -427,7 +433,7 @@ public class MongoStatisticsSource {
 		List<Bson> pipeline = List.of(
 			// type-bracketed like the heatmap's: a started written as a BSON date is outside
 			// this window, and the host it named is not reported
-			Aggregates.match(Filters.gte("started", StatisticsCube.oldestModuleMonth(nowUtc))),
+			Aggregates.match(Filters.gte("started", StatisticsCube.oldestHostMonth(nowUtc))),
 			Aggregates.project(Projections.fields(
 				Projections.excludeId(),
 				Projections.computed("url", targetUrl()),
@@ -508,7 +514,7 @@ public class MongoStatisticsSource {
 	 * @param serverStartedAt when this server instance came up; runs started before it
 	 *                        cannot be in progress
 	 * @param totalUsers      how many distinct users have ever created a test plan: the
-	 *                        number of distinct owners {@link #users()} handed an id to, so
+	 *                        number of distinct owners {@link #users(LocalDate)} handed an id to, so
 	 *                        the tile costs no scan of its own and counts users on exactly
 	 *                        the basis the "active users" series does
 	 * @return the counters; the windowed ones all zero if nothing has run inside the window
@@ -547,7 +553,7 @@ public class MongoStatisticsSource {
 	}
 
 	/**
-	 * The plan join used by {@link #runs()}, in the concise correlated form MongoDB has
+	 * The plan join used by {@link #runs(LocalDate)}, in the concise correlated form MongoDB has
 	 * supported since 5.0 (the suite targets FCV 6.0): the equality match on
 	 * {@code TEST_PLAN._id} still uses the primary key index, but the inner pipeline
 	 * projects every matched plan down to the three fields a run cell is keyed by
@@ -593,11 +599,34 @@ public class MongoStatisticsSource {
 	}
 
 	/**
+	 * The ISO week key, computed only for a document that can still be in the weekly
+	 * window.
+	 *
+	 * <p>Deriving it means parsing a date and truncating it, which is by far the most
+	 * expensive thing any of these pipelines asks of a document - and
+	 * {@link StatisticsCube} throws away every weekly cell older than
+	 * {@link StatisticsCube#WEEKS_KEPT} weeks, which on a mature database is most of the
+	 * collection. So the date maths is put behind a fixed width string compare that
+	 * decides, cheaply, whether the answer can survive.
+	 *
+	 * <p>The bound is exact rather than approximate because {@code oldestWeek} is itself a
+	 * Monday: a {@code started} at or after it falls in that ISO week or a later one, and
+	 * one before it falls in an earlier week, so no document that would have contributed
+	 * to a retained week is gated out. Unlike a {@code $match} on {@code started}, the
+	 * comparison is against the <em>converted</em> string, so a {@code started} written as
+	 * a BSON date rather than as a string is not silently excluded by MongoDB bracketing
+	 * its comparisons by type; a missing or unusable one converts to {@code ""}, which
+	 * sorts below any date and gates to null - the same value the date maths would have
+	 * produced for it.
+	 *
+	 * @param oldestWeek the Monday of the oldest ISO week still kept, from
+	 *                   {@link StatisticsCube#oldestWeek}
 	 * @return the {@code YYYY-MM-DD} Monday of the ISO week a document's {@code started}
-	 *         falls in, in UTC, or null if it cannot be parsed as a date. Needs a real date
-	 *         rather than a substring because a week straddles months and years.
+	 *         falls in, in UTC, or null if it is outside the window or cannot be parsed as
+	 *         a date. Needs a real date rather than a substring because a week straddles
+	 *         months and years.
 	 */
-	private static Document weekExpression() {
+	private static Document weekExpression(String oldestWeek) {
 		Document date = new Document("$dateFromString", new Document("dateString", startedAsString())
 			.append("onError", null)
 			.append("onNull", null));
@@ -608,9 +637,11 @@ public class MongoStatisticsSource {
 		// parsed once, and $dateTrunc is only reached for a date that parsed: an unusable
 		// started must yield null rather than depend on how $dateTrunc handles a null date,
 		// because an error there would fail the whole computation
-		return new Document("$let", new Document("vars", new Document("parsed", date))
+		Document parsed = new Document("$let", new Document("vars", new Document("parsed", date))
 			.append("in", new Document("$cond",
 				Arrays.asList(new Document("$eq", Arrays.asList("$$parsed", null)), null, week))));
+		return new Document("$cond", Arrays.asList(
+			new Document("$gte", Arrays.asList(startedAsString(), oldestWeek)), parsed, null));
 	}
 
 	/** @return {@code started} as a string, tolerating a missing field or a BSON date. */

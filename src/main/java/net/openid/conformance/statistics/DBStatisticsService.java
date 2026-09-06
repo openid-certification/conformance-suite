@@ -136,9 +136,9 @@ public class DBStatisticsService implements StatisticsService {
 		Instant startedAt = Instant.now();
 		LocalDate today = LocalDate.now(ZoneOffset.UTC);
 		Timings timings = new Timings();
-		List<RunCell> runs = timings.time("runs", source::runs);
-		List<PlanCell> plans = timings.time("plans", source::plans);
-		List<UserTuple> users = timings.time("users", source::users);
+		List<RunCell> runs = timings.time("runs", () -> source.runs(today));
+		List<PlanCell> plans = timings.time("plans", () -> source.plans(today));
+		List<UserTuple> users = timings.time("users", () -> source.users(today));
 		List<HeatCell> heat = timings.time("heat", () -> source.heat(today));
 		List<ModuleUserCell> modules = timings.time("modules", () -> source.modules(today));
 		List<HostRow> hosts = timings.time("hosts", () -> source.externalHosts(today));

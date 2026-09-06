@@ -3,6 +3,7 @@ import "./cts-chart.js";
 import "./cts-heatmap.js";
 import "./cts-time.js";
 import { injectDataTableStyles } from "./data-table-styles.js";
+import { injectStatisticsStyles } from "./statistics-styles.js";
 import {
   DISTRIBUTION_LIMIT,
   MODULE_LIMIT,
@@ -15,6 +16,9 @@ import {
 /** @typedef {import("./statistics-model.js").Distributions} Distributions */
 /** @typedef {import("./statistics-model.js").ModuleChart} ModuleChart */
 /** @typedef {import("./statistics-model.js").ModuleRow} ModuleRow */
+
+/** How many months of module cells the server keeps (`StatisticsCube.MODULE_MONTHS`). */
+const MODULE_WINDOW_MONTHS = 12;
 
 /**
  * The heatmap's rows, Monday first — the order `StatisticsOverview.heatmap`
@@ -101,7 +105,7 @@ function heatmapCellTitle(row, col, value) {
 /**
  * What the modules section counts, said before it is read. Two things about
  * the window, because they are different: the server only keeps module cells
- * for a trailing 24 months, and within that it counts the range the reader
+ * for a trailing 12 months, and within that it counts the range the reader
  * selected (which the heading names). Then the counting rule, then which of
  * the filters above reach this section at all.
  *
@@ -111,7 +115,7 @@ function heatmapCellTitle(row, col, value) {
  * break has come between.
  */
 const MODULES_CAPTION =
-  "Within the last 24 months, over the selected range · counts identified users once per module, " +
+  "Within the last 12 months, over the selected range · counts identified users once per module, " +
   "however many times a module failed for them · family and plan filters apply; variant and " +
   "certification filters do not";
 
@@ -135,13 +139,6 @@ const STYLE_TEXT = css`
     cts-statistics-insights {
       transition: none;
     }
-  }
-  .cts-stats-insights-heading {
-    margin: var(--space-6) 0 var(--space-3);
-    font-size: var(--fs-16);
-    font-weight: var(--fw-bold);
-    line-height: var(--lh-snug);
-    color: var(--fg);
   }
   .cts-stats-insights-lead {
     margin: 0 0 var(--space-3);
@@ -204,11 +201,6 @@ const STYLE_TEXT = css`
   details.cts-stats-hosts {
     margin-top: var(--space-6);
   }
-  .cts-stats-hint {
-    margin: var(--space-2) 0 0;
-    font-size: var(--fs-12);
-    color: var(--fg-soft);
-  }
 `;
 
 /**
@@ -217,6 +209,7 @@ const STYLE_TEXT = css`
  */
 function injectStyles() {
   injectDataTableStyles();
+  injectStatisticsStyles();
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
@@ -239,15 +232,15 @@ function injectStyles() {
  *
  * - distributions are counted under the WHOLE query (range and every filter),
  *   so the page withholds them when nothing matches;
- * - modules are the selected RANGE within a trailing 24 months, narrowed by
+ * - modules are the selected RANGE within a trailing 12 months, narrowed by
  *   family and plan ONLY — the server does not key them by variant or
  *   certification profile — which the section's heading and caption state,
  *   and the page withholds them alongside the distributions when nothing
  *   matches (see `_renderInsights` there);
  * - the heatmap is sliced by the RANGE only — the server does not key it by
- *   family — within a trailing 24 months the server keeps cells for, which
+ *   family — within a trailing 12 months the server keeps cells for, which
  *   its caption states;
- * - external hosts are the same trailing 24 months, unfiltered.
+ * - external hosts are a trailing 12 months, unfiltered.
  *
  * Light DOM (`createRenderRoot()` returns `this`) so the page's design-system
  * tokens and stylesheet reach the rendered markup.
@@ -346,7 +339,7 @@ class CtsStatisticsInsights extends LitElement {
     if (variants.length === 0 && !certProfiles && !entities) return nothing;
 
     return html`
-      <h2 class="cts-stats-insights-heading">Distributions</h2>
+      <h2 class="cts-stats-section-heading">Distributions</h2>
       <div class="cts-stats-dist" data-testid="stats-distributions">
         ${this._renderVariants(variants)}
         ${certProfiles
@@ -406,16 +399,7 @@ class CtsStatisticsInsights extends LitElement {
           ${variants.map(
             (variant) => html`
               <div data-testid="stats-dist-variant-${variant.key}">
-                <cts-chart
-                  horizontal
-                  max-bars=${DISTRIBUTION_LIMIT}
-                  heading=${variant.key}
-                  category-label="Value"
-                  .labels=${variant.distribution.labels}
-                  .datasets=${variant.distribution.datasets}
-                  .tableExtras=${variant.distribution.extras}
-                  .tooltipFooter=${extraFooter(variant.distribution)}
-                ></cts-chart>
+                ${this._distributionChart(variant.key, "Value", variant.distribution)}
               </div>
             `,
           )}
@@ -437,18 +421,36 @@ class CtsStatisticsInsights extends LitElement {
   _renderDistributionCard(testid, heading, categoryLabel, distribution, logScale = false) {
     return html`
       <div class="cts-stats-dist-card" data-testid=${testid}>
-        <cts-chart
-          horizontal
-          ?log-scale=${logScale}
-          max-bars=${DISTRIBUTION_LIMIT}
-          heading=${heading}
-          category-label=${categoryLabel}
-          .labels=${distribution.labels}
-          .datasets=${distribution.datasets}
-          .tableExtras=${distribution.extras}
-          .tooltipFooter=${extraFooter(distribution)}
-        ></cts-chart>
+        ${this._distributionChart(heading, categoryLabel, distribution, logScale)}
       </div>
+    `;
+  }
+
+  /**
+   * The distribution chart itself, without the surface it sits on: a card of
+   * its own in the section's main column, one of a group of small multiples
+   * in the variants card. Both plot the same object, so an attribute added
+   * here reaches both — the two used to be separate templates and had already
+   * drifted by `log-scale`.
+   * @param {string} heading - The chart's title.
+   * @param {string} categoryLabel - What one bar is, for the table's first column.
+   * @param {Distribution} distribution - Its inputs.
+   * @param {boolean} [logScale] - Put the value axis on a log scale.
+   * @returns {unknown} The chart.
+   */
+  _distributionChart(heading, categoryLabel, distribution, logScale = false) {
+    return html`
+      <cts-chart
+        horizontal
+        ?log-scale=${logScale}
+        max-bars=${DISTRIBUTION_LIMIT}
+        heading=${heading}
+        category-label=${categoryLabel}
+        .labels=${distribution.labels}
+        .datasets=${distribution.datasets}
+        .tableExtras=${distribution.extras}
+        .tooltipFooter=${extraFooter(distribution)}
+      ></cts-chart>
     `;
   }
 
@@ -474,7 +476,7 @@ class CtsStatisticsInsights extends LitElement {
     if (!modules) return nothing;
     const rows = Array.isArray(modules.rows) ? modules.rows : [];
     return html`
-      <h2 class="cts-stats-insights-heading">Modules (${this._moduleRange()})</h2>
+      <h2 class="cts-stats-section-heading">Modules (${this._moduleRange()})</h2>
       <p class="cts-stats-insights-lead">${MODULES_CAPTION}</p>
       <div class="cts-stats-modules" data-testid="stats-modules">
         ${rows.length === 0
@@ -501,8 +503,8 @@ class CtsStatisticsInsights extends LitElement {
   /**
    * What the heading says the section covers.
    *
-   * The server clips the modules to the selected range — inside the 24 months
-   * it keeps cells for — so a heading fixed at "last 24 months" would claim
+   * The server clips the modules to the selected range — inside the 12 months
+   * it keeps cells for — so a heading fixed at "last 12 months" would claim
    * two years of counts while showing one, and a reader comparing a module's
    * runs against the trend charts above would be comparing two windows. The
    * words are the preset's own, so they match the range select.
@@ -515,8 +517,11 @@ class CtsStatisticsInsights extends LitElement {
    */
   _moduleRange() {
     const preset = this.range ? rangePreset(this.range) : null;
-    // "All time" is the one preset the modules window is narrower than.
-    if (!preset || preset.periods <= 0) return "last 24 months";
+    // "All time" and "24 months" both reach past the window the server keeps
+    // cells for, so the heading claims the window, not the range.
+    if (!preset || preset.periods <= 0) return "last 12 months";
+    if (preset.granularity === "month" && preset.periods > MODULE_WINDOW_MONTHS)
+      return "last 12 months";
     return preset.granularity === "week" ? `${preset.label}, whole months` : preset.label;
   }
 
@@ -600,12 +605,12 @@ class CtsStatisticsInsights extends LitElement {
   _renderHeatmap() {
     const range = this.range ? ` (${rangePreset(this.range).label})` : "";
     return html`
-      <h2 class="cts-stats-insights-heading">Activity (UTC)</h2>
+      <h2 class="cts-stats-section-heading">Activity (UTC)</h2>
       <div class="cts-stats-insights-card">
         <cts-heatmap
           data-testid="stats-heatmap"
           heading="Test runs by day and hour"
-          caption=${`All hours are UTC. Within the last 24 months, sliced by the selected ` +
+          caption=${`All hours are UTC. Within the last 12 months, sliced by the selected ` +
           `range${range} only — not by family, plan, variant or certification profile.`}
           value-label="runs"
           .rows=${DAY_LABELS}
@@ -620,7 +625,7 @@ class CtsStatisticsInsights extends LitElement {
   // --- External servers -------------------------------------------------
 
   /**
-   * The servers the suite has been pointed at over the last 24 months. A
+   * The servers the suite has been pointed at over the last 12 months. A
    * disclosure, not a section: it is a long list that answers a question an
    * admin asks occasionally, and it must not compete with the charts above
    * it.
@@ -633,7 +638,7 @@ class CtsStatisticsInsights extends LitElement {
       <details class="cts-data-disclosure cts-stats-hosts" data-testid="stats-hosts">
         <summary>External servers under test (${NUMBER_FORMAT.format(hosts.length)})</summary>
         <p class="cts-stats-hint">
-          The top 100 by runs over the last 24 months — never scoped by the range or the filters
+          The top 100 by runs over the last 12 months — never scoped by the range or the filters
           above. Hosts are read from the server, issuer, credential-issuer and entity-identifier
           URLs in each test's configuration; the suite's own endpoints are excluded.
         </p>

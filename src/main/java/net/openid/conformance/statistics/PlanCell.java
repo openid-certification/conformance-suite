@@ -19,5 +19,5 @@ package net.openid.conformance.statistics;
  * @param published  plans that were published, i.e. have a {@code publish} setting
  */
 public record PlanCell(String month, String week, String planName, String variantKey, String certKey,
-	long plans, long certified, long published) implements Periodic {
+	long plans, long certified, long published) implements Periodic, Keyed {
 }

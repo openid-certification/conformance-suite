@@ -21,7 +21,7 @@ import java.util.List;
  *                   drops the ones outside the retained window
  */
 public record UserTuple(String planName, String variantKey, String certKey, int ownerId,
-	List<String> months, List<String> weeks) {
+	List<String> months, List<String> weeks) implements Keyed {
 
 	/** @return the periods this tuple was active in at {@code granularity} */
 	public List<String> periods(Granularity granularity) {
