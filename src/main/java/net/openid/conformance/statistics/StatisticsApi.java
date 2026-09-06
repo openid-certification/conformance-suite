@@ -14,7 +14,6 @@ import net.openid.conformance.statistics.AsyncSnapshotCache.Failed;
 import net.openid.conformance.statistics.AsyncSnapshotCache.Failure;
 import net.openid.conformance.statistics.AsyncSnapshotCache.Pending;
 import net.openid.conformance.statistics.AsyncSnapshotCache.Ready;
-import net.openid.conformance.statistics.AsyncSnapshotCache.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,8 +23,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.function.Function;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -118,32 +115,20 @@ public class StatisticsApi {
 		try {
 			query = StatisticsQuery.parse(request.getParameterMap());
 		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(new StatisticsResponse.Invalid("invalid", e.getMessage()));
+			return ResponseEntity.badRequest().body(new StatisticsResponse.Invalid(e.getMessage()));
 		}
 
-		return respond(statisticsService.getCube(refresh),
-			ready -> new StatisticsResponse.Ready("ready", ready.computedAt().toString(),
-				ready.computeDuration().toMillis(), ready.refreshing(), lastError(ready.lastFailure()),
-				StatisticsSlicer.slice(ready.value(), query)));
-	}
-
-	/**
-	 * The one mapping from what the cache can serve to what the client is sent.
-	 *
-	 * @param <T>   what the cache holds
-	 * @param state what it can currently serve
-	 * @param ready what to send when it holds a snapshot; only the payload differs
-	 * @return 200 whenever a snapshot exists, 202 while the first one is being computed,
-	 *         500 when there is none and computing one failed
-	 */
-	private static <T> ResponseEntity<Object> respond(State<T> state, Function<Ready<T>, StatisticsResponse> ready) {
-		return switch (state) {
-			case Ready<T> available -> new ResponseEntity<>(ready.apply(available), HttpStatus.OK);
-			case Pending<T> pending -> ResponseEntity.status(HttpStatus.ACCEPTED)
+		// 200 whenever a snapshot exists, 202 while the first one is being computed, 500
+		// when there is none and computing one failed
+		return switch (statisticsService.getCube(refresh)) {
+			case Ready<StatisticsCube> ready -> new ResponseEntity<>(new StatisticsResponse.Ready(
+				ready.computedAt().toString(), ready.computeDuration().toMillis(), ready.refreshing(),
+				lastError(ready.lastFailure()), StatisticsSlicer.slice(ready.value(), query)), HttpStatus.OK);
+			case Pending<StatisticsCube> pending -> ResponseEntity.status(HttpStatus.ACCEPTED)
 				.header(HttpHeaders.RETRY_AFTER, RETRY_AFTER_SECONDS)
-				.body(new StatisticsResponse.Pending("pending", pending.startedAt().toString()));
-			case Failed<T> failed -> new ResponseEntity<>(
-				new StatisticsResponse.Failed("error", failed.failure().message(), failed.failure().failedAt().toString()),
+				.body(new StatisticsResponse.Pending(pending.startedAt().toString()));
+			case Failed<StatisticsCube> failed -> new ResponseEntity<>(
+				new StatisticsResponse.Failed(failed.failure().message(), failed.failure().failedAt().toString()),
 				HttpStatus.INTERNAL_SERVER_ERROR);
 		};
 	}

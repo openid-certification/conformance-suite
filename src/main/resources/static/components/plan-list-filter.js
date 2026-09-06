@@ -18,10 +18,10 @@
  */
 
 /** Milliseconds in a day; the only date arithmetic here is a whole day. */
-const DAY_MS = 86400000;
+export const DAY_MS = 86400000;
 
 /** Matches `QueryParams.VARIANT_PREFIX` on the server. */
-const VARIANT_PREFIX = "variant.";
+export const VARIANT_PREFIX = "variant.";
 
 const SEARCH_PARAM = "search";
 const OWNER_PARAM = "owner";
@@ -29,9 +29,9 @@ const OWNER_PARAM = "owner";
  * together or not at all — the server refuses a half pair with a 400. */
 const OWNER_ISS_PARAM = "owner_iss";
 const IMMUTABLE_PARAM = "immutable";
-const FAMILY_PARAM = "family";
-const PLAN_PARAM = "plan";
-const CERT_PARAM = "cert";
+export const FAMILY_PARAM = "family";
+export const PLAN_PARAM = "plan";
+export const CERT_PARAM = "cert";
 const FROM_PARAM = "from";
 const TO_PARAM = "to";
 
@@ -63,8 +63,8 @@ export const FILTER_PARAMS = [...PARAMS_BEFORE_VARIANTS, ...PARAMS_AFTER_VARIANT
 /** A `YYYY-MM-DD` date, the form both bounds take when the drill-down builds them. */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Month names for the period chip. Fixed rather than `Intl`, so a chip reads the same everywhere. */
-const SHORT_MONTHS = [
+/** Month names for the period chip and axis labels. Fixed rather than `Intl`, so they read the same everywhere. */
+export const SHORT_MONTHS = [
   "Jan",
   "Feb",
   "Mar",
@@ -116,8 +116,25 @@ const SHORT_MONTHS = [
  * @param {string|null|undefined} value - A raw parameter value.
  * @returns {string} It, trimmed, or `""`.
  */
-function text(value) {
+export function text(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * The `variant.<name>` parameters of a query string. Blank names and values
+ * are dropped rather than rejected.
+ * @param {URLSearchParams} params - The query.
+ * @returns {Record<string, string>} Parameter name → value.
+ */
+export function variantsFromParams(params) {
+  /** @type {Record<string, string>} */
+  const variant = {};
+  for (const [key, value] of params.entries()) {
+    if (!key.startsWith(VARIANT_PREFIX)) continue;
+    const name = text(key.slice(VARIANT_PREFIX.length));
+    if (name && text(value)) variant[name] = text(value);
+  }
+  return variant;
 }
 
 /**
@@ -160,13 +177,7 @@ export function emptyFilter() {
  */
 export function planListFilterFromUrl(search) {
   const params = new URLSearchParams(search || "");
-  /** @type {Record<string, string>} */
-  const variant = {};
-  for (const [key, value] of params.entries()) {
-    if (!key.startsWith(VARIANT_PREFIX)) continue;
-    const name = text(key.slice(VARIANT_PREFIX.length));
-    if (name && text(value)) variant[name] = text(value);
-  }
+  const variant = variantsFromParams(params);
   // both halves of the owner or neither: a lone one is what the server answers with a 400,
   // and a hand-edited link must still open the listing
   const ownerSub = text(params.get(OWNER_PARAM));
@@ -190,10 +201,11 @@ export function planListFilterFromUrl(search) {
  * The variant parameters of a filter, alphabetically, so the same filter
  * always produces the same request and the same chip order however the URL
  * ordered them.
- * @param {PlanListFilter} filter - The filter.
+ * @param {{variant?: Record<string, string>}} filter - The filter, or any
+ *   state carrying a `variant` map.
  * @returns {Array<[string, string]>} Sorted `[name, value]` pairs.
  */
-function variantEntries(filter) {
+export function variantEntries(filter) {
   return Object.entries((filter && filter.variant) || {})
     .filter(([name, value]) => text(name) !== "" && text(value) !== "")
     .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
