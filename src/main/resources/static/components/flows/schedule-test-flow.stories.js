@@ -8,6 +8,11 @@ import "../cts-action-bar.js";
 
 export default {
   title: "Flows/Schedule Test",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
   // cts-test-selector persists the active family filter to localStorage; clear
   // it before the story so a sibling story's filter never hides the row this
   // flow clicks. Mirrors the cts-test-selector meta beforeEach.

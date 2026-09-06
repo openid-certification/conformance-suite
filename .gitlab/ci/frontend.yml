@@ -135,11 +135,12 @@ frontend_lint:
 #   team sign-off, once the a11y backlog is fixed or formally dismissed in
 #   Chromatic (mirrors the frontend_lint promotion approach above).
 #
-# Snapshot quota: `onlyChanged` (TurboSnap) snapshots only stories whose
-# dependency graph intersects the changed files — TurboSnap activates after
-# Chromatic's 10-successful-CI-builds threshold; until then builds are full
-# (~650 snapshots). The shared frontend rules below already skip backend-only
-# pushes entirely.
+# Snapshot quota: only page-level stories are captured (~65; the project
+# default in frontend/.storybook/preview.js is disableSnapshot, and Tokens/*,
+# Pages/*, Flows/* opt back in). `onlyChanged` (TurboSnap) further limits a
+# build to stories whose dependency graph intersects the changed files —
+# TurboSnap activates after Chromatic's 10-successful-CI-builds threshold.
+# The shared frontend rules below already skip backend-only pushes entirely.
 #
 # The project token is committed in plain text deliberately: per Chromatic's
 # docs (https://www.chromatic.com/docs/custom-ci-provider/) it can only be used
@@ -154,8 +155,8 @@ frontend_lint:
 # build is treated as new and snapshot diffs are meaningless.
 #
 # The shared frontend rules (`*frontend-rules`) skip the job for backend-only
-# pushes — each run snapshots all ~650 stories, which counts against the
-# Chromatic plan's monthly snapshot quota. Skipping also stops Chromatic from
+# pushes — every snapshot counts against the Chromatic plan's monthly
+# quota. Skipping also stops Chromatic from
 # posting its "UI Tests"/"UI Review" external statuses (delivered via the
 # project's index.chromatic.com webhook) onto pipelines that contain no UI
 # change, where they would sit pending forever waiting for a snapshot review.

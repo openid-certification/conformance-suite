@@ -11,6 +11,11 @@ import "../cts-log-detail-header.js";
 
 export default {
   title: "Flows/Test Lifecycle",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 // Enrich plan modules with status/result for display
