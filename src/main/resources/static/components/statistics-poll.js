@@ -9,21 +9,53 @@
  * while waiting stay in the component), so that a second snapshot-backed
  * section can share the cadence without sharing anything else.
  *
- * No DOM, no fetch, no Lit: it is a timer with a schedule, unit-tested in the
+ * A hidden tab does not poll: the next request waits until the tab is shown
+ * again and is made at once then, with the budget still measured from the
+ * start of the episode. Nobody is watching a spinner in a background tab, and
+ * a multi-minute recompute is not made any quicker by being asked about.
+ *
+ * No fetch, no Lit, and the only DOM is `document.visibilityState`, absent
+ * where there is no document: a timer with a schedule, unit-tested in the
  * vitest `unit` project (`statistics-poll.test.js`).
  */
 
 /**
  * Poll cadence while the server is computing a snapshot. Fast for the first
  * half-minute (a warm database answers in seconds and the admin is watching a
- * spinner), then slower, because past that point this is a multi-minute
- * whole-collection aggregation and there is no point hammering it.
+ * spinner), slower for the next few minutes, and slower again past that:
+ * a production sized snapshot is a ten to twenty minute whole-collection
+ * aggregation, a `202` costs the server nothing but a poll against a live
+ * snapshot slices the cube each time, and nobody is watching a spinner that
+ * closely by then.
  */
 export const POLL_FAST_MS = 2000;
 export const POLL_SLOW_MS = 5000;
+export const POLL_SLOWEST_MS = 30000;
 export const POLL_FAST_WINDOW_MS = 30000;
-/** Stop polling and offer a Retry rather than spinning forever. */
-export const POLL_GIVE_UP_MS = 600000;
+export const POLL_SLOW_WINDOW_MS = 300000;
+/**
+ * Stop polling and offer a Retry rather than spinning forever. Sized from a
+ * measured recompute of a 7 million run database (13 minutes) with room for
+ * a slower box.
+ */
+export const POLL_GIVE_UP_MS = 1800000;
+/** The budget, as the give-up message states it. */
+export const POLL_GIVE_UP_MINUTES = POLL_GIVE_UP_MS / 60000;
+
+/**
+ * @param {number} elapsed - Milliseconds since the episode began.
+ * @returns {number} How long to wait before the next poll.
+ */
+function delayAfter(elapsed) {
+  if (elapsed < POLL_FAST_WINDOW_MS) return POLL_FAST_MS;
+  if (elapsed < POLL_SLOW_WINDOW_MS) return POLL_SLOW_MS;
+  return POLL_SLOWEST_MS;
+}
+
+/** @returns {boolean} True when there is a document and it is hidden. */
+function isHidden() {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
 
 /**
  * A polling episode: a timer plus the moment the episode began.
@@ -54,6 +86,10 @@ export class SnapshotPoll {
     this._timer = null;
     /** @type {number|null} When the current polling episode began. */
     this._startedAt = null;
+    /** @type {boolean} A poll is due but waiting for the tab to be shown. */
+    this._paused = false;
+    /** @type {() => void} Bound once, so it can be removed again. */
+    this._onVisibility = () => this._handleVisibility();
   }
 
   /**
@@ -62,7 +98,11 @@ export class SnapshotPoll {
    */
   schedule() {
     this._clear();
-    if (this._startedAt === null) this._startedAt = Date.now();
+    this._paused = false;
+    if (this._startedAt === null) {
+      this._startedAt = Date.now();
+      this._listen(true);
+    }
     const elapsed = Date.now() - this._startedAt;
     if (elapsed >= POLL_GIVE_UP_MS) {
       // The consumer's give-up handler is expected to stop() this poll (it is
@@ -70,7 +110,12 @@ export class SnapshotPoll {
       this._onGiveUp();
       return;
     }
-    const delay = elapsed < POLL_FAST_WINDOW_MS ? POLL_FAST_MS : POLL_SLOW_MS;
+    if (isHidden()) {
+      // Wait for the tab rather than the clock: see _handleVisibility.
+      this._paused = true;
+      return;
+    }
+    const delay = delayAfter(elapsed);
     this._timer = setTimeout(() => {
       this._timer = null;
       this._onPoll();
@@ -85,6 +130,43 @@ export class SnapshotPoll {
   stop() {
     this._clear();
     this._startedAt = null;
+    this._paused = false;
+    this._listen(false);
+  }
+
+  /**
+   * A tab going hidden cancels the pending poll and remembers that one was
+   * due; a tab coming back polls at once (or gives up, if the budget ran out
+   * meanwhile) rather than waiting out a delay that was meant for a reader
+   * watching the page.
+   * @returns {void}
+   */
+  _handleVisibility() {
+    if (isHidden()) {
+      if (this._timer === null) return;
+      this._clear();
+      this._paused = true;
+      return;
+    }
+    if (!this._paused || this._startedAt === null) return;
+    this._paused = false;
+    if (Date.now() - this._startedAt >= POLL_GIVE_UP_MS) {
+      this._onGiveUp();
+    } else {
+      this._onPoll();
+    }
+  }
+
+  /**
+   * Listen for the tab being hidden or shown for the length of one episode,
+   * so a poll that is stopped for good holds no listener.
+   * @param {boolean} on - Whether to listen.
+   * @returns {void}
+   */
+  _listen(on) {
+    if (typeof document === "undefined") return;
+    if (on) document.addEventListener("visibilitychange", this._onVisibility);
+    else document.removeEventListener("visibilitychange", this._onVisibility);
   }
 
   /**

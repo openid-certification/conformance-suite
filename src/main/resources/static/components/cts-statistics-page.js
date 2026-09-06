@@ -11,7 +11,7 @@ import "./cts-statistics-insights.js";
 import "./cts-time.js";
 import { ctsToast } from "../js/cts-toast-api.js";
 import { injectDataTableStyles } from "./data-table-styles.js";
-import { SnapshotPoll } from "./statistics-poll.js";
+import { POLL_GIVE_UP_MINUTES, SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
   NUMBER_FORMAT,
@@ -102,7 +102,8 @@ const NO_DRILL_DOWN_DEFAULT =
   "Those runs are not one spec family — pick a family in the filter row to list its plans.";
 
 const GIVE_UP_MESSAGE =
-  "Statistics are still being computed after 10 minutes. The server may be busy — try again.";
+  `Statistics are still being computed after ${POLL_GIVE_UP_MINUTES} minutes. ` +
+  "The server may be busy — try again.";
 const FORBIDDEN_MESSAGE = "Statistics are only available to administrators.";
 const UNEXPECTED_MESSAGE = "The statistics endpoint returned an unexpected response.";
 
@@ -321,8 +322,9 @@ function injectStyles() {
  *
  * The endpoint serves a snapshot recomputed in the background at most every
  * 12 hours, so the component has four things to handle beyond a plain fetch:
- * a `202 pending` state it polls through (2 s for the first 30 s, then 5 s,
- * giving up after 10 minutes), a `refreshing: true` flag that means "keep
+ * a `202 pending` state it polls through (2 s for the first 30 s, 5 s for the
+ * next few minutes, then 30 s, giving up after half an hour), a
+ * `refreshing: true` flag that means "keep
  * showing this snapshot, a newer one is on the way", a `lastError` that
  * reports a failed recompute while an older snapshot is still being served,
  * and a `400 invalid` that reports a range or filter the server cannot use.
@@ -421,8 +423,8 @@ class CtsStatisticsPage extends LitElement {
     /** @type {Record<string, string>} Family → colour token. */
     this._slots = {};
     /**
-     * The 202/refreshing poll loop: 2 s for the first 30 s, then 5 s, giving
-     * up after 10 minutes.
+     * The 202/refreshing poll loop: 2 s for the first 30 s, 5 s for the next
+     * few minutes, then 30 s, giving up after half an hour.
      * @type {SnapshotPoll}
      */
     this._poll = new SnapshotPoll(
