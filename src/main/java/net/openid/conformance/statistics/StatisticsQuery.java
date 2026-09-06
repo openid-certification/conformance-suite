@@ -20,8 +20,8 @@ import java.util.Map;
  * @param plan        only count cells of this test plan, or null for all of them
  * @param variant     only count cells whose plan level variant has all of these parameters
  *                    set to these values; empty for all of them
- * @param cert        only count cells with exactly this certification profile, or null for
- *                    all of them
+ * @param cert        only count cells whose plan names this certification profile (among
+ *                    any others it names), or null for all of them
  */
 public record StatisticsQuery(Granularity granularity, String from, String to, String family, String plan,
 	Map<String, String> variant, String cert) {

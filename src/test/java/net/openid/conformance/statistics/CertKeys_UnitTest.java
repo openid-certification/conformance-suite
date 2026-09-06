@@ -50,6 +50,17 @@ class CertKeys_UnitTest {
 	}
 
 	@Test
+	void aKeySplitsBackIntoTheNamesItWasBuiltFrom() {
+		assertThat(CertKeys.names(CertKeys.canonical(List.of("FAPI2SP OP MTLS", "Brazil Open Finance"))))
+			.containsExactly("FAPI2SP OP MTLS", "Brazil Open Finance");
+		assertThat(CertKeys.names("OpenID Connect Basic OP")).containsExactly("OpenID Connect Basic OP");
+		assertThat(CertKeys.names(CertKeys.canonical(List.of("one" + CertKeys.SEPARATOR + "two", "three"))))
+			.containsExactly("one_two", "three");
+		assertThat(CertKeys.names("")).isEmpty();
+		assertThat(CertKeys.names(null)).isEmpty();
+	}
+
+	@Test
 	void anythingThatIsNotAProfileNameIsTheEmptyKey() {
 		assertThat(CertKeys.canonical(42)).isEmpty();
 		assertThat(CertKeys.canonical(List.of(1, 2))).isEmpty();
