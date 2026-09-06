@@ -25,5 +25,6 @@ package net.openid.conformance.statistics;
  * @param skipped    runs whose result was SKIPPED
  */
 public record RunCell(String month, String week, String planName, boolean standalone, String variantKey,
-	String certKey, long runs, long passed, long failed, long warning, long review, long skipped) implements Periodic {
+	String certKey, long runs, long passed, long failed, long warning, long review, long skipped)
+	implements Periodic, Keyed {
 }
