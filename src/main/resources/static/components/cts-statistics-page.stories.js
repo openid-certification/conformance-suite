@@ -818,9 +818,9 @@ export const PhaseTwoSections = {
       // not follow.
       expect(caption).toMatch(/^[\d,]+ runs in this range\./);
       expect(caption).toContain("All hours are UTC");
-      // The server only keeps heat cells for a trailing 24 months, so the
+      // The server only keeps heat cells for a trailing 12 months, so the
       // range is a window INSIDE that and the caption has to say both.
-      expect(caption).toContain("Within the last 24 months");
+      expect(caption).toContain("Within the last 12 months");
       expect(caption).toContain("selected range (12 months) only");
       expect(caption).toContain("not by family, plan, variant or certification profile");
       // A family IS selected by now, and the heatmap must not have followed it.
@@ -829,7 +829,7 @@ export const PhaseTwoSections = {
       expect(canvas.getByText("Activity (UTC)")).toBeInTheDocument();
     });
 
-    await step("external servers are a disclosure, 24 months and unfiltered", async () => {
+    await step("external servers are a disclosure, 12 months and unfiltered", async () => {
       const hosts = /** @type {HTMLDetailsElement} */ (
         canvasElement.querySelector('[data-testid="stats-hosts"]')
       );
@@ -838,7 +838,7 @@ export const PhaseTwoSections = {
         "External servers under test (6)",
       );
       expect(hosts.textContent.replace(/\s+/g, " ")).toContain(
-        "The top 100 by runs over the last 24 months",
+        "The top 100 by runs over the last 12 months",
       );
       expect(hosts.textContent.replace(/\s+/g, " ")).toContain(
         "the suite's own endpoints are excluded",
@@ -867,14 +867,14 @@ export const Modules = {
     await waitForCharts(canvasElement);
 
     await step("the section says what it counts and which filters it follows", async () => {
-      // The default range, not the 24 months of cells the server keeps: the
+      // The default range, not the 12 months of cells the server keeps: the
       // modules ARE clipped to the range, so the heading has to say which.
       expect(canvas.getByText("Modules (12 months)")).toBeInTheDocument();
       expect(canvasElement.querySelector('[data-testid="stats-modules"]')).toBeTruthy();
       const caption = canvas
         .getByText(/counts identified users once per module/)
         .textContent.replace(/\s+/g, " ");
-      expect(caption).toContain("Within the last 24 months, over the selected range");
+      expect(caption).toContain("Within the last 12 months, over the selected range");
       expect(caption).toContain("however many times a module failed for them");
       expect(caption).toContain("family and plan filters apply");
       expect(caption).toContain("variant and certification filters do not");
@@ -983,7 +983,7 @@ export const Modules = {
       await pickRange(canvasElement, "All time");
       await waitFor(() => {
         // The one range wider than the window the server keeps cells for.
-        expect(canvas.getByText("Modules (last 24 months)")).toBeInTheDocument();
+        expect(canvas.getByText("Modules (last 12 months)")).toBeInTheDocument();
       }, POLL_TIMEOUT);
     });
 

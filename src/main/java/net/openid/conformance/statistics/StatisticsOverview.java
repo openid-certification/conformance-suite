@@ -42,7 +42,7 @@ import java.util.Map;
  *                         {@value StatisticsCube#MODULE_MONTHS} months, with the two
  *                         rankings the charts plot
  * @param externalHosts    the external servers the suite has been pointed at over the
- *                         trailing {@value StatisticsCube#MODULE_MONTHS} months
+ *                         trailing {@value StatisticsCube#HOST_MONTHS} months
  * @param unresolvedPlans  the busiest plan names that could not be resolved to a family,
  *                         all time
  */
