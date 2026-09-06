@@ -1047,6 +1047,11 @@ export interface components {
       /** Format: double */
       failingShare?: number;
     };
+    StatisticsModules: {
+      rows?: components["schemas"]["StatisticsModule"][];
+      byRuns?: string[];
+      byFailingUsers?: string[];
+    };
     StatisticsOverview: {
       periods?: string[];
       granularity?: string;
@@ -1075,7 +1080,7 @@ export interface components {
       storage?: components["schemas"]["StatisticsStorage"][];
       dimensions?: components["schemas"]["StatisticsDimensions"];
       heatmap?: number[][];
-      modules?: components["schemas"]["StatisticsModule"][];
+      modules?: components["schemas"]["StatisticsModules"];
       externalHosts?: components["schemas"]["StatisticsExternalHost"][];
       unresolvedPlans?: components["schemas"]["StatisticsUnresolvedPlan"][];
     };

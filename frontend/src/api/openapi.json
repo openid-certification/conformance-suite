@@ -2114,6 +2114,14 @@
           "failingShare": { "type": "number", "format": "double" }
         }
       },
+      "StatisticsModules": {
+        "type": "object",
+        "properties": {
+          "rows": { "type": "array", "items": { "$ref": "#/components/schemas/StatisticsModule" } },
+          "byRuns": { "type": "array", "items": { "type": "string" } },
+          "byFailingUsers": { "type": "array", "items": { "type": "string" } }
+        }
+      },
       "StatisticsOverview": {
         "type": "object",
         "properties": {
@@ -2168,10 +2176,7 @@
             "type": "array",
             "items": { "type": "array", "items": { "type": "integer", "format": "int64" } }
           },
-          "modules": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/StatisticsModule" }
-          },
+          "modules": { "$ref": "#/components/schemas/StatisticsModules" },
           "externalHosts": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/StatisticsExternalHost" }
