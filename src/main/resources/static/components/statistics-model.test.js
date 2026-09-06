@@ -4,9 +4,7 @@ import {
   CATEGORY_COLOR_VARS,
   DEFAULT_RANGE,
   EMPTY_OPTIONS,
-  NO_PLAN_FAMILY,
   OTHER_COLOR_VAR,
-  OTHER_RETIRED_FAMILY,
   OTHER_LABEL,
   RANGE_PRESETS,
   RESULT_COLOR_VARS,
@@ -15,18 +13,19 @@ import {
   buildChartInputs,
   buildDistributions,
   buildModules,
-  certifiedDatasets,
   defaultFilterState,
   distributionDatasets,
   drillDownFamily,
   drillDownRefusal,
   drillDownUrl,
   familiesWithActivity,
+  familyDatasets,
   foldOther,
   formatBytes,
   formatShare,
   hasAnyData,
   heatmapIntensity,
+  isSyntheticFamily,
   heatmapMax,
   heatmapScaleSteps,
   heatmapTotal,
@@ -37,13 +36,11 @@ import {
   otherBreakdown,
   periodBounds,
   periodLabels,
-  plansDatasets,
   queryFromState,
   rangePreset,
   rangeToQuery,
   rememberOptions,
   resultsDatasets,
-  runsDatasets,
   sameState,
   stateFromUrl,
   topN,
@@ -54,10 +51,11 @@ import {
 
 // --- Fixture -----------------------------------------------------------
 //
-// 30 months split 18 "early" + 12 "late" so the last-12 payload can be given
-// a deliberately DIFFERENT family ranking from the all-time one. That is the
-// only way to prove the slot assignment is computed from the unfiltered,
-// all-time baseline (a range or filter change must never repaint the charts).
+// 30 months split 18 "early" + 12 "late" so the last-12 series can be given
+// a deliberately DIFFERENT family ranking from the all-time totals. That is
+// the only way to prove the slot assignment is read from `familyTotals` and
+// never from the series on screen (a range or filter change must never
+// repaint the charts).
 //
 // All-time totals (per family, 18*early + 12*late):
 //   FAPI2 Security Profile 6000 | FAPI1 Advanced 6000 | OpenID Connect Core 4500
@@ -113,8 +111,9 @@ const RESULT_BUCKETS = ["PASSED", "WARNING", "REVIEW", "FAILED", "SKIPPED", "NEV
  * @returns {any} A statistics overview payload.
  */
 function makeData() {
-  return {
+  return withTotals({
     families: [...FAMILIES],
+    syntheticFamilies: [NO_PLAN, OTHER_RETIRED],
     resultBuckets: [...RESULT_BUCKETS],
     periods: [...PERIODS],
     granularity: "month",
@@ -208,7 +207,40 @@ function makeData() {
       entities: [{ entity: "Test an OpenID Provider / Authorization Server", runs: 5000 }],
     },
     unresolvedPlans: [{ planName: "fapi-rw-id2", runs: 300 }],
-  };
+  });
+}
+
+/** The two synthetic buckets, as the server names them on every payload. */
+const NO_PLAN = "No plan";
+const OTHER_RETIRED = "Other / retired";
+
+/**
+ * @param {Array<number>} values - A series.
+ * @returns {number} Its sum.
+ */
+function sum(values) {
+  return values.reduce((total, value) => total + value, 0);
+}
+
+/**
+ * Give a payload the `familyTotals` the server would compute for it: every
+ * family's whole-history series summed. Tests that want the totals to
+ * disagree with the series on screen overwrite them afterwards.
+ * @param {any} data - A payload without totals.
+ * @returns {any} The same payload, with `familyTotals` filled in.
+ */
+function withTotals(data) {
+  data.familyTotals = Object.fromEntries(
+    data.families.map((/** @type {string} */ family) => [
+      family,
+      {
+        runs: sum(data.testRunsByFamily[family] || []),
+        plans: sum(data.plansByFamily[family] || []),
+        certified: sum(data.certifiedByFamily[family] || []),
+      },
+    ]),
+  );
+  return data;
 }
 
 /**
@@ -596,18 +628,22 @@ describe("drillDownUrl", () => {
     );
   });
 
-  it("declines the folded Other series and the two synthetic buckets", () => {
+  it("declines the folded Other series and the payload's synthetic buckets", () => {
     const state = defaultFilterState();
-    expect(drillDownUrl(state, { periodIndex: 0, family: OTHER_LABEL }, monthly())).toBeNull();
-    expect(drillDownUrl(state, { periodIndex: 0, family: NO_PLAN_FAMILY }, monthly())).toBeNull();
-    expect(
-      drillDownUrl(state, { periodIndex: 0, family: OTHER_RETIRED_FAMILY }, monthly()),
-    ).toBeNull();
+    const data = { ...monthly(), syntheticFamilies: [NO_PLAN, OTHER_RETIRED] };
+    expect(drillDownUrl(state, { periodIndex: 0, family: OTHER_LABEL }, data)).toBeNull();
+    expect(drillDownUrl(state, { periodIndex: 0, family: NO_PLAN }, data)).toBeNull();
+    expect(drillDownUrl(state, { periodIndex: 0, family: OTHER_RETIRED }, data)).toBeNull();
     // Also when the synthetic bucket is the FILTER rather than the click: the
     // listing cannot express "not in the registry" either way.
     expect(
-      drillDownUrl({ ...state, family: NO_PLAN_FAMILY }, { periodIndex: 0, family: "" }, monthly()),
+      drillDownUrl({ ...state, family: NO_PLAN }, { periodIndex: 0, family: "" }, data),
     ).toBeNull();
+    // The names are the payload's, not the client's: a payload that names
+    // nothing as synthetic lets the same family through.
+    expect(drillDownUrl(state, { periodIndex: 0, family: NO_PLAN }, monthly())).toBe(
+      "plans.html?family=No+plan&from=2024-01-01&to=2024-02-01",
+    );
   });
 
   it("drills into the period alone when nothing names a family", () => {
@@ -664,14 +700,26 @@ describe("drillDownUrl", () => {
   });
 });
 
+describe("isSyntheticFamily", () => {
+  it("is whatever the payload names, and nothing when it names nothing", () => {
+    expect(isSyntheticFamily(makeData(), NO_PLAN)).toBe(true);
+    expect(isSyntheticFamily(makeData(), OTHER_RETIRED)).toBe(true);
+    expect(isSyntheticFamily(makeData(), "OID4VP")).toBe(false);
+    expect(isSyntheticFamily(/** @type {any} */ ({}), NO_PLAN)).toBe(false);
+    expect(isSyntheticFamily(/** @type {any} */ ({ syntheticFamilies: "no" }), NO_PLAN)).toBe(
+      false,
+    );
+  });
+});
+
 describe("drillDownFamily", () => {
   it("names the bucket a refused click resolved to, for the message", () => {
     expect(drillDownFamily(defaultFilterState(), { periodIndex: 0, family: OTHER_LABEL })).toBe(
       OTHER_LABEL,
     );
-    expect(
-      drillDownFamily({ ...defaultFilterState(), family: NO_PLAN_FAMILY }, { periodIndex: 0 }),
-    ).toBe(NO_PLAN_FAMILY);
+    expect(drillDownFamily({ ...defaultFilterState(), family: NO_PLAN }, { periodIndex: 0 })).toBe(
+      NO_PLAN,
+    );
     expect(drillDownFamily(defaultFilterState(), { periodIndex: 0 })).toBe("");
   });
 });
@@ -944,8 +992,8 @@ describe("assignFamilySlots", () => {
     const slots = assignFamilySlots(makeData());
     expect(slots["OpenID Federation"]).toBe(OTHER_COLOR_VAR);
     expect(slots["Shared Signals Framework"]).toBe(OTHER_COLOR_VAR);
-    expect(slots[NO_PLAN_FAMILY]).toBe(OTHER_COLOR_VAR);
-    expect(slots[OTHER_RETIRED_FAMILY]).toBe(OTHER_COLOR_VAR);
+    expect(slots[NO_PLAN]).toBe(OTHER_COLOR_VAR);
+    expect(slots[OTHER_RETIRED]).toBe(OTHER_COLOR_VAR);
   });
 
   it("never lets the synthetic buckets take a hue slot, however busy they are", () => {
@@ -953,11 +1001,11 @@ describe("assignFamilySlots", () => {
     // families: they must never spend one of the seven separable hues, even
     // when they dwarf every real family.
     const data = makeData();
-    data.testRunsByFamily[NO_PLAN_FAMILY] = series(9000, 9000);
-    data.testRunsByFamily[OTHER_RETIRED_FAMILY] = series(8000, 8000);
+    data.familyTotals[NO_PLAN].runs = 9_000_000;
+    data.familyTotals[OTHER_RETIRED].runs = 8_000_000;
     const slots = assignFamilySlots(data);
-    expect(slots[NO_PLAN_FAMILY]).toBe(OTHER_COLOR_VAR);
-    expect(slots[OTHER_RETIRED_FAMILY]).toBe(OTHER_COLOR_VAR);
+    expect(slots[NO_PLAN]).toBe(OTHER_COLOR_VAR);
+    expect(slots[OTHER_RETIRED]).toBe(OTHER_COLOR_VAR);
     // The seven hues still go to the seven busiest REAL families, unshifted.
     expect(slots["FAPI2 Security Profile"]).toBe("--chart-cat-1");
     expect(slots["eKYC & Identity Assurance"]).toBe("--chart-cat-7");
@@ -973,11 +1021,11 @@ describe("assignFamilySlots", () => {
     // bucket in the payload; the freed hue must go to the next REAL family
     // (OpenID Federation), never to the synthetic bucket.
     const data = makeData();
-    data.testRunsByFamily["eKYC & Identity Assurance"] = series(0, 0);
-    data.testRunsByFamily[NO_PLAN_FAMILY] = series(9000, 9000);
+    data.familyTotals["eKYC & Identity Assurance"].runs = 0;
+    data.familyTotals[NO_PLAN].runs = 9_000_000;
     const slots = assignFamilySlots(data);
     expect(slots["OpenID Federation"]).toBe("--chart-cat-7");
-    expect(slots[NO_PLAN_FAMILY]).toBe(OTHER_COLOR_VAR);
+    expect(slots[NO_PLAN]).toBe(OTHER_COLOR_VAR);
   });
 
   it("covers every family in the payload and uses each categorical slot once", () => {
@@ -987,26 +1035,41 @@ describe("assignFamilySlots", () => {
     expect(categorical.sort()).toEqual([...CATEGORY_COLOR_VARS].sort());
   });
 
-  it("is computed from the all-time baseline, so a range change never repaints", () => {
+  it("is read from familyTotals, so a range change never repaints", () => {
+    // The last twelve months rank the families differently from the whole
+    // history (OpenID Federation is busy only lately), and a payload for that
+    // range still carries the all-time totals — so the slots do not move.
     const full = assignFamilySlots(makeData());
-    // The baseline answer genuinely differs from what the narrowed payload
-    // would produce, so this test fails the day a caller passes the latter.
     const narrowed = assignFamilySlots(makeRecent());
-    expect(narrowed["OpenID Federation"]).toBe("--chart-cat-7");
-    expect(narrowed["eKYC & Identity Assurance"]).toBe(OTHER_COLOR_VAR);
-    expect(full["OpenID Federation"]).toBe(OTHER_COLOR_VAR);
+    expect(narrowed).toEqual(full);
     expect(full["eKYC & Identity Assurance"]).toBe("--chart-cat-7");
+    expect(full["OpenID Federation"]).toBe(OTHER_COLOR_VAR);
+    // ...and it is the totals that rank, not the series: rank them the other
+    // way and the slots follow.
+    const rearranged = makeRecent();
+    rearranged.familyTotals = withTotals({ ...makeRecent(), familyTotals: {} }).familyTotals;
+    expect(assignFamilySlots(rearranged)["OpenID Federation"]).toBe("--chart-cat-7");
+    expect(assignFamilySlots(rearranged)["eKYC & Identity Assurance"]).toBe(OTHER_COLOR_VAR);
   });
 
-  it("is computed from an UNFILTERED payload: a filtered one would repaint", () => {
-    // Under a family filter every other family is zeroed, so a ranking taken
-    // from that payload hands the first hue to whatever the user selected.
+  it("is unmoved by a filter that zeroes every other family's series", () => {
+    // Under a family filter every other family's SERIES is zero; the totals
+    // are not, so the selected family keeps its own hue rather than taking
+    // the first one.
     const filtered = makeData();
     for (const family of FAMILIES) {
       if (family !== "OID4VP") filtered.testRunsByFamily[family] = series(0, 0);
     }
-    expect(assignFamilySlots(filtered)["OID4VP"]).toBe("--chart-cat-1");
-    expect(assignFamilySlots(makeData())["OID4VP"]).toBe("--chart-cat-4");
+    expect(assignFamilySlots(filtered)["OID4VP"]).toBe("--chart-cat-4");
+  });
+
+  it("tolerates a payload with no familyTotals at all", () => {
+    const data = makeData();
+    delete data.familyTotals;
+    const slots = assignFamilySlots(data);
+    expect(Object.keys(slots).sort()).toEqual([...FAMILIES].sort());
+    // Nothing ranks, so the seven hues go to the first seven real families.
+    expect(slots["FAPI2 Security Profile"]).toBe("--chart-cat-1");
   });
 
   it("tolerates a payload with no families", () => {
@@ -1023,9 +1086,9 @@ describe("assignFamilySlots", () => {
       testRunsByFamily: "nope",
     });
     expect(assignFamilySlots(broken)).toEqual({});
-    expect(runsDatasets(broken, {}, "")).toEqual([]);
-    expect(plansDatasets(broken, {}, "")).toEqual([]);
-    expect(certifiedDatasets(broken, {}, "")).toEqual([]);
+    expect(familyDatasets(broken, {}, "", "testRunsByFamily")).toEqual([]);
+    expect(familyDatasets(broken, {}, "", "plansByFamily")).toEqual([]);
+    expect(familyDatasets(broken, {}, "", "certifiedByFamily")).toEqual([]);
     expect(resultsDatasets(broken, "")).toEqual([]);
     expect(otherBreakdown(broken, {}, 0)).toEqual([]);
     expect(familiesWithActivity(broken)).toEqual([]);
@@ -1033,10 +1096,10 @@ describe("assignFamilySlots", () => {
   });
 });
 
-describe("runsDatasets / plansDatasets / certifiedDatasets", () => {
+describe("familyDatasets", () => {
   it("emits one dataset per family with data, ordered by color slot", () => {
     const data = makeData();
-    const datasets = runsDatasets(data, assignFamilySlots(data), "");
+    const datasets = familyDatasets(data, assignFamilySlots(data), "", "testRunsByFamily");
     expect(datasets.map((d) => d.label)).toEqual([
       "FAPI2 Security Profile",
       "FAPI1 Advanced",
@@ -1062,45 +1125,50 @@ describe("runsDatasets / plansDatasets / certifiedDatasets", () => {
     const data = makeData();
     const slots = assignFamilySlots(data);
     // Shared Signals Framework is zero across all time.
-    expect(runsDatasets(data, slots, "").map((d) => d.label)).not.toContain(
+    expect(familyDatasets(data, slots, "", "testRunsByFamily").map((d) => d.label)).not.toContain(
       "Shared Signals Framework",
     );
     // eKYC is zero only in the last 12 months, which is what the server sends
     // back for that range.
-    expect(runsDatasets(makeRecent(), slots, "").map((d) => d.label)).not.toContain(
-      "eKYC & Identity Assurance",
-    );
+    expect(
+      familyDatasets(makeRecent(), slots, "", "testRunsByFamily").map((d) => d.label),
+    ).not.toContain("eKYC & Identity Assurance");
   });
 
   it("returns a single dataset in the family's own slot color when one is selected", () => {
     const data = makeData();
     const slots = assignFamilySlots(data);
-    expect(runsDatasets(data, slots, "OID4VP")).toEqual([
+    expect(familyDatasets(data, slots, "OID4VP", "testRunsByFamily")).toEqual([
       { label: "OID4VP", data: data.testRunsByFamily["OID4VP"], colorVar: "--chart-cat-4" },
     ]);
-    expect(runsDatasets(data, slots, "No plan")).toEqual([
+    expect(familyDatasets(data, slots, "No plan", "testRunsByFamily")).toEqual([
       { label: "No plan", data: data.testRunsByFamily["No plan"], colorVar: OTHER_COLOR_VAR },
     ]);
   });
 
   it("keeps a selected family even when it has nothing in the payload", () => {
     const slots = assignFamilySlots(makeData());
-    const datasets = runsDatasets(makeRecent(), slots, "eKYC & Identity Assurance");
+    const datasets = familyDatasets(
+      makeRecent(),
+      slots,
+      "eKYC & Identity Assurance",
+      "testRunsByFamily",
+    );
     expect(datasets).toHaveLength(1);
     expect(datasets[0].data).toEqual(new Array(12).fill(0));
   });
 
   it("copies the series so a chart cannot write back into the payload", () => {
     const data = makeData();
-    const datasets = runsDatasets(data, assignFamilySlots(data), "OID4VP");
+    const datasets = familyDatasets(data, assignFamilySlots(data), "OID4VP", "testRunsByFamily");
     datasets[0].data[0] = -1;
     expect(data.testRunsByFamily["OID4VP"][0]).toBe(120);
   });
 
-  it("plansDatasets reads plansByFamily with the same slots", () => {
+  it("reads plansByFamily with the same slots", () => {
     const data = makeData();
     const slots = assignFamilySlots(data);
-    const datasets = plansDatasets(data, slots, "");
+    const datasets = familyDatasets(data, slots, "", "plansByFamily");
     expect(datasets.map((d) => d.label)).toEqual([
       "FAPI2 Security Profile",
       "FAPI1 Advanced",
@@ -1111,10 +1179,10 @@ describe("runsDatasets / plansDatasets / certifiedDatasets", () => {
     expect(datasets[2].colorVar).toBe(OTHER_COLOR_VAR);
   });
 
-  it("certifiedDatasets reads certifiedByFamily with the same slots", () => {
+  it("reads certifiedByFamily with the same slots", () => {
     const data = makeData();
     const slots = assignFamilySlots(data);
-    const datasets = certifiedDatasets(data, slots, "");
+    const datasets = familyDatasets(data, slots, "", "certifiedByFamily");
     expect(datasets.map((d) => d.label)).toEqual([
       "FAPI2 Security Profile",
       "FAPI1 Advanced",
@@ -1127,14 +1195,14 @@ describe("runsDatasets / plansDatasets / certifiedDatasets", () => {
 
   it("returns nothing for an unknown selected family", () => {
     const data = makeData();
-    expect(runsDatasets(data, assignFamilySlots(data), "Nope")).toEqual([]);
+    expect(familyDatasets(data, assignFamilySlots(data), "Nope", "testRunsByFamily")).toEqual([]);
   });
 });
 
 describe("foldOther", () => {
   it("sums every neutral-slot dataset into one trailing Other series", () => {
     const data = makeData();
-    const folded = foldOther(runsDatasets(data, assignFamilySlots(data), ""));
+    const folded = foldOther(familyDatasets(data, assignFamilySlots(data), "", "testRunsByFamily"));
     expect(folded.map((d) => d.label)).toEqual([
       "FAPI2 Security Profile",
       "FAPI1 Advanced",
@@ -1324,17 +1392,13 @@ describe("familiesWithActivity", () => {
     // "Shared Signals Framework" is zero everywhere in the base fixture; give
     // it plans only, so this proves inclusion does not require a run.
     const data = makeData();
-    data.plansByFamily["Shared Signals Framework"] = data.plansByFamily[
-      "Shared Signals Framework"
-    ].map((_value, index) => (index === 0 ? 2 : 0));
+    data.familyTotals["Shared Signals Framework"].plans = 2;
     expect(familiesWithActivity(data)).toContain("Shared Signals Framework");
   });
 
   it("offers a family with only certified plans and no runs or plans", () => {
     const data = makeData();
-    data.certifiedByFamily["Shared Signals Framework"] = data.certifiedByFamily[
-      "Shared Signals Framework"
-    ].map((_value, index) => (index === 0 ? 1 : 0));
+    data.familyTotals["Shared Signals Framework"].certified = 1;
     expect(familiesWithActivity(data)).toContain("Shared Signals Framework");
   });
 
@@ -1344,11 +1408,13 @@ describe("familiesWithActivity", () => {
     expect(familiesWithActivity(makeData())).not.toContain("Shared Signals Framework");
   });
 
-  it("is meant for the all-time baseline: a narrowed payload loses options", () => {
-    // The select must not lose options when the user narrows the range or
-    // picks a filter, so the caller passes the baseline — proven by contrast.
-    expect(familiesWithActivity(makeData())).toContain("eKYC & Identity Assurance");
-    expect(familiesWithActivity(makeRecent())).not.toContain("eKYC & Identity Assurance");
+  it("reads familyTotals, so a narrowed payload loses no options", () => {
+    // eKYC has no runs in the last twelve months; the select must not lose
+    // it when the user narrows the range, and does not, because the totals
+    // are all-time whatever the range.
+    const recent = makeRecent();
+    expect(sum(recent.testRunsByFamily["eKYC & Identity Assurance"])).toBe(0);
+    expect(familiesWithActivity(recent)).toContain("eKYC & Identity Assurance");
   });
 
   it("tolerates an empty payload", () => {
