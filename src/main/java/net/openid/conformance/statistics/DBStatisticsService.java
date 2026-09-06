@@ -14,10 +14,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Supplier;
 
 /**
  * Computes the statistics cube from MongoDB, off the request path.
@@ -125,25 +127,50 @@ public class DBStatisticsService implements StatisticsService {
 		};
 	}
 
-	/** Runs on the {@code statistics-compute} thread; may throw, which the cache records. */
+	/**
+	 * Runs on the {@code statistics-compute} thread; may throw, which the cache records.
+	 * Each pipeline is timed on its own, so the log says which of them a slow snapshot is
+	 * spent in.
+	 */
 	private StatisticsCube compute() {
 		Instant startedAt = Instant.now();
 		LocalDate today = LocalDate.now(ZoneOffset.UTC);
-		List<RunCell> runs = source.runs();
-		List<PlanCell> plans = source.plans();
-		List<UserTuple> users = source.users();
-		List<HeatCell> heat = source.heat(today);
-		List<ModuleUserCell> modules = source.modules(today);
-		List<HostRow> hosts = source.externalHosts(today);
+		Timings timings = new Timings();
+		List<RunCell> runs = timings.time("runs", source::runs);
+		List<PlanCell> plans = timings.time("plans", source::plans);
+		List<UserTuple> users = timings.time("users", source::users);
+		List<HeatCell> heat = timings.time("heat", () -> source.heat(today));
+		List<ModuleUserCell> modules = timings.time("modules", () -> source.modules(today));
+		List<HostRow> hosts = timings.time("hosts", () -> source.externalHosts(today));
+		List<StorageRow> storage = timings.time("storage", source::storage);
 		long totalUsers = users.stream().mapToInt(UserTuple::ownerId).distinct().count();
-		StatisticsCube cube = new StatisticsCube(runs, plans, users, heat, modules, hosts, source.storage(),
-			source.tiles(startedAt, serverStartedAt(), totalUsers), resolver, today);
-		logger.info("Computed the statistics cube in {}ms: {} run cells, {} plan cells, {} user tuples, "
+		TileRow tiles = timings.time("tiles", () -> source.tiles(startedAt, serverStartedAt(), totalUsers));
+		StatisticsCube cube = timings.time("cube",
+			() -> new StatisticsCube(runs, plans, users, heat, modules, hosts, storage, tiles, resolver, today));
+		logger.info("Computed the statistics cube in {}ms ({}): {} run cells, {} plan cells, {} user tuples, "
 				+ "{} heat cells, {} module cells, {} external hosts; {} months, {} weeks",
-			Duration.between(startedAt, Instant.now()).toMillis(),
+			Duration.between(startedAt, Instant.now()).toMillis(), timings,
 			runs.size(), plans.size(), users.size(), heat.size(), modules.size(), hosts.size(),
 			cube.periods(Granularity.MONTH).size(), cube.periods(Granularity.WEEK).size());
 		return cube;
+	}
+
+	/** How long each step of a computation took, in the order they ran, for the log line. */
+	private static final class Timings {
+
+		private final List<String> steps = new ArrayList<>();
+
+		<T> T time(String step, Supplier<T> work) {
+			Instant before = Instant.now();
+			T result = work.get();
+			steps.add(step + " " + Duration.between(before, Instant.now()).toMillis() + "ms");
+			return result;
+		}
+
+		@Override
+		public String toString() {
+			return String.join(", ", steps);
+		}
 	}
 
 	@PreDestroy
