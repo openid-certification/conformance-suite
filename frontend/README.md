@@ -310,7 +310,10 @@ the `chromatic` CI job, which builds Storybook and publishes a snapshot of
 every story to [Chromatic](https://www.chromatic.com/) for visual diffing
 against the accepted baseline. Visual changes are reviewed (accepted or
 denied) in the Chromatic UI — the link appears in the job log and on the
-GitLab MR widget.
+GitLab MR widget. Chromatic's separate "UI Review" feature is switched off
+in the project settings (2026-09-06): it posted a pending "UI Review" status
+onto every MR that nobody signed off, and the snapshot review covers what we
+need. Leave it off unless the team decides to use it.
 
 The job is **non-blocking** for now: snapshot diffs exit 0
 (`--exit-zero-on-changes`) and anything else is `allow_failure: true`. It
@@ -338,15 +341,26 @@ changes. Timers are untouched, so polling stories and `waitFor()` work
 normally. If a story ever needs the real clock, talk to the team first — it
 will be visually unstable in Chromatic by construction.
 
-**Snapshot quota.** Each full build snapshots ~650 stories against the
-plan's monthly allowance. Three mitigations are in place: the CI job's
-`changes:` filter skips backend-only pushes, TurboSnap (`onlyChanged` in
-`chromatic.config.json`) snapshots only stories affected by the changed
-files (it activates automatically after Chromatic's 10-successful-CI-builds
-threshold; `--stats-json` on `build-storybook` provides the dependency graph
-it needs), and the frozen clock keeps unchanged stories byte-identical so
-they don't re-enter review. Prefer letting CI publish over local runs, and
-don't script Chromatic into loops.
+**Snapshots are opt-in, at page level.** `.storybook/preview.js` sets
+`chromatic: { disableSnapshot: true }` for the whole project, and only the
+page and flow stories (`Tokens/*`, `Pages/*`, `Flows/*`) opt back in with
+`disableSnapshot: false` on their meta — about 65 stories. Snapshotting all
+~675 stories meant a change to any shared module (tokens, `cts-icon`,
+`cts-button`, a fixture) fanned out into hundreds of diffs to click through,
+so nobody reviewed them. Component variant stories are still published to
+the hosted Storybook and still run under `npm run test-storybook`; they just
+aren't captured. When adding a new page-level story file, copy the opt-in
+block from an existing `Pages/*` meta. Add a component story file to the
+snapshot set only if it shows something no page story does.
+
+**Snapshot quota.** Beyond the opt-in set, three mitigations are in place:
+the CI job's `changes:` filter skips backend-only pushes, TurboSnap
+(`onlyChanged` in `chromatic.config.json`) snapshots only stories affected
+by the changed files (it activates automatically after Chromatic's
+10-successful-CI-builds threshold; `--stats-json` on `build-storybook`
+provides the dependency graph it needs), and the frozen clock keeps
+unchanged stories byte-identical so they don't re-enter review. Prefer
+letting CI publish over local runs, and don't script Chromatic into loops.
 
 ## `--ignore-rev` candidates
 

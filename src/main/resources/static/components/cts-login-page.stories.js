@@ -7,6 +7,11 @@ import "./cts-alert.js";
 export default {
   title: "Pages/cts-login-page",
   component: "cts-login-page",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
   argTypes: {
     error: { control: "text" },
     logoutMessage: { control: "boolean" },

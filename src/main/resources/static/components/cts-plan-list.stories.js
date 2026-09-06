@@ -7,6 +7,11 @@ import "./cts-plan-list.js";
 export default {
   title: "Pages/cts-plan-list",
   component: "cts-plan-list",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 // --- Helpers ---

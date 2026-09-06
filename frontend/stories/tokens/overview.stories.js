@@ -3,6 +3,11 @@ import { expect, waitFor, within } from "storybook/test";
 
 export default {
   title: "Tokens",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 // ---- Shared helpers ------------------------------------------------------

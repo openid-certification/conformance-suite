@@ -64,6 +64,15 @@ export default definePreview({
     viewport: {
       options: MINIMAL_VIEWPORTS,
     },
+    // Chromatic visual regression is opt-in at the page level. Snapshotting
+    // every story (~675) meant a change to any shared module (tokens, cts-icon,
+    // cts-button, a fixture) fanned out into hundreds of diffs to click through
+    // and burned the snapshot quota, so nobody reviewed them. Page and flow
+    // stories (Tokens/*, Pages/*, Flows/*) set `disableSnapshot: false` on
+    // their meta; component variant stories stay published to Chromatic's
+    // hosted Storybook but are not captured. `npm run test-storybook` (play
+    // functions + axe) still runs every story regardless of this flag.
+    chromatic: { disableSnapshot: true },
     // Accessibility testing (axe-core via @storybook/addon-a11y, composed into
     // the Vitest runner through `addons: [a11yAddon()]` above). `test` gates how
     // violations surface:

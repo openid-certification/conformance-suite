@@ -7,6 +7,11 @@ import "./cts-token-manager.js";
 export default {
   title: "Pages/cts-token-manager",
   component: "cts-token-manager",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 /**

@@ -24,6 +24,11 @@ import "../../../src/main/resources/static/components/cts-plan-actions.js";
 
 export default {
   title: "Pages/PlanDetail",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 // Copied from plan-detail.html's inline <style> — keep in sync with the

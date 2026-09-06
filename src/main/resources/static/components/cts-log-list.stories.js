@@ -9,6 +9,9 @@ export default {
   component: "cts-log-list",
   parameters: {
     layout: "padded",
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
   },
   // Reset URL state before each story so filter persistence from one
   // story (history.replaceState writes ?status=…, ?result=…) does not
