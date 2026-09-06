@@ -78,8 +78,8 @@ public class StatisticsApi {
 			description = "Only count this test plan, by name, as listed in `dimensions.plans`.",
 			schema = @Schema(type = "string", example = "fapi-ciba-id1-test-plan")),
 		@Parameter(name = "cert", in = ParameterIn.QUERY,
-			description = "Only count test plans whose certification profiles are exactly this, as listed in "
-				+ "`dimensions.certProfiles`; several profiles are joined with ' | '.",
+			description = "Only count test plans certified for this profile, as listed in "
+				+ "`dimensions.certProfiles`; a plan certified for several profiles matches any one of them.",
 			schema = @Schema(type = "string"))
 	})
 	@ApiResponses({

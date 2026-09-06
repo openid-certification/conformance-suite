@@ -1,6 +1,7 @@
 package net.openid.conformance.statistics;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Turns the {@code certificationProfileName} list stored on a {@code TEST_PLAN} document
@@ -13,10 +14,11 @@ import java.util.List;
  * is the same for every plan configured the same way, and it is also the order an admin
  * sees on the plan itself.
  *
- * <p>The key is what the client sends back as the {@code cert} filter and what it renders
- * in the certification profile list, so it is compared by equality and never re-parsed
- * here; a separator occurring inside a profile name is nevertheless replaced with
- * {@code _}, so that splitting a key always yields as many names as it was built from.
+ * <p>The key groups cells; the client sees and filters on the individual names it was built
+ * from ({@link #names}), so a plan certified for two profiles counts under both and a
+ * {@code cert} filter matches every plan that names that profile. A separator occurring
+ * inside a profile name is replaced with {@code _}, so that splitting a key always yields as
+ * many names as it was built from.
  */
 public final class CertKeys {
 
@@ -54,6 +56,17 @@ public final class CertKeys {
 			key.append(sanitised);
 		}
 		return key.toString();
+	}
+
+	/**
+	 * @param key a canonical key
+	 * @return the profile names it was built from, in order; empty for the empty key
+	 */
+	public static List<String> names(String key) {
+		if (key == null || key.isEmpty()) {
+			return List.of();
+		}
+		return List.of(key.split(Pattern.quote(SEPARATOR)));
 	}
 
 	private static String sanitise(String name) {

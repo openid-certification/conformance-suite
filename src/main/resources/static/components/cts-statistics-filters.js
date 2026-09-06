@@ -138,6 +138,15 @@ function injectStyles() {
 }
 
 /**
+ * @param {string} label - The value's name.
+ * @param {unknown} count - How much of the slice it accounts for.
+ * @returns {string} The option's label, "name (count)".
+ */
+function withCount(label, count) {
+  return `${label} (${NUMBER_FORMAT.format(Number(count) || 0)})`;
+}
+
+/**
  * The statistics page's filter row: range presets, then the cascade of spec
  * family → test plan → plan-level variant → certification profile.
  *
@@ -154,7 +163,7 @@ function injectStyles() {
  *   family, profiles are awarded per family, and the variant parameters are
  *   the ones that family's plans declare. Carrying them over would leave the
  *   user two clicks from `family=OpenID Connect Core &
- *   cert=Brazil Open Finance | FAPI-CIBA` — five charts of zeros with nothing
+ *   cert=Brazil Open Finance` — five charts of zeros with nothing
  *   on screen to explain why;
  * - picking a plan clears the certification profile too, and drops any
  *   variant whose parameter the current selection does not even offer;
@@ -210,6 +219,11 @@ class CtsStatisticsFilters extends LitElement {
         /** @type {string} */ family,
         /** @type {string} */ plan,
       ) => visibleVariants(options, { range: "", family, plan, variant, cert: "" }),
+    );
+    this._sortedPlans = memoiseByArgs((/** @type {any} */ plans) =>
+      Array.isArray(plans)
+        ? [...plans].sort((a, b) => String(a.planName).localeCompare(String(b.planName)))
+        : [],
     );
   }
 
@@ -371,12 +385,14 @@ class CtsStatisticsFilters extends LitElement {
   /**
    * The plan options, alphabetically. The payload ranks them busiest first,
    * which is the order a chart wants; a select is scanned by name.
+   *
+   * Memoised on the payload's own list, whose identity only changes when a
+   * new snapshot lands: the component re-renders on every poll and on every
+   * filter change, and none of those re-orders a few hundred plan names.
    * @returns {Array<{planName: string, family: string, runs: number, plans: number}>} Plan options.
    */
   _plans() {
-    const plans = (this.options && this.options.plans) || [];
-    if (!Array.isArray(plans)) return [];
-    return [...plans].sort((a, b) => String(a.planName).localeCompare(String(b.planName)));
+    return this._sortedPlans((this.options && this.options.plans) || []);
   }
 
   render() {
@@ -429,47 +445,77 @@ class CtsStatisticsFilters extends LitElement {
     `;
   }
 
-  /** @returns {unknown} The spec family select. */
-  _renderFamily() {
-    const families = Array.isArray(this.families) ? this.families : [];
+  /**
+   * One filter select.
+   *
+   * All four are the same control — a placeholder option that clears the
+   * filter, then the values, each of which may carry the count it narrows
+   * to. The rule worth stating once rather than four times is the deep link:
+   * a URL may name a value the current range has no data for, and it must
+   * still be selectable or the user cannot see what they are looking at, so
+   * a selected-but-unoffered value is prepended.
+   * @param {object} spec - The control.
+   * @param {string} spec.testid - Its `data-testid`.
+   * @param {string} spec.ariaLabel - Its accessible name.
+   * @param {string} spec.placeholder - The label of the clear-the-filter option.
+   * @param {string} spec.value - What is selected.
+   * @param {Array<{value: string, label: string}>} spec.options - The values on offer.
+   * @param {(event: Event) => void} spec.onChange - The change handler.
+   * @param {string} [spec.variantName] - Set on a variant select, which carries
+   *   its parameter name so one handler serves all of them.
+   * @param {boolean} [spec.hideWhenEmpty] - Whether an empty list renders nothing
+   *   rather than a select offering only the placeholder.
+   * @returns {unknown} The select, or nothing.
+   */
+  _renderSelect(spec) {
+    const known = spec.options.some((option) => option.value === spec.value);
     const offered =
-      families.includes(this.family) || !this.family ? families : [...families, this.family];
+      spec.value && !known
+        ? [{ value: spec.value, label: spec.value }, ...spec.options]
+        : spec.options;
+    if (offered.length === 0 && spec.hideWhenEmpty !== false) return nothing;
     return html`
       <select
         class="oidf-select"
-        aria-label="Spec family"
-        data-testid="stats-family"
-        data-value=${this.family}
-        @change=${this._handleFamily}
+        aria-label=${spec.ariaLabel}
+        data-testid=${spec.testid}
+        data-variant=${spec.variantName ?? nothing}
+        data-value=${spec.value}
+        @change=${spec.onChange}
       >
-        <option value="">All families</option>
-        ${offered.map((name) => html`<option value=${name}>${name}</option>`)}
+        <option value="">${spec.placeholder}</option>
+        ${offered.map((option) => html`<option value=${option.value}>${option.label}</option>`)}
       </select>
     `;
   }
 
+  /** @returns {unknown} The spec family select. */
+  _renderFamily() {
+    const families = Array.isArray(this.families) ? this.families : [];
+    return this._renderSelect({
+      testid: "stats-family",
+      ariaLabel: "Spec family",
+      placeholder: "All families",
+      value: this.family,
+      options: families.map((name) => ({ value: name, label: name })),
+      onChange: this._handleFamily,
+      hideWhenEmpty: false,
+    });
+  }
+
   /** @returns {unknown} The test plan select, or nothing when there is nothing to pick. */
   _renderPlan() {
-    const plans = this._plans();
-    const known = plans.some((option) => option.planName === this.plan);
-    // A deep link may name a plan the current range has no data for; it must
-    // still be selectable, or the user cannot see what they are looking at.
-    const offered = this.plan && !known ? [{ planName: this.plan, family: "" }, ...plans] : plans;
-    if (offered.length === 0) return nothing;
-    return html`
-      <select
-        class="oidf-select"
-        aria-label="Test plan"
-        data-testid="stats-plan"
-        data-value=${this.plan}
-        @change=${this._handlePlan}
-      >
-        <option value="">All plans</option>
-        ${offered.map(
-          (option) => html`<option value=${option.planName}>${option.planName}</option>`,
-        )}
-      </select>
-    `;
+    return this._renderSelect({
+      testid: "stats-plan",
+      ariaLabel: "Test plan",
+      placeholder: "All plans",
+      value: this.plan,
+      options: this._plans().map((option) => ({
+        value: option.planName,
+        label: option.planName,
+      })),
+      onChange: this._handlePlan,
+    });
   }
 
   /**
@@ -481,30 +527,18 @@ class CtsStatisticsFilters extends LitElement {
    * @returns {unknown} The select, or nothing when the parameter has no values.
    */
   _renderVariant(name, values) {
-    const options = Array.isArray(values) ? values : [];
-    const selected = (this.variant || {})[name] || "";
-    const known = options.some((option) => option.value === selected);
-    const offered =
-      selected && !known ? [{ value: selected, users: 0, plans: 0 }, ...options] : options;
-    if (offered.length === 0) return nothing;
-    return html`
-      <select
-        class="oidf-select"
-        aria-label="Variant: ${name}"
-        data-testid="stats-variant-${name}"
-        data-variant=${name}
-        data-value=${selected}
-        @change=${this._handleVariant}
-      >
-        <option value="">Any ${name}</option>
-        ${offered.map(
-          (option) =>
-            html`<option value=${option.value}>
-              ${option.value} (${NUMBER_FORMAT.format(Number(option.users) || 0)})
-            </option>`,
-        )}
-      </select>
-    `;
+    return this._renderSelect({
+      testid: `stats-variant-${name}`,
+      ariaLabel: `Variant: ${name}`,
+      placeholder: `Any ${name}`,
+      value: (this.variant || {})[name] || "",
+      options: (Array.isArray(values) ? values : []).map((option) => ({
+        value: option.value,
+        label: withCount(option.value, option.users),
+      })),
+      onChange: this._handleVariant,
+      variantName: name,
+    });
   }
 
   /**
@@ -512,27 +546,17 @@ class CtsStatisticsFilters extends LitElement {
    * @returns {unknown} The select, or nothing when nothing has been certified.
    */
   _renderCert(profiles) {
-    const known = profiles.some((profile) => profile.name === this.cert);
-    const offered =
-      this.cert && !known ? [{ name: this.cert, users: 0, plans: 0 }, ...profiles] : profiles;
-    if (offered.length === 0) return nothing;
-    return html`
-      <select
-        class="oidf-select"
-        aria-label="Certification profile"
-        data-testid="stats-cert"
-        data-value=${this.cert}
-        @change=${this._handleCert}
-      >
-        <option value="">All profiles</option>
-        ${offered.map(
-          (profile) =>
-            html`<option value=${profile.name}>
-              ${profile.name} (${NUMBER_FORMAT.format(Number(profile.users) || 0)})
-            </option>`,
-        )}
-      </select>
-    `;
+    return this._renderSelect({
+      testid: "stats-cert",
+      ariaLabel: "Certification profile",
+      placeholder: "All profiles",
+      value: this.cert,
+      options: profiles.map((profile) => ({
+        value: profile.name,
+        label: withCount(profile.name, profile.users),
+      })),
+      onChange: this._handleCert,
+    });
   }
 }
 

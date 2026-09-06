@@ -374,7 +374,7 @@ describe("queryFromState", () => {
         family: "FAPI-CIBA",
         plan: "fapi-ciba-id1-test-plan",
         variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
-        cert: "Brazil Open Finance | FAPI-CIBA",
+        cert: "Brazil Open Finance",
       },
       now,
     );
@@ -383,7 +383,7 @@ describe("queryFromState", () => {
     expect(query.get("plan")).toBe("fapi-ciba-id1-test-plan");
     expect(query.get("variant.fapi_profile")).toBe("openbanking_brazil");
     expect(query.get("variant.client_auth_type")).toBe("mtls");
-    expect(query.get("cert")).toBe("Brazil Open Finance | FAPI-CIBA");
+    expect(query.get("cert")).toBe("Brazil Open Finance");
   });
 
   it("orders variants by name, so the same filter is always the same request", () => {
@@ -439,7 +439,7 @@ describe("stateFromUrl / urlFromState", () => {
       family: "FAPI1 Advanced",
       plan: "fapi1-advanced-final-test-plan",
       variant: { fapi_profile: "openbanking_brazil" },
-      cert: "Brazil Open Finance | FAPI-CIBA",
+      cert: "Brazil Open Finance",
     };
     expect(stateFromUrl(urlFromState(state))).toEqual(state);
   });
@@ -593,13 +593,14 @@ describe("drillDownUrl", () => {
     );
   });
 
-  it("sends the first certification profile of a joined key", () => {
-    // The cube joins a plan's profiles with " | "; /api/plan matches ONE
-    // element, so the joined key would list nothing at all.
+  it("forwards the certification profile as it is", () => {
+    // The statistics count a plan under each profile it names and the
+    // listing matches any one of them, so one name means the same on both
+    // ends and nothing is split or rewritten.
     const state = {
       ...defaultFilterState(),
       family: "FAPI-CIBA",
-      cert: "FAPI-CIBA: Poll w/ MTLS | FAPI-CIBA: Ping w/ Private Key",
+      cert: "FAPI-CIBA: Poll w/ MTLS",
     };
     const url = new URL(
       String(drillDownUrl(state, { periodIndex: 0, family: "" }, monthly())),
@@ -679,7 +680,7 @@ describe("drillDownUrl", () => {
       family: "eKYC & Identity Assurance",
       plan: "ekyc-test-plan",
       variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
-      cert: "FAPI-CIBA: Poll w/ MTLS | FAPI-CIBA: Ping w/ Private Key",
+      cert: "FAPI-CIBA: Poll w/ MTLS",
     };
     const url = String(drillDownUrl(state, { periodIndex: 5, family: "" }, monthly()));
     expect(url.startsWith("plans.html?")).toBe(true);
@@ -688,7 +689,6 @@ describe("drillDownUrl", () => {
       family: "eKYC & Identity Assurance",
       plan: "ekyc-test-plan",
       variant: { fapi_profile: "openbanking_brazil", client_auth_type: "mtls" },
-      // Split: the listing matches one profile, never the joined key.
       cert: "FAPI-CIBA: Poll w/ MTLS",
       from: "2024-06-01",
       to: "2024-07-01",

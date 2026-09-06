@@ -482,13 +482,6 @@ export function periodBounds(period, granularity) {
 const PLANS_PAGE = "plans.html";
 
 /**
- * The separator `StatisticsCube` joins a plan's certification profiles with
- * when it builds a `certKey`. `GET /api/plan?cert=` matches ONE profile
- * exactly, so a joined key cannot be forwarded as it stands.
- */
-const CERT_JOIN = " | ";
-
-/**
  * What a click on a chart bar identifies, over and above the page's own
  * filter state.
  * @typedef {object} DrillDownClick
@@ -526,8 +519,6 @@ export function drillDownUrl(state, click, data) {
   const bounds = Number.isInteger(index)
     ? periodBounds(periods[index], (data && data.granularity) || "month")
     : null;
-  const cert = text(state && state.cert);
-
   // Built as the listing's own filter object and serialised by the listing's
   // own `toParams`, so the two ends of this link cannot drift: the parameter
   // names, the variant prefix and the order the variants come out in have
@@ -538,12 +529,10 @@ export function drillDownUrl(state, click, data) {
     family,
     plan: text(state && state.plan),
     variant: (state && state.variant) || {},
-    // The cube joins every certification profile of a plan into one key, while
-    // the listing matches a single element of `certificationProfileName`.
-    // Sending the first element is therefore a SUPERSET of the statistics
-    // slice: the listing also shows plans certified for that profile alongside
-    // others. Sending the joined key would match nothing at all.
-    cert: cert ? cert.split(CERT_JOIN)[0] : "",
+    // One profile name on both ends: the statistics count a plan under each
+    // profile it names and the listing matches any one of them, so the
+    // listing shows exactly the plans behind the bar.
+    cert: text(state && state.cert),
     from: bounds ? bounds.from : "",
     to: bounds ? bounds.to : "",
   }).toString();

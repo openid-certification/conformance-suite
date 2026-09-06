@@ -261,6 +261,35 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
+	void aPlanCertifiedForSeveralProfilesCountsUnderEachAndIsSelectedByAnyOfThem() {
+		String both = CertKeys.canonical(List.of("Cert A", "Cert B"));
+		StatisticsCube cube = cube(
+			List.of(new RunCell("2026-03", null, "oidcc-plan", false, "", both, 5, 0, 0, 0, 0, 0),
+				new RunCell("2026-03", null, "fapi1-plan", false, "", "Cert B", 9, 0, 0, 0, 0, 0)),
+			List.of(new PlanCell("2026-03", null, "oidcc-plan", "", both, 2, 0, 0),
+				new PlanCell("2026-03", null, "fapi1-plan", "", "Cert B", 1, 0, 0)),
+			List.of(new UserTuple("oidcc-plan", "", both, 1, List.of("2026-03"), List.of()),
+				new UserTuple("fapi1-plan", "", "Cert B", 2, List.of("2026-03"), List.of())));
+
+		StatisticsOverview unfiltered = slice(cube, StatisticsQuery.defaults());
+		// one name per entry, the two-profile plan counted under both, busiest first
+		assertThat(unfiltered.dimensions().certProfiles())
+			.extracting(CertProfile::name, CertProfile::users, CertProfile::plans)
+			.containsExactly(tuple("Cert B", 2L, 3L), tuple("Cert A", 1L, 2L));
+
+		// the filter is membership: Cert A selects the two-profile plan, Cert B selects both plans
+		assertThat(slice(cube, query("cert", "Cert A")).testRunsByFamily().get(SpecFamilyNames.oidcc))
+			.containsExactly(5L);
+		assertThat(slice(cube, query("cert", "Cert A")).testRunsByFamily().get(SpecFamilyNames.fapi1Advanced))
+			.containsExactly(0L);
+		assertThat(slice(cube, query("cert", "Cert B")).testRunsByFamily().get(SpecFamilyNames.fapi1Advanced))
+			.containsExactly(9L);
+		// the joined key is not a name and selects nothing
+		assertThat(slice(cube, query("cert", both)).testRunsByFamily().get(SpecFamilyNames.oidcc))
+			.containsExactly(0L);
+	}
+
+	@Test
 	void eachDimensionIsCountedWithItsOwnFilterLeftOut() {
 		StatisticsCube cube = cube(
 			List.of(new RunCell("2026-03", null, "oidcc-plan", false, "fapi_profile=plain", "Cert A", 5, 0, 0, 0, 0, 0),

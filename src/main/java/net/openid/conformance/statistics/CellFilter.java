@@ -48,7 +48,8 @@ final class CellFilter {
 		if (query.plan() != null && !query.plan().equals(planName)) {
 			return false;
 		}
-		if (query.cert() != null && !query.cert().equals(certKey)) {
+		// a plan certified for several profiles is selected by any one of them
+		if (query.cert() != null && !cube.certsOf(certKey).contains(query.cert())) {
 			return false;
 		}
 		if (query.variant().isEmpty()) {

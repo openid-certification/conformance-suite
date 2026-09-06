@@ -79,6 +79,8 @@ public class StatisticsCube {
 
 	private final Map<String, Map<String, String>> variantsByKey;
 
+	private final Map<String, List<String>> certsByKey;
+
 	private final List<String> monthlyPeriods;
 
 	private final List<String> weeklyPeriods;
@@ -114,6 +116,7 @@ public class StatisticsCube {
 		this.resolver = resolver;
 		this.familyTotals = familyTotals(monthlyRuns, monthlyPlans, resolver);
 		this.variantsByKey = parseVariants(monthlyRuns, monthlyPlans, users);
+		this.certsByKey = parseCerts(monthlyRuns, monthlyPlans, users);
 		this.monthlyPeriods = axis(monthlyRuns, monthlyPlans, users, Granularity.MONTH, nowUtc);
 		this.weeklyPeriods = axis(weeklyRuns, weeklyPlans, users, Granularity.WEEK, nowUtc);
 	}
@@ -265,6 +268,15 @@ public class StatisticsCube {
 	}
 
 	/**
+	 * @param certKey the canonical certification profile key of a cell in this cube
+	 * @return the profile names it was built from; split once per distinct key, like
+	 *         {@link #variantOf}. Empty for a key no cell carries.
+	 */
+	public List<String> certsOf(String certKey) {
+		return certKey == null ? List.of() : certsByKey.getOrDefault(certKey, List.of());
+	}
+
+	/**
 	 * @param cells       the module cells as the aggregation delivered them
 	 * @param oldestMonth the first month of the window
 	 * @param newestMonth the last month of it, the month today falls in: the window is
@@ -374,6 +386,21 @@ public class StatisticsCube {
 			}
 		}
 		return List.copyOf(usable);
+	}
+
+	private static Map<String, List<String>> parseCerts(List<RunCell> runs, List<PlanCell> plans,
+			List<UserTuple> users) {
+		Map<String, List<String>> parsed = new HashMap<>();
+		for (RunCell cell : runs) {
+			parsed.computeIfAbsent(cell.certKey(), CertKeys::names);
+		}
+		for (PlanCell cell : plans) {
+			parsed.computeIfAbsent(cell.certKey(), CertKeys::names);
+		}
+		for (UserTuple tuple : users) {
+			parsed.computeIfAbsent(tuple.certKey(), CertKeys::names);
+		}
+		return Map.copyOf(parsed);
 	}
 
 	private static Map<String, Map<String, String>> parseVariants(List<RunCell> runs, List<PlanCell> plans,

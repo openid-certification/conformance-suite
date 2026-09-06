@@ -73,7 +73,9 @@ final class DimensionCounter {
 				}
 			}
 			if (all || facets.certs.matches(cell)) {
-				counts(certProfiles, cell.certKey());
+				for (String profile : cube.certsOf(cell.certKey())) {
+					counts(certProfiles, profile);
+				}
 			}
 		}
 
@@ -91,9 +93,8 @@ final class DimensionCounter {
 				}
 			}
 			if (all || facets.certs.matches(cell)) {
-				Counts profile = counts(certProfiles, cell.certKey());
-				if (profile != null) {
-					profile.plans += cell.plans();
+				for (String profile : cube.certsOf(cell.certKey())) {
+					counts(certProfiles, profile).plans += cell.plans();
 				}
 			}
 		}
@@ -109,9 +110,8 @@ final class DimensionCounter {
 				}
 			}
 			if (all || facets.certs.matches(tuple)) {
-				Counts profile = counts(certProfiles, tuple.certKey());
-				if (profile != null) {
-					profile.users.add(tuple.ownerId());
+				for (String profile : cube.certsOf(tuple.certKey())) {
+					counts(certProfiles, profile).users.add(tuple.ownerId());
 				}
 			}
 		}
@@ -163,12 +163,9 @@ final class DimensionCounter {
 		return variants.computeIfAbsent(parameter, key -> new TreeMap<>()).computeIfAbsent(value, key -> new Counts());
 	}
 
-	/** @return the counts of a certification profile, or null for the plans that have none */
-	private static Counts counts(Map<String, Counts> certProfiles, String certKey) {
-		if (certKey == null || certKey.isEmpty()) {
-			return null;
-		}
-		return certProfiles.computeIfAbsent(certKey, key -> new Counts());
+	/** @return the counts of one certification profile name; a plan with several counts under each */
+	private static Counts counts(Map<String, Counts> certProfiles, String profile) {
+		return certProfiles.computeIfAbsent(profile, key -> new Counts());
 	}
 
 	private static List<PlanDimension> plans(StatisticsCube cube, Map<String, long[]> plans) {
