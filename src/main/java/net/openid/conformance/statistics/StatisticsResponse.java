@@ -23,6 +23,9 @@ public sealed interface StatisticsResponse permits StatisticsResponse.Ready, Sta
 	 */
 	@Schema(name = "StatisticsReady")
 	record Ready(String status, String computedAt, long computeDurationMs, boolean refreshing, LastError lastError, StatisticsOverview data) implements StatisticsResponse {
+		Ready(String computedAt, long computeDurationMs, boolean refreshing, LastError lastError, StatisticsOverview data) {
+			this("ready", computedAt, computeDurationMs, refreshing, lastError, data);
+		}
 	}
 
 	/**
@@ -34,6 +37,9 @@ public sealed interface StatisticsResponse permits StatisticsResponse.Ready, Sta
 	 */
 	@Schema(name = "StatisticsPending")
 	record Pending(String status, String startedAt) implements StatisticsResponse {
+		Pending(String startedAt) {
+			this("pending", startedAt);
+		}
 	}
 
 	/**
@@ -45,6 +51,9 @@ public sealed interface StatisticsResponse permits StatisticsResponse.Ready, Sta
 	 */
 	@Schema(name = "StatisticsFailed")
 	record Failed(String status, String message, String failedAt) implements StatisticsResponse {
+		Failed(String message, String failedAt) {
+			this("error", message, failedAt);
+		}
 	}
 
 	/**
@@ -59,6 +68,9 @@ public sealed interface StatisticsResponse permits StatisticsResponse.Ready, Sta
 	 */
 	@Schema(name = "StatisticsInvalid")
 	record Invalid(String status, String message) implements StatisticsResponse {
+		Invalid(String message) {
+			this("invalid", message);
+		}
 	}
 
 	/**

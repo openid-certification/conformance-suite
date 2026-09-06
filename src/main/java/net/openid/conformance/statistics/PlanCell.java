@@ -19,10 +19,5 @@ package net.openid.conformance.statistics;
  * @param published  plans that were published, i.e. have a {@code publish} setting
  */
 public record PlanCell(String month, String week, String planName, String variantKey, String certKey,
-	long plans, long certified, long published) {
-
-	/** @return the key of the period this cell belongs to at {@code granularity} */
-	public String period(Granularity granularity) {
-		return granularity == Granularity.MONTH ? month : week;
-	}
+	long plans, long certified, long published) implements Periodic {
 }
