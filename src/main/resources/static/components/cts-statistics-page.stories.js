@@ -254,8 +254,8 @@ export const Ready = {
           .textContent.trim();
       expect(hint("totalTests")).toBe("All time, estimated");
       expect(hint("totalUsers")).toBe("Plan owners, all time");
-      expect(hint("inProgress")).toBe("Running or waiting, last year");
-      expect(hint("stuck")).toBe("Non-terminal >24 h, within the last year");
+      expect(hint("inProgress")).toBe("Running or waiting, since server start");
+      expect(hint("stuck")).toBe("Non-terminal >24 h, since server start");
     });
 
     await step("the default range is sent to the server, not applied locally", async () => {
