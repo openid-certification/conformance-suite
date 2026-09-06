@@ -10,6 +10,7 @@ import "./cts-statistics-filters.js";
 import "./cts-statistics-insights.js";
 import "./cts-time.js";
 import { ctsToast } from "../js/cts-toast-api.js";
+import { injectDataTableStyles } from "./data-table-styles.js";
 import { SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
@@ -268,14 +269,9 @@ const STYLE_TEXT = css`
       transition: none;
     }
   }
-  /* The unresolved-plans disclosure borrows cts-chart's own .cts-chart-data
-     / .cts-chart-table rules so it is visually the same object as a chart's
-     data table; only its own spacing and hint are declared here. It renders
-     inside the trends section, where five <cts-chart>s have always injected
-     those rules. */
-  /* Element + class so the spacing wins over .cts-chart-data's own
-     margin-top regardless of which component injected its stylesheet
-     first. */
+  /* The unresolved-plans disclosure is the shared data table (see
+     data-table-styles.js), so it is visually the same object as a chart's;
+     only its own spacing and hint are declared here. */
   details.cts-stats-unresolved {
     margin-top: var(--space-5);
   }
@@ -308,6 +304,7 @@ const STYLE_TEXT = css`
  * @returns {void}
  */
 function injectStyles() {
+  injectDataTableStyles();
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
@@ -1206,12 +1203,12 @@ class CtsStatisticsPage extends LitElement {
     const plans = Array.isArray(data.unresolvedPlans) ? data.unresolvedPlans : [];
     if (plans.length === 0) return nothing;
     return html`
-      <details class="cts-stats-unresolved cts-chart-data" data-testid="stats-unresolved">
+      <details class="cts-stats-unresolved cts-data-disclosure" data-testid="stats-unresolved">
         <summary>Plans not mapped to a spec family (${plans.length})</summary>
         <p class="cts-stats-unresolved-hint">
           Retired, renamed or hidden plan names; their runs are counted under “Other / retired”.
         </p>
-        <table class="cts-chart-table">
+        <table class="cts-data-table">
           <thead>
             <tr>
               <th scope="col">Plan name</th>

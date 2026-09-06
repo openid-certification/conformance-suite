@@ -1,4 +1,5 @@
 import { LitElement, html, nothing, css } from "lit";
+import { injectDataTableStyles } from "./data-table-styles.js";
 import {
   NUMBER_FORMAT,
   heatmapIntensity,
@@ -108,48 +109,13 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
   }
 
-  /* The data table repeats <cts-chart>'s rules rather than borrowing them:
-     this component must look right on a page that has no chart on it. */
   .cts-heatmap-data {
     margin-top: var(--space-3, 12px);
   }
-  .cts-heatmap-data > summary {
-    cursor: pointer;
-    font-size: var(--fs-13, 13px);
-    color: var(--fg-muted);
-  }
-  .cts-heatmap-data > summary:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-    border-radius: var(--radius-2, 4px);
-  }
-  .cts-heatmap-table {
-    width: 100%;
-    margin-top: var(--space-2, 8px);
-    border-collapse: collapse;
-    font-size: var(--fs-13, 13px);
-    font-variant-numeric: tabular-nums;
-  }
-  .cts-heatmap-table caption {
-    text-align: left;
-    padding-bottom: var(--space-2, 8px);
-    font-size: var(--fs-12, 12px);
-    color: var(--fg-soft);
-  }
-  .cts-heatmap-table th,
-  .cts-heatmap-table td {
+  /* 168 cells: tighter than the shared table so the grid stays one screen. */
+  .cts-heatmap-table.cts-data-table th,
+  .cts-heatmap-table.cts-data-table td {
     padding: var(--space-1, 4px) var(--space-2, 8px);
-    border-bottom: 1px solid var(--border);
-    text-align: right;
-  }
-  .cts-heatmap-table th[scope="col"]:first-child,
-  .cts-heatmap-table th[scope="row"] {
-    text-align: left;
-    font-weight: var(--fw-regular, 400);
-  }
-  .cts-heatmap-table thead th {
-    color: var(--fg-soft);
-    font-weight: var(--fw-bold, 700);
   }
 `;
 
@@ -158,6 +124,7 @@ const STYLE_TEXT = css`
  * @returns {void}
  */
 function injectStyles() {
+  injectDataTableStyles();
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
@@ -417,10 +384,10 @@ class CtsHeatmap extends LitElement {
    */
   _renderTable(rows, cols) {
     return html`
-      <details class="cts-heatmap-data">
+      <details class="cts-heatmap-data cts-data-disclosure">
         <summary>Show data table</summary>
         <div class="cts-heatmap-scroll">
-          <table class="cts-heatmap-table">
+          <table class="cts-heatmap-table cts-data-table">
             <caption>${this.heading}</caption>
             <thead>
               <tr>

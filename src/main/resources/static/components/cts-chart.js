@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-alert.js";
+import { injectDataTableStyles } from "./data-table-styles.js";
 
 /**
  * Same-origin path to the vendored Chart.js UMD bundle. The bundle defines
@@ -41,24 +42,27 @@ const SURFACE_GAP_PX = 2;
 const BAR_RADIUS_PX = 4;
 
 /**
- * Scriptable bar `borderWidth`: the surface gap on the side facing the next
- * stacked segment, and no border at all on a segment without a value.
- * @param {{raw: unknown}} context - Chart.js's per-element scripting context.
- * @returns {{top: number, bottom: number, left: number, right: number}} Border widths.
+ * Build a scriptable bar `borderWidth`: the surface gap on the one side
+ * facing the next stacked segment, and no border at all on a segment without
+ * a value.
+ * @param {"top"|"right"} side - The side the next segment stacks onto.
+ * @returns {(context: {raw: unknown}) => {top: number, bottom: number, left: number, right: number}} The scriptable option.
  */
-function gapAfterVertical(context) {
-  const gap = Number(context.raw) > 0 ? SURFACE_GAP_PX : 0;
-  return { top: gap, bottom: 0, left: 0, right: 0 };
+function gapAfter(side) {
+  return (context) => ({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    [side]: Number(context.raw) > 0 ? SURFACE_GAP_PX : 0,
+  });
 }
 
-/**
- * @param {{raw: unknown}} context - Chart.js's per-element scripting context.
- * @returns {{top: number, bottom: number, left: number, right: number}} Border widths.
- */
-function gapAfterHorizontal(context) {
-  const gap = Number(context.raw) > 0 ? SURFACE_GAP_PX : 0;
-  return { top: 0, bottom: 0, left: 0, right: gap };
-}
+/** Vertical bars stack upwards, so the gap goes on top. */
+const GAP_AFTER_VERTICAL = gapAfter("top");
+
+/** Horizontal bars stack rightwards, so the gap goes on the right. */
+const GAP_AFTER_HORIZONTAL = gapAfter("right");
 /** Line stroke width. */
 const LINE_WIDTH_PX = 2;
 /** Point radius — an 8px marker, per the mark spec. */
@@ -205,45 +209,6 @@ const STYLE_TEXT = css`
   .cts-chart-data {
     margin-top: var(--space-3, 12px);
   }
-  .cts-chart-data > summary {
-    cursor: pointer;
-    font-size: var(--fs-13, 13px);
-    color: var(--fg-muted);
-  }
-  .cts-chart-data > summary:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-    border-radius: var(--radius-2, 4px);
-  }
-  .cts-chart-table {
-    width: 100%;
-    margin-top: var(--space-2, 8px);
-    border-collapse: collapse;
-    font-size: var(--fs-13, 13px);
-    /* Columns of numbers align; see the data-viz figures rule. */
-    font-variant-numeric: tabular-nums;
-  }
-  .cts-chart-table caption {
-    text-align: left;
-    padding-bottom: var(--space-2, 8px);
-    font-size: var(--fs-12, 12px);
-    color: var(--fg-soft);
-  }
-  .cts-chart-table th,
-  .cts-chart-table td {
-    padding: var(--space-2, 8px) var(--space-3, 12px);
-    border-bottom: 1px solid var(--border);
-    text-align: right;
-  }
-  .cts-chart-table th[scope="col"]:first-child,
-  .cts-chart-table th[scope="row"] {
-    text-align: left;
-    font-weight: var(--fw-regular, 400);
-  }
-  .cts-chart-table thead th {
-    color: var(--fg-soft);
-    font-weight: var(--fw-bold, 700);
-  }
   /* Keyboard twin of a click on a bar: the plot's hit targets live on a
      <canvas>, which no keyboard can reach, so on a clickable chart every row
      of the data table carries the same action in its category cell. Styled as
@@ -277,6 +242,7 @@ const STYLE_TEXT = css`
  * order.
  */
 function injectStyles() {
+  injectDataTableStyles();
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
@@ -602,7 +568,7 @@ class CtsChart extends LitElement {
           // spaces categories, and at 90 monthly bars a bar is about 4px wide,
           // narrower than two 2px borders, so the plot looked empty.
           borderColor: surface,
-          borderWidth: this.horizontal === true ? gapAfterHorizontal : gapAfterVertical,
+          borderWidth: this.horizontal === true ? GAP_AFTER_HORIZONTAL : GAP_AFTER_VERTICAL,
           borderSkipped: false,
           borderRadius: BAR_RADIUS_PX,
           maxBarThickness: MAX_BAR_THICKNESS,
@@ -862,9 +828,9 @@ class CtsChart extends LitElement {
               Showing the top ${plotted} of ${labels.length}; the rest are in the data table.
             </p>`
           : nothing}
-        <details class="cts-chart-data">
+        <details class="cts-chart-data cts-data-disclosure">
           <summary>Show data table</summary>
-          <table class="cts-chart-table">
+          <table class="cts-chart-table cts-data-table">
             <caption>${this.heading}</caption>
             <thead>
               <tr>

@@ -2,6 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-chart.js";
 import "./cts-heatmap.js";
 import "./cts-time.js";
+import { injectDataTableStyles } from "./data-table-styles.js";
 import {
   DISTRIBUTION_LIMIT,
   MODULE_LIMIT,
@@ -203,45 +204,10 @@ const STYLE_TEXT = css`
   details.cts-stats-hosts {
     margin-top: var(--space-6);
   }
-  .cts-stats-disclosure > summary {
-    cursor: pointer;
-    font-size: var(--fs-13);
-    color: var(--fg-muted);
-  }
-  .cts-stats-disclosure > summary:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-    border-radius: var(--radius-2);
-  }
   .cts-stats-hint {
     margin: var(--space-2) 0 0;
     font-size: var(--fs-12);
     color: var(--fg-soft);
-  }
-  /* Repeated rather than borrowed from <cts-chart>: this table renders in
-     states where the page draws no chart at all (a filter that matches
-     nothing), so it cannot depend on that component's stylesheet. */
-  .cts-stats-table {
-    width: 100%;
-    margin-top: var(--space-2);
-    border-collapse: collapse;
-    font-size: var(--fs-13);
-    font-variant-numeric: tabular-nums;
-  }
-  .cts-stats-table th,
-  .cts-stats-table td {
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--border);
-    text-align: right;
-  }
-  .cts-stats-table th[scope="col"]:first-child,
-  .cts-stats-table th[scope="row"] {
-    text-align: left;
-    font-weight: var(--fw-regular);
-  }
-  .cts-stats-table thead th {
-    color: var(--fg-soft);
-    font-weight: var(--fw-bold);
   }
 `;
 
@@ -250,6 +216,7 @@ const STYLE_TEXT = css`
  * @returns {void}
  */
 function injectStyles() {
+  injectDataTableStyles();
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
@@ -592,12 +559,12 @@ class CtsStatisticsInsights extends LitElement {
         : "";
     return html`
       <details
-        class="cts-stats-disclosure cts-stats-modules-full cts-stats-modules-table"
+        class="cts-data-disclosure cts-stats-modules-full cts-stats-modules-table"
         data-testid="stats-modules-table"
       >
         <summary>All modules (${NUMBER_FORMAT.format(rows.length)})</summary>
         <p class="cts-stats-hint"> Most-run first, the order the server ranks them in.${cut} </p>
-        <table class="cts-stats-table">
+        <table class="cts-data-table">
           <thead>
             <tr>
               <th scope="col">Module</th>
@@ -663,14 +630,14 @@ class CtsStatisticsInsights extends LitElement {
     const hosts = Array.isArray(this.hosts) ? this.hosts : [];
     if (hosts.length === 0) return nothing;
     return html`
-      <details class="cts-stats-disclosure cts-stats-hosts" data-testid="stats-hosts">
+      <details class="cts-data-disclosure cts-stats-hosts" data-testid="stats-hosts">
         <summary>External servers under test (${NUMBER_FORMAT.format(hosts.length)})</summary>
         <p class="cts-stats-hint">
           The top 100 by runs over the last 24 months — never scoped by the range or the filters
           above. Hosts are read from the server, issuer, credential-issuer and entity-identifier
           URLs in each test's configuration; the suite's own endpoints are excluded.
         </p>
-        <table class="cts-stats-table">
+        <table class="cts-data-table">
           <thead>
             <tr>
               <th scope="col">Host</th>
