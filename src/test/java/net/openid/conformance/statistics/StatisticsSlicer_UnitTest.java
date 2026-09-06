@@ -127,6 +127,38 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
+	void anOpenEndedAxisStartsWhereTheSliceStartsNotWhereTheCubeDoes() {
+		StatisticsCube cube = cube(
+			List.of(runs("2019-03", null, "oidcc-plan", 5), runs("2026-02", null, "fapi1-plan", 3)),
+			List.of(new PlanCell("2026-01", null, "fapi1-plan", "", "", 1, 0, 0)),
+			List.of(new UserTuple("fapi1-plan", "", "", 1, List.of("2025-12"), List.of())));
+
+		// unfiltered: the whole history, from the first run
+		assertThat(slice(cube, StatisticsQuery.defaults()).periods()).startsWith("2019-03", "2019-04");
+
+		// a family that first appears years later starts its axis there - at its first
+		// plan owner, which predates its first plan and its first run
+		StatisticsOverview filtered = slice(cube, query("family", SpecFamilyNames.fapi1Advanced));
+		assertThat(filtered.periods()).startsWith("2025-12", "2026-01", "2026-02");
+		assertThat(filtered.users().activeByPeriod()).startsWith(1L, 0L, 0L);
+		assertThat(filtered.plansByFamily().get(SpecFamilyNames.fapi1Advanced)).startsWith(0L, 1L, 0L);
+		assertThat(filtered.testRunsByFamily().get(SpecFamilyNames.fapi1Advanced)).startsWith(0L, 0L, 3L);
+		assertThat(filtered.testRunsByFamily().get(SpecFamilyNames.oidcc)).hasSameSizeAs(filtered.periods());
+		assertThat(filtered.resultsByFamily().get(SpecFamilyNames.fapi1Advanced).get("PASSED"))
+			.hasSameSizeAs(filtered.periods());
+
+		// an explicit from is what was asked for, empty leading periods and all
+		assertThat(slice(cube, query("family", SpecFamilyNames.fapi1Advanced, "from", "2024-01")).periods())
+			.startsWith("2024-01");
+
+		// a filter that matches nothing keeps the whole axis, zero filled: an empty axis
+		// means the range covers no data at all, which is a different message to the reader
+		StatisticsOverview nothing = slice(cube, query("plan", "no-such-plan"));
+		assertThat(nothing.periods()).isEqualTo(slice(cube, StatisticsQuery.defaults()).periods());
+		assertThat(nothing.testRunsByFamily().get(SpecFamilyNames.oidcc)).containsOnly(0L);
+	}
+
+	@Test
 	void thePlanVariantAndCertificationFiltersSelectCells() {
 		List<RunCell> runCells = List.of(
 			new RunCell("2026-03", null, "oidcc-plan", false, "client_auth_type=mtls;fapi_profile=plain", "Cert A", 1, 0, 0, 0, 0, 0),
@@ -143,6 +175,7 @@ class StatisticsSlicer_UnitTest {
 			.testRunsByFamily().get(SpecFamilyNames.oidcc)).containsExactly(1L);
 		assertThat(slice(cube, query("cert", "Cert A")).testRunsByFamily().get(SpecFamilyNames.oidcc))
 			.containsExactly(5L);
+		// a filter that selects nothing is zero on the whole axis
 		assertThat(slice(cube, query("plan", "no-such-plan")).testRunsByFamily().get(SpecFamilyNames.oidcc))
 			.containsExactly(0L);
 	}
@@ -285,8 +318,7 @@ class StatisticsSlicer_UnitTest {
 		assertThat(slice(cube, query("cert", "Cert B")).testRunsByFamily().get(SpecFamilyNames.fapi1Advanced))
 			.containsExactly(9L);
 		// the joined key is not a name and selects nothing
-		assertThat(slice(cube, query("cert", both)).testRunsByFamily().get(SpecFamilyNames.oidcc))
-			.containsExactly(0L);
+		assertThat(slice(cube, query("cert", both)).testRunsByFamily().get(SpecFamilyNames.oidcc)).containsExactly(0L);
 	}
 
 	@Test
@@ -327,6 +359,24 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
+	void dimensionsAreCountedOverTheRequestedRangeNotTheTrimmedAxis() {
+		StatisticsCube cube = cube(
+			List.of(runs("2026-01", null, "oidcc-plan", 5), runs("2026-03", null, "fapi1-plan", 3)),
+			List.of(), List.of());
+
+		// picking the plan first used in March trims the axis to March, but the plan select is
+		// counted with its own filter left out and must still offer the sibling used in January
+		StatisticsOverview overview = slice(cube, query("plan", "fapi1-plan"));
+		assertThat(overview.periods()).containsExactly("2026-03");
+		assertThat(overview.dimensions().plans()).extracting(PlanDimension::planName, PlanDimension::runs)
+			.containsExactly(tuple("oidcc-plan", 5L), tuple("fapi1-plan", 3L));
+
+		// an explicit range is still the range
+		assertThat(slice(cube, query("plan", "fapi1-plan", "from", "2026-02")).dimensions().plans())
+			.extracting(PlanDimension::planName).containsExactly("fapi1-plan");
+	}
+
+	@Test
 	void variantParametersAreOfferedInAStableAlphabeticalOrder() {
 		StatisticsCube cube = cube(List.of(new RunCell("2026-03", null, "oidcc-plan", false,
 			"server_metadata=discovery;client_auth_type=mtls", "", 1, 0, 0, 0, 0, 0)), List.of(), List.of());
@@ -351,9 +401,13 @@ class StatisticsSlicer_UnitTest {
 		assertThat(all.get(6).get(23)).isEqualTo(2L);
 		assertThat(total(all)).isEqualTo(15L);
 
-		// the family filter must not touch the heatmap, but the range must
+		// the family filter must not touch the heatmap, but the range must - and neither
+		// must the axis trimming a filter causes: fapi1 first ran in March, but its heatmap
+		// is still February's runs too
 		List<List<Long>> filtered = slice(cube, query("family", SpecFamilyNames.oidcc)).heatmap();
 		assertThat(total(filtered)).isEqualTo(15L);
+		assertThat(slice(cube, query("family", SpecFamilyNames.fapi1Advanced)).periods()).containsExactly("2026-03");
+		assertThat(total(slice(cube, query("family", SpecFamilyNames.fapi1Advanced)).heatmap())).isEqualTo(15L);
 
 		List<List<Long>> ranged = slice(cube, query("from", "2026-03")).heatmap();
 		assertThat(ranged.get(0).get(7)).isEqualTo(5L);

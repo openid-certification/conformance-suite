@@ -29,7 +29,10 @@ import java.util.Set;
  * slice;</li>
  * <li>the heatmap is clipped to the range but not to the family, plan, variant or
  * certification profile - it answers "when do people run tests", and splitting it further
- * leaves too little in each of its 168 cells to read;</li>
+ * leaves too little in each of its 168 cells to read. The range is the one asked for, not
+ * the axis the charts end up with: an open-ended axis is trimmed to where the filtered
+ * series start, and neither the heatmap nor the filter choices follow that trim, or a
+ * filter would narrow them through the back door;</li>
  * <li>the modules table is clipped to the range, by month, and filtered by family and
  * plan, but not by variant or certification profile: a test run records neither in a form
  * the module cells carry - see {@link ModuleRanker};</li>
@@ -70,7 +73,6 @@ public final class StatisticsSlicer {
 	public static StatisticsOverview slice(StatisticsCube cube, StatisticsQuery query) {
 		Granularity granularity = query.granularity();
 		List<String> periods = periods(cube, query);
-		Set<String> onTheAxis = Set.copyOf(periods);
 		Map<String, Integer> index = index(periods);
 		List<String> families = cube.familyOrder();
 		CellFilter filter = new CellFilter(cube, query);
@@ -106,13 +108,69 @@ public final class StatisticsSlicer {
 			certifiedByFamily.get(family)[at] += cell.certified();
 		}
 
-		return new StatisticsOverview(periods, granularity.key(), families, SpecFamilyResolver.SYNTHETIC_FAMILIES,
-			RESULT_BUCKETS, freeze(runsByFamily), freeze(plansByFamily), freezeBuckets(resultsByFamily),
-			freeze(certifiedByFamily), cube.familyTotals(),
-			users(cube, filter, granularity, index, periods.size()), tiles(cube), cube.storage(),
-			DimensionCounter.count(cube, query, granularity, onTheAxis),
-			HeatmapBinner.heatmap(cube.heat(), granularity, onTheAxis), ModuleRanker.rank(cube, query),
+		Users users = users(cube, filter, granularity, index, periods.size());
+		// An open-ended range starts where the SLICE starts, not where the cube does: a
+		// family that first ran in 2025 charted against an axis reaching back to 2019 is
+		// six years of empty bars in front of the data. A range with a from is what was
+		// asked for and is left alone, empty leading periods and all. So is a slice with
+		// nothing in it: the whole axis of zeros tells the client the filter matched
+		// nothing, where an empty axis would say the range covers no data at all.
+		int first = query.from() == null
+			? firstPeriodWithData(periods.size(), runsByFamily, plansByFamily, certifiedByFamily, users) : 0;
+		if (first == periods.size()) {
+			first = 0;
+		}
+		List<String> shown = periods.subList(first, periods.size());
+		Set<String> range = Set.copyOf(periods);
+
+		return new StatisticsOverview(shown, granularity.key(), families, SpecFamilyResolver.SYNTHETIC_FAMILIES,
+			RESULT_BUCKETS, freeze(runsByFamily, first), freeze(plansByFamily, first),
+			freezeBuckets(resultsByFamily, first), freeze(certifiedByFamily, first), cube.familyTotals(),
+			new Users(users.activeByPeriod().subList(first, periods.size()),
+				users.newByPeriod().subList(first, periods.size())),
+			tiles(cube), cube.storage(),
+			DimensionCounter.count(cube, query, granularity, range),
+			HeatmapBinner.heatmap(cube.heat(), granularity, range), ModuleRanker.rank(cube, query),
 			cube.externalHosts(), unresolvedPlans(cube));
+	}
+
+	/**
+	 * @return the index of the first period any series has something in, or {@code size}
+	 *         if none has. The users series count too, so a plan created before the first
+	 *         run of a family still opens its axis.
+	 */
+	@SafeVarargs
+	private static int firstPeriodWithData(int size, Map<String, long[]>... byFamily) {
+		int first = size;
+		for (Map<String, long[]> series : byFamily) {
+			for (long[] values : series.values()) {
+				first = Math.min(first, firstNonZero(values, first));
+			}
+		}
+		return first;
+	}
+
+	private static int firstPeriodWithData(int size, Map<String, long[]> runs, Map<String, long[]> plans,
+			Map<String, long[]> certified, Users users) {
+		int first = firstPeriodWithData(size, runs, plans, certified);
+		for (List<Long> values : List.of(users.activeByPeriod(), users.newByPeriod())) {
+			for (int at = 0; at < first; at++) {
+				if (values.get(at) != 0) {
+					first = at;
+					break;
+				}
+			}
+		}
+		return first;
+	}
+
+	private static int firstNonZero(long[] values, int limit) {
+		for (int at = 0; at < limit; at++) {
+			if (values[at] != 0) {
+				return at;
+			}
+		}
+		return limit;
 	}
 
 	/** @return the cube's axis clipped to the query's range; both ends are inclusive */
@@ -245,15 +303,17 @@ public final class StatisticsSlicer {
 		return Arrays.stream(counters).boxed().toList();
 	}
 
-	private static Map<String, List<Long>> freeze(Map<String, long[]> counters) {
+	/** @return the counters from {@code first} on, boxed and frozen */
+	private static Map<String, List<Long>> freeze(Map<String, long[]> counters, int first) {
 		Map<String, List<Long>> frozen = new LinkedHashMap<>();
-		counters.forEach((family, values) -> frozen.put(family, boxed(values)));
+		counters.forEach((family, values) -> frozen.put(family, boxed(Arrays.copyOfRange(values, first, values.length))));
 		return Collections.unmodifiableMap(frozen);
 	}
 
-	private static Map<String, Map<String, List<Long>>> freezeBuckets(Map<String, Map<String, long[]>> counters) {
+	private static Map<String, Map<String, List<Long>>> freezeBuckets(Map<String, Map<String, long[]>> counters,
+			int first) {
 		Map<String, Map<String, List<Long>>> frozen = new LinkedHashMap<>();
-		counters.forEach((family, buckets) -> frozen.put(family, freeze(buckets)));
+		counters.forEach((family, buckets) -> frozen.put(family, freeze(buckets, first)));
 		return Collections.unmodifiableMap(frozen);
 	}
 }
