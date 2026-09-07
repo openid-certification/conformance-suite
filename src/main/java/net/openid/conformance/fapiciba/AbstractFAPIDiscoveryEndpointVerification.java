@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAl
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuerIsValidUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
@@ -16,7 +15,6 @@ import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSche
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
-import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
@@ -24,6 +22,7 @@ import net.openid.conformance.condition.client.EnsureServerConfigurationSupports
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.CheckRequiredOidcDiscoveryMetadataSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -91,8 +90,6 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 
 		callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6", "RFC8705-3.3");
 
-		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
-
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-14");
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6");
 
@@ -104,7 +101,12 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 			.dontStopOnFailure()
 		);
 
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		// A CIBA provider has no authorization endpoint, and hence no response_types_supported either;
+		// the remaining OpenID Connect Discovery required metadata still applies.
+		call(new CheckRequiredOidcDiscoveryMetadataSequence(
+			null, CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256.class)
+			.idTokenSigningAlgValuesSupportedRequirements("FAPI-RW-8.6")
+			.withoutAuthorizationEndpointCheck());
 
 		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
 			.skipIfElementMissing("server", "registration_endpoint")
@@ -113,8 +115,6 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 			.requirement("OIDCD-3")
 			.dontStopOnFailure()
 		);
-
-		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
 		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
