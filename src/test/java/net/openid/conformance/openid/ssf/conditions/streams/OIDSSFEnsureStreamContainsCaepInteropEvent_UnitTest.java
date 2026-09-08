@@ -89,6 +89,23 @@ public class OIDSSFEnsureStreamContainsCaepInteropEvent_UnitTest {
 	}
 
 	@Test
+	void shouldFailWhenOnlyRiskLevelChangeRequested() {
+		// risk-level-change is a WG-head addition; the published CAEP Interop Profile
+		// draft-01 defines only sections 3.1-3.3 as qualifying use cases
+		prepareStreamConfig(List.of(SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE));
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
+	void shouldPassWhenRiskLevelChangeRequestedAlongsideQualifyingEvent() {
+		prepareStreamConfig(List.of(
+			SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE,
+			SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE
+		));
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
 	void shouldFailWhenEventsRequestedIsEmpty() {
 		prepareStreamConfig(List.of());
 		assertThrows(ConditionError.class, () -> createCondition().execute(env));
