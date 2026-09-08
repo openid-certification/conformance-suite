@@ -21,7 +21,7 @@ import java.util.List;
 		 * stream configuration management: create, read, delete (update/replace are excluded: CAEPIOP 2.3.8.2 lists the stream control operations a transmitter MUST support, and update/replace are not among them)
 		 * stream configuration error handling: invalid access tokens, malformed bodies, unknown stream IDs
 		 * stream verification via the transmitter's verification endpoint
-		 * end-to-end CAEP Interop event delivery (session-revoked, credential-change, device-compliance-change — as advertised in events_delivered) over PUSH and POLL
+		 * end-to-end CAEP Interop event delivery (session-revoked, credential-change, device-compliance-change, risk-level-change — as advertised in events_delivered) over PUSH and POLL
 
 		Each CAEP event received during the interop run is validated against the CAEP 1.0 Final
 		specification (required claims, event-type-specific fields, signature, SET envelope).
