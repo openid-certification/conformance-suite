@@ -36,6 +36,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerifica
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDeviceComplianceChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepRiskLevelChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenJtiClaim;
@@ -77,7 +78,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 		 * read the stream status
 		 * trigger and receive the stream verification event
 		 * receive the expected CAEP events (session-revoked, credential-change,
-		   device-compliance-change — as advertised in events_delivered)
+		   device-compliance-change, risk-level-change — as advertised in events_delivered)
 		 * delete the stream
 
 		The expected CAEP events are determined from the stream's events_delivered field.
@@ -599,6 +600,12 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.5");
 				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
 					Condition.ConditionResult.FAILURE, "CAEPIOP-3.3");
+				break;
+			case SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE:
+				callAndContinueOnFailure(OIDSSFValidateCaepRiskLevelChangeEvent.class,
+					Condition.ConditionResult.FAILURE, "OIDCAEP-3.8");
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.4");
 				break;
 			default:
 				eventLog.log(getName(), "Received CAEP event type: " + eventType);

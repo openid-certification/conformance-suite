@@ -1175,8 +1175,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				"previous_level", "HIGH",
 				"initiating_entity", "user",
 				"principal", "USER",
-				"risk_reason", "PASSWORD_FOUND_IN_DATA_BREACH")
-				, Set.of("OIDCAEP-3.8"));
+				"risk_reason", "PASSWORD_FOUND_IN_DATA_BREACH",
+				"reason_admin", Map.of("en", "Credential no longer found in breach corpus"))
+				, Set.of("OIDCAEP-3.8", "CAEPIOP-3.4"));
 
 			// Examples from RISC spec below: https://openid.net/specs/openid-risc-1_0-final.html
 
