@@ -631,6 +631,30 @@ describe("drillDownUrl", () => {
     );
   });
 
+  it("narrows a certified-plans bar to the plans that were made immutable", () => {
+    // The certified chart counts plans a certification package was downloaded
+    // for; without the flag the listing would show every plan of the family,
+    // including the ones the bar left out.
+    const url = new URL(
+      String(
+        drillDownUrl(
+          defaultFilterState(),
+          { periodIndex: 0, family: "FAPI-CIBA", certified: true },
+          monthly(),
+        ),
+      ),
+      "https://example.test/",
+    );
+    expect(url.searchParams.get("immutable")).toBe("true");
+    expect(url.searchParams.get("family")).toBe("FAPI-CIBA");
+    // and only that chart: a runs or plans bar counts every plan
+    expect(
+      String(
+        drillDownUrl(defaultFilterState(), { periodIndex: 0, family: "FAPI-CIBA" }, monthly()),
+      ),
+    ).not.toContain("immutable");
+  });
+
   it("declines the folded Other series and the payload's synthetic buckets", () => {
     const state = defaultFilterState();
     const data = { ...monthly(), syntheticFamilies: [NO_PLAN, OTHER_RETIRED] };

@@ -1218,7 +1218,7 @@ export const DrillDown = {
         canvasElement.querySelectorAll('[data-testid="stats-chart-runs"] .cts-chart-row-link'),
       );
       const period = rows[2].textContent.trim();
-      expect(rows[2].getAttribute("aria-label")).toBe(`List the test plans in ${period}`);
+      expect(rows[2].getAttribute("aria-label")).toBe(`List the test plans created in ${period}`);
 
       await userEvent.click(rows[2]);
       await waitFor(() => {

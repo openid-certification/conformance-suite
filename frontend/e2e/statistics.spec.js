@@ -1156,7 +1156,9 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await runs.locator("details summary").click();
     const rowLink = runs.locator("tbody tr").nth(2).locator("button.cts-chart-row-link");
     const period = await rowLink.innerText();
-    await expect(rowLink).toHaveAttribute("aria-label", `List the test plans in ${period}`);
+    // The listing filters by when a plan was CREATED, which for the runs chart
+    // is not when its runs happened, so the label says which it is.
+    await expect(rowLink).toHaveAttribute("aria-label", `List the test plans created in ${period}`);
     await rowLink.click();
 
     await expect.poll(async () => (await drillDowns()).length).toBe(1);
@@ -1178,6 +1180,29 @@ test.describe("statistics.html — admin usage dashboard", () => {
     expect(bySeries.searchParams.get("family")).toBe(target.family);
     expect(bySeries.searchParams.get("from")).toBe(`${target.period}-01`);
 
+    // The certified chart counts the plans a certification package was
+    // downloaded for, so its drill-down lists only those — and says so.
+    const certified = await settledBar(page, "stats-chart-certified");
+    await page
+      .locator('[data-testid="stats-chart-certified"] canvas')
+      .click({ position: { x: certified.x, y: certified.y } });
+    await expect.poll(async () => (await drillDowns()).length).toBe(3);
+    const byCertified = new URL((await drillDowns())[2], page.url());
+    expect(byCertified.searchParams.get("family")).toBe(certified.family);
+    expect(byCertified.searchParams.get("from")).toBe(`${certified.period}-01`);
+    expect(byCertified.searchParams.get("immutable")).toBe("true");
+    expect(bySeries.searchParams.get("immutable")).toBeNull();
+    const certifiedChart = page.locator('[data-testid="stats-chart-certified"]');
+    await certifiedChart.locator("details summary").click();
+    const certifiedRow = certifiedChart
+      .locator("tbody tr")
+      .nth(2)
+      .locator("button.cts-chart-row-link");
+    await expect(certifiedRow).toHaveAttribute(
+      "aria-label",
+      `List the certified test plans created in ${await certifiedRow.innerText()}`,
+    );
+
     // The results chart drills down by PERIOD only — its datasets are result
     // buckets and a plan has no single result — so its label says so before
     // the click, rather than leaving "FAILED" landing on every plan of the
@@ -1188,7 +1213,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     const resultPeriod = await resultRow.innerText();
     await expect(resultRow).toHaveAttribute(
       "aria-label",
-      `List all test plans, whatever their result, in ${resultPeriod}`,
+      `List all test plans, whatever their result, created in ${resultPeriod}`,
     );
 
     // Cancelling the event is what keeps the page here; production has no

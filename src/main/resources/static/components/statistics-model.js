@@ -492,6 +492,10 @@ const PLANS_PAGE = "plans.html";
  *   the charts whose datasets ARE families (runs, plans, certified). Empty for
  *   the results chart (its datasets are result buckets, which the plans
  *   listing cannot filter on) and for the keyboard row route.
+ * @property {boolean} [certified] - True for a click on the certified chart,
+ *   whose bars count only the plans a certification package was downloaded
+ *   for: the listing is narrowed to those, or it would show the plans the bar
+ *   left out.
  */
 
 /**
@@ -533,6 +537,7 @@ export function drillDownUrl(state, click, data) {
     // profile it names and the listing matches any one of them, so the
     // listing shows exactly the plans behind the bar.
     cert: text(state && state.cert),
+    immutable: click && click.certified ? "true" : "",
     from: bounds ? bounds.from : "",
     to: bounds ? bounds.to : "",
   }).toString();

@@ -142,10 +142,19 @@ const TILES = [
 
 /**
  * What activating a data-table row does, as `<cts-chart>` names its row
- * buttons ("List the test plans in 2026-06"). The keyboard twin of clicking
- * the column: it drills into the whole period rather than one family.
+ * buttons ("List the test plans created in 2026-06"). The keyboard twin of
+ * clicking the column: it drills into the whole period rather than one family.
+ *
+ * "Created in" because that is what the listing filters by: `GET /api/plan`
+ * bounds a plan's own start, not its runs. For the plans and certified charts
+ * that is the period the bar counted; for the runs and results charts, which
+ * count runs by when they ran, it is not — a plan created in January and run
+ * in March is in March's bar but January's listing — so the label says which
+ * plans the click lists rather than leaving the reader to find out. A listing
+ * of runs by when they ran is what those two charts really want, and is
+ * tracked separately.
  */
-const DRILL_DOWN_LABEL = "List the test plans in";
+const DRILL_DOWN_LABEL = "List the test plans created in";
 
 /**
  * The same, for the results chart, whose datasets are result buckets rather
@@ -155,7 +164,14 @@ const DRILL_DOWN_LABEL = "List the test plans in";
  * chart's own label, on the bars' tooltip cursor and on each data-table row
  * button, rather than a toast after the fact.
  */
-const RESULT_DRILL_DOWN_LABEL = "List all test plans, whatever their result, in";
+const RESULT_DRILL_DOWN_LABEL = "List all test plans, whatever their result, created in";
+
+/**
+ * The same, for the certified chart: its bars count the plans a certification
+ * package was downloaded for, and the listing they drill into is narrowed to
+ * those, so the control says which plans it lists.
+ */
+const CERTIFIED_DRILL_DOWN_LABEL = "List the certified test plans created in";
 
 /**
  * The five trend charts, in the order they are laid out.
@@ -170,7 +186,7 @@ const RESULT_DRILL_DOWN_LABEL = "List all test plans, whatever their result, in"
  * @property {string} key - The `view` series to plot, and the chart's testid.
  * @property {string} heading - Formatted with the period's noun.
  * @property {string} [clickLabel] - Omitted on a chart that is not clickable.
- * @property {"family"|"result"} [drillDown] - Which click handler a bar runs.
+ * @property {"family"|"certified"|"result"} [drillDown] - Which click handler a bar runs.
  * @property {boolean} [footer] - Whether the series carries a tooltip footer.
  */
 
@@ -200,8 +216,8 @@ const TREND_CHARTS = [
   {
     key: "certified",
     heading: "Certified plans per %s",
-    clickLabel: DRILL_DOWN_LABEL,
-    drillDown: "family",
+    clickLabel: CERTIFIED_DRILL_DOWN_LABEL,
+    drillDown: "certified",
     footer: true,
   },
 ];
@@ -832,6 +848,17 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
+   * A click on the certified chart: a family bar like the runs and plans
+   * charts, but its count is of the plans made immutable, so the listing is
+   * narrowed to those too.
+   * @param {CustomEvent} event - `cts-chart-click` from `<cts-chart>`.
+   * @returns {void}
+   */
+  _handleCertifiedChartClick(event) {
+    this._drillDown(event.detail, (event.detail && event.detail.datasetLabel) || "", true);
+  }
+
+  /**
    * A click on the results chart. Its datasets are result buckets (`PASSED`,
    * `FAILED`, …), which `GET /api/plan` cannot filter on — a plan has no
    * single result — so the bucket is dropped and the click drills into the
@@ -859,12 +886,14 @@ class CtsStatisticsPage extends LitElement {
    * @param {{periodIndex: number}} detail - The `cts-chart-click` detail.
    * @param {string} family - The clicked dataset's family, or `""` when the
    *   chart's datasets are not families.
+   * @param {boolean} [certified] - True when the bar counts certified plans
+   *   only, so the listing should too.
    * @returns {void}
    */
-  _drillDown(detail, family) {
+  _drillDown(detail, family, certified = false) {
     const data = this._payload && this._payload.data;
     if (!data) return;
-    const click = { periodIndex: detail && detail.periodIndex, family };
+    const click = { periodIndex: detail && detail.periodIndex, family, certified };
     const url = drillDownUrl(this._state, click, data);
     if (!url) {
       // "Other" is a fold of the families outside the seven colour slots, and
@@ -1203,9 +1232,11 @@ class CtsStatisticsPage extends LitElement {
           .tooltipFooter=${chart.footer ? view.footers[chart.key] : undefined}
           @cts-chart-click=${chart.drillDown === "result"
             ? this._handleResultChartClick
-            : chart.drillDown === "family"
-              ? this._handleFamilyChartClick
-              : undefined}
+            : chart.drillDown === "certified"
+              ? this._handleCertifiedChartClick
+              : chart.drillDown === "family"
+                ? this._handleFamilyChartClick
+                : undefined}
         ></cts-chart>
       </div>
     `;
