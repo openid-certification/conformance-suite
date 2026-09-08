@@ -113,22 +113,25 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 
 		TamperMode tamperMode = invalidSetJtis.get(jti);
 		if (tamperMode != null) {
-			resolvedInvalidSetJtis.add(jti);
+			// record the finding BEFORE marking the jti resolved: isFinished may become true
+			// the moment the last jti is resolved, and the finding must be in the log by then
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"Receiver acknowledged an invalid SET (" + tamperMode.description() + ", jti=" + jti + "). "
 						+ "Receivers must validate delivered SETs and must not acknowledge invalid ones."),
 				Condition.ConditionResult.FAILURE, requirementsFor(tamperMode, "RFC8936-2.4"));
+			resolvedInvalidSetJtis.add(jti);
 		}
 	}
 
 	@Override
 	protected void onStreamEventErrorReported(String streamId, String jti, JsonObject error) {
+		super.onStreamEventErrorReported(streamId, jti, error);
 		TamperMode tamperMode = invalidSetJtis.get(jti);
 		if (tamperMode != null) {
-			resolvedInvalidSetJtis.add(jti);
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition(
 					"Receiver reported an error for the invalid SET (" + tamperMode.description() + ", jti=" + jti + "): " + error),
 				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
+			resolvedInvalidSetJtis.add(jti);
 		}
 	}
 
@@ -272,7 +275,10 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 
 		@Override
 		public String call() throws Exception {
-			Set<String> stillQueuedJtis = new HashSet<>();
+			// getUndeliveredEventJtis() covers SETs that were still queued when the receiver
+			// deleted the stream (the deletion purged the event store, so getQueuedEvents
+			// alone would come back empty and misgrade them as retrieved-but-silent)
+			Set<String> stillQueuedJtis = new HashSet<>(getUndeliveredEventJtis());
 			eventStore.getQueuedEvents(streamId).forEach(event -> stillQueuedJtis.add(event.jti()));
 
 			for (var entry : invalidSetJtis.entrySet()) {

@@ -8,7 +8,9 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class OIDSSFHandleStreamDeleteRequest extends AbstractOIDSSFHandleReceiverRequest {
 
@@ -16,14 +18,26 @@ public class OIDSSFHandleStreamDeleteRequest extends AbstractOIDSSFHandleReceive
 
 	private final BiConsumer<String, List<OIDSSFSecurityEvent>> onEventsUndeliverable;
 
+	private final BiConsumer<String, List<OIDSSFSecurityEvent>> onEventsUnresolved;
+
 	public OIDSSFHandleStreamDeleteRequest(OIDSSFEventStore eventStore) {
 		this(eventStore, (streamId, events) -> {
+		}, (streamId, events) -> {
 		});
 	}
 
-	public OIDSSFHandleStreamDeleteRequest(OIDSSFEventStore eventStore, BiConsumer<String, List<OIDSSFSecurityEvent>> onEventsUndeliverable) {
+	public OIDSSFHandleStreamDeleteRequest(OIDSSFEventStore eventStore,
+		BiConsumer<String, List<OIDSSFSecurityEvent>> onEventsUndeliverable) {
+		this(eventStore, onEventsUndeliverable, (streamId, events) -> {
+		});
+	}
+
+	public OIDSSFHandleStreamDeleteRequest(OIDSSFEventStore eventStore,
+		BiConsumer<String, List<OIDSSFSecurityEvent>> onEventsUndeliverable,
+		BiConsumer<String, List<OIDSSFSecurityEvent>> onEventsUnresolved) {
 		this.eventStore = eventStore;
 		this.onEventsUndeliverable = onEventsUndeliverable;
+		this.onEventsUnresolved = onEventsUnresolved;
 	}
 
 	@Override
@@ -78,13 +92,23 @@ public class OIDSSFHandleStreamDeleteRequest extends AbstractOIDSSFHandleReceive
 		//   currently-executing push batch are already drained from the queue; the push task
 		//   records those itself when it detects the deletion mid-batch.) Push acks are
 		//   tracked by the modules per delivery response, not in the event store.
-		// - poll: the receiver acknowledges via the event store, so everything the store has
-		//   not seen an ack for - still queued or retrieved-but-unacknowledged - is stranded.
-		List<OIDSSFSecurityEvent> undeliverableEvents = pushDelivery
-			? eventStore.getQueuedEvents(streamId)
-			: eventStore.getUnacknowledgedEvents(streamId);
-		if (!undeliverableEvents.isEmpty()) {
-			onEventsUndeliverable.accept(streamId, undeliverableEvents);
+		// - poll: still-queued events were never retrieved by the receiver and are reported
+		//   as undeliverable (not the receiver's fault). Events the receiver DID retrieve but
+		//   neither acknowledged nor reported via setErrs are reported separately as
+		//   unresolved, so modules can stop waiting for their acks but still grade the
+		//   missing acknowledgements (RFC 8936 2.4).
+		List<OIDSSFSecurityEvent> queuedEvents = eventStore.getQueuedEvents(streamId);
+		if (!queuedEvents.isEmpty()) {
+			onEventsUndeliverable.accept(streamId, queuedEvents);
+		}
+		if (!pushDelivery) {
+			Set<String> queuedJtis = queuedEvents.stream().map(OIDSSFSecurityEvent::jti).collect(Collectors.toSet());
+			List<OIDSSFSecurityEvent> unresolvedEvents = eventStore.getUnacknowledgedEvents(streamId).stream()
+				.filter(event -> !queuedJtis.contains(event.jti()))
+				.toList();
+			if (!unresolvedEvents.isEmpty()) {
+				onEventsUnresolved.accept(streamId, unresolvedEvents);
+			}
 		}
 
 		eventStore.purgeStreamEvents(streamId);
