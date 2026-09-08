@@ -34,12 +34,18 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken extend
 		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
 
 		eventLog.runBlock("Prepare read-only Transmitter Access", () -> {
-			callAndStopOnFailure(OIDSSFRestrictClientScopeToRead.class, "CAEPIOP-2.7.3");
 			obtainTransmitterAccessToken();
 			OIDSSFRestrictClientScopeToRead.undo(env);
 		});
 
 		env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+	}
+
+	@Override
+	protected void onClientConfigurationObtained() {
+		// must run after the client configuration load - earlier changes to the client's
+		// scope would be overwritten by GetStaticClientConfiguration
+		callAndStopOnFailure(OIDSSFRestrictClientScopeToRead.class, "CAEPIOP-2.7.3");
 	}
 
 	@Override
