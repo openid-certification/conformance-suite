@@ -137,8 +137,10 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	@Override
 	public List<OIDSSFSecurityEvent> getUnacknowledgedEvents(String streamId) {
 		Set<String> acked = getStreamEventAcksAckedCache(streamId);
+		ConcurrentMap<String, JsonObject> errorReported = getStreamSetErrorsCache(streamId);
 		return getStreamEventsCache(streamId).values().stream()
 			.filter(event -> !acked.contains(event.jti()))
+			.filter(event -> !errorReported.containsKey(event.jti()))
 			.toList();
 	}
 

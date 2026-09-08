@@ -72,6 +72,11 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 
 	@Override
 	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+		if (error != null || streamId == null) {
+			// deletion failed (e.g. 404 for an unknown or already-deleted stream) - do not
+			// record it as the successful deletion or reset previously recorded state
+			return;
+		}
 		deletedStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream deletion for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 	}
