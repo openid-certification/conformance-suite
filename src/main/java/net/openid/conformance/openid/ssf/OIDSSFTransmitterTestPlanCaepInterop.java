@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.plan.PublishTestPlan;
@@ -55,6 +56,13 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 
 	@Override
 	public List<String> certificationProfileName(VariantSelection variantSelection) {
+		// The CAEP Interop Profile (2.4.3 / 2.7) requires receivers to use OAuth 2.0, so only
+		// dynamic auth mode is certifiable. Static auth (a pre-shared bearer string) remains
+		// selectable for testing but yields no certification profile name.
+		String authMode = variantSelection.getVariantParameterValue(SsfAuthMode.class);
+		if (!SsfAuthMode.DYNAMIC.name().equalsIgnoreCase(authMode)) {
+			return List.of();
+		}
 		String deliveryMethod = variantSelection.getVariantParameterValue(SsfDeliveryMode.class);
 		return List.of(String.format("%s %s %s", "OIDSSF-1.0-FINAL+CAEPIOP-1.0-FINAL", "Transmitter", deliveryMethod));
 	}
