@@ -30,10 +30,12 @@ public interface OIDSSFEventStore {
 	List<OIDSSFSecurityEvent> getQueuedEvents(String streamId);
 
 	/**
-	 * Snapshot of every stored event for the stream that has not been acknowledged
-	 * via {@link #registerAckForStreamEvent}. Note that push deliveries are not
-	 * acknowledged through the event store, so for push streams this returns all
-	 * stored events regardless of delivery outcome.
+	 * Snapshot of every stored event for the stream that has neither been
+	 * acknowledged via {@link #registerAckForStreamEvent} nor reported as an error
+	 * via {@link #registerErrorForStreamEvent} (setErrs is the receiver's resolution
+	 * of a SET too). Note that push deliveries are not acknowledged through the
+	 * event store, so for push streams this returns all stored events regardless of
+	 * delivery outcome.
 	 */
 	List<OIDSSFSecurityEvent> getUnacknowledgedEvents(String streamId);
 
