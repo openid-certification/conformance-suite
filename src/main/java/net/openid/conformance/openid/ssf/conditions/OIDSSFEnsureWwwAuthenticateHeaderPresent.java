@@ -10,9 +10,16 @@ import java.util.Map;
 
 /**
  * Asserts that a rejected resource request carries an RFC 6750 section 3 {@code WWW-Authenticate}
- * challenge, as the CAEP Interop Profile (2.7.2) requires: "If the access token is not sufficient
- * for the requested action, the Resource Server MUST return errors as per Section 3.1 of
- * [RFC6750]".
+ * challenge. A bare {@code WWW-Authenticate: Bearer} without an error code is accepted - for a
+ * request without any authentication information, RFC 6750 section 3.1 even says the server
+ * SHOULD NOT include an error code.
+ * <p>
+ * Note on severity: the {@code WWW-Authenticate} requirement itself comes from RFC 6750
+ * section 3 ("MUST include the HTTP WWW-Authenticate response header field"). The CAEP Interop
+ * Profile (2.7.2) only cites section 3.1, which defines the error codes, so the profile's
+ * normative chain to the header is imprecise. Callers therefore invoke this condition at
+ * WARNING severity until the profile is editorially clarified to reference RFC 6750
+ * sections 3 and 3.1 - the rejection itself (401/403) remains the FAILURE-level check.
  * <p>
  * Expects the response under {@code endpoint_response} (map {@code resource_endpoint_response_full}
  * onto it before calling).
@@ -41,7 +48,9 @@ public class OIDSSFEnsureWwwAuthenticateHeaderPresent extends AbstractCondition 
 
 		if (challenge == null || challenge.isBlank()) {
 			throw error("The rejected request did not carry a 'WWW-Authenticate' response header. "
-					+ "The CAEP Interop Profile (2.7.2) requires errors as per RFC 6750 section 3.1.",
+					+ "RFC 6750 section 3 requires bearer-token resource servers to include a 'WWW-Authenticate' challenge "
+					+ "when rejecting a request; the CAEP Interop Profile (2.7.2) requires errors as per RFC 6750 section 3.1, "
+					+ "which are carried in that header.",
 				args("response_headers", headersEl));
 		}
 
