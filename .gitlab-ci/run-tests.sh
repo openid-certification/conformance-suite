@@ -738,6 +738,22 @@ makeSsfTests() {
     TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$PUSH_DELIVERY][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-create-delete{openid-ssf-transmitter-caep-test-plan[$PUSH_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
     # Run CAEP receiver interop test against CAEP transmitter interop: check SSF CAEP receiver behavior
     TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$PUSH_DELIVERY][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-caep-interop{openid-ssf-transmitter-caep-test-plan[$PUSH_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-transmitter-stream-caep-interop}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+
+    # POLL-delivery mirrors of the pairings above, so the poll code paths (poll endpoint,
+    # ack/setErrs handling, poll retry loops, post-verification event generation) are
+    # exercised in CI too. Entries sharing a config alias are serialized by
+    # run-test-plan.py's per-alias queues, so these run after their push counterparts.
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+
+    # POLL with dynamic auth: also covers the poll endpoint's scope enforcement
+    # (ssf.manage includes ssf.read, CAEPIOP 2.7.3)
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE_DYNAMIC][$CLIENT_AUTH_CLIENT_SECRET_POST]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_DISCOVERY][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE_DYNAMIC]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config-dynamic.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config-dynamic.json"
+
+    TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$POLL_DELIVERY][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-create-delete{openid-ssf-transmitter-caep-test-plan[$POLL_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+
+    # Full CAEP interop event flow over POLL: retrieval, acknowledgement, per-subject
+    # format coverage and the delete-time undeliverable accounting
+    TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$POLL_DELIVERY][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-caep-interop{openid-ssf-transmitter-caep-test-plan[$POLL_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-transmitter-stream-caep-interop}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 }
 
 makeAuthzenTests() {
