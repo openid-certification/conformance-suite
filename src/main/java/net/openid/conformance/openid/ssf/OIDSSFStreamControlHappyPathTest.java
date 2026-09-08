@@ -12,6 +12,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDel
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
@@ -78,6 +79,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
 			callAndContinueOnFailure(OIDSSFStreamRequiredFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			callAndContinueOnFailure(OIDSSFStreamOptionalFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
+			callAndContinueOnFailure(OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 
 			call(exec().unmapKey("endpoint_response"));
 		});

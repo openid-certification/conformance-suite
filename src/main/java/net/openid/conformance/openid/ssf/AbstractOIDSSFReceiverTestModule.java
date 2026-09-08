@@ -160,6 +160,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	protected final Set<String> rejectedPushEventJtis = ConcurrentHashMap.newKeySet();
 
 	/**
+	 * Set once the receiver fetches the emulated transmitter's signing keys from the
+	 * advertised jwks_uri, see {@link #isJwksEndpointFetched()}.
+	 */
+	protected volatile boolean jwksEndpointFetched;
+
+	/**
 	 * The per-{@link ClientAuthType} sequence used to validate client
 	 * authentication on the emulated token endpoint in
 	 * {@link SsfAuthMode#DYNAMIC} mode. Set by the {@code @VariantSetup}
@@ -650,9 +656,20 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected ResponseEntity<?> handleJwksEndpoint() {
+		// CAEP Interop Profile 2.4.2: the receiver MUST obtain the transmitter's signing
+		// key(s) via the advertised jwks_uri - record the fetch so tests can assert it.
+		jwksEndpointFetched = true;
 		// Serve only the public keys at the transmitter jwks_uri - it must not leak private key material.
 		JsonObject publicJwks = JWKUtil.toPublicJWKSet(env.getObject("server_jwks"));
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(publicJwks);
+	}
+
+	/**
+	 * Whether the receiver fetched the transmitter's signing keys from the advertised
+	 * jwks_uri at least once during the test run (CAEP Interop Profile 2.4.2).
+	 */
+	protected boolean isJwksEndpointFetched() {
+		return jwksEndpointFetched;
 	}
 
 	protected ResponseEntity<?> handleAuthorizationServerMetadataEndpoint() {
