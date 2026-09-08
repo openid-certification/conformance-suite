@@ -27,14 +27,15 @@ import java.util.concurrent.TimeUnit;
 	summary = """
 		This test verifies the receiver stream management according to the capabilities listed in the CAEP Interop Profile 1.0.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream.
+		Each requested CAEP event is sent once per subject listed in the 'SSF valid SubjectId' field, which must include at least one 'email' and one 'iss_sub' subject, as receivers must accept events with any of the subject identifier formats of the CAEP Interop Profile (section 2.5). 'complex' subjects listed there are sent as well.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * read the stream configuration
 		 * read the stream status
 		 * trigger a stream verification
-		 * acknowledge the stream verification.
+		 * acknowledge the stream verification
 		 * retrieve and acknowledge the requested CAEP events (at least one of 'session-revoked', 'credential-change' and 'device-compliance-change' must be requested)
-		Each requested CAEP event is sent once per subject listed in the 'SSF valid SubjectId' field, which must include at least one 'email' and one 'iss_sub' subject, as receivers must accept events with any of the subject identifier formats of the CAEP Interop Profile (section 2.5). 'complex' subjects listed there are sent as well.""",
+		 * delete the stream""",
 	profile = "OIDSSF"
 )
 public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverTestModule {
@@ -52,6 +53,8 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	volatile String readStreamStatusStreamId;
 
 	volatile String verificationStreamId;
+
+	volatile String deletedStreamId;
 
 	volatile ConcurrentMap<String, Set<String>> eventsAcked;
 
@@ -109,10 +112,13 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		boolean detectedAllExpectedAcknowledgedEvents = caepInteropEventsGenerated
 			&& eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(expectedAcks);
 
+		boolean detectedStreamDeletion = createdStreamId.equals(deletedStreamId);
+
 		return detectedReadStream
 			&& detectedReadStreamStatus
 			&& detectedStreamVerification
-			&& detectedAllExpectedAcknowledgedEvents;
+			&& detectedAllExpectedAcknowledgedEvents
+			&& detectedStreamDeletion;
 	}
 
 	@Override
@@ -167,6 +173,17 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 		// Track non-verification events as acknowledged via poll
 		eventsAcked.computeIfAbsent(streamId, k -> new ConcurrentSkipListSet<>()).add(jti);
+	}
+
+	@Override
+	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+		if (error != null || streamId == null) {
+			// deletion failed (e.g. 404 for an unknown or already-deleted stream) - do not
+			// record it as the successful deletion or reset previously recorded state
+			return;
+		}
+		deletedStreamId = streamId;
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream deletion for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2", "OIDSSF-8.1.1.5");
 	}
 
 	@Override
