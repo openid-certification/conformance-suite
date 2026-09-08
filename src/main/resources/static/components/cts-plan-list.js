@@ -1259,7 +1259,7 @@ class CtsPlanList extends LitElement {
    * entries so their dots recolor. Mirrors the merge shape of
    * plan-detail.html, but takes its error/batching shape from
    * cts-log-list._resolvePlanNames: a terminal per-fetch catch settles the
-   * dot at the neutral `skip` color, `Promise.allSettled` never rejects the
+   * dot at the grey `neutral` color, `Promise.allSettled` never rejects the
    * batch, and a single batched `_plans` reassign triggers one re-render for
    * the whole batch. Unique by instance id, so a shared instance is fetched
    * once and applied to every module that references it.
@@ -1303,7 +1303,7 @@ class CtsPlanList extends LitElement {
         })
         .catch((err) => {
           // Fail-soft: the run may be inaccessible (404 unpublished/deleted)
-          // or the endpoint may error. Settle the dot at the neutral `skip`
+          // or the endpoint may error. Settle the dot at the grey `neutral`
           // color rather than leaving it pulsing forever, and warn once per
           // instance so a real /api/info contract drift is visible.
           for (const mod of mods) mod._statusResolved = true;
