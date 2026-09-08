@@ -36,23 +36,16 @@ public class OIDSSFEnsureAllCaepInteropEventsReceived_UnitTest {
 	}
 
 	@Test
-	void shouldPassWhenAllThreeEventsReceived() {
-		Set<String> received = new LinkedHashSet<>(Set.of(
-			SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE,
-			SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE,
-			SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE
-		));
-		assertDoesNotThrow(() -> createCondition(received).execute(env));
+	void shouldPassWhenAllExpectedInteropEventsReceived() {
+		// expected is the stream's delivered interop events (all of them here)
+		assertDoesNotThrow(() -> createCondition(
+			new LinkedHashSet<>(SsfEvents.CAEP_INTEROP_EVENT_TYPES)).execute(env));
 	}
 
 	@Test
 	void shouldPassWhenExtraEventsReceived() {
-		Set<String> received = new LinkedHashSet<>(Set.of(
-			SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE,
-			SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE,
-			SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE,
-			SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE
-		));
+		Set<String> received = new LinkedHashSet<>(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+		received.add(SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE);
 		assertDoesNotThrow(() -> createCondition(received).execute(env));
 	}
 

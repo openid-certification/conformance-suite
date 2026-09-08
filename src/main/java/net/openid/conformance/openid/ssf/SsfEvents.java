@@ -151,6 +151,7 @@ public class SsfEvents {
 		events.add(CAEP_SESSION_REVOKED_EVENT_TYPE);
 		events.add(CAEP_CREDENTIAL_CHANGE_EVENT_TYPE);
 		events.add(CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE); // see: https://github.com/openid/sharedsignals/issues/311
+		events.add(CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE); // CAEPIOP 3.4, added by https://github.com/openid/sharedsignals/pull/349
 		CAEP_INTEROP_EVENT_TYPES = events;
 	}
 

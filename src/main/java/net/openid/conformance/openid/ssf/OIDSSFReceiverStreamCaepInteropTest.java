@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 		 * read the stream status
 		 * trigger a stream verification
 		 * acknowledge the stream verification
-		 * retrieve and acknowledge the requested CAEP events (at least one of 'session-revoked', 'credential-change' and 'device-compliance-change' must be requested)
+		 * retrieve and acknowledge the requested CAEP events (at least one of 'session-revoked', 'credential-change', 'device-compliance-change' and 'risk-level-change' must be requested)
 		 * delete the stream""",
 	profile = "OIDSSF"
 )
@@ -43,7 +43,8 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	private static final Map<String, String> CAEP_INTEROP_EVENT_SPEC_REFS = Map.of( //
 		SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE, "CAEPIOP-3.1", //
 		SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, "CAEPIOP-3.2", //
-		SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE, "CAEPIOP-3.3" //
+		SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE, "CAEPIOP-3.3", //
+		SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE, "CAEPIOP-3.4" //
 	);
 
 	volatile String createdStreamId;
