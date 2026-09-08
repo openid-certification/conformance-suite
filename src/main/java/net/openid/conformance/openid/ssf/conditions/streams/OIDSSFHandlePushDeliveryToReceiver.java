@@ -130,6 +130,8 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 	protected HttpHeaders createHeaders(String authorizationHeader) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.set(HttpHeaders.CONTENT_TYPE, SsfConstants.SECURITY_EVENT_TOKEN_CONTENT_TYPE);
+		// RFC 8935 2.1: "The Accept header field MUST be application/json"
+		httpHeaders.set(HttpHeaders.ACCEPT, "application/json");
 
 		if (authorizationHeader != null) {
 			httpHeaders.set(HttpHeaders.AUTHORIZATION, authorizationHeader);

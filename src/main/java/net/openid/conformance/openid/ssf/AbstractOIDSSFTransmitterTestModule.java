@@ -30,6 +30,9 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestAcceptHeaderIncludesJson;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestContentTypeIsSecEventJwt;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestMethodIsPost;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
@@ -314,6 +317,9 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	protected void onPushDeliveryReceived(String path, JsonObject requestParts) {
+		callAndContinueOnFailure(OIDSSFEnsurePushRequestMethodIsPost.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
+		callAndContinueOnFailure(OIDSSFEnsurePushRequestContentTypeIsSecEventJwt.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
+		callAndContinueOnFailure(OIDSSFEnsurePushRequestAcceptHeaderIncludesJson.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
 		callAndContinueOnFailure(OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 
