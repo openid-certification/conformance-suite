@@ -13,7 +13,7 @@ import java.util.Set;
 
 /**
  * Verifies that the receiver requested at least one of the CAEP Interop event types
- * 'session-revoked', 'credential-change' or 'device-compliance-change' for the given stream.
+ * 'session-revoked', 'credential-change', 'device-compliance-change' or 'risk-level-change' for the given stream.
  * The CAEP Interoperability Profile 1.0 Section 3 requires implementations to support
  * at least one of these use cases.
  */
@@ -51,7 +51,7 @@ public class OIDSSFEnsureStreamContainsCaepInteropEvent extends AbstractConditio
 		caepInteropEvents.retainAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
 
 		if (caepInteropEvents.isEmpty()) {
-			throw error("Stream must include at least one of the CAEP Interop event types 'session-revoked', 'credential-change', 'device-compliance-change'",
+			throw error("Stream must include at least one of the CAEP Interop event types 'session-revoked', 'credential-change', 'device-compliance-change', 'risk-level-change'",
 				args("stream_id", streamId, "checked_field", checkedField, "events", effectiveEvents, "caep_interop_event_types", SsfEvents.CAEP_INTEROP_EVENT_TYPES));
 		}
 

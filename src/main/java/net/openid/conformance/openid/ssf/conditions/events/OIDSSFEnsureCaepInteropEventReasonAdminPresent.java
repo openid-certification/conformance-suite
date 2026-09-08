@@ -7,8 +7,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * CAEP Interop Profile 3.1 / 3.2 / 3.3: for the interop use cases
- * (session-revoked, credential-change, device-compliance-change) the
+ * CAEP Interop Profile 3.1 / 3.2 / 3.3 / 3.4: for the interop use cases
+ * (session-revoked, credential-change, device-compliance-change, risk-level-change) the
  * {@code reason_admin} field "MUST be populated with a non-empty object".
  * <p>
  * The shape of the object (BCP47-tagged string values) is validated separately
@@ -26,13 +26,13 @@ public class OIDSSFEnsureCaepInteropEventReasonAdminPresent extends AbstractCond
 
 		JsonElement reasonAdminEl = eventData.get("reason_admin");
 		if (reasonAdminEl == null) {
-			throw error("reason_admin is missing. The CAEP Interop Profile (3.1/3.2/3.3) requires "
+			throw error("reason_admin is missing. The CAEP Interop Profile (3.1/3.2/3.3/3.4) requires "
 					+ "reason_admin to be populated with a non-empty object for this event type.",
 				args("event_type", eventType, "event_data", eventData));
 		}
 
 		if (!reasonAdminEl.isJsonObject() || reasonAdminEl.getAsJsonObject().isEmpty()) {
-			throw error("reason_admin must be a non-empty object (CAEP Interop Profile 3.1/3.2/3.3)",
+			throw error("reason_admin must be a non-empty object (CAEP Interop Profile 3.1/3.2/3.3/3.4)",
 				args("event_type", eventType, "reason_admin", reasonAdminEl));
 		}
 
