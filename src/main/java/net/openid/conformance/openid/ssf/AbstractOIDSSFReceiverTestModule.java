@@ -38,6 +38,8 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUp
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
+import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFResolveEventSubjects;
+import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFWarnCaepInteropComplexSubjectsConfigured;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFInMemoryEventStore;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
@@ -73,6 +75,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -83,7 +86,6 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUS
 @ConfigurationFields({
 	"ssf.stream.audience",
 	"ssf.subjects.valid",
-	"ssf.subjects.invalid",
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"ssf.transmitter.access_token",
@@ -124,6 +126,13 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUS
 public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTestModule {
 
 	protected OIDSSFEventStore eventStore;
+
+	/**
+	 * {@code jti} values of generated events that were never delivered because the receiver
+	 * deleted the stream while they were still queued, see
+	 * {@link #onEventsUndeliverable(String, List)}.
+	 */
+	protected final Set<String> undeliveredEventJtis = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The per-{@link ClientAuthType} sequence used to validate client
@@ -180,6 +189,42 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		env.putString("ssf", "auth_mode", getVariant(SsfAuthMode.class).name());
 		configureAuthorizationServer(issuer);
+
+		resolveEventSubjects();
+	}
+
+	/**
+	 * Resolves and validates the subject identifiers declared in the 'SSF valid SubjectId'
+	 * configuration field (see {@link OIDSSFResolveEventSubjects}).
+	 * Runs at configuration time so a misconfigured subject fails fast with a message pointing
+	 * at the test configuration field.
+	 */
+	protected void resolveEventSubjects() {
+		callAndStopOnFailure(OIDSSFResolveEventSubjects.class, "RFC9493-3", "CAEPIOP-2.5");
+
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			// Complex Subjects are not yet listed in CAEPIOP §2.5 but expected to be permitted
+			// (openid/sharedsignals#351): warn once at configuration time when any are declared.
+			// Lower the severity to INFO once the profile permits them.
+			callAndContinueOnFailure(OIDSSFWarnCaepInteropComplexSubjectsConfigured.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.5", "OIDSSF-3.3");
+		}
+	}
+
+	/**
+	 * The valid (existing) subject identifiers the receiver under test declared, to generate
+	 * (non-verification) events for — as resolved by {@link #resolveEventSubjects()}. Under the
+	 * CAEP Interop Profile this covers at least one {@code email} and one {@code iss_sub} subject.
+	 */
+	protected List<JsonObject> getEventSubjects() {
+		JsonElement eventSubjects = env.getElementFromObject("ssf", "event_subjects");
+		if (eventSubjects == null || !eventSubjects.isJsonArray()) {
+			throw new IllegalStateException("Event subjects have not been resolved, resolveEventSubjects() must run during configuration");
+		}
+		List<JsonObject> subjects = new ArrayList<>();
+		for (JsonElement subject : eventSubjects.getAsJsonArray()) {
+			subjects.add(subject.getAsJsonObject());
+		}
+		return subjects;
 	}
 
 	/**
@@ -652,7 +697,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
+				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore, this::onEventsUndeliverable), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -831,12 +876,26 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		public String call() throws Exception {
 			OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 16);
 			if (eventsBatch == null) {
-				// stream was removed in-between, so we don't need to push data
+				// stream was removed in-between, so we don't need to push data; the
+				// stream-delete handler has recorded the purged events as undeliverable
 				return "done";
 			}
 
 			// TODO handle SSF PUSH retry???
-			for (var event : eventsBatch.events()) {
+			List<OIDSSFSecurityEvent> events = List.copyOf(eventsBatch.events());
+			for (int i = 0; i < events.size(); i++) {
+				OIDSSFSecurityEvent event = events.get(i);
+
+				// The receiver may delete the stream while this batch is being delivered (e.g. once
+				// it has seen every event type it was waiting for). Pushing the remaining events
+				// would fail with a missing push endpoint, so stop and record them as undelivered.
+				// (Only this batch: events beyond it are still queued and are recorded by the
+				// stream-delete handler before it purges the event store.)
+				if (OIDSSFStreamUtils.getStreamConfig(env, streamId) == null) {
+					onEventsUndeliverable(streamId, events.subList(i, events.size()));
+					return "done";
+				}
+
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
 				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
@@ -860,6 +919,33 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 			return "done";
 		}
+	}
+
+	/**
+	 * Records events that can no longer be delivered or acknowledged because the receiver
+	 * deleted the stream: events still queued at deletion time (any delivery mode), events of
+	 * the currently-executing push batch (reported by the push task), and - for poll delivery -
+	 * events the receiver retrieved but never acknowledged. They will never be acknowledged, so
+	 * {@link #getUndeliveredEventJtis()} lets {@code isFinished()} implementations stop waiting
+	 * for them instead of blocking until the test times out. Invoked from both the push task
+	 * and the stream-delete handler; the underlying set deduplicates overlapping reports.
+	 */
+	protected void onEventsUndeliverable(String streamId, List<OIDSSFSecurityEvent> events) {
+		List<String> jtis = events.stream().map(OIDSSFSecurityEvent::jti).toList();
+		undeliveredEventJtis.addAll(jtis);
+		eventLog.log(getName(), args(
+			"msg", "Stream was deleted before all generated events could be delivered, the remaining events will not be sent",
+			"stream_id", streamId,
+			"undelivered_event_count", jtis.size(),
+			"undelivered_jtis", jtis));
+	}
+
+	/**
+	 * The {@code jti} values of generated events that could not be delivered because the stream
+	 * was deleted, see {@link #onEventsUndeliverable(String, List)}.
+	 */
+	protected Set<String> getUndeliveredEventJtis() {
+		return Set.copyOf(undeliveredEventJtis);
 	}
 
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {

@@ -10,6 +10,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +24,8 @@ import java.util.concurrent.TimeUnit;
 	summary = """
 		This test verifies the receiver events delivery.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it generates all supported events and expects a positive delivery of the events received.
-		Note that if the caep_interop profile is used, only the session-revoked and credential-change events are sent.
+		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field.
+		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change and device-compliance-change) are available, and only email/iss_sub (and complex) subjects are used.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
@@ -122,17 +124,21 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 			return;
 		}
 
-		JsonObject validSubject = env.getElementFromObject("config", "ssf.subjects.valid").getAsJsonObject();
+		// All subjects declared in 'SSF valid SubjectId' (under the CAEP Interop Profile restricted to
+		// the email/iss_sub formats) — see AbstractOIDSSFReceiverTestModule#getEventSubjects.
+		List<JsonObject> subjects = getEventSubjects();
 		List<String> eventsDelivered = OIDFJSON.convertJsonArrayToList(lastCreateResult.getAsJsonObject("result").getAsJsonArray("events_delivered"));
 
 		long timestamp = Instant.now().getEpochSecond();
 
 		for (String eventType : eventsDelivered) {
 
-			SsfEvent event = generateSsfEventExample(eventType, timestamp);
+			for (JsonObject subject : subjects) {
+				SsfEvent event = generateSsfEventExample(eventType, timestamp);
 
-			var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, event, this::onStreamEventEnqueued);
-			callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
+				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event, this::onStreamEventEnqueued);
+				callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
+			}
 		}
 	}
 
@@ -153,9 +159,14 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 	}
 
 	protected boolean didReceiveExpectedAcksForAllDeliveredEvents() {
-		return eventsAcked.get(createdStreamId) != null
-			&& eventsEnqueued.get(createdStreamId) != null
-			&& eventsAcked.get(createdStreamId).containsAll(eventsEnqueued.get(createdStreamId));
+		if (eventsAcked.get(createdStreamId) == null || eventsEnqueued.get(createdStreamId) == null) {
+			return false;
+		}
+		// Events that could not be delivered because the receiver deleted the stream are never
+		// acknowledged; waiting for them would stall the test until it times out.
+		Set<String> expectedAcks = new LinkedHashSet<>(eventsEnqueued.get(createdStreamId));
+		expectedAcks.removeAll(getUndeliveredEventJtis());
+		return eventsAcked.get(createdStreamId).containsAll(expectedAcks);
 	}
 
 	@Override
