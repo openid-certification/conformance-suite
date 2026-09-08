@@ -169,13 +169,12 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		if (createdStreamId == null || eventsEnqueued.get(createdStreamId) == null) {
 			return false;
 		}
-		// Events that could not be delivered because the receiver deleted the stream are never
-		// acknowledged; waiting for them would stall the test until it times out. A receiver
-		// that acknowledged nothing at all must not stall here either (its events all become
-		// undeliverable on deletion) - whether every delivered event was actually acknowledged
-		// is judged in fireTestFinished.
+		// Events for which no acknowledgement can arrive any more (never delivered, resolved
+		// via setErrs, push delivery rejected, or left unresolved when the receiver deleted
+		// the stream) must not stall the test until it times out - whether every delivered
+		// event was actually acknowledged is judged in fireTestFinished.
 		Set<String> expectedAcks = new LinkedHashSet<>(eventsEnqueued.get(createdStreamId));
-		expectedAcks.removeAll(getUndeliveredEventJtis());
+		expectedAcks.removeAll(getResolvedWithoutAckJtis());
 		return eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(expectedAcks);
 	}
 
@@ -184,9 +183,14 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		Set<String> unacknowledged = new LinkedHashSet<>(
 			createdStreamId == null ? Set.of() : eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
 		unacknowledged.removeAll(createdStreamId == null ? Set.of() : eventsAcked.getOrDefault(createdStreamId, Set.of()));
-		// Events recorded as undeliverable were never (fully) delivered - the receiver
-		// cannot be expected to acknowledge SETs it never received.
+		// Undeliverable events were never handed to the receiver, so it cannot be expected to
+		// acknowledge them. Error reports via setErrs are a valid resolution (RFC 8936 2.4),
+		// and rejected push deliveries are already graded by the RFC 8935 2.2 status check.
+		// What remains are events the receiver retrieved but neither acknowledged nor reported
+		// before deleting the stream - the acknowledgement failure graded below.
 		unacknowledged.removeAll(getUndeliveredEventJtis());
+		unacknowledged.removeAll(getErrorReportedEventJtis());
+		unacknowledged.removeAll(getRejectedPushEventJtis());
 		if (unacknowledged.isEmpty()) {
 			eventLog.log(getName(), "Detected acknowledgements for published events.");
 		} else {
