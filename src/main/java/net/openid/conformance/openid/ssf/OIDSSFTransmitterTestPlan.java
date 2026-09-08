@@ -17,6 +17,13 @@ public class OIDSSFTransmitterTestPlan implements TestPlan {
 
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		OIDSSFTransmitterMetadataTest.class,
+		// The resource-server negatives run before the happy path: run-test-plan.py executes
+		// pairings in this list order, and the suite-vs-suite counterpart (the emulated
+		// transmitter hosted by a receiver test module) finishes - and stops serving - once
+		// the happy path completes the full stream lifecycle.
+		OIDSSFStreamControlNegativeTestReadStreamWithoutAccessToken.class,
+		OIDSSFStreamControlNegativeTestReadStreamWithTokenInUriQuery.class,
+		OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken.class,
 		OIDSSFStreamControlHappyPathTest.class,
 		OIDSSFStreamControlNegativeTestCreateStreamWithBrokenInput.class,
 		OIDSSFStreamControlNegativeTestCreateStreamWithInvalidAccessToken.class,
@@ -31,9 +38,6 @@ public class OIDSSFTransmitterTestPlan implements TestPlan {
 		OIDSSFStreamControlNegativeTestReplaceUnknownStream.class,
 		OIDSSFStreamControlNegativeTestDeleteStreamWithInvalidAccessToken.class,
 		OIDSSFStreamControlNegativeTestDeleteUnknownStream.class,
-		OIDSSFStreamControlNegativeTestReadStreamWithoutAccessToken.class,
-		OIDSSFStreamControlNegativeTestReadStreamWithTokenInUriQuery.class,
-		OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken.class,
 		OIDSSFStreamSubjectControlHappyPathTest.class,
 		OIDSSFTransmitterStreamVerificationPushTest.class,
 		OIDSSFTransmitterStreamVerificationPollOnlyTest.class,
