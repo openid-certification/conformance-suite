@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
@@ -90,6 +91,17 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		if (createdStreamId != null) {
 			callAndContinueOnFailure(new OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats(subjectFormatByJti,
 				eventsAcked.getOrDefault(createdStreamId, Set.of())), Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
+		}
+		// CAEP Interop Profile 2.4.2: "The Receiver MUST obtain the Transmitter's signing
+		// key(s) using the jwks_uri from the Transmitter Configuration Metadata."
+		if (isJwksEndpointFetched()) {
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver fetched the transmitter's signing keys from the advertised jwks_uri"),
+				Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.2");
+		} else {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver never fetched the transmitter's signing keys from the advertised jwks_uri. "
+						+ "Receivers must obtain the transmitter's signing key(s) via the jwks_uri to validate event signatures (CAEP Interop Profile 2.4.2)."),
+				Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.2");
 		}
 		super.fireTestFinished();
 	}

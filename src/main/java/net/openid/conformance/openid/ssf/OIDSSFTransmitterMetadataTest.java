@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCaepInteropDeliveryMethodsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldConfigurationEndpoint;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldJwksUri;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldStatusEndpoint;
@@ -14,6 +15,7 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequired
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureNonEmptyArrayClaimsCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFOptionalFieldsTransmitterMetadataCheck;
@@ -91,6 +93,12 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1", "OIDSSF-8.1.1");
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			callAndContinueOnFailure(OIDSSFCaepInteropDeliveryMethodsTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.2");
+			// The certification run is scheduled for one delivery mode, so require exactly
+			// that mode to be advertised. Whether 2.3.8.1 obliges transmitters to support
+			// BOTH standard methods is ambiguous (2.4.1 explicitly requires receivers to
+			// support only one) - certification is granted per delivery mode either way.
+			callAndContinueOnFailure(new OIDSSFEnsureDeliveryMethodIsSupported(deliveryMode), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.2", "CAEPIOP-2.3.8.1");
 			callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.1");
 			callAndContinueOnFailure(OIDSSFCheckRequiredFieldJwksUri.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.3");
 			callAndContinueOnFailure(OIDSSFCheckRequiredFieldConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.4");

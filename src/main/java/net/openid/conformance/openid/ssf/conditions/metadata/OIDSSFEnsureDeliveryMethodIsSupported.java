@@ -20,6 +20,10 @@ public class OIDSSFEnsureDeliveryMethodIsSupported extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonElement deliveryMethodsSupported = env.getElementFromObject("ssf", "transmitter_metadata.delivery_methods_supported");
+		if (deliveryMethodsSupported == null || !deliveryMethodsSupported.isJsonArray()) {
+			throw error("Cannot check the selected delivery method: transmitter metadata does not contain a delivery_methods_supported array",
+				args("delivery_methods_supported", deliveryMethodsSupported, "delivery_method", deliveryMode.getAlias()));
+		}
 		if (!OIDFJSON.convertJsonArrayToList(deliveryMethodsSupported.getAsJsonArray()).contains(deliveryMode.getAlias())) {
 			throw error("Selected delivery method " + deliveryMode.getAlias() + " is not support by Transmitter.",
 				args("delivery_methods_supported", deliveryMethodsSupported, "delivery_method", deliveryMode.getAlias()));
