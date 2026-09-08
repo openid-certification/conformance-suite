@@ -106,12 +106,13 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		boolean detectedReadStreamStatus = createdStreamId.equals(readStreamStatusStreamId);
 		boolean detectedStreamVerification = createdStreamId.equals(verificationStreamId);
 
-		// Events that could not be delivered because the receiver deleted the stream are never
-		// acknowledged; waiting for them would stall the test until it times out. Whether the
-		// receiver saw every required subject identifier format is the actual verdict and is
-		// checked by OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats when the test finishes.
+		// Events for which no acknowledgement can arrive any more (never delivered, resolved
+		// via setErrs, push delivery rejected, or left unresolved when the receiver deleted
+		// the stream) must not stall the test until it times out. Whether the receiver saw
+		// every required subject identifier format is the actual verdict and is checked by
+		// OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats when the test finishes.
 		Set<String> expectedAcks = new LinkedHashSet<>(eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
-		expectedAcks.removeAll(getUndeliveredEventJtis());
+		expectedAcks.removeAll(getResolvedWithoutAckJtis());
 		boolean detectedAllExpectedAcknowledgedEvents = caepInteropEventsGenerated
 			&& eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(expectedAcks);
 

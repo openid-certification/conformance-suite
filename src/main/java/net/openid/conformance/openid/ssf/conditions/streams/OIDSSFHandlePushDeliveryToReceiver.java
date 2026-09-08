@@ -27,11 +27,20 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 	private final String streamId;
 	private final OIDSSFSecurityEvent event;
 	private final BiConsumer<String, OIDSSFSecurityEvent> onSuccess;
+	private final BiConsumer<String, OIDSSFSecurityEvent> onNotAcknowledged;
 
 	public OIDSSFHandlePushDeliveryToReceiver(String streamId, OIDSSFSecurityEvent event, BiConsumer<String, OIDSSFSecurityEvent> onSuccess) {
+		this(streamId, event, onSuccess, (sid, ev) -> {
+		});
+	}
+
+	public OIDSSFHandlePushDeliveryToReceiver(String streamId, OIDSSFSecurityEvent event,
+		BiConsumer<String, OIDSSFSecurityEvent> onSuccess,
+		BiConsumer<String, OIDSSFSecurityEvent> onNotAcknowledged) {
 		this.streamId = streamId;
 		this.event = event;
 		this.onSuccess = onSuccess;
+		this.onNotAcknowledged = onNotAcknowledged;
 	}
 
 	@Override
@@ -80,6 +89,7 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 				log("Receiver answered the push delivery with an error status; not treating the SET as acknowledged",
 					args("status", status, "jti", event.jti(), "event_type", event.type(),
 						"response", env.getObject(responseEnvironmentKey)));
+				onNotAcknowledged.accept(streamId, event);
 			}
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException |
@@ -96,21 +106,24 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 	 */
 	@Override
 	protected Environment handleClientException(Environment env, org.springframework.web.client.RestClientException e) {
-		env.putObject(responseEnvironmentKey, synthesizeFailedResponse());
+		env.putObject(responseEnvironmentKey, synthesizeFailedResponse(0));
+		onNotAcknowledged.accept(streamId, event);
 		return super.handleClientException(env, e);
 	}
 
 	@Override
 	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
-		env.putObject(responseEnvironmentKey, synthesizeFailedResponse());
+		// preserve the real HTTP status so the rejection is reported accurately
+		env.putObject(responseEnvironmentKey, synthesizeFailedResponse(e.getStatusCode().value()));
+		onNotAcknowledged.accept(streamId, event);
 		return super.handleRestClientResponseException(env, e);
 	}
 
-	private com.google.gson.JsonObject synthesizeFailedResponse() {
+	private com.google.gson.JsonObject synthesizeFailedResponse(int status) {
 		com.google.gson.JsonObject response = new com.google.gson.JsonObject();
 		response.addProperty("endpoint_name", endpointName);
 		// 0 = no HTTP response was received (connection-level failure)
-		response.addProperty("status", 0);
+		response.addProperty("status", status);
 		return response;
 	}
 
