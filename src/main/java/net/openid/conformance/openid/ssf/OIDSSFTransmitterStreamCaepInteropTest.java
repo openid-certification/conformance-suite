@@ -350,6 +350,10 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		// poll right after triggering is not sufficient. The ~60s window follows the
 		// WG expectation recorded on sharedsignals#339.
 		boolean solicitedVerificationFound = false;
+		// SETs retrieved across all verification poll attempts: each poll response overwrites
+		// ssf.poll.sets, and RFC 8936 §2.4 makes re-delivery of un-acknowledged SETs OPTIONAL,
+		// so CAEP events retrieved in an earlier attempt must be kept here or they are lost.
+		JsonObject pendingSets = new JsonObject();
 		for (int attempt = 1; attempt <= VERIFICATION_POLL_MAX_ATTEMPTS && !solicitedVerificationFound; attempt++) {
 			int attemptNr = attempt;
 			eventLog.runBlock("Poll for verification event (attempt " + attemptNr + ")", () -> {
@@ -359,6 +363,13 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			});
+
+			JsonElement batchEl = env.getElementFromObject("ssf", "poll.sets");
+			if (batchEl != null && batchEl.isJsonObject()) {
+				for (var setEntry : batchEl.getAsJsonObject().entrySet()) {
+					pendingSets.add(setEntry.getKey(), setEntry.getValue());
+				}
+			}
 
 			solicitedVerificationFound = iterateAndValidatePolledVerificationEvents();
 
@@ -384,12 +395,14 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 		// Per SSF 1.0 8.1.4.2 receivers MUST NOT depend on the verification
 		// event being delivered in any particular order relative to other
-		// queued events. Process any CAEP events that arrived in the same
-		// POLL_ONLY response so they are not lost — RFC 8936 §2.4 makes
-		// re-delivery of un-acknowledged SETs OPTIONAL.
-		JsonElement firstPollSetsEl = env.getElementFromObject("ssf", "poll.sets");
-		if (firstPollSetsEl != null && firstPollSetsEl.isJsonObject() && !firstPollSetsEl.getAsJsonObject().isEmpty()) {
-			processCaepEventsFromPollResponse(firstPollSetsEl.getAsJsonObject(), receivedEventTypes);
+		// queued events. Process the CAEP events retrieved across ALL of the
+		// verification poll attempts (not just the final response), and restore
+		// them to poll.sets so the first POLL_AND_ACKNOWLEDGE below acknowledges
+		// every retrieved SET — RFC 8936 §2.4 makes re-delivery of
+		// un-acknowledged SETs OPTIONAL, so nothing retrieved may be dropped.
+		if (!pendingSets.isEmpty()) {
+			env.putObject("ssf", "poll.sets", pendingSets.deepCopy());
+			processCaepEventsFromPollResponse(pendingSets, receivedEventTypes);
 		}
 
 		// Poll repeatedly until all 3 CAEP event types are received, or timeout.
@@ -416,7 +429,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 			if (attempt < maxAttempts - 1) {
 				eventLog.log(getName(), "Waiting for CAEP events... received "
-					+ receivedEventTypes.size() + "/3, polling again in " + pollIntervalSeconds + "s");
+					+ receivedEventTypes.size() + "/" + expectedCaepEventTypes.size() + ", polling again in " + pollIntervalSeconds + "s");
 				try {
 					Thread.sleep(pollIntervalSeconds * 1000L);
 				} catch (InterruptedException e) {
