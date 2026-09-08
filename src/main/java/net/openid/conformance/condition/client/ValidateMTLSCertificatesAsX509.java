@@ -91,40 +91,40 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		try {
 			decodedKey = Base64.getDecoder().decode(keyString);
 		} catch (IllegalArgumentException e) {
-			throw error("base64 decode of key failed", e);
+			throw error("base64 decode of key failed", e, args("key", keyString));
 		}
 
 		PublicKey publicKey = certificate.getPublicKey();
 		String alg = publicKey.getAlgorithm();
 
 		if ("RSA".equals(alg)) {
-			verifyRSAPrivateKey(certString, decodedKey, certificate);
+			verifyRSAPrivateKey(certString, keyString, decodedKey, certificate);
 		} else if ("EC".equals(alg) ) {
-			verifyECPrivateKey(certString, decodedKey, certificate);
+			verifyECPrivateKey(certString, keyString, decodedKey, certificate);
 		} else if ("Ed25519".equals(alg)) { // alg value is specific to BouncyCastle provider; use EdDSA if using default Java provider
-			verifyEd25519PrivateKey(certString, decodedKey, certificate);
+			verifyEd25519PrivateKey(certString, keyString, decodedKey, certificate);
 		} else {
 			throw error("The private key format is not supported. You need to provide a private key which is RSA or EC or EdDSA with Ed25519 curve");
 		}
 
 	}
 
-	private void verifyRSAPrivateKey(String certString, byte[] decodedKey, X509Certificate certificate) {
+	private void verifyRSAPrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		RSAPrivateKey privateKey;
 		try {
 			privateKey = (RSAPrivateKey) MtlsKeyUtil.generateAlgPrivateKeyFromDER("RSA", decodedKey);
 		} catch (InvalidKeySpecException | IllegalArgumentException | NoSuchAlgorithmException | IOException e) {
-			throw error("Couldn't generate RSA private key", e);
+			throw error("Couldn't generate RSA private key", e, args("key", keyString));
 		}
 
 		// Check that the private key and the certificate match
 		RSAPublicKey rsaPublicKey = (RSAPublicKey) certificate.getPublicKey();
 		if (!privateKey.getModulus().equals(rsaPublicKey.getModulus())) {
-			throw error("MTLS Private Key and Cert do not match", args("cert", certString));
+			throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString));
 		}
 	}
 
-	private void verifyECPrivateKey(String certString, byte[] decodedKey, X509Certificate certificate) {
+	private void verifyECPrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		try {
 			PrivateKey privateKey = MtlsKeyUtil.generateAlgPrivateKeyFromDER("EC", decodedKey);
 			// generate public key from private key and compare with certificate's public key
@@ -132,17 +132,17 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 			if(privateKey instanceof BCECPrivateKey) {
 				BCECPublicKey bcecDerivedPublicKey = ECKeyUtil.deriveECPubKeyFromPrivKey((BCECPrivateKey) privateKey);
 				if(!bcecDerivedPublicKey.equals(ecPublicKey)) {
-					throw error("MTLS Private Key and Cert do not match", args("cert", certString));
+					throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString));
 				}
 			} else {
 				throw error("Invalid EC private key instance");
 			}
 		} catch (NoSuchAlgorithmException | IOException | InvalidKeySpecException e) {
-			throw error("Couldn't generate EC private key", e);
+			throw error("Couldn't generate EC private key", e, args("key", keyString));
 		}
 	}
 
-	private void verifyEd25519PrivateKey(String certString, byte[] decodedKey, X509Certificate certificate) {
+	private void verifyEd25519PrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		try {
 			PrivateKey privateKey = MtlsKeyUtil.generateAlgPrivateKeyFromDER("Ed25519", decodedKey);
 			// Check that the private key and the certificate match
@@ -150,14 +150,14 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 			if(pubKey instanceof BCEdDSAPublicKey && privateKey instanceof BCEdDSAPrivateKey) {
 				BCEdDSAPublicKey bcEdPublicKey = (BCEdDSAPublicKey) pubKey;
 				if (!((BCEdDSAPrivateKey) privateKey).getPublicKey().equals(bcEdPublicKey)) {
-					throw error("Ed25519 MTLS Private Key and Cert do not match", args("cert", certString));
+					throw error("Ed25519 MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString));
 				}
 			} else {
-				throw error("MTLS Private Key or Cert are not valid instances", args("cert", certString));
+				throw error("MTLS Private Key or Cert are not valid instances", args("cert", certString, "key", keyString));
 			}
 
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-			throw error("Couldn't generate Ed25519 private key", e);
+			throw error("Couldn't generate Ed25519 private key", e, args("key", keyString));
 		}
 
 	}
