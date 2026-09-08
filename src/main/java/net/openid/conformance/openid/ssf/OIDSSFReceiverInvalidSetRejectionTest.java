@@ -104,7 +104,7 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			afterInitialStreamVerification(streamId);
+			scheduleAfterStreamVerification(() -> afterInitialStreamVerification(streamId));
 			return;
 		}
 

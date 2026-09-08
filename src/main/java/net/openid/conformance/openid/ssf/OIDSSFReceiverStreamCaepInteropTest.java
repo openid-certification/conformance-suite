@@ -3,7 +3,6 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
@@ -162,7 +161,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			verificationStreamId = streamId;
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 
-			afterInitialStreamVerification(streamId, event);
+			scheduleAfterStreamVerification(() -> afterInitialStreamVerification(streamId, event));
 			return;
 		}
 
@@ -178,8 +177,6 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	protected void afterInitialStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
 
 		// generate the CAEP Interop events requested by the receiver
-		callAndStopOnFailure(WaitForOneSecond.class);
-
 		long now = System.currentTimeMillis();
 
 		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
