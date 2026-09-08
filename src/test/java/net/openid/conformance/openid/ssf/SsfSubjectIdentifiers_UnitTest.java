@@ -226,4 +226,39 @@ public class SsfSubjectIdentifiers_UnitTest {
 		assertEquals(java.util.Set.of("email", "iss_sub"), SsfSubjectIdentifiers.CAEP_INTEROP_EVENT_SUBJECT_FORMATS);
 		assertEquals(java.util.Set.of("opaque"), SsfSubjectIdentifiers.CAEP_INTEROP_VERIFICATION_SUBJECT_FORMATS);
 	}
+
+	// --- findUnknownMembers (RFC 9493 §3: members not described by the format are prohibited) ---
+
+	@Test
+	void findUnknownMembersFlagsExtrasOnKnownSimpleFormats() {
+		assertEquals(java.util.List.of("iss"),
+			SsfSubjectIdentifiers.findUnknownMembers(json("{\"format\":\"email\",\"email\":\"a@example.com\",\"iss\":\"x\"}")));
+		assertEquals(java.util.List.of(),
+			SsfSubjectIdentifiers.findUnknownMembers(json("{\"format\":\"iss_sub\",\"iss\":\"https://idp.example.com\",\"sub\":\"1234\"}")));
+	}
+
+	@Test
+	void findUnknownMembersIgnoresProprietaryFormats() {
+		assertEquals(java.util.List.of(),
+			SsfSubjectIdentifiers.findUnknownMembers(json("{\"format\":\"x-vendor-id\",\"anything\":1}")));
+	}
+
+	@Test
+	void findUnknownMembersRecursesIntoComplexSubjectMembers() {
+		// member names of a Complex Subject are unrestricted (SSF 1.0 §3.3), but the members'
+		// own contents are not
+		assertEquals(java.util.List.of("user.sub"),
+			SsfSubjectIdentifiers.findUnknownMembers(json("""
+				{"format":"complex","user":{"format":"email","email":"a@example.com","sub":"x"},
+				 "custom_member":{"format":"opaque","id":"1"}}""")));
+	}
+
+	@Test
+	void findUnknownMembersRecursesIntoAliases() {
+		assertEquals(java.util.List.of("extra", "identifiers[1].phone"),
+			SsfSubjectIdentifiers.findUnknownMembers(json("""
+				{"format":"aliases","extra":true,"identifiers":[
+					{"format":"email","email":"a@example.com"},
+					{"format":"opaque","id":"1","phone":"+123"}]}""")));
+	}
 }

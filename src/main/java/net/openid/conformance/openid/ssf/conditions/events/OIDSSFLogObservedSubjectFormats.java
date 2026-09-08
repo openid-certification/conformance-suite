@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 /**
- * Summarises the subject identifier formats recorded by
+ * Summarizes the subject identifier formats recorded by
  * {@link OIDSSFRecordSecurityEventTokenSubjectFormat} in a single, reviewer-friendly log entry,
  * e.g. {@code email (credential-change, session-revoked), opaque (verification)}, and lists which
  * of the CAEP Interop Profile §2.5 formats the transmitter demonstrated on CAEP events.
