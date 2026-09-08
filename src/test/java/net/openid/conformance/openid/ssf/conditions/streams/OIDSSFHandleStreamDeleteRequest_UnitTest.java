@@ -107,6 +107,20 @@ public class OIDSSFHandleStreamDeleteRequest_UnitTest {
 	}
 
 	@Test
+	void pollDeletionDoesNotRecordErrorReportedEvents() {
+		prepareStream(SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI);
+		storeEvent("jti-1");
+		storeEvent("jti-2");
+		eventStore.pollEvents(STREAM_ID, 2);
+		// the receiver rejected jti-1 via setErrs - that resolves it just like an ack
+		eventStore.registerErrorForStreamEvent(STREAM_ID, "jti-1", new JsonObject());
+
+		assertDoesNotThrow(() -> createCondition().execute(env));
+
+		assertEquals(List.of("jti-2"), undeliverableJtis);
+	}
+
+	@Test
 	void deletionWithEverythingAcknowledgedRecordsNothing() {
 		prepareStream(SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI);
 		storeEvent("jti-1");
