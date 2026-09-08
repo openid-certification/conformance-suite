@@ -161,11 +161,11 @@ frontend_lint:
 # build is treated as new and snapshot diffs are meaningless.
 #
 # The shared frontend rules (`*frontend-rules`) skip the job for backend-only
-# pushes — every snapshot counts against the Chromatic plan's monthly
-# quota. Skipping also stops Chromatic from
-# posting its "UI Tests"/"UI Review" external statuses (delivered via the
-# project's index.chromatic.com webhook) onto pipelines that contain no UI
-# change, where they would sit pending forever waiting for a snapshot review.
+# pushes — every snapshot counts against the Chromatic plan's monthly quota.
+# Skipping also stops Chromatic from posting its "UI Tests" external status
+# (delivered via the project's index.chromatic.com webhook; "UI Review" is
+# switched off, see frontend/README.md) onto pipelines that contain no UI
+# change, where it would sit pending forever waiting for a snapshot review.
 # Chromatic tolerates the gaps: baseline lookup walks ancestor commits until
 # it finds the last published build.
 #

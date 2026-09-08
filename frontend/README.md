@@ -306,8 +306,9 @@ picks it up must mirror the review-on-fail backlog (Playwright does not read
 ## Visual regression testing (Chromatic)
 
 Every push that touches `frontend/` or `src/main/resources/static/` triggers
-the `chromatic` CI job, which builds Storybook and publishes a snapshot of
-every story to [Chromatic](https://www.chromatic.com/) for visual diffing
+the `chromatic` CI job, which builds Storybook and publishes it to
+[Chromatic](https://www.chromatic.com/), snapshotting the page-level stories
+(see "Snapshots are opt-in, at page level" below) for visual diffing
 against the accepted baseline. Visual changes are reviewed (accepted or
 denied) in the Chromatic UI — the link appears in the job log and on the
 GitLab MR widget. Chromatic's separate "UI Review" feature is switched off
