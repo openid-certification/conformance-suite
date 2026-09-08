@@ -6,8 +6,12 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractCallProtectedResourceWithBearerToken;
 import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClientResponseException;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCallProtectedResourceWithBearerToken {
 
@@ -34,6 +38,11 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 		errorEndpointResponse.addProperty("status", e.getStatusCode().value());
 		errorEndpointResponse.addProperty("endpoint_name", getEndpointName());
 		errorEndpointResponse.addProperty("body", e.getResponseBodyAsString());
+		if (e.getResponseHeaders() != null) {
+			// keep the response headers available for follow-up checks (e.g. the RFC 6750
+			// WWW-Authenticate challenge on 401/403 responses)
+			errorEndpointResponse.add("headers", mapToJsonObject(e.getResponseHeaders(), true));
+		}
 		MediaType responseContentType = e.getResponseHeaders().getContentType();
 		if (responseContentType != null && (MediaType.APPLICATION_JSON.equals(responseContentType) ||
 			// deal with funky vendor specific content types like application/vnd.foo.bar+json
@@ -58,12 +67,23 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 
 	protected abstract String getEndpointName();
 
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+		if (env.getString("ssf", "omit_authorization_header") != null) {
+			// CAEPIOP 2.7.2 negative tests probe the transmitter's behavior for requests
+			// that carry no bearer credentials in the Authorization header
+			return new HttpHeaders();
+		}
+		return super.getHeaders(env);
+	}
+
 	protected void configureResourceUrl(Environment env) {
 		String resourceUrl = getResourceEndpointUrl(env);
 		// CAEPIOP 2.7.2 negative tests move the token into the URI query (RFC 6750 2.3)
 		String queryToken = env.getString("ssf", "access_token_query_override");
 		if (queryToken != null) {
-			resourceUrl = resourceUrl + (resourceUrl.contains("?") ? "&" : "?") + "access_token=" + queryToken;
+			String encodedToken = URLEncoder.encode(queryToken, StandardCharsets.UTF_8);
+			resourceUrl = resourceUrl + (resourceUrl.contains("?") ? "&" : "?") + "access_token=" + encodedToken;
 		}
 		env.putString("protected_resource_url", resourceUrl);
 	}

@@ -204,6 +204,16 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		}
 	}
 
+	/**
+	 * Hook invoked from {@link #obtainTransmitterAccessToken()} after the OAuth client
+	 * configuration has been loaded into the {@code client} environment object and before the
+	 * token request is built. Modules can override it to adjust the client (e.g. restrict the
+	 * requested scope) - adjusting it earlier would be overwritten by the configuration load.
+	 */
+	protected void onClientConfigurationObtained() {
+		// NOOP
+	}
+
 	protected void obtainTransmitterAccessToken() {
 
 		SsfAuthMode variant = getVariant(SsfAuthMode.class);
@@ -231,6 +241,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 				default:
 					break;
 			}
+
+			onClientConfigurationObtained();
 
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
