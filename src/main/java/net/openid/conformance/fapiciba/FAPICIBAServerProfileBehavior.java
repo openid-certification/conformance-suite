@@ -124,10 +124,6 @@ public class FAPICIBAServerProfileBehavior {
 		return true;
 	}
 
-	public boolean usesRegisteredClientAuthenticationMethod() {
-		return false;
-	}
-
 	public boolean notificationEndpointRequiresMTLS() {
 		return false;
 	}

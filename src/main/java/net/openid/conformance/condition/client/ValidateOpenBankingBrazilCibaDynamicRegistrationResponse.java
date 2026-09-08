@@ -15,10 +15,6 @@ import java.util.Set;
 public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends AbstractCondition {
 
 	private static final String CIBA_GRANT_TYPE = "urn:openid:params:grant-type:ciba";
-	private static final Set<String> ALLOWED_TOKEN_ENDPOINT_AUTH_METHODS = Set.of(
-		"tls_client_auth",
-		"self_signed_tls_client_auth",
-		"private_key_jwt");
 
 	@Override
 	@PreEnvironment(required = { "software_statement_assertion", "client" })
@@ -31,7 +27,8 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends Ab
 		ensurePingMode(client);
 		ensureHttpsNotificationEndpoint(client);
 		ensurePs256RequestSigning(client);
-		ensureTokenEndpointAuthenticationIsAllowed(client);
+		ensureStringValue(client, "token_endpoint_auth_method", "private_key_jwt");
+		ensurePs256(client, "token_endpoint_auth_signing_alg");
 		ensureProfileSigningAndEncryption(client);
 		ensureCertificateBoundAccessTokens(client);
 		ensureUserCodeIsAbsentOrFalse(client);
@@ -147,21 +144,6 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse extends Ab
 		if (!"PS256".equals(signingAlgorithm)) {
 			throw error("Dynamic registration response must retain PS256 CIBA request signing",
 				args("backchannel_authentication_request_signing_alg", signingAlgorithm));
-		}
-	}
-
-	private void ensureTokenEndpointAuthenticationIsAllowed(JsonObject client) {
-		String authMethod = getRequiredString(client, "token_endpoint_auth_method");
-		if (!ALLOWED_TOKEN_ENDPOINT_AUTH_METHODS.contains(authMethod)) {
-			throw error("Dynamic registration response token_endpoint_auth_method is not allowed",
-				args("token_endpoint_auth_method", authMethod,
-					"allowed", ALLOWED_TOKEN_ENDPOINT_AUTH_METHODS));
-		}
-
-		// OpenID Connect Registration section 2 defines this metadata only for JWT authentication.
-		// An unused server default must not make an mTLS registration fail.
-		if ("private_key_jwt".equals(authMethod)) {
-			ensurePs256(client, "token_endpoint_auth_signing_alg");
 		}
 	}
 

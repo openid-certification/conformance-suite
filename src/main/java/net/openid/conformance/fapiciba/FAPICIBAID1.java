@@ -28,8 +28,11 @@ import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.condition.common.EnsureTLS13OrLater;
 import net.openid.conformance.condition.common.EnsureTLS13PreferredOverTLS12;
+import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1",
@@ -43,9 +46,11 @@ import net.openid.conformance.variant.CIBAMode;
 
 public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
-	protected boolean useDefaultClientAssertionAudience() {
-		return false;
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
 	}
 
 	@Override

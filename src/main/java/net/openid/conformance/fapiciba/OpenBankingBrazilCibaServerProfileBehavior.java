@@ -72,11 +72,11 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			public void evaluate() {
 				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class,
 					Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-				callAndContinueOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
-					Condition.ConditionResult.FAILURE,
+				callAndStopOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
 					"CIBA-4",
 					"BrazilCIBA-6.2.2",
 					"BrazilCIBA-6.2.4",
+					"BrazilOB22-5.1-1",
 					"BrazilOB22-5.1.1-1",
 					"BrazilOB22-6.2",
 					"BrazilOB22-6.3",
@@ -137,11 +137,6 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
-	public boolean usesRegisteredClientAuthenticationMethod() {
-		return true;
-	}
-
-	@Override
 	public boolean notificationEndpointRequiresMTLS() {
 		return true;
 	}
@@ -164,7 +159,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			boolean isDpop = false;
 			boolean stopAfterConsentEndpoint = false;
 			return new OpenBankingBrazilPreAuthorizationSteps(
-				isSecondClient, isDpop, module.getTokenEndpointClientAuthentication(), false, false, stopAfterConsentEndpoint, false
+				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, false, false, stopAfterConsentEndpoint, false
 			);
 		};
 	}

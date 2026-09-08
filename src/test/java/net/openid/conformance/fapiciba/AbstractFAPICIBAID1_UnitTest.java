@@ -1,17 +1,15 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.BsonEncoding;
-import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
-import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -20,10 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class AbstractFAPICIBAID1_UnitTest {
 
@@ -37,49 +32,38 @@ public class AbstractFAPICIBAID1_UnitTest {
 			"pre", "create", "request", "handle-error", "finished");
 	}
 
-	@Test
-	public void usesAuthenticationMethodReturnedByBrazilDynamicRegistration() {
-		TestableModule module = new TestableModule();
-		module.useProfile(new OpenBankingBrazilCibaServerProfileBehavior());
-		module.setupPrivateKeyJwt();
-		module.setClientAuthenticationMethod("self_signed_tls_client_auth");
-
-		assertThat(module.resolvedBackchannelClientAuthentication())
-			.isInstanceOf(AddMTLSClientAuthenticationToBackchannelRequest.class);
-		assertThat(module.resolvedTokenEndpointClientAuthentication())
-			.isEqualTo(AddMTLSClientAuthenticationToRequest.class);
-
-		module.setClientAuthenticationMethod("private_key_jwt");
-
-		assertThat(module.resolvedBackchannelClientAuthentication())
-			.isInstanceOf(AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class);
-		assertThat(module.resolvedTokenEndpointClientAuthentication())
-			.isEqualTo(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class);
-
-		module.useProfile(new FAPICIBAServerProfileBehavior());
-		module.setClientAuthenticationMethod("self_signed_tls_client_auth");
-
-		assertThat(module.resolvedBackchannelClientAuthentication())
-			.isInstanceOf(AddPrivateKeyJWTClientAuthenticationToBackchannelRequest.class);
-		assertThat(module.resolvedTokenEndpointClientAuthentication())
-			.isEqualTo(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class);
-	}
-
-	@Test
-	public void logsWhenRegisteredAuthenticationOverridesSelectedVariant() {
+	@ParameterizedTest
+	@ValueSource(strings = { "private_key_jwt", "tls_client_auth", "self_signed_tls_client_auth" })
+	public void keepsSelectedPrivateKeyJwtAuthentication(String registeredMethod) {
 		AbstractFAPICIBAID1 module = new FAPICIBAID1EnsureOtherScopeOrderSucceeds();
-		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
-		module.setProperties("UNIT-TEST", Map.of(), log, null, mock(TestInfoService.class), null, null);
-		module.setVariant(Map.of(ClientAuthType.class, ClientAuthType.PRIVATE_KEY_JWT));
+		module.setProperties("UNIT-TEST", Map.of("sub", "unit-test", "iss", "https://issuer.example"), BsonEncoding.testInstanceEventLog(), null,
+			mock(TestInfoService.class), null, null);
 		module.setupOpenBankingBrazil();
 		module.setupPrivateKeyJwt();
-		module.getEnv().putObjectFromJsonString("client", "{\"token_endpoint_auth_method\":\"tls_client_auth\"}");
+		Environment env = module.getEnv();
+		env.putObjectFromJsonString("client", "{\"client_id\":\"registered-client\"}");
+		env.putString("client", "token_endpoint_auth_method", registeredMethod);
+		env.putObjectFromJsonString("server", """
+			{
+			  "token_endpoint": "https://server.example/token",
+			  "backchannel_authentication_endpoint": "https://server.example/backchannel"
+			}
+			""");
+		GeneratePS256ClientJWKsWithKeyID generateKeys = new GeneratePS256ClientJWKsWithKeyID();
+		generateKeys.setProperties("UNIT-TEST", BsonEncoding.testInstanceEventLog(), ConditionResult.FAILURE);
+		generateKeys.execute(env);
+		env.putObject("backchannel_authentication_endpoint_request_form_parameters", new JsonObject());
+		env.putObject("token_endpoint_request_form_parameters", new JsonObject());
 
-		module.getTokenEndpointClientAuthentication();
+		module.addClientAuthenticationToBackchannelRequest();
+		module.addClientAuthenticationToTokenEndpointRequest();
 
-		verify(log).log(anyString(), argThat((Map<String, Object> entry) ->
-			"private_key_jwt".equals(entry.get("selected_client_auth_type"))
-				&& "tls_client_auth".equals(entry.get("registered_token_endpoint_auth_method"))));
+		for (String request : List.of("backchannel_authentication_endpoint_request_form_parameters",
+			"token_endpoint_request_form_parameters")) {
+			assertThat(env.getString(request, "client_assertion")).isNotEmpty();
+			assertThat(env.getString(request, "client_assertion_type"))
+				.isEqualTo("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+		}
 	}
 
 	@Test
@@ -120,20 +104,6 @@ public class AbstractFAPICIBAID1_UnitTest {
 
 		private void useProfile(FAPICIBAServerProfileBehavior profileBehavior) {
 			this.profileBehavior = profileBehavior;
-		}
-
-		private void setClientAuthenticationMethod(String method) {
-			JsonObject client = new JsonObject();
-			client.addProperty("token_endpoint_auth_method", method);
-			env.putObject("client", client);
-		}
-
-		private ConditionSequence resolvedBackchannelClientAuthentication() {
-			return getBackchannelClientAuthentication();
-		}
-
-		private Class<? extends ConditionSequence> resolvedTokenEndpointClientAuthentication() {
-			return getTokenEndpointClientAuthentication();
 		}
 
 		@Override

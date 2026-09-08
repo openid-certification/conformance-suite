@@ -284,6 +284,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	// authenticate
 	protected CIBAMode testType;
 
+	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
+		this.addBackchannelClientAuthentication = addBackchannelClientAuthentication;
+	}
+
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence
 	{
 		@Override
@@ -373,67 +377,14 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	protected void addClientAuthenticationToBackchannelRequest() {
 		mapClientAuthKeys("backchannel_authentication_endpoint_request_form_parameters",
 			"backchannel_authentication_endpoint_request_headers");
-		call(getBackchannelClientAuthentication());
+		call(sequence(addBackchannelClientAuthentication));
 		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-		call(sequence(getTokenEndpointClientAuthentication()));
+		call(sequence(addTokenEndpointClientAuthentication));
 		unmapClientAuthKeys();
-	}
-
-	protected ConditionSequence getBackchannelClientAuthentication() {
-		String registeredMethod = getRegisteredClientAuthenticationMethod();
-		if ("tls_client_auth".equals(registeredMethod)
-			|| "self_signed_tls_client_auth".equals(registeredMethod)) {
-			return new AddMTLSClientAuthenticationToBackchannelRequest();
-		}
-		if ("private_key_jwt".equals(registeredMethod)) {
-			return createPrivateKeyJwtBackchannelClientAuthentication();
-		}
-		return addBackchannelClientAuthentication.get();
-	}
-
-	protected Class<? extends ConditionSequence> getTokenEndpointClientAuthentication() {
-		String registeredMethod = getRegisteredClientAuthenticationMethod();
-		if ("tls_client_auth".equals(registeredMethod)
-			|| "self_signed_tls_client_auth".equals(registeredMethod)) {
-			return AddMTLSClientAuthenticationToRequest.class;
-		}
-		if ("private_key_jwt".equals(registeredMethod)) {
-			return CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
-		}
-		return addTokenEndpointClientAuthentication;
-	}
-
-	private String getRegisteredClientAuthenticationMethod() {
-		if (!profileBehavior.usesRegisteredClientAuthenticationMethod()) {
-			return null;
-		}
-		String registeredMethod = env.getString("client", "token_endpoint_auth_method");
-		ClientAuthType registeredType = switch (registeredMethod == null ? "" : registeredMethod) {
-			case "tls_client_auth", "self_signed_tls_client_auth" -> ClientAuthType.MTLS;
-			case "private_key_jwt" -> ClientAuthType.PRIVATE_KEY_JWT;
-			default -> null;
-		};
-		ClientAuthType selectedType = getVariantOrDefault(ClientAuthType.class, null);
-		if (registeredType != null && selectedType != null && registeredType != selectedType) {
-			eventLog.log(getName(), args("msg", "Using the registered client authentication method instead of the selected variant",
-				"selected_client_auth_type", selectedType.toString(),
-				"registered_token_endpoint_auth_method", registeredMethod,
-				"client_id", env.getString("client", "client_id")));
-		}
-		return registeredMethod;
-	}
-
-	protected ConditionSequence createPrivateKeyJwtBackchannelClientAuthentication() {
-		return new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(
-			isSecondClient(), useDefaultClientAssertionAudience());
-	}
-
-	protected boolean useDefaultClientAssertionAudience() {
-		return true;
 	}
 
 	@Override
@@ -518,18 +469,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 				fireTestSkipped("The authorization server registered notification endpoint '" + registeredEndpoint +
 					"', but this test serves '" + notificationUri + "'. The suite cannot use this registration. " +
 					"Configure the authorization server to retain the requested notification endpoint and rerun the test.");
-			}
-		}
-		String registeredMethod = getRegisteredClientAuthenticationMethod();
-		if (!"tls_client_auth".equals(registeredMethod) && !"self_signed_tls_client_auth".equals(registeredMethod)) {
-			return;
-		}
-		// Registration can change authentication after the selected variants have filtered the plan.
-		// Reapply the module's mTLS exclusion before an assertion-specific test creates requests.
-		for (VariantNotApplicable restriction : getClass().getAnnotationsByType(VariantNotApplicable.class)) {
-			if (restriction.parameter() == ClientAuthType.class && Arrays.asList(restriction.values()).contains("mtls")) {
-				fireTestSkipped("This test requires client assertions, but the registered client authentication method " +
-					"is " + registeredMethod + ". The assertion test is not applicable to this registration.");
 			}
 		}
 	}
@@ -1210,7 +1149,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		updateResourceRequestAndCallProtectedResource(isSecondClient(), getTokenEndpointClientAuthentication());
+		updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
 
 		call(profileBehavior.validateResourceEndpointResponseStatus());
 		call(exec().unmapKey("endpoint_response"));
@@ -1402,7 +1341,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
-		addBackchannelClientAuthentication = this::createPrivateKeyJwtBackchannelClientAuthentication;
+		addBackchannelClientAuthentication = () -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), true);
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = PrivateKeyJwtRegistration.class;
 		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the

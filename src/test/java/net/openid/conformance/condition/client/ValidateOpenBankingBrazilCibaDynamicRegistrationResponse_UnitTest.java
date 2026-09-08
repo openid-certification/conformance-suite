@@ -9,6 +9,8 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -167,21 +169,19 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 			.hasMessageContaining("does not match software_jwks_uri");
 	}
 
-	@Test
-	public void acceptsProfilePermittedAuthenticationMethodSubstitution() {
-		response.addProperty("token_endpoint_auth_method", "self_signed_tls_client_auth");
-		response.remove("token_endpoint_auth_signing_alg");
+	@ParameterizedTest
+	@ValueSource(strings = { "tls_client_auth", "self_signed_tls_client_auth" })
+	public void rejectsMtlsAuthenticationSubstitution(String method) {
+		response.addProperty("token_endpoint_auth_method", method);
 
-		assertDoesNotThrow(() -> condition.execute(env));
+		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 
 	@Test
-	public void ignoresUnusedJwtSigningAlgorithmForMtlsAuthentication() {
-		for (String method : new String[] { "tls_client_auth", "self_signed_tls_client_auth" }) {
-			response.addProperty("token_endpoint_auth_method", method);
-			response.addProperty("token_endpoint_auth_signing_alg", "RS256");
-			assertDoesNotThrow(() -> condition.execute(env));
-		}
+	public void rejectsMissingPrivateKeyJwtSigningAlgorithm() {
+		response.remove("token_endpoint_auth_signing_alg");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 
 	@Test
