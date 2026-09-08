@@ -38,8 +38,7 @@ public class OIDSSFReadStreamConfigCall extends AbstractOIDSSFStreamConfigCall {
 	}
 
 	@Override
-	protected void configureResourceUrl(Environment env) {
-		String readStreamUri = getStreamConfigEndpointUrlWithStreamIdIfPresent(env);
-		env.putString("protected_resource_url", readStreamUri);
+	protected String getResourceEndpointUrl(Environment env) {
+		return getStreamConfigEndpointUrlWithStreamIdIfPresent(env);
 	}
 }
