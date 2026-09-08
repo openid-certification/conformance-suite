@@ -332,7 +332,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // GitLab #1858: the whole-plan status bar paints the failed module's
     // segment red. This is the regression that shipped because the segment
     // colour gated on status === "FINISHED" and an INTERRUPTED+FAILED test
-    // fell through to the neutral skip grey.
+    // fell through to the neutral grey.
     const failedSegment = page
       .locator('#planDetailStatus [data-testid="plan-status-segment"]')
       .nth(2);
@@ -392,14 +392,14 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const segments = page.locator('#planDetailStatus [data-testid="plan-status-segment"]');
     await expect(segments).toHaveCount(4);
 
-    // Segments resolve to their colours. The 404 settles to a STATIC skip
+    // Segments resolve to their colours. The 404 settles to a STATIC neutral
     // (never --pending) — proving _statusResolved is set in the catch branch
-    // (R18), not just on success; the never-run module is skip too.
+    // (R18), not just on success; the never-run module is neutral too.
     await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/);
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--warn/);
-    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--neutral/);
     await expect(segments.nth(2)).not.toHaveClass(/cts-pst-seg--pending/);
-    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--neutral/);
 
     // Detail mode shows the merged count-badge filter (R9) — a "Passed" pill.
     await expect(

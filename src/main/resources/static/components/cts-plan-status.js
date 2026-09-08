@@ -6,6 +6,7 @@ import "./cts-tooltip.js";
 import "./cts-badge.js";
 import {
   segmentVariant,
+  segmentStatusWord,
   moduleMatchesResultFilter,
   moduleKey,
   currentModuleIndex,
@@ -19,29 +20,17 @@ const VALID_MODES = new Set(["overview", "detail", "log"]);
 
 // segmentVariant() result -> the segment's status-fill modifier class.
 // Explicit lookup table per components/AGENTS.md §7 (no dynamic class
-// concatenation); an unknown variant falls back to the neutral skip box.
+// concatenation); an unknown variant falls back to the neutral box. The
+// accessible status word is NOT keyed by variant — see segmentStatusWord.
 const SEGMENT_VARIANT_CLASS = {
   pass: "cts-pst-seg--pass",
   fail: "cts-pst-seg--fail",
   warn: "cts-pst-seg--warn",
   running: "cts-pst-seg--running",
   skip: "cts-pst-seg--skip",
+  neutral: "cts-pst-seg--neutral",
   review: "cts-pst-seg--review",
   pending: "cts-pst-seg--pending",
-};
-
-// segmentVariant() result -> the accessible status word baked into each
-// segment's accessible name (and tooltip), so a non-visual agent/AT gets the
-// outcome the fill colour conveys. Mirrors STATUS_BOX_LABELS in cts-plan-list:
-// `skip` is the settled "no result", `pending` the in-flight fetch.
-const SEGMENT_STATUS_WORD = {
-  pass: "passed",
-  fail: "failed",
-  warn: "warning",
-  running: "running",
-  review: "review",
-  skip: "no result",
-  pending: "checking status",
 };
 
 // Detail-mode count badges (R9 redesign): the read-only count summary and the
@@ -60,9 +49,9 @@ const RESULT_BADGES = [
   { key: "WARNING", variant: "warn", label: "Warning", filterable: true },
   { key: "REVIEW", variant: "review", label: "Review", filterable: true },
   { key: "running", variant: "running", label: "Running", filterable: false },
-  { key: "pending", variant: "skip", label: "Checking", filterable: false },
+  { key: "pending", variant: "neutral", label: "Checking", filterable: false },
   { key: "SKIPPED", variant: "skip", label: "Skipped", filterable: true },
-  { key: NOT_RUN_FILTER_VALUE, variant: "skip", label: "Not run", filterable: true },
+  { key: NOT_RUN_FILTER_VALUE, variant: "neutral", label: "Not run", filterable: true },
 ];
 
 // Scoped CSS. KTD2: the host is the size container and a single per-mode
@@ -129,13 +118,17 @@ const STYLE_TEXT = css`
   .cts-pst-seg--review {
     --cts-seg-fill: var(--status-review);
   }
+  /* Skipped verdict: its own (violet) hue so it never reads as not-run. */
+  .cts-pst-seg--skip {
+    --cts-seg-fill: var(--status-skipped);
+  }
   /* Settled not-run / unresolved uses the lighter neutral so "nothing to
      report" recedes; pending uses the darker neutral and pulses. */
-  .cts-pst-seg--skip {
+  .cts-pst-seg--neutral {
     --cts-seg-fill: var(--ink-300);
   }
   .cts-pst-seg--pending {
-    --cts-seg-fill: var(--status-skipped);
+    --cts-seg-fill: var(--status-neutral);
   }
   @media (prefers-reduced-motion: no-preference) {
     .cts-pst-seg--pending {
@@ -629,7 +622,7 @@ class CtsPlanStatus extends LitElement {
    */
   _renderSegment(mod, index, currentIndex, mode) {
     const variant = segmentVariant(mod);
-    const word = SEGMENT_STATUS_WORD[variant] || SEGMENT_STATUS_WORD.skip;
+    const word = segmentStatusWord(mod);
     const name = this._moduleName(mod);
     const isCurrent = index === currentIndex;
     const isDimmed = !moduleMatchesResultFilter(mod, this.activeResultFilter);
@@ -638,7 +631,7 @@ class CtsPlanStatus extends LitElement {
       "is-current": isCurrent,
       "is-dimmed": isDimmed,
     };
-    segClasses[SEGMENT_VARIANT_CLASS[variant] || SEGMENT_VARIANT_CLASS.skip] = true;
+    segClasses[SEGMENT_VARIANT_CLASS[variant] || SEGMENT_VARIANT_CLASS.neutral] = true;
     const ariaName = `${name}: ${word}`;
 
     let segment;

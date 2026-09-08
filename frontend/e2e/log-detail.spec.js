@@ -1165,7 +1165,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
         body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
       }),
     );
-    // 404 sibling: its segment must settle to the static skip fill, not pulse
+    // 404 sibling: its segment must settle to the static neutral fill, not pulse
     // pending forever (R18/KTD3 — _statusResolved set in the error branch).
     await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page);
@@ -1177,12 +1177,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(segments).toHaveCount(4);
 
     // After the fan-out resolves: sibling 1 = pass, sibling 2 = fail, sibling
-    // 3 settled to skip (NOT pending). The marked module (the viewed test)
+    // 3 settled to neutral (NOT pending). The marked module (the viewed test)
     // has no fan-out status of its own (its only instance is the viewed one,
     // which 200s through the main /api/info route) → resolves to PASSED.
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
     await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
-    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--neutral/);
     // The 404 segment must NOT keep the pending class.
     await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
   });
@@ -1305,10 +1305,10 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(segments).toHaveCount(4);
 
     // Wait until the fan-out settles: the reachable siblings colour, and the 404
-    // sibling settles to the neutral skip fill (not stuck pending — R18/KTD3).
+    // sibling settles to the neutral fill (not stuck pending — R18/KTD3).
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
     await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
-    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--neutral/);
     await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
 
     // The unreachable 404 sibling stays an inert <a role="img"> with no href (R2);

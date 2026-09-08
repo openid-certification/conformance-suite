@@ -24,7 +24,7 @@ const RESULT_BADGE_VARIANTS = {
 const STATUS_BADGE_VARIANTS = {
   RUNNING: "running",
   WAITING: "warn",
-  FINISHED: "skip",
+  FINISHED: "neutral",
   INTERRUPTED: "fail",
 };
 
@@ -1219,8 +1219,8 @@ class CtsLogList extends LitElement {
     const publicSuffix = this.isPublic ? "&public=true" : "";
     const href = `log-detail.html?log=${encodeURIComponent(log.testId)}${publicSuffix}`;
     const variantString = formatVariant(log.variant);
-    const statusVariant = STATUS_BADGE_VARIANTS[log.status] || "skip";
-    const resultVariant = RESULT_BADGE_VARIANTS[log.result] || "skip";
+    const statusVariant = STATUS_BADGE_VARIANTS[log.status] || "neutral";
+    const resultVariant = RESULT_BADGE_VARIANTS[log.result] || "neutral";
     const showOwner = !this.isPublic && this.isAdmin && log.owner;
     const showConfig = !this.isPublic;
     const planHref = log.planId

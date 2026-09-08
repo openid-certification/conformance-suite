@@ -333,7 +333,7 @@ class CtsFailureSummary extends LitElement {
     return html`
       <div class="failureItem">
         <cts-badge
-          variant="${RESULT_BADGE_VARIANTS[item.result] || "skip"}"
+          variant="${RESULT_BADGE_VARIANTS[item.result] || "neutral"}"
           label="${item.result}"
         ></cts-badge>
         ${referenceId

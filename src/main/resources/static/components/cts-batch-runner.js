@@ -4,16 +4,15 @@ import "./cts-button.js";
 
 /**
  * Maps a module result string to a canonical cts-badge variant from the
- * OIDF status palette. PENDING is treated as the neutral "skip" tone
- * (the design archive's Skipped palette doubles as the not-yet-run
- * surface), RUNNING uses the spinner-bearing "running" variant, and the
+ * OIDF status palette. PENDING is the grey "neutral" tone (nothing to
+ * report yet), RUNNING uses the spinner-bearing "running" variant, and the
  * terminal results map onto the matching pass/fail/warn/review/skip
- * tones. Unknown results fall through to "skip" so the badge still
+ * tones. Unknown results fall through to "neutral" so the badge still
  * renders something defined.
  * @type {Object.<string, string>}
  */
 const RESULT_BADGE_VARIANTS = {
-  PENDING: "skip",
+  PENDING: "neutral",
   RUNNING: "running",
   PASSED: "pass",
   FAILED: "fail",
@@ -177,7 +176,7 @@ class CtsBatchRunner extends LitElement {
 
   _moduleVariant(module) {
     const result = this._moduleResult(module);
-    return RESULT_BADGE_VARIANTS[result] || "skip";
+    return RESULT_BADGE_VARIANTS[result] || "neutral";
   }
 
   render() {

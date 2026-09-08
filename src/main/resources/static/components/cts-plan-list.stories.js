@@ -453,9 +453,9 @@ export const ModuleStatusBoxes = {
       ),
     ).toBeTruthy();
 
-    // Has-run module → pending (pulsing) segment; never-run → static skip.
+    // Has-run module → pending (pulsing) segment; never-run → static neutral.
     expect(boxVariant(canvasElement, "module-has-run")).toBe("pending");
-    expect(boxVariant(canvasElement, "module-never-run")).toBe("skip");
+    expect(boxVariant(canvasElement, "module-never-run")).toBe("neutral");
   },
 };
 
@@ -483,8 +483,8 @@ export const BoxesResolveToStatus = {
     // inst-002 WARNING → warn; inst-004 FAILED → fail — the full mapping.
     expect(boxVariant(canvasElement, "oidcc-server-rotate-keys")).toBe("warn");
     expect(boxVariant(canvasElement, "fapi2-security-profile-ensure-signed-request")).toBe("fail");
-    // Never-run module (empty instances) stays a static skip box.
-    expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("skip");
+    // Never-run module (empty instances) stays a static neutral box.
+    expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("neutral");
   },
 };
 
@@ -514,9 +514,9 @@ export const NoInstanceModuleNotFetched = {
     NoInstanceModuleNotFetched._requested.length = 0;
     await waitForPlansToLoad(canvasElement);
 
-    // The never-run module (empty instances) renders a static skip box.
+    // The never-run module (empty instances) renders a static neutral box.
     await waitFor(() => {
-      expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("skip");
+      expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("neutral");
     });
 
     // Wait for the has-instance modules to resolve, then assert the fetched
@@ -549,9 +549,9 @@ export const InfoErrorSettlesToSkip = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // A module that has run but whose /api/info 404s settles at skip.
+    // A module that has run but whose /api/info 404s settles at neutral.
     await waitFor(() => {
-      expect(boxVariant(canvasElement, "oidcc-server")).toBe("skip");
+      expect(boxVariant(canvasElement, "oidcc-server")).toBe("neutral");
     });
     // The card is still intact (not blanked by the error).
     expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
