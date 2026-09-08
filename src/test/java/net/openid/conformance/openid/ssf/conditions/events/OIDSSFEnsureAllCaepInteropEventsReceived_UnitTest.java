@@ -32,19 +32,19 @@ public class OIDSSFEnsureAllCaepInteropEventsReceived_UnitTest {
 	}
 
 	private OIDSSFEnsureAllCaepInteropEventsReceived createCondition(Set<String> received) {
-		return createCondition(SsfEvents.CAEP_INTEROP_EVENT_TYPES, received);
+		return createCondition(SsfEvents.CAEP_INTEROP_QUALIFYING_EVENT_TYPES, received);
 	}
 
 	@Test
 	void shouldPassWhenAllExpectedInteropEventsReceived() {
 		// expected is the stream's delivered interop events (all of them here)
 		assertDoesNotThrow(() -> createCondition(
-			new LinkedHashSet<>(SsfEvents.CAEP_INTEROP_EVENT_TYPES)).execute(env));
+			new LinkedHashSet<>(SsfEvents.CAEP_INTEROP_QUALIFYING_EVENT_TYPES)).execute(env));
 	}
 
 	@Test
 	void shouldPassWhenExtraEventsReceived() {
-		Set<String> received = new LinkedHashSet<>(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+		Set<String> received = new LinkedHashSet<>(SsfEvents.CAEP_INTEROP_QUALIFYING_EVENT_TYPES);
 		received.add(SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE);
 		assertDoesNotThrow(() -> createCondition(received).execute(env));
 	}

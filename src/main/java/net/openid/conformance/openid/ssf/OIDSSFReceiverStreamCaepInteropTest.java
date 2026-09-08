@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 		 * read the stream status
 		 * trigger a stream verification
 		 * acknowledge the stream verification
-		 * retrieve and acknowledge the requested CAEP events (at least one of 'session-revoked', 'credential-change', 'device-compliance-change' and 'risk-level-change' must be requested)
+		 * retrieve and acknowledge the requested CAEP events (at least one of the qualifying use cases 'session-revoked', 'credential-change' or 'device-compliance-change' must be requested; 'risk-level-change' is additionally generated when requested, but does not qualify on its own since it is not part of the published CAEP Interop Profile draft-01)
 		 * delete the stream""",
 	profile = "OIDSSF"
 )
@@ -47,7 +47,9 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE, "CAEPIOP-3.1", //
 		SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, "CAEPIOP-3.2", //
 		SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE, "CAEPIOP-3.3", //
-		SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE, "CAEPIOP-3.4" //
+		// risk-level-change is not a use case of the published interop draft-01 (only the
+		// WG head defines CAEPIOP-3.4); anchor the generated event at its CAEP 1.0 definition
+		SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE, "OIDCAEP-3.8" //
 	);
 
 	volatile String createdStreamId;

@@ -145,13 +145,36 @@ public class SsfEvents {
 		STANDARD_EVENT_TYPES = Set.copyOf(events);
 	}
 
-	public static final Set<String> CAEP_INTEROP_EVENT_TYPES;
+	/**
+	 * The qualifying use cases of the CAEP Interoperability Profile 1.0 draft-01
+	 * (sections 3.1-3.3) - the published document of the current certification review period,
+	 * see https://openid.net/specs/openid-caep-interoperability-profile-1_0-01.html.
+	 * A CAEP Interop implementation must support at least one of these.
+	 */
+	public static final Set<String> CAEP_INTEROP_QUALIFYING_EVENT_TYPES;
 	static {
 		Set<String> events = new LinkedHashSet<>();
 		events.add(CAEP_SESSION_REVOKED_EVENT_TYPE);
 		events.add(CAEP_CREDENTIAL_CHANGE_EVENT_TYPE);
 		events.add(CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE); // see: https://github.com/openid/sharedsignals/issues/311
-		events.add(CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE); // CAEPIOP 3.4, added by https://github.com/openid/sharedsignals/pull/349
+		CAEP_INTEROP_QUALIFYING_EVENT_TYPES = events;
+	}
+
+	/**
+	 * All CAEP event types the suite handles under the interop profile: the
+	 * {@link #CAEP_INTEROP_QUALIFYING_EVENT_TYPES qualifying use cases} of draft-01 plus
+	 * risk-level-change, which the working-group head adds as section 3.4
+	 * (https://github.com/openid/sharedsignals/pull/349) but which is NOT part of the
+	 * published draft-01 under review. The emulated transmitter generates risk-level-change
+	 * events for receivers that request them, and events a transmitter voluntarily delivers
+	 * are validated - but risk-level-change is never REQUIRED of a transmitter and does not
+	 * qualify a stream on its own. Revisit (fold into the qualifying set) once the profile
+	 * vote lands with section 3.4 included.
+	 */
+	public static final Set<String> CAEP_INTEROP_EVENT_TYPES;
+	static {
+		Set<String> events = new LinkedHashSet<>(CAEP_INTEROP_QUALIFYING_EVENT_TYPES);
+		events.add(CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE);
 		CAEP_INTEROP_EVENT_TYPES = events;
 	}
 
