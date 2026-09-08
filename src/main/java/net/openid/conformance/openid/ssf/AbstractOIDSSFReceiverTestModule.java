@@ -70,6 +70,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -134,6 +135,29 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 * {@link #onEventsUndeliverable(String, List)}.
 	 */
 	protected final Set<String> undeliveredEventJtis = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * {@code jti} values of events the receiver retrieved via poll but neither acknowledged
+	 * nor reported via {@code setErrs} before deleting the stream, see
+	 * {@link #onEventsUnresolvedAtDeletion(String, List)}. Test modules should stop waiting
+	 * for acknowledgements of these events but still grade the missing acknowledgement.
+	 */
+	protected final Set<String> unresolvedEventJtis = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * {@code jti} values of events the receiver resolved by reporting an error via the
+	 * {@code setErrs} member of a poll request (RFC 8936 2.4). An error report is a valid
+	 * resolution of a SET: no acknowledgement will ever arrive for these events.
+	 */
+	protected final Set<String> errorReportedEventJtis = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * {@code jti} values of events whose push delivery the receiver answered with a non-2xx
+	 * status (or no HTTP response at all), see {@link #onPushDeliveryNotAcknowledged(String,
+	 * OIDSSFSecurityEvent)}. The RFC 8935 2.2 status check grades these per delivery; the
+	 * set only lets test modules stop waiting for acknowledgements that will never arrive.
+	 */
+	protected final Set<String> rejectedPushEventJtis = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The per-{@link ClientAuthType} sequence used to validate client
@@ -739,7 +763,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore, this::onEventsUndeliverable), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
+				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore, this::onEventsUndeliverable, this::onEventsUnresolvedAtDeletion), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -938,7 +962,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 					return "done";
 				}
 
-				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
+				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event,
+					AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess,
+					AbstractOIDSSFReceiverTestModule.this::onPushDeliveryNotAcknowledged), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
 				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
 				// SHALL → FAILURE severity per the conformance-suite convention.
@@ -988,6 +1014,73 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 */
 	protected Set<String> getUndeliveredEventJtis() {
 		return Set.copyOf(undeliveredEventJtis);
+	}
+
+	/**
+	 * Records events the receiver retrieved via poll but neither acknowledged nor reported via
+	 * {@code setErrs} before deleting the stream. No acknowledgement can arrive for them any
+	 * more, so {@code isFinished()} implementations should stop waiting for them - but unlike
+	 * {@link #onEventsUndeliverable(String, List) undeliverable} events the receiver DID
+	 * receive these, so the missing acknowledgement is the receiver's failure and should still
+	 * be graded (RFC 8936 2.4).
+	 */
+	protected void onEventsUnresolvedAtDeletion(String streamId, List<OIDSSFSecurityEvent> events) {
+		List<String> jtis = events.stream().map(OIDSSFSecurityEvent::jti).toList();
+		unresolvedEventJtis.addAll(jtis);
+		eventLog.log(getName(), args(
+			"msg", "Stream was deleted with retrieved events that were neither acknowledged nor reported via setErrs",
+			"stream_id", streamId,
+			"unresolved_event_count", jtis.size(),
+			"unresolved_jtis", jtis));
+	}
+
+	/**
+	 * The {@code jti} values of events the receiver retrieved but never acknowledged nor
+	 * reported before deleting the stream, see {@link #onEventsUnresolvedAtDeletion(String, List)}.
+	 */
+	protected Set<String> getUnresolvedEventJtis() {
+		return Set.copyOf(unresolvedEventJtis);
+	}
+
+	/**
+	 * The {@code jti} values of events the receiver resolved via {@code setErrs} instead of
+	 * acknowledging them, see {@link #onStreamEventErrorReported(String, String, JsonObject)}.
+	 */
+	protected Set<String> getErrorReportedEventJtis() {
+		return Set.copyOf(errorReportedEventJtis);
+	}
+
+	/**
+	 * The {@code jti} values of events whose push delivery was answered with an error status,
+	 * see {@link #onPushDeliveryNotAcknowledged(String, OIDSSFSecurityEvent)}.
+	 */
+	protected Set<String> getRejectedPushEventJtis() {
+		return Set.copyOf(rejectedPushEventJtis);
+	}
+
+	/**
+	 * All {@code jti} values for which no acknowledgement can arrive any more: events never
+	 * delivered, events resolved via {@code setErrs}, push deliveries the receiver rejected,
+	 * and events left unresolved when the stream was deleted. {@code isFinished()}
+	 * implementations that wait for acknowledgements should subtract this set from the
+	 * expected acks so the test finishes (and grades) instead of stalling until the global
+	 * test timeout.
+	 */
+	protected Set<String> getResolvedWithoutAckJtis() {
+		Set<String> resolved = new HashSet<>(undeliveredEventJtis);
+		resolved.addAll(unresolvedEventJtis);
+		resolved.addAll(errorReportedEventJtis);
+		resolved.addAll(rejectedPushEventJtis);
+		return resolved;
+	}
+
+	/**
+	 * Called when a push delivery got an error status (or no HTTP response). The RFC 8935 2.2
+	 * status check grades the delivery itself; this only records that no acknowledgement will
+	 * ever arrive for the event so waiting test modules can finish instead of timing out.
+	 */
+	protected void onPushDeliveryNotAcknowledged(String streamId, OIDSSFSecurityEvent event) {
+		rejectedPushEventJtis.add(event.jti());
 	}
 
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
@@ -1050,10 +1143,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	/**
 	 * Called when the receiver reports an error for a delivered SET via the
-	 * {@code setErrs} member of a poll request (RFC 8936 2.4).
+	 * {@code setErrs} member of a poll request (RFC 8936 2.4). An error report resolves the
+	 * SET - no acknowledgement will follow - so the jti is recorded for
+	 * {@link #getResolvedWithoutAckJtis()}. Overriding implementations should call
+	 * {@code super} to keep that accounting intact.
 	 */
 	protected void onStreamEventErrorReported(String streamId, String jti, JsonObject error) {
-		// NOOP
+		errorReportedEventJtis.add(jti);
 	}
 
 	protected abstract boolean isFinished();
