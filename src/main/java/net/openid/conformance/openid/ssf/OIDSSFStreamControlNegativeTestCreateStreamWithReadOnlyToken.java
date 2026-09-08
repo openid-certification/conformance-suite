@@ -21,7 +21,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		 * obtain an access token for the 'ssf.read' scope only
 		 * attempt to create a stream with that read-only token
 		 * transmitter rejects the request with a 403 response
-		 * the 403 response carries a Bearer 'WWW-Authenticate' challenge (insufficient_scope)
+		 * the 403 response should carry a Bearer 'WWW-Authenticate' challenge (RFC 6750
+		   section 3, insufficient_scope per section 3.1; reported as a warning if absent,
+		   since CAEP Interop 2.7.2 only cites RFC 6750 section 3.1)
 		""",
 	profile = "OIDSSF"
 )
@@ -61,7 +63,11 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken extend
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs403.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "CAEPIOP-2.7.3");
-			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3.1");
+			// WARNING: the WWW-Authenticate MUST is RFC 6750 section 3; CAEPIOP 2.7.2 only
+			// cites section 3.1 (the error codes), so the profile's normative chain to the
+			// header is imprecise - see the condition's javadoc. The 403 above is the
+			// FAILURE-level check.
+			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 	}
