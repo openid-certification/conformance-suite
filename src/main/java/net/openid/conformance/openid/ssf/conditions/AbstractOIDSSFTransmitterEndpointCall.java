@@ -60,6 +60,11 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 
 	protected void configureResourceUrl(Environment env) {
 		String resourceUrl = getResourceEndpointUrl(env);
+		// CAEPIOP 2.7.2 negative tests move the token into the URI query (RFC 6750 2.3)
+		String queryToken = env.getString("ssf", "access_token_query_override");
+		if (queryToken != null) {
+			resourceUrl = resourceUrl + (resourceUrl.contains("?") ? "&" : "?") + "access_token=" + queryToken;
+		}
 		env.putString("protected_resource_url", resourceUrl);
 	}
 
