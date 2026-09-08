@@ -180,7 +180,7 @@ class StatisticsCube_UnitTest {
 	void userTupleWeeksAreWindowedAndMonthsAreKeptForever() {
 		StatisticsCube cube = new StatisticsCube(List.of(), List.of(),
 			List.of(new UserTuple("oidcc-plan", null, null, 1,
-				List.of("2026-02", "2020-01"), List.of("2026-02-23", "2024-03-11", "not-a-week"))),
+				List.of("2026-02", "2020-01"), List.of("2026-02-23", "2024-03-11", "not-a-week"), false)),
 			List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
 		UserTuple tuple = cube.users().get(0);

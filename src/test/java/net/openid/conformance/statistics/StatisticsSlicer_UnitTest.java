@@ -131,7 +131,7 @@ class StatisticsSlicer_UnitTest {
 		StatisticsCube cube = cube(
 			List.of(runs("2019-03", null, "oidcc-plan", 5), runs("2026-02", null, "fapi1-plan", 3)),
 			List.of(new PlanCell("2026-01", null, "fapi1-plan", "", "", 1, 0, 0)),
-			List.of(new UserTuple("fapi1-plan", "", "", 1, List.of("2025-12"), List.of())));
+			List.of(new UserTuple("fapi1-plan", "", "", 1, List.of("2025-12"), List.of(), false)));
 
 		// unfiltered: the whole history, from the first run
 		assertThat(slice(cube, StatisticsQuery.defaults()).periods()).startsWith("2019-03", "2019-04");
@@ -199,9 +199,9 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void aUserWithSeveralTuplesIsCountedOncePerPeriodAndIsNewOnlyInTheirFirstPeriod() {
 		StatisticsOverview overview = slice(cube(List.of(), List.of(),
-			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "", 1, List.of("2026-01", "2026-02"), List.of()),
-				new UserTuple("fapi1-plan", "fapi_profile=plain", "", 1, List.of("2026-02"), List.of()),
-				new UserTuple("oidcc-plan", "fapi_profile=brazil", "", 2, List.of("2026-02"), List.of()))),
+			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "", 1, List.of("2026-01", "2026-02"), List.of(), false),
+				new UserTuple("fapi1-plan", "fapi_profile=plain", "", 1, List.of("2026-02"), List.of(), false),
+				new UserTuple("oidcc-plan", "fapi_profile=brazil", "", 2, List.of("2026-02"), List.of(), false))),
 			StatisticsQuery.defaults());
 
 		assertThat(overview.periods()).containsExactly("2026-01", "2026-02", "2026-03");
@@ -212,8 +212,8 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void theUsersSeriesIsFilteredByPlanAndVariantLikeEveryOtherSeries() {
 		StatisticsCube cube = cube(List.of(), List.of(),
-			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "", 1, List.of("2026-02"), List.of()),
-				new UserTuple("fapi1-plan", "fapi_profile=brazil", "", 2, List.of("2026-02"), List.of())));
+			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "", 1, List.of("2026-02"), List.of(), false),
+				new UserTuple("fapi1-plan", "fapi_profile=brazil", "", 2, List.of("2026-02"), List.of(), false)));
 
 		StatisticsOverview overview = slice(cube, query("plan", "oidcc-plan"));
 
@@ -226,8 +226,8 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void aUserWhoWasAlreadyActiveBeforeTheRangeIsNotNewInIt() {
 		StatisticsOverview overview = slice(cube(List.of(), List.of(),
-			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("2025-12", "2026-02"), List.of()),
-				new UserTuple("oidcc-plan", "", "", 2, List.of("2026-02"), List.of()))),
+			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("2025-12", "2026-02"), List.of(), false),
+				new UserTuple("oidcc-plan", "", "", 2, List.of("2026-02"), List.of(), false))),
 			query("from", "2026-01"));
 
 		assertThat(overview.periods()).containsExactly("2026-01", "2026-02", "2026-03");
@@ -236,15 +236,25 @@ class StatisticsSlicer_UnitTest {
 	}
 
 	@Test
-	void weeklyNewUsersIgnoreUsersWhoseFirstMonthPredatesTheRetainedWindow() {
+	void weeklyNewUsersIgnoreUsersWhoWereActiveBeforeTheRetainedWindow() {
+		// The window opens on 2024-03-18. User 1 also created a plan on 2024-03-04: the same
+		// month, but a week the cube no longer has, so only the tuple's flag can say so.
 		StatisticsOverview overview = slice(cube(List.of(), List.of(),
-			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("2019-01", "2026-03"), List.of("2026-03-09")),
-				new UserTuple("oidcc-plan", "", "", 2, List.of("2026-03"), List.of("2026-03-09")))),
+			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("2024-03"), List.of("2024-03-18"), true),
+				new UserTuple("oidcc-plan", "", "", 2, List.of("2024-03"), List.of("2024-03-18"), false),
+				new UserTuple("oidcc-plan", "", "", 3, List.of("2019-01", "2026-03"), List.of("2026-03-09"), true))),
 			query("granularity", "week"));
 
-		assertThat(overview.periods()).containsExactly("2026-03-09");
-		assertThat(overview.users().activeByPeriod()).containsExactly(2L);
-		assertThat(overview.users().newByPeriod()).containsExactly(1L);
+		assertThat(overview.periods()).startsWith("2024-03-18").endsWith("2026-03-09");
+		assertThat(overview.users().activeByPeriod().get(0)).isEqualTo(2L);
+		assertThat(overview.users().newByPeriod().get(0)).isEqualTo(1L);
+		assertThat(overview.users().newByPeriod().get(overview.periods().size() - 1)).isEqualTo(0L);
+
+		// the flag is about the weekly window only: by month, the history is complete
+		StatisticsOverview monthly = slice(cube(List.of(), List.of(),
+			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("2024-03"), List.of("2024-03-18"), true))),
+			StatisticsQuery.defaults());
+		assertThat(monthly.users().newByPeriod().get(0)).isEqualTo(1L);
 	}
 
 	@Test
@@ -256,9 +266,9 @@ class StatisticsSlicer_UnitTest {
 				new RunCell("2026-03", null, null, true, "", "", 3, 0, 0, 0, 0, 0)),
 			List.of(new PlanCell("2026-03", null, "oidcc-plan", "fapi_profile=plain", "Cert A", 2, 0, 0),
 				new PlanCell("2026-03", null, "fapi1-plan", "fapi_profile=brazil", "Cert B", 1, 0, 0)),
-			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "Cert A", 1, List.of("2026-03"), List.of()),
-				new UserTuple("fapi1-plan", "fapi_profile=plain", "Cert A", 1, List.of("2026-03"), List.of()),
-				new UserTuple("fapi1-plan", "fapi_profile=brazil", "Cert B", 2, List.of("2026-03"), List.of())));
+			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "Cert A", 1, List.of("2026-03"), List.of(), false),
+				new UserTuple("fapi1-plan", "fapi_profile=plain", "Cert A", 1, List.of("2026-03"), List.of(), false),
+				new UserTuple("fapi1-plan", "fapi_profile=brazil", "Cert B", 2, List.of("2026-03"), List.of(), false)));
 
 		StatisticsOverview.Dimensions dimensions = slice(cube, query("from", "2026-03")).dimensions();
 
@@ -301,8 +311,8 @@ class StatisticsSlicer_UnitTest {
 				new RunCell("2026-03", null, "fapi1-plan", false, "", "Cert B", 9, 0, 0, 0, 0, 0)),
 			List.of(new PlanCell("2026-03", null, "oidcc-plan", "", both, 2, 0, 0),
 				new PlanCell("2026-03", null, "fapi1-plan", "", "Cert B", 1, 0, 0)),
-			List.of(new UserTuple("oidcc-plan", "", both, 1, List.of("2026-03"), List.of()),
-				new UserTuple("fapi1-plan", "", "Cert B", 2, List.of("2026-03"), List.of())));
+			List.of(new UserTuple("oidcc-plan", "", both, 1, List.of("2026-03"), List.of(), false),
+				new UserTuple("fapi1-plan", "", "Cert B", 2, List.of("2026-03"), List.of(), false)));
 
 		StatisticsOverview unfiltered = slice(cube, StatisticsQuery.defaults());
 		// one name per entry, the two-profile plan counted under both, busiest first

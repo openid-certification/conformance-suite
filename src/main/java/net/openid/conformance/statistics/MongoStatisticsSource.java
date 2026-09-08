@@ -236,6 +236,7 @@ public class MongoStatisticsSource {
 	 *         which are never needed beyond counting distinct users and are dropped here.
 	 */
 	public List<UserTuple> users(LocalDate nowUtc) {
+		String oldestWeek = StatisticsCube.oldestWeek(nowUtc);
 		List<Bson> pipeline = List.of(
 			Aggregates.group(new Document("planName", "$planName")
 					.append("variant", "$variant")
@@ -243,7 +244,8 @@ public class MongoStatisticsSource {
 					.append("iss", "$owner.iss")
 					.append("sub", "$owner.sub"),
 				Accumulators.addToSet("months", monthExpression()),
-				Accumulators.addToSet("weeks", weekExpression(StatisticsCube.oldestWeek(nowUtc)))));
+				Accumulators.addToSet("weeks", weekExpression(oldestWeek)),
+				Accumulators.sum("beforeWindow", ifThenOne(beforeTheWindow(oldestWeek)))));
 
 		List<UserTuple> tuples = new ArrayList<>();
 		OwnerIds owners = new OwnerIds();
@@ -257,7 +259,7 @@ public class MongoStatisticsSource {
 			}
 			tuples.add(new UserTuple(id.getString("planName"), VariantKeys.canonical(id.get("variant")),
 				CertKeys.canonical(id.get("cert")), owners.idFor(iss, sub),
-				strings(document, "months"), strings(document, "weeks")));
+				strings(document, "months"), strings(document, "weeks"), count(document, "beforeWindow") > 0));
 		}
 		return tuples;
 	}
@@ -642,6 +644,22 @@ public class MongoStatisticsSource {
 				Arrays.asList(new Document("$eq", Arrays.asList("$$parsed", null)), null, week))));
 		return new Document("$cond", Arrays.asList(
 			new Document("$gte", Arrays.asList(startedAsString(), oldestWeek)), parsed, null));
+	}
+
+	/**
+	 * The complement of {@link #weekExpression}'s gate: a document that would have had a week
+	 * before the retained window. Which weeks those were is not kept, only that there were
+	 * some - see {@link UserTuple#activeBeforeWindow()}.
+	 *
+	 * @param oldestWeek the Monday of the oldest ISO week still kept
+	 * @return true for a document whose {@code started} is a string that sorts before
+	 *         {@code oldestWeek}; a missing or unusable one converts to {@code ""} and is
+	 *         left out, as it is from every period
+	 */
+	private static Document beforeTheWindow(String oldestWeek) {
+		return new Document("$and", List.of(
+			new Document("$ne", List.of(startedAsString(), "")),
+			new Document("$lt", List.of(startedAsString(), oldestWeek))));
 	}
 
 	/** @return {@code started} as a string, tolerating a missing field or a BSON date. */

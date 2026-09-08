@@ -184,8 +184,10 @@ public final class StatisticsSlicer {
 	 * the first period any of their matching tuples mentions.
 	 *
 	 * <p>The weekly window would make long standing users look new the moment their oldest
-	 * retained week enters the axis, so a user whose first <em>month</em> is earlier than the
-	 * month their first retained week falls in is never counted as new in the weekly view.
+	 * retained week enters the axis, so a user any of whose matching tuples was active before
+	 * the window is never counted as new in the weekly view. That is the tuple's own flag
+	 * rather than a comparison of its months: the window opens on a Monday, and a plan
+	 * created earlier the same month is in the months but in none of the retained weeks.
 	 */
 	private static Users users(StatisticsCube cube, CellFilter filter, Granularity granularity,
 			Map<String, Integer> index, int size) {
@@ -194,7 +196,7 @@ public final class StatisticsSlicer {
 			active.add(new HashSet<>());
 		}
 		Map<Integer, String> firstPeriod = new HashMap<>();
-		Map<Integer, String> firstMonth = new HashMap<>();
+		Set<Integer> activeBeforeTheWindow = new HashSet<>();
 		for (UserTuple tuple : cube.users()) {
 			if (!filter.matches(tuple)) {
 				continue;
@@ -206,24 +208,19 @@ public final class StatisticsSlicer {
 				}
 				firstPeriod.merge(tuple.ownerId(), period, StatisticsSlicer::earlier);
 			}
-			for (String month : tuple.months()) {
-				firstMonth.merge(tuple.ownerId(), month, StatisticsSlicer::earlier);
+			if (granularity == Granularity.WEEK && tuple.activeBeforeWindow()) {
+				activeBeforeTheWindow.add(tuple.ownerId());
 			}
 		}
 
 		long[] newUsers = new long[size];
 		firstPeriod.forEach((ownerId, period) -> {
 			Integer at = index.get(period);
-			if (at != null && !activeBeforeTheWindow(granularity, period, firstMonth.get(ownerId))) {
+			if (at != null && !activeBeforeTheWindow.contains(ownerId)) {
 				newUsers[at]++;
 			}
 		});
 		return new Users(active.stream().map(owners -> (long) owners.size()).toList(), boxed(newUsers));
-	}
-
-	private static boolean activeBeforeTheWindow(Granularity granularity, String firstWeek, String firstMonth) {
-		return granularity == Granularity.WEEK && firstMonth != null
-			&& firstMonth.compareTo(firstWeek.substring(0, "YYYY-MM".length())) < 0;
 	}
 
 	private static String earlier(String period, String candidate) {

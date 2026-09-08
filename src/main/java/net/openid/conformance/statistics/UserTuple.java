@@ -19,9 +19,13 @@ import java.util.List;
  * @param months     the {@code YYYY-MM} keys this tuple was active in
  * @param weeks      the ISO week Monday keys this tuple was active in; {@link StatisticsCube}
  *                   drops the ones outside the retained window
+ * @param activeBeforeWindow whether the tuple was active in a week older than the retained
+ *                   window: what {@code weeks} can no longer say once those weeks are gone,
+ *                   and what {@code months} cannot say either when the window opens mid
+ *                   month
  */
 public record UserTuple(String planName, String variantKey, String certKey, int ownerId,
-	List<String> months, List<String> weeks) implements Keyed {
+	List<String> months, List<String> weeks, boolean activeBeforeWindow) implements Keyed {
 
 	/** @return the periods this tuple was active in at {@code granularity} */
 	public List<String> periods(Granularity granularity) {
