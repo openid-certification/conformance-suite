@@ -7,11 +7,13 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureReceiverRejectedPushDelivery;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMethodMatchesVariant;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateTamperedStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateTamperedStreamSET.TamperMode;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.Instant;
@@ -85,6 +87,7 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		createdStreamId = streamId;
 		lastCreateResult = createResult;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
+		callAndContinueOnFailure(new OIDSSFEnsureStreamDeliveryMethodMatchesVariant(streamId, getVariant(SsfDeliveryMode.class)), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 	}
 
 	@Override

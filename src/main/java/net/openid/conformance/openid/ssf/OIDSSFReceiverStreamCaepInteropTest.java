@@ -7,9 +7,11 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamContainsCaepInteropEvent;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMethodMatchesVariant;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.LinkedHashSet;
@@ -132,6 +134,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		createdStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
 		callAndContinueOnFailure(new OIDSSFEnsureStreamContainsCaepInteropEvent(streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+		callAndContinueOnFailure(new OIDSSFEnsureStreamDeliveryMethodMatchesVariant(streamId, getVariant(SsfDeliveryMode.class)), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.1");
 	}
 
 	@Override
