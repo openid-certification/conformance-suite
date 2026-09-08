@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
@@ -144,6 +145,11 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 
 	@Override
 	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+		if (error != null || streamId == null) {
+			// deletion failed (e.g. 404 for an unknown or already-deleted stream) - do not
+			// record it as the successful deletion or reset previously recorded state
+			return;
+		}
 		deletedStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream deletion for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 	}
@@ -151,27 +157,44 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 	@Override
 	protected boolean isFinished() {
 		return createdStreamId != null
-			&& !eventsEnqueued.isEmpty()
 			&& eventsEnqueued.get(createdStreamId) != null
-			&& eventsAcked.get(createdStreamId) != null
 			&& didReceiveExpectedAcksForAllDeliveredEvents()
 			&& createdStreamId.equals(deletedStreamId);
 	}
 
 	protected boolean didReceiveExpectedAcksForAllDeliveredEvents() {
-		if (eventsAcked.get(createdStreamId) == null || eventsEnqueued.get(createdStreamId) == null) {
+		if (createdStreamId == null || eventsEnqueued.get(createdStreamId) == null) {
 			return false;
 		}
 		// Events that could not be delivered because the receiver deleted the stream are never
-		// acknowledged; waiting for them would stall the test until it times out.
+		// acknowledged; waiting for them would stall the test until it times out. A receiver
+		// that acknowledged nothing at all must not stall here either (its events all become
+		// undeliverable on deletion) - whether every delivered event was actually acknowledged
+		// is judged in fireTestFinished.
 		Set<String> expectedAcks = new LinkedHashSet<>(eventsEnqueued.get(createdStreamId));
 		expectedAcks.removeAll(getUndeliveredEventJtis());
-		return eventsAcked.get(createdStreamId).containsAll(expectedAcks);
+		return eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(expectedAcks);
 	}
 
 	@Override
 	public void fireTestFinished() {
-		eventLog.log(getName(), "Detected acknowledgements for published events.");
+		Set<String> unacknowledged = new LinkedHashSet<>(
+			createdStreamId == null ? Set.of() : eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
+		unacknowledged.removeAll(createdStreamId == null ? Set.of() : eventsAcked.getOrDefault(createdStreamId, Set.of()));
+		// Events recorded as undeliverable were never (fully) delivered - the receiver
+		// cannot be expected to acknowledge SETs it never received.
+		unacknowledged.removeAll(getUndeliveredEventJtis());
+		if (unacknowledged.isEmpty()) {
+			eventLog.log(getName(), "Detected acknowledgements for published events.");
+		} else {
+			// The receiver retrieved (or was pushed) these events but deleted the stream
+			// without ever acknowledging them - accepted SETs must be acknowledged via
+			// 'ack' (RFC 8936 2.4) or a 202 response (RFC 8935 2.2).
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver never acknowledged " + unacknowledged.size() + " of the " + "delivered events before deleting the stream (jtis: " + unacknowledged + "). "
+						+ "Receivers must acknowledge accepted SETs via 'ack' (RFC 8936 2.4) or a 202 response (RFC 8935 2.2)."),
+				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
+		}
 		super.fireTestFinished();
 	}
 }
