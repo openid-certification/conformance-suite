@@ -8,7 +8,7 @@
 # `min/` distribution, then prune to a minimal English-only JSON-language
 # subset so the on-disk footprint stays under ~4 MB.
 #
-# Why vendor at all: the conformance suite has no bundler; CLAUDE.md "Key
+# Why vendor at all: the conformance suite has no bundler; AGENTS.md "Key
 # Dependencies" pins the policy that vendored deps live under
 # src/main/resources/static/vendor/ and are loaded via plain <script> tags
 # at runtime. <cts-json-editor> bootstraps Monaco via vs/loader.js, the

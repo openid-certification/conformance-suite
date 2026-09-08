@@ -16,7 +16,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 LiveReload (port 35729) auto-refreshes the tab; plain F5 also works. Java edits
 trigger a fast classloader restart (~5s). See the "Dev loop" section in the
-top-level [`CLAUDE.md`](../CLAUDE.md) for the full launch path, the
+top-level [`AGENTS.md`](../AGENTS.md) for the full launch path, the
 production-parity invariant, and the `SPRING_PROFILES_ACTIVE=dev` warning.
 
 For Java↔JS API type parity, the codegen pipeline at `src/api/` snapshots
