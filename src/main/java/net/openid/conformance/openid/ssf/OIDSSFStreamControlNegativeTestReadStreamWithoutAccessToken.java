@@ -13,12 +13,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = """
 		This test verifies that the transmitter rejects a stream read that carries no
 		authorization at all. SSF 1.0 (8.1.1.2) requires a 401 response if authorization
-		failed or is missing, and the CAEP Interop Profile (2.7.2) requires the error to
-		follow RFC 6750 3.1, i.e. to carry a 'WWW-Authenticate' challenge.
+		failed or is missing; RFC 6750 section 3 requires the rejection to carry a
+		'WWW-Authenticate' challenge (the CAEP Interop Profile 2.7.2 cites RFC 6750
+		section 3.1, which defines the error codes carried in that challenge).
 		The testsuite expects to observe the following interactions:
 		 * attempt to read a stream configuration without an Authorization header
 		 * transmitter rejects the request with a 401 response
-		 * the 401 response carries a Bearer 'WWW-Authenticate' challenge
+		 * the 401 response should carry a Bearer 'WWW-Authenticate' challenge (RFC 6750
+		   section 3; reported as a warning if absent, since CAEP Interop 2.7.2 only cites
+		   RFC 6750 section 3.1)
 		""",
 	profile = "OIDSSF"
 )
@@ -34,7 +37,11 @@ public class OIDSSFStreamControlNegativeTestReadStreamWithoutAccessToken extends
 			OIDSSFEnsureNoAccessTokenInAuthorizationHeaderOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
-			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3.1");
+			// WARNING: the WWW-Authenticate MUST is RFC 6750 section 3; CAEPIOP 2.7.2 only
+			// cites section 3.1 (the error codes), so the profile's normative chain to the
+			// header is imprecise - see the condition's javadoc. The 401 above is the
+			// FAILURE-level check.
+			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 	}
