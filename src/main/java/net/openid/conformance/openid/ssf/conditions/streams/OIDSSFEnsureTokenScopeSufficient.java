@@ -49,6 +49,8 @@ public class OIDSSFEnsureTokenScopeSufficient extends AbstractOIDSSFHandleReceiv
 			authResult.add("error", createErrorObj("insufficient_scope",
 				"Access token scope is insufficient for this operation. Required scope: " + requiredScope));
 			authResult.addProperty("status_code", 403);
+			// RFC 6750 3.1: insufficient_scope responses SHOULD name the required scope
+			authResult.addProperty("www_authenticate", "Bearer error=\"insufficient_scope\", scope=\"" + requiredScope + "\"");
 			log("Access token scope is insufficient for the requested operation",
 				args("required_scope", requiredScope, "granted_scope", grantedScope));
 			return env;

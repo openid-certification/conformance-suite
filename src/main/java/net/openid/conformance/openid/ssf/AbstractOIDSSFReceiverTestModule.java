@@ -63,6 +63,7 @@ import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -562,7 +563,14 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected ResponseEntity<?> errorResponseFromAuthResult(JsonObject authResult) {
 		int statusCode = OIDFJSON.getInt(authResult.get("status_code"));
-		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authResult.get("error").getAsJsonObject());
+		ResponseEntity.BodyBuilder response = ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON);
+		// RFC 6750 3: 401/403 responses to a bearer-token request carry a WWW-Authenticate
+		// challenge (CAEP Interop Profile 2.7.2 requires RFC 6750 3.1 errors)
+		JsonElement wwwAuthenticate = authResult.get("www_authenticate");
+		if (wwwAuthenticate != null) {
+			response = response.header(HttpHeaders.WWW_AUTHENTICATE, OIDFJSON.getString(wwwAuthenticate));
+		}
+		return response.body(authResult.get("error").getAsJsonObject());
 	}
 
 	/**

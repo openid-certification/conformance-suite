@@ -19,6 +19,16 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		JsonObject authResult = new JsonObject();
 		env.putObject("ssf", "auth_result", authResult);
 
+		// CAEPIOP 2.7.2: a transmitter MUST NOT accept access tokens via the URI query
+		// parameter mechanism of RFC 6750 2.3. The emulated transmitter therefore rejects
+		// them, and records the attempt so receiver tests can flag it.
+		JsonElement queryParamsEl = env.getElementFromObject("incoming_request", "query_string_params");
+		if (queryParamsEl != null && queryParamsEl.isJsonObject() && queryParamsEl.getAsJsonObject().has("access_token")) {
+			authResult.addProperty("access_token_in_query", true);
+			log("Request carried an access_token URI query parameter, which must not be accepted (CAEP Interop Profile 2.7.2, RFC 6750 2.3)");
+			return unauthorized(env, authResult, "Access tokens must be sent in the Authorization header, not as a URI query parameter");
+		}
+
 		if (authorizationHeaderEl == null) {
 			return unauthorized(env, authResult, "Missing authorization header in request");
 		}
@@ -88,6 +98,8 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 	protected Environment unauthorized(Environment env, JsonObject authResult, String description) {
 		authResult.add("error", createErrorObj("unauthorized", description));
 		authResult.addProperty("status_code", 401);
+		// RFC 6750 3 / 3.1: a 401 carries a WWW-Authenticate challenge with the error code
+		authResult.addProperty("www_authenticate", "Bearer error=\"invalid_token\", error_description=\"" + description + "\"");
 		log(description);
 		return env;
 	}
