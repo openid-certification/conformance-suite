@@ -9,6 +9,11 @@ import "../../../src/main/resources/static/components/cts-log-viewer.js";
 
 export default {
   title: "Pages/LogDetail",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 // Copied from log-detail.html's inline <style> — keep in sync with the page.

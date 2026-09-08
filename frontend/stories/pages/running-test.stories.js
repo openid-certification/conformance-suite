@@ -20,6 +20,11 @@ import "../../../src/main/resources/static/components/cts-empty-state.js";
 
 export default {
   title: "Pages/RunningTest",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 const PAGE_STYLES = html`

@@ -5,6 +5,11 @@ import "../../../src/main/resources/static/components/cts-image-upload.js";
 
 export default {
   title: "Pages/Upload",
+  parameters: {
+    // Page-level story: opt in to Chromatic snapshots. Component stories are
+    // excluded by default in frontend/.storybook/preview.js.
+    chromatic: { disableSnapshot: false },
+  },
 };
 
 const PENDING_IMAGES = [
