@@ -79,10 +79,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 		 * read the stream status
 		 * trigger and receive the stream verification event
 		 * receive the expected CAEP events (session-revoked, credential-change,
-		   device-compliance-change, risk-level-change — as advertised in events_delivered)
+		   device-compliance-change — as advertised in events_delivered)
 		 * delete the stream
 
-		The expected CAEP events are determined from the stream's events_delivered field.
+		The expected CAEP events are the qualifying use cases of the CAEP Interop Profile
+		draft-01 (sections 3.1-3.3) found in the stream's events_delivered field. Other
+		advertised CAEP events (e.g. risk-level-change, which the profile's working-group
+		draft adds as a use case) are validated and acknowledged if the transmitter delivers
+		them, but are not required.
 		These events must be triggered on the transmitter side (e.g. via the transmitter's
 		admin UI) and may be delivered in any order. Each received CAEP event is validated
 		against the CAEP 1.0 Final specification. For PUSH delivery, events are received on
@@ -617,10 +621,15 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 					Condition.ConditionResult.FAILURE, "CAEPIOP-3.3");
 				break;
 			case SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE:
+				// Structural requirements come from CAEP 1.0 Final (3.8) and apply to any
+				// delivered risk-level-change event. The reason_admin requirement only
+				// exists in the WG head's section 3.4 - the published draft-01 of the
+				// interop profile does not define this use case - so it is graded as a
+				// WARNING until the profile vote lands (see SsfEvents.CAEP_INTEROP_EVENT_TYPES).
 				callAndContinueOnFailure(OIDSSFValidateCaepRiskLevelChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.8");
 				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
-					Condition.ConditionResult.FAILURE, "CAEPIOP-3.4");
+					Condition.ConditionResult.WARNING, "CAEPIOP-3.4");
 				break;
 			default:
 				eventLog.log(getName(), "Received CAEP event type: " + eventType);
@@ -661,22 +670,33 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		List<String> eventsDelivered = OIDFJSON.convertJsonArrayToList(eventsDeliveredEl.getAsJsonArray());
+		// Only the qualifying use cases of the published CAEP Interop Profile draft-01
+		// (3.1-3.3) are REQUIRED to be demonstrated during the run. Other advertised CAEP
+		// event types (e.g. risk-level-change, which only the WG head defines as a use case)
+		// are still validated and acknowledged if the transmitter delivers them, but a
+		// transmitter must not fail merely because it never triggered one.
 		Set<String> caepEvents = new LinkedHashSet<>();
+		Set<String> nonQualifyingCaepEvents = new LinkedHashSet<>();
 		for (String eventType : eventsDelivered) {
-			if (SsfEvents.CAEP_EVENT_TYPES.contains(eventType)) {
+			if (SsfEvents.CAEP_INTEROP_QUALIFYING_EVENT_TYPES.contains(eventType)) {
 				caepEvents.add(eventType);
+			} else if (SsfEvents.CAEP_EVENT_TYPES.contains(eventType)) {
+				nonQualifyingCaepEvents.add(eventType);
 			}
 		}
 
 		if (caepEvents.isEmpty()) {
 			throw new TestFailureException(getId(),
-				"Stream events_delivered does not contain any CAEP event types. "
-					+ "The transmitter must support at least one CAEP Interop use case (CAEPIOP-3).");
+				"Stream events_delivered does not contain any CAEP Interop qualifying event type. "
+					+ "The transmitter must support at least one of the use cases 'session-revoked', "
+					+ "'credential-change' or 'device-compliance-change' (CAEPIOP-3.1, 3.2, 3.3).");
 		}
 
 		eventLog.log(getName(),
-			 args("msg", "Transmitter can deliver " + caepEvents.size() + " CAEP event type(s)",
-				 "events_delivered", caepEvents));
+			 args("msg", "Transmitter must deliver " + caepEvents.size() + " qualifying CAEP event type(s) during this run"
+					 + (nonQualifyingCaepEvents.isEmpty() ? "" : "; other advertised CAEP event types are validated if delivered but not required"),
+				 "required_caep_events", caepEvents,
+				 "optional_caep_events", nonQualifyingCaepEvents));
 
 		return caepEvents;
 	}
