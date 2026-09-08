@@ -478,7 +478,7 @@ public class StatisticsCube {
 			normalized.add(new UserTuple(tuple.planName(), key(tuple.variantKey()), key(tuple.certKey()),
 				tuple.ownerId(),
 				periods(tuple.months(), Granularity.MONTH, null),
-				periods(tuple.weeks(), Granularity.WEEK, oldestWeek)));
+				periods(tuple.weeks(), Granularity.WEEK, oldestWeek), tuple.activeBeforeWindow()));
 		}
 		return List.copyOf(normalized);
 	}
