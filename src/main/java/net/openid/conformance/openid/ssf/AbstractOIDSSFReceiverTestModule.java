@@ -488,6 +488,34 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return response;
 	}
 
+	/**
+	 * Delay before generating events once the receiver acknowledged the stream verification
+	 * event, see {@link #scheduleAfterStreamVerification(Runnable)}.
+	 */
+	protected static final int POST_VERIFICATION_EVENT_GENERATION_DELAY_SECONDS = 1;
+
+	/**
+	 * Runs the post-verification event generation in a background task instead of inline.
+	 * <p>
+	 * With POLL delivery the "receiver acknowledged the verification event" cue is raised while
+	 * the receiver's poll request is being handled (see {@code OIDSSFHandlePollRequest}).
+	 * Generating the events there would hold that HTTP request open for the duration and would
+	 * return the freshly generated SETs in the response to the very request that carried the
+	 * acknowledgement - i.e. as a combined acknowledge-and-poll response (RFC 8936 2.4).
+	 * Neither is something the CAEP Interop Profile requires receivers to support, so the
+	 * emulated transmitter behaves like a real one instead: it answers the poll first, and the
+	 * events become available for the receiver's next poll.
+	 * <p>
+	 * With PUSH delivery the cue is raised on the background push task, so callers there can
+	 * generate events directly.
+	 */
+	protected void scheduleAfterStreamVerification(Runnable generateEvents) {
+		scheduleTask(() -> {
+			generateEvents.run();
+			return "done";
+		}, POST_VERIFICATION_EVENT_GENERATION_DELAY_SECONDS, TimeUnit.SECONDS);
+	}
+
 	@SuppressWarnings("FutureReturnValueIgnored")
 	protected void scheduleTask(Callable<String> action, int amount, TimeUnit timeUnit) {
 
