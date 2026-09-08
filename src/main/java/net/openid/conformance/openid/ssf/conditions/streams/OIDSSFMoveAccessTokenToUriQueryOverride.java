@@ -9,12 +9,12 @@ import net.openid.conformance.testmodule.Environment;
  * verify that the transmitter refuses it: CAEP Interop Profile 2.7.2 says a transmitter
  * "MUST NOT accept access tokens via the URI query parameter mechanism".
  * <p>
- * The token value is stashed for {@link #undo(Environment)} and the header token is replaced
- * with an empty value so the request carries no bearer credentials at all.
+ * The Authorization header is suppressed entirely so the query parameter is the only
+ * credential in the request (RFC 6750 section 2 forbids a client from using more than one
+ * method to transmit the token). The stale response of any previous endpoint call is cleared
+ * so the subsequent response checks cannot accidentally evaluate it if the call itself fails.
  */
 public class OIDSSFMoveAccessTokenToUriQueryOverride extends AbstractCondition {
-
-	public static final String QUERY_TOKEN_KEY = "ssf_query_access_token";
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -24,8 +24,9 @@ public class OIDSSFMoveAccessTokenToUriQueryOverride extends AbstractCondition {
 			throw error("No access token available to move into the URI query");
 		}
 
-		env.putString(QUERY_TOKEN_KEY, "value", accessToken);
 		env.putString("ssf", "access_token_query_override", accessToken);
+		env.putString("ssf", "omit_authorization_header", "true");
+		env.removeObject("resource_endpoint_response_full");
 
 		logSuccess("Sending the access token as an 'access_token' URI query parameter instead of in the Authorization header",
 			args("access_token", accessToken));
@@ -34,7 +35,7 @@ public class OIDSSFMoveAccessTokenToUriQueryOverride extends AbstractCondition {
 	}
 
 	public static void undo(Environment env) {
-		env.removeObject(QUERY_TOKEN_KEY);
 		env.removeElement("ssf", "access_token_query_override");
+		env.removeElement("ssf", "omit_authorization_header");
 	}
 }
