@@ -31,6 +31,10 @@ public class OIDSSFRestrictClientScopeToRead extends AbstractCondition {
 		String previousScope = env.getString("ssf", "previous_client_scope");
 		if (previousScope != null && !previousScope.isEmpty()) {
 			env.putString("client", "scope", previousScope);
+		} else {
+			// the client had no configured scope before the restriction - remove the
+			// restricted value instead of leaving 'ssf.read' behind
+			env.removeElement("client", "scope");
 		}
 		env.removeElement("ssf", "previous_client_scope");
 	}

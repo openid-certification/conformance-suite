@@ -4,7 +4,7 @@ public class EnsureHttpStatusCodeIs403 extends AbstractEnsureHttpStatusCode {
 
 	@Override
 	protected int getExpectedStatusCode() {
-		return 404;
+		return 403;
 	}
 
 }
