@@ -74,50 +74,57 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 			throw error("Failed to handle stream replacement request: Transmitter-supplied properties do not match the expected values (SSF 1.0 8.1.1.3)", args("error", resultObj.get("error"), "mismatched_keys", mismatchedKeys));
 		}
 
-		// Handle updates for events_requested, description, delibery
-		if (streamConfigInput.has("description")) {
-			streamConfig.addProperty("description", OIDFJSON.getString(streamConfigInput.get("description")));
+		try {
+			// SSF 1.0 8.1.1.4: malformed receiver-supplied values (events_requested,
+			// delivery, description) yield a 400, never a 500.
+			if (streamConfigInput.has("description")) {
+				streamConfig.addProperty("description", OIDFJSON.getString(streamConfigInput.get("description")));
+			}
+
+			if (streamConfigInput.has("events_requested")) {
+				JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
+				Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
+
+				streamConfig.add("events_requested", streamConfigInput.get("events_requested"));
+				streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
+			}
+
+			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
+			if (delivery == null) {
+				// If delivery is not set, we use POLL delivery method as fallback
+				// see https://openid.github.io/sharedsignals/openid-sharedsignals-framework-1_0.html#section-8.1.1.1-5
+				delivery = new JsonObject();
+				delivery.addProperty("method", DELIVERY_METHOD_POLL_RFC_8936_URI);
+			}
+
+			// if delivery is configured and set to POLL we generate a poll delivery
+			String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
+			if (deliveryMethod.equals(DELIVERY_METHOD_POLL_RFC_8936_URI)) {
+				String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
+				String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
+				delivery.addProperty("endpoint_url", streamPollEndpointUrl);
+				log("Configured endpoint url for POLL delivery for stream_id=%s".formatted(streamId), args("endpoint_url", streamPollEndpointUrl, "delivery", delivery));
+			} else {
+				String pushEndpointUrl = OIDFJSON.getString(delivery.get("endpoint_url"));
+				log("Found endpoint url for PUSH delivery for stream_id=%s".formatted(streamId), args("endpoint_url", pushEndpointUrl, "delivery", delivery));
+			}
+			streamConfig.add("delivery", delivery);
+
+			OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
+
+			streamsObj.add(streamId, streamConfig);
+			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
+
+			resultObj.addProperty("stream_id", streamId);
+			resultObj.add("result", streamConfigResult);
+			resultObj.addProperty("status_code", 200);
+			logSuccess("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream_input", streamConfigInput));
+
+			return env;
+		} catch (Exception e) {
+			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream replacement request", args("error", resultObj.get("error")));
 		}
-
-		if (streamConfigInput.has("events_requested")) {
-			JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
-			Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
-
-			streamConfig.add("events_requested", streamConfigInput.get("events_requested"));
-			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
-		}
-
-		JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
-		if (delivery == null) {
-			// If delivery is not set, we use POLL delivery method as fallback
-			// see https://openid.github.io/sharedsignals/openid-sharedsignals-framework-1_0.html#section-8.1.1.1-5
-			delivery = new JsonObject();
-			delivery.addProperty("method", DELIVERY_METHOD_POLL_RFC_8936_URI);
-		}
-
-		// if delivery is configured and set to POLL we generate a poll delivery
-		String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
-		if (deliveryMethod.equals(DELIVERY_METHOD_POLL_RFC_8936_URI)) {
-			String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
-			String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
-			delivery.addProperty("endpoint_url", streamPollEndpointUrl);
-			log("Configured endpoint url for POLL delivery for stream_id=%s".formatted(streamId), args("endpoint_url", streamPollEndpointUrl, "delivery", delivery));
-		} else {
-			String pushEndpointUrl = OIDFJSON.getString(delivery.get("endpoint_url"));
-			log("Found endpoint url for PUSH delivery for stream_id=%s".formatted(streamId), args("endpoint_url", pushEndpointUrl, "delivery", delivery));
-		}
-		streamConfig.add("delivery", delivery);
-
-		OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
-
-		streamsObj.add(streamId, streamConfig);
-		JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
-
-		resultObj.addProperty("stream_id", streamId);
-		resultObj.add("result", streamConfigResult);
-		resultObj.addProperty("status_code", 200);
-		logSuccess("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream_input", streamConfigInput));
-
-		return env;
 	}
 }
