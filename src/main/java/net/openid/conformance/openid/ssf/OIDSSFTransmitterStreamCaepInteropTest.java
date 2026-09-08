@@ -37,6 +37,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDev
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenSubIdClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenSubIdUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
@@ -527,6 +528,9 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenSubIdClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-3.1", "RFC9493-3");
+		// RFC 9493 §3 prohibits members not described by the format; per the suite's
+		// unknown-property convention this is surfaced as a warning (typo-catcher).
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenSubIdUnknownMembers.class, Condition.ConditionResult.WARNING, "RFC9493-3");
 		callAndContinueOnFailure(OIDSSFRecordSecurityEventTokenSubjectFormat.class, Condition.ConditionResult.INFO, "CAEPIOP-2.5");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.7");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.6");

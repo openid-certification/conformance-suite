@@ -79,11 +79,13 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	@Override
 	public void fireTestFinished() {
+		eventLog.log(getName(), "Detected all stream operations required by CAEP Interop Profile.");
+		// The subject-format coverage verdict (CAEPIOP 2.5) is separate from the stream
+		// operations logged above and may still fail the test here.
 		if (createdStreamId != null) {
 			callAndContinueOnFailure(new OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats(subjectFormatByJti,
 				eventsAcked.getOrDefault(createdStreamId, Set.of())), Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
 		}
-		eventLog.log(getName(), "Detected all stream operations required by CAEP Interop Profile.");
 		super.fireTestFinished();
 	}
 

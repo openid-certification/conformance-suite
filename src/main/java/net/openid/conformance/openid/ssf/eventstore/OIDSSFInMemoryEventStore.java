@@ -129,6 +129,20 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	}
 
 	@Override
+	public List<OIDSSFSecurityEvent> getQueuedEvents(String streamId) {
+		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
+		return List.copyOf(queue);
+	}
+
+	@Override
+	public List<OIDSSFSecurityEvent> getUnacknowledgedEvents(String streamId) {
+		Set<String> acked = getStreamEventAcksAckedCache(streamId);
+		return getStreamEventsCache(streamId).values().stream()
+			.filter(event -> !acked.contains(event.jti()))
+			.toList();
+	}
+
+	@Override
 	public boolean hasEventsForStream(String streamId) {
 		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
 		return queue != null && !queue.isEmpty();

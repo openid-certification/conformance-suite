@@ -697,7 +697,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
+				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore, this::onEventsUndeliverable), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -876,7 +876,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		public String call() throws Exception {
 			OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 16);
 			if (eventsBatch == null) {
-				// stream was removed in-between, so we don't need to push data
+				// stream was removed in-between, so we don't need to push data; the
+				// stream-delete handler has recorded the purged events as undeliverable
 				return "done";
 			}
 
@@ -888,6 +889,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				// The receiver may delete the stream while this batch is being delivered (e.g. once
 				// it has seen every event type it was waiting for). Pushing the remaining events
 				// would fail with a missing push endpoint, so stop and record them as undelivered.
+				// (Only this batch: events beyond it are still queued and are recorded by the
+				// stream-delete handler before it purges the event store.)
 				if (OIDSSFStreamUtils.getStreamConfig(env, streamId) == null) {
 					onEventsUndeliverable(streamId, events.subList(i, events.size()));
 					return "done";
@@ -919,10 +922,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	/**
-	 * Records events that can no longer be delivered because the receiver deleted the stream
-	 * while they were still queued. They will never be acknowledged, so
+	 * Records events that can no longer be delivered or acknowledged because the receiver
+	 * deleted the stream: events still queued at deletion time (any delivery mode), events of
+	 * the currently-executing push batch (reported by the push task), and - for poll delivery -
+	 * events the receiver retrieved but never acknowledged. They will never be acknowledged, so
 	 * {@link #getUndeliveredEventJtis()} lets {@code isFinished()} implementations stop waiting
-	 * for them instead of blocking until the test times out.
+	 * for them instead of blocking until the test times out. Invoked from both the push task
+	 * and the stream-delete handler; the underlying set deduplicates overlapping reports.
 	 */
 	protected void onEventsUndeliverable(String streamId, List<OIDSSFSecurityEvent> events) {
 		List<String> jtis = events.stream().map(OIDSSFSecurityEvent::jti).toList();

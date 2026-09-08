@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Records the subject identifier format used by the {@code sub_id} of the current SET under
  * {@code ssf.observed_subject_formats}, keyed by format, so that
- * {@link OIDSSFLogObservedSubjectFormats} can summarise which formats a transmitter used across
+ * {@link OIDSSFLogObservedSubjectFormats} can summarize which formats a transmitter used across
  * all received events.
  * <p>
  * Stored structure per format: {@code count}, {@code event_types} (distinct event type URIs)

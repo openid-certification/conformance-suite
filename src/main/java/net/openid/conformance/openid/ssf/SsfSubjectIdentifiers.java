@@ -23,6 +23,13 @@ import java.util.regex.Pattern;
  * Formats not known to this class are accepted as proprietary formats (SSF 1.0 §3.4) — only
  * the presence of a non-empty {@code format} member is checked for them.
  * <p>
+ * {@link #validate(JsonElement)} checks structure (required members and their syntax);
+ * {@link #findUnknownMembers(JsonElement)} separately reports members that RFC 9493 §3 prohibits
+ * ("A Subject Identifier MUST NOT contain any members prohibited or not described by its
+ * Identifier Format"), so callers can choose the severity for unknown members — the suite's
+ * convention flags them as warnings (typo-catcher) on events under test and rejects them in
+ * test configuration input.
+ * <p>
  * The CAEP Interoperability Profile restricts the formats that may appear on CAEP events, see
  * <a href="https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-2.5">CAEPIOP §2.5</a>:
  * {@code email} and {@code iss_sub} MUST be supported, {@code opaque} only for the Verification event.
@@ -120,6 +127,65 @@ public final class SsfSubjectIdentifiers {
 			return null;
 		}
 		return OIDFJSON.getString(format);
+	}
+
+	/**
+	 * Returns the members that RFC 9493 §3 / SSF 1.0 §3.5 do not describe for the identifier's
+	 * format, as paths (e.g. {@code iss}, {@code user.email_verified},
+	 * {@code identifiers[1].sub}). Complex Subjects contribute their members' unknown members
+	 * (member names themselves are unrestricted per SSF 1.0 §3.3), aliases contribute their
+	 * nested identifiers' unknown members. Proprietary formats and structurally invalid
+	 * identifiers contribute nothing — run {@link #validate(JsonElement)} for structure first.
+	 */
+	public static List<String> findUnknownMembers(JsonElement subjectIdentifier) {
+		List<String> unknownMembers = new java.util.ArrayList<>();
+		collectUnknownMembers(subjectIdentifier, "", unknownMembers);
+		return unknownMembers;
+	}
+
+	private static void collectUnknownMembers(JsonElement subjectIdentifier, String path, List<String> unknownMembers) {
+		String format = getFormat(subjectIdentifier);
+		if (format == null) {
+			return;
+		}
+		JsonObject subject = subjectIdentifier.getAsJsonObject();
+		switch (format) {
+			case FORMAT_COMPLEX -> {
+				// SSF 1.0 §3.3 allows additional Subject Member names; recurse into the values
+				for (Map.Entry<String, JsonElement> member : getComplexSubjectMembers(subjectIdentifier).entrySet()) {
+					collectUnknownMembers(member.getValue(), path + member.getKey() + ".", unknownMembers);
+				}
+			}
+			case FORMAT_ALIASES -> {
+				collectExtraMembers(subject, Set.of("format", "identifiers"), path, unknownMembers);
+				JsonElement identifiersEl = subject.get("identifiers");
+				if (identifiersEl != null && identifiersEl.isJsonArray()) {
+					JsonArray identifiers = identifiersEl.getAsJsonArray();
+					for (int i = 0; i < identifiers.size(); i++) {
+						collectUnknownMembers(identifiers.get(i), path + "identifiers[" + i + "].", unknownMembers);
+					}
+				}
+			}
+			case FORMAT_IP_ADDRESSES -> collectExtraMembers(subject, Set.of("format", "ip-addresses"), path, unknownMembers);
+			default -> {
+				List<String> requiredMembers = REQUIRED_STRING_MEMBERS.get(format);
+				if (requiredMembers == null) {
+					// proprietary format (SSF 1.0 §3.4) — member names are not restricted
+					return;
+				}
+				Set<String> allowed = new java.util.HashSet<>(requiredMembers);
+				allowed.add("format");
+				collectExtraMembers(subject, allowed, path, unknownMembers);
+			}
+		}
+	}
+
+	private static void collectExtraMembers(JsonObject subject, Set<String> allowedMembers, String path, List<String> unknownMembers) {
+		for (String member : subject.keySet()) {
+			if (!allowedMembers.contains(member)) {
+				unknownMembers.add(path + member);
+			}
+		}
 	}
 
 	public static boolean isComplex(JsonElement subjectIdentifier) {

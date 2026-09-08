@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openid.ssf.SsfSubjectIdentifiers;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
@@ -14,6 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -43,7 +43,6 @@ public class OIDSSFResolveEventSubjects extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"config", "ssf"})
-	@PostEnvironment(required = "ssf")
 	public Environment evaluate(Environment env) {
 
 		String profile = env.getString("ssf", "profile");
@@ -133,13 +132,42 @@ public class OIDSSFResolveEventSubjects extends AbstractCondition {
 				throw error("'" + label + "' field" + position + " in the '" + CONFIG_SECTION + "' section of the test configuration is not a valid RFC 9493 subject identifier: " + e.getMessage(),
 					args("config_key", configKey, "subject", entry));
 			}
-			if (!seen.add(entry.toString())) {
+			List<String> unknownMembers = SsfSubjectIdentifiers.findUnknownMembers(entry);
+			if (!unknownMembers.isEmpty()) {
+				// RFC 9493 §3: "A Subject Identifier MUST NOT contain any members prohibited or
+				// not described by its Identifier Format" — in configuration input this is
+				// usually a misspelled member, so fail with an actionable message.
+				throw error("'" + label + "' field" + position + " in the '" + CONFIG_SECTION + "' section of the test configuration contains members that RFC 9493 (section 3) does not describe for its subject identifier format: " + unknownMembers
+						+ ". Remove them or fix the member names.",
+					args("config_key", configKey, "subject", entry, "unknown_members", unknownMembers));
+			}
+			if (!seen.add(canonicalize(entry))) {
 				log("Ignoring duplicate '" + label + "' entry", args("config_key", configKey, "subject", entry));
 				continue;
 			}
 			subjects.add(entry.getAsJsonObject());
 		}
 		return subjects;
+	}
+
+	/**
+	 * Canonical string form for duplicate detection: object members are serialized in sorted
+	 * key order (recursively), so two subjects that differ only in member order compare equal.
+	 */
+	private static String canonicalize(JsonElement element) {
+		if (element.isJsonObject()) {
+			StringBuilder sb = new StringBuilder("{");
+			element.getAsJsonObject().entrySet().stream()
+				.sorted(Map.Entry.comparingByKey())
+				.forEach(entry -> sb.append('"').append(entry.getKey()).append("\":").append(canonicalize(entry.getValue())).append(','));
+			return sb.append('}').toString();
+		}
+		if (element.isJsonArray()) {
+			StringBuilder sb = new StringBuilder("[");
+			element.getAsJsonArray().forEach(item -> sb.append(canonicalize(item)).append(','));
+			return sb.append(']').toString();
+		}
+		return element.toString();
 	}
 
 	/**

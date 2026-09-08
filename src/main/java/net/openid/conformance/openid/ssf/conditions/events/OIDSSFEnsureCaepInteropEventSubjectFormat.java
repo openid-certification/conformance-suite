@@ -13,6 +13,13 @@ import net.openid.conformance.testmodule.Environment;
  * {@code email} or {@code iss_sub}. The {@code opaque} format is permitted for the Verification
  * event only and is therefore rejected on CAEP events.
  * <p>
+ * Note this reads CAEPIOP §2.5 more strictly than its literal transmitter text: the profile
+ * says transmitters "MUST be able to send events with at least one of the subject identifier
+ * formats" — a capability requirement — while this condition fails every individual CAEP event
+ * whose format is not {@code email}/{@code iss_sub}. That is deliberate: receivers are only
+ * obliged to accept the listed formats, so an event in any other simple format could not be
+ * relied upon to interoperate, and this suite validates senders strictly.
+ * <p>
  * Complex Subjects (SSF 1.0 §3.3) are passed through here and reported separately by
  * {@link OIDSSFWarnCaepInteropEventUsesComplexSubject}, so the caller can assign a different
  * severity to them while the working group settles their status

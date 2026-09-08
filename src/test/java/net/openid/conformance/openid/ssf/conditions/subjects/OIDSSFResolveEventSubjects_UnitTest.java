@@ -187,4 +187,23 @@ public class OIDSSFResolveEventSubjects_UnitTest {
 		assertTrue(e.getMessage().contains("email"));
 		assertTrue(e.getMessage().contains("iss_sub"));
 	}
+
+	@Test
+	void failsOnSubjectWithUnknownMembers() {
+		// RFC 9493 §3: members not described by the format are prohibited — in config input
+		// this is usually a typo, so it is rejected with an actionable message.
+		setUp(SsfProfile.DEFAULT, "{\"valid\": {\"format\":\"email\",\"email\":\"jane@example.com\",\"iss\":\"https://idp.example.com\"}}");
+		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertTrue(e.getMessage().contains("does not describe"), e.getMessage());
+	}
+
+	@Test
+	void detectsDuplicatesRegardlessOfMemberOrder() {
+		setUp(SsfProfile.DEFAULT, "{\"valid\": ["
+			+ "{\"format\":\"iss_sub\",\"iss\":\"https://idp.example.com\",\"sub\":\"jane\"},"
+			+ "{\"sub\":\"jane\",\"iss\":\"https://idp.example.com\",\"format\":\"iss_sub\"}]}");
+		assertDoesNotThrow(() -> condition.execute(env));
+		JsonElement subjects = env.getElementFromObject("ssf", "event_subjects");
+		assertEquals(1, subjects.getAsJsonArray().size());
+	}
 }

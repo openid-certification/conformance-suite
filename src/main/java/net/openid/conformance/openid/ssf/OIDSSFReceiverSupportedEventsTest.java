@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
 	summary = """
 		This test verifies the receiver events delivery.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it generates all supported events and expects a positive delivery of the events received.
-		Note that if the caep_interop profile is used, only the session-revoked and credential-change events are sent.
+		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field.
+		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change and device-compliance-change) are available, and only email/iss_sub (and complex) subjects are used.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
