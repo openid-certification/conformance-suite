@@ -17,8 +17,17 @@ public class OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents exten
 
 		JsonElement supportedEventTypesEl = env.getElementFromObject("ssf", "stream.events_supported");
 		if (supportedEventTypesEl == null) {
-			throw error("Could not find events_supported in stream configuration",
+			// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL. Whether the
+			// transmitter supports a qualifying use case is then decided on events_delivered,
+			// which is REQUIRED and checked by the callers.
+			log("Stream configuration carries no events_supported (OPTIONAL per SSF 1.0 8.1.1); "
+					+ "CAEP Interop use-case support is checked on events_delivered instead",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
+			return env;
+		}
+		if (!supportedEventTypesEl.isJsonArray()) {
+			throw error("events_supported in the stream configuration is not an array",
+				args("events_supported", supportedEventTypesEl));
 		}
 
 		List<String> supportedEventTypes = OIDFJSON.convertJsonArrayToList(supportedEventTypesEl.getAsJsonArray());
