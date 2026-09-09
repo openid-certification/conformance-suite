@@ -346,6 +346,7 @@ Each check should be a separate condition so the caller controls the severity (F
 - **Error Prone**: Enabled at compile time with specific exclusions
 - **ArchUnit**: Architecture tests in `src/test/java/net/openid/conformance/archunit/`
 - **JSON access in Java**: Avoid `JsonElement.getAsString/getAsInt/getAsLong/...`; use `OIDFJSON` helpers instead (e.g., `OIDFJSON.getString(...)`) to satisfy ArchUnit and avoid implicit conversions.
+- **Comments describe the code, not its history.** Don't explain what the code no longer does, what an earlier commit or review round did, or why an alternative was rejected. State the invariant the current code relies on, or say nothing. Rejected alternatives belong in the commit message.
 
 Tests compile with `-Werror` so all warnings must be resolved.
 
@@ -380,6 +381,8 @@ When making multi-file changes or library upgrades, create separate atomic commi
 If the change closes or fixes a GitLab issue — either one the user named when asking for the work, or one that's obviously the driver from the context — end the commit message with a trailer line like `Closes #1650` or `Fixes #1650` (just the `#N`, not a URL). GitLab auto-closes the issue when the MR merges. If the connection to an issue isn't obvious, ask rather than guess.
 
 One issue per MR. Unrelated or cross-cutting improvements noticed on the way (logging, refactors, "while I'm here" fixes) go in their own branch and MR even if small: they need separate review and may already have been decided against (see "Deliberate non-features").
+
+The commit series is what gets reviewed: no add-then-remove or add-then-revert pairs. Squash them away (see "Git Workflow Preference") so the MR shows only the end state.
 
 ## Test Naming Convention
 
