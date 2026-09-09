@@ -10,6 +10,7 @@ import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.EventsBatch;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestLockManager;
 
 import java.util.List;
 import java.util.Map;
@@ -140,7 +141,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			int maxWaitTimeSeconds = 10;
 			boolean waitForEvents = !returnImmediately;
 
-			EventsBatch eventsBatch = eventStore.pollEvents(streamId, maxCount, waitForEvents, maxWaitTimeSeconds);
+			EventsBatch eventsBatch = pollEventsReleasingLockWhileWaiting(streamId, maxCount, waitForEvents, maxWaitTimeSeconds);
 
 			// merge jti-SET pairs into the poll response
 			// see: https://www.rfc-editor.org/rfc/rfc8936.html#section-2.5
@@ -159,5 +160,26 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		resultObj.add("result", pollResultObj);
 		resultObj.addProperty("status_code", 200);
 		return env;
+	}
+
+	/**
+	 * A long poll (RFC 8936 2.2: {@code returnImmediately} defaults to false) may wait seconds
+	 * for an event. This condition runs on a request thread that holds the test lock, so the
+	 * lock is released for the wait - as the framework does around outbound HTTP calls -
+	 * otherwise every other request the receiver makes meanwhile (an acknowledgement, a jwks
+	 * fetch, a delete) queues behind this one.
+	 */
+	protected EventsBatch pollEventsReleasingLockWhileWaiting(String streamId, int maxCount, boolean waitForEvents, int maxWaitTimeSeconds) {
+		TestLockManager lockManager = waitForEvents ? getLockManager() : null;
+		if (lockManager != null) {
+			lockManager.releaseLock();
+		}
+		try {
+			return eventStore.pollEvents(streamId, maxCount, waitForEvents, maxWaitTimeSeconds);
+		} finally {
+			if (lockManager != null) {
+				lockManager.reacquireLock();
+			}
+		}
 	}
 }
