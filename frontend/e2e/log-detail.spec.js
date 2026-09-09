@@ -2617,11 +2617,16 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(dialog).toBeVisible();
     const presets = dialog.locator('[data-testid="private-link-presets"] .plinkPreset button');
     const days = dialog.locator(".plinkDays");
+    const result = dialog.locator('[data-testid="private-link-result"]');
 
-    // Four presets, "1 month" (the 30-day default) pressed on open.
+    // Four presets, "1 month" (the 30-day default) pressed on open. The
+    // presets and the custom input share one fieldset named "Valid for", so
+    // the input's accessible context is not lost when tabbing straight to it.
     await expect(presets).toHaveText(["1 week", "1 month", "6 months", "1 year"]);
     await expect(presets.nth(1)).toHaveAttribute("aria-pressed", "true");
     await expect(days).toHaveValue("30");
+    await expect(dialog.locator("fieldset.plinkExpiry legend")).toHaveText("Valid for");
+    await expect(dialog.locator("fieldset.plinkExpiry .plinkDays")).toHaveCount(1);
 
     // Pick "1 year": input follows, pressed state moves, exp=365 is sent.
     await presets.nth(3).click();
@@ -2629,18 +2634,27 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(presets.nth(3)).toHaveAttribute("aria-pressed", "true");
     await expect(presets.nth(1)).toHaveAttribute("aria-pressed", "false");
     await dialog.locator(".plinkGenerateBtn").click();
-    await expect(dialog.locator('[data-testid="private-link-result"]')).toBeVisible();
+    await expect(result).toBeVisible();
     expect(shareUrls).toHaveLength(1);
     expect(shareUrls[0]).toContain("exp=365");
+
+    // Picking another preset discards the generated link — it was minted for
+    // 365 days and must not stay on screen under a pressed "1 week".
+    await presets.nth(0).click();
+    await expect(days).toHaveValue("7");
+    await expect(result).toHaveCount(0);
 
     // A custom value un-presses every preset; the input still wins.
     await days.fill("45");
     await expect(dialog.locator('.plinkPreset button[aria-pressed="true"]')).toHaveCount(0);
-    await presets.nth(0).click();
-    await expect(days).toHaveValue("7");
     await dialog.locator(".plinkGenerateBtn").click();
+    await expect(result).toBeVisible();
     await expect.poll(() => shareUrls.length).toBe(2);
-    expect(shareUrls[1]).toContain("exp=7");
+    expect(shareUrls[1]).toContain("exp=45");
+
+    // Typing in the input discards the result too.
+    await days.fill("46");
+    await expect(result).toHaveCount(0);
   });
 
   test("Private link: a stale in-flight response cannot clobber a newer result", async ({

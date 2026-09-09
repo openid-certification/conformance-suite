@@ -15,6 +15,17 @@ const STYLE_TEXT = css`
     color: var(--fg);
     margin-bottom: var(--space-1);
   }
+  /* The expiry fieldset is a pure semantic grouping (its legend names both
+     the presets and the custom input for AT); strip the UA chrome. */
+  cts-private-link-dialog .plinkExpiry {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  cts-private-link-dialog .plinkExpiry legend {
+    padding: 0;
+  }
   cts-private-link-dialog .plinkPresets {
     display: flex;
     flex-wrap: wrap;
@@ -178,33 +189,60 @@ export class CtsPrivateLinkDialog extends LitElement {
     return Number.isFinite(this._days) && this._days >= MIN_DAYS && this._days <= MAX_DAYS;
   }
 
+  /**
+   * Change the expiry. Any generated (and possibly already clipboard-copied)
+   * link on screen was minted for the OLD expiry, so it is discarded together
+   * with an in-flight request — otherwise the dialog would show a pressed
+   * "1 year" preset above a link that actually expires in 30 days. Bumping
+   * `_reqToken` is what drops the in-flight result (and rejects its pending
+   * clipboard blob, see _handleGenerate).
+   * @param {number} days - The new expiry in days (may be out of range / NaN
+   *   while the user is typing; Generate stays gated on _daysValid()).
+   */
+  _setDays(days) {
+    if (Object.is(days, this._days)) return;
+    this._days = days;
+    this._reqToken += 1;
+    this._busy = false;
+    this._link = "";
+    this._message = "";
+    this._copyStatus = "";
+    this._error = "";
+  }
+
   _onDaysInput(e) {
-    this._days = Number(e.target.value);
+    this._setDays(Number(e.target.value));
   }
 
   /**
    * cts-click handler for a preset button; the preset's days live in its
    * `data-days` attribute (no per-button arrow closures in the template).
+   * Defensive guard only — every preset carries an in-range integer — but
+   * written so a missing attribute (Number("") === 0) is rejected too.
    * @param {Event} e - The cts-click event from the preset cts-button.
    */
   _onPresetClick(e) {
     const days = Number(/** @type {Element} */ (e.currentTarget).getAttribute("data-days"));
-    if (Number.isFinite(days)) this._days = days;
+    if (Number.isInteger(days) && days >= MIN_DAYS && days <= MAX_DAYS) this._setDays(days);
   }
 
+  /**
+   * The presets are four independent toggle buttons (aria-pressed) rather than
+   * a radiogroup. Radios would collapse them into one Tab stop with arrow-key
+   * navigation, but they have no natural "none selected" state, and that is
+   * exactly what a custom value in the days input is: no preset applies. The
+   * pressed preset is always derived from `_days`, never stored separately.
+   * The enclosing fieldset's legend ("Valid for") names the group for AT.
+   * @returns {import("lit").TemplateResult} The preset button row.
+   */
   _renderPresets() {
-    return html`<div
-      class="plinkPresets"
-      role="group"
-      aria-label="Valid for"
-      data-testid="private-link-presets"
-    >
+    return html`<div class="plinkPresets" data-testid="private-link-presets">
       ${EXPIRY_PRESETS.map((preset) => {
         const active = this._days === preset.days;
         return html`<cts-button
           class="plinkPreset"
           size="xs"
-          variant=${active ? "primary" : "secondary"}
+          variant="secondary"
           aria-pressed=${active ? "true" : "false"}
           data-days=${preset.days}
           label=${preset.label}
@@ -323,19 +361,21 @@ export class CtsPrivateLinkDialog extends LitElement {
   render() {
     return html`
       <cts-modal ${ref(this._modalRef)} heading="Private link" data-testid="private-link-dialog">
-        <span class="plinkLabel" aria-hidden="true">Valid for</span>
-        ${this._renderPresets()}
-        <label class="plinkLabel">
-          Custom (days, ${MIN_DAYS}–${MAX_DAYS})
-          <input
-            class="plinkDays"
-            type="number"
-            min="${MIN_DAYS}"
-            max="${MAX_DAYS}"
-            .value=${String(this._days)}
-            @input=${this._onDaysInput}
-          />
-        </label>
+        <fieldset class="plinkExpiry">
+          <legend class="plinkLabel">Valid for</legend>
+          ${this._renderPresets()}
+          <label class="plinkLabel">
+            Custom (days, ${MIN_DAYS}–${MAX_DAYS})
+            <input
+              class="plinkDays"
+              type="number"
+              min="${MIN_DAYS}"
+              max="${MAX_DAYS}"
+              .value=${String(this._days)}
+              @input=${this._onDaysInput}
+            />
+          </label>
+        </fieldset>
         <div class="plinkGenerate">
           <cts-button
             class="plinkGenerateBtn"
