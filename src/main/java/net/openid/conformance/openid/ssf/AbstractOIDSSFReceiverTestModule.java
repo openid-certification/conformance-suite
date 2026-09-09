@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
+import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessToken;
@@ -990,11 +991,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
 				// SHALL → FAILURE severity per the conformance-suite convention.
 				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), Condition.ConditionResult.FAILURE, "RFC8935-2.2");
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
+				// Pace the deliveries with the test lock released: this task holds the lock in
+				// RUNNING state, and a raw sleep here would stall every request the receiver
+				// makes in the meantime.
+				callAndContinueOnFailure(WaitForOneSecond.class, Condition.ConditionResult.INFO);
+				if (Set.of(Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
 					// Test finished during the delay — exit gracefully
-					Thread.currentThread().interrupt();
 					return "done";
 				}
 			}
