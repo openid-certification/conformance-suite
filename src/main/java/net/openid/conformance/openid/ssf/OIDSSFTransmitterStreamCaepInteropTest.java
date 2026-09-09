@@ -624,12 +624,13 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				// Structural requirements come from CAEP 1.0 Final (3.8) and apply to any
 				// delivered risk-level-change event. The reason_admin requirement only
 				// exists in the WG head's section 3.4 - the published draft-01 of the
-				// interop profile does not define this use case - so it is graded as a
-				// WARNING until the profile vote lands (see SsfEvents.CAEP_INTEROP_EVENT_TYPES).
+				// interop profile, which the CAEPIOP- links point at, does not define this
+				// use case - so it is graded as a WARNING anchored at the CAEP definition
+				// until the profile vote lands (see SsfEvents.CAEP_INTEROP_EVENT_TYPES).
 				callAndContinueOnFailure(OIDSSFValidateCaepRiskLevelChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.8");
 				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
-					Condition.ConditionResult.WARNING, "CAEPIOP-3.4");
+					Condition.ConditionResult.WARNING, "OIDCAEP-3.8");
 				break;
 			default:
 				eventLog.log(getName(), "Received CAEP event type: " + eventType);
