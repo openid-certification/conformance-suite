@@ -5,7 +5,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
@@ -19,9 +19,11 @@ import java.util.List;
  * Resolves the SET's signing key (via the {@code kid} header) from the
  * transmitter's JWKS and asserts it is an RSA key of at least 2048 bits.
  * The RS256 algorithm itself is asserted separately by
- * {@link OIDSSFEnsureEventSignedWithRsa256}.
+ * {@link OIDSSFEnsureEventSignedWithRsa256}. The JWKS is parsed leniently,
+ * as the signature check does: a key the JOSE library cannot parse is logged
+ * and skipped, so it cannot fail a SET signed with a usable key.
  */
-public class OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits extends AbstractCondition {
+public class OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits extends AbstractLenientJwksCondition {
 
 	protected static final int MIN_RSA_KEY_SIZE_BITS = 2048;
 
@@ -31,7 +33,7 @@ public class OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits extends AbstractCo
 
 		JWKSet jwkSet;
 		try {
-			jwkSet = JWKSet.parse(env.getObject("server_jwks").toString());
+			jwkSet = parseJwksLenientlyLoggingSkips(env.getObject("server_jwks").toString(), "transmitter");
 		} catch (ParseException e) {
 			throw error("Could not parse the transmitter JWKS", e);
 		}
