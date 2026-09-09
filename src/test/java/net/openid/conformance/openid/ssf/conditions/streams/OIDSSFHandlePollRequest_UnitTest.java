@@ -61,10 +61,52 @@ public class OIDSSFHandlePollRequest_UnitTest {
 	}
 
 	private void pollRequest(boolean returnImmediately) {
+		pollRequest("""
+			{"returnImmediately": %s, "maxEvents": 16}
+			""".formatted(returnImmediately));
+	}
+
+	private void pollRequest(String bodyJson) {
 		JsonObject request = JsonParser.parseString("""
-			{"query_string_params": {"stream_id": "%s"}, "body_json": {"returnImmediately": %s, "maxEvents": 16}}
-			""".formatted(STREAM, returnImmediately)).getAsJsonObject();
+			{"query_string_params": {"stream_id": "%s"}, "body_json": %s}
+			""".formatted(STREAM, bodyJson)).getAsJsonObject();
 		env.putObject("incoming_request", request);
+	}
+
+	private void setStreamStatus(String status) {
+		env.getElementFromObject("ssf", "streams." + STREAM + "._status").getAsJsonObject().addProperty("status", status);
+	}
+
+	@Test
+	void pausedStreamStillProcessesAcknowledgementsButDeliversNothing() {
+		// SSF 1.0 8.1.2.1: paused only means the transmitter "MUST NOT transmit events over the
+		// stream"; an acknowledgement concerns SETs the receiver already holds (RFC 8936 2.4)
+		// and must be honoured in any state.
+		setStreamStatus("paused");
+		pollRequest("""
+			{"ack": ["jti-1"], "returnImmediately": true, "maxEvents": 16}
+			""");
+
+		condition.execute(env);
+
+		assertTrue(eventStore.isStreamEventAcked(STREAM, "jti-1"));
+		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		assertEquals(200, OIDFJSON.getInt(result.get("status_code")));
+		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").isEmpty());
+	}
+
+	@Test
+	void disabledStreamStillProcessesSetErrsButDeliversNothing() {
+		setStreamStatus("disabled");
+		pollRequest("""
+			{"setErrs": {"jti-1": {"err": "invalid_request", "description": "x"}}, "returnImmediately": true}
+			""");
+
+		condition.execute(env);
+
+		assertTrue(eventStore.isErrorForStreamEvent(STREAM, "jti-1") != null);
+		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").isEmpty());
 	}
 
 	@Test
