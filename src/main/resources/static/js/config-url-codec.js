@@ -38,6 +38,16 @@ export const CONFIG_JSON_COMPRESSED_PARAM = "configJsonZ";
 const COMPRESSION_FORMAT = "deflate";
 
 /**
+ * Upper bound on the inflated size of a `configJsonZ` payload. The legacy
+ * `configJson` parameter was implicitly bounded by the proxy's request-line
+ * limit (~32KB); deflate lifts that, and a crafted payload of that size can
+ * inflate ~1000x. Capping the inflated byte count keeps a malicious share
+ * link from ballooning to tens of MB in the victim's tab before JSON.parse.
+ * 5MB is orders of magnitude above any real test-plan config.
+ */
+export const MAX_INFLATED_CONFIG_BYTES = 5 * 1024 * 1024;
+
+/**
  * Whether this runtime can produce compressed links.
  *
  * @returns {boolean}
@@ -109,16 +119,55 @@ export async function compressConfigForUrl(config) {
 }
 
 /**
+ * Like {@link pipeBytes}, but aborts as soon as the transform has emitted more
+ * than `maxBytes` — the whole point is to stop inflating before the memory is
+ * allocated, so this reads chunk-by-chunk instead of buffering via Response.
+ *
+ * @param {Uint8Array} bytes
+ * @param {ReadableWritablePair<Uint8Array, Uint8Array>} transform
+ * @param {number} maxBytes
+ * @returns {Promise<Uint8Array>}
+ * @throws if the transform emits more than `maxBytes`
+ */
+async function pipeBytesCapped(bytes, transform, maxBytes) {
+  const reader = new Blob([bytes]).stream().pipeThrough(transform).getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        throw new Error(`decompressed data exceeds the ${maxBytes} byte limit`);
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.cancel().catch(() => {});
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
+}
+
+/**
  * Inverse of {@link compressConfigForUrl}.
  *
  * @param {string} value a `configJsonZ` value
  * @returns {Promise<any>} the parsed config
- * @throws if the value is not valid base64url / deflate / JSON
+ * @throws if the value is not valid base64url / deflate / JSON, or inflates
+ *   past {@link MAX_INFLATED_CONFIG_BYTES}
  */
 export async function decompressConfigFromUrl(value) {
-  const inflated = await pipeBytes(
+  const inflated = await pipeBytesCapped(
     base64UrlToBytes(value),
     new DecompressionStream(COMPRESSION_FORMAT),
+    MAX_INFLATED_CONFIG_BYTES,
   );
   return JSON.parse(new TextDecoder().decode(inflated));
 }

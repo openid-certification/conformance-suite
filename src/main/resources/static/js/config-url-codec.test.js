@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   CONFIG_JSON_PARAM,
   CONFIG_JSON_COMPRESSED_PARAM,
+  MAX_INFLATED_CONFIG_BYTES,
   supportsCompressedConfigParam,
   bytesToBase64Url,
   base64UrlToBytes,
@@ -98,6 +99,22 @@ describe("config-url-codec", () => {
 
     it("rejects garbage", async () => {
       await expect(decompressConfigFromUrl("not-deflate-data")).rejects.toThrow();
+    });
+
+    it("rejects a payload that inflates past MAX_INFLATED_CONFIG_BYTES (decompression bomb)", async () => {
+      // Highly compressible: ~6MB of one repeated character deflates to a few
+      // KB, comfortably under any URL limit, but inflates past the 5MB cap.
+      const bomb = await compressConfigForUrl({
+        a: "a".repeat(MAX_INFLATED_CONFIG_BYTES + 1024 * 1024),
+      });
+      expect(bomb.length).toBeLessThan(32 * 1024);
+      await expect(decompressConfigFromUrl(bomb)).rejects.toThrow(/byte limit/);
+    });
+
+    it("accepts a config just under the inflated-size cap", async () => {
+      const config = { a: "a".repeat(MAX_INFLATED_CONFIG_BYTES - 1024) };
+      const value = await compressConfigForUrl(config);
+      expect(await decompressConfigFromUrl(value)).toEqual(config);
     });
   });
 
