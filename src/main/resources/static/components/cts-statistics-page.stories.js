@@ -1462,7 +1462,7 @@ export const PendingThenReady = {
       await waitFor(() => {
         const loading = canvasElement.querySelector('[data-testid="stats-loading"]');
         expect(loading).toBeTruthy();
-        expect(loading.getAttribute("label")).toBe("Computing statistics for the first time");
+        expect(loading.getAttribute("label")).toBe("Computing statistics");
       });
       // Nothing to chart yet, and no error.
       expect(canvasElement.querySelector('[data-testid="stats-charts"]')).toBeNull();
@@ -1485,8 +1485,7 @@ export const PendingThenReady = {
 /**
  * A 202 arriving when a payload is already on screen: the server restarted and
  * lost its cache, or the TTL expired while the page was open. The label must
- * say it is RE-computing — "for the first time" contradicts the (dimmed)
- * charts the admin is looking at.
+ * say it is RE-computing, over the (dimmed) charts the admin is looking at.
  */
 export const RecomputingOverSnapshot = {
   parameters: {

@@ -558,7 +558,11 @@ class CtsStatisticsPage extends LitElement {
     this._abort = controller;
     this._busy = true;
     this._errorMessage = "";
-    if (!this._payload) this._status = "loading";
+    // A poll while the server computes stays "pending": dropping to "loading"
+    // for the round trip and back on the 202 would swap the caption between
+    // "Loading" and "Computing" every few seconds for as long as the
+    // computation takes.
+    if (!this._payload && this._status !== "pending") this._status = "loading";
 
     const query = queryFromState(this._state);
     // What the data is a slice for; `refresh` asks for a newer snapshot but
@@ -1009,8 +1013,8 @@ class CtsStatisticsPage extends LitElement {
   _renderLoading() {
     // A 202 with a snapshot already on screen is not the first computation:
     // the server restarted and lost its cache, or the TTL expired while the
-    // page was open. Saying "for the first time" over the dimmed charts the
-    // admin is looking at contradicts what they can see.
+    // page was open. The label says it is RE-computing over the dimmed charts
+    // the admin is looking at, rather than contradicting what they can see.
     const label = this._status === "pending" ? this._pendingLabel() : "Loading statistics";
     return html`<cts-loading-state label=${label} data-testid="stats-loading"></cts-loading-state>`;
   }
@@ -1020,7 +1024,7 @@ class CtsStatisticsPage extends LitElement {
    *   ellipsis, so neither variant carries one.
    */
   _pendingLabel() {
-    return this._payload ? "Recomputing statistics" : "Computing statistics for the first time";
+    return this._payload ? "Recomputing statistics" : "Computing statistics";
   }
 
   /**

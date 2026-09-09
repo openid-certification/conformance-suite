@@ -490,14 +490,44 @@ test.describe("statistics.html — admin usage dashboard", () => {
     // no charts, and — crucially — no error, because 202 is not a failure.
     const loading = page.locator('[data-testid="stats-loading"]');
     await expect(loading).toBeVisible();
-    await expect(loading).toHaveAttribute("label", "Computing statistics for the first time");
+    await expect(loading).toHaveAttribute("label", "Computing statistics");
     await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="stats-error"]')).toHaveCount(0);
+
+    // The caption must hold still while the page polls: a poll that flipped
+    // it to "Loading statistics" and back, or re-mounted the block, would make
+    // it flicker every few seconds for the twelve minutes a big snapshot takes.
+    await page.evaluate(() => {
+      /** @type {Array<string>} */
+      const changes = [];
+      /** @type {any} */ (window).__loadingChanges = changes;
+      const block = /** @type {Element} */ (
+        document.querySelector('[data-testid="stats-loading"]')
+      );
+      new MutationObserver(() => changes.push(`label=${block.getAttribute("label")}`)).observe(
+        block,
+        {
+          attributes: true,
+          attributeFilter: ["label"],
+        },
+      );
+      new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node instanceof Element && node.matches('[data-testid="stats-loading"]')) {
+              changes.push("re-mounted");
+            }
+          }
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    });
 
     // The third response carries the snapshot; the loading block goes away.
     const tiles = page.locator('[data-testid="stats-tiles"] .cts-stats-tile');
     await expect(tiles).toHaveCount(10, { timeout: POLL_TIMEOUT });
     await expect(loading).toHaveCount(0);
+    expect(searches.length).toBeGreaterThanOrEqual(3);
+    expect(await page.evaluate(() => /** @type {any} */ (window).__loadingChanges)).toEqual([]);
     expect(searches.length).toBeGreaterThanOrEqual(3);
 
     // Ten tiles, exact grouped figures from the fixture.
