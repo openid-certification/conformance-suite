@@ -1002,27 +1002,31 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		@Override
 		public String call() throws Exception {
-			OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 16);
-			if (eventsBatch == null) {
-				// stream was removed in-between, so we don't need to push data; the
-				// stream-delete handler has recorded the purged events as undeliverable
-				return "done";
-			}
-
 			// TODO handle SSF PUSH retry???
-			List<OIDSSFSecurityEvent> events = List.copyOf(eventsBatch.events());
-			for (int i = 0; i < events.size(); i++) {
-				OIDSSFSecurityEvent event = events.get(i);
-
-				// The receiver may delete the stream while this batch is being delivered (e.g. once
-				// it has seen every event type it was waiting for). Pushing the remaining events
-				// would fail with a missing push endpoint, so stop and record them as undelivered.
-				// (Only this batch: events beyond it are still queued and are recorded by the
-				// stream-delete handler before it purges the event store.)
-				if (OIDSSFStreamUtils.getStreamConfig(env, streamId) == null) {
-					onEventsUndeliverable(streamId, events.subList(i, events.size()));
+			// Events are taken from the queue one at a time, so a stream the receiver pauses,
+			// disables or deletes between two deliveries leaves the rest queued: SSF 1.0
+			// 8.1.2.1 says a paused or disabled stream "MUST NOT transmit events" and a paused
+			// one "SHOULD hold" them, and the stream-delete handler records queued events as
+			// undeliverable when it purges the store.
+			while (true) {
+				JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+				if (streamConfig == null) {
 					return "done";
 				}
+				OIDSSFStreamUtils.StreamStatusValue streamStatus = OIDSSFStreamUtils.getStreamStatusValue(streamConfig);
+				if (!streamStatus.isEventDeliveryEnabled()) {
+					if (eventStore.hasEventsForStream(streamId)) {
+						eventLog.log(getName(), args("msg", "Stream is " + streamStatus + ": holding queued events until the receiver enables the stream again (SSF 1.0 8.1.2.1)",
+							"stream_id", streamId, "held_events", eventStore.getQueuedEvents(streamId).size()));
+					}
+					return "done";
+				}
+
+				OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 1);
+				if (eventsBatch == null || eventsBatch.events().isEmpty()) {
+					return "done";
+				}
+				OIDSSFSecurityEvent event = eventsBatch.events().get(0);
 
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event,
 					AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess,
@@ -1041,15 +1045,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 					return "done";
 				}
 			}
+		}
+	}
 
-			if (eventsBatch.moreAvailable() || eventStore.hasEventsForStream(streamId)) {
-				// Reschedule to deliver remaining events. The queue check covers events
-				// enqueued by delivery callbacks (e.g. afterPushDeliverySuccess generating
-				// new SETs after seeing the verification event) that were not yet visible
-				// when the original batch was polled.
-				scheduleTask(this, 1, TimeUnit.SECONDS);
-			}
-			return "done";
+	/**
+	 * Restarts push delivery for events held while the stream was paused or disabled, once the
+	 * receiver enables it again (SSF 1.0 8.1.2.1: held events "SHOULD [be transmitted] when the
+	 * stream's status becomes enabled"). Poll streams need nothing: the next poll returns them.
+	 */
+	protected void resumePushDeliveryIfEnabled(String streamId) {
+		JsonObject streamConfig = streamId == null ? null : OIDSSFStreamUtils.getStreamConfig(env, streamId);
+		if (streamConfig == null || !OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
+			return;
+		}
+		if (OIDSSFStreamUtils.getStreamStatusValue(streamConfig).isEventDeliveryEnabled() && eventStore.hasEventsForStream(streamId)) {
+			eventLog.log(getName(), args("msg", "Stream enabled again: delivering the events held while it was paused or disabled",
+				"stream_id", streamId, "held_events", eventStore.getQueuedEvents(streamId).size()));
+			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
 		}
 	}
 
@@ -1190,7 +1202,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		if (isUpdateStreamStatus) {
-			onStreamStatusUpdateSuccess(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
+			String updatedStreamId = OIDFJSON.tryGetString(statusOpResult.get("stream_id"));
+			resumePushDeliveryIfEnabled(updatedStreamId);
+			onStreamStatusUpdateSuccess(updatedStreamId, statusOpResult);
 		} else {
 			onStatusStatusLookup(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
 		}

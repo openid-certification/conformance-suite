@@ -8,6 +8,7 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFEventErrorConsumer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.EventsBatch;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamStatusValue;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestLockManager;
@@ -93,19 +94,15 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
-		// if stream is paused or disabled, don't return events!
 
 		JsonObject setsObject = new JsonObject();
 
 		JsonObject pollResultObj = new JsonObject();
 		pollResultObj.add("sets", setsObject);
 
-		if (!OIDSSFStreamUtils.getStreamStatusValue(streamConfig).isEventDeliveryEnabled()) {
-			// return empty list
-			resultObj.add("result", pollResultObj);
-			resultObj.addProperty("status_code", 200);
-			return env;
-		}
+		// Acknowledgements and error reports concern SETs the receiver already holds
+		// (RFC 8936 2.4), so they are processed whatever the stream status; only the
+		// delivery of further events depends on it (SSF 1.0 8.1.2.1).
 
 		// process acknowledgements if necessary
 		if (ackArrayEl != null && !ackArrayEl.isEmpty()) {
@@ -135,7 +132,12 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		}
 
 		// retrieve events if necessary
-		if (maxCount > 0) {
+		StreamStatusValue streamStatus = OIDSSFStreamUtils.getStreamStatusValue(streamConfig);
+		if (!streamStatus.isEventDeliveryEnabled()) {
+			// SSF 1.0 8.1.2.1: a paused or disabled stream "MUST NOT transmit events"; queued
+			// events stay held until the receiver enables the stream again.
+			log("Stream is " + streamStatus + ": acknowledgements were processed, no events are delivered", args("stream_id", streamId, "status", streamStatus.name()));
+		} else if (maxCount > 0) {
 
 			log("Deliver stream events for stream_id=" + streamId, args("maxCount", maxCount, "returnImmediately", returnImmediately));
 			int maxWaitTimeSeconds = 10;
