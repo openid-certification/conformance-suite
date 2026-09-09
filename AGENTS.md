@@ -350,6 +350,12 @@ When an external client **calls a test-suite endpoint** (e.g., a wallet calling 
 
 Each check should be a separate condition so the caller controls the severity (FAILURE vs WARNING).
 
+## REST API endpoints
+
+Any new or changed handler under `/api/**` (`@GetMapping` / `@PostMapping` / `@RequestMapping`, or a change to an existing handler's authorization) must land in the same MR as security tests in `scripts/run-security-tests.py`, run by the `security_test` CI job via `.gitlab-ci/run-tests.sh --security-tests`. Cover, as applicable: unauthenticated access is rejected (401); share-link / private-link tokens cannot reach endpoints outside their allow-list (401/403); the owner or admin can reach their own resource (200); an unknown and an unauthorized resource id return the same 404 so existence does not leak. Use a short timeout on any long-poll endpoint so the suite stays fast.
+
+API tokens are always `ROLE_USER` and admins cannot mint an admin token, so the script can only prove denial for admin-only routes; positive admin coverage needs an OIDC browser session. When planning a new endpoint, include its UI consumer (page or `cts-*` component, plus fixtures in `frontend/e2e/fixtures/`) and the security tests in the same plan, not as follow-ups.
+
 ## Code Quality
 
 - **Checkstyle**: Google Java Style (configured in `.checkstyle.xml`)
