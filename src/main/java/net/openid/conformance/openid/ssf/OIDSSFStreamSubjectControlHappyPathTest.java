@@ -78,7 +78,7 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTrans
 
 		eventLog.runBlock("Validate TLS Connection", this::validateTlsConnection);
 
-		// see https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html
+		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-01.html
 		eventLog.runBlock("Prepare Transmitter Access Token", this::obtainTransmitterAccessToken);
 
 		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
