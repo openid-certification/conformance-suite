@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * test configuration input.
  * <p>
  * The CAEP Interoperability Profile restricts the formats that may appear on CAEP events, see
- * <a href="https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-2.5">CAEPIOP §2.5</a>:
+ * <a href="https://openid.net/specs/openid-caep-interoperability-profile-1_0-01.html#section-2.5">CAEPIOP §2.5</a>:
  * {@code email} and {@code iss_sub} MUST be supported, {@code opaque} only for the Verification event.
  */
 public final class SsfSubjectIdentifiers {
