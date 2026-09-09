@@ -7,14 +7,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessToken;
+import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStopOnFirstFailureSequence;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFValidateRequestedScope;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureTokenScopeSufficient;
@@ -53,6 +56,7 @@ import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithC
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.OAuthUriUtil;
@@ -715,7 +719,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				// conditions refuse to overwrite a client_authentication left over
 				// from an earlier token request, so clear it before each validation.
 				env.removeObject("client_authentication");
-				call(sequence(validateClientAuthenticationSteps));
+				try {
+					// The shared sequences continue past a failed step (they serve modules that
+					// test the client); this emulated authorization server must refuse the token
+					// instead, so run them stopping at the first failure and answer invalid_client.
+					call(new OIDSSFStopOnFirstFailureSequence(validateClientAuthenticationSteps));
+				} catch (TestFailureException e) {
+					if (e.getCause() instanceof ConditionError conditionError && !conditionError.isPreOrPostError()) {
+						// A stop-on-failure condition has logged its failure but leaves the result
+						// update to the exception it throws; record the refusal explicitly instead.
+						callAndContinueOnFailure(new OIDSSFFindingCondition(
+								"Refused to issue an access token: client authentication failed, see the preceding failure. "
+									+ "The emulated authorization server answers invalid_client (RFC 6749 5.2)."),
+							Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+						return clientAuthenticationFailed();
+					}
+					throw e;
+				}
 			}
 
 			callAndStopOnFailure(OIDSSFValidateRequestedScope.class, "CAEPIOP-2.7.3");
@@ -733,6 +753,24 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		} finally {
 			env.unmapKey("token_endpoint_request");
 		}
+	}
+
+	/**
+	 * RFC 6749 5.2: {@code invalid_client} - "Client authentication failed". The authorization
+	 * server MAY answer 401; if the client authenticated via the Authorization header it MUST,
+	 * and MUST include a WWW-Authenticate header matching the client's scheme.
+	 */
+	protected ResponseEntity<?> clientAuthenticationFailed() {
+		JsonObject body = new JsonObject();
+		body.addProperty("error", "invalid_client");
+		body.addProperty("error_description", "Client authentication failed");
+		ResponseEntity.BodyBuilder response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			.header("Cache-Control", "no-store")
+			.header("Pragma", "no-cache");
+		if (OIDCCValidateClientAuthenticationWithClientSecretBasic.class.equals(validateClientAuthenticationSteps)) {
+			response.header("WWW-Authenticate", "Basic realm=\"" + env.getString("ssf", "issuer") + "\"");
+		}
+		return response.contentType(MediaType.APPLICATION_JSON).body(body);
 	}
 
 	protected ResponseEntity<?> tokenError(String error, String description, HttpStatus status) {

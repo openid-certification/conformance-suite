@@ -12,11 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,6 +73,10 @@ public class AbstractOIDSSFReceiverTestModuleTokenEndpoint_UnitTest {
 	}
 
 	private ResponseEntity<?> postTokenRequest(String requestId) {
+		return postTokenRequest(requestId, CLIENT_SECRET);
+	}
+
+	private ResponseEntity<?> postTokenRequest(String requestId, String clientSecret) {
 		module.putEnvObject(requestId, JsonParser.parseString("""
 			{
 				"body_form_params": {
@@ -78,11 +86,57 @@ public class AbstractOIDSSFReceiverTestModuleTokenEndpoint_UnitTest {
 					"scope": "ssf.manage"
 				}
 			}
-			""".formatted(CLIENT_ID, CLIENT_SECRET)).getAsJsonObject());
+			""".formatted(CLIENT_ID, clientSecret)).getAsJsonObject());
 
 		HttpServletRequest req = mock(HttpServletRequest.class);
 		when(req.getMethod()).thenReturn("POST");
 		return module.tokenRequest(req, requestId);
+	}
+
+	private ResponseEntity<?> basicAuthTokenRequest(String requestId, String clientSecret) {
+		String basic = Base64.getEncoder().encodeToString((CLIENT_ID + ":" + clientSecret).getBytes(StandardCharsets.UTF_8));
+		module.putEnvObject(requestId, JsonParser.parseString("""
+			{
+				"headers": {"authorization": "Basic %s"},
+				"body_form_params": {"grant_type": "client_credentials", "scope": "ssf.manage"}
+			}
+			""".formatted(basic)).getAsJsonObject());
+
+		HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getMethod()).thenReturn("POST");
+		return module.tokenRequest(req, requestId);
+	}
+
+	@Test
+	public void refusesATokenWhenClientSecretPostAuthenticationFails() {
+		// RFC 6749 5.2: "invalid_client - Client authentication failed"; a receiver with a
+		// wrong secret must see the refusal at the token endpoint, not a working token
+		ResponseEntity<?> response = assertDoesNotThrow(() -> postTokenRequest("token_request_bad", "wrong-secret"));
+		assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+		JsonObject body = (JsonObject) response.getBody();
+		assertNotNull(body);
+		assertEquals("invalid_client", OIDFJSON.getString(body.get("error")));
+		assertEquals(Result.FAILED, module.getResult());
+
+		// the failed attempt must not poison a following, correct request
+		assertEquals(HttpStatus.OK, postTokenRequest("token_request_good").getStatusCode());
+	}
+
+	@Test
+	public void refusesATokenWhenClientSecretBasicAuthenticationFails() {
+		module.setupClientSecretBasic();
+
+		ResponseEntity<?> response = assertDoesNotThrow(() -> basicAuthTokenRequest("token_request_bad", "wrong-secret"));
+		assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+		// RFC 6749 5.2: a client that authenticated via the Authorization header gets a 401
+		// with a WWW-Authenticate header matching its scheme
+		assertNotNull(response.getHeaders().getFirst("WWW-Authenticate"));
+		assertTrue(response.getHeaders().getFirst("WWW-Authenticate").startsWith("Basic"));
+		JsonObject body = (JsonObject) response.getBody();
+		assertNotNull(body);
+		assertEquals("invalid_client", OIDFJSON.getString(body.get("error")));
+
+		assertEquals(HttpStatus.OK, basicAuthTokenRequest("token_request_good", CLIENT_SECRET).getStatusCode());
 	}
 
 	@Test
