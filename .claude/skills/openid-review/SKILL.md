@@ -29,25 +29,28 @@ Concentrate on findings related to changes made on the branch — flag pre-exist
 - Dead code or unreachable paths
 - Null/missing environment keys that would cause runtime failures
 - `@PreEnvironment` and `@PostEnvironment` annotations matching actual usage
-- Condition result severity must map to spec requirement language:
+- Condition result severity must map to spec requirement language **for the behaviour under test**:
   - `ConditionResult.FAILURE` for mandatory clauses ("shall", "must")
   - `ConditionResult.WARNING` for recommended clauses ("should")
-  - `ConditionResult.INFO` for optional behavior ("may")
+  - `ConditionResult.INFO` for optional behavior ("may") that the test is checking. A "may" describing a server choice that prevents the behaviour under test from being exercised is neither INFO nor a skip: it is a stop-on-failure FAILURE (see Skips below)
 - Every code path in a condition must either call `error()` (to fail) or `logSuccess()`/`log()` (to pass) before returning
 - New or modified condition calls must include a `requirements` string array referencing the relevant specification section, e.g., `callAndStopOnFailure(Cond.class, "RFC6749-4.1.3")`
 
 ### Conformance Suite Conventions
 - Use `callAndStopOnFailure` vs `callAndContinueOnFailure` appropriately: `StopOnFailure` when the problem would prevent later test steps executing correctly; `ContinueOnFailure` when downstream steps are unaffected
+- **Skips**: `fireTestSkipped` is only acceptable when the tester or the server declared out of play a feature that is optional under every profile that can reach the skip (PAR not advertised, optional `state` omitted, RSA not configured). Profiles that mandate the feature must stop with a FAILURE before the skip is reached: `FAPI2SPFinalRefreshToken` fails for Brazil via `FAPIBrazilRefreshTokenRequired` and only then skips for plain FAPI, where refresh tokens are optional. Flag as critical any skip introduced because a server's spec-permitted choice (substituted DCR metadata, a different auth method) means mandatory behaviour goes untested — that must be a FAILURE, otherwise the implementer can certify untested. Also flag profile-specific validators that accept base-spec options the profile forbids
 - Environment paths navigated correctly (e.g., `env.getString("object", "nested.path")`)
 - Error messages for configuration issues should reference UI labels from `schedule-test.html`, not internal JSON key names, and include "in the test configuration"
 - Unit test files must follow the `*_UnitTest.java` naming convention
 - New conditions require unit tests with thorough coverage, including edge cases
+- Module-lifecycle unit tests that mock `TestExecutionManager` or poke private state via reflection are a finding; expect a CI pairing in `.gitlab-ci/run-tests.sh` instead
 - WARNING severity requires a separate condition that calls `error()`, invoked by the caller with `ConditionResult.WARNING` — a condition's own `log()` is INFO-level, not a warning
 - `@PublishTestModule` summary field must clearly communicate: what the test does, why, and the expected outcome
 - New test modules must be added to relevant test plans and have associated configurations for automated regression testing
 - **Configuration fields must be declared where they're consumed.** Fields the user fills in on `schedule-test.html` are only shown if they appear in the aggregated `configurationFields` for the plan/modules. When code added on the branch reads a new `client.*` (or other) config path, verify the path is declared via either `@ConfigurationFields({...})` on the abstract base class (for fields used by every concrete module in the family — preferred when the consuming Extract/Add condition is wired in the abstract base's sequence), `@PublishTestModule(configurationFields = ...)` on a specific module (for module-specific fields), or `@VariantConfigurationFields` (for fields only applicable under certain variants). A field that the code reads but no annotation declares is a UI bug — the user can't supply it through the form.
 - American English throughout (e.g., "authorization" not "authorisation")
 - **TLS certificate failures**: if new code handles TLS errors, verify it does not hard-fail on certificate rejections — the test should accept refusals at the SSL/TLS layer or HTML error responses where JSON is expected (warn, not fail)
+- **Emulator vs validator**: a check weakened or removed so the suite's own emulator passes a CI pairing is a finding; the fix is an emulator change or an expected-failures entry. Conversely, don't ask for spec-conformance work on the emulated side unless a pairing needs it
 
 ### Frontend Changes
 - Frontend changes must follow `frontend/README.md`: `npm run test:ci` for JS/component changes, targeted Playwright E2E for changed static pages under `src/main/resources/static/`, and `test-storybook` when components, stories, play functions, or a11y-relevant behavior change.
@@ -106,6 +109,8 @@ Concentrate on findings related to changes made on the branch — flag pre-exist
 - Commits should be logical and complete — no "fix" commits that correct earlier commits in the same MR (these should be squashed/fixup'd before review)
 - Clean, meaningful commit messages following [best practices](https://chris.beams.io/posts/git-commit/)
 - Branch should be rebased onto latest origin/master
+- No add-then-remove or add-then-revert commit pairs — an abandoned approach is dropped from the series, not reverted on top
 
 ### Scope
 - No unnecessary changes outside the purpose of the PR
+- Cross-cutting changes not needed by the MR's issue are a finding; check the "Deliberate non-features" section of AGENTS.md before accepting any "improvement"
