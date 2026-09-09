@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureReceiverRejectedPushDelivery;
@@ -254,10 +255,9 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 				callAndContinueOnFailure(new OIDSSFEnsureReceiverRejectedPushDelivery(tamperMode.description() + ", jti=" + event.jti()),
 					Condition.ConditionResult.FAILURE, requirementsFor(tamperMode, "RFC8935-2.3"));
 				resolvedInvalidSetJtis.add(event.jti());
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
+				// pace the deliveries with the test lock released (see the base push task)
+				callAndContinueOnFailure(WaitForOneSecond.class, Condition.ConditionResult.INFO);
+				if (Set.of(Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
 					return "done";
 				}
 			}
