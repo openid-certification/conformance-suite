@@ -45,7 +45,10 @@ public class OIDSSFTransmitterStreamVerificationPollAndAckTest extends AbstractO
 		triggerVerificationEvent();
 
 		// Step 3: POLL_AND_ACKNOWLEDGE - ack the first batch, retrieve the second;
-		// retries poll (without re-acking) until the solicited event arrives.
+		// retries poll (without re-acking) until the event echoing the SECOND request
+		// arrives. The first request's event may itself only show up now (SSF 1.0
+		// 8.1.4.2 allows asynchronous, out-of-order delivery); the state check accepts
+		// it as an earlier echo and the loop keeps polling for the second.
 		if (!pollForSolicitedVerificationEvent("POLL_AND_ACKNOWLEDGE", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE)) {
 			throw new TestFailureException(getId(),
 				"Poll responses did not contain a solicited verification event (with matching 'state') within the polling window");

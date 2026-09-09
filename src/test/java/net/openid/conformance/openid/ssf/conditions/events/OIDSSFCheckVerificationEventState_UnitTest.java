@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.events;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
@@ -39,6 +40,14 @@ public class OIDSSFCheckVerificationEventState_UnitTest {
 	 * by the test setup.
 	 */
 	private void setUpVerification(JsonObject eventsObject, String expectedState) {
+		setUpVerification(eventsObject, expectedState, expectedState == null ? new String[0] : new String[] {expectedState});
+	}
+
+	/**
+	 * As above, but with an explicit list of every state issued so far ({@code issuedStates}),
+	 * of which {@code expectedState} is the latest.
+	 */
+	private void setUpVerification(JsonObject eventsObject, String expectedState, String... issuedStates) {
 		JsonObject claims = new JsonObject();
 		if (eventsObject != null) {
 			claims.add("events", eventsObject);
@@ -51,6 +60,13 @@ public class OIDSSFCheckVerificationEventState_UnitTest {
 		verification.add("token", token);
 		if (expectedState != null) {
 			verification.addProperty("state", expectedState);
+		}
+		if (issuedStates.length > 0) {
+			JsonArray issued = new JsonArray();
+			for (String issuedState : issuedStates) {
+				issued.add(issuedState);
+			}
+			verification.add("issued_states", issued);
 		}
 
 		JsonObject ssf = new JsonObject();
@@ -103,6 +119,21 @@ public class OIDSSFCheckVerificationEventState_UnitTest {
 	@Test
 	void shouldFailWhenExpectedStateDoesNotMatchActualState() {
 		setUpVerification(eventsWithVerificationState("actual"), "expected");
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldPassWhenStateMatchesAnEarlierVerificationRequest() {
+		// SSF 1.0 8.1.4.2: receivers MUST NOT depend on verification events arriving in
+		// order. The event echoing the FIRST request may only show up after a second
+		// request was issued; it is still a correct echo of a state we sent.
+		setUpVerification(eventsWithVerificationState("first"), "second", "first", "second");
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWhenStateMatchesNoIssuedVerificationRequest() {
+		setUpVerification(eventsWithVerificationState("never-sent"), "second", "first", "second");
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 

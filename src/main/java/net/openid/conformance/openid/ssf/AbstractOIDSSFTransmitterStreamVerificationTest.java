@@ -203,8 +203,10 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	 *   <li>Verification events without a {@code state} claim are accepted as
 	 *       unsolicited (SSF 1.0 §8.1.4-2) — common validations run, but the state
 	 *       check is skipped and iteration continues.
-	 *   <li>The first verification event with a {@code state} claim has its state
-	 *       validated against {@code ssf.verification.state}, and iteration stops.
+	 *   <li>Verification events with a {@code state} claim have their state validated
+	 *       against the states this test issued. The first one echoing the latest
+	 *       request stops the iteration; an echo of an earlier request (a late delivery,
+	 *       legitimate per SSF 1.0 8.1.4.2) is accepted and iteration continues.
 	 * </ul>
 	 *
 	 * @param blockPrefix prefix used in the per-SET runBlock titles (e.g. {@code "POLL_ONLY"})
@@ -250,7 +252,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 
 				if (currentVerificationEventHasState()) {
 					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-					wasSolicited.set(true);
+					wasSolicited.set(currentVerificationEventIsForLatestRequest());
 				} else {
 					callAndContinueOnFailure(OIDSSFLogAcceptedUnsolicitedVerificationEvent.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4");
 				}
