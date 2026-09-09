@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -12,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "openbanking_chile", "fapi_client_credentials_grant", "vci", "vci_haip" })
+@VariantApplicableOnly(parameter = FAPI2FinalOPProfile.class, values = { "ksa" })
 public class FAPI2SPFinalKsaEnsureRequestObjectWithNbfOver10Fails extends AbstractFAPI2SPFinalRequestObjectWithNbfTooFarInPastFails {
 
 	@Override

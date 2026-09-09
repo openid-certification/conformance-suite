@@ -9,7 +9,7 @@ import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationS
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
@@ -18,15 +18,7 @@ import net.openid.conformance.variant.VariantSetup;
 	summary = "This test makes a request to the payment consent endpoint request with a bad signature, which must fail.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
-	"plain_fapi",
-	"openbanking_chile",
-	"consumerdataright_au",
-	"connectid_au",
-	"cbuae",
-	"ksa",
-	"fapi_client_credentials_grant"
-})
+@VariantApplicableOnly(parameter = FAPI2FinalOPProfile.class, values = { "openbanking_brazil" })
 public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

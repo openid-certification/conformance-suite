@@ -16,7 +16,7 @@ import net.openid.conformance.condition.client.EnsureIntrospectionResponseActive
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-cdr-refresh-token-introspection-expiry",
@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test authorises with a sharing_duration of 90 days and then presents the issued refresh token to the token introspection endpoint. The CDR standards require refresh tokens to be issued with an expiry equal to the authorised sharing duration, and the introspection response exp claim to reveal that expiry, so the returned exp must be approximately 90 days in the future.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "openbanking_chile", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
+@VariantApplicableOnly(parameter = FAPI2FinalOPProfile.class, values = { "consumerdataright_au" })
 public class FAPI2SPFinalCdrRefreshTokenIntrospectionExpiry extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

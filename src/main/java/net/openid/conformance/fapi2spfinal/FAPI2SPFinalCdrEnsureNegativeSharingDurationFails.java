@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.ExpectNegativeSharingDurationErro
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-cdr-negative-sharing-duration",
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test requests authorisation with a negative sharing_duration. The CDR standards say the authorisation SHOULD fail, either at the PAR endpoint or at the authorization endpoint; as this is only a SHOULD, a Data Holder that allows the authorisation to complete receives a warning rather than a failure.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "openbanking_chile", "ksa", "fapi_client_credentials_grant", "vci", "vci_haip" })
+@VariantApplicableOnly(parameter = FAPI2FinalOPProfile.class, values = { "consumerdataright_au" })
 public class FAPI2SPFinalCdrEnsureNegativeSharingDurationFails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
