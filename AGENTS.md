@@ -314,6 +314,14 @@ Check `src/main/resources/static/schedule-test.html` for the field labels displa
 - Generic `error(...)` text is acceptable when `args(...)` includes actionable detail.
 - Tests that require a relying party to skip an unusable JWK must use a guaranteed-unsupported synthetic key: an AKP/post-quantum key with a non-existent parameter set, or a made-up `kty`/`alg` (see `AddUnusableKeysToServerPublicJwks`). Never a real-but-niche algorithm such as Brainpool; a library update can make it usable and silently invert the test.
 
+### Emulated side vs side under test
+
+The suite plays two roles in every module: it **validates** the implementation under test, and it **emulates** the counterpart (an AS for client tests, a client for AS tests, a wallet, issuer or verifier). These have different standards.
+
+- Validation follows the spec closely: every MUST the module is meant to cover is checked, severities map to the normative language, and unknown fields are flagged. This is the certification contract.
+- The emulated side only needs to be good enough to drive the implementation under test through the scenario. It is frequently non-compliant on purpose (bad signatures, wrong nonces, missing certificates, replayed tokens) because that is the test. Don't spend effort making the emulator fully conformant, and don't add validation of the emulator's own output.
+- Never relax a validator because our own emulator would not pass it. If a suite-vs-suite CI pairing fails on a correct check, fix the emulator or add an expected-failures entry (see "OP-vs-RP Pairing"); do not weaken the check.
+
 ### Skips vs failures
 
 `fireTestSkipped` is only for cases where the tester or the server declared a feature out of play that is optional **under the selected profile** (RSA keys not configured, PAR not advertised, optional `state` omitted by the client). A skip must never let an implementer certify without the mandatory behaviour under test having been exercised.
