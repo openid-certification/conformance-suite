@@ -15,6 +15,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -212,8 +213,9 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	protected void afterInitialStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
 
-		// generate the CAEP Interop events requested by the receiver
-		long now = System.currentTimeMillis();
+		// generate the CAEP Interop events requested by the receiver; event_timestamp is
+		// "the number of seconds from 1970-01-01T0:0:0Z" (CAEP 1.0 section 2)
+		long now = Instant.now().getEpochSecond();
 
 		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		Set<String> deliveredCaepInteropEvents = getDeliveredCaepInteropEventTypes(streamConfig);
