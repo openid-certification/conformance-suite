@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 	summary = """
 		This test verifies the receiver stream management according to the capabilities listed in the CAEP Interop Profile 1.0.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream.
-		Each requested CAEP event is sent once per subject listed in the 'SSF valid SubjectId' field, which must include at least one 'email' and one 'iss_sub' subject, as receivers must accept events with any of the subject identifier formats of the CAEP Interop Profile (section 2.5). 'complex' subjects listed there are sent as well.
+		Each requested CAEP event is sent once per subject listed in the 'SSF valid SubjectId' field, which must include at least one 'email' and one 'iss_sub' subject, as receivers must accept events with any of the subject identifier formats of the CAEP Interop Profile (section 2.5). 'complex' subjects listed there are sent as well; since draft-01 of the profile does not list Complex Subjects (see openid/sharedsignals#351), a receiver rejecting those events is reported as a warning only.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * read the stream configuration
@@ -107,6 +107,24 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.2");
 		}
 		super.fireTestFinished();
+	}
+
+	/**
+	 * Draft-01 of the CAEP Interop Profile (2.5) requires receivers to accept {@code email} and
+	 * {@code iss_sub} subjects only; Complex Subjects are expected to be added
+	 * (openid/sharedsignals#351) but a receiver rejecting one today is within the profile.
+	 * Everything else the receiver rejects stays a FAILURE (RFC 8935 2.2).
+	 */
+	@Override
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(subjectFormatByJti.get(event.jti()))) {
+			eventLog.log(getName(), args(
+				"msg", "The receiver did not accept a CAEP event with a Complex Subject; graded as a warning because "
+					+ "CAEP Interop Profile draft-01 section 2.5 does not require receivers to accept Complex Subjects (openid/sharedsignals#351)",
+				"jti", event.jti(), "event_type", event.type()));
+			return Condition.ConditionResult.WARNING;
+		}
+		return super.getPushDeliveryRejectionSeverity(event);
 	}
 
 	@Override
