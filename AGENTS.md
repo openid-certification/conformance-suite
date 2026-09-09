@@ -349,6 +349,13 @@ Each check should be a separate condition so the caller controls the severity (F
 
 Tests compile with `-Werror` so all warnings must be resolved.
 
+## Deliberate non-features
+
+These were tried and rejected. Don't reintroduce them, and don't "fix" them in passing. If you think the reasoning has changed, raise it in its own issue.
+
+- **Private keys appear in test logs.** This covers every private key the suite handles: mTLS keys, client JWKS signing and encryption keys, DPoP keys, wallet and issuer keys, anything in the test configuration or environment. Redaction was attempted for mTLS keys in !1294 (issue #1133) and abandoned: keys surface in several places (logged config, environment dumps, outbound request logs, exported zips) so partial redaction is pointless and misleading, and redacting implies a duty of care the suite does not take on. The stance is: private keys WILL appear in logs; testers must use test keys and treat them as revoked afterwards. Don't add redaction for any key type.
+- **No HTTP connection pooling.** Added in !1551, reverted in !1573 (issue #1466) after intermittent Authlete Brazil DCR mTLS failures. A fresh TLS handshake per call is deliberate.
+
 ## Code Review
 
 When asked to review a commit or branch, structure the review by file and call out: correctness issues (especially dead code or unreachable paths), API misuse, and behavioral changes. Don't just summarize — actively look for bugs.
@@ -371,6 +378,8 @@ Save screenshots, traces, and any other unversioned dev artifacts under `tmp/` a
 When making multi-file changes or library upgrades, create separate atomic commits per logical change. Before committing, verify the build passes for each commit independently.
 
 If the change closes or fixes a GitLab issue — either one the user named when asking for the work, or one that's obviously the driver from the context — end the commit message with a trailer line like `Closes #1650` or `Fixes #1650` (just the `#N`, not a URL). GitLab auto-closes the issue when the MR merges. If the connection to an issue isn't obvious, ask rather than guess.
+
+One issue per MR. Unrelated or cross-cutting improvements noticed on the way (logging, refactors, "while I'm here" fixes) go in their own branch and MR even if small: they need separate review and may already have been decided against (see "Deliberate non-features").
 
 ## Test Naming Convention
 
