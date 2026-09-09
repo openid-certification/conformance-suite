@@ -121,7 +121,7 @@ public class LogEntryHelper {
 		// entry would append a meaningless suffix.
 		specLinks.put("KSA-OF-1", "https://gitlab.com/openid/conformance-suite/-/blob/master/library/profiles/ksa-2024.09.01-final-errata1/BRAS21-API%20Security-150626-150843.pdf");
 		specLinks.put("OIDSSF-", "https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-");
-		specLinks.put("CAEPIOP-", "https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-");
+		specLinks.put("CAEPIOP-", "https://openid.net/specs/openid-caep-interoperability-profile-1_0-01.html#section-");
 		specLinks.put("OIDRISC-", "https://openid.net/specs/openid-risc-1_0-final.html#section-");
 		specLinks.put("OIDCAEP-", "https://openid.net/specs/openid-caep-1_0-final.html#section-");
 		specLinks.put("CID-SP-", "https://cdn.connectid.com.au/specifications/connectid-fapi-security-profile-03.html#section-");
