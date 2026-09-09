@@ -44,6 +44,37 @@ class VariantValueValidation_UnitTest {
 	}
 
 	@Test
+	void variantApplicableOnlyValueMustExist() {
+		assertRejected(BrokenVariantFixtures.BadApplicableOnlyModule.class, "@VariantApplicableOnly");
+	}
+
+	@Test
+	void variantApplicableOnlyValuesMustNotBeEmpty() {
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> variantService.new TestModuleHolder(BrokenVariantFixtures.EmptyApplicableOnlyModule.class));
+		assertTrue(e.getMessage().contains("@VariantApplicableOnly"), e.getMessage());
+		assertTrue(e.getMessage().contains("EmptyApplicableOnlyModule"), e.getMessage());
+		assertTrue(e.getMessage().contains("must not be empty"), e.getMessage());
+	}
+
+	@Test
+	void disjointWhitelistsAreRejected() {
+		assertNoApplicableValues(BrokenVariantFixtures.DisjointApplicableOnlyModule.class);
+	}
+
+	@Test
+	void optOutRemovingTheSoleWhitelistedValueIsRejected() {
+		assertNoApplicableValues(BrokenVariantFixtures.NotApplicableRemovesSoleValueModule.class);
+	}
+
+	private void assertNoApplicableValues(Class<? extends TestModule> moduleClass) {
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+				() -> variantService.new TestModuleHolder(moduleClass));
+		assertTrue(e.getMessage().contains("no applicable values"), e.getMessage());
+		assertTrue(e.getMessage().contains("client_auth_type"), e.getMessage());
+	}
+
+	@Test
 	void variantConfigurationFieldsValueMustExist() {
 		assertRejected(BrokenVariantFixtures.BadConfigurationFieldsModule.class, "@VariantConfigurationFields");
 	}

@@ -248,7 +248,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 }
 ```
 
-Use `@VariantNotApplicable` to exclude invalid combinations.
+Use `@VariantNotApplicable` to exclude invalid combinations. Inclusion is the default: a new value of a variant parameter (e.g. a new ecosystem in a `fapi_profile` enum) gets every test module until someone explicitly opts that module out. That is the safe default — a missed exclusion is a visible failure, a missed inclusion silently drops coverage.
+
+Use `@VariantApplicableOnly` only for a module that exists for one (or two) specific values because it exercises a rule or feature only those values define (Brazil payment consent signing, CDR `sharing_duration`, ConnectID `purpose`, KSA `exp` limits). Don't use it for a generic module that several values happen to opt out of (registered redirect URIs, grant management, refresh-token mandatoriness) — those stay `@VariantNotApplicable` so a new value inherits them. Both compose across the class hierarchy: each `@VariantNotApplicable` removes its values, each `@VariantApplicableOnly` intersects with its values.
 
 Profile-specific behaviour (`FAPICIBAServerProfileBehavior`, `VCIClientProfileBehavior`, ...) is expressed as data methods (booleans, classes) and action methods returning a `ConditionSequence` (null = no-op) that the module `call()`s. Don't add `module.doX()` delegator methods so a behaviour can run imperative code; compose a sequence instead.
 

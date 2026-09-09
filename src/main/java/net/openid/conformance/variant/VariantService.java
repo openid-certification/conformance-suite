@@ -371,12 +371,12 @@ public class VariantService {
 				});
 
 				this.module.parameters.forEach((param) -> {
-					// is the variant's value supported (not marked as NotApplicable) by test module
+					// is the variant's value supported (not excluded by @VariantNotApplicable / @VariantApplicableOnly) by test module
 					final Class<? extends Enum<?>> variantClass = param.parameter.parameterClass;
 					if (this.variant.containsKey(variantClass)) {
 						final Enum<?> value = this.variant.get(variantClass);
 						if (!param.allowedValues.contains(value)) {
-							throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests variant '" + variantClass.getSimpleName() + "' for a value ('" + value + "') test module has an @VariantNotApplicable for");
+							throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' requests variant '" + variantClass.getSimpleName() + "' for a value ('" + value + "') the test module excludes via @VariantNotApplicable / @VariantApplicableOnly");
 
 						}
 						final List<String> hiddenFields = param.hidesConfigurationFields.get(value);
@@ -912,6 +912,13 @@ public class VariantService {
 					.collect(groupingBy(a -> moduleParameter.apply(a.parameter()),
 							flatMapping(a -> Arrays.stream(a.values()), toSet())));
 
+			// One value set per annotation (not a union), so annotations on different levels of the
+			// class hierarchy compose as an intersection of the allowed values.
+			Map<ParameterHolder<?>, List<Set<String>>> allValuesApplicableOnly =
+					inCombinedAnnotations(moduleClass, VariantApplicableOnly.class)
+					.collect(groupingBy(a -> moduleParameter.apply(a.parameter()),
+							mapping(a -> Set.of(a.values()), toList())));
+
 			Map<ParameterHolder<?>, Map<String, List<String>>> allConfigurationFields =
 					inCombinedAnnotations(moduleClass, VariantConfigurationFields.class)
 					.collect(groupingBy(a -> moduleParameter.apply(a.parameter()),
@@ -942,6 +949,15 @@ public class VariantService {
 
 			allValuesNotApplicable.forEach((p, values) ->
 					values.forEach(v -> requireKnownVariantValue(moduleClass, p, v, "@VariantNotApplicable")));
+			allValuesApplicableOnly.forEach((p, valueSets) ->
+					valueSets.forEach(values -> {
+						if (values.isEmpty()) {
+							throw new IllegalArgumentException("In @VariantApplicableOnly for %s: values for variant parameter '%s' must not be empty".formatted(
+									moduleClass.getSimpleName(),
+									p.variantParameter.name()));
+						}
+						values.forEach(v -> requireKnownVariantValue(moduleClass, p, v, "@VariantApplicableOnly"));
+					}));
 			requireKnownVariantValues(allConfigurationFields, "@VariantConfigurationFields");
 			requireKnownVariantValues(allHidesConfigurationFields, "@VariantHidesConfigurationFields");
 			requireKnownVariantValues(allSetupMethods, "@VariantSetup");
@@ -958,6 +974,7 @@ public class VariantService {
 					.map(p -> createTestModuleVariantInfo(
 							p,
 							allValuesNotApplicable.getOrDefault(p, Set.of()),
+							allValuesApplicableOnly.getOrDefault(p, List.of()),
 							allConfigurationFields.getOrDefault(p, Map.of()),
 							allHidesConfigurationFields.getOrDefault(p, Map.of()),
 							allSetupMethods.getOrDefault(p, Map.of()),
@@ -983,6 +1000,7 @@ public class VariantService {
 		private <T extends Enum<T>> TestModuleVariantInfo<T> createTestModuleVariantInfo(
 				ParameterHolder<T> parameter,
 				Set<String> valuesNotApplicable,
+				List<Set<String>> valuesApplicableOnly,
 				Map<String, List<String>> configurationFields,
 				Map<String, List<String>> hidesConfigurationFields,
 				Map<String, List<Method>> setupMethods,
@@ -1024,6 +1042,7 @@ public class VariantService {
 			return new TestModuleVariantInfo<>(
 					parameter,
 					valuesNotApplicable,
+					valuesApplicableOnly,
 					configurationFields,
 					hidesConfigurationFields,
 					setupMethods,
@@ -1234,6 +1253,7 @@ public class VariantService {
 		TestModuleVariantInfo(
 				ParameterHolder<T> parameter,
 				Set<String> valuesNotApplicable,
+				List<Set<String>> valuesApplicableOnly,
 				Map<String, List<String>> configurationFields,
 				Map<String, List<String>> hidesConfigurationFields,
 				Map<String, List<Method>> setupMethods,
@@ -1243,6 +1263,15 @@ public class VariantService {
 
 			this.allowedValues = EnumSet.allOf(parameter.parameterClass);
 			valuesNotApplicable.forEach(s -> this.allowedValues.remove(parameter.valueOf(s)));
+			valuesApplicableOnly.forEach(values ->
+					this.allowedValues.retainAll(values.stream().map(parameter::valueOf).collect(toSet())));
+			if (this.allowedValues.isEmpty()) {
+				// An empty set would otherwise read as "parameter not relevant" and let the module run
+				// under every value, the opposite of what the annotations asked for.
+				throw new IllegalArgumentException("Variant parameter '%s' has no applicable values left: the @VariantNotApplicable / @VariantApplicableOnly annotations in the class hierarchy exclude every value of %s".formatted(
+						parameter.variantParameter.name(),
+						parameter.parameterClass.getSimpleName()));
+			}
 
 			this.configurationFields = configurationFields.entrySet().stream()
 					.collect(toMap(e -> parameter.valueOf(e.getKey()), Map.Entry::getValue));
@@ -1271,7 +1300,8 @@ public class VariantService {
 
 		/**
 		 * Returns the allowed values for this parameter given the current variant selection.
-		 * Takes into account both static @VariantNotApplicable and conditional @VariantNotApplicableWhen.
+		 * Takes into account the static @VariantNotApplicable / @VariantApplicableOnly and the
+		 * conditional @VariantNotApplicableWhen.
 		 */
 		Set<T> getAllowedValuesForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
 			Set<T> effective = EnumSet.copyOf(allowedValues);
