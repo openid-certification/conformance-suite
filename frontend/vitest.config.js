@@ -30,7 +30,7 @@ export default defineConfig({
             // NotAllowedError and stories must redefine navigator.clipboard,
             // which is brittle and easy to typo. With the permission granted,
             // stories can use vi.spyOn to assert calls without touching the
-            // global. See frontend/AGENTS.md (testing) for the reasoning.
+            // global.
             provider: playwright({
               contextOptions: {
                 permissions: ["clipboard-read", "clipboard-write"],

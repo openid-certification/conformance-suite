@@ -1462,7 +1462,7 @@ class CtsPlanList extends LitElement {
    * Each chip is `clickable` (not merely `interactive`): the badge IS the
    * click target and nothing wraps it, so it carries `role="button"`,
    * keyboard activation and the stronger affordance ring — per the badge
-   * affordance rule in AGENTS.md.
+   * affordance rule in static/AGENTS.md.
    * @returns {unknown} The row, or nothing when the listing is unfiltered.
    */
   _renderFilters() {

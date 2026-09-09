@@ -250,6 +250,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 Use `@VariantNotApplicable` to exclude invalid combinations.
 
+Profile-specific behaviour (`FAPICIBAServerProfileBehavior`, `VCIClientProfileBehavior`, ...) is expressed as data methods (booleans, classes) and action methods returning a `ConditionSequence` (null = no-op) that the module `call()`s. Don't add `module.doX()` delegator methods so a behaviour can run imperative code; compose a sequence instead.
+
 ### Configuration Fields
 
 Test config fields the user fills in on `schedule-test.html` (e.g., `client.dcql`, `client.verifier_info`) are only shown in the form if they appear in the aggregated `configurationFields` for the selected plan and modules. The aggregator unions, in this order:
@@ -310,6 +312,24 @@ Check `src/main/resources/static/schedule-test.html` for the field labels displa
 - This repository is a conformance test suite; explicit failures for invalid protocol behavior are expected.
 - Ignored catches can be acceptable if they still lead to a clear and meaningful test failure.
 - Generic `error(...)` text is acceptable when `args(...)` includes actionable detail.
+- Tests that require a relying party to skip an unusable JWK must use a guaranteed-unsupported synthetic key: an AKP/post-quantum key with a non-existent parameter set, or a made-up `kty`/`alg` (see `AddUnusableKeysToServerPublicJwks`). Never a real-but-niche algorithm such as Brainpool; a library update can make it usable and silently invert the test.
+
+### Emulated side vs side under test
+
+The suite plays two roles in every module: it **validates** the implementation under test, and it **emulates** the counterpart (an AS for client tests, a client for AS tests, a wallet, issuer or verifier). These have different standards.
+
+- Validation follows the spec closely: every MUST the module is meant to cover is checked, severities map to the normative language, and unknown fields are flagged. This is the certification contract.
+- The emulated side only needs to be good enough to drive the implementation under test through the scenario. It is frequently non-compliant on purpose (bad signatures, wrong nonces, missing certificates, replayed tokens) because that is the test. Don't spend effort making the emulator fully conformant, and don't add validation of the emulator's own output.
+- Never relax a validator because our own emulator would not pass it. If a suite-vs-suite CI pairing fails on a correct check, fix the emulator or add an expected-failures entry (see "OP-vs-RP Pairing"); do not weaken the check.
+
+### Skips vs failures
+
+`fireTestSkipped` is only for cases where the tester or the server declared a feature out of play that is optional **under the selected profile** (RSA keys not configured, PAR not advertised, optional `state` omitted by the client). A skip must never let an implementer certify without the mandatory behaviour under test having been exercised.
+
+- Optionality is decided by the profile, not the base spec. A token response without a refresh token is a skip under plain FAPI, where refresh tokens are optional, but a stop-on-failure under Brazil, which mandates them: see the `FAPIBrazilRefreshTokenRequired` branch in `FAPI2SPFinalRefreshToken` for the pattern. Check every profile the module runs under before writing a skip.
+- If a server choice, even one a spec permits with a MAY (e.g. RFC 7591 section 3.2.1 lets the server substitute registered metadata), means the behaviour under test cannot be exercised, that is a `callAndStopOnFailure` FAILURE whose message tells the tester what to reconfigure. Not a skip, not INFO.
+- "The spec allows it" does not override test intent. The selected variant is a fixed contract: a module run with private_key_jwt does not adapt to whatever auth method the registration response returned. A profile validator enforces the profile (Brazil mandates private_key_jwt) regardless of what the base spec permits.
+- A MAY describes what the implementation may do; it does not describe what the suite is testing.
 
 ### Sender vs Receiver Validation
 
@@ -330,6 +350,12 @@ When an external client **calls a test-suite endpoint** (e.g., a wallet calling 
 
 Each check should be a separate condition so the caller controls the severity (FAILURE vs WARNING).
 
+## REST API endpoints
+
+Any new or changed handler under `/api/**` (`@GetMapping` / `@PostMapping` / `@RequestMapping`, or a change to an existing handler's authorization) must land in the same MR as security tests in `scripts/run-security-tests.py`, run by the `security_test` CI job via `.gitlab-ci/run-tests.sh --security-tests`. Cover, as applicable: unauthenticated access is rejected (401); share-link / private-link tokens cannot reach endpoints outside their allow-list (401/403); the owner or admin can reach their own resource (200); an unknown and an unauthorized resource id return the same 404 so existence does not leak. Use a short timeout on any long-poll endpoint so the suite stays fast.
+
+API tokens are always `ROLE_USER` and admins cannot mint an admin token, so the script can only prove denial for admin-only routes; positive admin coverage needs an OIDC browser session. When planning a new endpoint, include its UI consumer (page or `cts-*` component, plus fixtures in `frontend/e2e/fixtures/`) and the security tests in the same plan, not as follow-ups.
+
 ## Code Quality
 
 - **Checkstyle**: Google Java Style (configured in `.checkstyle.xml`)
@@ -337,8 +363,16 @@ Each check should be a separate condition so the caller controls the severity (F
 - **Error Prone**: Enabled at compile time with specific exclusions
 - **ArchUnit**: Architecture tests in `src/test/java/net/openid/conformance/archunit/`
 - **JSON access in Java**: Avoid `JsonElement.getAsString/getAsInt/getAsLong/...`; use `OIDFJSON` helpers instead (e.g., `OIDFJSON.getString(...)`) to satisfy ArchUnit and avoid implicit conversions.
+- **Comments describe the code, not its history.** Don't explain what the code no longer does, what an earlier commit or review round did, or why an alternative was rejected. State the invariant the current code relies on, or say nothing. Rejected alternatives belong in the commit message.
 
 Tests compile with `-Werror` so all warnings must be resolved.
+
+## Deliberate non-features
+
+These were tried and rejected. Don't reintroduce them, and don't "fix" them in passing. If you think the reasoning has changed, raise it in its own issue.
+
+- **Private keys appear in test logs.** This covers every private key the suite handles: mTLS keys, client JWKS signing and encryption keys, DPoP keys, wallet and issuer keys, anything in the test configuration or environment. Redaction was attempted for mTLS keys in !1294 (issue #1133) and abandoned: keys surface in several places (logged config, environment dumps, outbound request logs, exported zips) so partial redaction is pointless and misleading, and redacting implies a duty of care the suite does not take on. The stance is: private keys WILL appear in logs; testers must use test keys and treat them as revoked afterwards. Don't add redaction for any key type.
+- **No HTTP connection pooling.** Added in !1551, reverted in !1573 (issue #1466) after intermittent Authlete Brazil DCR mTLS failures. A fresh TLS handshake per call is deliberate.
 
 ## Code Review
 
@@ -363,73 +397,19 @@ When making multi-file changes or library upgrades, create separate atomic commi
 
 If the change closes or fixes a GitLab issue — either one the user named when asking for the work, or one that's obviously the driver from the context — end the commit message with a trailer line like `Closes #1650` or `Fixes #1650` (just the `#N`, not a URL). GitLab auto-closes the issue when the MR merges. If the connection to an issue isn't obvious, ask rather than guess.
 
+One issue per MR. Unrelated or cross-cutting improvements noticed on the way (logging, refactors, "while I'm here" fixes) go in their own branch and MR even if small: they need separate review and may already have been decided against (see "Deliberate non-features").
+
+The commit series is what gets reviewed: no add-then-remove or add-then-revert pairs. Squash them away (see "Git Workflow Preference") so the MR shows only the end state.
+
 ## Test Naming Convention
 
 Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTest.java`).
 
-## Frontend E2E Tests
+Unit tests are for Conditions (and pure utility classes). Test-module control flow is covered by the OP-vs-RP CI pairings in `.gitlab-ci/run-tests.sh`: when you add or change a module path, add or adjust a pairing (and the expected-failures JSON) rather than writing a module unit test. If a module path truly cannot be paired, a narrow module test is acceptable, but it must drive the module through its public/protected API only: no `ReflectionTestUtils.setField` on private state such as `status`, no mocked `TestExecutionManager`, no overriding `callAndStopOnFailure` to capture arguments.
 
-Playwright E2E tests in `frontend/e2e/` validate the legacy static HTML pages (`src/main/resources/static/*.html`) with mocked API responses. No backend required.
+## Frontend
 
-```bash
-# Run E2E tests (from frontend/ directory)
-cd frontend && npm run test:e2e
-
-# Run a single spec file
-cd frontend && npx playwright test e2e/home.spec.js
-```
-
-**When to run:** After modifying any file in `src/main/resources/static/` — HTML pages, `js/fapi.ui.js`, `templates/`, or `css/`. These tests catch regressions in page-level behavior.
-
-**When to update tests:** If you change an API response shape consumed by the frontend, update the corresponding fixture in `frontend/e2e/fixtures/`. If you change page structure (DOM IDs, CSS classes used by JS), update the affected spec files.
-
-**Key conventions:**
-- Each spec file covers a single page; `journeys.spec.js` covers cross-page flows
-- Route helpers in `frontend/e2e/helpers/routes.js` — `setupFailFast()` must be called FIRST (Playwright matches routes in reverse registration order), then specific routes
-- All `page.route()` calls must happen before `page.goto()` because `fapi.ui.js` fires an API call at script parse time
-- Fixture data lives in `frontend/e2e/fixtures/` as ES modules
-- The `wrapDataTablesResponse()` helper wraps plain arrays in the `{draw, recordsTotal, recordsFiltered, data}` envelope — the DataTables-style pagination contract still served by `/api/plan` and `/api/log` — for pages using server-side pagination (plans.html, logs.html)
-
-## Icons
-
-All icons render via `<cts-icon name="<kebab>" size="16|20|24">`. The icon library is **coolicons v4.1**, vendored as per-icon SVG files at `src/main/resources/static/vendor/coolicons/icons/{name}.svg` — one file per icon, each ~3 KB, served individually. HTTP/2 multiplexes the small parallel requests, the browser caches per URL, and only the icons actually used hit the network.
-
-- **Usage:** `<cts-icon name="external-link" size="20">` — the `name` attribute is the filename (without `.svg`); the `size` value is one of `16` / `20` / `24` (legacy aliases `sm`/`md`/`lg` still work). Sizes track `--space-4`/`--space-5`/`--space-6` and stroke colour follows `currentColor`, so consumers do not need any additional styling for theming.
-- **Finding a name (progressive disclosure):** the vendored set ships 442 icons; do **not** paste the full list into agent context or memory. Look it up on demand: `ls src/main/resources/static/vendor/coolicons/icons/` for the canonical filenames, or browse Storybook **Components/cts-icon → AllIcons** for the curated catalog. Don't guess names — `close-md` exists, `x` does not; `user-01` exists, `person-fill` does not.
-- **Enforcement:** `npm run test:ci` (frontend) runs `lint:icons` (`frontend/scripts/lint-icon-names.sh`), which fails the build when any literal `cts-icon name="<value>"` references an SVG that is not vendored. The error names the file, line, and offending value, and hints `close-md`/`close-sm`/`close-lg` for the common `x`/`cross`/`close` mistakes. Dynamic / templated names (`name="${this.icon}"`, `name="<%- foo %>"`) are caught at runtime: `cts-icon.js` listens for `error` on the inner `<use>` and emits one `console.warn` per unique unresolved name per page-load.
-- **Adding a new icon:** when a call site needs an icon that isn't already vendored, follow the one-shot Python snippet documented in `src/main/resources/static/vendor/coolicons/README.md` (extract one symbol from the upstream sprite into a per-icon file). Do NOT add a build step.
-- **Brand glyphs (Google, GitLab):** intentionally outside `cts-icon`. coolicons does not ship brand marks. Brand SVGs are inlined as `html\`<svg ...>\`` constants in `src/main/resources/static/components/cts-login-page.js` and used only there. If a future call site needs a brand mark, follow the same colocation pattern; do NOT add brand glyphs to the coolicons set.
-- **Do NOT:** hand-roll inline `<svg>` paths for icons (use `cts-icon`); reference Bootstrap Icons (`bi-*` classes — removed); construct icon classes via string concatenation (no `className = \`bi bi-\${name}\`` — create a `cts-icon` element instead).
-
-## Badges
-
-All status pills, label chips, and count badges render via `<cts-badge variant="<name>">`. The status palette (`pass` / `fail` / `warn` / `running` / `skip` / `review`) and the utility variants (`primary` / `secondary` / `danger` / `info-subtle`) are token-routed through `oidf-tokens.css`. See `src/main/resources/static/components/cts-badge.js` and Storybook **Components/cts-badge** for the full inventory.
-
-**Affordance rule:** every variant supports two visual states. The state must reflect whether clicking the badge does anything.
-
-- **Read-only (default):** fill only, no border. The badge is a label for state — pass/fail/warn/running/skip status, role marker (`ADMIN`), spec requirement chip, count summary, etc. The user does not click on it to do anything.
-- **Interactive:** fill + 1px inset `box-shadow` ring + hover/focus. The badge is itself a click target, or it sits inside a wrapper that has stripped its own affordance (e.g., an `<a>` with `text-decoration: none`) so the badge silhouette is what the user perceives as clickable.
-
-**When to use which attribute:**
-- **`interactive`** — visual only. Adds the ring without `role="button"`. Use when the badge sits inside an `<a>` or `<button>` whose own affordance is invisible (no underline, no hover) so the badge needs to carry the affordance signal itself. Existing example: `cts-plan-modules.js` wraps the module status pill in a no-decoration anchor to log-detail; the badge is marked `interactive` so the affordance reads.
-- **`clickable`** — semantic + visual. Adds `role="button"`, `tabindex="0"`, keyboard activation, and emits `cts-badge-click`. Implies `interactive` visually — a clickable badge always renders the ring even when `interactive` is not set. Use when the badge IS the click target and is not already wrapped in an `<a>`/`<button>`/parent click handler.
-
-**Affordance decision tree (from the badge sweep plan, `docs/plans/2026-04-27-001-feat-badge-affordance-rule-plan.md`):**
-1. Is the cts-badge itself the click target? Yes → `clickable`. No → step 2.
-2. Is the badge wrapped in an interactive element (`<a>`, `<button>`, parent click handler)? No → leave read-only. Yes → step 3.
-3. Does the wrapper provide its own visible affordance (link underline, button background, hover state)? Yes → leave read-only (the wrapper is doing the work; adding the ring is redundant noise). No → `interactive`.
-
-**Token deviation:** The readonly `b-rev` (Review) chip uses `var(--bg-muted)` (#F8F7F5) as its background fill. The token system does not currently define a `--status-review-bg`; if one lands in the archive, switch the fill to that token. Update the JSDoc block in `cts-badge.js` if the deviation is resolved.
-
-- **Do NOT:** hand-roll a 1px `border` around a chip-like element to fake the affordance ring — use `cts-badge` with `interactive`/`clickable`. The component implements the ring as an inset `box-shadow` so the box-model dimensions are identical in both states; a real `border` would shift the box by 1px when toggling affordance. Do NOT add `clickable` to a badge that is already inside a clickable parent (`<a>` or `<button>`) — that nests `role="button"` inside link/button semantics and produces ambiguous keyboard activation. Do NOT use `bg-warning` / `bg-info` / `bg-info-subtle` / `border-info-subtle` / `text-info-emphasis` Bootstrap utility classes — those are removed; use the canonical variants instead.
-
-## Frontend quality gates
-
-Lint, format, unit tests, and type-check for the frontend are covered by the `frontend_lint` GitLab job, mirrored locally by `npm run test:ci` from `frontend/` (format:check → lint → test:unit → type-check → lint:jsdoc → lint:icons → lint:lit-analyzer → codegen:check). `test:unit` runs the Vitest `unit` project (`vitest run --project=unit`) — plain-JS unit tests under `components/`, `lib/`, and `js/`. This is the only place that project runs; it is not part of `test-storybook` or the e2e job. See `frontend/README.md` for the command reference and failure-mode decoder. `lit-analyzer` provides Lit-aware template diagnostics (unknown elements, wrong binding sigils, unclosed tags); `ts-lit-plugin` exposes the same diagnostics inside TypeScript-language-service IDEs. `lint:icons` validates that every literal `cts-icon name="<value>"` resolves to a vendored SVG under `vendor/coolicons/icons/` — see the Icons section above.
-
-Severity ladder: default is `error`; R8 light-DOM preset warnings from `eslint-plugin-lit` / `eslint-plugin-wc` stay at `warn`; a named Legacy Overrides block in `frontend/eslint.config.js` tracks per-file exceptions to zero — never blanket `"off"`.
-
-The CI job is blocking (promoted 2026-08-13 once the R22 criteria were met — see the comment above the `frontend_lint` job in `.gitlab-ci.yml`). The Storybook suite (play functions + axe a11y) is also blocking, inside `frontend_e2e_test`; the deferred page-level axe half is tracked in `frontend/README.md`'s "Accessibility testing" section.
+Frontend guidance is split by directory and loads automatically when working under each: `frontend/AGENTS.md` (Playwright E2E specs, lint/format/unit/Storybook gates), `src/main/resources/static/AGENTS.md` (icons, badges), and `src/main/resources/static/components/AGENTS.md` (`cts-*` component authoring). The command reference is `frontend/README.md`.
 
 ## Key Dependencies
 
