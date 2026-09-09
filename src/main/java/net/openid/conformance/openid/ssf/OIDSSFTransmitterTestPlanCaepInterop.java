@@ -64,6 +64,6 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 			return List.of();
 		}
 		String deliveryMethod = variantSelection.getVariantParameterValue(SsfDeliveryMode.class);
-		return List.of(String.format("%s %s %s", "OIDSSF-1.0-FINAL+CAEPIOP-1.0-FINAL", "Transmitter", deliveryMethod));
+		return List.of(String.format("%s %s %s", "OIDSSF-1.0-FINAL+CAEPIOP-1.0-DRAFT01", "Transmitter", deliveryMethod));
 	}
 }
