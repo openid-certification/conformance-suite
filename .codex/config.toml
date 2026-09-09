@@ -1,0 +1,8 @@
+# Project-scoped Codex CLI settings (loaded only for trusted checkouts).
+#
+# Codex concatenates every AGENTS.md from the git root down to the working
+# directory and stops adding files once the total reaches project_doc_max_bytes
+# (32 KiB by default). The root AGENTS.md plus the nested
+# src/main/resources/static/AGENTS.md and static/components/AGENTS.md is about
+# 60 KB, so raise the cap so the nested conventions are never silently dropped.
+project_doc_max_bytes = 131072
