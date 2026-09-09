@@ -19,16 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class OIDSSFCheckSupportedEventsForStream_UnitTest {
+public class OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private OIDSSFCheckSupportedEventsForStream createCondition() {
-		OIDSSFCheckSupportedEventsForStream condition = new OIDSSFCheckSupportedEventsForStream();
-		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+	private OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents createCondition() {
+		var condition = new OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents();
+		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 		return condition;
 	}
 
@@ -43,55 +43,36 @@ public class OIDSSFCheckSupportedEventsForStream_UnitTest {
 	}
 
 	@Test
-	void shouldPassWhenAllScimEventsSupported() {
-		prepareStreamConfig(List.copyOf(SsfEvents.SCIM_EVENT_TYPES));
+	void shouldPassWhenAQualifyingUseCaseIsSupported() {
+		prepareStreamConfig(List.of(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE, SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE));
 		assertDoesNotThrow(() -> createCondition().execute(env));
 	}
 
 	@Test
-	void shouldPassWhenSingleScimEventSupported() {
-		prepareStreamConfig(List.of(SsfEvents.SCIM_FEED_ADD_EVENT_TYPE));
-		assertDoesNotThrow(() -> createCondition().execute(env));
-	}
-
-	@Test
-	void shouldPassWhenScimEventsMixedWithSsfCaepAndRiscEvents() {
-		prepareStreamConfig(List.of(
-			SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE,
-			SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE,
-			SsfEvents.RISC_ACCOUNT_DISABLED_EVENT_TYPE,
-			SsfEvents.SCIM_PROV_CREATE_FULL_EVENT_TYPE,
-			SsfEvents.SCIM_MISC_ASYNCRESP_EVENT_TYPE
-		));
-		assertDoesNotThrow(() -> createCondition().execute(env));
-	}
-
-	@Test
-	void shouldFailWhenUnknownEventTypeSupported() {
-		prepareStreamConfig(List.of(
-			SsfEvents.SCIM_FEED_ADD_EVENT_TYPE,
-			"urn:ietf:params:scim:event:made:up"
-		));
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
-	}
-
-	@Test
-	void shouldPassWhenEventsSupportedIsEmpty() {
-		prepareStreamConfig(List.of());
-		assertDoesNotThrow(() -> createCondition().execute(env));
-	}
-
-	@Test
-	void shouldPassWhenEventsSupportedIsMissing() {
-		// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL
+	void shouldPassWhenEventsSupportedIsOmitted() {
+		// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL. Whether the
+		// transmitter supports a qualifying use case is decided on events_delivered.
 		prepareStreamConfig(null);
 		assertDoesNotThrow(() -> createCondition().execute(env));
 	}
 
 	@Test
+	void shouldFailWhenNoQualifyingUseCaseIsSupported() {
+		prepareStreamConfig(List.of(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE, SsfEvents.RISC_ACCOUNT_DISABLED_EVENT_TYPE));
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
+	void shouldFailWhenOnlyRiskLevelChangeIsSupported() {
+		// risk-level-change is a use case of the WG head only, not of the published draft-01
+		prepareStreamConfig(List.of(SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE));
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
 	void shouldFailWhenEventsSupportedIsNotAnArray() {
 		JsonObject stream = new JsonObject();
-		stream.addProperty("events_supported", SsfEvents.SCIM_FEED_ADD_EVENT_TYPE);
+		stream.addProperty("events_supported", SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE);
 		JsonObject ssf = new JsonObject();
 		ssf.add("stream", stream);
 		env.putObject("ssf", ssf);

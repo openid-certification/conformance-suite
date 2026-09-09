@@ -19,8 +19,14 @@ public class OIDSSFCheckSupportedEventsForStream extends AbstractCondition {
 
 		JsonElement supportedEventTypesEl = env.getElementFromObject("ssf", "stream.events_supported");
 		if (supportedEventTypesEl == null) {
-			throw error("Could not find supported event types in stream configuration",
+			// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL
+			log("Stream configuration carries no events_supported (OPTIONAL per SSF 1.0 8.1.1); nothing to check",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
+			return env;
+		}
+		if (!supportedEventTypesEl.isJsonArray()) {
+			throw error("events_supported in the stream configuration is not an array",
+				args("events_supported", supportedEventTypesEl));
 		}
 
 		List<String> supportedEventTypes = OIDFJSON.convertJsonArrayToList(supportedEventTypesEl.getAsJsonArray());
