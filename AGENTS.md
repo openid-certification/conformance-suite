@@ -250,6 +250,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 Use `@VariantNotApplicable` to exclude invalid combinations.
 
+Profile-specific behaviour (`FAPICIBAServerProfileBehavior`, `VCIClientProfileBehavior`, ...) is expressed as data methods (booleans, classes) and action methods returning a `ConditionSequence` (null = no-op) that the module `call()`s. Don't add `module.doX()` delegator methods so a behaviour can run imperative code; compose a sequence instead.
+
 ### Configuration Fields
 
 Test config fields the user fills in on `schedule-test.html` (e.g., `client.dcql`, `client.verifier_info`) are only shown in the form if they appear in the aggregated `configurationFields` for the selected plan and modules. The aggregator unions, in this order:
@@ -310,6 +312,7 @@ Check `src/main/resources/static/schedule-test.html` for the field labels displa
 - This repository is a conformance test suite; explicit failures for invalid protocol behavior are expected.
 - Ignored catches can be acceptable if they still lead to a clear and meaningful test failure.
 - Generic `error(...)` text is acceptable when `args(...)` includes actionable detail.
+- Tests that require a relying party to skip an unusable JWK must use a guaranteed-unsupported synthetic key: an AKP/post-quantum key with a non-existent parameter set, or a made-up `kty`/`alg` (see `AddUnusableKeysToServerPublicJwks`). Never a real-but-niche algorithm such as Brainpool; a library update can make it usable and silently invert the test.
 
 ### Skips vs failures
 
