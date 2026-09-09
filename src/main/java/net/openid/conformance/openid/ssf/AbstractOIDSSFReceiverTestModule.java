@@ -506,7 +506,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				case "remove_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
 				});
-				default -> response = super.handleHttp(path, req, res, session, requestParts);
+				// This handler already holds the test lock in RUNNING state, so the stray request
+				// is graded in place; the base class's own RUNNING transition would trip the
+				// status machine and end the test INTERRUPTED.
+				default -> response = reportUnexpectedHttpRequest(path, requestParts);
 			}
 		} finally {
 			if (!Set.of(Status.WAITING, Status.FINISHED).contains(getStatus())) {
@@ -634,7 +637,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			} else if (path.startsWith("/.well-known/oauth-authorization-server")) {
 				response = handleAuthorizationServerMetadataEndpoint();
 			} else {
-				response = super.handleWellKnown(path, req, res, session, requestParts);
+				// see handleHttp: the lock is held and the status is RUNNING already
+				response = reportUnexpectedHttpRequest(path, requestParts);
 			}
 		} finally {
 			setStatus(Status.WAITING);
@@ -816,7 +820,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 		}
 
-		return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+		return reportUnexpectedHttpRequest(path, requestParts);
 	}
 
 	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
@@ -894,7 +898,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String method = req.getMethod();
 		if (!method.equals("POST")) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
@@ -921,7 +925,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	protected ResponseEntity<?> handleVerificationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		String method = req.getMethod();
 		if (!method.equals("POST")) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		callAndContinueOnFailure(OIDSSFHandleStreamVerificationRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
@@ -1108,7 +1112,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String method = req.getMethod();
 		if (!Set.of("GET", "POST").contains(method)) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		boolean isReadStreamStatus = method.equals("GET");
@@ -1175,7 +1179,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String method = req.getMethod();
 		if (!Objects.equals("POST", method)) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged, this::onStreamEventErrorReported), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");

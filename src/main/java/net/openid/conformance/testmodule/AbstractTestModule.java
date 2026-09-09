@@ -1337,19 +1337,30 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * that is still waiting for the real interaction.
 	 */
 	protected Object unexpectedHttpRequest(String path, JsonObject requestParts) {
+		// the http request arrives on its own thread without the test lock, so take it while
+		// the condition runs, as request handlers do
+		setStatus(Status.RUNNING);
+		Object response = reportUnexpectedHttpRequest(path, requestParts);
+		setStatus(Status.WAITING);
+
+		return response;
+	}
+
+	/**
+	 * Grades and answers an HTTP request the test does not serve, without touching the test
+	 * status. For request handlers that already hold the test lock in RUNNING state and fall
+	 * through to this case; {@link #unexpectedHttpRequest} wraps it for the lock-free path.
+	 */
+	protected ResponseEntity<?> reportUnexpectedHttpRequest(String path, JsonObject requestParts) {
 		JsonObject unexpected = new JsonObject();
 		unexpected.addProperty("path", path);
 		if (requestParts != null && requestParts.has("method")) {
 			unexpected.add("method", requestParts.get("method"));
 		}
 
-		// the http request arrives on its own thread without the test lock, so take it while
-		// the condition runs, as request handlers do
-		setStatus(Status.RUNNING);
 		env.putObject(UnexpectedHttpRequestReceived.ENV_KEY, unexpected);
 		callAndContinueOnFailure(UnexpectedHttpRequestReceived.class, Condition.ConditionResult.FAILURE);
 		env.removeObject(UnexpectedHttpRequestReceived.ENV_KEY);
-		setStatus(Status.WAITING);
 
 		return new ResponseEntity<>(Map.of("error", "The test does not serve the path '" + path + "'"), HttpStatus.NOT_FOUND);
 	}
