@@ -311,6 +311,15 @@ Check `src/main/resources/static/schedule-test.html` for the field labels displa
 - Ignored catches can be acceptable if they still lead to a clear and meaningful test failure.
 - Generic `error(...)` text is acceptable when `args(...)` includes actionable detail.
 
+### Skips vs failures
+
+`fireTestSkipped` is only for cases where the tester or the server declared a feature out of play that is optional **under the selected profile** (RSA keys not configured, PAR not advertised, optional `state` omitted by the client). A skip must never let an implementer certify without the mandatory behaviour under test having been exercised.
+
+- Optionality is decided by the profile, not the base spec. A token response without a refresh token is a skip under plain FAPI, where refresh tokens are optional, but a stop-on-failure under Brazil, which mandates them: see the `FAPIBrazilRefreshTokenRequired` branch in `FAPI2SPFinalRefreshToken` for the pattern. Check every profile the module runs under before writing a skip.
+- If a server choice, even one a spec permits with a MAY (e.g. RFC 7591 section 3.2.1 lets the server substitute registered metadata), means the behaviour under test cannot be exercised, that is a `callAndStopOnFailure` FAILURE whose message tells the tester what to reconfigure. Not a skip, not INFO.
+- "The spec allows it" does not override test intent. The selected variant is a fixed contract: a module run with private_key_jwt does not adapt to whatever auth method the registration response returned. A profile validator enforces the profile (Brazil mandates private_key_jwt) regardless of what the base spec permits.
+- A MAY describes what the implementation may do; it does not describe what the suite is testing.
+
 ### Sender vs Receiver Validation
 
 When specs say "MUST ignore unknown properties", that applies to **receivers** (e.g., wallets processing DCQL queries). The conformance suite validates **senders** (e.g., verifiers constructing DCQL queries), so JSON schemas SHOULD use `additionalProperties: false` to flag unknown or misspelled fields as warnings (not errors) — senders should not include undefined properties.
