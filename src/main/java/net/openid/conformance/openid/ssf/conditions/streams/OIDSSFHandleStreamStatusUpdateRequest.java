@@ -62,13 +62,7 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 		}
 
 		String reason = OIDFJSON.tryGetString(streamStatusInput.get("reason"));
-		try {
-			OIDSSFStreamUtils.updateStreamStatus(streamConfig, status, reason);
-		} catch (IllegalArgumentException e) {
-			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
-			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream status update request: Invalid status transition", args("stream_id", streamId, "error", resultObj.get("error")));
-		}
+		OIDSSFStreamUtils.updateStreamStatus(streamConfig, status, reason);
 
 		// store updated stream status
 		streamsObj.add(streamId, streamConfig);
