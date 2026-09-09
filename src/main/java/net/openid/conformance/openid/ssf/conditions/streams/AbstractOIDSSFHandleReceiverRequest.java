@@ -92,12 +92,15 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 		return mismatched;
 	}
 
-	protected Set<String> checkForInvalidKeysInStreamConfigInput(JsonObject streamConfigInput) {
+	/**
+	 * The transmitter-supplied stream configuration keys (other than {@code stream_id}) that a
+	 * receiver put into its request body. The transmitter decides those values, so the caller
+	 * ignores them.
+	 */
+	protected Set<String> findTransmitterSuppliedKeysInStreamConfigInput(JsonObject streamConfigInput) {
 		Set<String> transmitterSuppliedKeys = new HashSet<>(getTransmitterSuppliedStreamConfigKeys());
-		transmitterSuppliedKeys.remove("stream_id"); // ignore stream_id
-
-		Set<String> keysNotAllowedInUpdate = new HashSet<>(transmitterSuppliedKeys);
-		keysNotAllowedInUpdate.retainAll(streamConfigInput.keySet());
-		return keysNotAllowedInUpdate;
+		transmitterSuppliedKeys.remove("stream_id");
+		transmitterSuppliedKeys.retainAll(streamConfigInput.keySet());
+		return transmitterSuppliedKeys;
 	}
 }

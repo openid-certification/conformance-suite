@@ -50,6 +50,8 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 
 		Set<String> unknownProperties = new HashSet<>(streamConfigInput.keySet());
 		unknownProperties.removeAll(supportedReceiverSuppliedProperties);
+		// transmitter-supplied properties are reported by checkInvalidTransmitterSuppliedProperties
+		unknownProperties.removeAll(transmitterSuppliedProperties);
 
 		if (!unknownProperties.isEmpty()) {
 			log("Found unknown properties in stream request body. This may indicate the receiver has misunderstood the spec, or it may be using extensions the test suite is unaware of.",
@@ -57,15 +59,20 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 		}
 	}
 
+	/**
+	 * SSF 1.0 8.1.1.1 lists what a Create Stream request MAY contain and forbids nothing;
+	 * Table 1 reserves 400 for a request that "cannot be parsed". Transmitter-supplied
+	 * properties in the body are therefore not a reason to reject the request: the
+	 * transmitter decides those values and ignores the ones sent. Their presence is graded
+	 * separately as a sender-side WARNING by
+	 * {@link OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest}.
+	 */
 	protected void checkInvalidTransmitterSuppliedProperties(JsonObject streamConfigInput) {
-		Set<String> invalidProps = new HashSet<>();
-		for (String prop : getTransmitterSuppliedProperties()) {
-			if (streamConfigInput.has(prop)) {
-				invalidProps.add(prop);
-			}
-		}
-		if (!invalidProps.isEmpty()) {
-			throw error("Found transmitter supplied properties in stream request body", args("invalid_transmitter_supplied", invalidProps));
+		Set<String> transmitterSupplied = new HashSet<>(getTransmitterSuppliedProperties());
+		transmitterSupplied.retainAll(streamConfigInput.keySet());
+		if (!transmitterSupplied.isEmpty()) {
+			log("Found transmitter-supplied properties in the stream create request body; the transmitter's own values are used instead",
+				args("transmitter_supplied", transmitterSupplied));
 		}
 	}
 
