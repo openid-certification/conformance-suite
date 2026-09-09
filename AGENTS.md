@@ -388,6 +388,8 @@ The commit series is what gets reviewed: no add-then-remove or add-then-revert p
 
 Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTest.java`).
 
+Unit tests are for Conditions (and pure utility classes). Test-module control flow is covered by the OP-vs-RP CI pairings in `.gitlab-ci/run-tests.sh`: when you add or change a module path, add or adjust a pairing (and the expected-failures JSON) rather than writing a module unit test. If a module path truly cannot be paired, a narrow module test is acceptable, but it must drive the module through its public/protected API only: no `ReflectionTestUtils.setField` on private state such as `status`, no mocked `TestExecutionManager`, no overriding `callAndStopOnFailure` to capture arguments.
+
 ## Frontend E2E Tests
 
 Playwright E2E tests in `frontend/e2e/` validate the legacy static HTML pages (`src/main/resources/static/*.html`) with mocked API responses. No backend required.
