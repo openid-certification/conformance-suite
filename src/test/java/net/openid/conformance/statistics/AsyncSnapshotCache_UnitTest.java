@@ -21,6 +21,7 @@ class AsyncSnapshotCache_UnitTest {
 	private static final Instant START = Instant.parse("2026-08-15T09:00:00Z");
 	private static final Duration TTL = Duration.ofHours(12);
 	private static final Duration BACKOFF = Duration.ofSeconds(60);
+	private static final Duration IDLE = Duration.ofHours(12);
 
 	private QueuedExecutor executor;
 	private MutableClock clock;
@@ -32,7 +33,54 @@ class AsyncSnapshotCache_UnitTest {
 		executor = new QueuedExecutor();
 		clock = new MutableClock(START);
 		computation = new AtomicReference<>(() -> "first");
-		cache = new AsyncSnapshotCache<>(() -> computation.get().get(), executor, clock, TTL, BACKOFF);
+		cache = new AsyncSnapshotCache<>(() -> computation.get().get(), executor, clock, TTL, BACKOFF, IDLE);
+	}
+
+	@Test
+	void aSnapshotNobodyHasAskedForWithinTheIdleTimeoutIsDropped() {
+		cache.get(false);
+		executor.runAll();
+		clock.advance(IDLE.plusMinutes(1));
+
+		assertThat(cache.evictIfIdle()).isTrue();
+
+		// the next caller starts over: a computation, and nothing to serve meanwhile
+		assertThat(cache.get(false)).isInstanceOf(AsyncSnapshotCache.Pending.class);
+		assertThat(executor.submitCount()).isEqualTo(2);
+	}
+
+	@Test
+	void aSnapshotSomebodyAskedForWithinTheIdleTimeoutIsKeptEvenOnceStale() {
+		cache.get(false);
+		executor.runAll();
+		clock.advance(Duration.ofHours(11));
+		cache.get(false);
+		// 13 hours old, so stale, but asked for two hours ago
+		clock.advance(Duration.ofHours(2));
+
+		assertThat(cache.evictIfIdle()).isFalse();
+		assertThat(ready(cache.get(false)).value()).isEqualTo("first");
+	}
+
+	@Test
+	void evictionLeavesARunningComputationAlone() {
+		cache.get(false);
+		executor.runAll();
+		computation.set(() -> "second");
+		cache.get(true);
+		clock.advance(IDLE.plusMinutes(1));
+
+		assertThat(cache.evictIfIdle()).isFalse();
+
+		executor.runAll();
+		assertThat(ready(cache.get(false)).value()).isEqualTo("second");
+	}
+
+	@Test
+	void thereIsNothingToEvictBeforeTheFirstComputation() {
+		assertThat(cache.evictIfIdle()).isFalse();
+		clock.advance(IDLE.plusMinutes(1));
+		assertThat(cache.evictIfIdle()).isFalse();
 	}
 
 	@Test

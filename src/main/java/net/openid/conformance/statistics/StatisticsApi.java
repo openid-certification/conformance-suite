@@ -41,8 +41,9 @@ public class StatisticsApi {
 	@Operation(operationId = "getStatisticsOverview",
 		summary = "Get suite-wide usage statistics across all users (admin only)",
 		description = "Served from a snapshot that is recomputed in the background at most every 12 hours, "
-			+ "because the underlying aggregations group over the whole test database. "
-			+ "While the first snapshot is being computed the response is 202 and the client should poll. "
+			+ "because the underlying aggregations group over the whole test database, and dropped after "
+			+ "12 hours without a request, so that it only takes memory while somebody is looking. "
+			+ "While a snapshot is being computed and none is held the response is 202 and the client should poll. "
 			+ "The filters and the range are applied to that snapshot when the request is answered, so they "
 			+ "are free to change and never trigger a recomputation.\n\n"
 			+ "In addition to the parameters below, any number of plan level variant filters may be sent as "

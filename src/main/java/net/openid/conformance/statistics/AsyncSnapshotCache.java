@@ -22,6 +22,11 @@ import java.util.function.Supplier;
  * and, unless forced, only if the last failure is older than the failure backoff, so a
  * broken data source is not hammered by pollers.
  *
+ * <p>The snapshot is held only while somebody is asking for it: {@link #evictIfIdle()},
+ * which the owner calls periodically, drops it once no {@link #get(boolean)} has arrived for
+ * the idle timeout. The next caller then starts a computation and waits for it, rather than
+ * a stale snapshot sitting in memory for as long as the server runs.
+ *
  * @param <T> the snapshot type
  */
 public class AsyncSnapshotCache<T> {
@@ -38,6 +43,8 @@ public class AsyncSnapshotCache<T> {
 
 	private final Duration failureBackoff;
 
+	private final Duration idleTimeout;
+
 	private T value;
 
 	private Instant computedAt;
@@ -50,19 +57,43 @@ public class AsyncSnapshotCache<T> {
 
 	private Instant inFlightStartedAt;
 
+	private Instant lastAskedAt;
+
 	/**
 	 * @param computation    produces a snapshot; runs on {@code executor}, may throw
 	 * @param executor       where computations run; a single thread is enough
 	 * @param clock          the clock all timestamps and ages are measured against
 	 * @param ttl            how long a snapshot is served before a refresh is triggered
 	 * @param failureBackoff how long after a failed computation before another is tried
+	 * @param idleTimeout    how long without a {@link #get(boolean)} before {@link #evictIfIdle()}
+	 *                       drops the snapshot
 	 */
-	public AsyncSnapshotCache(Supplier<T> computation, Executor executor, Clock clock, Duration ttl, Duration failureBackoff) {
+	public AsyncSnapshotCache(Supplier<T> computation, Executor executor, Clock clock, Duration ttl, Duration failureBackoff,
+			Duration idleTimeout) {
 		this.computation = computation;
 		this.executor = executor;
 		this.clock = clock;
 		this.ttl = ttl;
 		this.failureBackoff = failureBackoff;
+		this.idleTimeout = idleTimeout;
+	}
+
+	/**
+	 * Drops the snapshot if nobody has asked for it for the idle timeout. A running
+	 * computation is left alone: its result lands as usual and is judged at the next call.
+	 *
+	 * @return whether a snapshot was dropped
+	 */
+	public synchronized boolean evictIfIdle() {
+		boolean running = inFlight != null && !inFlight.isDone();
+		if (value == null || running || Duration.between(lastAskedAt, clock.instant()).compareTo(idleTimeout) <= 0) {
+			return false;
+		}
+		logger.info("Dropped the snapshot computed at {}: not asked for since {}", computedAt, lastAskedAt);
+		value = null;
+		computedAt = null;
+		computeDuration = null;
+		return true;
 	}
 
 	/**
@@ -74,6 +105,7 @@ public class AsyncSnapshotCache<T> {
 	public synchronized State<T> get(boolean force) {
 		boolean running = inFlight != null && !inFlight.isDone();
 		Instant now = clock.instant();
+		lastAskedAt = now;
 		if (!running && shouldStart(force, now)) {
 			inFlightStartedAt = now;
 			inFlight = CompletableFuture.runAsync(this::runOnce, executor);
