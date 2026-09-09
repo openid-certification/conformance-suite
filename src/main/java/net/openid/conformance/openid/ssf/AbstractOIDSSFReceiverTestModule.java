@@ -991,8 +991,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 					AbstractOIDSSFReceiverTestModule.this::onPushDeliveryNotAcknowledged), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
 				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
-				// SHALL → FAILURE severity per the conformance-suite convention.
-				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), Condition.ConditionResult.FAILURE, "RFC8935-2.2");
+				// SHALL → FAILURE severity per the conformance-suite convention, unless the
+				// module knows the receiver may legitimately reject this particular SET.
+				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), getPushDeliveryRejectionSeverity(event), "RFC8935-2.2");
 				// Pace the deliveries with the test lock released: this task holds the lock in
 				// RUNNING state, and a raw sleep here would stall every request the receiver
 				// makes in the meantime.
@@ -1079,6 +1080,15 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 * The {@code jti} values of events whose push delivery was answered with an error status,
 	 * see {@link #onPushDeliveryNotAcknowledged(String, OIDSSFSecurityEvent)}.
 	 */
+	/**
+	 * Severity of a push delivery the receiver did not answer with 202 (RFC 8935 2.2). FAILURE
+	 * unless a module knows the receiver may legitimately reject the given SET, e.g. one whose
+	 * subject format the certification target does not require it to accept.
+	 */
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		return Condition.ConditionResult.FAILURE;
+	}
+
 	protected Set<String> getRejectedPushEventJtis() {
 		return Set.copyOf(rejectedPushEventJtis);
 	}
