@@ -94,11 +94,15 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 		List<OIDSSFSecurityEvent> events = new ArrayList<>();
 		int items = 0;
 		boolean moreAvailable = false;
-		while (!queue.isEmpty() || waitForEvents) {
+		// RFC 8936 2.5: a long poll is answered "until a SET is available or the timeout
+		// interval has elapsed" - so block only while nothing has been collected yet, then
+		// drain what else is immediately available (up to maxCount) and return.
+		boolean blockForEvents = waitForEvents;
+		while (!queue.isEmpty() || blockForEvents) {
 
 			OIDSSFSecurityEvent event;
 
-			if (waitForEvents) {
+			if (blockForEvents) {
 				try {
 					event = queue.poll(1, TimeUnit.SECONDS);
 				} catch (InterruptedException e) {
@@ -111,6 +115,7 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 			if (event != null) {
 				events.add(event);
 				items++;
+				blockForEvents = false;
 			}
 
 			moreAvailable = queue.peek() != null;
