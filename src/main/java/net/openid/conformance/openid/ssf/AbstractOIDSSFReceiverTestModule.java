@@ -37,6 +37,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSu
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFResolveEventSubjects;
@@ -770,6 +771,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "POST": {
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
+				callAndContinueOnFailure(OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = createResult.get("error");
