@@ -206,7 +206,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 					throw new RuntimeException("Invalid configuration for %s: OpenID must be selected for KSA".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return List.of("FAPI2MS RP KSA");
+				return List.of("FAPI2MS RP KSA w/" + getClientAuth(clientAuth));
 			case "openbanking_chile":
 				if (privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only MTLS client authentication is used for Chile".formatted(
@@ -238,17 +238,9 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		switch (clientAuth) {
-			case "private_key_jwt":
-				certProfile += " private key";
-				break;
-			case "mtls":
-				certProfile += " MTLS";
-				break;
-			default:
-				throw new RuntimeException("Unknown client auth type %s for %s".formatted(
-					clientAuth, MethodHandles.lookup().lookupClass().getSimpleName()));
-		}
+		// add client authentication
+		certProfile += getClientAuth(clientAuth);
+
 		switch (senderConstrain) {
 			case "mtls":
 				certProfile += " + MTLS";
@@ -283,5 +275,14 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		}
 
 		return profiles;
+	}
+
+	String getClientAuth(String clientAuth) {
+		return switch (clientAuth) {
+			case "private_key_jwt" -> " private key";
+			case "mtls" -> " MTLS";
+			default -> throw new RuntimeException("Unknown client auth type %s for %s".formatted(
+				clientAuth, MethodHandles.lookup().lookupClass().getSimpleName()));
+		};
 	}
 }
