@@ -1,11 +1,17 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.openid.federation.EnsureResponseIsJsonObject;
 import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFPrepareStreamConfigObjectSetDeliveryMethod;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFPrepareStreamConfigObject;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties.Operation;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckExpectedJsonResponseContents;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
@@ -24,7 +30,10 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamCo
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+
+import java.util.List;
 
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-happy-path",
@@ -111,26 +120,56 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 				env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 
 				call(sequence(OIDSSFUpdateStreamConditionSequence.class));
+				rememberSentStreamConfig();
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.3");
 				// TODO check for 202 response
 				// 202	if the update request has been accepted, but not processed. Receiver MAY try the same request later to get processing result.
-				// TODO check for changed value
 				callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.3");
+				// 8.1.1.3: the response is "the entire updated stream configuration"
+				callAndContinueOnFailure(new OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties(Operation.UPDATE), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				call(exec().unmapKey("endpoint_response"));
 			});
+
+			readBackStreamConfigurationAndCompare("Read Stream Configuration after update", Operation.UPDATE, "OIDSSF-8.1.1.3");
 
 			// this is still not supported in the caep.dev reference env :-/
 			eventLog.runBlock("Replace Stream Configuration", () -> {
 
 				call(sequence(OIDSSFReplaceStreamConditionSequence.class));
+				rememberSentStreamConfig();
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.4");
 				// TODO check for 202 responses
 				// 202	if the replace request has been accepted, but not processed. Receiver MAY try the same request later in order to get processing result.
 				callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(new OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties(Operation.REPLACE), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				call(exec().unmapKey("endpoint_response"));
 			});
+
+			readBackStreamConfigurationAndCompare("Read Stream Configuration after replace", Operation.REPLACE, "OIDSSF-8.1.1.4");
+
+			// SSF 1.0 8.1.1.4: "Missing Receiver-Supplied properties MUST be interpreted as
+			// requested to be deleted" - a second PUT without the description and with a
+			// narrower events_requested must drop the description and shrink events_delivered.
+			eventLog.runBlock("Replace Stream Configuration omitting the description", () -> {
+				callAndStopOnFailure(OIDSSFPrepareStreamConfigObject.class, "OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(OIDSSFPrepareStreamConfigObjectSetDeliveryMethod.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
+				JsonObject reduced = env.getElementFromObject("ssf", "stream.config").getAsJsonObject().deepCopy();
+				reduced.remove("description");
+				reduced.addProperty("stream_id", env.getString("ssf", "stream.stream_id"));
+				reduced.add("events_requested", OIDFJSON.convertListToJsonArray(List.of(SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE)));
+				env.putObject("ssf", "stream.config_override", reduced);
+
+				callAndStopOnFailure(OIDSSFReplaceStreamConfigCall.class, "OIDSSF-8.1.1.4");
+				rememberSentStreamConfig();
+				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(new OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties(Operation.REPLACE), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
+				call(exec().unmapKey("endpoint_response"));
+			});
+
+			readBackStreamConfigurationAndCompare("Read Stream Configuration after the reducing replace", Operation.REPLACE, "OIDSSF-8.1.1.4");
 		}
 
 		String statusEndpoint = env.getString("ssf", "transmitter_metadata.status_endpoint");
@@ -177,6 +216,26 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 		});
 
 		fireTestFinished();
+	}
+
+	/**
+	 * Keeps the body of the PATCH or PUT just sent, so the returned and the read-back stream
+	 * configuration can be compared with it after {@code ssf.stream} has been replaced by the
+	 * transmitter's response.
+	 */
+	private void rememberSentStreamConfig() {
+		env.putObjectFromJsonString("ssf", "expected_stream_config", env.getString("resource_request_entity"));
+	}
+
+	private void readBackStreamConfigurationAndCompare(String blockTitle, Operation operation, String requirement) {
+		eventLog.runBlock(blockTitle, () -> {
+			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-8.1.1.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
+			// a transmitter that answered 200 and echoed the request but did not persist it fails here
+			callAndContinueOnFailure(new OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties(operation), Condition.ConditionResult.FAILURE, requirement);
+			call(exec().unmapKey("endpoint_response"));
+		});
 	}
 
 
