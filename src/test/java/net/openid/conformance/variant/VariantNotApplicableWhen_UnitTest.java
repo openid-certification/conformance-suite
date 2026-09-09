@@ -3,6 +3,7 @@ package net.openid.conformance.variant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -90,6 +91,7 @@ class VariantNotApplicableWhen_UnitTest {
 			new VariantService.TestModuleVariantInfo<>(
 				subOptionParam,
 				Set.of(),  // no static exclusions
+				List.of(),  // no whitelists
 				Map.of(),  // no config fields
 				Map.of(),  // no hidden config fields
 				Map.of(),  // no setup methods
@@ -145,6 +147,7 @@ class VariantNotApplicableWhen_UnitTest {
 			new VariantService.TestModuleVariantInfo<>(
 				subOptionParam,
 				Set.of(),
+				List.of(),
 				Map.of(),
 				Map.of(),
 				Map.of(),
@@ -188,6 +191,7 @@ class VariantNotApplicableWhen_UnitTest {
 			new VariantService.TestModuleVariantInfo<>(
 				subOptionParam,
 				Set.of(),
+				List.of(),
 				Map.of(),
 				Map.of(),
 				Map.of(),
@@ -230,6 +234,7 @@ class VariantNotApplicableWhen_UnitTest {
 			new VariantService.TestModuleVariantInfo<>(
 				subOptionParam,
 				Set.of(),
+				List.of(),
 				Map.of(),
 				Map.of(),
 				Map.of(),

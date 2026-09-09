@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -38,6 +39,35 @@ public final class BrokenVariantFixtures {
 	@VariantParameters({ClientAuthType.class})
 	@VariantNotApplicable(parameter = ClientAuthType.class, values = {"no_such_value"})
 	public abstract static class BadNotApplicableModule implements TestModule {
+	}
+
+	@PublishTestModule(testName = "fixture-bad-applicable-only", displayName = "fixture", profile = "fixture")
+	@VariantParameters({ClientAuthType.class})
+	@VariantApplicableOnly(parameter = ClientAuthType.class, values = {"no_such_value"})
+	public abstract static class BadApplicableOnlyModule implements TestModule {
+	}
+
+	@PublishTestModule(testName = "fixture-empty-applicable-only", displayName = "fixture", profile = "fixture")
+	@VariantParameters({ClientAuthType.class})
+	@VariantApplicableOnly(parameter = ClientAuthType.class, values = {})
+	public abstract static class EmptyApplicableOnlyModule implements TestModule {
+	}
+
+	@VariantParameters({ClientAuthType.class})
+	@VariantApplicableOnly(parameter = ClientAuthType.class, values = {"mtls"})
+	public abstract static class MtlsOnlyBase implements TestModule {
+	}
+
+	/** Two whitelists with no value in common leave nothing the module can run under. */
+	@PublishTestModule(testName = "fixture-disjoint-applicable-only", displayName = "fixture", profile = "fixture")
+	@VariantApplicableOnly(parameter = ClientAuthType.class, values = {"private_key_jwt"})
+	public abstract static class DisjointApplicableOnlyModule extends MtlsOnlyBase {
+	}
+
+	/** The opt-out removes the only whitelisted value. */
+	@PublishTestModule(testName = "fixture-not-applicable-removes-sole-value", displayName = "fixture", profile = "fixture")
+	@VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls"})
+	public abstract static class NotApplicableRemovesSoleValueModule extends MtlsOnlyBase {
 	}
 
 	@PublishTestModule(testName = "fixture-bad-configuration-fields", displayName = "fixture", profile = "fixture")
@@ -76,6 +106,7 @@ public final class BrokenVariantFixtures {
 	@PublishTestModule(testName = "fixture-good", displayName = "fixture", profile = "fixture")
 	@VariantParameters({ClientAuthType.class, FAPIResponseMode.class})
 	@VariantNotApplicable(parameter = ClientAuthType.class, values = {"client_secret_basic"})
+	@VariantApplicableOnly(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
 	@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {"client.fixture"})
 	@VariantNotApplicableWhen(parameter = ClientAuthType.class, values = {"none"}, whenParameter = FAPIResponseMode.class, hasValues = {"jarm"})
 	@VariantNotApplicableWhen(parameter = ClientAuthType.class, values = {"*"}, whenParameter = FAPIResponseMode.class, hasValues = {"plain_response"})
