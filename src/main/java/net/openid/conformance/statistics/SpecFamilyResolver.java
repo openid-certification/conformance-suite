@@ -70,6 +70,14 @@ public class SpecFamilyResolver {
 	/** The generated map of retired and renamed plan names to their family. */
 	static final String ALIASES = "/statistics/legacy-plan-families.properties";
 
+	/**
+	 * The plan names the registry published when {@value #ALIASES} was generated, one per
+	 * line, written by the same script. Not read here: {@code LegacyPlanFamilies_UnitTest}
+	 * diffs it against the registry so that a plan retired since fails the build until the
+	 * map is regenerated.
+	 */
+	static final String PUBLISHED = "/statistics/legacy-plan-families.published";
+
 	private static final Logger logger = LoggerFactory.getLogger(SpecFamilyResolver.class);
 
 	/** The {@link SpecFamilyNames} constants, in declaration order. */

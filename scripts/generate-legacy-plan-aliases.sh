@@ -20,7 +20,10 @@
 # and counted, by package, in the generated file's header.
 #
 # Run it after retiring or renaming a test plan. It is not part of the build or of CI: it
-# walks all of git history and its output only changes when plan names do.
+# walks all of git history and its output only changes when plan names do. It also writes
+# the names HEAD publishes to legacy-plan-families.published, and
+# LegacyPlanFamilies_UnitTest fails the build once any of those is no longer published and
+# not in the map - so retiring a plan without rerunning this is caught at the next build.
 #
 # It walks origin/master and HEAD only - deliberately NOT --all. Clones of this repository
 # often have fork remotes whose plans never existed here, and names from a fork must not end
@@ -30,6 +33,7 @@
 # Usage (from anywhere):
 #   scripts/generate-legacy-plan-aliases.sh                 # rewrite the properties file
 #   scripts/generate-legacy-plan-aliases.sh --dry-run       # print it instead
+#                                                           # (both files, in order)
 #   scripts/generate-legacy-plan-aliases.sh --report t.tsv  # also dump every name it found:
 #                                                           # name, family, constant,
 #                                                           # provenance, source paths
@@ -54,6 +58,9 @@ REPO = os.environ["REPO_ROOT"]
 SOURCE_ROOT = "src/main/java/"
 TEST_PLAN_JAVA = "src/main/java/net/openid/conformance/plan/TestPlan.java"
 OUTPUT = "src/main/resources/statistics/legacy-plan-families.properties"
+# the names HEAD publishes, recorded so that LegacyPlanFamilies_UnitTest can tell which of
+# them have been retired since - the event that makes the map stale - without git
+PUBLISHED = "src/main/resources/statistics/legacy-plan-families.published"
 COMMAND = "scripts/generate-legacy-plan-aliases.sh"
 
 # how many unmapped names a package has to be under before the header names them one by one
@@ -394,6 +401,18 @@ def main():
     for name, display in sorted(aliases.items()):
         lines.append(f"{escape(name, True)}={escape(display, False)}")
     text = "\n".join(lines) + "\n"
+    published = "\n".join([
+        "# The test plan names the suite published when legacy-plan-families.properties was",
+        "# generated, by the same script - do not edit by hand. LegacyPlanFamilies_UnitTest",
+        "# diffs these against the registry: one that is no longer published has been retired",
+        "# or renamed since, and must be in the map.",
+        "#",
+        f"#   {COMMAND}",
+        "#",
+        f"# git revision: {revision}",
+        f"# plan names: {len(registry)}",
+        "",
+    ] + sorted(registry)) + "\n"
 
     if report:
         with open(report, "w", encoding="utf-8") as handle:
@@ -409,12 +428,15 @@ def main():
 
     if dry_run:
         sys.stdout.write(text)
+        sys.stdout.write(f"# --- {PUBLISHED}\n")
+        sys.stdout.write(published)
         return
-    destination = os.path.join(REPO, OUTPUT)
-    os.makedirs(os.path.dirname(destination), exist_ok=True)
-    with open(destination, "w", encoding="utf-8") as handle:
-        handle.write(text)
-    print(f"wrote {OUTPUT}", file=sys.stderr)
+    for relative, content in ((OUTPUT, text), (PUBLISHED, published)):
+        destination = os.path.join(REPO, relative)
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
+        with open(destination, "w", encoding="utf-8") as handle:
+            handle.write(content)
+        print(f"wrote {relative}", file=sys.stderr)
 
 
 def check(aliases, families):
