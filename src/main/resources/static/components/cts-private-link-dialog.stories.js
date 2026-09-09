@@ -138,6 +138,14 @@ export const GenerateShowsResult = {
       });
       expect(canvasElement.querySelector(".plinkMessage")?.textContent).toContain("server restart");
       expect(canvasElement.querySelector(".plinkCopyBtn")).toBeTruthy();
+
+      // Changing the expiry discards the result: the link on screen was
+      // minted for the previous expiry, so it must not stay displayed under
+      // a newly pressed preset.
+      await userEvent.click(canvasElement.querySelector('.plinkPreset[data-days="365"] button'));
+      await waitFor(() =>
+        expect(canvasElement.querySelector('[data-testid="private-link-result"]')).toBeNull(),
+      );
     } finally {
       window.fetch = originalFetch;
     }
