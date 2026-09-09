@@ -4,11 +4,11 @@ import { GUIDED_WIZARD_TREE } from "./guided-wizard-tree.js";
 /**
  * Integrity tests for the guided-mode decision tree. The tree is hand-edited
  * data (converted from MR !2029's guided-wizard.yaml), so these tests are the
- * build-time guard against the class of breakage the YAML shipped with: a
- * dangling `also_required` reference (`fapi2_brazil_op`) that no sibling
- * choice declares. Any future content edit that reintroduces a dangling
- * reference, a choice with both/neither of `next`/`result`, or a result
- * without `plan_name`/`variants` fails here before it can dead-end a user.
+ * build-time guard against the class of breakage the YAML shipped with. Any
+ * future content edit that adds a choice with both/neither of `next`/`result`,
+ * a result without `plan_name`/`variants`, or a resurrected `also_required`
+ * link (removed with the multi-plan bundle flow, #1967) fails here before it
+ * can dead-end a user.
  */
 
 /**
@@ -138,20 +138,16 @@ describe("GUIDED_WIZARD_TREE integrity", () => {
     }
   });
 
-  it("resolves every also_required id to a sibling choice with a result.plan_name", () => {
-    // Guards against the dangling reference the YAML shipped with:
-    // dcr_brazil_op.also_required pointed at `fapi2_brazil_op`, which exists
-    // nowhere in the `plan` step. Reverting the data fix fails this test.
+  it("declares no also_required links — one journey resolves one plan (#1967)", () => {
+    // The wizard no longer orchestrates multi-plan certification bundles, so
+    // nothing reads `also_required`. Re-adding it to the data would silently
+    // do nothing; fail here instead.
     for (const { path, step } of collectSteps()) {
       for (const choice of step.choices) {
-        for (const sibling of choice.result?.also_required ?? []) {
-          const target = step.choices.find((c) => c.id === sibling.id);
-          expect(target, `also_required ${path}/${choice.id} → ${sibling.id}`).toBeTruthy();
-          expect(
-            target?.result?.plan_name,
-            `result.plan_name of also_required target ${path}/${sibling.id}`,
-          ).toBeTruthy();
-        }
+        expect(
+          Object.hasOwn(choice.result ?? {}, "also_required"),
+          `${path}/${choice.id} declares also_required`,
+        ).toBe(false);
       }
     }
   });

@@ -242,7 +242,7 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(configureBox.x).toBeGreaterThan(backBox.x + backBox.width);
   });
 
-  test("bundle: Brazil OP FAPI path shows the upfront checklist before review", async ({
+  test("Brazil OP FAPI path goes straight to review — one journey, one plan (#1967)", async ({
     page,
   }) => {
     await setupScheduleTestRoutes(page);
@@ -253,21 +253,17 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
     await pickChoice(page, "fapi1_brazil_op");
 
-    // The bundle checklist names the sibling BEFORE review.
-    await expect(page.locator("#guidedStage h1")).toHaveText(
-      "This certification needs 2 test plans",
-    );
-    const bundle = page.locator("#guidedStage .bundle-list");
-    await expect(bundle.locator("li")).toHaveCount(2);
-    await expect(bundle).toContainText("FAPI1-Advanced-Final: Authorization server test");
-    await expect(bundle).toContainText("Dynamic Client Registration");
-
-    // Continue lands on review, which repeats the checklist.
-    await page.locator("#guidedStageActions").getByText("Continue with plan 1").click();
+    // No multi-plan checklist interstitial and no checklist on review: the
+    // wizard resolves the one plan the user picked and stops there.
     await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
-    await expect(page.locator("#guidedStage .bundle-list")).toContainText(
-      "Dynamic Client Registration",
+    await expect(page.locator("#guidedStage .bundle-list")).toHaveCount(0);
+    await expect(page.locator("#guidedStage")).toContainText(
+      "FAPI1-Advanced-Final: Authorization server test",
     );
+
+    // Back from review returns to the plan question, not to an interstitial.
+    await page.locator("#guidedStageActions").getByText("Back").click();
+    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
   });
 
   test("ConnectID RP CIBA path resolves to the client CIBA plan", async ({ page }) => {
@@ -785,163 +781,6 @@ test.describe("schedule-test.html — guided config + create", () => {
   });
 });
 
-test.describe("schedule-test.html — wizard_preset replay + sibling loop", () => {
-  test.afterEach(async ({ page }) => {
-    expectNoUnmockedCalls(page);
-  });
-
-  const BRAZIL_PRESET = {
-    ecosystemId: "open_finance_brazil",
-    answers: ["op"],
-    completedPlanNames: ["fapi1-advanced-final-test-plan"],
-  };
-
-  test("replay: the preset lands in guided with ecosystem + role pre-answered, param stripped", async ({
-    page,
-  }) => {
-    // Even with a stored ADVANCED preference, wizard_preset forces guided.
-    await page.addInitScript(() => {
-      localStorage.setItem("oidf-guided-mode", "advanced");
-    });
-    await setupScheduleTestRoutes(page);
-    await page.goto(
-      "/schedule-test.html?wizard_preset=" + encodeURIComponent(JSON.stringify(BRAZIL_PRESET)),
-    );
-
-    await expect(page.locator("#guidedIsland")).toBeVisible();
-    // Ecosystem + role replayed; the user lands on the plan question.
-    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
-    await expect(page.locator("#guidedTrail .chip")).toHaveCount(2);
-    await expect(page.locator("#guidedTrail")).toContainText("OpenFinance Brazil");
-
-    // Consumed once: the param is stripped via replaceState.
-    expect(new URL(page.url()).searchParams.get("wizard_preset")).toBeNull();
-  });
-
-  test("replay best-effort: an unresolvable hop drops the user at the last valid step", async ({
-    page,
-  }) => {
-    await setupScheduleTestRoutes(page);
-    const preset = {
-      ecosystemId: "ksa",
-      answers: ["op", "vanished-choice"],
-      completedPlanNames: [],
-    };
-    await page.goto(
-      "/schedule-test.html?wizard_preset=" + encodeURIComponent(JSON.stringify(preset)),
-    );
-
-    // "op" replayed; the broken hop leaves the user at the client-auth step.
-    await expect(page.locator("#guidedStage h1")).toContainText("Client authentication method");
-    await expect(page.locator("#guidedTrail .chip")).toHaveCount(2);
-  });
-
-  test("malformed preset: guided opens at the ecosystem screen with a console warning only", async ({
-    page,
-  }) => {
-    /** @type {string[]} */
-    const errors = [];
-    /** @type {string[]} */
-    const warnings = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "error") errors.push(msg.text());
-      if (msg.type() === "warning") warnings.push(msg.text());
-    });
-    await setupScheduleTestRoutes(page);
-    await page.goto("/schedule-test.html?wizard_preset=garbage%7B%7B");
-
-    await expect(page.locator("#guidedStage h1")).toHaveText(
-      "Which ecosystem are you certifying for?",
-    );
-    expect(new URL(page.url()).searchParams.get("wizard_preset")).toBeNull();
-    expect(errors).toEqual([]);
-    expect(warnings.some((w) => w.includes("wizard_preset"))).toBe(true);
-  });
-
-  test("full Brazil OP loop: FAPI create → banner → DCR replay (no re-offer) → no further banner (R14)", async ({
-    page,
-  }) => {
-    await setupScheduleTestRoutes(page);
-    // Create POSTs: first FAPI → plan-brazil-fapi, then DCR → plan-brazil-dcr.
-    let createCount = 0;
-    await page.route("**/api/plan?*", (route) => {
-      if (route.request().method() === "POST") {
-        createCount += 1;
-        return route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({ id: createCount === 1 ? "plan-brazil-fapi" : "plan-brazil-dcr" }),
-        });
-      }
-      return route.fallback();
-    });
-    await page.route("**/api/plan/plan-brazil-fapi*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          ...MOCK_PLAN_DETAIL,
-          _id: "plan-brazil-fapi",
-          planName: "fapi1-advanced-final-test-plan",
-        }),
-      }),
-    );
-    await page.route("**/api/plan/plan-brazil-dcr*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          ...MOCK_PLAN_DETAIL,
-          _id: "plan-brazil-dcr",
-          planName: "fapi1-advanced-final-brazil-dcr-test-plan",
-        }),
-      }),
-    );
-    await setupTestInfoRoute(page);
-
-    // ── Leg 1: guided walk to the Brazil OP FAPI plan, create it. ──
-    await page.goto("/schedule-test.html");
-    await pickChoice(page, "open_finance_brazil");
-    await pickChoice(page, "op");
-    await pickChoice(page, "fapi1_brazil_op");
-    // Bundle checklist names DCR before review.
-    await expect(page.locator("#guidedStage h1")).toHaveText(
-      "This certification needs 2 test plans",
-    );
-    await page.locator("#guidedStageActions").getByText("Continue with plan 1").click();
-    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
-    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
-    await expect(page.locator("#guidedConfigForm")).toBeVisible();
-    await page.locator("#guidedCreateBtn").click();
-    await page.waitForURL("**/plan-detail.html?plan=plan-brazil-fapi");
-
-    // ── Leg 2: the banner offers DCR and links back into guided. ──
-    const banner = page.locator("#alsoRequiredBanner");
-    await expect(banner).toBeVisible();
-    await expect(banner).toContainText("Dynamic Client Registration");
-    await banner.locator("a").click();
-    await page.waitForURL("**/schedule-test.html*");
-
-    // Replay: role pre-answered, plan question shown.
-    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
-    await pickChoice(page, "dcr_brazil_op");
-
-    // R14: FAPI is already completed — DCR's back-reference must NOT
-    // re-offer it, so there is no bundle step and no checklist section.
-    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
-    await expect(page.locator("#guidedStage .bundle-list")).toHaveCount(0);
-
-    // ── Leg 3: create DCR; the loop terminates with no further banner. ──
-    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
-    await expect(page.locator("#guidedConfigForm")).toBeVisible();
-    await page.locator("#guidedCreateBtn").click();
-    await page.waitForURL("**/plan-detail.html?plan=plan-brazil-dcr");
-    await expect(page.locator("#planDetailHeader")).toContainText("plan-brazil-dcr");
-    await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
-    expect(await page.evaluate(() => sessionStorage.getItem("oidf-also-required"))).toBeNull();
-  });
-});
-
 test.describe("schedule-test.html — guided hardening (review followup)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
@@ -1033,28 +872,23 @@ test.describe("schedule-test.html — guided hardening (review followup)", () =>
     expect(await page.evaluate(() => sessionStorage.getItem("oidf-guided-recovery"))).toBeNull();
   });
 
-  test("wizard_preset full trail to a plan absent from the catalog dead-ends (R4+R13)", async ({
-    page,
-  }) => {
-    const preset = {
-      ecosystemId: "ksa",
-      answers: ["op", "pkjwt", "ksav2"],
-      completedPlanNames: [],
-    };
+  test("a trail resolving a plan absent from the catalog dead-ends (R4)", async ({ page }) => {
     await setupScheduleTestRoutes(page, {
       plans: [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS].filter(
         (p) => p.planName !== "fapi2-message-signing-final-test-plan",
       ),
     });
-    await page.goto(
-      "/schedule-test.html?wizard_preset=" + encodeURIComponent(JSON.stringify(preset)),
-    );
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "ksa");
+    await pickChoice(page, "op");
+    await pickChoice(page, "pkjwt");
+    await pickChoice(page, "ksav2");
 
     await expect(page.locator("#guidedStage h1")).toHaveText(
       "This path isn't available on this server",
     );
     await expect(page.locator("#guidedDeadEndEscape")).toBeVisible();
-    expect(new URL(page.url()).searchParams.get("wizard_preset")).toBeNull();
   });
 
   test("guided beforeunload fires when the config is dirty (positive case)", async ({ page }) => {
@@ -1069,37 +903,5 @@ test.describe("schedule-test.html — guided hardening (review followup)", () =>
     const dialog = await dialogPromise;
     expect(dialog.type()).toBe("beforeunload");
     await dialog.accept();
-  });
-
-  test("a fresh ecosystem pick resets the completedPlanNames ledger (R14)", async ({ page }) => {
-    // Replay with DCR already completed, then backtrack to the ecosystem
-    // screen and start over: the FAPI plan's bundle must re-offer DCR.
-    const preset = {
-      ecosystemId: "open_finance_brazil",
-      answers: ["op"],
-      completedPlanNames: ["fapi1-advanced-final-brazil-dcr-test-plan"],
-    };
-    await setupScheduleTestRoutes(page);
-    await page.goto(
-      "/schedule-test.html?wizard_preset=" + encodeURIComponent(JSON.stringify(preset)),
-    );
-    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
-
-    // Backtrack to the ecosystem screen (chip idx -1), then walk fresh.
-    await page.locator("#guidedTrail .chip").first().click();
-    await expect(page.locator("#guidedStage h1")).toHaveText(
-      "Which ecosystem are you certifying for?",
-    );
-    await pickChoice(page, "open_finance_brazil");
-    await pickChoice(page, "op");
-    await pickChoice(page, "fapi1_brazil_op");
-
-    // The stale ledger is gone: DCR is offered again in the bundle.
-    await expect(page.locator("#guidedStage h1")).toHaveText(
-      "This certification needs 2 test plans",
-    );
-    await expect(page.locator("#guidedStage .bundle-list")).toContainText(
-      "Dynamic Client Registration",
-    );
   });
 });

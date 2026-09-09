@@ -9,9 +9,8 @@
  *   that carry concrete config payloads only the advanced surface can render
  *   (`edit-plan`, `edit-test`, `configJson`, `test_plan`) outrank everything,
  *   so share links keep working for guided-defaulted users. The guided
- *   recovery record outranks `wizard_preset` (a failed create's restore
- *   beats a fresh replay), which outranks the stored preference, which
- *   outranks the guided default.
+ *   recovery record (a failed create's restore) outranks the stored
+ *   preference, which outranks the guided default.
  * - `bootGuidedMode()` — applies the resolved mode to the islands, wires the
  *   header toggle (aria-pressed, button-based), persists explicit switches
  *   to localStorage under `oidf-guided-mode`, and moves focus to the revealed
@@ -19,7 +18,9 @@
  *   visibility — neither island's state is reset (R8).
  * - `startGuidedJourney()` — the guided certification journey (ported from
  *   prototype 4 on feat/redesign-wizard): ecosystem cards → tree questions →
- *   upfront multi-plan bundle checklist → plain-language review → config.
+ *   plain-language review → config. Each journey resolves exactly one plan;
+ *   the wizard deliberately does not try to orchestrate multi-plan
+ *   certification bundles (#1967).
  *   Runs on the live catalog (`FAPI_UI.availablePlans`); a tree leaf whose
  *   plan is absent from the catalog renders a dead-end with the Advanced
  *   escape hatch instead of an empty config form (R4). The guided→advanced
@@ -53,15 +54,6 @@ export const MODE_STORAGE_KEY = "oidf-guided-mode";
 export const RECOVERY_STORAGE_KEY = "oidf-guided-recovery";
 
 /**
- * sessionStorage key for the post-create handoff record (MR !2029 parity).
- * Written after a successful guided create whose tree node still has
- * remaining `also_required` siblings; consumed once by plan-detail.html to
- * render the "finish your certification" banner (R12). The
- * `completedPlanNames` ledger inside it terminates the sibling loop (R14).
- */
-export const HANDOFF_STORAGE_KEY = "oidf-also-required";
-
-/**
  * Probe whether a browser storage area is usable (private browsing or
  * storage-disabled environments throw on any access, including reading
  * `window[type]`).
@@ -88,10 +80,9 @@ export function tryGetStorage(type) {
 /**
  * @typedef {object} ModeDecision
  * @property {"guided"|"advanced"} mode
- * @property {"edit-plan"|"edit-test"|"configJson"|"test_plan"|"recovery"|"wizard_preset"|"preference"|"default"} source -
+ * @property {"edit-plan"|"edit-test"|"configJson"|"test_plan"|"recovery"|"preference"|"default"} source -
  *   Which ladder slot decided the mode. Callers branch on this for entry
- *   behavior (e.g. `recovery` re-enters guided at the config step while
- *   `wizard_preset` replays answers).
+ *   behavior (e.g. `recovery` re-enters guided at the config step).
  */
 
 /**
@@ -118,7 +109,6 @@ export function resolveMode({ params, storedMode = null, hasRecoveryRecord = fal
   if (params.get("configJson")) return { mode: "advanced", source: "configJson" };
   if (params.get("test_plan")) return { mode: "advanced", source: "test_plan" };
   if (hasRecoveryRecord) return { mode: "guided", source: "recovery" };
-  if (params.get("wizard_preset")) return { mode: "guided", source: "wizard_preset" };
   if (storedMode === "advanced") return { mode: "advanced", source: "preference" };
   if (storedMode === "guided") return { mode: "guided", source: "preference" };
   return { mode: "guided", source: "default" };
@@ -407,7 +397,7 @@ function questionLede(stepId) {
     client_auth: "How does your software authenticate the client to the authorization server?",
     ksa_spec_version: "SAMA v1 maps to FAPI1 Advanced; SAMA v2 maps to FAPI2 Message Signing.",
     scope: "The kind of access this client requests determines the scope under test.",
-    plan: "Each plan is one part of the full certification. We'll show the full set next.",
+    plan: "Pick the plan you want to set up now. Certifications that need more than one plan are set up one plan at a time.",
   });
   return m[stepId] || "Choose the option that matches your deployment.";
 }
@@ -463,53 +453,11 @@ function normalizeQuestion(q) {
 }
 
 /**
- * Depth-first search for a choice id anywhere under a step (including steps
- * nested via `next`). Returns the choice only when it carries a result.
- *
- * @param {import("./guided-wizard-tree.js").WizardStep} step
- * @param {string} id
- * @returns {import("./guided-wizard-tree.js").WizardChoice|null}
- */
-function findChoiceById(step, id) {
-  for (const c of step.choices) {
-    if (c.id === id && c.result) return c;
-    if (c.next) {
-      const r = findChoiceById(c.next, id);
-      if (r) return r;
-    }
-  }
-  return null;
-}
-
-/**
- * Filter a result's `also_required` list down to siblings that BOTH resolve
- * to a choice in the tree AND name a plan present in the live catalog (R4:
- * tree/catalog skew must never dead-end the bundle loop).
- *
- * @param {import("./guided-wizard-tree.js").WizardResult} result
- * @param {import("./guided-wizard-tree.js").WizardEcosystem} ecosystem
- * @param {Record<string, object>} availablePlans
- * @returns {Array<import("./guided-wizard-tree.js").AlsoRequired & {planName: string}>}
- */
-export function filterResolvableSiblings(result, ecosystem, availablePlans) {
-  const out = [];
-  for (const sibling of result.also_required || []) {
-    const choice = ecosystem.steps[0] ? findChoiceById(ecosystem.steps[0], sibling.id) : null;
-    const planName = choice && choice.result ? choice.result.plan_name : null;
-    if (planName && planName in availablePlans) {
-      out.push({ ...sibling, planName });
-    }
-  }
-  return out;
-}
-
-/**
  * Best-effort replay of a recorded answer trail against the live tree.
  * Pure. Each hop is validated; the first unresolvable hop stops the walk
  * with the valid prefix intact, so callers drop the user at the last valid
  * step instead of erroring (R13 — the tree may have changed since the trail
- * was recorded). Used by both the create-failure recovery restore (R5) and
- * the `wizard_preset` replay (R13).
+ * was recorded). Used by the create-failure recovery restore (R5).
  *
  * @param {string} ecosystemId
  * @param {string[]} answerIds - Choice ids in journey order.
@@ -517,43 +465,6 @@ export function filterResolvableSiblings(result, ecosystem, availablePlans) {
  * @returns {{ecosystem: import("./guided-wizard-tree.js").WizardEcosystem, path: JourneyAnswer[], result: import("./guided-wizard-tree.js").WizardResult|null}|null}
  *   `null` when the ecosystem id itself doesn't resolve.
  */
-/**
- * @typedef {object} WizardPreset
- * @property {string} ecosystemId
- * @property {string[]} answers - Choice ids in journey order (the trail up
- *   to — not including — the answer that resolves a plan).
- * @property {string[]} completedPlanNames - The R14 ledger: plans already
- *   created for this certification, so replayed journeys stop re-offering
- *   them.
- */
-
-/**
- * Parse + validate a raw `wizard_preset` URL param value. Pure. Returns
- * null on any malformed input (same try/parse/warn discipline as the
- * page's applyConfigJsonParam — the caller owns the console.warn).
- *
- * @param {string|null} raw - The (already URL-decoded) param value.
- * @returns {WizardPreset|null}
- */
-export function decodeWizardPreset(raw) {
-  if (!raw) return null;
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!parsed || typeof parsed !== "object") return null;
-  if (typeof parsed.ecosystemId !== "string" || !Array.isArray(parsed.answers)) return null;
-  return {
-    ecosystemId: parsed.ecosystemId,
-    answers: parsed.answers.filter((/** @type {unknown} */ a) => typeof a === "string"),
-    completedPlanNames: Array.isArray(parsed.completedPlanNames)
-      ? parsed.completedPlanNames.filter((/** @type {unknown} */ p) => typeof p === "string")
-      : [],
-  };
-}
-
 export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE) {
   const ecosystem = tree.ecosystems.find((e) => e.id === ecosystemId) || null;
   if (!ecosystem || !ecosystem.steps[0]) return null;
@@ -614,7 +525,7 @@ export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE)
  * @property {() => string} [getSelectedPlanName] - Reads the page's
  *   current-plan source of truth; used to dedup an already-applied prefill.
  * @property {Storage|null} [session] - sessionStorage (or test double) for
- *   the recovery + handoff records.
+ *   the recovery record.
  */
 
 /**
@@ -636,12 +547,12 @@ export function startGuidedJourney(modeController, deps) {
   const session = deps.session !== undefined ? deps.session : tryGetStorage("sessionStorage");
 
   /**
-   * Journey state. A journey is: ecosystem → tree path → [bundle preview] →
-   * review → config. The path is a list of answers so chips can backtrack
-   * and downstream answers reset.
+   * Journey state. A journey is: ecosystem → tree path → review → config,
+   * resolving exactly one plan. The path is a list of answers so chips can
+   * backtrack and downstream answers reset.
    */
   const state = {
-    /** @type {"ecosystem"|"question"|"bundle"|"review"|"config"|"deadend"} */
+    /** @type {"ecosystem"|"question"|"review"|"config"|"deadend"} */
     phase: "ecosystem",
     /** @type {import("./guided-wizard-tree.js").WizardEcosystem|null} */
     ecosystem: null,
@@ -649,27 +560,12 @@ export function startGuidedJourney(modeController, deps) {
     path: [],
     /** @type {import("./guided-wizard-tree.js").WizardResult|null} */
     result: null,
-    bundleSeen: false,
     /** @type {object} Guided config island — never the page's currentConfig. */
     configValues: {},
-    /** @type {string[]} Plans already created this certification (R14 ledger). */
-    completedPlanNames: [],
   };
 
   /** @param {string} name @returns {any|null} */
   const planByName = (name) => deps.availablePlans[name] || null;
-
-  /**
-   * Siblings still owed for this certification: resolvable against tree +
-   * catalog (R4) AND not already completed (R14).
-   * @param {import("./guided-wizard-tree.js").WizardResult} result
-   */
-  const remainingSiblings = (result) =>
-    filterResolvableSiblings(
-      result,
-      /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (state.ecosystem),
-      deps.availablePlans,
-    ).filter((s) => !state.completedPlanNames.includes(s.planName));
 
   // ── Guided-only dirty check (R11/R5) ───────────────────────────────
   // The page's cts-unsaved-changes-guard stays scoped to the ADVANCED form
@@ -704,52 +600,11 @@ export function startGuidedJourney(modeController, deps) {
           answers: state.path.map((a) => a.choice.id),
           planName: state.result.plan_name,
           config: state.configValues,
-          completedPlanNames: state.completedPlanNames,
         }),
       );
     } catch {
       // Quota/serialization failure — recovery is best-effort; the create
       // itself must not be blocked by it.
-    }
-  }
-
-  /**
-   * After a successful create with siblings remaining, hand the loop over
-   * to plan-detail (R12/R14). With nothing remaining, any stale record is
-   * cleared so the banner cannot resurrect a finished loop.
-   * @param {string} planId
-   */
-  function writeHandoffRecord(planId) {
-    if (!session || !state.ecosystem || !state.result) return;
-    const completed = [...state.completedPlanNames, state.result.plan_name];
-    const remaining = remainingSiblings(state.result).filter(
-      (s) => !completed.includes(s.planName),
-    );
-    try {
-      if (!remaining.length) {
-        session.removeItem(HANDOFF_STORAGE_KEY);
-        return;
-      }
-      session.setItem(
-        HANDOFF_STORAGE_KEY,
-        JSON.stringify({
-          planId,
-          ecosystemId: state.ecosystem.id,
-          ecosystemLabel: state.ecosystem.label,
-          // The preset replays the journey UP TO the question that picks
-          // the plan — the final leaf-resolving answer is dropped so the
-          // user lands where they choose the next sibling (R13).
-          preset: {
-            ecosystemId: state.ecosystem.id,
-            answers: state.path.slice(0, -1).map((a) => a.choice.id),
-            completedPlanNames: completed,
-          },
-          remainingSiblings: remaining,
-          completedPlanNames: completed,
-        }),
-      );
-    } catch {
-      // Best-effort: losing the banner must not break the redirect.
     }
   }
 
@@ -805,7 +660,7 @@ export function startGuidedJourney(modeController, deps) {
   ];
 
   function progressKeyForPhase() {
-    if (["ecosystem", "question", "bundle", "deadend"].includes(state.phase)) return "choose";
+    if (["ecosystem", "question", "deadend"].includes(state.phase)) return "choose";
     if (state.phase === "review") return "review";
     if (state.phase === "config") return "config";
     return "done";
@@ -857,14 +712,13 @@ export function startGuidedJourney(modeController, deps) {
   /**
    * Clicking a chip: backtrack to that answer's step. idx === -1 means the
    * ecosystem chip → back to the ecosystem picker. Everything downstream
-   * resets (result, bundle flag, config state) — including the recovery
+   * resets (result, config state) — including the recovery
    * record: a journey mutation invalidates the snapshot, otherwise a later
    * reload would restore an attempt the user already abandoned.
    * @param {number} idx
    */
   function backtrackTo(idx) {
     state.result = null;
-    state.bundleSeen = false;
     state.configValues = {};
     guidedDirty = false;
     clearRecoveryRecord();
@@ -879,7 +733,7 @@ export function startGuidedJourney(modeController, deps) {
     renderCurrent("backward");
   }
 
-  /** The shared step-level Back action (bundle/review/config/deadend phases). */
+  /** The shared step-level Back action (review/config/deadend phases). */
   const BACK_BUTTON = {
     variant: "secondary",
     icon: "arrow-left-md",
@@ -888,7 +742,7 @@ export function startGuidedJourney(modeController, deps) {
   };
 
   /**
-   * The step-level Back button (bundle/review/config/deadend phases).
+   * The step-level Back button (review/config/deadend phases).
    */
   function goBack() {
     if (state.phase === "config") {
@@ -896,17 +750,7 @@ export function startGuidedJourney(modeController, deps) {
       renderCurrent("backward");
       return;
     }
-    if (
-      state.phase === "review" &&
-      state.result &&
-      remainingSiblings(state.result).length &&
-      state.bundleSeen
-    ) {
-      state.phase = "bundle";
-      renderCurrent("backward");
-      return;
-    }
-    // bundle / review-without-bundle / deadend: undo the last answer.
+    // review / deadend: undo the last answer.
     backtrackTo(state.path.length - 1);
   }
 
@@ -920,7 +764,6 @@ export function startGuidedJourney(modeController, deps) {
       () => {
         if (state.phase === "ecosystem") return renderEcosystemStep();
         if (state.phase === "question") return renderQuestionStep();
-        if (state.phase === "bundle") return renderBundleStep();
         if (state.phase === "review") return renderReviewStep();
         if (state.phase === "config") return renderConfigStep();
         if (state.phase === "deadend") return renderDeadEndStep();
@@ -1008,7 +851,6 @@ export function startGuidedJourney(modeController, deps) {
               id: c.id,
               label: prettyChoiceLabel(c),
               desc: c.description || implicitDescription(step.id, c),
-              badge: bundleBadge(c),
               index: i,
             }),
           )
@@ -1018,24 +860,12 @@ export function startGuidedJourney(modeController, deps) {
     wireChoiceGroup((choiceId) => answerQuestion(step, choiceId));
   }
 
-  /**
-   * @param {import("./guided-wizard-tree.js").WizardChoice} choice
-   * @returns {string}
-   */
-  function bundleBadge(choice) {
-    if (choice.result && choice.result.also_required && choice.result.also_required.length) {
-      const n = choice.result.also_required.length + 1;
-      return `<cts-badge variant="info-subtle">${n}-plan certification</cts-badge>`;
-    }
-    return "";
-  }
-
   // ── Choice-card markup + shared radiogroup keyboard wiring ─────────
   /**
-   * @param {{id: string, label: string, desc?: string, flag?: string, badge?: string, index: number}} card
+   * @param {{id: string, label: string, desc?: string, flag?: string, index: number}} card
    * @returns {string}
    */
-  function choiceCardHTML({ id, label, desc, flag, badge, index }) {
+  function choiceCardHTML({ id, label, desc, flag, index }) {
     return `
       <label class="choice" data-choice="${esc(id)}">
         <input type="radio" name="guidedChoiceGroup" value="${esc(id)}" tabindex="${index === 0 ? "0" : "-1"}">
@@ -1047,7 +877,6 @@ export function startGuidedJourney(modeController, deps) {
         <span class="choice-body">
           <span class="choice-label">${esc(label)}</span>
           ${desc ? `<span class="choice-desc">${esc(desc)}</span>` : ""}
-          ${badge ? `<span class="choice-desc choice-badge-row">${badge}</span>` : ""}
         </span>
       </label>`;
   }
@@ -1094,11 +923,6 @@ export function startGuidedJourney(modeController, deps) {
   function pickEcosystem(id) {
     state.ecosystem = GUIDED_WIZARD_TREE.ecosystems.find((e) => e.id === id) || null;
     state.path = [];
-    // A user-driven ecosystem pick starts a NEW certification: the R14
-    // ledger from a replayed/restored loop must not leak into it (plan
-    // names repeat across ecosystems, so a stale ledger would silently
-    // drop valid siblings from the new journey's bundle).
-    state.completedPlanNames = [];
     state.phase = "question";
     renderCurrent("forward");
   }
@@ -1122,8 +946,7 @@ export function startGuidedJourney(modeController, deps) {
   /**
    * Reaching a leaf. The catalog guard runs FIRST (R4): a tree plan absent
    * from the live catalog dead-ends with the Advanced escape hatch — never
-   * an empty config form. With a multi-plan certification, surface the
-   * bundle BEFORE the user commits; otherwise go straight to review.
+   * an empty config form. Otherwise go straight to review.
    * @param {import("./guided-wizard-tree.js").WizardResult} result
    */
   function enterLeaf(result) {
@@ -1136,7 +959,7 @@ export function startGuidedJourney(modeController, deps) {
       return;
     }
     announce(`Resolved to ${plan.displayName || result.plan_name}.`);
-    state.phase = remainingSiblings(result).length && !state.bundleSeen ? "bundle" : "review";
+    state.phase = "review";
     renderCurrent("forward");
   }
 
@@ -1163,61 +986,11 @@ export function startGuidedJourney(modeController, deps) {
     );
   }
 
-  // ── STEP: multi-plan certification preview (also_required) ─────────
-  function renderBundleStep() {
-    const result = /** @type {import("./guided-wizard-tree.js").WizardResult} */ (state.result);
-    const selfPlan = planByName(result.plan_name);
-    const siblings = remainingSiblings(result);
-    const total = siblings.length + 1;
-    stage.innerHTML = `
-      <p class="stage-eyebrow">${esc(state.ecosystem ? state.ecosystem.label : "")}</p>
-      <h1 tabindex="-1">This certification needs ${total} test plans</h1>
-      <p class="stage-lede">Full ${esc(ecoName())} certification for this role requires more than one plan. You'll set these up one at a time — we'll bring you straight back for the next one. Here's the whole checklist:</p>
-      <cts-card>
-        <ul class="bundle-list">
-          <li data-self="true">
-            <span class="step-num">1</span>
-            <span class="name">${esc(selfPlan ? selfPlan.displayName : result.plan_name)}</span>
-            <span class="here">Starting here</span>
-          </li>
-          ${siblings
-            .map(
-              (s, i) => `
-            <li>
-              <span class="step-num">${i + 2}</span>
-              <span class="name">${esc(s.label)}</span>
-              <span class="later">Set up next</span>
-            </li>`,
-            )
-            .join("")}
-        </ul>
-      </cts-card>`;
-    renderActionBar([
-      BACK_BUTTON,
-      {
-        variant: "primary",
-        icon: "arrow-right-md",
-        label: "Continue with plan 1",
-        spacer: true,
-        on: () => {
-          state.bundleSeen = true;
-          state.phase = "review";
-          renderCurrent("forward");
-        },
-      },
-    ]);
-  }
-
-  function ecoName() {
-    return state.ecosystem ? splitFlag(state.ecosystem.label).rest : "";
-  }
-
   // ── STEP: review (plain-language, read-only variant table) ─────────
   function renderReviewStep() {
     const result = /** @type {import("./guided-wizard-tree.js").WizardResult} */ (state.result);
     const plan = planByName(result.plan_name);
     const variants = result.variants;
-    const siblings = remainingSiblings(result);
 
     const variantRows = Object.entries(variants)
       .map(([param, val]) => {
@@ -1286,21 +1059,7 @@ export function startGuidedJourney(modeController, deps) {
           <div class="config-preview">${configChips || '<cts-badge variant="secondary">Test information</cts-badge>'}</div>
         </cts-card>
       </div>
-
-      ${
-        siblings.length
-          ? `
-      <div class="review-section">
-        <h2>Full certification checklist</h2>
-        <cts-card>
-          <ul class="bundle-list">
-            <li data-self="true"><span class="step-num">1</span><span class="name">${esc(plan ? plan.displayName : result.plan_name)}</span><span class="here">This plan</span></li>
-            ${siblings.map((s, i) => `<li><span class="step-num">${i + 2}</span><span class="name">${esc(s.label)}</span><span class="later">After this</span></li>`).join("")}
-          </ul>
-        </cts-card>
-      </div>`
-          : ""
-      }`;
+`;
 
     renderActionBar([
       BACK_BUTTON,
@@ -1452,8 +1211,8 @@ export function startGuidedJourney(modeController, deps) {
 
   /**
    * The real create. Recovery record first (R5), then POST via the page's
-   * shared helper; success clears recovery, writes the handoff when
-   * siblings remain (R12/R14), disarms the dirty check, and redirects.
+   * shared helper; success clears recovery, disarms the dirty check, and
+   * redirects.
    * Failure stays on the config step with the same normalized error the
    * advanced modal would show.
    */
@@ -1480,7 +1239,6 @@ export function startGuidedJourney(modeController, deps) {
       const data = await deps.createPlan(result.plan_name, variant, state.configValues);
       clearRecoveryRecord();
       guidedDirty = false;
-      writeHandoffRecord(data.id);
       window.location.assign("/plan-detail.html?plan=" + encodeURIComponent(data.id));
     } catch (error) {
       setCreatePending(false);
@@ -1634,53 +1392,6 @@ export function startGuidedJourney(modeController, deps) {
   });
 
   // ── Boot ───────────────────────────────────────────────────────────
-  // R13: consume the wizard_preset param exactly once — stripped via
-  // replaceState whenever present, even when a higher ladder slot (e.g. a
-  // recovery record or an advanced-forcing param) won the mode decision.
-  // Without the unconditional strip, a preset that lost to the recovery
-  // slot would linger in the URL and replay unexpectedly on a later reload
-  // after the user backtracked (which clears the recovery record).
-  const bootParams = new URLSearchParams(window.location.search);
-  const rawPreset = bootParams.get("wizard_preset");
-  if (rawPreset !== null) {
-    bootParams.delete("wizard_preset");
-    const qs = bootParams.toString();
-    history.replaceState(
-      null,
-      "",
-      window.location.pathname + (qs ? "?" + qs : "") + window.location.hash,
-    );
-  }
-
-  // Best-effort replay when the ladder resolved via wizard_preset. An
-  // unresolvable hop drops the user at the last valid step; a garbage
-  // preset opens the ecosystem screen with a console warning only.
-  if (modeController.source === "wizard_preset") {
-    const preset = decodeWizardPreset(rawPreset);
-    const replay = preset ? replayAnswers(preset.ecosystemId, preset.answers) : null;
-    if (preset && replay) {
-      state.ecosystem = replay.ecosystem;
-      state.path = replay.path;
-      state.completedPlanNames = preset.completedPlanNames;
-      if (replay.result) {
-        // The full trail resolved a leaf — apply the same entry guards as
-        // enterLeaf (catalog presence, remaining-sibling bundle).
-        state.result = replay.result;
-        state.phase = !planByName(replay.result.plan_name)
-          ? "deadend"
-          : remainingSiblings(replay.result).length
-            ? "bundle"
-            : "review";
-      } else {
-        state.phase = "question";
-      }
-    } else {
-      console.warn(
-        "[guided-wizard] wizard_preset did not decode or replay; starting at the ecosystem screen",
-      );
-    }
-  }
-
   // R5: when the mode ladder resolved via the recovery slot, restore the
   // snapshotted journey at the config step. The trail is replayed against
   // the live tree; any mismatch (tree drift, plan gone from the catalog)
@@ -1699,11 +1410,7 @@ export function startGuidedJourney(modeController, deps) {
         state.ecosystem = replay.ecosystem;
         state.path = replay.path;
         state.result = replay.result;
-        state.bundleSeen = true;
         state.configValues = record.config || {};
-        state.completedPlanNames = Array.isArray(record.completedPlanNames)
-          ? record.completedPlanNames
-          : [];
         state.phase = "config";
       } else {
         console.warn("[guided-wizard] recovery record no longer replays; starting fresh");
