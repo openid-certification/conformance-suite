@@ -8,13 +8,15 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMethodMatchesVariant;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -27,7 +29,9 @@ import java.util.concurrent.TimeUnit;
 	summary = """
 		This test verifies the receiver events delivery.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it generates all supported events and expects a positive delivery of the events received.
-		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field.
+		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field,
+		except the SSF framework events (verification, stream-updated), which identify the stream itself
+		and are sent once with the stream's opaque subject (SSF 1.0 8.1.4.1, 8.1.5).
 		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change, device-compliance-change and risk-level-change) are available, and only email/iss_sub (and complex) subjects are used.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
@@ -137,6 +141,16 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 
 		for (String eventType : eventsDelivered) {
 
+			if (SsfEvents.SSF_EVENT_TYPES.contains(eventType)) {
+				// The SSF framework events are about the stream, not about a subject: their
+				// sub_id MUST be the opaque stream id (SSF 1.0 8.1.4.1, 8.1.5), and a verification
+				// event the transmitter initiates MUST NOT carry a state (8.1.4.2). One SET each.
+				SsfEvent event = generateSsfFrameworkEventExample(eventType, streamId);
+				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, streamSubject(streamId), event, this::onStreamEventEnqueued);
+				callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
+				continue;
+			}
+
 			for (JsonObject subject : subjects) {
 				SsfEvent event = generateSsfEventExample(eventType, timestamp);
 
@@ -144,6 +158,32 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 				callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
 			}
 		}
+	}
+
+	private static JsonObject streamSubject(String streamId) {
+		JsonObject subject = new JsonObject();
+		subject.addProperty("format", "opaque");
+		subject.addProperty("id", streamId);
+		return subject;
+	}
+
+	/**
+	 * Event data for the SSF framework event types when they are delivered as "supported
+	 * events": a transmitter-initiated verification event has no claims (SSF 1.0 8.1.4.2 forbids
+	 * a state), a stream-updated event reports the stream's current status (8.1.5: status REQUIRED).
+	 */
+	private SsfEvent generateSsfFrameworkEventExample(String eventType, String streamId) {
+		if (SsfEvents.SSF_STREAM_UPDATED_EVENT_TYPE.equals(eventType)) {
+			JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+			JsonObject streamStatus = streamConfig == null ? null : OIDSSFStreamUtils.getStreamStatus(streamConfig);
+			String status = streamStatus == null
+				? OIDSSFStreamUtils.StreamStatusValue.enabled.name()
+				: OIDFJSON.getString(streamStatus.get("status"));
+			return new SsfEvent(eventType,
+				Map.of("status", status, "reason", "Stream status reported as a supported event"),
+				Set.of("OIDSSF-8.1.5"));
+		}
+		return new SsfEvent(eventType, Map.of(), Set.of("OIDSSF-8.1.4", "OIDSSF-8.1.4.2"));
 	}
 
 	@Override
