@@ -8,6 +8,8 @@ import net.openid.conformance.openid.ssf.SsfEvents;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.List;
+
 public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 
 	@Override
@@ -45,8 +47,12 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 		//   - absent  -> transmitter-initiated (unsolicited). Accept it — it is NOT
 		//                the response to any verification request we may have issued,
 		//                so ssf.verification.state is not relevant here.
-		//   - present -> solicited. It MUST match ssf.verification.state (the state
-		//                we sent on our last verification request). If no verification
+		//   - present -> solicited. It MUST match a state we sent: normally
+		//                ssf.verification.state (the latest verification request), but a
+		//                late echo of an earlier request (ssf.verification.issued_states)
+		//                is equally legitimate, since §8.1.4.2 also says receivers "MUST
+		//                NOT depend on the Verification Event being transmitted
+		//                synchronously or in any particular order". If no verification
 		//                request has been issued, a transmitter echoing a state is
 		//                an error (the transmitter would have violated §8.1.4.2's
 		//                "MUST not be set" clause for its own unsolicited events).
@@ -65,20 +71,40 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 
 		String actualVerificationState = OIDFJSON.getString(stateEl);
 		String expectedVerificationState = env.getString("ssf", "verification.state");
-		if (expectedVerificationState == null) {
+		List<String> issuedStates = issuedVerificationStates(env, expectedVerificationState);
+		if (issuedStates.isEmpty()) {
 			throw error("Verification event carries a state but the receiver has not issued a verification request",
 				args("token_claims", claimsJsonObject, "actual_state", actualVerificationState));
 		}
 
-		if (!actualVerificationState.equals(expectedVerificationState)) {
-			throw error("Retrieved verification state does not match expected verification state",
-				args("expected_state", expectedVerificationState, "actual_state", actualVerificationState, "token_claims", claimsJsonObject));
+		if (actualVerificationState.equals(expectedVerificationState)) {
+			logSuccess("Retrieved verification state matches expected verification state",
+				args("expected_state", expectedVerificationState, "actual_state", actualVerificationState));
+			return env;
 		}
 
-		logSuccess("Retrieved verification state matches expected verification state",
-			args("expected_state", expectedVerificationState, "actual_state", actualVerificationState));
+		if (issuedStates.contains(actualVerificationState)) {
+			logSuccess("Retrieved verification state matches an earlier verification request of this test; "
+					+ "SSF 1.0 8.1.4.2 allows verification events to arrive out of order",
+				args("expected_state", expectedVerificationState, "actual_state", actualVerificationState, "issued_states", issuedStates));
+			return env;
+		}
 
-		return env;
+		throw error("Retrieved verification state does not match any verification state issued by this test",
+			args("expected_state", expectedVerificationState, "actual_state", actualVerificationState,
+				"issued_states", issuedStates, "token_claims", claimsJsonObject));
+	}
+
+	/**
+	 * Every state this test has sent in a verification request, latest last. Falls back to
+	 * the single latest state when no list was recorded.
+	 */
+	private static List<String> issuedVerificationStates(Environment env, String latestState) {
+		JsonElement issuedEl = env.getElementFromObject("ssf", "verification.issued_states");
+		if (issuedEl != null && issuedEl.isJsonArray()) {
+			return OIDFJSON.convertJsonArrayToList(issuedEl.getAsJsonArray());
+		}
+		return latestState == null ? List.of() : List.of(latestState);
 	}
 
 }
