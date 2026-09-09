@@ -16,6 +16,11 @@ public class OIDSSFStreamUtils {
 		remove,
 	}
 
+	/**
+	 * SSF 1.0 8.1.2.1 defines the values by their effect on transmission only: enabled streams
+	 * deliver, paused and disabled ones "MUST NOT transmit events". 8.1.2.2 defines no state
+	 * machine - a receiver may request any of the three at any time.
+	 */
 	public enum StreamStatusValue {
 		enabled,
 		paused {
@@ -26,19 +31,10 @@ public class OIDSSFStreamUtils {
 		},
 		disabled {
 			@Override
-			public boolean isStatusChangeAllowed(StreamStatusValue newStatus) {
-				return false;
-			}
-
-			@Override
 			public boolean isEventDeliveryEnabled() {
 				return false;
 			}
 		};
-
-		public boolean isStatusChangeAllowed(StreamStatusValue newStatus) {
-			return true;
-		}
 
 		public boolean isEventDeliveryEnabled() {
 			return true;
@@ -92,11 +88,6 @@ public class OIDSSFStreamUtils {
 			streamStatus.addProperty("stream_id", OIDFJSON.tryGetString(streamConfig.get("stream_id")));
 			streamStatus.addProperty("status", StreamStatusValue.enabled.name());
 			streamConfig.add("_status", streamStatus);
-		}
-
-		StreamStatusValue currentStatus = StreamStatusValue.valueOf(OIDFJSON.getString(streamStatus.get("status")));
-		if (!currentStatus.isStatusChangeAllowed(newStatusValue)) {
-			throw new IllegalArgumentException("Invalid stream status change: cannot transition from " + currentStatus + " to " + newStatusValue);
 		}
 
 		streamStatus.addProperty("status", newStatusValue.name());
