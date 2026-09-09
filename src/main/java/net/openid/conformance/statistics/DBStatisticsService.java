@@ -16,9 +16,10 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -40,22 +41,38 @@ public class DBStatisticsService implements StatisticsService {
 	/** How long to wait after a failed computation before another one is attempted. */
 	private static final Duration FAILURE_BACKOFF = Duration.ofSeconds(60);
 
+	/**
+	 * How long without a request before the cube is dropped, so that the memory is only
+	 * held while somebody is looking at the statistics. The same as {@link #TTL}: a cube
+	 * nobody has asked for in that time would be recomputed at the next request anyway.
+	 */
+	private static final Duration IDLE_TIMEOUT = TTL;
+
+	/** How often the idle check runs; the eviction is late by at most this much. */
+	private static final Duration IDLE_CHECK = Duration.ofMinutes(15);
+
 	private static final Logger logger = LoggerFactory.getLogger(DBStatisticsService.class);
 
 	private final MongoStatisticsSource source;
 
 	private final SpecFamilyResolver resolver;
 
-	private final ExecutorService executor;
+	private final ScheduledExecutorService executor;
 
 	private final AsyncSnapshotCache<StatisticsCube> cache;
 
 	@Autowired
+	// the idle check is fire and forget: it cannot throw, and there is nothing to cancel it for
+	@SuppressWarnings("FutureReturnValueIgnored")
 	public DBStatisticsService(MongoStatisticsSource source, SpecFamilyResolver resolver) {
 		this.source = source;
 		this.resolver = resolver;
-		this.executor = Executors.newSingleThreadExecutor(daemon("statistics-compute"));
-		this.cache = new AsyncSnapshotCache<>(this::compute, executor, Clock.systemUTC(), TTL, FAILURE_BACKOFF);
+		this.executor = Executors.newSingleThreadScheduledExecutor(daemon("statistics-compute"));
+		this.cache = new AsyncSnapshotCache<>(this::compute, executor, Clock.systemUTC(), TTL, FAILURE_BACKOFF, IDLE_TIMEOUT);
+		// the check shares the computation's thread: it is a few comparisons, and while a
+		// computation runs there is nothing to evict
+		executor.scheduleWithFixedDelay(cache::evictIfIdle, IDLE_CHECK.toMillis(), IDLE_CHECK.toMillis(),
+			TimeUnit.MILLISECONDS);
 	}
 
 	@Override
