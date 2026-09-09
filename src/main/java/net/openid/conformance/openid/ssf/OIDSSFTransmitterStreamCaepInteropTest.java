@@ -25,6 +25,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenTypeNotInPreferredForm;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractCaepEventData;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
@@ -579,6 +580,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTypeNotInPreferredForm.class, Condition.ConditionResult.WARNING, "RFC8417-2.3");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenSubIdClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-3.1", "RFC9493-3");
