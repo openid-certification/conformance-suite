@@ -45,6 +45,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
@@ -392,5 +393,29 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			return false;
 		}
 		return verificationEventEl.getAsJsonObject().has("state");
+	}
+
+	/**
+	 * Returns {@code true} if the most recently parsed verification event echoes the
+	 * state of the latest verification request ({@code ssf.verification.state}). An
+	 * event echoing an earlier request's state is a legitimate late delivery (SSF 1.0
+	 * 8.1.4.2) but does not satisfy a wait for the latest request's echo.
+	 */
+	protected boolean currentVerificationEventIsForLatestRequest() {
+		JsonElement claimsEl = env.getElementFromObject("ssf", "verification.token.claims");
+		if (claimsEl == null || !claimsEl.isJsonObject()) {
+			return false;
+		}
+		JsonObject events = claimsEl.getAsJsonObject().getAsJsonObject("events");
+		if (events == null) {
+			return false;
+		}
+		JsonElement verificationEventEl = events.get(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE);
+		if (verificationEventEl == null || !verificationEventEl.isJsonObject()) {
+			return false;
+		}
+		String eventState = OIDFJSON.tryGetString(verificationEventEl.getAsJsonObject().get("state"));
+		String latestState = env.getString("ssf", "verification.state");
+		return eventState != null && eventState.equals(latestState);
 	}
 }
