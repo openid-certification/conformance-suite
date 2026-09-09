@@ -265,7 +265,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 		// if push delivery is used - send out the events immediately
 		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
-			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, java.util.concurrent.TimeUnit.SECONDS);
+			schedulePushDelivery(streamId);
 		}
 	}
 

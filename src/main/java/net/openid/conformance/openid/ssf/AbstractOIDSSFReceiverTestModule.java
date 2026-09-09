@@ -166,6 +166,21 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	protected final Set<String> rejectedPushEventJtis = ConcurrentHashMap.newKeySet();
 
 	/**
+	 * Streams with a push delivery task scheduled or running. Delivery is single-flight per
+	 * stream: a second trigger (a verification request, newly generated events, a re-enabled
+	 * stream) while a task is active does not start another one, the running task picks the
+	 * new events up and reschedules itself when it drains the queue.
+	 */
+	private final Set<String> pushDeliveryActive = ConcurrentHashMap.newKeySet();
+
+	/** Starts push delivery for the stream unless a delivery task is already active for it. */
+	protected void schedulePushDelivery(String streamId) {
+		if (pushDeliveryActive.add(streamId)) {
+			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+		}
+	}
+
+	/**
 	 * Set once the receiver fetches the emulated transmitter's signing keys from the
 	 * advertised jwks_uri, see {@link #isJwksEndpointFetched()}.
 	 */
@@ -918,7 +933,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
-			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+			schedulePushDelivery(streamId);
 		}
 	}
 
@@ -981,7 +996,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			String streamId = env.getString("incoming_request", "body_json.stream_id");
 
 			if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
-				scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, java.util.concurrent.TimeUnit.SECONDS);
+				schedulePushDelivery(streamId);
 			}
 		}
 
@@ -1002,6 +1017,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		@Override
 		public String call() throws Exception {
+			try {
+				deliverQueuedEvents();
+			} finally {
+				pushDeliveryActive.remove(streamId);
+			}
+			// Events enqueued after the queue was found empty (the check and this hand-over
+			// both run under the test lock) start a fresh task.
+			JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+			if (streamConfig != null && OIDSSFStreamUtils.getStreamStatusValue(streamConfig).isEventDeliveryEnabled()
+				&& eventStore.hasEventsForStream(streamId)
+				&& !Set.of(Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
+				schedulePushDelivery(streamId);
+			}
+			return "done";
+		}
+
+		private void deliverQueuedEvents() {
 			// TODO handle SSF PUSH retry???
 			// Events are taken from the queue one at a time, so a stream the receiver pauses,
 			// disables or deletes between two deliveries leaves the rest queued: SSF 1.0
@@ -1011,7 +1043,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			while (true) {
 				JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 				if (streamConfig == null) {
-					return "done";
+					return;
 				}
 				OIDSSFStreamUtils.StreamStatusValue streamStatus = OIDSSFStreamUtils.getStreamStatusValue(streamConfig);
 				if (!streamStatus.isEventDeliveryEnabled()) {
@@ -1019,12 +1051,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 						eventLog.log(getName(), args("msg", "Stream is " + streamStatus + ": holding queued events until the receiver enables the stream again (SSF 1.0 8.1.2.1)",
 							"stream_id", streamId, "held_events", eventStore.getQueuedEvents(streamId).size()));
 					}
-					return "done";
+					return;
 				}
 
 				OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 1);
 				if (eventsBatch == null || eventsBatch.events().isEmpty()) {
-					return "done";
+					return;
 				}
 				OIDSSFSecurityEvent event = eventsBatch.events().get(0);
 
@@ -1042,7 +1074,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(WaitForOneSecond.class, Condition.ConditionResult.INFO);
 				if (Set.of(Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
 					// Test finished during the delay — exit gracefully
-					return "done";
+					return;
 				}
 			}
 		}
@@ -1061,7 +1093,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		if (OIDSSFStreamUtils.getStreamStatusValue(streamConfig).isEventDeliveryEnabled() && eventStore.hasEventsForStream(streamId)) {
 			eventLog.log(getName(), args("msg", "Stream enabled again: delivering the events held while it was paused or disabled",
 				"stream_id", streamId, "held_events", eventStore.getQueuedEvents(streamId).size()));
-			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+			schedulePushDelivery(streamId);
 		}
 	}
 
