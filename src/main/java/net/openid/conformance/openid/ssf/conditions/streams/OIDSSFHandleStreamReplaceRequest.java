@@ -2,11 +2,11 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamStatusValue;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Set;
+import java.util.TreeSet;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
 
@@ -75,24 +75,35 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		}
 
 		try {
-			// SSF 1.0 8.1.1.4: malformed receiver-supplied values (events_requested,
-			// delivery, description) yield a 400, never a 500.
+			// SSF 1.0 8.1.1.4: the PUT body carries the full set of receiver-supplied
+			// properties and "Missing Receiver-Supplied properties MUST be interpreted as
+			// requested to be deleted" - unlike PATCH, an omitted property does not survive.
+			// Malformed values yield a 400, never a 500.
+			Set<String> deletedProperties = new TreeSet<>();
+
 			if (streamConfigInput.has("description")) {
 				streamConfig.addProperty("description", OIDFJSON.getString(streamConfigInput.get("description")));
+			} else if (streamConfig.remove("description") != null) {
+				deletedProperties.add("description");
 			}
 
+			// events_delivered follows events_requested: with the constraint deleted, this
+			// emulated transmitter delivers every event type it supports (as on create)
+			JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
+			Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
 			if (streamConfigInput.has("events_requested")) {
-				JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
-				Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
-
 				streamConfig.add("events_requested", streamConfigInput.get("events_requested"));
-				streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
+			} else if (streamConfig.remove("events_requested") != null) {
+				deletedProperties.add("events_requested");
 			}
+			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
 
 			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
 			if (delivery == null) {
-				// If delivery is not set, we use POLL delivery method as fallback
-				// see https://openid.github.io/sharedsignals/openid-sharedsignals-framework-1_0.html#section-8.1.1.1-5
+				// A deleted delivery falls back to the transmitter default, poll
+				// (SSF 1.0 8.1.1.1: "If the request does not contain the delivery property,
+				// then the Transmitter MUST assume that the method is urn:ietf:rfc:8936")
+				deletedProperties.add("delivery");
 				delivery = new JsonObject();
 				delivery.addProperty("method", DELIVERY_METHOD_POLL_RFC_8936_URI);
 			}
@@ -110,7 +121,13 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 			}
 			streamConfig.add("delivery", delivery);
 
-			OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
+			// The stream status is managed through the status endpoint (SSF 1.0 8.1.2); a
+			// configuration replacement leaves it alone.
+
+			if (!deletedProperties.isEmpty()) {
+				log("Receiver-supplied properties missing from the PUT body were deleted from the stream configuration (SSF 1.0 8.1.1.4)",
+					args("stream_id", streamId, "deleted_properties", deletedProperties));
+			}
 
 			streamsObj.add(streamId, streamConfig);
 			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
