@@ -104,6 +104,40 @@ public class OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits_UnitTest {
 	}
 
 	@Test
+	void passesWhenJwksAlsoContainsAKeyTheJoseLibraryCannotParse() throws Exception {
+		// a transmitter JWKS may carry keys this suite cannot use; like the signature check,
+		// the key-size check must skip them rather than fail every SET. An OKP key with a
+		// curve that does not exist is guaranteed to stay unparseable (unlike an unknown
+		// kty, which Nimbus already skips on its own).
+		JsonObject jwks = JsonParser.parseString(new JWKSet(List.of(generateRsaKey("k1", 2048))).toString(false)).getAsJsonObject();
+		JsonObject unusableKey = new JsonObject();
+		unusableKey.addProperty("kty", "OKP");
+		unusableKey.addProperty("crv", "OIDF-CONFORMANCE-UNSUPPORTED");
+		unusableKey.addProperty("kid", "unusable-okp-key");
+		unusableKey.addProperty("use", "sig");
+		unusableKey.addProperty("x", "AAAA");
+		jwks.getAsJsonArray("keys").add(unusableKey);
+		env.putObject("server_jwks", jwks);
+
+		JsonObject header = new JsonObject();
+		header.addProperty("kid", "k1");
+		JsonObject setToken = new JsonObject();
+		setToken.add("header", header);
+		env.putObject("set_token", setToken);
+
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
+	void failsWhenJwksHasNoKeysArray() {
+		env.putObject("server_jwks", JsonParser.parseString("{\"not_keys\": []}").getAsJsonObject());
+		JsonObject setToken = new JsonObject();
+		setToken.add("header", new JsonObject());
+		env.putObject("set_token", setToken);
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
 	void kidResolutionSkipsNonRsaKeysSharingTheKid() throws Exception {
 		// a JWKS may list an EC (e.g. encryption) key before the RSA signing key
 		// under the same kid - the check must find the RSA one
