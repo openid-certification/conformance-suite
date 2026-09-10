@@ -91,6 +91,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -193,6 +194,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 * advertised jwks_uri, see {@link #isJwksEndpointFetched()}.
 	 */
 	protected volatile boolean jwksEndpointFetched;
+
+	/**
+	 * Subject identifier format of each generated event, keyed by {@code jti}. Modules record it
+	 * via {@link #recordEventSubject} when they enqueue an event so the delivery grading can tell
+	 * a Complex Subject event apart, see {@link #getPushDeliveryRejectionSeverity}.
+	 */
+	protected final ConcurrentMap<String, String> subjectFormatByJti = new ConcurrentHashMap<>();
 
 	/**
 	 * The per-{@link ClientAuthType} sequence used to validate client
@@ -1386,12 +1394,56 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 * see {@link #onPushDeliveryNotAcknowledged(String, OIDSSFSecurityEvent)}.
 	 */
 	/**
-	 * Severity of a push delivery the receiver did not answer with 202 (RFC 8935 2.2). FAILURE
-	 * unless a module knows the receiver may legitimately reject the given SET, e.g. one whose
-	 * subject format the certification target does not require it to accept.
+	 * Severity of a push delivery the receiver did not answer with 202 (RFC 8935 2.2): FAILURE,
+	 * except for an event with a Complex Subject under the CAEP Interop Profile. Draft-01 of the
+	 * profile (2.5) requires receivers to accept {@code email} and {@code iss_sub} subjects only;
+	 * Complex Subjects are expected to be added (openid/sharedsignals#351), but a receiver
+	 * rejecting one today is within the profile, so that is a WARNING. Relies on the subject
+	 * format recorded via {@link #recordEventSubject}.
 	 */
 	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (isComplexSubjectEventToleratedUnderProfile(event.jti())) {
+			eventLog.log(getName(), args(
+				"msg", "The receiver did not accept an event with a Complex Subject; graded as a warning because "
+					+ "draft-01 of the CAEP Interop Profile does not require receivers to accept Complex Subjects (openid/sharedsignals#351)",
+				"jti", event.jti(), "event_type", event.type()));
+			return Condition.ConditionResult.WARNING;
+		}
 		return Condition.ConditionResult.FAILURE;
+	}
+
+	/**
+	 * Whether the event with the given {@code jti} carries a Complex Subject that the selected
+	 * profile does not require the receiver to accept (CAEP Interop Profile draft-01, 2.5).
+	 * Under the default profile Complex Subjects are ordinary SSF subjects (SSF 1.0 3.3).
+	 */
+	protected boolean isComplexSubjectEventToleratedUnderProfile(String jti) {
+		return isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
+			&& SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(subjectFormatByJti.get(jti));
+	}
+
+	/**
+	 * Records the subject an event was generated for, so its rejection can be graded by
+	 * subject format. Call from the enqueue callback handed to {@code OIDSSFGenerateStreamSET}.
+	 */
+	protected void recordEventSubject(String jti, JsonObject subject) {
+		subjectFormatByJti.put(jti, SsfSubjectIdentifiers.getFormat(subject));
+	}
+
+	/**
+	 * The subject to use when a module needs only one: the first declared valid subject whose
+	 * format the selected profile requires the receiver to accept. A Complex Subject listed first
+	 * must not decide the outcome of a module that tests something other than subject formats,
+	 * since the CAEP Interop Profile draft-01 (2.5) lets a receiver reject it.
+	 */
+	protected JsonObject getPrimaryEventSubject() {
+		List<JsonObject> subjects = getEventSubjects();
+		for (JsonObject subject : subjects) {
+			if (!SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(SsfSubjectIdentifiers.getFormat(subject))) {
+				return subject;
+			}
+		}
+		return subjects.get(0);
 	}
 
 	protected Set<String> getRejectedPushEventJtis() {
