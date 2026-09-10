@@ -746,6 +746,18 @@ makeSsfTests() {
     # Run CAEP receiver interop test against CAEP transmitter interop: check SSF CAEP receiver behavior
     TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$PUSH_DELIVERY][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-caep-interop{openid-ssf-transmitter-caep-test-plan[$PUSH_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-transmitter-stream-caep-interop}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
+    # Default profile (no CAEP interop narrowing), basic coverage per delivery mode: the
+    # receiver happy path under this profile expects create, read, update, replace and
+    # delete, all of which the transmitter happy path performs, and the emulated
+    # transmitter grades verification differently here. The subject control module is
+    # not paired: it needs the subject endpoints, which only the default-profile receiver
+    # happy path offers, and that module ends after the transmitter happy path.
+    DEFAULT_PROFILE="ssf_profile=default"
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$DEFAULT_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$DEFAULT_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$DEFAULT_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-verification-behind-queued-events{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$DEFAULT_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-stream-verification-push}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$DEFAULT_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$DEFAULT_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$DEFAULT_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-verification-behind-queued-events{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$DEFAULT_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-stream-verification-poll-and-ack}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+
     # POLL-delivery mirrors of the pairings above, so the poll code paths (poll endpoint,
     # ack/setErrs handling, poll retry loops, post-verification event generation) are
     # exercised in CI too. Entries sharing a config alias are serialized by
