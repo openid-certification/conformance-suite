@@ -18,6 +18,7 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjec
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureNonEmptyArrayClaimsCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFOptionalFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFSpecVersionTransmitterMetadataCheck;
@@ -37,6 +38,7 @@ import net.openid.conformance.variant.VariantParameters;
 		The testsuite expects to observe the following interactions:
 		 * fetch the transmitter configuration metadata
 		 * validate required fields are present
+		 * validate the issuer is an https URL without query or fragment
 		 * validate advertised delivery methods
 		 * validate advertised supported event types
 		""",
@@ -82,6 +84,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 			// (the 'SSF Issuer' config field only exists under the discovery variant).
 			eventLog.log(getName(), "Skipping transmitter metadata issuer check: not applicable for static transmitter metadata");
 		}
+		callAndContinueOnFailure(OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1");
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFOptionalFieldsTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1");
