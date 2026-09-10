@@ -65,6 +65,7 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
+		resultObj.add("subject", subjectEl.getAsJsonObject().deepCopy());
 
 		try {
 			changeSubjects(streamConfig, streamSubjectInput, resultObj);

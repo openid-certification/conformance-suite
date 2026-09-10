@@ -20,6 +20,7 @@ import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessTo
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStopOnFirstFailureSequence;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFValidateRequestedScope;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFGenerateStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureTokenScopeSufficient;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
@@ -614,6 +615,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.2");
 		JsonObject authResult = env.getElementFromObject("ssf", "auth_result").getAsJsonObject();
 		if (authResult.has("error")) {
+			if (authResult.has("token_expired")) {
+				onExpiredAccessTokenRejected(path);
+			}
 			return errorResponseFromAuthResult(authResult);
 		}
 
@@ -779,11 +783,19 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 			callAndStopOnFailure(OIDSSFValidateRequestedScope.class, "CAEPIOP-2.7.3");
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
-			callAndStopOnFailure(GenerateAccessTokenExpiration.class);
+			int lifetimeSeconds = getAccessTokenLifetimeSeconds();
+			if (lifetimeSeconds > 0) {
+				env.putString("access_token_expiration", Integer.toString(lifetimeSeconds));
+			} else {
+				callAndStopOnFailure(GenerateAccessTokenExpiration.class);
+			}
 			callAndStopOnFailure(OIDSSFStoreIssuedAccessToken.class);
 			callAndStopOnFailure(CreateTokenEndpointResponse.class, "RFC6749-5.1");
 
 			JsonObject tokenResponse = env.getObject("token_endpoint_response");
+			String issuedToken = env.getString("access_token");
+			JsonElement issuedRecord = env.getElementFromObject("ssf", "issued_tokens." + issuedToken);
+			onAccessTokenIssued(issuedToken, issuedRecord != null && issuedRecord.isJsonObject() ? issuedRecord.getAsJsonObject() : new JsonObject());
 			return ResponseEntity.ok()
 				.header("Cache-Control", "no-store")
 				.header("Pragma", "no-cache")
@@ -792,6 +804,35 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		} finally {
 			env.unmapKey("token_endpoint_request");
 		}
+	}
+
+	/**
+	 * Lifetime in seconds of the access tokens the emulated authorization server issues;
+	 * a value of 0 or less keeps the default of {@link GenerateAccessTokenExpiration}. Modules
+	 * that make the receiver live through a token expiry return a short lifetime here.
+	 */
+	protected int getAccessTokenLifetimeSeconds() {
+		return -1;
+	}
+
+	/**
+	 * Called after the emulated authorization server issued an access token to the receiver.
+	 *
+	 * @param accessToken the token value
+	 * @param tokenRecord the stored record: client_id, scope, expires_at (epoch seconds)
+	 */
+	protected void onAccessTokenIssued(String accessToken, JsonObject tokenRecord) {
+		// NOOP
+	}
+
+	/**
+	 * Called when a request was rejected with 401 because the presented access token had
+	 * expired (CAEP Interop Profile 2.7.1 short-lived tokens, 2.7.2 expiration is verified).
+	 *
+	 * @param path the endpoint path the receiver called
+	 */
+	protected void onExpiredAccessTokenRejected(String path) {
+		// NOOP
 	}
 
 	/**
@@ -1006,11 +1047,26 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonElement result = subjectChangeResult.get("result");
 		int statusCode = OIDFJSON.getInt(subjectChangeResult.get("status_code"));
 
+		afterStreamSubjectChange(operation, OIDFJSON.tryGetString(subjectChangeResult.get("stream_id")), subjectChangeResult, subjectChangeResult.get("error"));
+
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	/**
+	 * Called after an add-subject or remove-subject request was handled (SSF 1.0 8.1.3).
+	 *
+	 * @param operation the operation
+	 * @param streamId  the stream the subject was added to or removed from, {@code null} when
+	 *                  the request failed before the stream was resolved
+	 * @param result    the handler result, its {@code subject} member holding the subject of the request
+	 * @param error     the error object when the request was rejected, otherwise {@code null}
+	 */
+	protected void afterStreamSubjectChange(StreamSubjectOperation operation, String streamId, JsonObject result, JsonElement error) {
+		// NOOP
 	}
 
 	protected ResponseEntity<?> handleVerificationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -1026,9 +1082,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		int statusCode = OIDFJSON.getInt(verificationResult.get("status_code"));
 
 		if (HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
-			callAndStopOnFailure(new OIDSSFGenerateStreamVerificationSET(eventStore), "OIDSSF-8.1.4.2");
-
 			String streamId = env.getString("incoming_request", "body_json.stream_id");
+			callAndStopOnFailure(createVerificationSetGenerator(streamId), "OIDSSF-8.1.4.2");
 
 			if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
 				schedulePushDelivery(streamId);
@@ -1040,6 +1095,15 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	/**
+	 * The generator for the verification SET answering the receiver's verification request
+	 * for {@code streamId}. Modules that test how a receiver treats a defective verification
+	 * event return a tampering generator here.
+	 */
+	protected AbstractOIDSSFGenerateStreamSET createVerificationSetGenerator(String streamId) {
+		return new OIDSSFGenerateStreamVerificationSET(eventStore);
 	}
 
 	protected class OIDSSFHandlePushDeliveryTask implements Callable<String> {
