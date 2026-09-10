@@ -15,6 +15,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +33,12 @@ public class AbstractOIDSSFReceiverTestModuleUnexpectedRequest_UnitTest {
 		@Override
 		protected boolean isFinished() {
 			return false;
+		}
+
+		@Override
+		public String getName() {
+			// the log entry a probe writes names the module; there is no @PublishTestModule here
+			return "unit-test-module";
 		}
 
 		void waitForRequests() {
@@ -79,11 +86,34 @@ public class AbstractOIDSSFReceiverTestModuleUnexpectedRequest_UnitTest {
 	}
 
 	@Test
-	public void unknownWellKnownPathIsAnsweredWith404AndTheTestKeepsWaiting() {
+	public void unknownWellKnownPathIsAProbeAnsweredWith404WithoutAGrade() {
+		// an OAuth client library trying the OIDC discovery document before the configured
+		// token endpoint is conformant (RFC 8414 5, CAEPIOP 2.7.1)
 		Object response = assertDoesNotThrow(() ->
 			module.handleWellKnown("/.well-known/openid-configuration", request("GET"), null, null, requestParts("GET")));
 
 		assertEquals(HttpStatus.NOT_FOUND, ((ResponseEntity<?>) response).getStatusCode());
 		assertEquals(Status.WAITING, module.getStatus());
+		assertNotEquals(Result.FAILED, module.getResult(), "a discovery probe must not be graded");
+	}
+
+	@Test
+	public void headRequestIsAProbeAnsweredWith404WithoutAGrade() {
+		Object response = assertDoesNotThrow(() ->
+			module.handleHttp("streams", request("HEAD"), null, null, requestParts("HEAD")));
+
+		assertEquals(HttpStatus.NOT_FOUND, ((ResponseEntity<?>) response).getStatusCode());
+		assertEquals(Status.WAITING, module.getStatus());
+		assertNotEquals(Result.FAILED, module.getResult(), "a HEAD probe must not be graded");
+	}
+
+	@Test
+	public void optionsRequestIsAProbeAnsweredWith404WithoutAGrade() {
+		Object response = assertDoesNotThrow(() ->
+			module.handleHttp("events", request("OPTIONS"), null, null, requestParts("OPTIONS")));
+
+		assertEquals(HttpStatus.NOT_FOUND, ((ResponseEntity<?>) response).getStatusCode());
+		assertEquals(Status.WAITING, module.getStatus());
+		assertNotEquals(Result.FAILED, module.getResult(), "an OPTIONS probe must not be graded");
 	}
 }
