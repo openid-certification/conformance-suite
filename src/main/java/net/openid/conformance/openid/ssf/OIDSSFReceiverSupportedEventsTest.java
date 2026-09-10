@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 		and are sent once with the stream's opaque subject (SSF 1.0 8.1.4.1, 8.1.5). The stream-updated event
 		object additionally carries a member that no specification defines; receivers must ignore members they
 		do not understand (SSF 1.0 4.2.3), so the event must be acknowledged like any other.
-		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change, device-compliance-change and risk-level-change) are available, and only email/iss_sub (and complex) subjects are used.
+		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change, device-compliance-change and risk-level-change) are available, and only email/iss_sub (and complex) subjects are used; a receiver rejecting the events with a complex subject is reported as a warning only, since draft-01 of the profile (section 2.5) does not list Complex Subjects.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
@@ -153,7 +153,12 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 			for (JsonObject subject : subjects) {
 				SsfEvent event = generateSsfEventExample(eventType, timestamp);
 
-				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event, this::onStreamEventEnqueued);
+				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event, (sid, jti) -> {
+					// the subject format decides how a rejection is graded, see
+					// getPushDeliveryRejectionSeverity and fireTestFinished
+					recordEventSubject(jti, subject);
+					onStreamEventEnqueued(sid, jti);
+				});
 				callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
 			}
 		}
@@ -234,6 +239,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		unacknowledged.removeAll(getUndeliveredEventJtis());
 		unacknowledged.removeAll(getErrorReportedEventJtis());
 		unacknowledged.removeAll(getRejectedPushEventJtis());
+		gradeRejectedComplexSubjectEvents();
 		if (unacknowledged.isEmpty()) {
 			eventLog.log(getName(), "Detected acknowledgements for published events.");
 		} else {
@@ -246,5 +252,24 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
 		}
 		super.fireTestFinished();
+	}
+
+	/**
+	 * Under the CAEP Interop Profile a receiver may reject an event with a Complex Subject
+	 * (draft-01, 2.5, see openid/sharedsignals#351). A rejected push delivery is already graded
+	 * as a warning by the RFC 8935 2.2 status check; a setErrs report on poll delivery would
+	 * otherwise go unmentioned, so both are summarised here as a warning.
+	 */
+	private void gradeRejectedComplexSubjectEvents() {
+		Set<String> rejectedComplexSubjectJtis = new LinkedHashSet<>(getErrorReportedEventJtis());
+		rejectedComplexSubjectJtis.addAll(getRejectedPushEventJtis());
+		rejectedComplexSubjectJtis.removeIf(jti -> !isComplexSubjectEventToleratedUnderProfile(jti));
+		if (rejectedComplexSubjectJtis.isEmpty()) {
+			return;
+		}
+		callAndContinueOnFailure(new OIDSSFFindingCondition(
+				"The receiver rejected " + rejectedComplexSubjectJtis.size() + " event(s) with a Complex Subject (jtis: " + rejectedComplexSubjectJtis + "). "
+					+ "Graded as a warning because draft-01 of the CAEP Interop Profile does not require receivers to accept Complex Subjects."),
+			Condition.ConditionResult.WARNING, "CAEPIOP-2.5", "OIDSSF-3.3");
 	}
 }

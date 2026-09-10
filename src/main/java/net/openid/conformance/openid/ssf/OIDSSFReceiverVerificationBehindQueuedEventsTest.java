@@ -101,9 +101,9 @@ public class OIDSSFReceiverVerificationBehindQueuedEventsTest extends AbstractOI
 		JsonArray eventsDelivered = streamConfig == null ? null : streamConfig.getAsJsonArray("events_delivered");
 		String eventType = SsfEvents.preferredEventType(eventsDelivered == null ? null : OIDFJSON.convertJsonArrayToList(eventsDelivered));
 
-		// The receiver must accept the queued events whatever their subject, so the first
-		// declared valid subject suffices.
-		JsonObject subject = getEventSubjects().get(0);
+		// The receiver must accept the queued events whatever their subject, so one subject
+		// suffices; a Complex Subject is avoided as the profile lets a receiver reject it.
+		JsonObject subject = getPrimaryEventSubject();
 		long timestamp = Instant.now().getEpochSecond();
 
 		for (int i = 0; i < QUEUED_EVENT_COUNT; i++) {

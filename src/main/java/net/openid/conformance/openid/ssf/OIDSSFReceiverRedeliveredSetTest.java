@@ -223,9 +223,9 @@ public class OIDSSFReceiverRedeliveredSetTest extends AbstractOIDSSFReceiverTest
 		JsonArray eventsDelivered = streamConfig.getAsJsonArray("events_delivered");
 		String eventType = SsfEvents.preferredEventType(eventsDelivered == null ? null : OIDFJSON.convertJsonArrayToList(eventsDelivered));
 
-		// The receiver must accept the redelivered SET whatever its subject, so the first
-		// declared valid subject suffices.
-		JsonObject subject = getEventSubjects().get(0);
+		// The receiver must accept the redelivered SET whatever its subject, so one subject
+		// suffices; a Complex Subject is avoided as the profile lets a receiver reject it.
+		JsonObject subject = getPrimaryEventSubject();
 		SsfEvent ssfEvent = generateSsfEventExample(eventType, Instant.now().getEpochSecond());
 
 		var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, ssfEvent,
