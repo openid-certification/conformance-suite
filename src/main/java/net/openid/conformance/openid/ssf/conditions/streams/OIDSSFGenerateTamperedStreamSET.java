@@ -1,18 +1,24 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import net.openid.conformance.openid.ssf.SsfEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 
+import java.text.ParseException;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
  * Generates a deliberately invalid SET for the receiver negative tests:
  * a receiver MUST validate delivered SETs (iss per SSF 1.0 4.1.6, signature per
- * CAEP Interop Profile 2.4.2, aud per RFC 8935/8936) and must not acknowledge
- * an invalid one.
+ * CAEP Interop Profile 2.4.2 and 2.6 using the keys published at the transmitter's
+ * jwks_uri, aud per RFC 8935/8936) and must not acknowledge an invalid one.
  * <p>
  * The generated event is optionally enqueued in the event store (for POLL
  * delivery, so the receiver retrieves it via the poll endpoint) and always
@@ -24,7 +30,8 @@ public class OIDSSFGenerateTamperedStreamSET extends OIDSSFGenerateStreamSET {
 	public enum TamperMode {
 		INVALID_SIGNATURE("valid claims but a corrupted signature"),
 		WRONG_ISSUER("an iss claim that does not match the transmitter issuer"),
-		WRONG_AUDIENCE("an aud claim that does not match the stream audience");
+		WRONG_AUDIENCE("an aud claim that does not match the stream audience"),
+		UNKNOWN_KID("a signature made with a key that is not in the transmitter's JWKS");
 
 		private final String description;
 
@@ -42,6 +49,12 @@ public class OIDSSFGenerateTamperedStreamSET extends OIDSSFGenerateStreamSET {
 	protected final boolean enqueueInEventStore;
 
 	protected final Consumer<OIDSSFSecurityEvent> onGenerated;
+
+	/**
+	 * The signing key for {@link TamperMode#UNKNOWN_KID}, generated once per condition
+	 * instance on first use; it is never published at the transmitter's jwks_uri.
+	 */
+	private RSAKey unknownSigningKey;
 
 	public OIDSSFGenerateTamperedStreamSET(OIDSSFEventStore eventStore, String streamId, JsonObject subject,
 			SsfEvent ssfEvent, TamperMode tamperMode, boolean enqueueInEventStore, Consumer<OIDSSFSecurityEvent> onGenerated) {
@@ -67,6 +80,20 @@ public class OIDSSFGenerateTamperedStreamSET extends OIDSSFGenerateStreamSET {
 			return "https://invalid-audience.example.com";
 		}
 		return super.getAudience(env);
+	}
+
+	@Override
+	protected RSAKey getSigningKey(Environment env) throws ParseException, JOSEException {
+		if (tamperMode == TamperMode.UNKNOWN_KID) {
+			if (unknownSigningKey == null) {
+				unknownSigningKey = new RSAKeyGenerator(2048)
+					.keyID("unknown-" + UUID.randomUUID())
+					.keyUse(KeyUse.SIGNATURE)
+					.generate();
+			}
+			return unknownSigningKey;
+		}
+		return super.getSigningKey(env);
 	}
 
 	@Override
