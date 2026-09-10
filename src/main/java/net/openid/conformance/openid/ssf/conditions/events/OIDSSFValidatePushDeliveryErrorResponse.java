@@ -10,7 +10,8 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Validates the error response a receiver returns when it rejects a pushed SET
- * (RFC 8935 2.3): HTTP status 400, an {@code application/json} Content-Type, and a JSON
+ * (RFC 8935 2.3): HTTP status 400, an {@code application/json} Content-Type, a
+ * {@code Content-Language} header naming the language of the description, and a JSON
  * object body carrying the string members {@code err} (a Security Event Token Error Code)
  * and {@code description}. Whether {@code err} is a registered code, or the code the
  * scenario expects, is checked separately by
@@ -38,6 +39,12 @@ public class OIDSSFValidatePushDeliveryErrorResponse extends AbstractCondition {
 		if (!"application/json".equals(mimeType)) {
 			throw error("The error response to a rejected push delivery must carry the Content-Type application/json",
 				args("content_type", contentType, "expected", "application/json"));
+		}
+
+		String contentLanguage = env.getString("endpoint_response", "headers.content-language");
+		if (contentLanguage == null || contentLanguage.isBlank()) {
+			throw error("The error response to a rejected push delivery must carry a Content-Language header naming the language of the error description",
+				args("headers", env.getElementFromObject("endpoint_response", "headers")));
 		}
 
 		JsonElement bodyJson = env.getElementFromObject("endpoint_response", "body_json");
