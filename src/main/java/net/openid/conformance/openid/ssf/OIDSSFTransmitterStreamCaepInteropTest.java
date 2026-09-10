@@ -21,6 +21,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventCont
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventValuesAreJsonObjects;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepEventTimestampInFuture;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
@@ -346,6 +347,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			receivedEventTypes.add(eventType);
 			validateCaepEventSubject();
 			callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
+				callAndContinueOnFailure(OIDSSFWarnCaepEventTimestampInFuture.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
 			validateCaepEventFields(eventType);
 		});
 	}
@@ -613,6 +615,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				receivedEventTypes.add(eventType);
 				validateCaepEventSubject();
 				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
+				callAndContinueOnFailure(OIDSSFWarnCaepEventTimestampInFuture.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
 				validateCaepEventFields(eventType);
 			});
 		}
