@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -13,9 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -108,6 +112,18 @@ public class OIDSSFHandleStreamReplaceRequest_UnitTest {
 		assertEquals("urn:example:event:c", OIDFJSON.getString(storedStream().getAsJsonArray("events_delivered").get(0)));
 		assertEquals("urn:ietf:rfc:8936", OIDFJSON.getString(storedStream().getAsJsonObject("delivery").get("method")));
 		assertTrue(OIDFJSON.getString(storedStream().getAsJsonObject("delivery").get("endpoint_url")).contains("stream_id=" + STREAM));
+	}
+
+	@Test
+	void rejectsAReplaceThatSwitchesToAnUnsupportedDeliveryMethod() {
+		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of("urn:ietf:rfc:8935")));
+		// omitting delivery means poll (SSF 1.0 8.1.1.1), which this push-only run does not support
+		putBody("""
+			{"stream_id": "%s", "events_requested": ["urn:example:event:a"]}
+			""".formatted(STREAM));
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertEquals(400, OIDFJSON.getInt(result().get("status_code")));
+		assertEquals("urn:ietf:rfc:8935", OIDFJSON.getString(storedStream().getAsJsonObject("delivery").get("method")), "the stored stream is untouched");
 	}
 
 	@Test

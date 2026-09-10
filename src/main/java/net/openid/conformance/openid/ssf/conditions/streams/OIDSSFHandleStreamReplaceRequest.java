@@ -75,6 +75,11 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		}
 
 		try {
+			// validate the (possibly defaulted) delivery method before touching the stored stream
+			JsonObject requestedDelivery = streamConfigInput.getAsJsonObject("delivery");
+			ensureDeliveryMethodSupported(env, requestedDelivery == null
+				? DELIVERY_METHOD_POLL_RFC_8936_URI : OIDFJSON.getString(requestedDelivery.get("method")));
+
 			// SSF 1.0 8.1.1.4: the PUT body carries the full set of receiver-supplied
 			// properties and "Missing Receiver-Supplied properties MUST be interpreted as
 			// requested to be deleted" - unlike PATCH, an omitted property does not survive.

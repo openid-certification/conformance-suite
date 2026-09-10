@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -13,9 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +69,38 @@ public class OIDSSFHandleStreamCreateRequest_UnitTest {
 		JsonObject stream = result().getAsJsonObject("result");
 		assertEquals(AUDIENCE, OIDFJSON.getString(stream.get("aud")));
 		assertEquals(1, stream.getAsJsonArray("events_delivered").size());
+	}
+
+	@Test
+	void rejectsADeliveryMethodTheTransmitterDoesNotSupport() {
+		// the emulated transmitter supports only the delivery method the run was scheduled
+		// with; SSF 1.0 8.1.1.1: "If the Transmitter does not support the delivery method,
+		// it MAY respond with HTTP Status Code 400 Bad Request"
+		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of("urn:ietf:rfc:8935")));
+		streamInput("""
+			{"delivery": {"method": "urn:ietf:rfc:8936"}}
+			""");
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertEquals(400, OIDFJSON.getInt(result().get("status_code")));
+		assertTrue(OIDFJSON.getString(result().getAsJsonObject("error").get("description")).contains("SSF Delivery Mode"));
+	}
+
+	@Test
+	void anOmittedDeliveryMeansPollAndIsRejectedByAPushOnlyTransmitter() {
+		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of("urn:ietf:rfc:8935")));
+		streamInput("{}");
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertEquals(400, OIDFJSON.getInt(result().get("status_code")));
+	}
+
+	@Test
+	void acceptsTheSupportedDeliveryMethod() {
+		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of("urn:ietf:rfc:8935")));
+		streamInput("""
+			{"delivery": {"method": "urn:ietf:rfc:8935", "endpoint_url": "https://receiver.example.com/push"}}
+			""");
+		assertDoesNotThrow(() -> condition.execute(env));
+		assertEquals(201, OIDFJSON.getInt(result().get("status_code")));
 	}
 
 	@Test

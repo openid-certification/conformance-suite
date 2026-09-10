@@ -23,6 +23,26 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 		return Set.of("events_requested", "description");
 	}
 
+	/**
+	 * SSF 1.0 8.1.1.1: "If the Transmitter does not support the delivery method, it MAY respond
+	 * with HTTP Status Code 400 Bad Request." The emulated transmitter supports only the delivery
+	 * method the run was scheduled with ({@code ssf.delivery_methods_supported}, also advertised
+	 * in its metadata); when that list is absent every method is accepted. Throws an
+	 * {@link IllegalArgumentException} the handlers turn into a 400.
+	 */
+	protected void ensureDeliveryMethodSupported(Environment env, String deliveryMethod) {
+		JsonElement supportedEl = env.getElementFromObject("ssf", "delivery_methods_supported");
+		if (supportedEl == null || !supportedEl.isJsonArray()) {
+			return;
+		}
+		List<String> supported = OIDFJSON.convertJsonArrayToList(supportedEl.getAsJsonArray());
+		if (!supported.contains(deliveryMethod)) {
+			throw new IllegalArgumentException("Delivery method '" + deliveryMethod + "' is not supported by this transmitter; it advertises "
+				+ supported + " in delivery_methods_supported. The emulated transmitter only supports the 'SSF Delivery Mode' this test "
+				+ "was scheduled with: schedule the test with the delivery mode the receiver uses, or have the receiver request an advertised method.");
+		}
+	}
+
 	protected JsonObject createErrorObj(String errCode, String description) {
 		JsonObject error = new JsonObject();
 		error.addProperty("err", errCode);

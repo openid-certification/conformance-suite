@@ -23,6 +23,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureTokenScopeSufficient;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMethodMatchesVariant;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
@@ -238,6 +239,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject transmitterMetadata = generateTransmitterMetadata(issuer);
 		env.putObject("ssf", "transmitter_metadata", transmitterMetadata);
+		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(getSupportedDeliveryMethods()));
 
 		env.putString("ssf", "auth_mode", getVariant(SsfAuthMode.class).name());
 		configureAuthorizationServer(issuer);
@@ -436,6 +438,20 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 	}
 
+	/**
+	 * The emulated transmitter supports only the delivery method the run was scheduled with:
+	 * the variant is the contract of the run, so a receiver that picks its method from
+	 * {@code delivery_methods_supported} is steered to it, and one that requests the other
+	 * method is refused with a 400 (SSF 1.0 8.1.1.1). Both methods when no variant is set.
+	 */
+	protected List<String> getSupportedDeliveryMethods() {
+		SsfDeliveryMode deliveryMode = getVariantOrDefault(SsfDeliveryMode.class, null);
+		if (deliveryMode == null) {
+			return List.of(DELIVERY_METHOD_PUSH_RFC_8935_URI, DELIVERY_METHOD_POLL_RFC_8936_URI);
+		}
+		return List.of(deliveryMode.getAlias());
+	}
+
 	protected JsonObject generateTransmitterMetadata(String issuer) {
 
 		JsonObject metadata = new JsonObject();
@@ -443,10 +459,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		metadata.addProperty("issuer", issuer);
 		metadata.addProperty("spec_version", "1_0");
 		metadata.addProperty("jwks_uri", issuer + "/jwks");
-		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of( //
-			DELIVERY_METHOD_PUSH_RFC_8935_URI, // PUSH Delivery
-			DELIVERY_METHOD_POLL_RFC_8936_URI // POLL Delivery
-		)));
+		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(getSupportedDeliveryMethods()));
 
 		metadata.addProperty("configuration_endpoint", issuer + "/streams");
 		metadata.addProperty("status_endpoint", issuer + "/status");
@@ -645,6 +658,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	@Override
 	public Object handleWellKnown(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		if (isFinished()) {
+			// as in handleHttp: a receiver re-reading the metadata after the test finished must not
+			// trip the status machine (FINISHED -> RUNNING)
+			return ResponseEntity.noContent().build();
+		}
+
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		env.mapKey("incoming_request", requestId);
@@ -829,6 +848,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = createResult.get("error");
 				String createdStreamId = OIDFJSON.tryGetString(createResult.get("stream_id"));
+				if (error == null && createdStreamId != null) {
+					// the scheduled delivery mode is the contract of the run for every receiver module
+					callAndContinueOnFailure(new OIDSSFEnsureStreamDeliveryMethodMatchesVariant(createdStreamId, getVariant(SsfDeliveryMode.class)),
+						Condition.ConditionResult.FAILURE, deliveryModeRequirements());
+				}
 				afterStreamCreation(createdStreamId, createResult, error);
 
 				if (error == null && createdStreamId != null
@@ -935,6 +959,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
 			schedulePushDelivery(streamId);
 		}
+	}
+
+	private String[] deliveryModeRequirements() {
+		return isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
+			? new String[] {"OIDSSF-8.1.1.1", "CAEPIOP-2.4.5.1"}
+			: new String[] {"OIDSSF-8.1.1.1"};
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
