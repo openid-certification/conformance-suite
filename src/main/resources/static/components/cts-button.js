@@ -151,6 +151,17 @@ const STYLE_TEXT = css`
     background: var(--ink-50);
     color: var(--ink-900);
   }
+  /* Pressed (ON) state of a secondary toggle / preset button: sunken fill
+     plus an ink border, so "selected" is visibly distinct from the resting
+     white-with-grey-border secondary without borrowing the primary orange —
+     that stays reserved for the confirming action (Generate, Save, …) so a
+     dialog never shows two orange buttons. Same specificity as :hover and
+     declared after it, so the pressed fill also holds while hovered. */
+  .oidf-btn-secondary[aria-pressed="true"] {
+    background: var(--bg-sunken);
+    color: var(--ink-900);
+    border-color: var(--border-ink);
+  }
 
   .oidf-btn-ghost {
     background: transparent;
@@ -299,6 +310,11 @@ injectStyles();
  *   toggle's controls relationship reaches assistive tech (host-level
  *   `aria-controls` would sit on the non-focusable custom element). Omitted
  *   when empty.
+ * @property {string} aria-pressed - Forwarded onto the inner `<button>` for
+ *   toggle / preset buttons (`"true"` or `"false"`). Omitted when empty so a
+ *   plain command button is never mis-announced as an on/off toggle. A
+ *   `secondary` button with `aria-pressed="true"` also renders the pressed
+ *   visual (sunken fill + ink border) — see the stylesheet note.
  * @fires cts-click - When the inner button is activated (not fired while disabled or loading)
  *
  * ## Programmatic activation
@@ -342,6 +358,7 @@ class CtsButton extends LitElement {
     ariaLabel: { type: String, attribute: "aria-label" },
     ariaExpanded: { type: String, attribute: "aria-expanded" },
     ariaControls: { type: String, attribute: "aria-controls" },
+    ariaPressed: { type: String, attribute: "aria-pressed" },
   };
 
   constructor() {
@@ -357,6 +374,7 @@ class CtsButton extends LitElement {
     this.ariaLabel = "";
     this.ariaExpanded = "";
     this.ariaControls = "";
+    this.ariaPressed = "";
   }
 
   connectedCallback() {
@@ -429,6 +447,7 @@ class CtsButton extends LitElement {
     const ariaLabelAttr = this.ariaLabel ? this.ariaLabel : nothing;
     const ariaExpandedAttr = this.ariaExpanded ? this.ariaExpanded : nothing;
     const ariaControlsAttr = this.ariaControls ? this.ariaControls : nothing;
+    const ariaPressedAttr = this.ariaPressed ? this.ariaPressed : nothing;
     return html`<button
       type="${this.type}"
       class="${buttonClass}"
@@ -436,6 +455,7 @@ class CtsButton extends LitElement {
       aria-label=${ariaLabelAttr}
       aria-expanded=${ariaExpandedAttr}
       aria-controls=${ariaControlsAttr}
+      aria-pressed=${ariaPressedAttr}
       @click="${this._handleClick}"
       >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
     >`;

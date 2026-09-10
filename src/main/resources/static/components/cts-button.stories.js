@@ -517,15 +517,17 @@ export const AriaControlsForwarding = {
   render: () => html`
     <cts-button label="Toggle panel" aria-controls="some-panel" aria-expanded="true"></cts-button>
     <cts-button label="Plain"></cts-button>
+    <cts-button label="Pressed preset" aria-pressed="true"></cts-button>
     <!-- aria-controls is an IDREF, so the controlled element must exist or
          axe's aria-valid-attr-value rule (a11y addon) flags it. -->
     <div id="some-panel">Controlled panel</div>
   `,
 
   async play({ canvasElement, step }) {
-    const [withControls, withoutControls] = canvasElement.querySelectorAll("cts-button");
+    const [withControls, withoutControls, pressed] = canvasElement.querySelectorAll("cts-button");
     await withControls.updateComplete;
     await withoutControls.updateComplete;
+    await pressed.updateComplete;
 
     await step("aria-controls is forwarded onto the inner <button>", async () => {
       const btn = withControls.querySelector("button");
@@ -540,6 +542,17 @@ export const AriaControlsForwarding = {
       // The binding emits `nothing`, so the attribute is absent — not
       // aria-controls="" (which AT treats as "controls nothing").
       expect(btn.hasAttribute("aria-controls")).toBe(false);
+    });
+
+    await step("aria-pressed is forwarded onto the inner <button>", async () => {
+      expect(pressed.querySelector("button").getAttribute("aria-pressed")).toBe("true");
+    });
+
+    await step("no aria-pressed attribute when the property is unset", async () => {
+      // A plain command button must not carry aria-pressed at all (not even
+      // aria-pressed=""), or AT announces it as an on/off toggle.
+      expect(withoutControls.querySelector("button").hasAttribute("aria-pressed")).toBe(false);
+      expect(withControls.querySelector("button").hasAttribute("aria-pressed")).toBe(false);
     });
   },
 };
