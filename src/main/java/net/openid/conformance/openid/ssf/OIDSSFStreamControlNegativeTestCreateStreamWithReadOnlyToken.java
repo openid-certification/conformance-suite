@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs403;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureGrantedScopeIsReadOnly;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureWwwAuthenticateErrorCode;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureWwwAuthenticateHeaderPresent;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFRestrictClientScopeToRead;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
@@ -26,9 +27,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		   the scope enforcement cannot be exercised with such a token
 		 * attempt to create a stream with that read-only token
 		 * transmitter rejects the request with a 403 response
-		 * the 403 response should carry a Bearer 'WWW-Authenticate' challenge (RFC 6750
-		   section 3, insufficient_scope per section 3.1; reported as a warning if absent,
-		   since CAEP Interop 2.7.2 only cites RFC 6750 section 3.1)
+		 * the 403 response should carry a Bearer 'WWW-Authenticate' challenge with
+		   error="insufficient_scope" (RFC 6750 sections 3 and 3.1; reported as a warning if
+		   absent or different, since CAEP Interop 2.7.2 only cites RFC 6750 section 3.1)
 		 * if the transmitter created the stream regardless, it is deleted again with a
 		   full-scope token
 		""",
@@ -86,6 +87,7 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken extend
 			// header is imprecise - see the condition's javadoc. The 403 above is the
 			// FAILURE-level check.
 			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
+			callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("insufficient_scope"), Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 

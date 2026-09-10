@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.ssf.conditions;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -36,26 +37,17 @@ public class OIDSSFEnsureWwwAuthenticateHeaderPresent extends AbstractCondition 
 				args("endpoint_response", env.getObject("endpoint_response")));
 		}
 
-		String challenge = null;
-		for (Map.Entry<String, JsonElement> header : headersEl.getAsJsonObject().entrySet()) {
-			if ("www-authenticate".equalsIgnoreCase(header.getKey())) {
-				challenge = header.getValue().isJsonArray() && !header.getValue().getAsJsonArray().isEmpty()
-					? OIDFJSON.tryGetString(header.getValue().getAsJsonArray().get(0))
-					: OIDFJSON.tryGetString(header.getValue());
-				break;
-			}
-		}
+		String challenge = findWwwAuthenticateHeader(headersEl.getAsJsonObject());
 
 		if (challenge == null || challenge.isBlank()) {
 			throw error("The rejected request did not carry a 'WWW-Authenticate' response header. "
-					+ "RFC 6750 section 3 requires bearer-token resource servers to include a 'WWW-Authenticate' challenge "
-					+ "when rejecting a request; the CAEP Interop Profile (2.7.2) requires errors as per RFC 6750 section 3.1, "
-					+ "which are carried in that header.",
+					+ "A bearer-token resource server must include a 'WWW-Authenticate' challenge when rejecting a request; "
+					+ "the bearer error codes are carried in that header.",
 				args("response_headers", headersEl));
 		}
 
 		if (!challenge.regionMatches(true, 0, "Bearer", 0, "Bearer".length())) {
-			throw error("The 'WWW-Authenticate' response header does not contain a 'Bearer' challenge (RFC 6750 section 3)",
+			throw error("The 'WWW-Authenticate' response header does not contain a 'Bearer' challenge",
 				args("www_authenticate", challenge));
 		}
 
@@ -63,5 +55,21 @@ public class OIDSSFEnsureWwwAuthenticateHeaderPresent extends AbstractCondition 
 			args("www_authenticate", challenge));
 
 		return env;
+	}
+
+	/**
+	 * Returns the value of the {@code WWW-Authenticate} response header (header name matched
+	 * case-insensitively; the first value if the header was recorded as an array), or
+	 * {@code null} if the header is absent.
+	 */
+	static String findWwwAuthenticateHeader(JsonObject headers) {
+		for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
+			if ("www-authenticate".equalsIgnoreCase(header.getKey())) {
+				return header.getValue().isJsonArray() && !header.getValue().getAsJsonArray().isEmpty()
+					? OIDFJSON.tryGetString(header.getValue().getAsJsonArray().get(0))
+					: OIDFJSON.tryGetString(header.getValue());
+			}
+		}
+		return null;
 	}
 }
