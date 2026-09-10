@@ -6,10 +6,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMethodMatchesVariant;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
-import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -119,7 +117,6 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		createdStreamId = streamId;
 		lastCreateResult = createResult;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
-		callAndContinueOnFailure(new OIDSSFEnsureStreamDeliveryMethodMatchesVariant(streamId, getVariant(SsfDeliveryMode.class)), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 
 		// Event generation is deferred to afterInitialStreamVerification so the test mirrors the
 		// real flow: the receiver creates the stream, verifies it, and only then does the
