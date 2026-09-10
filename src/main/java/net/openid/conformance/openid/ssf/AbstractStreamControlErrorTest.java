@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantParameters({SsfServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class, SsfProfile.class,})
 @ConfigurationFields({
 	"ssf.transmitter.issuer",
-	"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
+	"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-7.2.1
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})

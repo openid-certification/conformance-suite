@@ -77,7 +77,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 	private void validateTransmitterMetadata() {
 
 		if (getVariant(SsfServerMetadata.class) == SsfServerMetadata.DISCOVERY) {
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.4");
 		} else {
 			// ssf_server_metadata=static: the metadata is fetched from a configured URL,
 			// not derived from an issuer - there is no expected issuer to compare against
@@ -121,7 +121,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 			try {
 				callAndStopOnFailure(CheckJwksUri.class);
 				callAndStopOnFailure(FetchServerKeys.class);
-				call(new ValidateJwksSequence("server_jwks", null, "transmitter JWKS", "RFC7517-1.1"));
+				call(new ValidateJwksSequence("server_jwks", null, "transmitter JWKS", "RFC7517-5"));
 			} finally {
 				env.removeObject("transmitter_metadata");
 				env.unmapKey("server");
