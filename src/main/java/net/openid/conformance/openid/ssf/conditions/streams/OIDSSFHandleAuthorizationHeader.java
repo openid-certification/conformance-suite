@@ -82,6 +82,8 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		long expiresAt = OIDFJSON.getLong(tokenRecord.get("expires_at"));
 		if (Instant.now().getEpochSecond() >= expiresAt) {
 			log("Bearer token has expired", args("token_record", tokenRecord));
+			// lets the module distinguish an expired token from an unknown one
+			authResult.addProperty("token_expired", true);
 			return unauthorized(env, authResult, "Bearer token has expired");
 		}
 
