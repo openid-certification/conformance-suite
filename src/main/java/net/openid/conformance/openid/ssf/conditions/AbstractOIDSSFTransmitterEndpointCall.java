@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf.conditions;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractCallProtectedResourceWithBearerToken;
@@ -37,20 +38,40 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 		JsonObject errorEndpointResponse = new JsonObject();
 		errorEndpointResponse.addProperty("status", e.getStatusCode().value());
 		errorEndpointResponse.addProperty("endpoint_name", getEndpointName());
-		errorEndpointResponse.addProperty("body", e.getResponseBodyAsString());
-		if (e.getResponseHeaders() != null) {
+		String responseBody = e.getResponseBodyAsString();
+		errorEndpointResponse.addProperty("body", responseBody);
+		HttpHeaders responseHeaders = e.getResponseHeaders();
+		MediaType responseContentType = null;
+		if (responseHeaders != null) {
 			// keep the response headers available for follow-up checks (e.g. the RFC 6750
 			// WWW-Authenticate challenge on 401/403 responses)
-			errorEndpointResponse.add("headers", mapToJsonObject(e.getResponseHeaders(), true));
+			errorEndpointResponse.add("headers", mapToJsonObject(responseHeaders, true));
+			responseContentType = responseHeaders.getContentType();
 		}
-		MediaType responseContentType = e.getResponseHeaders().getContentType();
 		if (responseContentType != null && (MediaType.APPLICATION_JSON.equals(responseContentType) ||
 			// deal with funky vendor specific content types like application/vnd.foo.bar+json
 			(MediaType.APPLICATION_JSON.getType().equals(responseContentType.getType())
 				&& responseContentType.getSubtype().endsWith(MediaType.APPLICATION_JSON.getSubtype())))
 		) {
-			JsonElement bodyJson = JsonParser.parseString(e.getResponseBodyAsString());
-			errorEndpointResponse.add("body_json", bodyJson);
+			// The body is only material for the follow-up checks, which treat a missing
+			// body_json as "no JSON body"; a body that is not a JSON object or array must
+			// not end the test. JsonParser is lenient and turns bare text into a primitive,
+			// so the root type is checked as well.
+			String parseProblem = null;
+			try {
+				JsonElement bodyJson = JsonParser.parseString(responseBody);
+				if (bodyJson.isJsonObject() || bodyJson.isJsonArray()) {
+					errorEndpointResponse.add("body_json", bodyJson);
+				} else {
+					parseProblem = "not a JSON object or array";
+				}
+			} catch (JsonParseException parseException) {
+				parseProblem = parseException.getMessage();
+			}
+			if (parseProblem != null) {
+				log("The error response declares a JSON content type but its body is not valid JSON",
+					args("content_type", responseContentType.toString(), "body", responseBody, "error", parseProblem));
+			}
 		}
 
 		env.putObject("resource_endpoint_response_full", errorEndpointResponse);
