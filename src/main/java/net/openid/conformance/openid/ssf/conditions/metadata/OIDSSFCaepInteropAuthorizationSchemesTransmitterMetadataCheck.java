@@ -21,23 +21,33 @@ public class OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck exten
 			throw error("Missing required field authorization_schemes! This is required by the CAEP Interop spec.");
 		}
 
-		JsonArray authorizationSchemes = transmitterMetadata.getAsJsonArray("authorization_schemes");
+		JsonElement authorizationSchemesEl = transmitterMetadata.get("authorization_schemes");
+		if (!authorizationSchemesEl.isJsonArray()) {
+			throw error("authorization_schemes must be a JSON array of objects", args("authorization_schemes", authorizationSchemesEl));
+		}
+		JsonArray authorizationSchemes = authorizationSchemesEl.getAsJsonArray();
 
+		// every element is checked, not only the ones before the first rfc6749 entry
 		boolean rfc6749Found = false;
 		for (var element : authorizationSchemes) {
+			if (!element.isJsonObject()) {
+				throw error("Each authorization_schemes element must be a JSON object", args("element", element));
+			}
 			JsonElement specUrnEl = element.getAsJsonObject().get("spec_urn");
 			if (specUrnEl == null) {
-				throw error("Missing required field spec_urn for authorization_schemes element!");
+				throw error("Missing required field spec_urn for authorization_schemes element", args("element", element));
+			}
+			if (!specUrnEl.isJsonPrimitive() || !specUrnEl.getAsJsonPrimitive().isString()) {
+				throw error("spec_urn of an authorization_schemes element must be a JSON string", args("element", element));
 			}
 			String specUrn = OIDFJSON.getString(specUrnEl);
 
 			if (!specUrn.startsWith("urn:")) {
-				throw error("Found invalid spec_urn for authorization_schemes element! spec_url value must start with 'urn:'", args("spec_urn", specUrn));
+				throw error("Found invalid spec_urn for authorization_schemes element, the value must start with 'urn:'", args("spec_urn", specUrn));
 			}
 
 			if (specUrn.equals("urn:ietf:rfc:6749")) {
 				rfc6749Found = true;
-				break;
 			}
 		}
 

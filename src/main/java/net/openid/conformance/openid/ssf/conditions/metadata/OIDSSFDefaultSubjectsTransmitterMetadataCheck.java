@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.metadata;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -21,10 +22,15 @@ public class OIDSSFDefaultSubjectsTransmitterMetadataCheck extends AbstractCondi
 			return env;
 		}
 
-		String defaultSubjects = OIDFJSON.getString(transmitterMetadata.get("default_subjects"));
+		JsonElement defaultSubjectsEl = transmitterMetadata.get("default_subjects");
 		Set<String> allowedValues = Set.of("ALL", "NONE");
+		if (!defaultSubjectsEl.isJsonPrimitive() || !defaultSubjectsEl.getAsJsonPrimitive().isString()) {
+			throw error("default_subjects must be a JSON string, one of " + allowedValues,
+				args("default_subjects", defaultSubjectsEl));
+		}
+		String defaultSubjects = OIDFJSON.getString(defaultSubjectsEl);
 		if (!allowedValues.contains(defaultSubjects)) {
-			throw error("Found invalid values for default_subjects, only " + allowedValues + " are allowed!",
+			throw error("Found invalid value for default_subjects, only " + allowedValues + " are allowed",
 				args("default_subjects", defaultSubjects));
 		}
 

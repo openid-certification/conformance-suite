@@ -88,7 +88,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFOptionalFieldsTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1");
-		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1");
+		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1", "CAEPIOP-2.3.7");
