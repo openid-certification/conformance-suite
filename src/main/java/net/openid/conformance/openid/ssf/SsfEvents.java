@@ -41,7 +41,7 @@ public class SsfEvents {
 	public static final List<String> CAEP_DEVICE_COMPLIANCE_STATUSES = List.of("compliant", "not-compliant");
 
 	public static final Set<String> SSF_EVENT_TYPES = Set.of(
-		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-8.1.4.2
+		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-8.1.4.1
 		SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE,
 		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#name-stream-updated-event
 		SsfEvents.SSF_STREAM_UPDATED_EVENT_TYPE

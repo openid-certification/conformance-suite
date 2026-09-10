@@ -211,7 +211,7 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		return switch (tamperMode) {
 			case INVALID_SIGNATURE -> new String[] {"CAEPIOP-2.6", "CAEPIOP-2.4.2"};
 			case WRONG_ISSUER -> new String[] {"OIDSSF-4.1.6"};
-			case WRONG_AUDIENCE -> new String[] {"OIDSSF-4.1.8"};
+			case WRONG_AUDIENCE -> new String[] {"RFC7519-4.1.3", "RFC8935-2"};
 			case UNKNOWN_KID -> new String[] {"CAEPIOP-2.4.2", "CAEPIOP-2.6"};
 		};
 	}

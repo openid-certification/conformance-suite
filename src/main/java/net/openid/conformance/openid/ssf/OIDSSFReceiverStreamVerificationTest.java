@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,7 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, verificationRequirements());
 			afterStreamVerification(streamId, event);
 		}
 	}
@@ -61,13 +62,23 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.5.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, verificationRequirements());
 			afterStreamVerification(streamId, event);
 		}
 	}
 
 	protected void afterStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
 		verificationStreamId = streamId;
+	}
+
+	/**
+	 * The stream verification requirement of SSF 1.0 8.1.4.1, plus the CAEP Interop Profile's
+	 * mandatory stream-control operation (2.4.5.2) when that profile is under test.
+	 */
+	protected String[] verificationRequirements() {
+		return isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
+			? new String[] {"OIDSSF-8.1.4.1", "CAEPIOP-2.4.5.2"}
+			: new String[] {"OIDSSF-8.1.4.1"};
 	}
 
 	@Override
