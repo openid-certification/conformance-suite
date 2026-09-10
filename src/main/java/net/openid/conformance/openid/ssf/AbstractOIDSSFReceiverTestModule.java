@@ -16,11 +16,15 @@ import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessToken;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStopOnFirstFailureSequence;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFValidateRequestedScope;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushDeliveryResponseBodyIsEmpty;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogObservedPollRequestVariations;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFGenerateStreamSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureTokenScopeSufficient;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
@@ -42,6 +46,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSu
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnEmptyEventsRequestedInStreamRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
@@ -87,6 +92,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
@@ -614,6 +620,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		// CAEPIOP §2.7.2 "The SSF Transmitter as a Resource Server": validate the bearer token.
 		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.2");
 		JsonObject authResult = env.getElementFromObject("ssf", "auth_result").getAsJsonObject();
+		if (authResult.has("access_token_in_query")) {
+			gradeAccessTokenInUriQuery();
+		}
 		if (authResult.has("error")) {
 			if (authResult.has("token_expired")) {
 				onExpiredAccessTokenRejected(path);
@@ -723,6 +732,61 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 */
 	protected boolean isJwksEndpointFetched() {
 		return jwksEndpointFetched;
+	}
+
+	/** Set once the first acknowledgement of a SET has been graded, see {@link #gradeFirstAcknowledgement()}. */
+	private final AtomicBoolean firstAcknowledgementGraded = new AtomicBoolean();
+
+	/** Set once a request carrying the access token in the URI query has been graded, see {@link #gradeAccessTokenInUriQuery()}. */
+	private final AtomicBoolean accessTokenInUriQueryGraded = new AtomicBoolean();
+
+	/** Subject operations already graded under the CAEP Interop Profile, see {@link #handleSubjectsEndpointRequest}. */
+	private final Set<StreamSubjectOperation> subjectOperationsGradedUnderCaepInterop = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Grades, at the first acknowledgement of any SET in the run, whether the receiver had
+	 * fetched the transmitter's signing keys from the advertised jwks_uri by then: a receiver
+	 * that acknowledges before fetching them cannot have validated the SET's signature. The
+	 * CAEP Interop Profile 2.4.2 makes the fetch a MUST (FAILURE); SSF 1.0 7.1 only says the
+	 * jwks_uri carries the keys the receiver uses to validate signatures, and the receiver could
+	 * hold them out of band, so under the default profile this is a WARNING. Later
+	 * acknowledgements are not graded again.
+	 */
+	protected void gradeFirstAcknowledgement() {
+		if (!firstAcknowledgementGraded.compareAndSet(false, true)) {
+			return;
+		}
+		boolean caepInterop = isSsfProfileEnabled(SsfProfile.CAEP_INTEROP);
+		String[] requirements = caepInterop
+			? new String[] {"CAEPIOP-2.4.2", "OIDSSF-7.1"}
+			: new String[] {"OIDSSF-7.1"};
+		if (isJwksEndpointFetched()) {
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition(
+					"The receiver fetched the transmitter's signing keys from the advertised jwks_uri before acknowledging its first SET"),
+				Condition.ConditionResult.INFO, requirements);
+		} else {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver acknowledged a SET before it fetched the transmitter's signing keys from the advertised jwks_uri, so it cannot have validated the signature"),
+				caepInterop ? Condition.ConditionResult.FAILURE : Condition.ConditionResult.WARNING, requirements);
+		}
+	}
+
+	/**
+	 * Grades, once per run, a request that carried the access token as a URI query parameter.
+	 * RFC 6750 2.3 says that method SHOULD NOT be used (WARNING); the CAEP Interop Profile
+	 * 2.7.2 forbids transmitters to accept it, so a receiver relying on it cannot interoperate
+	 * with a conforming transmitter (FAILURE).
+	 */
+	protected void gradeAccessTokenInUriQuery() {
+		if (!accessTokenInUriQueryGraded.compareAndSet(false, true)) {
+			return;
+		}
+		boolean caepInterop = isSsfProfileEnabled(SsfProfile.CAEP_INTEROP);
+		callAndContinueOnFailure(OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery.class,
+			caepInterop ? Condition.ConditionResult.FAILURE : Condition.ConditionResult.WARNING,
+			caepInterop
+				? new String[] {"CAEPIOP-2.4.3", "CAEPIOP-2.7.2", "RFC6750-2.3"}
+				: new String[] {"CAEPIOP-2.7.2", "RFC6750-2.3"});
 	}
 
 	protected ResponseEntity<?> handleAuthorizationServerMetadataEndpoint() {
@@ -889,6 +953,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "POST": {
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
+				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
@@ -925,6 +990,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				}
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
+				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = updateResult.get("error");
@@ -938,6 +1004,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				}
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamReplaceRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = replaceResult.get("error");
@@ -1034,6 +1101,16 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			// CAEP Interop Profile 2.4.4: all subjects are implicitly in the stream, so the
+			// emulated transmitter neither advertises nor serves the subject endpoints. Calling
+			// them is not forbidden, but shows the receiver does not rely on the implicit
+			// inclusion - graded once per operation kind.
+			if (subjectOperationsGradedUnderCaepInterop.add(operation)) {
+				String endpointName = operation == StreamSubjectOperation.add ? "add-subject" : "remove-subject";
+				callAndContinueOnFailure(new OIDSSFFindingCondition(
+						"The receiver invoked the " + endpointName + " endpoint under the CAEP Interop Profile, which assumes all subjects are implicitly included in the stream; the transmitter does not advertise this endpoint and answers 405"),
+					Condition.ConditionResult.WARNING, "CAEPIOP-2.4.4");
+			}
 			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
 		}
 
@@ -1160,13 +1237,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				OIDSSFSecurityEvent event = eventsBatch.events().get(0);
 
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event,
-					AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess,
+					(sid, acknowledgedEvent) -> {
+						gradeFirstAcknowledgement();
+						afterPushDeliverySuccess(sid, acknowledgedEvent);
+					},
 					AbstractOIDSSFReceiverTestModule.this::onPushDeliveryNotAcknowledged), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
 				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
 				// SHALL → FAILURE severity per the conformance-suite convention, unless the
 				// module knows the receiver may legitimately reject this particular SET.
 				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), getPushDeliveryRejectionSeverity(event), "RFC8935-2.2");
+				// RFC 8935 2.2: "The body of the response MUST be empty." Only an acknowledgement
+				// is held to that; an error response (RFC 8935 2.3) carries a JSON body by design.
+				// (a plain range check: a delivery without any HTTP response leaves status 0)
+				Integer pushResponseStatus = env.getInteger("endpoint_response", "status");
+				if (pushResponseStatus != null && pushResponseStatus >= 200 && pushResponseStatus < 300) {
+					callAndContinueOnFailure(OIDSSFEnsurePushDeliveryResponseBodyIsEmpty.class, Condition.ConditionResult.FAILURE, "RFC8935-2.2");
+				}
 				// Pace the deliveries with the test lock released: this task holds the lock in
 				// RUNNING state, and a raw sleep here would stall every request the receiver
 				// makes in the meantime.
@@ -1379,7 +1466,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
-		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged, this::onStreamEventErrorReported), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
+		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore,
+			(streamId, jti, acknowledgedEvent) -> {
+				gradeFirstAcknowledgement();
+				onStreamEventAcknowledged(streamId, jti, acknowledgedEvent);
+			},
+			this::onStreamEventErrorReported), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
 
 		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
 
@@ -1391,6 +1483,20 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	/**
+	 * Logs which RFC 8936 2.4 poll request variations the receiver used, when it polled at all.
+	 * Subclasses that override this method must call {@code super.fireTestFinished()} last, as
+	 * the base implementation hands the test over to finalisation.
+	 */
+	@Override
+	public void fireTestFinished() {
+		JsonElement pollRequestVariations = env.getElementFromObject("ssf", OIDSSFHandlePollRequest.POLL_REQUEST_VARIATIONS_KEY);
+		if (pollRequestVariations != null && pollRequestVariations.isJsonObject() && !pollRequestVariations.getAsJsonObject().isEmpty()) {
+			callAndContinueOnFailure(OIDSSFLogObservedPollRequestVariations.class, Condition.ConditionResult.INFO, "RFC8936-2.4");
+		}
+		super.fireTestFinished();
 	}
 
 	@Override
