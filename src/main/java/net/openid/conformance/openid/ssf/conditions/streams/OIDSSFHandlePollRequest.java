@@ -18,6 +18,29 @@ import java.util.Map;
 
 public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest {
 
+	/**
+	 * Key under {@code ssf} of the object counting, per variation name, the poll requests the
+	 * receiver made (RFC 8936 2.4): {@link #VARIATION_POLL_ONLY}, {@link #VARIATION_ACKNOWLEDGE_ONLY},
+	 * {@link #VARIATION_POLL_WITH_ACKNOWLEDGEMENT}, and independently {@link #VARIATION_LONG_POLL}
+	 * or {@link #VARIATION_SHORT_POLL} for the {@code returnImmediately} choice.
+	 */
+	public static final String POLL_REQUEST_VARIATIONS_KEY = "poll_request_variations";
+
+	/** No acknowledgement, events requested (RFC 8936 2.4.1). */
+	public static final String VARIATION_POLL_ONLY = "poll-only";
+
+	/** Acknowledgement with {@code maxEvents} 0 (RFC 8936 2.4.2). */
+	public static final String VARIATION_ACKNOWLEDGE_ONLY = "acknowledge-only";
+
+	/** Acknowledgement and events requested in one request (RFC 8936 2.4.3). */
+	public static final String VARIATION_POLL_WITH_ACKNOWLEDGEMENT = "poll-with-acknowledgement";
+
+	/** {@code returnImmediately} false or absent (RFC 8936 2.2). */
+	public static final String VARIATION_LONG_POLL = "long poll";
+
+	/** {@code returnImmediately} true. */
+	public static final String VARIATION_SHORT_POLL = "short poll";
+
 	protected final OIDSSFEventStore eventStore;
 
 	protected OIDSSFEventAckConsumer onStreamEventAcknowledged;
@@ -92,6 +115,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			return env;
 		}
 
+		recordPollRequestVariation(env, ackArrayEl, setErrsEl, maxCount, returnImmediately);
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
@@ -162,6 +186,41 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		resultObj.add("result", pollResultObj);
 		resultObj.addProperty("status_code", 200);
 		return env;
+	}
+
+	/**
+	 * Counts the request under its RFC 8936 2.4 variation in {@code ssf.poll_request_variations}.
+	 * A request acknowledges when {@code ack} or {@code setErrs} names at least one SET; an
+	 * empty {@code ack} array acknowledges nothing and counts as poll-only, as does a request
+	 * that neither acknowledges nor asks for events.
+	 */
+	protected void recordPollRequestVariation(Environment env, JsonArray ackArrayEl, JsonElement setErrsEl, int maxCount, boolean returnImmediately) {
+		boolean acknowledges = (ackArrayEl != null && !ackArrayEl.isEmpty())
+			|| (setErrsEl != null && setErrsEl.isJsonObject() && !setErrsEl.getAsJsonObject().isEmpty());
+		String variation;
+		if (!acknowledges) {
+			variation = VARIATION_POLL_ONLY;
+		} else if (maxCount == 0) {
+			variation = VARIATION_ACKNOWLEDGE_ONLY;
+		} else {
+			variation = VARIATION_POLL_WITH_ACKNOWLEDGEMENT;
+		}
+		String pollKind = returnImmediately ? VARIATION_SHORT_POLL : VARIATION_LONG_POLL;
+
+		JsonElement variationsEl = env.getElementFromObject("ssf", POLL_REQUEST_VARIATIONS_KEY);
+		JsonObject variations;
+		if (variationsEl != null && variationsEl.isJsonObject()) {
+			variations = variationsEl.getAsJsonObject();
+		} else {
+			variations = new JsonObject();
+			env.putObject("ssf", POLL_REQUEST_VARIATIONS_KEY, variations);
+		}
+		for (String name : List.of(variation, pollKind)) {
+			int count = variations.has(name) ? OIDFJSON.getInt(variations.get(name)) : 0;
+			variations.addProperty(name, count + 1);
+		}
+		log("Poll request uses the " + variation + " variation as a " + pollKind,
+			args("variation", variation, "poll_kind", pollKind, "poll_request_variations", variations.deepCopy()));
 	}
 
 	/**
