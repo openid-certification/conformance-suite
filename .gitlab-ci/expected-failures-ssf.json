@@ -1,12 +1,14 @@
 [
     {
         "test-name": "openid-ssf-receiver-*",
-        "variant": "*",
+        "variant": {
+            "ssf_profile": "caep_interop"
+        },
         "configuration-filename": "*ssf-receiver-test-config*.json",
         "current-block": "",
         "condition": "OIDSSFWarnCaepInteropComplexSubjectsConfigured",
         "expected-result": "warning",
-        "comment": "The CI receiver configurations deliberately declare a Complex Subject so events are generated for it; Complex Subjects are not yet listed in CAEP Interop Profile 2.5, see https://github.com/openid/sharedsignals/issues/351"
+        "comment": "Under the CAEP Interop profile only: the CI receiver configurations deliberately declare a Complex Subject so events are generated for it; Complex Subjects are not yet listed in CAEP Interop Profile 2.5, see https://github.com/openid/sharedsignals/issues/351"
     },
     {
         "test-name": "openid-ssf-transmitter-stream-caep-interop",
