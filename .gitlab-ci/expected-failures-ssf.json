@@ -16,5 +16,14 @@
         "condition": "OIDSSFWarnCaepInteropEventUsesComplexSubject",
         "expected-result": "warning",
         "comment": "The emulated transmitter of the paired receiver test sends events for the Complex Subject declared in the CI receiver configuration; Complex Subjects are not yet listed in CAEP Interop Profile 2.5, see https://github.com/openid/sharedsignals/issues/351. The block name varies with the event type that carries the Complex Subject, hence the wildcard"
+    },
+    {
+        "test-name": "openid-ssf-receiver-happypath",
+        "variant": "*",
+        "configuration-filename": "*ssf-receiver-test-config-dynamic.json",
+        "current-block": "",
+        "condition": "OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery",
+        "expected-result": "failure",
+        "comment": "The dynamic-auth pairings run the transmitter negative openid-ssf-stream-control-error-token-in-uri-query, which deliberately sends the access token as a URI query parameter to check that the transmitter rejects it (CAEP Interop Profile 2.7.2); the emulated transmitter grades that receiver behaviour as a failure"
     }
 ]
