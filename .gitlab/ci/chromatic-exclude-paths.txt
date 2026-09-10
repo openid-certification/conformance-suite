@@ -1,0 +1,14 @@
+# Frontend files that carry data rather than UI. Editing them changes what a
+# page says, not how it looks, so a Chromatic snapshot diff has nothing to
+# review — see .gitlab/ci/chromatic-should-run.sh, which subtracts these from
+# the changed set and skips the job when nothing else remains.
+#
+# One repo-root-relative path per line, matched exactly (these are not globs).
+# Blank lines and #-comments are ignored.
+#
+# guided-wizard-tree.js is the guided test-plan wizard's decision tree,
+# converted from guided-wizard.yaml: questions, choices, plan names and variant
+# maps. Every bit of markup and styling lives in guided-wizard.js, which is
+# deliberately NOT listed here — editing the tree adds or reorders wizard
+# questions without changing the navigation structure or the rendered layout.
+src/main/resources/static/components/guided-wizard-tree.js

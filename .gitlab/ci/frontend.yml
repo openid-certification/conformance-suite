@@ -189,6 +189,14 @@ chromatic:
     - apk add --no-cache git   # the Chromatic CLI shells out to git for baseline detection
     - corepack enable npm      # activate packageManager pin (see frontend_lint)
   script:
+    # Data-only edits (.gitlab/ci/chromatic-exclude-paths.txt) give a snapshot diff
+    # nothing to show, so bail out before publishing a build: no snapshot quota
+    # spent and no pending "UI Tests" status left on the MR.
+    - |
+      if ! sh .gitlab/ci/chromatic-should-run.sh; then
+        echo "Skipping Chromatic."
+        exit 0
+      fi
     - cd frontend
     # --prefer-offline uses the npm cache and falls back to the network only on a miss;
     # --no-audit/--no-fund skip network/log noise. Safe with the committed lockfile.
