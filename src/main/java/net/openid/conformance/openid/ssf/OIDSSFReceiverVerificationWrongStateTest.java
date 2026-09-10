@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 		This test verifies that the receiver confirms the 'state' of a verification event.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and request its verification. The verification event answering the first verification request carries a 'state' the receiver did not send (a different value when the request carried a state, a made-up value when it carried none); later verification requests are answered normally, so the receiver can complete the verification afterwards.
 		SSF 1.0 8.1.4.1: "the Event Receiver SHALL confirm that the value for state is as expected. If the value of state does not match, an error response with the err field set to invalid_state SHOULD be returned".
+		A receiver that accepts an event echoing a different value than the state it sent fails the test. When the receiver's request carried no state, accepting an event that carries one is reported as a warning only: the receiver has no expected value to confirm, and whether an unrequested state counts as "not as expected" is not settled in SSF 1.0.
 		With PUSH delivery the error response is validated as well: it must be a 400 with an 'application/json' body carrying 'err' and 'description' (RFC 8935 2.3); an 'err' other than 'invalid_state' raises a warning.
 		Note: with POLL delivery a verification event that was retrieved but neither acknowledged nor reported via 'setErrs' is noted after 60 seconds; one the receiver never retrieved raises a warning, since its handling could not be assessed. The test still waits for the stream deletion before it finishes.
 		The testsuite expects to observe the following interactions:
@@ -52,6 +53,13 @@ public class OIDSSFReceiverVerificationWrongStateTest extends AbstractOIDSSFRece
 
 	/** The verification SET carrying the wrong state, once generated. */
 	volatile OIDSSFSecurityEvent wrongStateEvent;
+
+	/**
+	 * Whether the receiver's verification request carried no state, so the wrong-state event
+	 * carries a state the receiver never asked for rather than a different value than it sent.
+	 * Acceptance is then a warning, not a failure, see {@link #gradeWrongStateEventAccepted}.
+	 */
+	volatile boolean receiverSentNoState;
 
 	/** Set once the receiver's handling of the wrong-state event was graded (or found unassessable). */
 	volatile boolean wrongStateGraded;
@@ -100,8 +108,9 @@ public class OIDSSFReceiverVerificationWrongStateTest extends AbstractOIDSSFRece
 			return super.createVerificationSetGenerator(streamId);
 		}
 		wrongStateAnswered = true;
-		return new OIDSSFGenerateWrongStateStreamVerificationSET(eventStore, event -> {
+		return new OIDSSFGenerateWrongStateStreamVerificationSET(eventStore, (event, receiverSentState) -> {
 			wrongStateEvent = event;
+			receiverSentNoState = !receiverSentState;
 			if (!OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
 				// POLL delivery: silently dropping the event (neither ack nor setErrs) keeps
 				// the outcome unobservable - resolve it after a while.
@@ -131,13 +140,7 @@ public class OIDSSFReceiverVerificationWrongStateTest extends AbstractOIDSSFRece
 	@Override
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
 		if (isWrongStateEvent(event.jti())) {
-			if (!wrongStateGraded) {
-				callAndContinueOnFailure(new OIDSSFFindingCondition(
-						"Receiver accepted a verification event whose state does not match the state it sent (jti=" + event.jti() + "). "
-							+ "Receivers must confirm that the state of a verification event is the one they sent and reject a mismatch with an error response."),
-					Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1", "RFC8935-2.3");
-				wrongStateGraded = true;
-			}
+			gradeWrongStateEventAccepted(event.jti(), "accepted", "reject a mismatch with an error response", "RFC8935-2.3");
 			return;
 		}
 		if (SsfEvents.isVerificationEvent(event.type())) {
@@ -168,18 +171,38 @@ public class OIDSSFReceiverVerificationWrongStateTest extends AbstractOIDSSFRece
 	@Override
 	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
 		if (isWrongStateEvent(jti)) {
-			if (!wrongStateGraded) {
-				callAndContinueOnFailure(new OIDSSFFindingCondition(
-						"Receiver acknowledged a verification event whose state does not match the state it sent (jti=" + jti + "). "
-							+ "Receivers must confirm that the state of a verification event is the one they sent and must not acknowledge a mismatch."),
-					Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-				wrongStateGraded = true;
-			}
+			gradeWrongStateEventAccepted(jti, "acknowledged", "not acknowledge a mismatch", "RFC8936-2.4");
 			return;
 		}
 		if (SsfEvents.isVerificationEvent(event.type())) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		}
+	}
+
+	/**
+	 * Grades the receiver's acceptance (a 202 on push, an {@code ack} on poll) of the
+	 * wrong-state event. A different value than the state the receiver sent is a plain
+	 * mismatch and a FAILURE. A state the receiver never asked for is graded WARNING: the
+	 * receiver has no expected value to confirm, and SSF 1.0 8.1.4.1 does not say whether an
+	 * unrequested state is "not as expected".
+	 */
+	protected void gradeWrongStateEventAccepted(String jti, String howAccepted, String expectedReaction, String deliveryRequirement) {
+		if (wrongStateGraded) {
+			return;
+		}
+		if (receiverSentNoState) {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"Receiver " + howAccepted + " a verification event carrying a state although its verification request carried none (jti=" + jti + "). "
+						+ "Graded as a warning: the receiver had no expected state to confirm, and whether a state it never requested counts as a mismatch is not settled; "
+						+ "a receiver that confirms the state is as expected would " + expectedReaction + "."),
+				Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1", deliveryRequirement);
+		} else {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"Receiver " + howAccepted + " a verification event whose state does not match the state it sent (jti=" + jti + "). "
+						+ "Receivers must confirm that the state of a verification event is the one they sent and " + expectedReaction + "."),
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1", deliveryRequirement);
+		}
+		wrongStateGraded = true;
 	}
 
 	@Override
