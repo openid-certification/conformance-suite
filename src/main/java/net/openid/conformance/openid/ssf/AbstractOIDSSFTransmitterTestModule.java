@@ -34,6 +34,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushReque
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestContentTypeIsSecEventJwt;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestMethodIsPost;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidatePollResponse;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseExceedsMaxEvents;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
@@ -361,7 +362,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8936-2.5");
 		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(OIDSSFValidatePollResponse.class, Condition.ConditionResult.FAILURE, "RFC8936-2.2", "RFC8936-2.3");
+		callAndContinueOnFailure(OIDSSFValidatePollResponse.class, Condition.ConditionResult.FAILURE, "RFC8936-2.3", "RFC8936-2.5");
+		callAndContinueOnFailure(OIDSSFWarnPollResponseExceedsMaxEvents.class, Condition.ConditionResult.WARNING, "RFC8936-2.2");
 		callAndContinueOnFailure(OIDSSFWarnPollResponseUnknownMembers.class, Condition.ConditionResult.WARNING, "RFC8936-2.3");
 	}
 
