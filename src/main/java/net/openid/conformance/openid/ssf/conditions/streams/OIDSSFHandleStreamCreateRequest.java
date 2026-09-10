@@ -30,9 +30,14 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (!streamsObj.isEmpty()) {
+			// SSF 1.0 8.1.1.1: a transmitter that allows one stream per receiver "MUST respond with
+			// HTTP status code 409 Conflict. The Receiver MAY then GET the existing stream
+			// configuration". The emulated transmitter is such a transmitter, so a second create is
+			// answered 409 and not graded; the receiver is expected to carry on with the existing stream.
 			resultObj.add("error", createErrorObj("conflict", "Only one stream allowed for receiver"));
 			resultObj.addProperty("status_code", 409);
-			throw error("Failed to handle stream creation request: Too many streams configured for receiver", args("error", resultObj.get("error")));
+			log("Handled stream creation request: the receiver already has a stream, answered 409", args("existing_stream_ids", streamsObj.keySet()));
+			return env;
 		}
 
 		Set<String> ignoredTransmitterSuppliedKeys = findTransmitterSuppliedKeysInStreamConfigInput(streamConfigInput);
