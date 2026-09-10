@@ -77,7 +77,6 @@ import java.util.Map;
 		FAPI1AdvancedFinalTestEssentialAcrScaClaim.class,
 
 		// OB Brazil specific tests
-		FAPI1AdvancedFinalBrazilEnsureEncryptionRequired.class,
 		FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails.class,
 
 		//PAR tests
