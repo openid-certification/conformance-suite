@@ -101,6 +101,7 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 
 				// if delivery is configured and set to POLL we generate a poll delivery
 				String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
+				ensureDeliveryMethodSupported(env, deliveryMethod);
 				if (deliveryMethod.equals(DELIVERY_METHOD_POLL_RFC_8936_URI)) {
 					String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
 					String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
