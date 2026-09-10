@@ -62,7 +62,7 @@ import java.util.Set;
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
+		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-7.2.1
 	}
 )
 public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterTestModule {
@@ -120,7 +120,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 			SsfProfile ssfProfile = getVariant(SsfProfile.class);
 			if (SsfProfile.CAEP_INTEROP.equals(ssfProfile)) {
-				callAndContinueOnFailure(OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents.class, Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+				callAndContinueOnFailure(OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents.class, Condition.ConditionResult.FAILURE, "CAEPIOP-3", "OIDSSF-8.1.1");
 			}
 
 			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
