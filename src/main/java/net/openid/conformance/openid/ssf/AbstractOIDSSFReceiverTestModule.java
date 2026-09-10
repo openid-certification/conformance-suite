@@ -508,7 +508,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		if (isFinished()) {
 			// ignore requests after the test finished.
 			// The transmitter tests might send additional cleanup requests which we don't need to handle here.
-			//
+			// A stream list read is answered like a transmitter without streams would (SSF 1.0
+			// 8.1.1.2: an empty list), since the receiver's stream is gone by the time the test
+			// finished; the test log is not touched.
+			if ("streams".equals(path) && "GET".equals(req.getMethod()) && !requestParts.getAsJsonObject("query_string_params").has("stream_id")) {
+				return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new JsonArray());
+			}
 			return ResponseEntity.noContent().build();
 		}
 
