@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantParameters;
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
+		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-7.2.1
 	}
 )
 @VariantParameters({
