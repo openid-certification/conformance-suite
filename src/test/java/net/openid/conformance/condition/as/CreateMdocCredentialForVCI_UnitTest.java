@@ -9,6 +9,7 @@ import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.MdocUtil;
 import net.openid.conformance.util.TestKeysAndCerts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,8 @@ import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
 import org.multipaz.crypto.X509CertChain;
 import org.multipaz.crypto.X509CertJvmKt;
+import org.multipaz.mdoc.mso.MobileSecurityObject;
+import org.multipaz.revocation.RevocationStatus;
 
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -111,6 +114,32 @@ public class CreateMdocCredentialForVCI_UnitTest {
 		verifyCond.execute(verifyEnv);
 	}
 
+	@Test
+	public void testEvaluate_noStatusListReferenceByDefault() {
+		putCredentialRequest();
+
+		cond.execute(env);
+
+		assertThat(parseMso().getRevocationStatus()).isNull();
+	}
+
+	@Test
+	public void testEvaluate_embedsStatusListReferenceWhenConfigured() {
+		cond = new CreateMdocCredentialForVCI("https://issuer.example.com/statuslists/1");
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		putCredentialRequest();
+
+		cond.execute(env);
+
+		RevocationStatus revocationStatus = parseMso().getRevocationStatus();
+		assertThat(revocationStatus).isInstanceOf(RevocationStatus.StatusList.class);
+		RevocationStatus.StatusList statusList = (RevocationStatus.StatusList) revocationStatus;
+		assertThat(statusList.getUri()).isEqualTo("https://issuer.example.com/statuslists/1");
+		// the served list marks even indices valid, so only even indices may be issued
+		assertThat(statusList.getIdx() % 2).isEqualTo(0);
+		assertThat(statusList.getIdx()).isBetween(0, 254);
+	}
+
 	private void putCredentialRequest() {
 		env.putString("proof_type", "jwt");
 		env.putObjectFromJsonString("proof_jwt", "header.jwk", DEVICE_PUBLIC_KEY_JWK);
@@ -125,5 +154,15 @@ public class CreateMdocCredentialForVCI_UnitTest {
 
 	private static X509Certificate toJava(org.multipaz.crypto.X509Cert cert) {
 		return X509CertJvmKt.getJavaX509Certificate(cert);
+	}
+
+	private MobileSecurityObject parseMso() {
+		JsonArray credentials = env.getObject("credential_issuance").getAsJsonArray("credentials");
+		String credential = OIDFJSON.getString(credentials.get(0).getAsJsonObject().get("credential"));
+		try {
+			return MdocUtil.parseMso(new Base64URL(credential).decode());
+		} catch (MdocUtil.MdocParseException e) {
+			throw new AssertionError(e);
+		}
 	}
 }
