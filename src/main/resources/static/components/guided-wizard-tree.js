@@ -130,7 +130,8 @@ export const GUIDED_WIZARD_TREE = {
                   {
                     id: "fapi1_brazil_op",
                     label: "FAPI Security Profile",
-                    description: "Server-side FAPI tests for Open Finance Brazil",
+                    description:
+                      "Server-side FAPI tests for Open Finance Brazil, also requires the below DCR.",
                     result: {
                       plan_name: "fapi1-advanced-final-test-plan",
                       variants: {
@@ -144,8 +145,7 @@ export const GUIDED_WIZARD_TREE = {
                   {
                     id: "dcr_brazil_op",
                     label: "Dynamic Client Registration",
-                    description:
-                      "DCR tests — also required for Open Finance Brazil OP certification",
+                    description: "DCR tests - required for Open Finance Brazil",
                     result: {
                       plan_name: "fapi1-advanced-final-brazil-dcr-test-plan",
                       variants: {
