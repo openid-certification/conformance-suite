@@ -86,6 +86,23 @@ public class OIDSSFHandleStreamCreateRequest_UnitTest {
 	}
 
 	@Test
+	void answersASecondCreateWith409WithoutGradingIt() {
+		// SSF 1.0 8.1.1.1: a one-stream transmitter "MUST respond with HTTP status code 409
+		// Conflict. The Receiver MAY then GET the existing stream configuration" - the
+		// transmitter's regular answer, not a receiver defect
+		streamInput("""
+			{"events_requested": ["urn:example:event:a"]}
+			""");
+		assertDoesNotThrow(() -> condition.execute(env));
+		assertEquals(201, OIDFJSON.getInt(result().get("status_code")));
+
+		assertDoesNotThrow(() -> condition.execute(env));
+		assertEquals(409, OIDFJSON.getInt(result().get("status_code")));
+		assertEquals("conflict", OIDFJSON.getString(result().getAsJsonObject("error").get("err")));
+		assertFalse(result().has("stream_id"));
+	}
+
+	@Test
 	void anOmittedDeliveryMeansPollAndIsRejectedByAPushOnlyTransmitter() {
 		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of("urn:ietf:rfc:8935")));
 		streamInput("{}");

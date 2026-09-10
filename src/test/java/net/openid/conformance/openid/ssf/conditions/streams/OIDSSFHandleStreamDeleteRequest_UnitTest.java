@@ -9,6 +9,7 @@ import net.openid.conformance.openid.ssf.SsfConstants;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFInMemoryEventStore;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,6 +81,34 @@ public class OIDSSFHandleStreamDeleteRequest_UnitTest {
 
 	private void storeEvent(String jti) {
 		eventStore.storeEvent(STREAM_ID, new OIDSSFSecurityEvent(jti, "token-" + jti, "type"));
+	}
+
+	private JsonObject result() {
+		return env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+	}
+
+	@Test
+	void answersAnUnknownStreamIdWith404WithoutGradingIt() {
+		// SSF 1.0 8.1.1.5, Table 5: 404 is the transmitter's regular answer for an unknown
+		// stream_id, e.g. a receiver deleting the stream of an earlier run before creating one
+		prepareStream(SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI);
+		env.getElementFromObject("incoming_request", "query_string_params").getAsJsonObject().addProperty("stream_id", "stream_from_an_earlier_run");
+
+		assertDoesNotThrow(() -> createCondition().execute(env));
+
+		assertEquals(404, OIDFJSON.getInt(result().get("status_code")));
+		assertEquals("not_found", OIDFJSON.getString(result().getAsJsonObject("error").get("err")));
+		assertTrue(env.getElementFromObject("ssf", "streams").getAsJsonObject().has(STREAM_ID), "the existing stream is untouched");
+	}
+
+	@Test
+	void answersADeleteWithoutAnyStreamWith404WithoutGradingIt() {
+		prepareStream(SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI);
+		env.getElementFromObject("ssf", "streams").getAsJsonObject().remove(STREAM_ID);
+
+		assertDoesNotThrow(() -> createCondition().execute(env));
+
+		assertEquals(404, OIDFJSON.getInt(result().get("status_code")));
 	}
 
 	@Test

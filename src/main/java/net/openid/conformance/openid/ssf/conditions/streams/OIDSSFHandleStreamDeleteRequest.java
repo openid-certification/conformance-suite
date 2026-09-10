@@ -64,17 +64,15 @@ public class OIDSSFHandleStreamDeleteRequest extends AbstractOIDSSFHandleReceive
 		String streamId = OIDFJSON.tryGetString(streamIdEl);
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
-		if (streamsObj.isEmpty()) {
-			resultObj.add("error", createErrorObj("not_found", "No streams found"));
-			resultObj.addProperty("status_code", 404);
-			throw error("Failed to handle stream deletion request", args("stream_id", streamId, "error", resultObj.get("error")));
-		}
-
 		JsonObject streamObj = streamsObj.getAsJsonObject(streamId);
 		if (streamObj == null) {
+			// SSF 1.0 8.1.1.5, Table 5: 404 is the transmitter's regular answer for a stream_id it
+			// does not know. A receiver commonly deletes the stream of an earlier run before creating
+			// a new one, so this is not graded; the module's own expectations decide what is missing.
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			throw error("Failed to handle stream deletion request", args("stream_id", streamId, "error", resultObj.get("error")));
+			log("Handled stream deletion request: no stream with the given stream_id, answered 404", args("stream_id", streamId));
+			return env;
 		}
 
 		boolean pushDelivery = OIDSSFStreamUtils.isPushDelivery(streamObj);

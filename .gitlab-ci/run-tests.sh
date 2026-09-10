@@ -730,8 +730,9 @@ makeSsfTests() {
     TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-error-read-stream-status-with-invalid-token,openid-ssf-transmitter-stream-verification-error-invalid-token,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
     # Only transmitter modules the emulated transmitter answers without recording a receiver-side
-    # failure are paired: a request for an unknown stream, an unparsable body or a second stream
-    # is a receiver misbehaviour the emulator grades as FAILURE, so those negatives are not paired.
+    # failure are paired: an unparsable body is a receiver misbehaviour the emulator grades as
+    # FAILURE, so that negative is not paired. (A read or delete of an unknown stream and a second
+    # create are answered 404 / 409 without a grade, so those negatives could be paired.)
     # Run SSF receiver happy path with dynamic auth (client_credentials, client_secret_post) against the SSF
     # transmitter happy path: the receiver test acts as the emulated transmitter AND the OAuth AS, the
     # transmitter test discovers the AS via /.well-known/oauth-authorization-server, obtains a token, and uses it.
