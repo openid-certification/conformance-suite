@@ -47,17 +47,32 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 	protected OIDSSFEventErrorConsumer onStreamEventErrorReported;
 
+	/**
+	 * The outcome of the request this instance handled: {@code status_code} and either
+	 * {@code result} (the RFC 8936 2.5 response body) or {@code error}. Kept on the instance
+	 * rather than in the environment on purpose: a long poll releases the test lock while it
+	 * waits (see {@link #pollEventsReleasingLockWhileWaiting}), during which another poll
+	 * request runs to completion, and a shared environment key would then hand this request
+	 * the other one's answer. The dispatcher creates one instance per request and reads
+	 * {@link #getResult()} after the call.
+	 */
+	private JsonObject result;
+
 	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, OIDSSFEventAckConsumer onStreamEventAcknowledged, OIDSSFEventErrorConsumer onStreamEventErrorReported) {
 		this.eventStore = eventStore;
 		this.onStreamEventAcknowledged = onStreamEventAcknowledged;
 		this.onStreamEventErrorReported = onStreamEventErrorReported;
 	}
 
+	public JsonObject getResult() {
+		return result;
+	}
+
 	@Override
 	public Environment evaluate(Environment env) {
 
 		JsonObject resultObj = new JsonObject();
-		env.putObject("ssf", "poll_result", resultObj);
+		result = resultObj;
 
 		JsonObject queryParams = env.getElementFromObject("incoming_request", "query_string_params").getAsJsonObject();
 
@@ -228,7 +243,9 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 	 * for an event. This condition runs on a request thread that holds the test lock, so the
 	 * lock is released for the wait - as the framework does around outbound HTTP calls -
 	 * otherwise every other request the receiver makes meanwhile (an acknowledgement, a jwks
-	 * fetch, a delete) queues behind this one.
+	 * fetch, a delete) queues behind this one. While the lock is released, another request
+	 * may remap {@code incoming_request} and rewrite shared members under {@code ssf}, so
+	 * everything this request needs after the wait must be held in locals or on this instance.
 	 */
 	protected EventsBatch pollEventsReleasingLockWhileWaiting(String streamId, int maxCount, boolean waitForEvents, int maxWaitTimeSeconds) {
 		TestLockManager lockManager = waitForEvents ? getLockManager() : null;

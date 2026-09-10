@@ -1466,14 +1466,18 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
-		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore,
+		// One handler instance per request: a long poll releases the test lock while it waits,
+		// and a poll request arriving meanwhile must not be handed this request's answer or
+		// vice versa, so the result is read from the instance, not from a shared key.
+		OIDSSFHandlePollRequest pollRequestHandler = new OIDSSFHandlePollRequest(eventStore,
 			(streamId, jti, acknowledgedEvent) -> {
 				gradeFirstAcknowledgement();
 				onStreamEventAcknowledged(streamId, jti, acknowledgedEvent);
 			},
-			this::onStreamEventErrorReported), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
+			this::onStreamEventErrorReported);
+		callAndContinueOnFailure(pollRequestHandler, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
 
-		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		JsonObject pollResult = pollRequestHandler.getResult();
 
 		JsonElement result = pollResult.get("result");
 		int statusCode = OIDFJSON.getInt(pollResult.get("status_code"));
