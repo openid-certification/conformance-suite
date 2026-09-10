@@ -29,7 +29,9 @@ import java.util.concurrent.TimeUnit;
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it generates all supported events and expects a positive delivery of the events received.
 		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field,
 		except the SSF framework events (verification, stream-updated), which identify the stream itself
-		and are sent once with the stream's opaque subject (SSF 1.0 8.1.4.1, 8.1.5).
+		and are sent once with the stream's opaque subject (SSF 1.0 8.1.4.1, 8.1.5). The stream-updated event
+		object additionally carries a member that no specification defines; receivers must ignore members they
+		do not understand (SSF 1.0 4.2.3), so the event must be acknowledged like any other.
 		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change, device-compliance-change and risk-level-change) are available, and only email/iss_sub (and complex) subjects are used.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
@@ -176,9 +178,13 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 			String status = streamStatus == null
 				? OIDSSFStreamUtils.StreamStatusValue.enabled.name()
 				: OIDFJSON.getString(streamStatus.get("status"));
+			// The event object also carries a member no specification defines: receivers must
+			// ignore members they do not understand (SSF 1.0 4.2.3).
 			return new SsfEvent(eventType,
-				Map.of("status", status, "reason", "Stream status reported as a supported event"),
-				Set.of("OIDSSF-8.1.5"));
+				Map.of("status", status,
+					"reason", "Stream status reported as a supported event",
+					SsfEvents.UNKNOWN_EVENT_MEMBER_NAME, SsfEvents.UNKNOWN_EVENT_MEMBER_VALUE),
+				Set.of("OIDSSF-8.1.5", "OIDSSF-4.2.3"));
 		}
 		return new SsfEvent(eventType, Map.of(), Set.of("OIDSSF-8.1.4", "OIDSSF-8.1.4.2"));
 	}
