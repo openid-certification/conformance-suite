@@ -53,11 +53,7 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends 
 		JsonObject sent = sentEl.getAsJsonObject();
 		JsonObject actual = actualEl.getAsJsonObject();
 
-		Set<String> mismatches = new HashSet<>();
-
-		checkDescription(sent, actual, mismatches);
-		checkEventsRequested(sent, actual, mismatches);
-		checkDelivery(sent, actual, mismatches);
+		Set<String> mismatches = computeMismatches(sent, actual, operation);
 
 		if (!mismatches.isEmpty()) {
 			throw error("The stream configuration does not reflect the receiver-supplied properties of the " + operation.name().toLowerCase() + " request",
@@ -69,7 +65,20 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends 
 		return env;
 	}
 
-	private void checkDescription(JsonObject sent, JsonObject actual, Set<String> mismatches) {
+	/**
+	 * The receiver-supplied properties of {@code sent} that {@code actual} does not reflect;
+	 * empty when the stream configuration matches. Modules that received a 202 use this to
+	 * wait for the transmitter to finish processing before running the graded check.
+	 */
+	public static Set<String> computeMismatches(JsonObject sent, JsonObject actual, Operation operation) {
+		Set<String> mismatches = new HashSet<>();
+		checkDescription(sent, actual, mismatches, operation);
+		checkEventsRequested(sent, actual, mismatches, operation);
+		checkDelivery(sent, actual, mismatches, operation);
+		return mismatches;
+	}
+
+	private static void checkDescription(JsonObject sent, JsonObject actual, Set<String> mismatches, Operation operation) {
 		if (sent.has("description")) {
 			if (!sent.get("description").equals(actual.get("description"))) {
 				mismatches.add("description: sent " + sent.get("description") + " but the stream has " + actual.get("description"));
@@ -79,7 +88,7 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends 
 		}
 	}
 
-	private void checkEventsRequested(JsonObject sent, JsonObject actual, Set<String> mismatches) {
+	private static void checkEventsRequested(JsonObject sent, JsonObject actual, Set<String> mismatches, Operation operation) {
 		JsonElement sentEventsEl = sent.get("events_requested");
 		if (sentEventsEl != null && sentEventsEl.isJsonArray()) {
 			Set<String> sentEvents = new HashSet<>(OIDFJSON.convertJsonArrayToList(sentEventsEl.getAsJsonArray()));
@@ -105,7 +114,7 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends 
 		}
 	}
 
-	private void checkDelivery(JsonObject sent, JsonObject actual, Set<String> mismatches) {
+	private static void checkDelivery(JsonObject sent, JsonObject actual, Set<String> mismatches, Operation operation) {
 		JsonElement actualDeliveryEl = actual.get("delivery");
 		JsonObject actualDelivery = actualDeliveryEl != null && actualDeliveryEl.isJsonObject() ? actualDeliveryEl.getAsJsonObject() : new JsonObject();
 		String actualMethod = OIDFJSON.tryGetString(actualDelivery.get("method"));
@@ -123,7 +132,7 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends 
 				mismatches.add("delivery.endpoint_url: sent " + sentDelivery.get("endpoint_url") + " but the stream has " + actualDelivery.get("endpoint_url"));
 			}
 		} else if (operation == Operation.REPLACE && !DELIVERY_METHOD_POLL_RFC_8936_URI.equals(actualMethod)) {
-			mismatches.add("delivery: omitted from the PUT body, so the transmitter default poll applies (SSF 1.0 8.1.1.1), but the stream has " + actualMethod);
+			mismatches.add("delivery: omitted from the PUT body, so the transmitter default poll applies, but the stream has " + actualMethod);
 		}
 	}
 }
