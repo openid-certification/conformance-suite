@@ -357,31 +357,8 @@
                     ]
                 }
             ]
-        },
-        "fapi1-advanced-final-brazil-ensure-encryption-required": {
-            "browser": [
-                {
-                    "comment": "expect an immediate error page",
-                    "match": "https://auth.mockbank.poc.raidiam.io/auth*",
-                    "tasks": [
-                        {
-                            "task": "Expect response_type missing error page",
-                            "match": "https://auth.mockbank.poc.raidiam.io/auth*",
-                            "commands": [
-                                [
-                                    "wait",
-                                    "xpath",
-                                    "//*",
-                                    10,
-                                    ".*The specified key does not exist.*",
-                                    "update-image-placeholder"
-                                ]
-                            ]
-                        }
-                    ]
-                }
-            ]
         }
+
     },
     "options": {
         "cache_external_metadata": true,
