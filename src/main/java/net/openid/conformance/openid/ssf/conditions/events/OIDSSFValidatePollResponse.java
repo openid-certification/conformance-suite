@@ -15,18 +15,17 @@ import java.util.Map;
  * Validates the body of a poll response against RFC 8936 2.3 and 2.5: the response is
  * {@code application/json}; {@code sets} is a JSON object whose member names are {@code jti}
  * values and whose values are JSON strings (the SETs), empty when nothing is outstanding;
- * {@code moreAvailable}, when present, is a JSON boolean. RFC 8936 2.2 defines
- * {@code maxEvents} as "the maximum number of unacknowledged SETs to be returned", so the
- * response must not carry more SETs than the request asked for; with {@code maxEvents} 0
- * (an acknowledge-only request, 2.4.2) no SETs may be returned.
+ * {@code moreAvailable}, when present, is a JSON boolean. Whether the response respects the
+ * request's {@code maxEvents} is a SHOULD and checked separately by
+ * {@link OIDSSFWarnPollResponseExceedsMaxEvents}.
  * <p>
  * Reads the response from {@code ssf_polling_response} (map {@code resource_endpoint_response_full}
- * onto it first) and the request that was sent from {@code ssf.poll.request}.
+ * onto it first).
  */
 public class OIDSSFValidatePollResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"ssf_polling_response", "ssf"})
+	@PreEnvironment(required = "ssf_polling_response")
 	public Environment evaluate(Environment env) {
 
 		JsonObject pollResponse = env.getObject("ssf_polling_response");
@@ -64,14 +63,7 @@ public class OIDSSFValidatePollResponse extends AbstractCondition {
 				args("moreAvailable", moreAvailableEl));
 		}
 
-		Integer maxEvents = env.getInteger("ssf", "poll.request.maxEvents");
-		if (maxEvents != null && sets.size() > maxEvents) {
-			throw error("The poll response contains more SETs than the 'maxEvents' of the request allows",
-				args("maxEvents", maxEvents, "returned_sets", sets.size(), "jtis", sets.keySet()));
-		}
-
-		logSuccess("The poll response is well-formed", args("returned_sets", sets.size(), "maxEvents", maxEvents,
-			"moreAvailable", moreAvailableEl));
+		logSuccess("The poll response is well-formed", args("returned_sets", sets.size(), "moreAvailable", moreAvailableEl));
 
 		return env;
 	}
