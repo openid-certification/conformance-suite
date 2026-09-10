@@ -11,6 +11,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @PublishTestModule(
@@ -28,12 +30,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 		the solicited response are accepted per SSF 1.0 §8.1.4-2, and other SETs the
 		transmitter pushes in the meantime (SSF 1.0 §8.1.4.2 does not require the
 		verification event to be delivered first) are parsed and skipped; the test
-		succeeds once a verification event with matching 'state' is delivered.
+		succeeds once a verification event with matching 'state' is delivered, and
+		fails if none arrives within 60 seconds of the verification request.
 		""",
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfDeliveryMode.class, values = "poll")
 public class OIDSSFTransmitterStreamVerificationPushTest extends AbstractOIDSSFTransmitterStreamVerificationTest {
+
+	/**
+	 * How long to wait for the solicited verification event to be pushed. SSF 1.0 §8.1.4.2
+	 * lets the transmitter deliver it asynchronously, so the window matches the one the
+	 * poll based verification tests grant (see {@link #pollForSolicitedVerificationEvent}).
+	 */
+	protected static final Duration VERIFICATION_PUSH_WAIT_WINDOW =
+		Duration.ofSeconds((long) VERIFICATION_POLL_MAX_ATTEMPTS * VERIFICATION_POLL_INTERVAL_SECONDS);
+
+	protected static final int VERIFICATION_PUSH_WAIT_STEP_SECONDS = 10;
 
 	/**
 	 * Maximum number of unsolicited (stateless) verification events to tolerate before
@@ -56,13 +69,20 @@ public class OIDSSFTransmitterStreamVerificationPushTest extends AbstractOIDSSFT
 	protected void performVerification() {
 		int unsolicitedSeen = 0;
 		int nonVerificationSeen = 0;
+		Instant deadline = Instant.now().plus(VERIFICATION_PUSH_WAIT_WINDOW);
 
 		while (unsolicitedSeen < MAX_UNSOLICITED_EVENTS && nonVerificationSeen < MAX_NON_VERIFICATION_EVENTS) {
 			// Wait for push OUTSIDE runBlock to avoid eventLog monitor deadlock
-			SSfPushRequest pushRequest = lookupNextPushRequest();
+			SSfPushRequest pushRequest = lookupNextPushRequest(VERIFICATION_PUSH_WAIT_STEP_SECONDS);
 			if (pushRequest == null) {
+				long secondsLeft = Duration.between(Instant.now(), deadline).toSeconds();
+				if (secondsLeft > 0) {
+					eventLog.log(getName(), "Waiting for the verification event to be pushed (" + secondsLeft + "s left)");
+					continue;
+				}
 				throw new TestFailureException(getId(),
-					"Did not receive a solicited verification event (with 'state') via PUSH delivery"
+					"Did not receive a solicited verification event (with 'state') via PUSH delivery within "
+						+ VERIFICATION_PUSH_WAIT_WINDOW.toSeconds() + " seconds"
 						+ (unsolicitedSeen > 0
 							? " after " + unsolicitedSeen + " transmitter-initiated event(s)"
 							: "")
