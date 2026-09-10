@@ -76,6 +76,29 @@ public class OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested_UnitTest
 	}
 
 	@Test
+	void comparesAgainstTheSentRequestWhenAvailable() {
+		// the transmitter rewrote the echoed events_requested to match events_delivered
+		JsonObject ssf = new JsonObject();
+		ssf.add("stream", JsonParser.parseString("""
+			{"events_supported":["a","b"],"events_requested":["a","b"],"events_delivered":["a","b"]}
+			"""));
+		ssf.add("expected_stream_config", JsonParser.parseString("{\"events_requested\":[\"a\"]}"));
+		env.putObject("ssf", ssf);
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
+	void passesWhenDeliveredMatchesTheSentRequest() {
+		JsonObject ssf = new JsonObject();
+		ssf.add("stream", JsonParser.parseString("""
+			{"events_supported":["a","b"],"events_requested":["a","x"],"events_delivered":["a"]}
+			"""));
+		ssf.add("expected_stream_config", JsonParser.parseString("{\"events_requested\":[\"a\",\"x\"]}"));
+		env.putObject("ssf", ssf);
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
 	void passesWithoutEventsDelivered() {
 		prepareStream("{\"events_supported\":[\"a\"]}");
 		assertDoesNotThrow(() -> createCondition().execute(env));

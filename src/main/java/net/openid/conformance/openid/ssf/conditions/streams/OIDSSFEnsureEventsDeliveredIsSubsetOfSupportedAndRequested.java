@@ -14,7 +14,11 @@ import java.util.Set;
  * the intersection of events_supported and events_requested." Validates the transmitter's
  * arithmetic on the stream configuration it returned: a transmitter that ignores
  * events_requested, or claims to deliver event types it never advertised as supported, is
- * caught here. All three arrays are read from the stream configuration response itself.
+ * caught here. events_delivered and events_supported are read from the stream configuration
+ * response; events_requested is taken from the request body the suite sent
+ * ({@code ssf.expected_stream_config}), so a transmitter that rewrites the echoed
+ * events_requested to match events_delivered does not pass. The echoed value is only used
+ * when no sent request body is available.
  */
 public class OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested extends AbstractCondition {
 
@@ -38,7 +42,11 @@ public class OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested extends 
 		Set<String> eventsDelivered = new LinkedHashSet<>(OIDFJSON.convertJsonArrayToList(eventsDeliveredEl.getAsJsonArray()));
 
 		JsonElement eventsSupportedEl = streamEl.getAsJsonObject().get("events_supported");
-		JsonElement eventsRequestedEl = streamEl.getAsJsonObject().get("events_requested");
+		JsonElement eventsRequestedEl = env.getElementFromObject("ssf", "expected_stream_config.events_requested");
+		if (eventsRequestedEl == null) {
+			log("No sent stream configuration available; comparing events_delivered against the events_requested echoed by the transmitter");
+			eventsRequestedEl = streamEl.getAsJsonObject().get("events_requested");
+		}
 
 		Set<String> notCovered = new LinkedHashSet<>(eventsDelivered);
 		if (eventsSupportedEl != null && eventsSupportedEl.isJsonArray()) {
@@ -46,7 +54,7 @@ public class OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested extends 
 			notCovered.removeIf(eventsSupported::contains);
 			if (!notCovered.isEmpty()) {
 				throw error("events_delivered contains event types missing from events_supported. "
-						+ "SSF 1.0 8.1.1 defines events_delivered as a subset of the intersection of events_supported and events_requested.",
+						+ "events_delivered is defined as a subset of the intersection of events_supported and events_requested.",
 					args("events_delivered", eventsDelivered, "events_supported", eventsSupported, "not_supported", notCovered));
 			}
 		} else {
@@ -60,7 +68,7 @@ public class OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested extends 
 			notRequested.removeIf(eventsRequested::contains);
 			if (!notRequested.isEmpty()) {
 				throw error("events_delivered contains event types the receiver never requested. "
-						+ "SSF 1.0 8.1.1 defines events_delivered as a subset of the intersection of events_supported and events_requested.",
+						+ "events_delivered is defined as a subset of the intersection of events_supported and events_requested.",
 					args("events_delivered", eventsDelivered, "events_requested", eventsRequested, "not_requested", notRequested));
 			}
 		} else {
