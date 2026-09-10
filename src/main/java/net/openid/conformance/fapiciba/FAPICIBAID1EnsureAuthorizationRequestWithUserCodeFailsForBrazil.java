@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.AddUserCodeToAuthorizationEndpoin
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-authorization-request-with-user-code-fails-for-brazil",
@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends a Brazil CIBA backchannel authentication request containing user_code. The server must reject the request with an invalid_request error.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1EnsureAuthorizationRequestWithUserCodeFailsForBrazil extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override

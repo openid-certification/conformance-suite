@@ -57,6 +57,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
@@ -73,8 +74,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 		+ "ID Token, and resources flow.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class,
-	values = { "plain_fapi", "openbanking_uk", "connectid_au" })
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAClientBrazilDCRHappyPathTest extends AbstractFAPICIBAClientTest {

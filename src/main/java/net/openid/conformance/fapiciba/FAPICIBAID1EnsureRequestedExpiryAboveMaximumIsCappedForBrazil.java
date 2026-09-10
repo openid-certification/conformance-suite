@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.AddRequestedExpiryAboveConfigured
 import net.openid.conformance.condition.client.EnsureOpenBankingBrazilCibaExpiresInDoesNotExceedMaximum;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-requested-expiry-above-maximum-is-capped-for-brazil",
@@ -13,8 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test requests an authentication lifetime one second above the configured Open Finance Brasil product or service maximum. The authorization server must return an expires_in value that does not exceed that maximum.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class,
-	values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1EnsureRequestedExpiryAboveMaximumIsCappedForBrazil
 	extends AbstractFAPICIBAID1 {
 

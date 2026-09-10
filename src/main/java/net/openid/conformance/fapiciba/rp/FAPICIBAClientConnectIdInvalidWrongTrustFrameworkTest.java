@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import net.openid.conformance.condition.as.SetInvalidConnectIdTrustFrameworkInIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-connectid-invalid-wrong-trust-framework-test",
@@ -11,7 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test returns a ConnectID CIBA token endpoint response with an ID Token whose verified_claims verification trust_framework is not au_connectid. The client must reject the response and stop the flow.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "openbanking_brazil"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "connectid_au" })
 public class FAPICIBAClientConnectIdInvalidWrongTrustFrameworkTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
 	@Override

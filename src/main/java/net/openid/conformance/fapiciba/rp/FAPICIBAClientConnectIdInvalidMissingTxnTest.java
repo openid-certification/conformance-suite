@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import net.openid.conformance.condition.as.RemoveTxnFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-connectid-invalid-missing-txn-test",
@@ -11,7 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test returns a ConnectID CIBA token endpoint response with an ID Token that does not contain txn. The client must reject the response and stop the flow.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "openbanking_brazil"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "connectid_au" })
 public class FAPICIBAClientConnectIdInvalidMissingTxnTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
 	@Override

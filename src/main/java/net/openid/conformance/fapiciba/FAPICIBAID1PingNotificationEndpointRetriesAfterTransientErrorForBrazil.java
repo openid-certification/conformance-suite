@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.EnsureNotificationEndpointWasRetr
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = {"poll"})
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1PingNotificationEndpointRetriesAfterTransientErrorForBrazil extends AbstractFAPICIBAID1 {
 
 	private static final String NOTIFICATION_ENDPOINT_CALL_COUNT = "notification_endpoint_call_count";

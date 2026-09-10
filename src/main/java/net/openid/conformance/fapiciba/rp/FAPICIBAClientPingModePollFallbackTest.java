@@ -3,6 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 
@@ -15,7 +16,7 @@ import org.springframework.http.HttpStatus;
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = {"poll"})
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAClientPingModePollFallbackTest extends AbstractFAPICIBAClientTest {
 
 	private static final int TERMINAL_POLL_COUNT = 3;

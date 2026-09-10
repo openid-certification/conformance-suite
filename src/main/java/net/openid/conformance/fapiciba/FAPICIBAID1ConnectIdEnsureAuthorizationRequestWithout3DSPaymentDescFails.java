@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.RemoveConnectIdCiba3DSPaymentDesc
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-connectid-ensure-authorization-request-without-3ds-payment-desc-fails",
@@ -16,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @ConfigurationFields({
 	"client.card_primary_account_number"
 })
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "openbanking_brazil"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "connectid_au" })
 public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithout3DSPaymentDescFails
 	extends AbstractConnectIdCibaEnsureInvalid3DSPaymentAuthorizationDetailsFails {
 
