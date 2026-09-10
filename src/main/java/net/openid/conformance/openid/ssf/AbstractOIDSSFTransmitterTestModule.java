@@ -325,6 +325,15 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		callAndContinueOnFailure(OIDSSFEnsurePushRequestMethodIsPost.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
 		callAndContinueOnFailure(OIDSSFEnsurePushRequestContentTypeIsSecEventJwt.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
 		callAndContinueOnFailure(OIDSSFEnsurePushRequestAcceptHeaderIncludesJson.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
+		checkPushDeliveryAuthorization();
+	}
+
+	/**
+	 * Grades the Authorization header of a push delivery. The stream was created with an
+	 * authorization_header, so the transmitter must send it (SSF 1.0 6.1.1); modules that
+	 * create the stream without one override this.
+	 */
+	protected void checkPushDeliveryAuthorization() {
 		callAndContinueOnFailure(OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 
