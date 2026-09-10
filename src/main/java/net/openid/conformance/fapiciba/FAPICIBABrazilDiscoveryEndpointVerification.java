@@ -8,6 +8,7 @@ import net.openid.conformance.fapi1advancedfinal.AbstractFAPI1AdvancedFinalDisco
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -26,7 +27,7 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPICIBAProfile.class
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = { "plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBABrazilDiscoveryEndpointVerification extends AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification {
 
 	private FAPICIBAServerProfileBehavior profileBehavior;

@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestBi
 import net.openid.conformance.condition.client.WarnIfAuthorizationEndpointRequestBindingMessageContainsUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-authorization-request-with-url-binding-message-warns-for-brazil",
@@ -15,7 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends a Brazil CIBA backchannel authentication request containing a URL in binding_message. The server may reject the request with invalid_binding_message or invalid_request; if it accepts the request, the test logs a warning because Open Finance Brasil CIBA says binding_message must not contain URLs.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1EnsureAuthorizationRequestWithUrlBindingMessageWarnsForBrazil extends AbstractFAPICIBAID1 {
 
 	@Override
