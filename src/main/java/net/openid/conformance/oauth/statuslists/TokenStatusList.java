@@ -102,6 +102,14 @@ public class TokenStatusList {
 		}
 		long mask = (bitsPerEntry == 32) ? 0xFFFF_FFFFL : ((1L << bitsPerEntry) - 1);
 
+		// past the end the packed bytes read as zero, i.e. VALID, so an index the list does not
+		// cover must be rejected rather than interpreted
+		long entries = ((long) bytes.length * 8) / bitsPerEntry;
+		if (index < 0 || index >= entries) {
+			throw new TokenStatusListException("Index " + index + " is outside the status list, which holds "
+				+ entries + " entries");
+		}
+
 		int bitOffset = index * bitsPerEntry;
 		int byteIndex = bitOffset >>> 3;     // / 8
 		int bitInByte = bitOffset & 7;       // % 8
