@@ -33,12 +33,16 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthoriza
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestAcceptHeaderIncludesJson;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestContentTypeIsSecEventJwt;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestMethodIsPost;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidatePollResponse;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectPushAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFValidateStreamStatusResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnStreamStatusResponseUnknownMembers;
 import net.openid.conformance.openid.ssf.delivery.SSfPushRequest;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -326,6 +330,47 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 	protected void validateTlsConnection() {
 		call(sequence(OIDSSFValidateTlsConnectionConditionSequence.class));
+	}
+
+	/**
+	 * Keeps the body of the stream configuration request just sent (POST, PATCH or PUT) at
+	 * {@code ssf.expected_stream_config}, so the returned and the read-back stream
+	 * configuration can be compared with what was actually requested after {@code ssf.stream}
+	 * has been replaced by the transmitter's response.
+	 */
+	protected void rememberSentStreamConfig() {
+		env.putObjectFromJsonString("ssf", "expected_stream_config", env.getString("resource_request_entity"));
+	}
+
+	/**
+	 * Grades the response of the poll request just made (RFC 8936 2.3 and 2.5): HTTP 200,
+	 * {@code application/json}, a well-formed {@code sets} object not exceeding the requested
+	 * {@code maxEvents}, and no undefined members. Expects {@code ssf_polling_response} to be
+	 * mapped onto {@code resource_endpoint_response_full}.
+	 */
+	protected void validatePollResponse() {
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8936-2.5");
+		call(exec().unmapKey("endpoint_response"));
+		callAndContinueOnFailure(OIDSSFValidatePollResponse.class, Condition.ConditionResult.FAILURE, "RFC8936-2.2", "RFC8936-2.3");
+		callAndContinueOnFailure(OIDSSFWarnPollResponseUnknownMembers.class, Condition.ConditionResult.WARNING, "RFC8936-2.3");
+	}
+
+	/**
+	 * Whether the last poll response announced further unacknowledged SETs
+	 * ({@code moreAvailable}, RFC 8936 2.3). Poll loops then poll again without waiting.
+	 */
+	protected boolean morePollEventsAvailable() {
+		return Boolean.parseBoolean(env.getString("ssf", "poll.more_available"));
+	}
+
+	/**
+	 * Grades a stream status document (SSF 1.0 8.1.2.1). Expects the response under
+	 * {@code endpoint_response}.
+	 */
+	protected void validateStreamStatusResponse(String... requirements) {
+		callAndContinueOnFailure(OIDSSFValidateStreamStatusResponse.class, Condition.ConditionResult.FAILURE, requirements);
+		callAndContinueOnFailure(OIDSSFWarnStreamStatusResponseUnknownMembers.class, Condition.ConditionResult.WARNING, requirements);
 	}
 
 	protected SSfPushRequest lookupNextPushRequest() {

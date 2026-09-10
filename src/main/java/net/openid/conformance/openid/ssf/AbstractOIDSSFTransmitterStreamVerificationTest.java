@@ -28,6 +28,8 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerifica
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenJtiClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateStreamUpdatedEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnStreamUpdatedEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
@@ -44,6 +46,8 @@ import net.openid.conformance.variant.VariantParameters;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static net.openid.conformance.openid.ssf.SsfEvents.SSF_STREAM_UPDATED_EVENT_TYPE;
 
 /**
  * Base class for SSF transmitter stream verification tests.
@@ -164,6 +168,23 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	 * {@link #parseVerificationEventInResponse()} must have been called first.
 	 */
 	protected void verifyParsedVerificationEventCommon() {
+		verifyParsedSetEnvelope();
+
+		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+
+		if (deliveryMode == SsfDeliveryMode.PUSH) {
+			callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
+		}
+	}
+
+	/**
+	 * Validates the SET envelope of the parsed token regardless of its event type: signature
+	 * algorithm and key size under the interop profile, typ, single event, no sub/exp,
+	 * iss, iat, jti, aud, txn. Every SET a transmitter delivers on the stream is held to this,
+	 * including stream-updated events and further verification events that arrive while the
+	 * suite waits for the solicited one.
+	 */
+	protected void verifyParsedSetEnvelope() {
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 			callAndContinueOnFailure(OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
@@ -185,12 +206,26 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8");
 		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "RFC7519-4.1.3");
 
-		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenTxnClaim.class, Condition.ConditionResult.INFO, "OIDSSF-4.1.9");
+		// SSF 1.0 4.1.9: "Transmitters SHOULD set the txn claim"
+		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenTxnClaim.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.9");
+	}
 
-		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+	/**
+	 * Validates a SET that is not a verification event: the envelope checks apply to every
+	 * SET on the stream, and a stream-updated event (SSF 1.0 8.1.5) is additionally checked
+	 * for its {@code status} and its opaque {@code sub_id} naming the stream. Other event
+	 * types are logged only.
+	 */
+	protected void verifyParsedNonVerificationSet() {
+		verifyParsedSetEnvelope();
 
-		if (deliveryMode == SsfDeliveryMode.PUSH) {
-			callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
+		JsonElement eventsEl = env.getElementFromObject("ssf", "verification.token.claims.events");
+		if (eventsEl != null && eventsEl.isJsonObject() && eventsEl.getAsJsonObject().has(SSF_STREAM_UPDATED_EVENT_TYPE)) {
+			callAndContinueOnFailure(OIDSSFValidateStreamUpdatedEvent.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5");
+			callAndContinueOnFailure(OIDSSFWarnStreamUpdatedEventUnknownMembers.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.5");
+		} else {
+			eventLog.log(getName(), args("msg", "SET carries an event type this test does not inspect beyond the SET envelope",
+				"event_types", eventsEl != null && eventsEl.isJsonObject() ? eventsEl.getAsJsonObject().keySet() : null));
 		}
 	}
 
@@ -201,7 +236,8 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	 * <p>
 	 * For each SET:
 	 * <ul>
-	 *   <li>Non-verification SETs are logged and skipped.
+	 *   <li>Non-verification SETs have their SET envelope validated (a stream-updated
+	 *       event also its payload) and are then skipped.
 	 *   <li>Verification events without a {@code state} claim are accepted as
 	 *       unsolicited (SSF 1.0 §8.1.4-2) — common validations run, but the state
 	 *       check is skipped and iteration continues.
@@ -244,9 +280,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 				parseVerificationEventInResponse();
 
 				if (!currentEventIsVerificationEvent()) {
-					eventLog.log(getName(),
-						args("msg", "Skipping non-verification SET in poll response",
-							"jti", jti));
+					verifyParsedNonVerificationSet();
 					return;
 				}
 
@@ -294,11 +328,25 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 				env.putString("ssf", "poll.mode", pollMode.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
 				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+				validatePollResponse();
 				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			});
 
 			if (iterateAndValidateVerificationEventsInPollResponse(blockPrefix)) {
 				return true;
+			}
+
+			Integer pollStatus = env.getInteger("resource_endpoint_response_full", "status");
+			if (pollStatus != null && pollStatus >= 400 && pollStatus < 500) {
+				// the transmitter rejected the poll request itself; repeating it cannot succeed
+				eventLog.log(getName(), "The poll endpoint rejected the poll request with HTTP " + pollStatus + "; not polling again");
+				return false;
+			}
+
+			if (morePollEventsAvailable()) {
+				// RFC 8936 2.3: the transmitter holds further unacknowledged SETs - fetch them now
+				eventLog.log(getName(), "Poll response announced more SETs (moreAvailable); polling again immediately (attempt " + attempt + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
+				continue;
 			}
 
 			if (attempt < VERIFICATION_POLL_MAX_ATTEMPTS) {
