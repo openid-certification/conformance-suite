@@ -189,5 +189,22 @@ in
       pass_filenames = false;
       types = [ "java" ];
     };
+  git-hooks.hooks.prettier = {
+      enable = true;
+      name = "Prettier";
+      entry = "bash -c 'cd frontend && npm run format'";
+      pass_filenames = false;
+      files = "^(frontend/|src/main/resources/static/components/)";
+    };
+  # Mirrors the blocking `frontend_lint` CI job (.gitlab/ci/frontend.yml): eslint,
+  # vitest unit project, tsc, jsdoc/icon/lit-analyzer linters and codegen:check.
+  git-hooks.hooks.frontend-checks = {
+      enable = true;
+      name = "Frontend checks (npm run test:ci)";
+      entry = "bash -c 'cd frontend && npm run test:ci'";
+      pass_filenames = false;
+      files = "^(frontend/|src/main/resources/(static|static-legacy|templates|templates-legacy)/)";
+    };
+
   # See full reference at https://devenv.sh/reference/options/
 }

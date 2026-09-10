@@ -367,6 +367,26 @@ API tokens are always `ROLE_USER` and admins cannot mint an admin token, so the 
 
 Tests compile with `-Werror` so all warnings must be resolved.
 
+### CI checks and local pre-commit hooks
+
+When a new check (linter, formatter, static analysis) is added to the GitLab CI
+pipeline (`.gitlab-ci.yml` or `.gitlab/ci/*.yml`), add a matching pre-commit hook
+under `git-hooks.hooks.<name>` in `devenv.nix` in the same change, so contributors
+catch it at commit time instead of on a red pipeline. Existing hooks and the CI
+jobs they mirror:
+
+| Hook | CI job |
+|---|---|
+| `fix-whitespace` | `check-trailing-whitespace` |
+| `mvn-check` | the Checkstyle/PMD half of `test` |
+| `prettier` | the `format:check` step of `frontend_lint` |
+| `frontend-checks` | `frontend_lint` (`npm run test:ci`) |
+
+Only mirror checks that are fast and need no infrastructure. Jobs requiring
+MongoDB, nginx, a running server, `../conformance-suite-private`, a browser image
+or network access (`frontend_e2e_test`, the integration and security test jobs,
+`chromatic`), and the full `mvn` build and unit-test run, stay CI-only.
+
 ## Deliberate non-features
 
 These were tried and rejected. Don't reintroduce them, and don't "fix" them in passing. If you think the reasoning has changed, raise it in its own issue.
