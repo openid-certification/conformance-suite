@@ -20,6 +20,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicit
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventValuesAreJsonObjects;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
@@ -640,6 +641,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
 		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTypeNotInPreferredForm.class, Condition.ConditionResult.WARNING, "RFC8417-2.3");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");
+		callAndContinueOnFailure(OIDSSFEnsureSecurityEventValuesAreJsonObjects.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenSubIdClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-3.1", "RFC9493-3");
 		// RFC 9493 §3 prohibits members not described by the format; per the suite's
