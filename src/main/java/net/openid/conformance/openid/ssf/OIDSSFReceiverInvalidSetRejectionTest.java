@@ -8,6 +8,9 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureReceiverRejectedPushDelivery;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidatePushDeliveryErrorResponse;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPushDeliveryErrorCodeMismatch;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPushDeliveryErrorCodeNotRegistered;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateTamperedStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateTamperedStreamSET.TamperMode;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
@@ -31,12 +34,13 @@ import java.util.concurrent.TimeUnit;
 	displayName = "OpenID Shared Signals Framework: Test Receiver rejects invalid Security Event Tokens",
 	summary = """
 		This test verifies that the receiver rejects invalid Security Event Tokens.
-		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it delivers three deliberately invalid SETs: one with a corrupted signature, one with a wrong 'iss' claim and one with a wrong 'aud' claim.
+		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it delivers four deliberately invalid SETs: one with a corrupted signature, one with a wrong 'iss' claim, one with a wrong 'aud' claim and one signed with a key that is not in the transmitter's JWKS.
+		With PUSH delivery the error response to each rejected SET is validated as well: it must be a 400 with an 'application/json' body carrying 'err' and 'description' (RFC 8935 2.3); an 'err' that is not a registered Security Event Token Error Code, or not the code matching the defect ('invalid_key', 'invalid_issuer', 'invalid_audience'; RFC 8935 2.4), raises a warning.
 		Note: invalid SETs that were retrieved but neither acknowledged nor reported via 'setErrs' are noted after 60 seconds (reporting via 'setErrs' is a MAY, RFC 8936 2.4); invalid SETs the receiver never retrieved raise a warning, since the rejection behavior could not be assessed. The test still waits for the stream deletion before it finishes.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
-		 * reject each of the three invalid SETs - PUSH delivery: answer the delivery with an error response (RFC 8935 2.3); POLL delivery: do not list their 'jti' values in 'ack', report them via 'setErrs' instead (RFC 8936 2.4)
+		 * reject each of the four invalid SETs - PUSH delivery: answer the delivery with an error response (RFC 8935 2.3); POLL delivery: do not list their 'jti' values in 'ack', report them via 'setErrs' instead (RFC 8936 2.4)
 		 * delete the stream
 		""",
 	profile = "OIDSSF"
@@ -208,6 +212,20 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 			case INVALID_SIGNATURE -> new String[] {"CAEPIOP-2.6", "CAEPIOP-2.4.2"};
 			case WRONG_ISSUER -> new String[] {"OIDSSF-4.1.6"};
 			case WRONG_AUDIENCE -> new String[] {"OIDSSF-4.1.8"};
+			case UNKNOWN_KID -> new String[] {"CAEPIOP-2.4.2", "CAEPIOP-2.6"};
+		};
+	}
+
+	/**
+	 * The Security Event Token Error Code (RFC 8935 2.4) that describes the defect of a
+	 * tampered SET; a receiver reporting a different code raises a warning, since the
+	 * registry does not bind one code to one cause.
+	 */
+	protected String expectedErrorCodeFor(TamperMode tamperMode) {
+		return switch (tamperMode) {
+			case INVALID_SIGNATURE, UNKNOWN_KID -> OIDSSFWarnPushDeliveryErrorCodeNotRegistered.ERROR_CODE_INVALID_KEY;
+			case WRONG_ISSUER -> OIDSSFWarnPushDeliveryErrorCodeNotRegistered.ERROR_CODE_INVALID_ISSUER;
+			case WRONG_AUDIENCE -> OIDSSFWarnPushDeliveryErrorCodeNotRegistered.ERROR_CODE_INVALID_AUDIENCE;
 		};
 	}
 
@@ -251,6 +269,13 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 				}), Condition.ConditionResult.WARNING, "RFC8935-2.3");
 				callAndContinueOnFailure(new OIDSSFEnsureReceiverRejectedPushDelivery(tamperMode.description() + ", jti=" + event.jti()),
 					Condition.ConditionResult.FAILURE, requirementsFor(tamperMode, "RFC8935-2.3"));
+				// RFC 8935 2.3 prescribes the shape of the rejection: 400, application/json,
+				// a body with 'err' and 'description'. The code itself is only expected, not
+				// mandated, per cause (2.4), hence the two warnings.
+				callAndContinueOnFailure(OIDSSFValidatePushDeliveryErrorResponse.class, Condition.ConditionResult.FAILURE, "RFC8935-2.3");
+				callAndContinueOnFailure(OIDSSFWarnPushDeliveryErrorCodeNotRegistered.class, Condition.ConditionResult.WARNING, "RFC8935-2.4");
+				callAndContinueOnFailure(new OIDSSFWarnPushDeliveryErrorCodeMismatch(expectedErrorCodeFor(tamperMode)),
+					Condition.ConditionResult.WARNING, requirementsFor(tamperMode, "RFC8935-2.4"));
 				resolvedInvalidSetJtis.add(event.jti());
 				// pace the deliveries with the test lock released (see the base push task)
 				callAndContinueOnFailure(WaitForOneSecond.class, Condition.ConditionResult.INFO);
