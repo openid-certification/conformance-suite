@@ -8,7 +8,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * Answers a receiver's verification request with a verification SET whose {@code state}
@@ -18,14 +17,25 @@ import java.util.function.Consumer;
  * confirm the state and lets it reject a mismatch with {@code invalid_state}.
  * <p>
  * The SET is enqueued in the event store like a regular verification SET; the generated
- * event is additionally handed to {@code onGenerated} so the test module can single it out
- * when grading the receiver's reaction.
+ * event is additionally handed to {@link OnGenerated} together with whether the receiver's
+ * request carried a state, so the test module can single it out and grade the receiver's
+ * reaction by case: 8.1.4.1 leaves open whether a state the receiver never asked for is
+ * "as expected", so that case is graded more leniently than an echoed wrong value.
  */
 public class OIDSSFGenerateWrongStateStreamVerificationSET extends OIDSSFGenerateStreamVerificationSET {
 
-	protected final Consumer<OIDSSFSecurityEvent> onGenerated;
+	/** Receives the generated SET and whether the verification request carried a state. */
+	@FunctionalInterface
+	public interface OnGenerated {
+		void accept(OIDSSFSecurityEvent event, boolean receiverSentState);
+	}
 
-	public OIDSSFGenerateWrongStateStreamVerificationSET(OIDSSFEventStore eventStore, Consumer<OIDSSFSecurityEvent> onGenerated) {
+	protected final OnGenerated onGenerated;
+
+	/** Whether the verification request being answered carried a state; set by {@link #getEventData}. */
+	protected boolean receiverSentState;
+
+	public OIDSSFGenerateWrongStateStreamVerificationSET(OIDSSFEventStore eventStore, OnGenerated onGenerated) {
 		super(eventStore);
 		this.onGenerated = onGenerated;
 	}
@@ -36,6 +46,7 @@ public class OIDSSFGenerateWrongStateStreamVerificationSET extends OIDSSFGenerat
 
 		JsonElement stateEl = streamConfig.get("_verification_state");
 		String receiverState = stateEl == null || stateEl.isJsonNull() ? null : OIDFJSON.getString(stateEl);
+		receiverSentState = receiverState != null;
 		if (receiverState == null) {
 			log("The verification request carried no state; the verification event gets a state the receiver never sent",
 				args("state", wrongState));
@@ -52,6 +63,6 @@ public class OIDSSFGenerateWrongStateStreamVerificationSET extends OIDSSFGenerat
 	@Override
 	protected void afterSecurityEventTokenGenerated(Environment env, String streamId, JsonObject streamConfig, String setJti, String setTokenString, JsonObject setObject) {
 		super.afterSecurityEventTokenGenerated(env, streamId, streamConfig, setJti, setTokenString, setObject);
-		onGenerated.accept(new OIDSSFSecurityEvent(setJti, setTokenString, eventType));
+		onGenerated.accept(new OIDSSFSecurityEvent(setJti, setTokenString, eventType), receiverSentState);
 	}
 }
