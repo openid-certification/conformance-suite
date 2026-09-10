@@ -134,4 +134,87 @@ public class OIDSSFHandlePollRequest_UnitTest {
 		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
 		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").has("jti-1"));
 	}
+
+	private int variationCount(String variation) {
+		JsonObject variations = env.getElementFromObject("ssf", OIDSSFHandlePollRequest.POLL_REQUEST_VARIATIONS_KEY).getAsJsonObject();
+		return variations.has(variation) ? OIDFJSON.getInt(variations.get(variation)) : 0;
+	}
+
+	@Test
+	void recordsAPollWithoutAcknowledgementAsPollOnly() {
+		// RFC 8936 2.4.1: an empty ack array acknowledges nothing, so it is still poll-only
+		pollRequest("""
+			{"ack": [], "returnImmediately": true}
+			""");
+
+		condition.execute(env);
+
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_ONLY));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_ACKNOWLEDGE_ONLY));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_WITH_ACKNOWLEDGEMENT));
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_SHORT_POLL));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_LONG_POLL));
+	}
+
+	@Test
+	void recordsAnAcknowledgementWithMaxEventsZeroAsAcknowledgeOnly() {
+		pollRequest("""
+			{"ack": ["jti-1"], "maxEvents": 0, "returnImmediately": true}
+			""");
+
+		condition.execute(env);
+
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_ACKNOWLEDGE_ONLY));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_ONLY));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_WITH_ACKNOWLEDGEMENT));
+	}
+
+	@Test
+	void recordsAnAcknowledgementThatAlsoPollsAsPollWithAcknowledgement() {
+		pollRequest("""
+			{"ack": ["jti-1"], "maxEvents": 16, "returnImmediately": true}
+			""");
+
+		condition.execute(env);
+
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_WITH_ACKNOWLEDGEMENT));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_ACKNOWLEDGE_ONLY));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_ONLY));
+	}
+
+	@Test
+	void recordsASetErrsReportAsAnAcknowledgement() {
+		pollRequest("""
+			{"setErrs": {"jti-1": {"err": "invalid_request", "description": "x"}}, "maxEvents": 0, "returnImmediately": true}
+			""");
+
+		condition.execute(env);
+
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_ACKNOWLEDGE_ONLY));
+	}
+
+	@Test
+	void recordsALongPollWhenReturnImmediatelyIsAbsent() {
+		pollRequest("{}");
+
+		condition.execute(env);
+
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_ONLY));
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_LONG_POLL));
+		assertEquals(0, variationCount(OIDSSFHandlePollRequest.VARIATION_SHORT_POLL));
+	}
+
+	@Test
+	void accumulatesCountsAcrossRequests() {
+		pollRequest(true);
+		condition.execute(env);
+		pollRequest("""
+			{"ack": ["jti-1"], "maxEvents": 0, "returnImmediately": true}
+			""");
+		condition.execute(env);
+
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_POLL_ONLY));
+		assertEquals(1, variationCount(OIDSSFHandlePollRequest.VARIATION_ACKNOWLEDGE_ONLY));
+		assertEquals(2, variationCount(OIDSSFHandlePollRequest.VARIATION_SHORT_POLL));
+	}
 }
