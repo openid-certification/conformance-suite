@@ -14,6 +14,8 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 		This test verifies the receiver stream management according to the capabilities listed in the CAEP Interop Profile 1.0.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream.
 		Each requested CAEP event is sent once per subject listed in the 'SSF valid SubjectId' field, which must include at least one 'email' and one 'iss_sub' subject, as receivers must accept events with any of the subject identifier formats of the CAEP Interop Profile (section 2.5). 'complex' subjects listed there are sent as well; since draft-01 of the profile does not list Complex Subjects (see openid/sharedsignals#351), a receiver rejecting those events is reported as a warning only.
+		Receivers must interpret all allowable values of 'change_type' and 'credential_type' in credential-change events and of 'previous_status' and 'current_status' in device-compliance-change events (CAEP Interop Profile 3.2 and 3.3). For the first listed subject the credential-change event is therefore sent once per credential_type listed in CAEP 1.0 (password, pin, x509, fido2-platform, fido2-roaming, fido-u2f, verifiable-credential, phone-voice, phone-sms, app), cycling through the change_type values create, revoke, update and delete, and the device-compliance-change event is sent for both status transitions (compliant to not-compliant and back). Every event carries a non-empty reason_admin.
+		Every delivered CAEP event must be acknowledged (HTTP 202 on PUSH delivery, 'ack' on POLL delivery): an event the receiver rejects or reports via 'setErrs' fails the test (a warning for Complex Subjects), as does deleting the stream with retrieved but unacknowledged events.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * read the stream configuration
@@ -72,6 +76,9 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	 */
 	volatile ConcurrentMap<String, String> subjectFormatByJti;
 
+	/** Event type of each generated CAEP event, keyed by {@code jti}, for the finish-time grading. */
+	volatile ConcurrentMap<String, String> eventTypeByJti;
+
 	volatile boolean caepInteropEventsGenerated;
 
 	@Override
@@ -80,6 +87,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		eventsAcked = new ConcurrentHashMap<>();
 		eventsEnqueued = new ConcurrentHashMap<>();
 		subjectFormatByJti = new ConcurrentHashMap<>();
+		eventTypeByJti = new ConcurrentHashMap<>();
 		caepInteropEventsGenerated = false;
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 4, TimeUnit.SECONDS);
 	}
@@ -92,6 +100,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		if (createdStreamId != null) {
 			callAndContinueOnFailure(new OIDSSFEnsureReceiverAcknowledgedAllCaepInteropSubjectFormats(subjectFormatByJti,
 				eventsAcked.getOrDefault(createdStreamId, Set.of())), Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
+			gradeDeliveredCaepEvents();
 		}
 		// CAEP Interop Profile 2.4.2: "The Receiver MUST obtain the Transmitter's signing
 		// key(s) using the jwks_uri from the Transmitter Configuration Metadata."
@@ -246,15 +255,22 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				continue;
 			}
 
-			for (JsonObject subject : subjects) {
+			for (int i = 0; i < subjects.size(); i++) {
+				JsonObject subject = subjects.get(i);
 				String subjectFormat = SsfSubjectIdentifiers.getFormat(subject);
-				SsfEvent event = generateSsfEventExample(eventType, now);
-				var generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event,
-					(sid, jti) -> {
-						subjectFormatByJti.put(jti, subjectFormat);
-						onStreamEventEnqueued(sid, jti);
-					});
-				callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, CAEP_INTEROP_EVENT_SPEC_REFS.get(eventType), "CAEPIOP-2.5");
+				// CAEP Interop Profile 3.2 / 3.3: receivers MUST interpret all allowable values of
+				// change_type, credential_type, previous_status and current_status - covered once,
+				// with the first subject; the other subjects cover the subject formats.
+				List<SsfEvent> events = i == 0 ? generateCaepInteropEventValueVariants(eventType, now) : List.of(generateSsfEventExample(eventType, now));
+				for (SsfEvent event : events) {
+					var generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event,
+						(sid, jti) -> {
+							subjectFormatByJti.put(jti, subjectFormat);
+							eventTypeByJti.put(jti, eventType);
+							onStreamEventEnqueued(sid, jti);
+						});
+					callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, CAEP_INTEROP_EVENT_SPEC_REFS.get(eventType), "CAEPIOP-2.5");
+				}
 			}
 		}
 
@@ -264,6 +280,131 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
 			schedulePushDelivery(streamId);
 		}
+	}
+
+	/**
+	 * One event per allowable value of the event fields a CAEP Interop receiver must interpret
+	 * (CAEP Interop Profile 3.2 / 3.3), using the fewest events: credential-change once per
+	 * {@code credential_type} of CAEP 1.0 3.3.1, cycling {@code change_type} through its four
+	 * values; device-compliance-change once per status transition (CAEP 1.0 3.5.1). A single
+	 * example event for every other type.
+	 */
+	protected List<SsfEvent> generateCaepInteropEventValueVariants(String eventType, long timestamp) {
+		SsfEvent example = generateSsfEventExample(eventType, timestamp);
+		List<SsfEvent> variants = new ArrayList<>();
+		switch (eventType) {
+			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE -> {
+				List<String> changeTypes = SsfEvents.CAEP_CREDENTIAL_CHANGE_TYPES;
+				List<String> credentialTypes = SsfEvents.CAEP_CREDENTIAL_TYPES;
+				for (int i = 0; i < credentialTypes.size(); i++) {
+					String credentialType = credentialTypes.get(i);
+					Map<String, Object> data = new LinkedHashMap<>(example.data());
+					data.put("credential_type", credentialType);
+					data.put("change_type", changeTypes.get(i % changeTypes.size()));
+					if (!credentialType.startsWith("fido2")) {
+						// the example's FIDO2 authenticator details only fit a FIDO2 credential
+						data.remove("fido2_aaguid");
+						data.put("friendly_name", "Jane's " + credentialType + " credential");
+					}
+					variants.add(new SsfEvent(eventType, data, example.requirements()));
+				}
+			}
+			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE -> {
+				for (String previousStatus : SsfEvents.CAEP_DEVICE_COMPLIANCE_STATUSES) {
+					for (String currentStatus : SsfEvents.CAEP_DEVICE_COMPLIANCE_STATUSES) {
+						if (previousStatus.equals(currentStatus)) {
+							continue;
+						}
+						Map<String, Object> data = new LinkedHashMap<>(example.data());
+						data.put("previous_status", previousStatus);
+						data.put("current_status", currentStatus);
+						data.put("reason_admin", Map.of("en", "Device compliance changed from " + previousStatus + " to " + currentStatus));
+						data.put("reason_user", Map.of("en", "Your device is now " + currentStatus + " with the device policy."));
+						variants.add(new SsfEvent(eventType, data, example.requirements()));
+					}
+				}
+			}
+			default -> variants.add(example);
+		}
+		return variants;
+	}
+
+	/**
+	 * Grades every generated CAEP event the receiver got but did not acknowledge: rejected
+	 * pushes and setErrs reports violate the event support the profile requires (a warning for
+	 * Complex Subjects, see {@link #getPushDeliveryRejectionSeverity}), events retrieved but
+	 * never acknowledged before the delete violate the delivery method's acknowledgement rule.
+	 * Events the delete purged before delivery cannot be assessed.
+	 */
+	private void gradeDeliveredCaepEvents() {
+		Set<String> generated = new LinkedHashSet<>(eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
+		if (generated.isEmpty()) {
+			return;
+		}
+		Set<String> acked = eventsAcked.getOrDefault(createdStreamId, Set.of());
+		Set<String> undelivered = getUndeliveredEventJtis();
+		Set<String> resolvedByError = new LinkedHashSet<>(getErrorReportedEventJtis());
+		resolvedByError.addAll(getRejectedPushEventJtis());
+
+		Map<String, Set<String>> rejectedByEventType = new LinkedHashMap<>();
+		Map<String, Set<String>> rejectedComplexSubjectByEventType = new LinkedHashMap<>();
+		Set<String> unacknowledged = new LinkedHashSet<>();
+		int deliveredCount = 0;
+		for (String jti : generated) {
+			if (undelivered.contains(jti)) {
+				continue;
+			}
+			deliveredCount++;
+			if (acked.contains(jti)) {
+				continue;
+			}
+			if (resolvedByError.contains(jti)) {
+				String eventType = eventTypeByJti.getOrDefault(jti, "unknown");
+				boolean complexSubject = SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(subjectFormatByJti.get(jti));
+				(complexSubject ? rejectedComplexSubjectByEventType : rejectedByEventType)
+					.computeIfAbsent(eventType, k -> new LinkedHashSet<>()).add(jti);
+			} else {
+				unacknowledged.add(jti);
+			}
+		}
+
+		for (Map.Entry<String, Set<String>> entry : rejectedByEventType.entrySet()) {
+			String eventType = entry.getKey();
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver rejected " + entry.getValue().size() + " '" + eventType + "' event(s) (jtis: " + entry.getValue() + "). "
+						+ "A receiver must accept every event of the CAEP event types it requested" + allowableValuesHint(eventType) + "."),
+				Condition.ConditionResult.FAILURE, CAEP_INTEROP_EVENT_SPEC_REFS.getOrDefault(eventType, "CAEPIOP-3"));
+		}
+		for (Map.Entry<String, Set<String>> entry : rejectedComplexSubjectByEventType.entrySet()) {
+			String eventType = entry.getKey();
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver rejected " + entry.getValue().size() + " '" + eventType + "' event(s) with a Complex Subject (jtis: " + entry.getValue() + "). "
+						+ "Graded as a warning because draft-01 of the CAEP Interop Profile does not require receivers to accept Complex Subjects."),
+				Condition.ConditionResult.WARNING, CAEP_INTEROP_EVENT_SPEC_REFS.getOrDefault(eventType, "CAEPIOP-3"), "CAEPIOP-2.5");
+		}
+		if (!unacknowledged.isEmpty()) {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver retrieved " + unacknowledged.size() + " of the delivered CAEP events but never acknowledged them before deleting the stream (jtis: " + unacknowledged + "). "
+						+ "Accepted SETs must be acknowledged via 'ack' on POLL delivery or a 202 response on PUSH delivery."),
+				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
+		}
+		if (!undelivered.isEmpty()) {
+			eventLog.log(getName(), args(
+				"msg", "The receiver deleted the stream before " + undelivered.size() + " generated CAEP event(s) were delivered; whether it accepts them cannot be assessed",
+				"undelivered_jtis", undelivered));
+		}
+		if (deliveredCount > 0 && rejectedByEventType.isEmpty() && rejectedComplexSubjectByEventType.isEmpty() && unacknowledged.isEmpty()) {
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("The receiver acknowledged all " + deliveredCount + " delivered CAEP events, including every allowable field value sent"),
+				Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+		}
+	}
+
+	private static String allowableValuesHint(String eventType) {
+		return switch (eventType) {
+			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE -> ", interpreting every allowable value of 'change_type' and 'credential_type'";
+			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE -> ", interpreting every allowable value of 'previous_status' and 'current_status'";
+			default -> "";
+		};
 	}
 
 	protected Set<String> getDeliveredCaepInteropEventTypes(JsonObject streamConfig) {
