@@ -14,7 +14,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class OIDSSFValidateCaepCommonOptionalFields_UnitTest {
@@ -150,6 +152,79 @@ public class OIDSSFValidateCaepCommonOptionalFields_UnitTest {
 		data.add("reason_user", reason);
 		setUpCaepEvent(data);
 		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithMillisecondEventTimestamp() {
+		JsonObject data = new JsonObject();
+		data.addProperty("event_timestamp", 1700000000000L);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithNegativeEventTimestamp() {
+		JsonObject data = new JsonObject();
+		data.addProperty("event_timestamp", -1);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithFractionalEventTimestamp() {
+		JsonObject data = new JsonObject();
+		data.addProperty("event_timestamp", 1700000000.5);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldPassWithRegionAndScriptLanguageTags() {
+		JsonObject data = new JsonObject();
+		JsonObject reason = new JsonObject();
+		reason.addProperty("en-US", "Policy violation");
+		reason.addProperty("zh-Hant-TW", "Policy violation");
+		reason.addProperty("es-419", "Policy violation");
+		reason.addProperty("x-internal", "Policy violation");
+		data.add("reason_admin", reason);
+		setUpCaepEvent(data);
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithNonLanguageTagReasonAdminKey() {
+		JsonObject data = new JsonObject();
+		JsonObject reason = new JsonObject();
+		reason.addProperty("message", "Policy violation");
+		data.add("reason_admin", reason);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithMalformedReasonUserKey() {
+		JsonObject data = new JsonObject();
+		JsonObject reason = new JsonObject();
+		reason.addProperty("en_US", "Policy violation");
+		data.add("reason_user", reason);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void languageTagWellFormedness() {
+		assertTrue(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("en"));
+		assertTrue(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("de-CH"));
+		assertTrue(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("sr-Latn-RS"));
+		assertTrue(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("de-CH-1996"));
+		assertTrue(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("en-US-u-co-phonebk"));
+		assertTrue(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("i-klingon"));
+		assertFalse(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag(""));
+		assertFalse(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("e"));
+		assertFalse(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("english"));
+		assertFalse(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("en-"));
+		assertFalse(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("en_US"));
+		assertFalse(OIDSSFValidateCaepCommonOptionalFields.isWellFormedLanguageTag("123"));
 	}
 
 	@Test
