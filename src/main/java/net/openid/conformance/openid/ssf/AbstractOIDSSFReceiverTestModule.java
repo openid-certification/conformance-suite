@@ -528,34 +528,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		Object response;
 		try {
-			switch (path) {
-				case "ssf-configuration" -> response = handleSsfConfigurationEndpoint(requestId);
-				case "jwks" -> response = handleJwksEndpoint();
-				// The token endpoint performs its own client authentication, so it is
-				// intentionally not wrapped in ensureAuthorized().
-				case "token" -> response = handleTokenEndpointRequest(req, requestId);
-				case "events" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleStreamPollingRequest(path, req, res, session, requestParts);
-				});
-				case "streams" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
-				});
-				case "status" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
-				});
-				case "verify" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleVerificationEndpointRequest(path, req, res, session, requestParts);
-				});
-				case "add_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
-				});
-				case "remove_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
-				});
-				// This handler already holds the test lock in RUNNING state, so the stray request
-				// is graded in place; the base class's own RUNNING transition would trip the
-				// status machine and end the test INTERRUPTED.
-				default -> response = reportUnexpectedHttpRequest(path, requestParts);
+			if (isProbeMethod(req.getMethod())) {
+				response = answerProbeRequest(path, requestParts);
+			} else {
+				response = dispatchRequest(path, req, res, session, requestParts, requestId);
 			}
 		} finally {
 			if (!Set.of(Status.WAITING, Status.FINISHED).contains(getStatus())) {
@@ -566,6 +542,67 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return response;
+	}
+
+	/**
+	 * Routes an SSF request to its handler. Runs with the test lock held in RUNNING state,
+	 * which is why a path no handler serves is graded in place via
+	 * {@link #reportUnexpectedHttpRequest}: the base class's own RUNNING transition would trip
+	 * the status machine and end the test INTERRUPTED.
+	 */
+	protected Object dispatchRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, String requestId) {
+		return switch (path) {
+			case "ssf-configuration" -> handleSsfConfigurationEndpoint(requestId);
+			case "jwks" -> handleJwksEndpoint();
+			// The token endpoint performs its own client authentication, so it is
+			// intentionally not wrapped in ensureAuthorized().
+			case "token" -> handleTokenEndpointRequest(req, requestId);
+			case "events" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleStreamPollingRequest(path, req, res, session, requestParts);
+			});
+			case "streams" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
+			});
+			case "status" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
+			});
+			case "verify" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleVerificationEndpointRequest(path, req, res, session, requestParts);
+			});
+			case "add_subject" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
+			});
+			case "remove_subject" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
+			});
+			default -> reportUnexpectedHttpRequest(path, requestParts);
+		};
+	}
+
+	/**
+	 * HEAD and OPTIONS requests are capability probes (a preflight, a health check, an HTTP
+	 * client feeling out the endpoint), not SSF operations, so they are answered without
+	 * authorization checks and without a grade, see {@link #answerProbeRequest}.
+	 */
+	protected boolean isProbeMethod(String method) {
+		return "HEAD".equalsIgnoreCase(method) || "OPTIONS".equalsIgnoreCase(method);
+	}
+
+	/**
+	 * Answers a request that probes for something this transmitter does not offer rather than
+	 * invoking an SSF operation: a well-known document it does not publish (an OAuth client
+	 * library commonly tries {@code /.well-known/openid-configuration} before falling back to
+	 * the configured token endpoint, RFC 8414 5), or a HEAD or OPTIONS request. Such probes say
+	 * nothing about the receiver's conformance (CAEPIOP 2.7.1 leaves the way a receiver finds
+	 * its authorization server out of scope), so they get a 404 and a log entry, no grade.
+	 * Requests to a path or method the SSF operations do not define stay graded as unexpected.
+	 */
+	protected ResponseEntity<?> answerProbeRequest(String path, JsonObject requestParts) {
+		String method = requestParts != null && requestParts.has("method") ? OIDFJSON.getString(requestParts.get("method")) : null;
+		eventLog.log(getName(), args("msg", "Answered a probe request for a path or method the emulated transmitter does not serve with 404; "
+				+ "this is not graded, as such probes are not SSF operations",
+			"path", path, "method", method));
+		return new ResponseEntity<>(Map.of("error", "The test does not serve the path '" + path + "'"), HttpStatus.NOT_FOUND);
 	}
 
 	/**
@@ -695,8 +732,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			} else if (path.startsWith("/.well-known/oauth-authorization-server")) {
 				response = handleAuthorizationServerMetadataEndpoint();
 			} else {
-				// see handleHttp: the lock is held and the status is RUNNING already
-				response = reportUnexpectedHttpRequest(path, requestParts);
+				// any other well-known document is a discovery probe, not an SSF operation
+				response = answerProbeRequest(path, requestParts);
 			}
 		} finally {
 			setStatus(Status.WAITING);
