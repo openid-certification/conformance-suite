@@ -69,13 +69,6 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	volatile ConcurrentMap<String, Set<String>> eventsEnqueued;
 
-	/**
-	 * Subject identifier format used for each generated CAEP event, keyed by {@code jti}.
-	 * Used to verify that the receiver acknowledged events for every format required by
-	 * CAEP Interop Profile §2.5.
-	 */
-	volatile ConcurrentMap<String, String> subjectFormatByJti;
-
 	/** Event type of each generated CAEP event, keyed by {@code jti}, for the finish-time grading. */
 	volatile ConcurrentMap<String, String> eventTypeByJti;
 
@@ -86,7 +79,6 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		super.start();
 		eventsAcked = new ConcurrentHashMap<>();
 		eventsEnqueued = new ConcurrentHashMap<>();
-		subjectFormatByJti = new ConcurrentHashMap<>();
 		eventTypeByJti = new ConcurrentHashMap<>();
 		caepInteropEventsGenerated = false;
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 4, TimeUnit.SECONDS);
@@ -114,24 +106,6 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.2");
 		}
 		super.fireTestFinished();
-	}
-
-	/**
-	 * Draft-01 of the CAEP Interop Profile (2.5) requires receivers to accept {@code email} and
-	 * {@code iss_sub} subjects only; Complex Subjects are expected to be added
-	 * (openid/sharedsignals#351) but a receiver rejecting one today is within the profile.
-	 * Everything else the receiver rejects stays a FAILURE (RFC 8935 2.2).
-	 */
-	@Override
-	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
-		if (SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(subjectFormatByJti.get(event.jti()))) {
-			eventLog.log(getName(), args(
-				"msg", "The receiver did not accept a CAEP event with a Complex Subject; graded as a warning because "
-					+ "CAEP Interop Profile draft-01 section 2.5 does not require receivers to accept Complex Subjects (openid/sharedsignals#351)",
-				"jti", event.jti(), "event_type", event.type()));
-			return Condition.ConditionResult.WARNING;
-		}
-		return super.getPushDeliveryRejectionSeverity(event);
 	}
 
 	@Override
@@ -257,7 +231,6 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 			for (int i = 0; i < subjects.size(); i++) {
 				JsonObject subject = subjects.get(i);
-				String subjectFormat = SsfSubjectIdentifiers.getFormat(subject);
 				// CAEP Interop Profile 3.2 / 3.3: receivers MUST interpret all allowable values of
 				// change_type, credential_type, previous_status and current_status - covered once,
 				// with the first subject; the other subjects cover the subject formats.
@@ -265,7 +238,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				for (SsfEvent event : events) {
 					var generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event,
 						(sid, jti) -> {
-							subjectFormatByJti.put(jti, subjectFormat);
+							recordEventSubject(jti, subject);
 							eventTypeByJti.put(jti, eventType);
 							onStreamEventEnqueued(sid, jti);
 						});
@@ -332,7 +305,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	/**
 	 * Grades every generated CAEP event the receiver got but did not acknowledge: rejected
 	 * pushes and setErrs reports violate the event support the profile requires (a warning for
-	 * Complex Subjects, see {@link #getPushDeliveryRejectionSeverity}), events retrieved but
+	 * Complex Subjects, see {@link #isComplexSubjectEventToleratedUnderProfile}), events retrieved but
 	 * never acknowledged before the delete violate the delivery method's acknowledgement rule.
 	 * Events the delete purged before delivery cannot be assessed.
 	 */
@@ -360,7 +333,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			}
 			if (resolvedByError.contains(jti)) {
 				String eventType = eventTypeByJti.getOrDefault(jti, "unknown");
-				boolean complexSubject = SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(subjectFormatByJti.get(jti));
+				boolean complexSubject = isComplexSubjectEventToleratedUnderProfile(jti);
 				(complexSubject ? rejectedComplexSubjectByEventType : rejectedByEventType)
 					.computeIfAbsent(eventType, k -> new LinkedHashSet<>()).add(jti);
 			} else {

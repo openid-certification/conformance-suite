@@ -64,7 +64,7 @@
           "key": "ssf.subjects.valid",
           "label": "SSF valid SubjectId",
           "type": "object",
-          "tooltip": "Existing RFC 9493 SubjectId(s) the receiver knows, to generate SSF events for: a single SubjectId object or a JSON list of them. Each SubjectId must be valid according to RFC 9493 Subject Identifiers for Security Event Tokens. For the CAEP Interop Profile the list must contain at least one 'email' and one 'iss_sub' SubjectId (section 2.5); 'complex' SubjectIds (SSF section 3.3) are used as well. For example, [{\"format\":\"email\", \"email\":\"foo@example.com\"}, {\"format\":\"iss_sub\", \"iss\":\"https://idp.example.com\", \"sub\":\"1234\"}]"
+          "tooltip": "Existing RFC 9493 SubjectId(s) the receiver knows, to generate SSF events for: a single SubjectId object or a JSON list of them. Each SubjectId must be valid according to RFC 9493 Subject Identifiers for Security Event Tokens. For the CAEP Interop Profile the list must contain at least one 'email' and one 'iss_sub' SubjectId (section 2.5); 'complex' SubjectIds (SSF section 3.3) are used as well, and a receiver that rejects their events is reported as a warning only, since draft-01 of the profile does not list Complex Subjects. Modules that need a single subject use the first 'email' or 'iss_sub' entry. For example, [{\"format\":\"email\", \"email\":\"foo@example.com\"}, {\"format\":\"iss_sub\", \"iss\":\"https://idp.example.com\", \"sub\":\"1234\"}]"
         }
       ]
     },
