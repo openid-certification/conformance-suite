@@ -225,6 +225,18 @@ public class TokenStatusListTests {
 	}
 
 	@Test
+	public void indexOutsideTheListIsRejectedRatherThanReadAsValid() {
+		// 16 one-bit entries; the packed bytes past the end read as zero, i.e. VALID, so an
+		// out-of-range index must fail instead of passing
+		TokenStatusList statusList = TokenStatusList.create(new byte[16], 1);
+
+		assertEquals(Status.VALID, statusList.getStatus(15));
+		assertThrows(TokenStatusList.TokenStatusListException.class, () -> statusList.getStatus(16));
+		assertThrows(TokenStatusList.TokenStatusListException.class, () -> statusList.getStatus(1_000_000));
+		assertThrows(TokenStatusList.TokenStatusListException.class, () -> statusList.getStatus(-1));
+	}
+
+	@Test
 	public void truncatedZlibStreamFailsInsteadOfHanging() {
 		// a zlib stream cut off before its end used to spin the inflate loop forever,
 		// hanging the test (and its lock) that was checking a received status list
