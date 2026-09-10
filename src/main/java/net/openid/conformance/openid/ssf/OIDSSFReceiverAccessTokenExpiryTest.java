@@ -365,7 +365,7 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 			return;
 		}
 		SsfEvent event = generateSsfEventExample(eventType, now());
-		callAndContinueOnFailure(new OIDSSFGenerateStreamSET(eventStore, streamId, subjects.get(0), event, (sid, jti) -> postExpiryEventJti = jti),
+		callAndContinueOnFailure(new OIDSSFGenerateStreamSET(eventStore, streamId, getPrimaryEventSubject(), event, (sid, jti) -> postExpiryEventJti = jti),
 			Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
 		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
 			schedulePushDelivery(streamId);
