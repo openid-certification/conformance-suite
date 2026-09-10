@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidReques
 import net.openid.conformance.condition.client.ExpectInvalidRequestInvalidRequestObjectOrAccessDeniedErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-server-handles-non-matching-intent-id",
@@ -32,12 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-		"plain_fapi",
-		"consumerdataright_au",
-		"openbanking_brazil",
-		"openinsurance_brazil",
-		"openbanking_ksa"})
+@VariantApplicableOnly(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_uk" })
 public class FAPI1AdvancedFinalEnsureServerHandlesNonMatchingIntentId extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
