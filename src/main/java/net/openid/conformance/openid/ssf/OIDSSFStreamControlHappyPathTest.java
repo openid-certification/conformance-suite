@@ -218,15 +218,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 		fireTestFinished();
 	}
 
-	/**
-	 * Keeps the body of the PATCH or PUT just sent, so the returned and the read-back stream
-	 * configuration can be compared with it after {@code ssf.stream} has been replaced by the
-	 * transmitter's response.
-	 */
-	private void rememberSentStreamConfig() {
-		env.putObjectFromJsonString("ssf", "expected_stream_config", env.getString("resource_request_entity"));
-	}
-
 	private void readBackStreamConfigurationAndCompare(String blockTitle, Operation operation, String requirement) {
 		eventLog.runBlock(blockTitle, () -> {
 			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-8.1.1.2");
