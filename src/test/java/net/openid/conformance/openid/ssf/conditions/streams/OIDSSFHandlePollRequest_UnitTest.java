@@ -17,8 +17,13 @@ import org.mockito.InOrder;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -67,9 +72,13 @@ public class OIDSSFHandlePollRequest_UnitTest {
 	}
 
 	private void pollRequest(String bodyJson) {
+		pollRequest(STREAM, bodyJson);
+	}
+
+	private void pollRequest(String streamId, String bodyJson) {
 		JsonObject request = JsonParser.parseString("""
 			{"query_string_params": {"stream_id": "%s"}, "body_json": %s}
-			""".formatted(STREAM, bodyJson)).getAsJsonObject();
+			""".formatted(streamId, bodyJson)).getAsJsonObject();
 		env.putObject("incoming_request", request);
 	}
 
@@ -90,7 +99,7 @@ public class OIDSSFHandlePollRequest_UnitTest {
 		condition.execute(env);
 
 		assertTrue(eventStore.isStreamEventAcked(STREAM, "jti-1"));
-		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		JsonObject result = condition.getResult();
 		assertEquals(200, OIDFJSON.getInt(result.get("status_code")));
 		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").isEmpty());
 	}
@@ -105,7 +114,7 @@ public class OIDSSFHandlePollRequest_UnitTest {
 		condition.execute(env);
 
 		assertTrue(eventStore.isErrorForStreamEvent(STREAM, "jti-1") != null);
-		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		JsonObject result = condition.getResult();
 		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").isEmpty());
 	}
 
@@ -118,9 +127,46 @@ public class OIDSSFHandlePollRequest_UnitTest {
 		InOrder inOrder = inOrder(lockManager);
 		inOrder.verify(lockManager).releaseLock();
 		inOrder.verify(lockManager).reacquireLock();
-		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		JsonObject result = condition.getResult();
 		assertEquals(200, OIDFJSON.getInt(result.get("status_code")));
 		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").has("jti-1"));
+	}
+
+	@Test
+	void longPollKeepsItsOwnResultWhenAnotherPollRequestRunsMeanwhile() throws Exception {
+		// RFC 8936 2.4.2: a receiver may acknowledge "on separate threads" from the one that
+		// polls, so a second poll request can arrive while a long poll has released the lock.
+		String otherStream = "stream-2";
+		env.getElementFromObject("ssf", "streams").getAsJsonObject().add(otherStream, JsonParser.parseString("""
+			{"stream_id": "%s", "_status": {"stream_id": "%s", "status": "enabled"}}
+			""".formatted(otherStream, otherStream)).getAsJsonObject());
+
+		CountDownLatch lockReleased = new CountDownLatch(1);
+		doAnswer(invocation -> {
+			lockReleased.countDown();
+			return null;
+		}).when(lockManager).releaseLock();
+
+		OIDSSFHandlePollRequest longPoll = new OIDSSFHandlePollRequest(eventStore, (streamId, jti, event) -> { }, (streamId, jti, error) -> { });
+		longPoll.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
+		longPoll.setLockManager(lockManager);
+		pollRequest(otherStream, "{\"returnImmediately\": false, \"maxEvents\": 16}");
+		Thread longPollThread = new Thread(() -> longPoll.execute(env));
+		longPollThread.start();
+		assertTrue(lockReleased.await(5, TimeUnit.SECONDS), "the long poll did not release the lock");
+
+		// the other request is answered while the long poll is still waiting for an event
+		pollRequest(true);
+		condition.execute(env);
+		assertTrue(condition.getResult().getAsJsonObject("result").getAsJsonObject("sets").has("jti-1"));
+
+		eventStore.storeEvent(otherStream, new OIDSSFSecurityEvent("jti-2", "set-2", "urn:example:event"));
+		longPollThread.join(TimeUnit.SECONDS.toMillis(15));
+		assertFalse(longPollThread.isAlive(), "the long poll did not return after an event was stored");
+
+		JsonObject longPollSets = longPoll.getResult().getAsJsonObject("result").getAsJsonObject("sets");
+		assertTrue(longPollSets.has("jti-2"));
+		assertFalse(longPollSets.has("jti-1"));
 	}
 
 	@Test
@@ -131,7 +177,7 @@ public class OIDSSFHandlePollRequest_UnitTest {
 
 		verify(lockManager, never()).releaseLock();
 		verify(lockManager, never()).reacquireLock();
-		JsonObject result = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		JsonObject result = condition.getResult();
 		assertTrue(result.getAsJsonObject("result").getAsJsonObject("sets").has("jti-1"));
 	}
 
