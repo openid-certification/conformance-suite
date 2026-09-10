@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.ssf.conditions.events;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class OIDSSFValidateCaepCredentialChangeEvent_UnitTest {
@@ -71,13 +73,42 @@ public class OIDSSFValidateCaepCredentialChangeEvent_UnitTest {
 	}
 
 	@Test
+	void shouldPassWithSpecExample() {
+		// CAEP 1.0 Figure 9
+		setUpCaepEvent(JsonParser.parseString("""
+			{
+				"credential_type": "fido2-roaming",
+				"change_type": "create",
+				"fido2_aaguid": "accced6a-63f5-490a-9eea-e59bc1896cfc",
+				"friendly_name": "Jane's USB authenticator",
+				"initiating_entity": "user",
+				"reason_admin": {
+					"en": "User self-enrollment"
+				},
+				"event_timestamp": 1615304991
+			}""").getAsJsonObject());
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
 	void shouldNotFailWithExtensionCredentialType() {
-		// Non-standard credential_type values are allowed as extension values (logged, not error)
+		// CAEP 1.0 3.3.1 permits "any other credential type supported mutually by the Transmitter and the Receiver"
 		JsonObject data = new JsonObject();
 		data.addProperty("credential_type", "custom-hardware-token");
 		data.addProperty("change_type", "create");
 		setUpCaepEvent(data);
 		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithNonStandardChangeType() {
+		// CAEP 1.0 3.3.1: change_type "MUST be one of" create, revoke, update, delete
+		JsonObject data = new JsonObject();
+		data.addProperty("credential_type", "password");
+		data.addProperty("change_type", "suspend");
+		setUpCaepEvent(data);
+		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertTrue(e.getMessage().contains("change_type"));
 	}
 
 	@Test
