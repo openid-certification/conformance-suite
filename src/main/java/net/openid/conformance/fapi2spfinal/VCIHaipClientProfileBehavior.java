@@ -38,9 +38,23 @@ public class VCIHaipClientProfileBehavior extends VCIClientProfileBehavior {
 		return buildSdJwtStatusListClaims(module.getEnv());
 	}
 
+	/**
+	 * Reference the same Token Status List from the MSO's status element of issued mdoc
+	 * credentials (ISO/IEC 18013-5 12.3.6.2), so mdoc and SD-JWT credentials carry equivalent
+	 * revocation information.
+	 */
+	@Override
+	public String additionalMdocStatusListUri() {
+		return buildStatusListUri(module.getEnv());
+	}
+
+	/** The URI of the single status list the emulated issuer serves. */
+	public static String buildStatusListUri(Environment env) {
+		return VCIClientProfileBehavior.getStatusListUrl(env, "1");
+	}
+
 	public static Map<String, Object> buildSdJwtStatusListClaims(Environment env) {
-		String issuer = env.getString("server", "issuer");
-		String statusListUri = (issuer == null ? "" : issuer) + "statuslists/1";
+		String statusListUri = buildStatusListUri(env);
 
 		Map<Object, Object> statusListEntry = new HashMap<>();
 		statusListEntry.put("idx", 0);
