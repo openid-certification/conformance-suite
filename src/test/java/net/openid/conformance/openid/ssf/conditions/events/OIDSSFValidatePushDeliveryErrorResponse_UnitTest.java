@@ -34,11 +34,18 @@ public class OIDSSFValidatePushDeliveryErrorResponse_UnitTest {
 	}
 
 	private void prepareResponse(int status, String contentType, String body) {
+		prepareResponse(status, contentType, "en", body);
+	}
+
+	private void prepareResponse(int status, String contentType, String contentLanguage, String body) {
 		JsonObject response = new JsonObject();
 		response.addProperty("status", status);
 		JsonObject headers = new JsonObject();
 		if (contentType != null) {
 			headers.addProperty("content-type", contentType);
+		}
+		if (contentLanguage != null) {
+			headers.addProperty("content-language", contentLanguage);
 		}
 		response.add("headers", headers);
 		if (body != null) {
@@ -82,6 +89,19 @@ public class OIDSSFValidatePushDeliveryErrorResponse_UnitTest {
 	@Test
 	public void failsWhenContentTypeIsMissing() {
 		prepareResponse(400, null, "{\"err\":\"invalid_key\",\"description\":\"nope\"}");
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void failsWhenContentLanguageIsMissing() {
+		prepareResponse(400, "application/json", null, "{\"err\":\"invalid_key\",\"description\":\"nope\"}");
+		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertTrue(e.getMessage().contains("Content-Language"));
+	}
+
+	@Test
+	public void failsWhenContentLanguageIsBlank() {
+		prepareResponse(400, "application/json", " ", "{\"err\":\"invalid_key\",\"description\":\"nope\"}");
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 
