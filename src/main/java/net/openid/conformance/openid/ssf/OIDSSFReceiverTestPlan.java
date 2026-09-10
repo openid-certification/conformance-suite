@@ -22,7 +22,10 @@ public class OIDSSFReceiverTestPlan implements TestPlan {
 		OIDSSFReceiverStreamVerificationTest.class,
 		OIDSSFReceiverUnsolicitedStreamVerificationTest.class,
 		OIDSSFReceiverSupportedEventsTest.class,
-		OIDSSFReceiverInvalidSetRejectionTest.class
+		OIDSSFReceiverInvalidSetRejectionTest.class,
+		OIDSSFReceiverVerificationWrongStateTest.class,
+		OIDSSFReceiverVerificationBehindQueuedEventsTest.class,
+		OIDSSFReceiverRedeliveredSetTest.class
 	);
 
 	@Override
