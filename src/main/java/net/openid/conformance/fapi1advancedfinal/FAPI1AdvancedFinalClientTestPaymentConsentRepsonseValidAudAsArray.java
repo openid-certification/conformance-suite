@@ -3,7 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.as.AddAudValueAsArrayToPaymentsConsentResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-payment-consent-response-valid-aud-as-array",
@@ -20,12 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 // Only applicable to Brazil OpenBanking.
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-		"plain_fapi",
-		"openbanking_uk",
-		"consumerdataright_au",
-		"openinsurance_brazil",
-		"openbanking_ksa" })
+@VariantApplicableOnly(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil" })
 public class FAPI1AdvancedFinalClientTestPaymentConsentRepsonseValidAudAsArray extends AbstractFAPI1AdvancedFinalClientTest {
 
 	@Override

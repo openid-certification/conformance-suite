@@ -3,7 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-openbanking-intent-id",
@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "openinsurance_brazil", "openbanking_ksa" })
+@VariantApplicableOnly(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_uk", "consumerdataright_au" })
 public class FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
