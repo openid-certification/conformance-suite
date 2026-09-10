@@ -65,9 +65,14 @@ public class OIDSSFGenerateWrongStateStreamVerificationSET_UnitTest {
 		eventStore = new OIDSSFInMemoryEventStore();
 	}
 
+	private final List<Boolean> receiverSentStateReported = new ArrayList<>();
+
 	private OIDSSFSecurityEvent generate() {
 		List<OIDSSFSecurityEvent> generated = new ArrayList<>();
-		OIDSSFGenerateWrongStateStreamVerificationSET condition = new OIDSSFGenerateWrongStateStreamVerificationSET(eventStore, generated::add);
+		OIDSSFGenerateWrongStateStreamVerificationSET condition = new OIDSSFGenerateWrongStateStreamVerificationSET(eventStore, (event, receiverSentState) -> {
+			generated.add(event);
+			receiverSentStateReported.add(receiverSentState);
+		});
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 		condition.execute(env);
 		assertEquals(1, generated.size());
@@ -91,6 +96,7 @@ public class OIDSSFGenerateWrongStateStreamVerificationSET_UnitTest {
 		assertNotNull(state);
 		assertNotEquals("receiver-state-123", state);
 		assertEquals(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE, event.type());
+		assertEquals(List.of(true), receiverSentStateReported, "the module is told the receiver sent a state");
 	}
 
 	@Test
@@ -98,6 +104,7 @@ public class OIDSSFGenerateWrongStateStreamVerificationSET_UnitTest {
 		OIDSSFSecurityEvent event = generate();
 
 		assertNotNull(verificationState(event));
+		assertEquals(List.of(false), receiverSentStateReported, "the module is told the receiver sent no state");
 	}
 
 	@Test
