@@ -25,7 +25,9 @@ public class OIDSSFReceiverTestPlan implements TestPlan {
 		OIDSSFReceiverInvalidSetRejectionTest.class,
 		OIDSSFReceiverVerificationWrongStateTest.class,
 		OIDSSFReceiverVerificationBehindQueuedEventsTest.class,
-		OIDSSFReceiverRedeliveredSetTest.class
+		OIDSSFReceiverRedeliveredSetTest.class,
+		OIDSSFReceiverRemovedSubjectEventTest.class,
+		OIDSSFReceiverAccessTokenExpiryTest.class
 	);
 
 	@Override

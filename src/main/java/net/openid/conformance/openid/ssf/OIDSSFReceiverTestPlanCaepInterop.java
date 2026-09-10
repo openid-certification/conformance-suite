@@ -31,7 +31,10 @@ public class OIDSSFReceiverTestPlanCaepInterop implements TestPlan {
 				OIDSSFReceiverHappyPathTest.class,
 
 				// Happy path tests are not relevant to CAEP-Interop as stream update / replace operations are not supported
-				OIDSSFReceiverStreamStatusUpdateTest.class
+				OIDSSFReceiverStreamStatusUpdateTest.class,
+
+				// CAEP Interop has no subject endpoints (2.4.4: all subjects are implicitly in the stream)
+				OIDSSFReceiverRemovedSubjectEventTest.class
 			)
 		);
 
