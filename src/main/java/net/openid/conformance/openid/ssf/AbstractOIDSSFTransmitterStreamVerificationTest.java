@@ -15,6 +15,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventCont
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventValuesAreJsonObjects;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
@@ -197,6 +198,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 		} else {
 			callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.WARNING, "OIDSSF-4.2.1");
 		}
+		callAndContinueOnFailure(OIDSSFEnsureSecurityEventValuesAreJsonObjects.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.7");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.6");

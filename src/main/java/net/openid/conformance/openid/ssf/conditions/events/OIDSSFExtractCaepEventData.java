@@ -39,6 +39,10 @@ public class OIDSSFExtractCaepEventData extends AbstractCondition {
 		for (Map.Entry<String, JsonElement> entry : events.entrySet()) {
 			String eventType = entry.getKey();
 			if (SsfEvents.CAEP_EVENT_TYPES.contains(eventType)) {
+				if (!entry.getValue().isJsonObject()) {
+					throw error("The value of an event in the 'events' claim must be a JSON object",
+						args("event_type", eventType, "value", entry.getValue()));
+				}
 				JsonObject eventData = entry.getValue().getAsJsonObject();
 				env.putString("ssf", "caep_event.type", eventType);
 				env.putObject("ssf", "caep_event.data", eventData);
