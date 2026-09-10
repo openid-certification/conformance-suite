@@ -74,7 +74,9 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 				.jwtID(setJti)
 				.issuer(serverIssuer)
 				.audience(audience)
-				.issueTime(issueTime);
+				.issueTime(issueTime)
+				// SSF 1.0 4.1.9: transmitters SHOULD set txn; each emulated SET stems from its own event
+				.claim("txn", UUID.randomUUID().toString());
 
 			addSubjectAndEvents(streamId, streamConfig, claimsBuilder);
 
