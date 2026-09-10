@@ -153,11 +153,11 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		boolean pushDelivery = OIDSSFStreamUtils.isPushDelivery(streamConfig);
 
-		// Use the first resolved event subject ('SSF valid SubjectId' is validated and
-		// profile-filtered by OIDSSFResolveEventSubjects at configure time and may hold a
-		// list); the receiver must reject the tampered SETs on the SET envelope regardless
-		// of which valid subject they carry, so one subject suffices.
-		JsonObject validSubject = getEventSubjects().get(0);
+		// 'SSF valid SubjectId' is validated and profile-filtered by OIDSSFResolveEventSubjects
+		// at configure time and may hold a list; the receiver must reject the tampered SETs on
+		// the SET envelope regardless of which valid subject they carry, so one subject suffices
+		// (not a Complex Subject, which the profile lets a receiver reject on its own account).
+		JsonObject validSubject = getPrimaryEventSubject();
 		SsfEvent ssfEvent = generateSsfEventExample(pickEventType(), Instant.now().getEpochSecond());
 
 		List<OIDSSFSecurityEvent> generatedForPush = new CopyOnWriteArrayList<>();
