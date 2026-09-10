@@ -15,10 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,8 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 	displayName = "OpenID Shared Signals Framework: Test Receiver Access Token Expiry Handling",
 	summary = """
 		This test verifies that the receiver copes with the expiry of its access token.
-		The test generates a dynamic transmitter whose authorization server issues access tokens with a lifetime of only 20 seconds: the CAEP Interop Profile requires short-lived access tokens (2.7.1) and transmitters verify the expiration of the access tokens they are presented (2.7.2). The receiver obtains a token, creates a stream and requests its verification. With PUSH delivery the verification event is pushed only once the first token has expired, so the receiver's next request to the transmitter (typically deleting the stream) is made after the expiry; with POLL delivery the receiver's polls run into the expiry. After the first token expired the transmitter also delivers one ordinary event for the first subject listed in the 'SSF valid SubjectId' field.
-		A request carrying an expired access token is rejected with HTTP 401 and a WWW-Authenticate challenge with error 'invalid_token' (RFC 6750 3.1). The receiver must then obtain a new access token from the authorization server and repeat the request; obtaining a new token before the old one expires is accepted as well. Presenting the expired token repeatedly without obtaining a new one fails the test.
+		The test generates a dynamic transmitter whose authorization server issues access tokens with a lifetime of only 20 seconds: the CAEP Interop Profile requires short-lived access tokens (2.7.1) and transmitters verify the expiration of the access tokens they are presented (2.7.2). The receiver obtains a token, creates a stream and requests its verification; the verification event is delivered right away. Once the first token has expired the transmitter delivers one ordinary event for an 'email' or 'iss_sub' subject listed in the 'SSF valid SubjectId' field. The receiver should keep the stream open until it has received that event (and, with POLL delivery, acknowledged it) and then delete the stream, so that at least that request is made after the expiry; with POLL delivery the receiver's polls run into the expiry anyway. A receiver that deletes the stream before its first token expired cannot be assessed and fails the test.
+		A request carrying an expired access token is rejected with HTTP 401 and a WWW-Authenticate challenge with error 'invalid_token' (RFC 6750 3.1). The receiver must then obtain a new access token from the authorization server and repeat the request; obtaining a new token before the old one expires is accepted as well. Presenting the expired token repeatedly before obtaining a new one is reported as a warning; never obtaining one fails the test.
 		The testsuite expects to observe the following interactions:
 		 * obtain an access token
 		 * create a stream
@@ -45,11 +42,11 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 
 	static final int ACCESS_TOKEN_LIFETIME_SECONDS = 20;
 
-	/** Rejections of an expired token without a new token being obtained that fail the test. */
-	private static final int EXPIRED_TOKEN_REJECTIONS_BEFORE_FAILURE = 3;
+	/** Rejections of an expired token without a new token being obtained after which the receiver is warned. */
+	private static final int EXPIRED_TOKEN_REJECTIONS_BEFORE_WARNING = 3;
 
 	/** How long the test keeps running for a receiver that keeps presenting its expired token. */
-	private static final int FINISH_AFTER_FAILURE_SECONDS = 120;
+	private static final int FINISH_AFTER_REPEATED_REJECTIONS_SECONDS = 120;
 
 	/** Time after the first expiry to wait for a receiver that deleted the stream early to come back. */
 	private static final int POST_EXPIRY_GRACE_SECONDS = 10;
@@ -83,9 +80,6 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 	/** An authorized request after the first expiry, necessarily made with a newer token. */
 	volatile boolean continuedWithNewToken;
 
-	/** Push streams whose delivery is held back until the first access token expired. */
-	final Set<String> heldPushStreams = ConcurrentHashMap.newKeySet();
-
 	final AtomicBoolean postExpiryEventGenerated = new AtomicBoolean();
 
 	volatile String postExpiryEventJti;
@@ -106,7 +100,7 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 	@Override
 	protected boolean isFinished() {
 		if (keepsPresentingExpiredTokenRecordedAt >= 0) {
-			return isStreamDeleted() || now() - keepsPresentingExpiredTokenRecordedAt >= FINISH_AFTER_FAILURE_SECONDS;
+			return isStreamDeleted() || now() - keepsPresentingExpiredTokenRecordedAt >= FINISH_AFTER_REPEATED_REJECTIONS_SECONDS;
 		}
 		if (!isStreamDeleted() || !firstTokenExpired) {
 			// the expiry watcher fires even when the receiver deleted the stream early
@@ -145,7 +139,7 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 	private void gradeTokenExpiryHandling() {
 		int rejections = expiredTokenRejections.get();
 		if (rejections > 0) {
-			if (!tokenObtainedAfterRejection && keepsPresentingExpiredTokenRecordedAt < 0) {
+			if (!tokenObtainedAfterRejection) {
 				callAndContinueOnFailure(new OIDSSFFindingCondition(
 						"The receiver's expired access token was rejected " + rejections + " time(s) with 401 invalid_token, but the receiver never obtained a new access token afterwards. "
 							+ "After such a rejection a receiver must obtain a fresh access token from the authorization server and repeat the request."),
@@ -154,7 +148,8 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 		} else if (!tokenRefreshedWithoutRejection) {
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver's handling of an expired access token could not be observed: it made no request after its first access token expired (" + ACCESS_TOKEN_LIFETIME_SECONDS + " s lifetime) "
-						+ "and obtained no further token. Keep the stream open until the event delivered after the token expiry was acknowledged, then delete it."),
+						+ "and obtained no further token. Keep the stream open until the event delivered after the token expiry was received (and acknowledged, with POLL delivery), "
+						+ "then delete the stream, so that at least the deletion is requested after the expiry."),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.1", "CAEPIOP-2.7.2");
 		}
 
@@ -175,7 +170,7 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 		}
 
 		if (!isStreamDeleted()) {
-			eventLog.log(getName(), "The receiver did not delete the stream; the test finished after " + FINISH_AFTER_FAILURE_SECONDS + " s.");
+			eventLog.log(getName(), "The receiver did not delete the stream; the test finished after " + FINISH_AFTER_REPEATED_REJECTIONS_SECONDS + " s.");
 		}
 	}
 
@@ -221,45 +216,30 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 		} else {
 			eventLog.log(getName(), args("msg", "Rejected an expired access token again (rejection #" + count + ")", "path", path));
 		}
-		if (count >= EXPIRED_TOKEN_REJECTIONS_BEFORE_FAILURE
+		if (count >= EXPIRED_TOKEN_REJECTIONS_BEFORE_WARNING
 			&& tokensIssued.get() == tokensIssuedAtFirstRejection
 			&& keepsPresentingExpiredTokenRecordedAt < 0) {
+			// retrying with the same token is not forbidden (the client "MAY request a new access
+			// token and retry"), so this is a warning; whether a new token is ever obtained is
+			// graded when the test finishes
 			keepsPresentingExpiredTokenRecordedAt = now();
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver presented its expired access token " + count + " times without obtaining a new one. "
-						+ "After a 401 response with an invalid_token challenge a receiver must obtain a fresh access token from the authorization server and repeat the request; "
+						+ "After a 401 response with an invalid_token challenge a receiver is expected to obtain a fresh access token from the authorization server and repeat the request; "
 						+ "short-lived access tokens expire during normal operation."),
-				Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.1", "RFC6750-3.1");
+				Condition.ConditionResult.WARNING, "CAEPIOP-2.7.1", "RFC6750-3.1");
 		}
-	}
-
-	private void onFirstTokenExpired() {
-		firstTokenExpired = true;
-		eventLog.log(getName(), args("msg", "The receiver's first access token has expired", "expired_at", firstTokenExpiresAt));
-		List<String> released = new ArrayList<>(heldPushStreams);
-		heldPushStreams.clear();
-		for (String streamId : released) {
-			if (OIDSSFStreamUtils.getStreamConfig(env, streamId) != null) {
-				eventLog.log(getName(), args("msg", "Releasing the push delivery held until the token expiry", "stream_id", streamId));
-				super.schedulePushDelivery(streamId);
-			}
-		}
-		generatePostExpiryEventWhenReady();
 	}
 
 	/**
-	 * Push delivery is held until the first access token expired, so a push receiver's next
-	 * request to the transmitter (acknowledging via 202 is not one) happens after the expiry.
+	 * The verification event is delivered as soon as it is requested, like in every other
+	 * module; only the event that gives the receiver a reason to keep the stream open past the
+	 * expiry is generated after it, see {@link #generatePostExpiryEventWhenReady}.
 	 */
-	@Override
-	protected void schedulePushDelivery(String streamId) {
-		if (!firstTokenExpired) {
-			if (heldPushStreams.add(streamId)) {
-				eventLog.log(getName(), args("msg", "Holding the push delivery for the stream until the receiver's first access token expired", "stream_id", streamId));
-			}
-			return;
-		}
-		super.schedulePushDelivery(streamId);
+	private void onFirstTokenExpired() {
+		firstTokenExpired = true;
+		eventLog.log(getName(), args("msg", "The receiver's first access token has expired", "expired_at", firstTokenExpiresAt));
+		generatePostExpiryEventWhenReady();
 	}
 
 	/** Any authorized request after the first expiry proves the receiver carries a newer token. */
@@ -343,7 +323,9 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 	/**
 	 * Generates one ordinary event once the first token expired and the stream is verified,
 	 * whichever happens last, so the receiver has an event to retrieve or acknowledge after the
-	 * expiry.
+	 * expiry and a reason to keep the stream open until then. With PUSH delivery the 202 that
+	 * acknowledges it carries no token, so the deletion the receiver makes afterwards is the
+	 * request observed after the expiry.
 	 */
 	private void generatePostExpiryEventWhenReady() {
 		String streamId = createdStreamId;
