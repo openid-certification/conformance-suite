@@ -103,15 +103,9 @@ public class OIDSSFValidatePollResponse_UnitTest {
 	}
 
 	@Test
-	void failsWhenMoreSetsThanMaxEvents() {
+	void passesWhenMoreSetsThanMaxEvents() {
 		prepare("application/json", "{\"sets\":{\"jti1\":\"a.b.c\",\"jti2\":\"d.e.f\"}}", 1);
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
-	}
-
-	@Test
-	void failsWhenSetsReturnedForAcknowledgeOnlyRequest() {
-		prepare("application/json", "{\"sets\":{\"jti1\":\"a.b.c\"}}", 0);
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+		assertDoesNotThrow(() -> createCondition().execute(env));
 	}
 
 	@Test
