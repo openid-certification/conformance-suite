@@ -50,11 +50,15 @@ public class VCIGenerateCwtStatusListToken extends AbstractCondition {
 
 		AsymmetricKey.X509CertifiedExplicit signingKey = TestKeysAndCerts.getStatusListSignerKey();
 
+		// draft-ietf-oauth-status-list section 4.3: optional pointer to the Status List
+		// Aggregation this issuer serves (section 9.3)
+		String aggregationUri = env.getString("server", "status_list_aggregation_endpoint");
+
 		byte[] token;
 		try {
 			token = CwtStatusListTokenBuilder.build(currentStatusListUri, iat, exp,
 				TimeUnit.MINUTES.toSeconds(12), EvenOddStatusListContents.BITS, compressedStatusList,
-				signingKey, Algorithm.ES256);
+				signingKey, Algorithm.ES256, aggregationUri);
 		} catch (Exception e) {
 			throw error("Failed to sign the status list token in CWT format", e);
 		}
