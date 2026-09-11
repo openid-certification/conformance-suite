@@ -47,8 +47,9 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 			OIDSSFStreamControlNegativeTestReplaceStreamWithInvalidToken.class,
 			OIDSSFStreamControlNegativeTestReplaceUnknownStream.class,
 			OIDSSFStreamSubjectControlHappyPathTest.class,
-			// pausing a stream needs the status update operation, which CAEPIOP 2.3.5 does not require
-			OIDSSFTransmitterPausedStreamHoldsEventsTest.class
+			// pausing or disabling a stream needs the status update operation, which CAEPIOP 2.3.5 does not require
+			OIDSSFTransmitterPausedStreamHoldsEventsTest.class,
+			OIDSSFTransmitterDisabledStreamDropsEventsTest.class
 		));
 
 		return List.of(new ModuleListEntry(testModules, List.of(
