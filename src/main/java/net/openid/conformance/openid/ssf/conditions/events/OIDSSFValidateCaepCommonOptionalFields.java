@@ -79,8 +79,8 @@ public class OIDSSFValidateCaepCommonOptionalFields extends AbstractCondition {
 				args("event_type", eventType, "event_timestamp", el));
 		}
 		double value = OIDFJSON.getDouble(el);
-		if (value < 0 || value != Math.floor(value)) {
-			throw error("event_timestamp must be a non-negative whole number of seconds since the Unix epoch",
+		if (value < 0) {
+			throw error("event_timestamp must be a non-negative number of seconds since the Unix epoch",
 				args("event_type", eventType, "event_timestamp", el));
 		}
 		if (value >= MAX_PLAUSIBLE_EPOCH_SECONDS) {
