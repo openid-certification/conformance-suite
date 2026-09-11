@@ -86,6 +86,26 @@ public class OIDSSFHandleStreamUpdateRequest_UnitTest {
 	}
 
 	@Test
+	void acceptsEchoedTransmitterSuppliedArraysInAnotherOrder() {
+		putBody("""
+			{"stream_id": "%s", "description": "new",
+			 "events_supported": ["urn:example:event:c", "urn:example:event:a", "urn:example:event:b"],
+			 "events_delivered": ["urn:example:event:b", "urn:example:event:a"]}
+			""".formatted(STREAM));
+		assertDoesNotThrow(() -> condition.execute(env));
+		assertEquals(200, OIDFJSON.getInt(result().get("status_code")));
+	}
+
+	@Test
+	void rejectsAnEchoedTransmitterSuppliedArrayWithOtherElements() {
+		putBody("""
+			{"stream_id": "%s", "description": "new", "events_supported": ["urn:example:event:a"]}
+			""".formatted(STREAM));
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertEquals(400, OIDFJSON.getInt(result().get("status_code")));
+	}
+
+	@Test
 	void answersAnUnknownStreamWith404WithoutGrading() {
 		putBody("""
 			{"stream_id": "stream_unknown", "description": "new"}
