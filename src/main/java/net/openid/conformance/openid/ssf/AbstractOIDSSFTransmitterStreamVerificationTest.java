@@ -25,6 +25,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceived
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenAudClaimMissing;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenJtiClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenTxnClaimIsString;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenTxnClaimMissing;
@@ -205,6 +206,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIatIsNotInFuture.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "RFC7519-4.1.6");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenJtiClaim.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2");
 
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenAudClaimMissing.class, Condition.ConditionResult.WARNING, "RFC8417-2.2", "OIDSSF-4.1.8");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8");
 		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.8", "OIDSSF-8.1.1");
 
