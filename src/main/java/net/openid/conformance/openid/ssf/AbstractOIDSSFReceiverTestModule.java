@@ -524,13 +524,21 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		env.mapKey("incoming_request", requestId);
 
 		if (isFinished()) {
-			// ignore requests after the test finished.
-			// The transmitter tests might send additional cleanup requests which we don't need to handle here.
-			// A stream list read is answered like a transmitter without streams would (SSF 1.0
-			// 8.1.1.2: an empty list), since the receiver's stream is gone by the time the test
-			// finished; the test log is not touched.
-			if ("streams".equals(path) && "GET".equals(req.getMethod()) && !requestParts.getAsJsonObject("query_string_params").has("stream_id")) {
-				return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new JsonArray());
+			// Requests after the test finished are answered without touching the test log or the
+			// status machine. The static documents stay available, since a receiver cleaning up
+			// may re-read them: the transmitter metadata, the signing keys and the stream list,
+			// which is answered like a transmitter without streams would (SSF 1.0 8.1.1.2: an
+			// empty list) since the receiver's stream is gone by then. Everything else gets 204.
+			if ("GET".equals(req.getMethod())) {
+				if ("streams".equals(path) && !requestParts.getAsJsonObject("query_string_params").has("stream_id")) {
+					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new JsonArray());
+				}
+				if ("jwks".equals(path)) {
+					return serveJwks();
+				}
+				if ("ssf-configuration".equals(path)) {
+					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(getSsfConfiguration());
+				}
 			}
 			return ResponseEntity.noContent().build();
 		}
@@ -726,7 +734,18 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		if (isFinished()) {
 			// as in handleHttp: a receiver re-reading the metadata after the test finished must not
-			// trip the status machine (FINISHED -> RUNNING)
+			// trip the status machine (FINISHED -> RUNNING), but still gets the static documents
+			if ("GET".equals(req.getMethod())) {
+				if (path.startsWith("/.well-known/ssf-configuration")) {
+					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(getSsfConfiguration());
+				}
+				if (path.startsWith("/.well-known/oauth-authorization-server")) {
+					JsonElement asMetadataEl = env.getElementFromObject("ssf", "authorization_server_metadata");
+					return asMetadataEl == null
+						? ResponseEntity.notFound().build()
+						: ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(asMetadataEl.getAsJsonObject());
+				}
+			}
 			return ResponseEntity.noContent().build();
 		}
 
@@ -769,7 +788,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		// CAEP Interop Profile 2.4.2: the receiver MUST obtain the transmitter's signing
 		// key(s) via the advertised jwks_uri - record the fetch so tests can assert it.
 		jwksEndpointFetched = true;
-		// Serve only the public keys at the transmitter jwks_uri - it must not leak private key material.
+		return serveJwks();
+	}
+
+	/** The transmitter's signing keys as published at its jwks_uri: the public keys only. */
+	protected ResponseEntity<?> serveJwks() {
 		JsonObject publicJwks = JWKUtil.toPublicJWKSet(env.getObject("server_jwks"));
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(publicJwks);
 	}
