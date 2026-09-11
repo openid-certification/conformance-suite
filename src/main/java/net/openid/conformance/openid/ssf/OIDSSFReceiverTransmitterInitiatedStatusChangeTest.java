@@ -149,6 +149,15 @@ public class OIDSSFReceiverTransmitterInitiatedStatusChangeTest extends Abstract
 		}
 	}
 
+	/** A rejected push of a generated event is recorded at INFO here and graded once at the end of the test. */
+	@Override
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (generatedJtis.contains(event.jti())) {
+			return Condition.ConditionResult.INFO;
+		}
+		return super.getPushDeliveryRejectionSeverity(event);
+	}
+
 	private void onGeneratedEventAcknowledged(String streamId, String jti, String deliveryMethod) {
 		if (!generatedJtis.contains(jti)) {
 			return;
