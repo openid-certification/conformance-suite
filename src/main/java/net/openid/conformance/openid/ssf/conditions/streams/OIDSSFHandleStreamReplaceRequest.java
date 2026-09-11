@@ -55,9 +55,12 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
+			// SSF 1.0 8.1.1.4, Table 5: 404 is the transmitter's regular answer for a stream_id it
+			// does not know, as for a read or delete; a stale id from an earlier run is not graded.
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			throw error("Failed to handle stream replacement request: Stream not found", args("stream_id", streamId));
+			log("Handled stream replacement request: no stream with the given stream_id, answered 404", args("stream_id", streamId));
+			return env;
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
