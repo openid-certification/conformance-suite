@@ -48,6 +48,12 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	/** Environment object holding the revocation list HTTP response (status and headers). */
 	public static final String ENV_RESPONSE = "mdoc_revocation_list_endpoint_response";
 
+	/**
+	 * The optional Certificate element of the MSO's status reference (base64 DER), the explicit
+	 * trust point for the revocation list's x5chain when present (ISO/IEC 18013-5 12.3.6.2).
+	 */
+	public static final String ENV_REFERENCE_CERTIFICATE = "mdoc_revocation_list_reference_certificate";
+
 	/** Environment integer holding the MSO's index into the status list. */
 	public static final String ENV_STATUS_LIST_IDX = "mdoc_status_list_idx";
 

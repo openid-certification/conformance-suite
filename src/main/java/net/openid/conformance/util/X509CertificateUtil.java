@@ -83,6 +83,23 @@ public class X509CertificateUtil {
 	}
 
 	/**
+	 * Parses a PEM encoded trust anchor certificate. Returns {@code null} when the input is
+	 * {@code null}; throws when the input is non-null but not a parseable X.509 certificate, so a
+	 * misconfigured trust anchor surfaces as a test failure rather than silently downgrading to
+	 * chain validation without an anchor.
+	 */
+	public static X509Certificate parseTrustAnchorPem(String trustAnchorPem) throws X5cCertificateChainException {
+		if (trustAnchorPem == null) {
+			return null;
+		}
+		X509Certificate cert = X509CertUtils.parse(trustAnchorPem);
+		if (cert == null) {
+			throw new X5cCertificateChainException("Configured trust anchor PEM could not be parsed as an X.509 certificate");
+		}
+		return cert;
+	}
+
+	/**
 	 * Validate an x5c certificate chain.
 	 *
 	 * Always performs leaf validity, leaf-not-self-signed, and trust-anchor-exclusion checks.
