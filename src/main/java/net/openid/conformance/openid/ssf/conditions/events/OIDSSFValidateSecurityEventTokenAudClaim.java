@@ -6,6 +6,12 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+/**
+ * Checks the shape of a present {@code aud} claim: SSF 1.0 section 4.1.8 says it "can be a
+ * single string or an array of strings". An absent claim passes; its absence is graded
+ * separately by {@link OIDSSFWarnSecurityEventTokenAudClaimMissing}. Reads the parsed SET from
+ * {@code set_token.claims}.
+ */
 public class OIDSSFValidateSecurityEventTokenAudClaim extends AbstractCondition {
 
 	@PreEnvironment(required = {"set_token"})
@@ -14,7 +20,8 @@ public class OIDSSFValidateSecurityEventTokenAudClaim extends AbstractCondition 
 
 		JsonElement setAudienceElement = env.getElementFromObject("set_token", "claims.aud");
 		if (setAudienceElement == null) {
-			throw error("Could not find required 'aud' claim in verification token");
+			log("The SET contains no 'aud' claim; nothing to check");
+			return env;
 		}
 
 		if (setAudienceElement.isJsonArray()) {
