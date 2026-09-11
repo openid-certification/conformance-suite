@@ -57,6 +57,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignature
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
@@ -163,6 +164,8 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckStreamAudience.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
+			// the run cannot continue on a delivery the receiver did not ask for
+			callAndStopOnFailure(OIDSSFEnsureStreamDeliveryMatchesRequest.class, "CAEPIOP-2.3.8.1", "OIDSSF-8.1.1.1", "OIDSSF-6.1.2");
 			callAndContinueOnFailure(OIDSSFStreamRequiredFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			callAndContinueOnFailure(OIDSSFStreamOptionalFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			callAndContinueOnFailure(OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
