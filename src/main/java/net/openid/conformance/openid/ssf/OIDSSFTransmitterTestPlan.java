@@ -52,6 +52,7 @@ public class OIDSSFTransmitterTestPlan implements TestPlan {
 		OIDSSFTransmitterStreamVerificationPollOnlyTest.class,
 		OIDSSFTransmitterStreamVerificationPollAndAckTest.class,
 		OIDSSFTransmitterStreamVerificationAckOnlyTest.class,
+		OIDSSFTransmitterStreamVerificationSetErrsTest.class,
 		OIDSSFTransmitterPausedStreamHoldsEventsTest.class,
 		OIDSSFTransmitterStreamVerificationPushNoAuthTest.class
 	);
