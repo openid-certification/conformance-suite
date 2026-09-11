@@ -43,6 +43,13 @@ public class VerifyMdocRevocationListCwtSignature_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_verifiesAnIdentifierListSignatureWithX5chainLeaf() throws Exception {
+		putToken(IdentifierListCwtTestFixtures.validIdentifierListToken());
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_rejectsAnAlgorithmNotPairedWithTheSignersCurve() throws Exception {
 		// ES384 over the fixture's P-256 key verifies cryptographically, but ISO/IEC 18013-5
 		// 12.3.6.3 pairs ES384 with P-384 and the 320/384-bit Brainpool curves only

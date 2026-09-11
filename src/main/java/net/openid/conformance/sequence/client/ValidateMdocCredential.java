@@ -103,9 +103,10 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 	}
 
 	/**
-	 * ISO/IEC 18013-5 12.3.6: when the MSO carries a status_list element, fetch the referenced
-	 * MSO revocation list and check it. The Status structure is optional ("An MSO may contain the
-	 * Status structure"), so {@link FetchMdocRevocationList} logs a skip and writes no
+	 * ISO/IEC 18013-5 12.3.6: when the MSO carries a status element, fetch the referenced MSO
+	 * revocation list and check it, whichever of the two mechanisms (status list, 12.3.6.5, or
+	 * identifier list, 12.3.6.4) the element uses. The Status structure is optional ("An MSO may
+	 * contain the Status structure"), so {@link FetchMdocRevocationList} logs a skip and writes no
 	 * {@code mdoc_revocation_list_token} when it is absent, which skips everything below.
 	 *
 	 * <p>Retrieval and format problems, including a list whose status cannot be read, are only a
@@ -119,9 +120,9 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 
 		callAndContinueOnFailure(FetchMdocRevocationList.class, retrievalSeverity, "ISO18013-5-12.3.6.2");
 		checkFetchedList(EnsureContentTypeMdocRevocationListCwt.class, ConditionResult.WARNING,
-			"ISO18013-5-12.3.6.5", "OTSL-8.2");
+			"ISO18013-5-12.3.6.4", "ISO18013-5-12.3.6.5", "OTSL-8.2");
 		checkFetchedList(ValidateMdocRevocationListCwtFormat.class, retrievalSeverity,
-			"ISO18013-5-12.3.6.3");
+			"ISO18013-5-12.3.6.3", "ISO18013-5-12.3.6.4");
 		checkFetchedList(VerifyMdocRevocationListCwtSignature.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.3");
 		checkFetchedList(ValidateMdocRevocationListSignerCertificateProfile.class, ConditionResult.WARNING,
@@ -129,13 +130,13 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		checkFetchedList(ValidateMdocRevocationListCertificateChain.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.2");
 		checkFetchedList(ExtractMdocRevocationStatus.class, retrievalSeverity,
-			"ISO18013-5-12.3.6.1");
+			"ISO18013-5-12.3.6.1", "ISO18013-5-12.3.6.4");
 		call(condition(EnsureMdocNotRevoked.class)
 			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_STATUS)
 			.onSkip(ConditionResult.INFO)
 			.onFail(ConditionResult.FAILURE)
 			.dontStopOnFailure()
-			.requirements("ISO18013-5-12.3.6.1"));
+			.requirements("ISO18013-5-12.3.6.1", "ISO18013-5-12.3.6.4"));
 	}
 
 	/**

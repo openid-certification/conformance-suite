@@ -36,6 +36,10 @@ object VciMdocUtils {
 	 * @param statusListUri Optional Token Status List URI to embed in the MSO (with statusListIndex). Used by
 	 *   tests to exercise the status-reference checks; null (the default) means no status reference is included.
 	 * @param statusListIndex Optional Token Status List index to embed in the MSO (with statusListUri).
+	 * @param identifierListUri Optional identifier list URI to embed in the MSO's status element as
+	 *   the identifier_list mechanism of ISO/IEC 18013-5 12.3.6.4 (with [identifierListId]). The two
+	 *   mechanisms are mutually exclusive; the identifier list wins if both are given.
+	 * @param identifierListId Optional Identifier naming this MSO in that identifier list.
 	 * @return Base64URL-encoded IssuerSigned CBOR structure
 	 */
 	@JvmStatic
@@ -46,7 +50,9 @@ object VciMdocUtils {
 		issuerSigningJwk: String?,
 		signedAtEpochSeconds: Long? = null,
 		statusListUri: String? = null,
-		statusListIndex: Long? = null
+		statusListIndex: Long? = null,
+		identifierListUri: String? = null,
+		identifierListId: ByteArray? = null
 	): String {
 		// Parse device public key from JWK (if provided)
 		val devicePublicKey: EcPublicKey? = if (devicePublicKeyJwk != null) {
@@ -105,7 +111,12 @@ object VciMdocUtils {
 			)
 		}
 		val valueDigests = runBlocking { issuerNamespaces.getValueDigests(Algorithm.SHA256) }
-		val revocationStatus = if (statusListUri != null && statusListIndex != null) {
+		// ISO/IEC 18013-5 12.3.6.2: the MSO's status element carries either the identifier_list or
+		// the status_list reference to the MSO revocation list.
+		val revocationStatus = if (identifierListUri != null && identifierListId != null) {
+			org.multipaz.revocation.RevocationStatus.IdentifierList(
+				ByteString(identifierListId), identifierListUri, null)
+		} else if (statusListUri != null && statusListIndex != null) {
 			org.multipaz.revocation.RevocationStatus.StatusList(statusListIndex.toInt(), statusListUri, null)
 		} else {
 			null

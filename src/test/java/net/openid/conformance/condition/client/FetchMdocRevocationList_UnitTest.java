@@ -53,7 +53,9 @@ public class FetchMdocRevocationList_UnitTest {
 	public void testEvaluate_skipsAndClearsStateWhenMsoHasNoStatus() {
 		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN, "stale");
 		env.putString(AbstractRevocationListCwtCondition.ENV_URI, "https://stale.example.com/1");
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
 		env.putInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX, 7);
+		env.putString(AbstractRevocationListCwtCondition.ENV_IDENTIFIER_LIST_ID, "AAAA");
 
 		putCredentialWithStatusList(null, null);
 
@@ -61,7 +63,9 @@ public class FetchMdocRevocationList_UnitTest {
 
 		assertNull(env.getString(AbstractRevocationListCwtCondition.ENV_TOKEN));
 		assertNull(env.getString(AbstractRevocationListCwtCondition.ENV_URI));
+		assertNull(env.getString(AbstractRevocationListCwtCondition.ENV_MECHANISM));
 		assertNull(env.getInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX));
+		assertNull(env.getString(AbstractRevocationListCwtCondition.ENV_IDENTIFIER_LIST_ID));
 		assertFalse(env.containsObject(AbstractRevocationListCwtCondition.ENV_RESPONSE));
 	}
 
@@ -76,7 +80,30 @@ public class FetchMdocRevocationList_UnitTest {
 
 		assertEquals(StatusListCwtTestFixtures.DEFAULT_URI,
 			env.getString(AbstractRevocationListCwtCondition.ENV_URI));
+		assertEquals("status_list", env.getString(AbstractRevocationListCwtCondition.ENV_MECHANISM));
 		assertEquals(4, env.getInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX).intValue());
+		assertNull(env.getString(AbstractRevocationListCwtCondition.ENV_IDENTIFIER_LIST_ID));
+		assertArrayEquals(token, Base64.getDecoder().decode(
+			env.getString(AbstractRevocationListCwtCondition.ENV_TOKEN)));
+		assertTrue(env.containsObject(AbstractRevocationListCwtCondition.ENV_RESPONSE));
+	}
+
+	@Test
+	public void testEvaluate_storesTokenAndIdentifierListReference() throws Exception {
+		byte[] token = IdentifierListCwtTestFixtures.validIdentifierListToken();
+		cond.setResponse(ResponseEntity.ok(token));
+
+		putCredentialWithIdentifierList(IdentifierListCwtTestFixtures.DEFAULT_URI,
+			IdentifierListCwtTestFixtures.LISTED_IDENTIFIER);
+
+		cond.execute(env);
+
+		assertEquals(IdentifierListCwtTestFixtures.DEFAULT_URI,
+			env.getString(AbstractRevocationListCwtCondition.ENV_URI));
+		assertEquals("identifier_list", env.getString(AbstractRevocationListCwtCondition.ENV_MECHANISM));
+		assertArrayEquals(IdentifierListCwtTestFixtures.LISTED_IDENTIFIER, Base64.getDecoder().decode(
+			env.getString(AbstractRevocationListCwtCondition.ENV_IDENTIFIER_LIST_ID)));
+		assertNull(env.getInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX));
 		assertArrayEquals(token, Base64.getDecoder().decode(
 			env.getString(AbstractRevocationListCwtCondition.ENV_TOKEN)));
 		assertTrue(env.containsObject(AbstractRevocationListCwtCondition.ENV_RESPONSE));
@@ -106,6 +133,11 @@ public class FetchMdocRevocationList_UnitTest {
 	private void putCredentialWithStatusList(String statusListUri, Long statusListIndex) {
 		putCredential(VciMdocUtils.createMdocCredential(
 			DEVICE_KEY_JWK, "org.iso.18013.5.1.mDL", null, null, statusListUri, statusListIndex));
+	}
+
+	private void putCredentialWithIdentifierList(String uri, byte[] identifier) {
+		putCredential(VciMdocUtils.createMdocCredential(DEVICE_KEY_JWK,
+			"org.iso.18013.5.1.mDL", null, null, null, null, uri, identifier));
 	}
 
 	private void putCredential(String mdocBase64Url) {

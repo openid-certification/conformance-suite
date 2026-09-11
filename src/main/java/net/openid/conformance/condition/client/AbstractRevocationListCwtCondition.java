@@ -33,6 +33,12 @@ import java.util.Map;
  * Shared plumbing for the conditions that consume an MSO revocation list, i.e. a Status List
  * Token in CWT format as required by ISO/IEC 18013-5 12.3.6.3.
  *
+ * <p>12.3.6.3 defines one envelope for both revocation mechanisms, the status list (12.3.6.5)
+ * and the identifier list (12.3.6.4), and an MSO uses at most one of them. The list is therefore
+ * stored under one set of environment keys whichever mechanism referenced it, with
+ * {@link #ENV_MECHANISM} recording which; only the MSO's own position in the list
+ * ({@link #ENV_STATUS_LIST_IDX} or {@link #ENV_IDENTIFIER_LIST_ID}) is mechanism specific.
+ *
  * <p>The raw token bytes are held base64 encoded in the {@link #ENV_TOKEN} environment string
  * (written by {@link FetchMdocRevocationList}); each condition re-parses them so no non-JSON
  * object needs to live in the environment.
@@ -45,6 +51,9 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	/** Environment string holding the URI the revocation list was fetched from. */
 	public static final String ENV_URI = "mdoc_revocation_list_uri";
 
+	/** Environment string holding the {@link Mechanism#msoElement} of the mechanism the MSO uses. */
+	public static final String ENV_MECHANISM = "mdoc_revocation_list_mechanism";
+
 	/** Environment object holding the revocation list HTTP response (status and headers). */
 	public static final String ENV_RESPONSE = "mdoc_revocation_list_endpoint_response";
 
@@ -54,14 +63,64 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	 */
 	public static final String ENV_REFERENCE_CERTIFICATE = "mdoc_revocation_list_reference_certificate";
 
-	/** Environment integer holding the MSO's index into the status list. */
+	/** Environment integer holding the MSO's index into the status list (status list mechanism). */
 	public static final String ENV_STATUS_LIST_IDX = "mdoc_status_list_idx";
+
+	/**
+	 * Environment string holding the MSO's own Identifier, the {@code id} element of the MSO's
+	 * identifier_list structure, base64 encoded (identifier list mechanism).
+	 */
+	public static final String ENV_IDENTIFIER_LIST_ID = "mdoc_identifier_list_id";
 
 	/**
 	 * Environment string holding the mdoc's revocation status as read from the list, a
 	 * {@link net.openid.conformance.oauth.statuslists.TokenStatusList.Status} name.
 	 */
 	public static final String ENV_STATUS = "mdoc_revocation_status";
+
+	/** Media type of an identifier list in CWT format (ISO/IEC 18013-5 12.3.6.4). */
+	public static final String IDENTIFIER_LIST_CWT_CONTENT_TYPE = "application/identifierlist+cwt";
+
+	/** CWT claim key of the IdentifierList structure, ISO/IEC 18013-5 12.3.6.4. */
+	protected static final long CWT_CLAIM_IDENTIFIER_LIST = 65530;
+
+	/** The two MSO revocation mechanisms of ISO/IEC 18013-5 12.3.6 and how their lists differ on the wire. */
+	public enum Mechanism {
+		/**
+		 * The status list mechanism (12.3.6.5). draft-ietf-oauth-status-list section 5.2 allows
+		 * the type header to be the media type's registered CoAP Content-Format ID instead of
+		 * the media type.
+		 */
+		STATUS_LIST("status_list", StatusListCwt.CONTENT_TYPE, StatusListCwt.COAP_CONTENT_FORMAT_ID),
+
+		/** The identifier list mechanism (12.3.6.4). No CoAP Content-Format ID is registered for its media type. */
+		IDENTIFIER_LIST("identifier_list", IDENTIFIER_LIST_CWT_CONTENT_TYPE, null);
+
+		/** The name of the MSO status element that references the list, as stored in {@link #ENV_MECHANISM}. */
+		public final String msoElement;
+
+		/** The media type the list is served with and declares in its type header. */
+		public final String contentType;
+
+		/** The CoAP Content-Format ID registered for {@link #contentType}, or null when there is none. */
+		public final Integer coapContentFormatId;
+
+		Mechanism(String msoElement, String contentType, Integer coapContentFormatId) {
+			this.msoElement = msoElement;
+			this.contentType = contentType;
+			this.coapContentFormatId = coapContentFormatId;
+		}
+
+		/** The mechanism whose {@link #msoElement} is {@code msoElement}, or null when there is none. */
+		public static Mechanism fromMsoElement(String msoElement) {
+			for (Mechanism mechanism : values()) {
+				if (mechanism.msoElement.equals(msoElement)) {
+					return mechanism;
+				}
+			}
+			return null;
+		}
+	}
 
 	/**
 	 * COSE algorithm identifiers permitted for an MSO revocation list by ISO/IEC 18013-5 12.3.6.3,
@@ -83,6 +142,17 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	 * @param claims the CWT claims set decoded from the COSE_Sign1 payload
 	 */
 	protected record ParsedRevocationListCwt(CoseSign1 coseSign1, boolean tagged, DataItem claims) {
+	}
+
+	/** The mechanism {@link FetchMdocRevocationList} recorded for the credential under validation. */
+	protected Mechanism getMechanism(Environment env) {
+		String msoElement = env.getString(ENV_MECHANISM);
+		Mechanism mechanism = Mechanism.fromMsoElement(msoElement);
+		if (mechanism == null) {
+			throw error("The MSO revocation mechanism is missing from the environment",
+				args("mechanism", msoElement));
+		}
+		return mechanism;
 	}
 
 	protected byte[] getRevocationListTokenBytes(Environment env) {
@@ -204,21 +274,21 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	 * Retrieves an MSO revocation list over HTTP, records the response in
 	 * {@link #ENV_RESPONSE} and returns its body.
 	 */
-	protected byte[] fetchRevocationList(Environment env, String uri) {
+	protected byte[] fetchRevocationList(Environment env, String uri, Mechanism mechanism) {
 		ResponseEntity<byte[]> response;
 		try {
-			response = getRevocationList(env, uri, StatusListCwt.CONTENT_TYPE);
+			response = getRevocationList(env, uri, mechanism.contentType);
 		} catch (Exception e) {
-			throw error("Unable to retrieve the MSO revocation list referenced by the mdoc's"
-				+ " status_list element", e, args("uri", uri));
+			throw error("Unable to retrieve the MSO revocation list referenced by the mdoc's "
+				+ mechanism.msoElement + " element", e, args("uri", uri));
 		}
 
 		env.putObject(ENV_RESPONSE,
-			convertBinaryResponseForEnvironment("mdoc status_list token endpoint", response));
+			convertBinaryResponseForEnvironment("mdoc " + mechanism.msoElement + " token endpoint", response));
 
 		if (!response.getStatusCode().is2xxSuccessful()) {
-			throw error("Failed to retrieve the MSO revocation list referenced by the mdoc's"
-				+ " status_list element",
+			throw error("Failed to retrieve the MSO revocation list referenced by the mdoc's "
+				+ mechanism.msoElement + " element",
 				args("uri", uri, "status", response.getStatusCode().value()));
 		}
 
@@ -301,12 +371,13 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	}
 
 	/**
-	 * Checks the type (COSE header label 16) of the protected header against the status list
+	 * Checks the type (COSE header label 16) of the protected header against the mechanism's
 	 * media type. draft-ietf-oauth-status-list section 5.2 allows either the media type or the
-	 * media type's registered CoAP Content-Format ID.
+	 * media type's registered CoAP Content-Format ID, where one is registered.
 	 */
-	protected void checkType(Map<CoseLabel, DataItem> protectedHeaders, List<String> violations) {
-		String expectedType = StatusListCwt.CONTENT_TYPE;
+	protected void checkType(Map<CoseLabel, DataItem> protectedHeaders, Mechanism mechanism,
+			List<String> violations) {
+		String expectedType = mechanism.contentType;
 		DataItem typItem = protectedHeaders.get(new CoseNumberLabel(Cose.COSE_LABEL_TYP));
 		if (typItem == null) {
 			violations.add("the type (COSE header label 16) is missing from the protected header;"
@@ -322,9 +393,12 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 		}
 		if (typItem.getMajorType() == MajorType.UNSIGNED_INTEGER) {
 			long typ = typItem.getAsNumber();
-			if (typ != StatusListCwt.COAP_CONTENT_FORMAT_ID) {
+			if (mechanism.coapContentFormatId == null) {
+				violations.add("the type in the protected header is a CoAP Content-Format ID ("
+					+ typ + "); no Content-Format ID is registered for '" + expectedType + "'");
+			} else if (typ != mechanism.coapContentFormatId) {
 				violations.add("the type in the protected header is the CoAP Content-Format ID " + typ
-					+ " rather than " + StatusListCwt.COAP_CONTENT_FORMAT_ID + ", the ID registered for '"
+					+ " rather than " + mechanism.coapContentFormatId + ", the ID registered for '"
 					+ expectedType + "'");
 			} else {
 				log("The MSO revocation list's type header is the CoAP Content-Format ID registered for the"
@@ -342,7 +416,8 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	 * plus, per draft-ietf-oauth-status-list section 5.2, that iat is a NumericDate and that
 	 * the optional ttl is a positive unsigned integer.
 	 */
-	protected void checkSharedClaims(DataItem claims, String uri, List<String> violations) {
+	protected void checkSharedClaims(DataItem claims, String uri, Mechanism mechanism,
+			List<String> violations) {
 		DataItem sub = getClaim(claims, StatusListCwt.CLAIM_SUB);
 		if (sub == null) {
 			violations.add("the CWT claims set does not contain the sub claim (key 2)");
@@ -350,7 +425,7 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 			violations.add("the sub claim (key 2) is not a text string");
 		} else if (!subject.getValue().equals(uri)) {
 			violations.add("the sub claim (key 2) is '" + subject.getValue()
-				+ "' but the MSO's status_list element references '" + uri + "'");
+				+ "' but the MSO's " + mechanism.msoElement + " element references '" + uri + "'");
 		}
 
 		DataItem iat = getClaim(claims, StatusListCwt.CLAIM_IAT);
