@@ -74,7 +74,17 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 	 * The moment the transmitter acknowledged the pause; pushes received earlier were sent while
 	 * the stream was still enabled.
 	 */
-	private volatile Instant pausedAt;
+	protected volatile Instant pausedAt;
+
+	/** The status the stream is put into before the verification event is requested. */
+	protected StreamStatus stoppedStatus() {
+		return StreamStatus.paused;
+	}
+
+	/** Requests a verification event without touching the stream status. */
+	protected void triggerPlainVerificationEvent() {
+		super.triggerVerificationEvent();
+	}
 
 	@Override
 	protected void triggerVerificationEvent() {
@@ -98,45 +108,29 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 			callAndStopOnFailure(new OIDSSFEnsureStreamStatusIs(StreamStatus.enabled), "OIDSSF-8.1.2.1");
 		});
 
-		eventLog.runBlock("Update Stream Status to 'paused'", () -> {
-			callAndStopOnFailure(new OIDSSFUpdateStreamStatusCall(StreamStatus.paused), "OIDSSF-8.1.2.2");
+		StreamStatus stoppedStatus = stoppedStatus();
+		eventLog.runBlock("Update Stream Status to '" + stoppedStatus + "'", () -> {
+			callAndStopOnFailure(new OIDSSFUpdateStreamStatusCall(stoppedStatus), "OIDSSF-8.1.2.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OIDSSF-8.1.2.2");
 			call(exec().unmapKey("endpoint_response"));
-			callAndContinueOnFailure(new OIDSSFEnsureStreamStatusIs(StreamStatus.paused), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
+			callAndContinueOnFailure(new OIDSSFEnsureStreamStatusIs(stoppedStatus), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 
 			// pushes that reached the receiver before this instant were sent while the stream was still enabled
 			pausedAt = Instant.now();
 			env.putString("ssf", "stream_paused_at", pausedAt.toString());
+			env.putString("ssf", "stream_stopped_status", stoppedStatus.name());
 		});
 
-		super.triggerVerificationEvent();
+		triggerPlainVerificationEvent();
 	}
 
 	@Override
 	protected void performVerification() {
 
-		eventLog.log(getName(), "Observing the paused stream for " + PAUSED_OBSERVATION_WINDOW.toSeconds()
-			+ " seconds: the transmitter must not deliver any SET while the stream is paused (SSF 1.0 8.1.2.1)");
+		observeStoppedStream();
 
-		switch (deliveryMode) {
-			case PUSH:
-				observePausedStreamViaPush();
-				break;
-			case POLL:
-				observePausedStreamViaPoll();
-				break;
-			default:
-				break;
-		}
-
-		eventLog.runBlock("Update Stream Status to 'enabled'", () -> {
-			callAndStopOnFailure(new OIDSSFUpdateStreamStatusCall(StreamStatus.enabled), "OIDSSF-8.1.2.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OIDSSF-8.1.2.2");
-			call(exec().unmapKey("endpoint_response"));
-			callAndContinueOnFailure(new OIDSSFEnsureStreamStatusIs(StreamStatus.enabled), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
-		});
+		enableStream();
 
 		boolean heldEventReceived = switch (deliveryMode) {
 			case PUSH -> awaitHeldVerificationEventViaPush();
@@ -153,6 +147,33 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 					+ "the transmitter SHOULD hold events while the stream is paused and SHOULD transmit them when the stream becomes enabled."),
 					Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.1");
 			}
+		});
+	}
+
+	/** Observes the stopped stream for deliveries over the scheduled delivery method. */
+	protected void observeStoppedStream() {
+		eventLog.log(getName(), "Observing the " + stoppedStatus() + " stream for " + PAUSED_OBSERVATION_WINDOW.toSeconds()
+			+ " seconds: the transmitter must not deliver any SET while the stream is " + stoppedStatus() + " (SSF 1.0 8.1.2.1)");
+
+		switch (deliveryMode) {
+			case PUSH:
+				observePausedStreamViaPush();
+				break;
+			case POLL:
+				observePausedStreamViaPoll();
+				break;
+			default:
+				break;
+		}
+	}
+
+	protected void enableStream() {
+		eventLog.runBlock("Update Stream Status to 'enabled'", () -> {
+			callAndStopOnFailure(new OIDSSFUpdateStreamStatusCall(StreamStatus.enabled), "OIDSSF-8.1.2.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OIDSSF-8.1.2.2");
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(new OIDSSFEnsureStreamStatusIs(StreamStatus.enabled), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 		});
 	}
 
@@ -173,12 +194,12 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 				pushesWhilePaused++;
 			}
 			// the condition accepts pushes that reached the receiver before the pause was acknowledged
-			eventLog.runBlock("Push request received while the stream is paused", () ->
+			eventLog.runBlock("Push request received while the stream is " + stoppedStatus(), () ->
 				callAndContinueOnFailure(OIDSSFEnsureNoSetPushedWhileStreamPaused.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1"));
 		}
 		if (pushesWhilePaused == 0) {
-			eventLog.runBlock("Paused stream observed via PUSH", () ->
-				callAndContinueOnFailure(new OIDSSFLogSuccessCondition("No SET was pushed while the stream was paused"),
+			eventLog.runBlock("Stopped stream observed via PUSH", () ->
+				callAndContinueOnFailure(new OIDSSFLogSuccessCondition("No SET was pushed while the stream was " + stoppedStatus()),
 					Condition.ConditionResult.INFO, "OIDSSF-8.1.2.1"));
 		}
 	}
@@ -187,7 +208,7 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 		int attempts = (int) (PAUSED_OBSERVATION_WINDOW.toSeconds() / PAUSED_OBSERVATION_STEP_SECONDS);
 		for (int attempt = 1; attempt <= attempts; attempt++) {
 			int currentAttempt = attempt;
-			eventLog.runBlock("Poll the paused stream (attempt " + currentAttempt + "/" + attempts + ")", () -> {
+			eventLog.runBlock("Poll the " + stoppedStatus() + " stream (attempt " + currentAttempt + "/" + attempts + ")", () -> {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.2.1", "RFC8936-2.4");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
