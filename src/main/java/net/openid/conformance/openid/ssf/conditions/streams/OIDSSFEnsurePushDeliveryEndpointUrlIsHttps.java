@@ -10,8 +10,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.net.URL;
 
 /**
- * RFC 8935 2.1: the push endpoint is "a TLS-enabled HTTP endpoint provided by the SET
- * Recipient"; CAEP Interop Profile 2.1 requires TLS on the network layer. Checks the
+ * RFC 8935 5.3: "TLS MUST be used to secure the transmitted SETs", and 2.1 describes the push
+ * endpoint as "a TLS-enabled HTTP endpoint provided by the SET Recipient"; CAEP Interop
+ * Profile 2.1 requires TLS on the network layer. Checks the
  * {@code delivery.endpoint_url} of a push stream request the receiver sent (the parsed body
  * under {@code ssf.stream_input}); a poll request or a request without a delivery object has
  * nothing to check. The emulated transmitter refuses an http endpoint with 400 on its own; this

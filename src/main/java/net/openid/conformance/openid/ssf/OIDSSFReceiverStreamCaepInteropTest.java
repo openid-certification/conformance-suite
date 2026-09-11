@@ -405,7 +405,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver retrieved " + unacknowledged.size() + " of the delivered CAEP events but never acknowledged them before deleting the stream (jtis: " + unacknowledged + "). "
 						+ "Accepted SETs must be acknowledged via 'ack' on POLL delivery or a 202 response on PUSH delivery."),
-				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
+				Condition.ConditionResult.FAILURE, acknowledgementRequirement());
 		}
 		if (!undelivered.isEmpty()) {
 			eventLog.log(getName(), args(
