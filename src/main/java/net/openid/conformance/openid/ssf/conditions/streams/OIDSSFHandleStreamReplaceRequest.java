@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -13,6 +14,7 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POL
 public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiverRequest {
 
 	@Override
+	@PreEnvironment(required = "ssf")
 	public Environment evaluate(Environment env) {
 
 		JsonObject resultObj = new JsonObject();

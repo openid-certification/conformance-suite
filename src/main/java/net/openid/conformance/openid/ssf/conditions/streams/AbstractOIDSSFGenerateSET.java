@@ -38,7 +38,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 	}
 
 	@Override
-	@PreEnvironment(required = {"server_jwks", "ssf"})
+	@PreEnvironment(required = {"server_jwks", "ssf", "config"})
 	public Environment evaluate(Environment env) {
 
 		String streamId = getCurrentStreamId(env);

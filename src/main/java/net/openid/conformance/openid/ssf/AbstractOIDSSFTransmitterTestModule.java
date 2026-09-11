@@ -351,12 +351,6 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	/**
-	 * Keeps the body of the stream configuration request just sent (POST, PATCH or PUT) at
-	 * {@code ssf.expected_stream_config}, so the returned and the read-back stream
-	 * configuration can be compared with what was actually requested after {@code ssf.stream}
-	 * has been replaced by the transmitter's response.
-	 */
-	/**
 	 * Requests a verification event and requires the transmitter to accept the request with
 	 * 204 (SSF 1.0 8.1.4.2). The advertised {@code min_verification_interval} is honoured before
 	 * the request; should the transmitter still answer 429, which SSF 1.0 8.1.1 lets it do when
@@ -384,6 +378,12 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 	}
 
+	/**
+	 * Keeps the body of the stream configuration request just sent (POST, PATCH or PUT) at
+	 * {@code ssf.expected_stream_config}, so the returned and the read-back stream
+	 * configuration can be compared with what was actually requested after {@code ssf.stream}
+	 * has been replaced by the transmitter's response.
+	 */
 	protected void rememberSentStreamConfig() {
 		env.putObjectFromJsonString("ssf", "expected_stream_config", env.getString("resource_request_entity"));
 	}

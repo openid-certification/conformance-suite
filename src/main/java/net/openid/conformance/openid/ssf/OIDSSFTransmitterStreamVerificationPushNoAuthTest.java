@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		 * receive the verification event via PUSH delivery without an Authorization header
 		 * validate the verification event
 
-		The test fails if the transmitter includes an Authorization header on the push delivery.
+		A transmitter that includes an Authorization header on the push delivery although none was configured is reported with a warning.
 		""",
 	profile = "OIDSSF"
 )
