@@ -131,7 +131,10 @@ import java.util.concurrent.TimeUnit;
 	whenParameter = SsfAuthMode.class, hasValues = "static")
 // client_secret_jwt and mtls client authentication are not implemented for the SSF
 // transmitter tests (mtls additionally needs certificate-bound-token infrastructure);
-// client_attestation is not applicable for SSF.
+// client_attestation is not applicable for SSF. none stays selectable so that a transmitter
+// whose token endpoint takes no client authentication can be tested; RFC 6749 4.4 reserves the
+// client credentials grant for confidential clients, so such a run yields no certification
+// profile name (see OIDSSFCertification).
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"client_attestation", "client_secret_jwt", "mtls"
 })
@@ -282,7 +285,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					// unreachable: excluded via @VariantNotApplicable
 					throw new UnsupportedOperationException("mtls client authentication is not supported for SSF transmitter tests");
 				case NONE:
-					// no authentication configured, fall-through
+					// no client authentication: the token request carries only client_id; not certifiable
 				default:
 					break;
 			}
