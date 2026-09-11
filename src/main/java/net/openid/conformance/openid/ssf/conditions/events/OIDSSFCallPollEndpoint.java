@@ -6,6 +6,9 @@ import net.openid.conformance.openid.ssf.conditions.AbstractOIDSSFTransmitterEnd
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import org.springframework.http.HttpHeaders;
+
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,8 +20,19 @@ public class OIDSSFCallPollEndpoint extends AbstractOIDSSFTransmitterEndpointCal
 		POLL_ONLY,
 		ACKNOWLEDGE_ONLY,
 
-		POLL_AND_ACKNOWLEDGE
+		POLL_AND_ACKNOWLEDGE,
+
+		/**
+		 * Reports the SETs in {@code ssf.poll.sets} as erroneous via {@code setErrs} (RFC 8936
+		 * 2.4.4) without polling; the request carries {@code Content-Language} as 2.6 requires.
+		 */
+		REPORT_ERRORS
 	}
+
+	/** The error reported for every SET in a {@link PollMode#REPORT_ERRORS} request. */
+	public static final String REPORTED_ERROR_CODE = "invalid_request";
+
+	public static final String REPORTED_ERROR_DESCRIPTION = "Reported by the conformance suite to exercise the transmitter's handling of setErrs";
 
 	@Override
 	protected String getEndpointName() {
@@ -35,6 +49,17 @@ public class OIDSSFCallPollEndpoint extends AbstractOIDSSFTransmitterEndpointCal
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 		Environment environment = super.handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
 		return environment;
+	}
+
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+		HttpHeaders headers = super.getHeaders(env);
+		if (PollMode.REPORT_ERRORS.name().equals(env.getString("ssf", "poll.mode"))) {
+			// RFC 8936 2.6: a request carrying error descriptions "must also include ... a
+			// Content-Language header field whose value indicates the language of the error descriptions"
+			headers.set(HttpHeaders.CONTENT_LANGUAGE, "en");
+		}
+		return headers;
 	}
 
 	@Override
@@ -83,6 +108,20 @@ public class OIDSSFCallPollEndpoint extends AbstractOIDSSFTransmitterEndpointCal
 					"maxEvents", maxEvents,
 					"returnImmediately", returnImmediately,
 					"ack", sets
+				);
+			}
+			break;
+			// Error report only (RFC 8936 2.4.4)
+			case REPORT_ERRORS: {
+				Set<String> sets = env.getElementFromObject("ssf","poll.sets").getAsJsonObject().keySet();
+				Map<String, Object> setErrs = new LinkedHashMap<>();
+				for (String jti : sets) {
+					setErrs.put(jti, Map.of("err", REPORTED_ERROR_CODE, "description", REPORTED_ERROR_DESCRIPTION));
+				}
+				pollRequest = Map.of( //
+					"maxEvents", 0,
+					"returnImmediately", true,
+					"setErrs", setErrs
 				);
 			}
 			break;
