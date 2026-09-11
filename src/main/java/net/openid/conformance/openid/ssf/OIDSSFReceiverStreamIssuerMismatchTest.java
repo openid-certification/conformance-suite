@@ -23,10 +23,11 @@ import java.util.concurrent.TimeUnit;
 		This test verifies that the receiver checks the 'iss' of the stream configuration it created.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream. The create response carries an 'iss' that is not the issuer the receiver obtained the transmitter configuration from.
 		SSF 1.0 8.1.1.1: "The Receiver MUST check the response and confirm that the iss value matches the Issuer from which it received the Transmitter Configuration data."
-		A receiver that goes on using the stream (requests its verification, polls it, reads its status, updates it or changes its subjects) fails the test. Reading the stream configuration again or deleting the stream is fine. The test finishes once the receiver deleted the stream, or 60 seconds after the creation when the receiver simply abandons it.
+		SSF defines no way for a receiver to report a rejected stream, so the test can only detect a receiver that uses the stream regardless: a receiver that requests its verification, polls it, reads its status, updates it or changes its subjects fails the test. Reading the stream configuration again is not a use. A receiver that refuses the stream sends nothing further, or deletes the stream; either passes. The test finishes once the stream is deleted, or 60 seconds after its creation.
 		The testsuite expects to observe the following interactions:
 		 * create a stream (the response carries a foreign 'iss')
-		 * do not use the stream; delete it or leave it alone
+		 * request a stream verification; a receiver that checks the 'iss' refuses, and nothing reaches the transmitter
+		 * optionally delete the stream
 		""",
 	profile = "OIDSSF"
 )
@@ -141,8 +142,12 @@ public class OIDSSFReceiverStreamIssuerMismatchTest extends AbstractOIDSSFReceiv
 	@Override
 	public void fireTestFinished() {
 		if (createdStreamId != null && !proceeded) {
+			// SSF gives the receiver no way to report a rejected stream, so not using it is all
+			// the suite can observe; the check itself stays unobservable
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("The receiver did not use the stream whose 'iss' does not match the transmitter's issuer"
-					+ (createdStreamId.equals(deletedStreamId) ? " and deleted it" : " (it was abandoned)")),
+					+ (createdStreamId.equals(deletedStreamId)
+						? " and deleted it"
+						: " within " + ABANDONED_STREAM_TIMEOUT_SECONDS + " seconds of its creation. The check itself is not observable; only a receiver that uses such a stream can fail this test")),
 				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 		}
 		super.fireTestFinished();
