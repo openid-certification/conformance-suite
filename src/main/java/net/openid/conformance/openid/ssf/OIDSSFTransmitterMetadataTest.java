@@ -81,7 +81,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 		} else {
 			// ssf_server_metadata=static: the metadata is fetched from a configured URL,
 			// not derived from an issuer - there is no expected issuer to compare against
-			// (the 'SSF Issuer' config field only exists under the discovery variant).
+			// (the 'Transmitter Issuer' config field only exists under the discovery variant).
 			eventLog.log(getName(), "Skipping transmitter metadata issuer check: not applicable for static transmitter metadata");
 		}
 		callAndContinueOnFailure(OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1");

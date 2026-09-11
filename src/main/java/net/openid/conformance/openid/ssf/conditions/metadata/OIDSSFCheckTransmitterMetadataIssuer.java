@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.metadata;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
+import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFResolveEventSubjects;
 import net.openid.conformance.testmodule.Environment;
 
 public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssuer {
@@ -37,7 +38,7 @@ public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssue
 	@Override
 	protected String getExpectedIssuerUrl(Environment env) {
 		if (getConfigurationUrl(env) == null) {
-			throw error("'SSF Issuer' field is missing from the test configuration; cannot verify the transmitter metadata issuer");
+			throw error("'Transmitter Issuer' field is missing from the '" + OIDSSFResolveEventSubjects.CONFIG_SECTION + "' section in the test configuration; cannot verify the transmitter metadata issuer");
 		}
 		String expectedIssuerUrl = super.getExpectedIssuerUrl(env);
 
