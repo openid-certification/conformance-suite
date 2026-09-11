@@ -72,14 +72,14 @@ public class OIDSSFEnsureSecurityEventValuesAreJsonObjects_UnitTest {
 	}
 
 	@Test
-	void failsWhenEventsIsNotAnObject() {
+	void passesWhenEventsIsNotAnObjectAsThatIsGradedSeparately() {
 		setClaims("{\"events\":[\"" + SESSION_REVOKED + "\"]}");
-		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test
-	void failsWhenEventsIsMissing() {
+	void passesWhenEventsIsMissingAsThatIsGradedSeparately() {
 		setClaims("{\"iss\":\"https://transmitter.example\"}");
-		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 }
