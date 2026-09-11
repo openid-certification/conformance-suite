@@ -50,9 +50,10 @@ public class OIDSSFStreamUtils {
 		return SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI.equals(OIDSSFStreamUtils.getStreamDeliveryMethod(streamConfig));
 	}
 
+	/** The request body as a JSON object, or null when there is none or it is not an object. */
 	public static JsonObject getStreamFromRequestBody(Environment env) {
 		JsonElement bodyJsonEl = env.getElementFromObject("incoming_request", "body_json");
-		if (bodyJsonEl == null) {
+		if (bodyJsonEl == null || !bodyJsonEl.isJsonObject()) {
 			return null;
 		}
 		return bodyJsonEl.getAsJsonObject();
