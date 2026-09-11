@@ -97,6 +97,7 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 				log("Configured endpoint url for POLL delivery for stream_id=%s".formatted(streamId), args("endpoint_url", streamPollEndpointUrl, "delivery", delivery));
 			} else {
 				String pushEndpointUrl = OIDFJSON.getString(delivery.get("endpoint_url"));
+				ensurePushEndpointUrlIsHttps(pushEndpointUrl);
 				log("Found endpoint url for PUSH delivery for stream_id=%s".formatted(streamId), args("endpoint_url", pushEndpointUrl, "delivery", delivery));
 			}
 			streamConfig.add("delivery", delivery);

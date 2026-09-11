@@ -6,6 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -40,6 +41,24 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 			throw new IllegalArgumentException("Delivery method '" + deliveryMethod + "' is not supported by this transmitter; it advertises "
 				+ supported + " in delivery_methods_supported. The emulated transmitter only supports the 'SSF Delivery Mode' this test "
 				+ "was scheduled with: schedule the test with the delivery mode the receiver uses, or have the receiver request an advertised method.");
+		}
+	}
+
+	/**
+	 * RFC 8935 2.1: SETs are pushed to "a TLS-enabled HTTP endpoint provided by the SET
+	 * Recipient". Throws an {@link IllegalArgumentException} the handlers turn into a 400 when
+	 * the push endpoint_url is not an https URL; the grade comes from
+	 * {@link OIDSSFEnsurePushDeliveryEndpointUrlIsHttps}.
+	 */
+	protected void ensurePushEndpointUrlIsHttps(String pushEndpointUrl) {
+		String scheme;
+		try {
+			scheme = URI.create(pushEndpointUrl).getScheme();
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("The push delivery endpoint_url is not a valid URL: " + pushEndpointUrl, e);
+		}
+		if (!"https".equalsIgnoreCase(scheme)) {
+			throw new IllegalArgumentException("The push delivery endpoint_url must be an https URL; SETs are pushed to a TLS-protected endpoint only: " + pushEndpointUrl);
 		}
 	}
 
