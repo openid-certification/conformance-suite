@@ -6,9 +6,12 @@ import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.Bstr;
+import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
 
 import java.time.Instant;
+import java.util.Base64;
+import java.util.Map;
 
 /**
  * Reads the mdoc's revocation status from the fetched MSO revocation list into
@@ -22,18 +25,24 @@ import java.time.Instant;
  * fetched, but a list retrieved for an earlier credential of the same test is reused rather than
  * fetched again, so the expiry is checked here for every credential.
  *
- * <p>ISO/IEC 18013-5 12.3.6.5: the status is the value at the MSO's index.
+ * <p>Status list mechanism, ISO/IEC 18013-5 12.3.6.5: the status is the value at the MSO's
+ * index. Identifier list mechanism, 12.3.6.4: "Presence of the Identifier in the IdentifierList
+ * indicates that the MSO that contains that identifier in the status element is revoked", read
+ * as {@link TokenStatusList.Status#INVALID}; absence as {@link TokenStatusList.Status#VALID}.
  */
 public class ExtractMdocRevocationStatus extends AbstractRevocationListCwtCondition {
 
 	@Override
-	@PreEnvironment(strings = { ENV_TOKEN })
+	@PreEnvironment(strings = { ENV_TOKEN, ENV_MECHANISM })
 	@PostEnvironment(strings = { ENV_STATUS })
 	public Environment evaluate(Environment env) {
 		ParsedRevocationListCwt parsed = parseRevocationListCwt(env);
 		requireNotExpired(env, parsed.claims());
 
-		TokenStatusList.Status status = statusListStatus(env, parsed.claims());
+		TokenStatusList.Status status = switch (getMechanism(env)) {
+			case STATUS_LIST -> statusListStatus(env, parsed.claims());
+			case IDENTIFIER_LIST -> identifierListStatus(env, parsed.claims());
+		};
 
 		env.putString(ENV_STATUS, status.name());
 		logSuccess("Read the mdoc's status from the MSO revocation list",
@@ -91,5 +100,49 @@ public class ExtractMdocRevocationStatus extends AbstractRevocationListCwtCondit
 			throw error("Failed to read the mdoc's status from the MSO revocation list", e,
 				args("idx", idx, "bits", bits));
 		}
+	}
+
+	private TokenStatusList.Status identifierListStatus(Environment env, DataItem claims) {
+		String encodedIdentifier = env.getString(ENV_IDENTIFIER_LIST_ID);
+		if (encodedIdentifier == null) {
+			throw error("The mdoc's own identifier is missing from the environment");
+		}
+		byte[] identifier;
+		try {
+			identifier = Base64.getDecoder().decode(encodedIdentifier);
+		} catch (IllegalArgumentException e) {
+			throw error("Failed to base64 decode the stored mdoc identifier", e);
+		}
+
+		Map<DataItem, DataItem> identifiers = getIdentifiers(claims);
+		if (identifiers == null) {
+			throw error("The MSO revocation list does not contain an IdentifierList claim (key 65530)"
+				+ " with an 'identifiers' map, so the mdoc's revocation status cannot be determined",
+				args("uri", env.getString(ENV_URI)));
+		}
+
+		boolean listed = identifiers.containsKey(new Bstr(identifier));
+		log(listed
+				? "The mdoc's identifier is present in the identifier list, which lists revoked MSOs"
+				: "The mdoc's identifier is not present in the identifier list",
+			args("id", Base64.getUrlEncoder().withoutPadding().encodeToString(identifier),
+				"identifiers", identifiers.size()));
+		return listed ? TokenStatusList.Status.INVALID : TokenStatusList.Status.VALID;
+	}
+
+	/**
+	 * Returns the {@code identifiers} map of the IdentifierList claim (CWT claim key 65530), or
+	 * null when the claim or the map is absent or not of the CDDL-required shape.
+	 */
+	private Map<DataItem, DataItem> getIdentifiers(DataItem claims) {
+		DataItem identifierList = getClaim(claims, CWT_CLAIM_IDENTIFIER_LIST);
+		if (identifierList == null) {
+			return null;
+		}
+		DataItem identifiers = identifierList.getOrNull("identifiers");
+		if (!(identifiers instanceof CborMap map)) {
+			return null;
+		}
+		return map.getItems();
 	}
 }

@@ -63,6 +63,7 @@ public class VCIGenerateCwtStatusListToken_UnitTest {
 		// hand the generated token to the conditions that consume an MSO revocation list
 		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN, token);
 		env.putString(AbstractRevocationListCwtCondition.ENV_URI, ISSUER + "statuslists/1");
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
 
 		assertDoesNotThrow(() -> run(new ValidateMdocRevocationListCwtFormat()));
 		assertDoesNotThrow(() -> run(new VerifyMdocRevocationListCwtSignature()));

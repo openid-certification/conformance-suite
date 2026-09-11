@@ -42,6 +42,13 @@ public class ValidateMdocRevocationListSignerCertificateProfile_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_acceptsTableB9ConformantIdentifierListSignerCertificate() throws Exception {
+		putToken(IdentifierListCwtTestFixtures.validIdentifierListToken());
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_rejectsSignerCertificateWithWrongKeyUsage() throws Exception {
 		putToken(StatusListCwtTestFixtures.statusListTokenWithSignerKeyUsage(
 			Set.of(X509KeyUsage.KEY_CERT_SIGN, X509KeyUsage.CRL_SIGN)));
