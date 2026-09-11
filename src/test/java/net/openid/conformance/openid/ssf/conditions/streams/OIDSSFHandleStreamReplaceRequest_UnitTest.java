@@ -79,6 +79,17 @@ public class OIDSSFHandleStreamReplaceRequest_UnitTest {
 	}
 
 	@Test
+	void answersAnUnknownStreamWith404WithoutGrading() {
+		putBody("""
+			{"stream_id": "stream_unknown", "events_requested": ["urn:example:event:a"], "delivery": {"method": "urn:ietf:rfc:8936"}}
+			""");
+		assertDoesNotThrow(() -> condition.execute(env));
+		assertEquals(404, OIDFJSON.getInt(result().get("status_code")));
+		assertEquals("not_found", OIDFJSON.getString(result().getAsJsonObject("error").get("err")));
+		assertEquals("the old description", OIDFJSON.getString(storedStream().get("description")), "the existing stream is untouched");
+	}
+
+	@Test
 	void omittedDescriptionIsDeleted() {
 		putBody("""
 			{"stream_id": "%s", "events_requested": ["urn:example:event:a"], "delivery": {"method": "urn:ietf:rfc:8936"}}
