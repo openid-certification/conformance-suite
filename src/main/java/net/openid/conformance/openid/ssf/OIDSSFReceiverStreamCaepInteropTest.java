@@ -106,8 +106,12 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			gradeDeliveredCaepEvents();
 		}
 		// CAEP Interop Profile 2.4.2: "The Receiver MUST obtain the Transmitter's signing
-		// key(s) using the jwks_uri from the Transmitter Configuration Metadata."
-		if (isJwksEndpointFetched()) {
+		// key(s) using the jwks_uri from the Transmitter Configuration Metadata." Graded at the
+		// first acknowledgement when there was one; here only for a receiver that never
+		// acknowledged a SET.
+		if (isFirstAcknowledgementGraded()) {
+			eventLog.log(getName(), "Whether the receiver fetched the transmitter's signing keys was graded at its first acknowledgement");
+		} else if (isJwksEndpointFetched()) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver fetched the transmitter's signing keys from the advertised jwks_uri"),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.2");
 		} else {
@@ -120,17 +124,14 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	}
 
 	/**
-	 * A rejected credential-change event with a credential type outside CAEP 1.0 3.3.1 is a
-	 * warning, see {@link #PROPRIETARY_CREDENTIAL_TYPE}; everything else follows the base rule.
+	 * A rejected push of a generated CAEP event is recorded at INFO here and graded once, by
+	 * event type, subject format and credential type, in {@link #gradeDeliveredCaepEvents()}.
 	 */
 	@Override
 	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
-		if (proprietaryCredentialTypeJtis.contains(event.jti())) {
-			eventLog.log(getName(), args(
-				"msg", "The receiver did not accept a credential-change event whose credential_type is not one of the standard values; "
-					+ "graded as a warning because mutual support of that type was not agreed",
-				"jti", event.jti(), "credential_type", PROPRIETARY_CREDENTIAL_TYPE));
-			return Condition.ConditionResult.WARNING;
+		ConcurrentMap<String, String> generated = eventTypeByJti;
+		if (generated != null && generated.containsKey(event.jti())) {
+			return Condition.ConditionResult.INFO;
 		}
 		return super.getPushDeliveryRejectionSeverity(event);
 	}
