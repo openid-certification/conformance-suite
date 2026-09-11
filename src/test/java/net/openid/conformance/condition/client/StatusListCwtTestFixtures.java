@@ -91,7 +91,7 @@ final class StatusListCwtTestFixtures {
 		Instant iat = Instant.now();
 		return CwtStatusListTokenBuilder.build(uri, iat, iat.plusSeconds(600), TTL_SECONDS,
 			EvenOddStatusListContents.BITS, EvenOddStatusListContents.create().compressStatusList(),
-			signer, algorithm);
+			signer, algorithm, null);
 	}
 
 	/**
@@ -100,19 +100,19 @@ final class StatusListCwtTestFixtures {
 	 * condition rejects the token before any signature check.
 	 */
 	static byte[] statusListTokenWithDisallowedAlgorithm() throws Exception {
-		return token(statusListClaimsSet(DEFAULT_URI), DataItemExtensionsKt.toDataItem(-257),
+		return token(statusListClaimsSet(DEFAULT_URI, null), DataItemExtensionsKt.toDataItem(-257),
 			new Tstr(StatusListCwt.CONTENT_TYPE), conformantSigner().getCertChain(), true, null);
 	}
 
 	/** A well formed status list token whose protected header carries the given type item. */
 	static byte[] statusListTokenWithType(DataItem type) throws Exception {
 		AsymmetricKey.X509CertifiedExplicit signer = conformantSigner();
-		return token(statusListClaimsSet(DEFAULT_URI), ES256_ALG, type, signer.getCertChain(), true, signer);
+		return token(statusListClaimsSet(DEFAULT_URI, null), ES256_ALG, type, signer.getCertChain(), true, signer);
 	}
 
 	/** A well formed status list token with the given claim replaced (or added). */
 	static byte[] statusListTokenWithClaim(long key, DataItem value) throws Exception {
-		Map<DataItem, DataItem> claims = statusListClaims(DEFAULT_URI);
+		Map<DataItem, DataItem> claims = statusListClaims(DEFAULT_URI, null);
 		claims.put(DataItemExtensionsKt.toDataItem(key), value);
 		AsymmetricKey.X509CertifiedExplicit signer = conformantSigner();
 		return token(encodeClaims(claims), ES256_ALG, new Tstr(StatusListCwt.CONTENT_TYPE),
@@ -122,8 +122,15 @@ final class StatusListCwtTestFixtures {
 	/** A status list token carrying the x5chain in the unprotected rather than protected header. */
 	static byte[] statusListTokenWithX5chainInUnprotectedHeader() throws Exception {
 		AsymmetricKey.X509CertifiedExplicit signer = conformantSigner();
-		return token(statusListClaimsSet(DEFAULT_URI), ES256_ALG, new Tstr(StatusListCwt.CONTENT_TYPE),
+		return token(statusListClaimsSet(DEFAULT_URI, null), ES256_ALG, new Tstr(StatusListCwt.CONTENT_TYPE),
 			signer.getCertChain(), false, signer);
+	}
+
+	/** A status list token whose status_list claim carries the given aggregation_uri item. */
+	static byte[] statusListTokenWithAggregationUri(DataItem aggregationUri) throws Exception {
+		AsymmetricKey.X509CertifiedExplicit signer = conformantSigner();
+		return token(statusListClaimsSet(DEFAULT_URI, aggregationUri), ES256_ALG, new Tstr(StatusListCwt.CONTENT_TYPE),
+			signer.getCertChain(), true, signer);
 	}
 
 	/** Base64 (standard, as the environment stores it) of the given token bytes. */
@@ -184,15 +191,18 @@ final class StatusListCwtTestFixtures {
 		return Cbor.INSTANCE.encode(new CborMap(claims, false));
 	}
 
-	private static byte[] statusListClaimsSet(String uri) {
-		return encodeClaims(statusListClaims(uri));
+	private static byte[] statusListClaimsSet(String uri, DataItem aggregationUri) {
+		return encodeClaims(statusListClaims(uri, aggregationUri));
 	}
 
 	/** The status list token's claims: the shared base claims plus the status_list claim. */
-	private static Map<DataItem, DataItem> statusListClaims(String uri) {
+	private static Map<DataItem, DataItem> statusListClaims(String uri, DataItem aggregationUri) {
 		Map<DataItem, DataItem> statusList = new LinkedHashMap<>();
 		statusList.put(new Tstr("bits"), DataItemExtensionsKt.toDataItem(EvenOddStatusListContents.BITS));
 		statusList.put(new Tstr("lst"), new Bstr(EvenOddStatusListContents.create().compressStatusList()));
+		if (aggregationUri != null) {
+			statusList.put(new Tstr("aggregation_uri"), aggregationUri);
+		}
 
 		Map<DataItem, DataItem> claims = baseClaims(uri);
 		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_STATUS_LIST), new CborMap(statusList, false));

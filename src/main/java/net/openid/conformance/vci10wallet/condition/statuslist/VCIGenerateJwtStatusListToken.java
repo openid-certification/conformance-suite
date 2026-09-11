@@ -46,6 +46,12 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 		JsonObject statusListObject = new JsonObject();
 		statusListObject.addProperty("bits", bits);
 		statusListObject.addProperty("lst", encodedStatusList);
+		// draft-ietf-oauth-status-list section 4.2: optional pointer to the Status List
+		// Aggregation this issuer serves (section 9.3)
+		String aggregationUri = env.getString("server", "status_list_aggregation_endpoint");
+		if (aggregationUri != null) {
+			statusListObject.addProperty("aggregation_uri", aggregationUri);
+		}
 		claims.add("status_list", statusListObject);
 
 		// TODO clarify, which keys shall we use here?

@@ -106,6 +106,7 @@ public class ValidateMdocRevocationListCwtFormat extends AbstractRevocationListC
 				+ " draft-ietf-oauth-status-list section 5.2 requires the compressed byte array");
 		}
 
+		checkAggregationUri(statusList, "status_list", violations);
 	}
 
 	/** @return the number of entries in the identifiers map, or 0 when it could not be read */
@@ -148,12 +149,16 @@ public class ValidateMdocRevocationListCwtFormat extends AbstractRevocationListC
 				+ " strings; the ISO/IEC 18013-5 12.3.6.4 CDDL defines Identifier = bstr");
 		}
 
-		DataItem aggregationUri = identifierList.getOrNull("aggregation_uri");
-		if (aggregationUri != null && !(aggregationUri instanceof Tstr)) {
-			violations.add("the IdentifierList claim's optional 'aggregation_uri' element is not a"
-				+ " text string");
-		}
+		checkAggregationUri(identifierList, "IdentifierList", violations);
 
 		return identifiersMap.getItems().size();
+	}
+
+	private void checkAggregationUri(DataItem claim, String claimName, List<String> violations) {
+		DataItem aggregationUri = claim.getOrNull("aggregation_uri");
+		if (aggregationUri != null && !(aggregationUri instanceof Tstr)) {
+			violations.add("the " + claimName + " claim's optional 'aggregation_uri' element is not a"
+				+ " CBOR text string");
+		}
 	}
 }
