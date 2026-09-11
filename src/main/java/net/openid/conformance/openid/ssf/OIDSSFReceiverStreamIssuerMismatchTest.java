@@ -115,17 +115,23 @@ public class OIDSSFReceiverStreamIssuerMismatchTest extends AbstractOIDSSFReceiv
 
 	@Override
 	protected void afterStreamUpdate(String streamId, JsonObject updateResult, JsonElement error) {
-		gradeProceeded("updated");
+		if (error == null && streamId != null) {
+			gradeProceeded("updated");
+		}
 	}
 
 	@Override
 	protected void afterStreamReplace(String streamId, JsonObject replaceResult, JsonElement error) {
-		gradeProceeded("replaced");
+		if (error == null && streamId != null) {
+			gradeProceeded("replaced");
+		}
 	}
 
 	@Override
 	protected void afterStreamSubjectChange(StreamSubjectOperation operation, String streamId, JsonObject result, JsonElement error) {
-		gradeProceeded("changed the subjects of");
+		if (error == null && streamId != null) {
+			gradeProceeded("changed the subjects of");
+		}
 	}
 
 	private void gradeProceeded(String howUsed) {
