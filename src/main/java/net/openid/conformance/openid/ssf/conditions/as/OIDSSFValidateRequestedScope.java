@@ -43,7 +43,7 @@ public class OIDSSFValidateRequestedScope extends AbstractCondition {
 			// RFC 6749 §4.4.2: scope is OPTIONAL; §3.3: absent scope means the AS
 			// processes the request using a pre-defined default value.
 			env.putString("scope", defaultScope);
-			logSuccess("Token request contains no 'scope' parameter (optional per RFC 6749 §4.4.2); granting the default SSF scopes",
+			logSuccess("Token request contains no 'scope' parameter, which is optional; granting the default SSF scopes",
 				args("granted_scope", defaultScope));
 			return env;
 		}
@@ -57,7 +57,7 @@ public class OIDSSFValidateRequestedScope extends AbstractCondition {
 		ignoredScopes.removeAll(SsfConstants.SSF_SCOPES);
 
 		if (!ignoredScopes.isEmpty()) {
-			log("Ignoring requested scope values that are not SSF scopes (RFC 6749 §3.3 allows the AS to ignore unrecognised scopes)",
+			log("Ignoring requested scope values that are not SSF scopes, as an authorization server may ignore scopes it does not recognise",
 				args("requested_scope", scopeParam, "ignored_scopes", ignoredScopes,
 					"ssf_scopes", SsfConstants.SSF_SCOPES));
 		}

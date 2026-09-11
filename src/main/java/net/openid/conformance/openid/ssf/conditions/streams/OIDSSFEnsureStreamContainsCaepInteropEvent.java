@@ -53,7 +53,7 @@ public class OIDSSFEnsureStreamContainsCaepInteropEvent extends AbstractConditio
 
 		if (caepInteropEvents.isEmpty()) {
 			throw error("Stream must include at least one of the CAEP Interop qualifying event types 'session-revoked', 'credential-change', 'device-compliance-change'. "
-					+ "'risk-level-change' is not a qualifying use case of the published CAEP Interop Profile draft-01.",
+					+ "'risk-level-change' is not a qualifying use case of the published CAEP Interop Profile.",
 				args("stream_id", streamId, "checked_field", checkedField, "events", effectiveEvents, "caep_interop_qualifying_event_types", SsfEvents.CAEP_INTEROP_QUALIFYING_EVENT_TYPES));
 		}
 

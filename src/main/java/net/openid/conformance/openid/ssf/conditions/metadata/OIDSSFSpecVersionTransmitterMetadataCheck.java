@@ -21,7 +21,7 @@ public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition
 
 		String specVersion = OIDFJSON.getString(transmitterMetadata.get("spec_version"));
 		if (!isValidVersion(specVersion)) {
-			throw error("Found invalid spec_version field in transmitter_metadata. The CAEP Interop Profile (2.3.1) requires the value to be 1_0 or greater.",
+			throw error("Found invalid spec_version field in transmitter_metadata; under the CAEP Interop Profile the value must be 1_0 or greater.",
 				args("spec_version", specVersion));
 		}
 
