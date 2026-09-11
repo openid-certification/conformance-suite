@@ -695,17 +695,18 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				break;
 			case SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE:
 				// Structural requirements come from CAEP 1.0 Final (3.8) and apply to any
-				// delivered risk-level-change event. The reason_admin requirement only
-				// exists in the WG head's section 3.4 - the published draft-01 of the
-				// interop profile, which the CAEPIOP- links point at, does not define this
-				// use case - so it is graded as a WARNING anchored at the CAEP definition
-				// until the profile vote lands (see SsfEvents.CAEP_INTEROP_EVENT_TYPES).
+				// delivered risk-level-change event. Neither CAEP 1.0 Final, where reason_admin
+				// is optional, nor draft-01 of the interop profile, which does not define this
+				// use case, requires reason_admin here; only the WG head's section 3.4 does.
+				// Its absence is noted at INFO, without a requirement link, until a profile
+				// version that defines the use case is the certification target (see
+				// SsfEvents.CAEP_INTEROP_EVENT_TYPES).
 				callAndContinueOnFailure(OIDSSFValidateCaepRiskLevelChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.8");
 				callAndContinueOnFailure(OIDSSFWarnCaepRiskLevelChangeRiskReasonMissing.class,
 					Condition.ConditionResult.WARNING, "OIDCAEP-3.8");
 				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
-					Condition.ConditionResult.WARNING, "OIDCAEP-3.8");
+					Condition.ConditionResult.INFO);
 				break;
 			case SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepTokenClaimsChangeEvent.class,
