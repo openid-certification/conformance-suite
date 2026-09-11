@@ -72,6 +72,17 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	/** Event type of each generated CAEP event, keyed by {@code jti}, for the finish-time grading. */
 	volatile ConcurrentMap<String, String> eventTypeByJti;
 
+	/**
+	 * A credential type outside the list of CAEP 1.0 3.3.1, which allows "any other credential
+	 * type supported mutually by the Transmitter and Receiver". Mutual support was not agreed,
+	 * so a receiver that does not accept the event is only warned; RFC 8936 section 2 still
+	 * says the acknowledgement mechanism is not for errors other than SET parsing and validation.
+	 */
+	static final String PROPRIETARY_CREDENTIAL_TYPE = "x-conformance-suite-hardware-token";
+
+	/** {@code jti} values of the credential-change events carrying {@link #PROPRIETARY_CREDENTIAL_TYPE}. */
+	final Set<String> proprietaryCredentialTypeJtis = ConcurrentHashMap.newKeySet();
+
 	volatile boolean caepInteropEventsGenerated;
 
 	@Override
@@ -106,6 +117,22 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				Condition.ConditionResult.FAILURE, "CAEPIOP-2.4.2");
 		}
 		super.fireTestFinished();
+	}
+
+	/**
+	 * A rejected credential-change event with a credential type outside CAEP 1.0 3.3.1 is a
+	 * warning, see {@link #PROPRIETARY_CREDENTIAL_TYPE}; everything else follows the base rule.
+	 */
+	@Override
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (proprietaryCredentialTypeJtis.contains(event.jti())) {
+			eventLog.log(getName(), args(
+				"msg", "The receiver did not accept a credential-change event whose credential_type is not one of the standard values; "
+					+ "graded as a warning because mutual support of that type was not agreed",
+				"jti", event.jti(), "credential_type", PROPRIETARY_CREDENTIAL_TYPE));
+			return Condition.ConditionResult.WARNING;
+		}
+		return super.getPushDeliveryRejectionSeverity(event);
 	}
 
 	@Override
@@ -236,10 +263,14 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				// with the first subject; the other subjects cover the subject formats.
 				List<SsfEvent> events = i == 0 ? generateCaepInteropEventValueVariants(eventType, now) : List.of(generateSsfEventExample(eventType, now));
 				for (SsfEvent event : events) {
+					boolean proprietaryCredentialType = PROPRIETARY_CREDENTIAL_TYPE.equals(event.data().get("credential_type"));
 					var generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event,
 						(sid, jti) -> {
 							recordEventSubject(jti, subject);
 							eventTypeByJti.put(jti, eventType);
+							if (proprietaryCredentialType) {
+								proprietaryCredentialTypeJtis.add(jti);
+							}
 							onStreamEventEnqueued(sid, jti);
 						});
 					callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, CAEP_INTEROP_EVENT_SPEC_REFS.get(eventType), "CAEPIOP-2.5");
@@ -268,7 +299,10 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		switch (eventType) {
 			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE -> {
 				List<String> changeTypes = SsfEvents.CAEP_CREDENTIAL_CHANGE_TYPES;
-				List<String> credentialTypes = SsfEvents.CAEP_CREDENTIAL_TYPES;
+				// CAEP 1.0 3.3.1 lists the standard credential types and allows "any other
+				// credential type supported mutually"; one event carries such a value
+				List<String> credentialTypes = new ArrayList<>(SsfEvents.CAEP_CREDENTIAL_TYPES);
+				credentialTypes.add(PROPRIETARY_CREDENTIAL_TYPE);
 				for (int i = 0; i < credentialTypes.size(); i++) {
 					String credentialType = credentialTypes.get(i);
 					Map<String, Object> data = new LinkedHashMap<>(example.data());
@@ -321,6 +355,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 		Map<String, Set<String>> rejectedByEventType = new LinkedHashMap<>();
 		Map<String, Set<String>> rejectedComplexSubjectByEventType = new LinkedHashMap<>();
+		Set<String> rejectedProprietaryCredentialType = new LinkedHashSet<>();
 		Set<String> unacknowledged = new LinkedHashSet<>();
 		int deliveredCount = 0;
 		for (String jti : generated) {
@@ -332,6 +367,10 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				continue;
 			}
 			if (resolvedByError.contains(jti)) {
+				if (proprietaryCredentialTypeJtis.contains(jti)) {
+					rejectedProprietaryCredentialType.add(jti);
+					continue;
+				}
 				String eventType = eventTypeByJti.getOrDefault(jti, "unknown");
 				boolean complexSubject = isComplexSubjectEventToleratedUnderProfile(jti);
 				(complexSubject ? rejectedComplexSubjectByEventType : rejectedByEventType)
@@ -355,6 +394,13 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 						+ "Graded as a warning because draft-01 of the CAEP Interop Profile does not require receivers to accept Complex Subjects."),
 				Condition.ConditionResult.WARNING, CAEP_INTEROP_EVENT_SPEC_REFS.getOrDefault(eventType, "CAEPIOP-3"), "CAEPIOP-2.5");
 		}
+		if (!rejectedProprietaryCredentialType.isEmpty()) {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver rejected the credential-change event whose credential_type is '" + PROPRIETARY_CREDENTIAL_TYPE + "' (jtis: " + rejectedProprietaryCredentialType + "). "
+						+ "CAEP allows any credential type the transmitter and receiver support mutually, and the acknowledgement mechanism is not meant for errors other than SET parsing and validation; "
+						+ "graded as a warning because mutual support of that type was not agreed."),
+				Condition.ConditionResult.WARNING, "OIDCAEP-3.3", "RFC8936-2");
+		}
 		if (!unacknowledged.isEmpty()) {
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver retrieved " + unacknowledged.size() + " of the delivered CAEP events but never acknowledged them before deleting the stream (jtis: " + unacknowledged + "). "
@@ -366,7 +412,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 				"msg", "The receiver deleted the stream before " + undelivered.size() + " generated CAEP event(s) were delivered; whether it accepts them cannot be assessed",
 				"undelivered_jtis", undelivered));
 		}
-		if (deliveredCount > 0 && rejectedByEventType.isEmpty() && rejectedComplexSubjectByEventType.isEmpty() && unacknowledged.isEmpty()) {
+		if (deliveredCount > 0 && rejectedByEventType.isEmpty() && rejectedComplexSubjectByEventType.isEmpty() && rejectedProprietaryCredentialType.isEmpty() && unacknowledged.isEmpty()) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("The receiver acknowledged all " + deliveredCount + " delivered CAEP events, including every allowable field value sent"),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-3");
 		}
