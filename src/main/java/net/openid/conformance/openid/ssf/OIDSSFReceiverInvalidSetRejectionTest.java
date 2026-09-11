@@ -269,13 +269,15 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 				}), Condition.ConditionResult.WARNING, "RFC8935-2.3");
 				callAndContinueOnFailure(new OIDSSFEnsureReceiverRejectedPushDelivery(tamperMode.description() + ", jti=" + event.jti()),
 					Condition.ConditionResult.FAILURE, requirementsFor(tamperMode, "RFC8935-2.3"));
-				// RFC 8935 2.3 prescribes the shape of the rejection: 400, application/json,
-				// a body with 'err' and 'description'. The code itself is only expected, not
-				// mandated, per cause (2.4), hence the two warnings.
-				callAndContinueOnFailure(OIDSSFValidatePushDeliveryErrorResponse.class, Condition.ConditionResult.FAILURE, "RFC8935-2.3");
-				callAndContinueOnFailure(OIDSSFWarnPushDeliveryErrorCodeNotRegistered.class, Condition.ConditionResult.WARNING, "RFC8935-2.4");
-				callAndContinueOnFailure(new OIDSSFWarnPushDeliveryErrorCodeMismatch(expectedErrorCodeFor(tamperMode)),
-					Condition.ConditionResult.WARNING, requirementsFor(tamperMode, "RFC8935-2.4"));
+				if (receiverRejectedPushDelivery()) {
+					// RFC 8935 2.3 prescribes the shape of the rejection: 400, application/json,
+					// a body with 'err' and 'description'. The code itself is only expected, not
+					// mandated, per cause (2.4), hence the two warnings.
+					callAndContinueOnFailure(OIDSSFValidatePushDeliveryErrorResponse.class, Condition.ConditionResult.FAILURE, "RFC8935-2.3");
+					callAndContinueOnFailure(OIDSSFWarnPushDeliveryErrorCodeNotRegistered.class, Condition.ConditionResult.WARNING, "RFC8935-2.4");
+					callAndContinueOnFailure(new OIDSSFWarnPushDeliveryErrorCodeMismatch(expectedErrorCodeFor(tamperMode)),
+						Condition.ConditionResult.WARNING, requirementsFor(tamperMode, "RFC8935-2.4"));
+				}
 				resolvedInvalidSetJtis.add(event.jti());
 				// pace the deliveries with the test lock released (see the base push task)
 				callAndContinueOnFailure(WaitForOneSecond.class, Condition.ConditionResult.INFO);
@@ -285,6 +287,16 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 			}
 			return "done";
 		}
+	}
+
+	/**
+	 * Whether the last push delivery was answered with an error status. The shape of a rejection
+	 * is only checked for an actual rejection; an accepted invalid SET is graded once, by
+	 * {@link OIDSSFEnsureReceiverRejectedPushDelivery}.
+	 */
+	protected boolean receiverRejectedPushDelivery() {
+		Integer status = env.getInteger("endpoint_response", "status");
+		return status != null && status != 0 && (status < 200 || status >= 300);
 	}
 
 	/**
