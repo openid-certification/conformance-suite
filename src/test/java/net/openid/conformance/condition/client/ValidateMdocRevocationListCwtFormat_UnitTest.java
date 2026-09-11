@@ -126,6 +126,23 @@ public class ValidateMdocRevocationListCwtFormat_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_acceptsTextAggregationUri() throws Exception {
+		putToken(StatusListCwtTestFixtures.statusListTokenWithAggregationUri(
+			new Tstr("https://issuer.example.com/statuslists")));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_rejectsNonTextAggregationUri() throws Exception {
+		putToken(StatusListCwtTestFixtures.statusListTokenWithAggregationUri(
+			DataItemExtensionsKt.toDataItem(42)));
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("aggregation_uri"), error.getMessage());
+	}
+
+	@Test
 	public void testEvaluate_acceptsAWellFormedIdentifierList() throws Exception {
 		useIdentifierList();
 		putToken(IdentifierListCwtTestFixtures.validIdentifierListToken());

@@ -43,13 +43,16 @@ public final class CwtStatusListTokenBuilder {
 	 *   protected header, as ISO/IEC 18013-5 12.3.6.3 requires
 	 * @param algorithm the COSE signature algorithm; ISO/IEC 18013-5 12.3.6.3 permits only the
 	 *   EC based algorithms
+	 * @param aggregationUri the optional aggregation_uri element of the status_list claim
+	 *   (draft-ietf-oauth-status-list section 4.3), or null to omit it
 	 * @return the CBOR encoded, tagged COSE_Sign1
 	 */
 	public static byte[] build(String uri, Instant iat, Instant exp, long ttlSeconds, int bits,
-			byte[] compressedStatusList, AsymmetricKey.X509CertifiedExplicit signingKey, Algorithm algorithm)
-			throws Exception {
+			byte[] compressedStatusList, AsymmetricKey.X509CertifiedExplicit signingKey, Algorithm algorithm,
+			String aggregationUri) throws Exception {
 
-		byte[] payload = buildClaimsSet(uri, iat, exp, ttlSeconds, bits, compressedStatusList);
+		byte[] payload = buildClaimsSet(uri, iat, exp, ttlSeconds, bits, compressedStatusList,
+			aggregationUri);
 
 		Map<CoseLabel, DataItem> protectedHeaders = new LinkedHashMap<>();
 		protectedHeaders.put(new CoseNumberLabel(Cose.COSE_LABEL_ALG),
@@ -69,10 +72,13 @@ public final class CwtStatusListTokenBuilder {
 	}
 
 	private static byte[] buildClaimsSet(String uri, Instant iat, Instant exp, long ttlSeconds,
-			int bits, byte[] compressedStatusList) {
+			int bits, byte[] compressedStatusList, String aggregationUri) {
 		Map<DataItem, DataItem> statusListClaim = new LinkedHashMap<>();
 		statusListClaim.put(new Tstr("bits"), DataItemExtensionsKt.toDataItem(bits));
 		statusListClaim.put(new Tstr("lst"), new Bstr(compressedStatusList));
+		if (aggregationUri != null) {
+			statusListClaim.put(new Tstr("aggregation_uri"), new Tstr(aggregationUri));
+		}
 
 		Map<DataItem, DataItem> claims = new LinkedHashMap<>();
 		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_SUB), new Tstr(uri));
