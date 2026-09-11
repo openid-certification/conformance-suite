@@ -319,6 +319,28 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		}
 	}
 
+	/**
+	 * The receiver retrieved invalid SETs, neither acknowledged nor reported them, and deleted
+	 * the stream before the silent-drop task resolved them: the same silent rejection as in
+	 * {@link ResolveSilentlyIgnoredInvalidSetsTask}, resolved here so the test can finish.
+	 */
+	@Override
+	protected void onEventsUnresolvedAtDeletion(String streamId, List<OIDSSFSecurityEvent> events) {
+		super.onEventsUnresolvedAtDeletion(streamId, events);
+		for (OIDSSFSecurityEvent event : events) {
+			TamperMode tamperMode = invalidSetJtis.get(event.jti());
+			if (tamperMode == null || resolvedInvalidSetJtis.contains(event.jti())) {
+				continue;
+			}
+			resolvedInvalidSetJtis.add(event.jti());
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"Receiver retrieved the invalid SET (" + tamperMode.description() + ", jti=" + event.jti() + ") but neither acknowledged it "
+						+ "nor reported it via 'setErrs' before deleting the stream. Not acknowledging is correct; "
+						+ "reporting via 'setErrs' would make the rejection observable."),
+				Condition.ConditionResult.INFO, "RFC8936-2.4");
+		}
+	}
+
 	protected class ResolveSilentlyIgnoredInvalidSetsTask implements Callable<String> {
 
 		protected final String streamId;
