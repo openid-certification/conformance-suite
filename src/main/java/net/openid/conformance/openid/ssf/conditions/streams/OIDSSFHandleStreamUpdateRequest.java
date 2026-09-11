@@ -75,7 +75,7 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 		if (!mismatchedKeys.isEmpty()) {
 			resultObj.add("error", createErrorObj("bad_request", "Transmitter-supplied properties in request body do not match the current stream configuration"));
 			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream update request: Transmitter-supplied properties do not match the expected values (SSF 1.0 8.1.1.3)", args("error", resultObj.get("error"), "mismatched_keys", mismatchedKeys));
+			throw error("Failed to handle stream update request: Transmitter-supplied properties do not match the expected values", args("error", resultObj.get("error"), "mismatched_keys", mismatchedKeys));
 		}
 
 		try {

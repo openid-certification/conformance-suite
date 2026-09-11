@@ -28,7 +28,7 @@ public class OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt extends AbstractC
 		String tokenType = env.getString("set_token", "header.typ");
 
 		if (tokenType == null) {
-			throw error("Couldn't find typ claim in JWT header. SSF 1.0 4.1.1 requires SETs to be explicitly typed as '"
+			throw error("Couldn't find typ claim in JWT header. SETs must be explicitly typed as '"
 				+ SECEVENT_JWT_TYP + "'");
 		}
 
