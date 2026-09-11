@@ -1,9 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.X509CertUtils;
-import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
-import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
-import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocCertificateProfileChecks;
@@ -27,14 +24,11 @@ import java.util.Set;
  */
 public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCertificate {
 
-	private static final String OID_KEY_USAGE = "2.5.29.15";
-	private static final String OID_CRL_DISTRIBUTION_POINTS = "2.5.29.31";
-	private static final String OID_AUTHORITY_KEY_IDENTIFIER = "2.5.29.35";
-	private static final String OID_EXTENDED_KEY_USAGE = "2.5.29.37";
 	private static final String OID_MDL_DS_EKU = "1.0.18013.5.1.2";
 	private static final String MDL_DOCTYPE = "org.iso.18013.5.1.mDL";
 
-	private static final Set<String> ALLOWED_CRITICAL_EXTENSIONS = Set.of(OID_KEY_USAGE, OID_EXTENDED_KEY_USAGE);
+	private static final Set<String> ALLOWED_CRITICAL_EXTENSIONS = Set.of(
+		MdocCertificateProfileChecks.OID_KEY_USAGE, MdocCertificateProfileChecks.OID_EXTENDED_KEY_USAGE);
 
 	private static final int MAX_VALIDITY_DAYS = 457;
 
@@ -62,10 +56,10 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 
 		checkExtendedKeyUsage(dsCert, parseMsoDocType(issuerSigned), violations);
 
-		if (dsCert.getExtensionValue(OID_AUTHORITY_KEY_IDENTIFIER) == null) {
+		if (dsCert.getExtensionValue(MdocCertificateProfileChecks.OID_AUTHORITY_KEY_IDENTIFIER) == null) {
 			violations.add("authority key identifier extension is missing");
 		}
-		if (dsCert.getExtensionValue(OID_CRL_DISTRIBUTION_POINTS) == null) {
+		if (dsCert.getExtensionValue(MdocCertificateProfileChecks.OID_CRL_DISTRIBUTION_POINTS) == null) {
 			violations.add("CRL distribution points extension is missing");
 		}
 		MdocCertificateProfileChecks.checkCrlDistributionPointsContent(dsCert, violations);
@@ -73,14 +67,8 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 		checkIssuerAlternativeName(dsCert, violations);
 		checkIssuerBinding(dsCert, issuingCertificate(chain, env), violations);
 
-		Set<String> criticalOids = dsCert.getCriticalExtensionOIDs();
-		if (criticalOids != null) {
-			for (String oid : criticalOids) {
-				if (!ALLOWED_CRITICAL_EXTENSIONS.contains(oid)) {
-					violations.add("extension " + oid + " is marked critical; ISO 18013-5 Table B.3 only permits further extensions when they are non-critical");
-				}
-			}
-		}
+		MdocCertificateProfileChecks.checkNoOtherCriticalExtensions(dsCert, ALLOWED_CRITICAL_EXTENSIONS,
+			"Table B.3", violations);
 
 		if (!violations.isEmpty()) {
 			throw error("The document signer certificate in the mdoc x5chain does not comply with the ISO 18013-5 document signer certificate profile: "
@@ -126,21 +114,7 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 			violations.add("issuer is not the same exact binary value as the subject of the issuing certificate ('"
 				+ issuingCert.getSubjectX500Principal().getName() + "')");
 		}
-		try {
-			byte[] akiValue = dsCert.getExtensionValue(OID_AUTHORITY_KEY_IDENTIFIER);
-			byte[] skiValue = issuingCert.getExtensionValue("2.5.29.14");
-			if (akiValue != null && skiValue != null) {
-				byte[] akiKeyId = AuthorityKeyIdentifier.getInstance(
-					JcaX509ExtensionUtils.parseExtensionValue(akiValue)).getKeyIdentifierOctets();
-				byte[] skiKeyId = SubjectKeyIdentifier.getInstance(
-					JcaX509ExtensionUtils.parseExtensionValue(skiValue)).getKeyIdentifier();
-				if (akiKeyId != null && !java.util.Arrays.equals(akiKeyId, skiKeyId)) {
-					violations.add("authority key identifier does not match the subject key identifier of the issuing certificate");
-				}
-			}
-		} catch (Exception e) {
-			violations.add("authority key identifier could not be compared with the issuing certificate's subject key identifier: " + e.getMessage());
-		}
+		MdocCertificateProfileChecks.checkAuthorityKeyIdentifierMatchesIssuer(dsCert, issuingCert, violations);
 		// Table B.3: stateOrProvinceName is mandatory (with the same value) when the IACA
 		// certificate carries it
 		org.bouncycastle.asn1.x500.X500Name issuerSubject =
@@ -197,7 +171,7 @@ public class ValidateMdocDsCertificateProfile extends AbstractValidateMdocDsCert
 			violations.add("extended key usage does not contain " + OID_MDL_DS_EKU + " (mdlDS); it contains " + extendedKeyUsage);
 		}
 		Set<String> criticalOids = dsCert.getCriticalExtensionOIDs();
-		if (criticalOids == null || !criticalOids.contains(OID_EXTENDED_KEY_USAGE)) {
+		if (criticalOids == null || !criticalOids.contains(MdocCertificateProfileChecks.OID_EXTENDED_KEY_USAGE)) {
 			violations.add("extended key usage extension is not marked critical");
 		}
 	}
