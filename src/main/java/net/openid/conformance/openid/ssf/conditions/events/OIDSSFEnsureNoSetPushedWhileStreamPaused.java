@@ -26,7 +26,7 @@ public class OIDSSFEnsureNoSetPushedWhileStreamPaused extends AbstractCondition 
 
 		JsonElement pushRequestEl = env.getElementFromObject("ssf", "push_request");
 		if (pushRequestEl == null) {
-			logSuccess("No push request was received while the stream was paused");
+			logSuccess("No push request was received while the stream was " + stoppedStatus(env));
 			return env;
 		}
 
@@ -39,8 +39,9 @@ public class OIDSSFEnsureNoSetPushedWhileStreamPaused extends AbstractCondition 
 			return env;
 		}
 
-		throw error("The transmitter pushed a SET while the stream status was 'paused'. "
-				+ "No events may be transmitted over a paused stream.",
+		String status = stoppedStatus(env);
+		throw error("The transmitter pushed a SET while the stream status was '" + status + "'. "
+				+ "No events may be transmitted over a " + status + " stream.",
 			args("push_request_received_at", receivedAt.toString(), "stream_paused_at", pausedAt.toString(),
 				"push_request", pushRequestEl));
 	}
@@ -54,5 +55,11 @@ public class OIDSSFEnsureNoSetPushedWhileStreamPaused extends AbstractCondition 
 		} catch (DateTimeParseException e) {
 			throw error("Invalid timestamp in environment", args("key", key, "value", value, "error", e.getMessage()));
 		}
+	}
+
+	/** The status the stream was put into, {@code paused} unless the module recorded another one. */
+	protected static String stoppedStatus(Environment env) {
+		String status = env.getString("ssf", "stream_stopped_status");
+		return status != null ? status : "paused";
 	}
 }
