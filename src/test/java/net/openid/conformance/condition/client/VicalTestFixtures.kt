@@ -199,7 +199,50 @@ object VicalTestFixtures {
 	fun generateBrainpoolSigner(): VicalSigner = generateSigner(curve = EcCurve.BRAINPOOLP256R1)
 
 	/** A test IACA root with a document signer certificate issued by it. */
-	class IssuerPki(val iacaCert: X509Cert, val dsKey: EcPrivateKey, val dsCert: X509Cert)
+	class IssuerPki(
+		val iacaCert: X509Cert,
+		val dsKey: EcPrivateKey,
+		val dsCert: X509Cert,
+		val iacaKey: EcPrivateKey
+	)
+
+	/**
+	 * Mints another end-entity leaf under the given PKI's IACA, e.g. a status list signer. The key
+	 * usage defaults to the digitalSignature-only value the Annex B leaf profiles require.
+	 */
+	@JvmStatic
+	@JvmOverloads
+	fun mintLeafUnderIaca(
+		pki: IssuerPki,
+		commonName: String,
+		keyUsage: Set<X509KeyUsage> = setOf(X509KeyUsage.DIGITAL_SIGNATURE)
+	): Pair<EcPrivateKey, X509Cert> =
+		mintLeafUnderIaca(pki.iacaCert, pki.iacaKey, commonName, 3L, keyUsage)
+
+	private fun mintLeafUnderIaca(
+		iacaCert: X509Cert,
+		iacaKey: EcPrivateKey,
+		commonName: String,
+		serial: Long,
+		keyUsage: Set<X509KeyUsage> = setOf(X509KeyUsage.DIGITAL_SIGNATURE)
+	): Pair<EcPrivateKey, X509Cert> {
+		val key = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
+		val cert = runBlocking {
+			X509Cert.Builder(
+				key.publicKey,
+				AsymmetricKey.anonymous(iacaKey, Algorithm.ES256),
+				ASN1Integer(serial),
+				X500Name.fromName("CN=$commonName,O=OpenID Foundation,C=UT"),
+				X500Name.fromName(iacaCert.subject.name),
+				Clock.System.now() - 1.days,
+				Clock.System.now() + 90.days
+			).includeSubjectKeyIdentifier(true)
+				.setAuthorityKeyIdentifierToCertificate(iacaCert)
+				.setKeyUsage(keyUsage)
+				.build()
+		}
+		return Pair(key, cert)
+	}
 
 	/** Generates a test IACA root CA and a DS certificate signed by it. */
 	@JvmStatic
@@ -221,22 +264,8 @@ object VicalTestFixtures {
 				.setKeyUsage(setOf(X509KeyUsage.KEY_CERT_SIGN, X509KeyUsage.CRL_SIGN))
 				.build()
 		}
-		val dsKey = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
-		val dsCert = runBlocking {
-			X509Cert.Builder(
-				dsKey.publicKey,
-				AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(iacaCert)), iacaKey),
-				ASN1Integer(2L),
-				X500Name.fromName("CN=OIDF Test DS,O=OpenID Foundation,C=UT"),
-				iacaName,
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 90.days
-			).includeSubjectKeyIdentifier(true)
-				.setAuthorityKeyIdentifierToCertificate(iacaCert)
-				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
-				.build()
-		}
-		return IssuerPki(iacaCert, dsKey, dsCert)
+		val (dsKey, dsCert) = mintLeafUnderIaca(iacaCert, iacaKey, "OIDF Test DS", 2L)
+		return IssuerPki(iacaCert, dsKey, dsCert, iacaKey)
 	}
 
 	/** PEM-encodes a certificate. */

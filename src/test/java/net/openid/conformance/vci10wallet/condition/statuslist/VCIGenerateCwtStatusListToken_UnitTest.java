@@ -1,6 +1,12 @@
 package net.openid.conformance.vci10wallet.condition.statuslist;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.AbstractRevocationListCwtCondition;
+import net.openid.conformance.condition.client.EnsureMdocNotRevoked;
+import net.openid.conformance.condition.client.ExtractMdocRevocationStatus;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListCwtFormat;
+import net.openid.conformance.condition.client.VerifyMdocRevocationListCwtSignature;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -23,7 +29,9 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 public class VCIGenerateCwtStatusListToken_UnitTest {
@@ -43,6 +51,30 @@ public class VCIGenerateCwtStatusListToken_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 		env.putString("server", "issuer", ISSUER);
 		env.putString("current_status_list_id", "1");
+	}
+
+	@Test
+	public void testEvaluate_generatesTokenTheConsumptionConditionsAccept() {
+		cond.execute(env);
+
+		String token = env.getString("current_status_list_cwt");
+		assertNotNull(token);
+
+		// hand the generated token to the conditions that consume an MSO revocation list
+		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN, token);
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI, ISSUER + "statuslists/1");
+
+		assertDoesNotThrow(() -> run(new ValidateMdocRevocationListCwtFormat()));
+		assertDoesNotThrow(() -> run(new VerifyMdocRevocationListCwtSignature()));
+
+		// the generated list marks even indices valid and odd indices revoked
+		env.putInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX, 12);
+		assertDoesNotThrow(() -> run(new ExtractMdocRevocationStatus()));
+		assertDoesNotThrow(() -> run(new EnsureMdocNotRevoked()));
+
+		env.putInteger(AbstractRevocationListCwtCondition.ENV_STATUS_LIST_IDX, 13);
+		assertDoesNotThrow(() -> run(new ExtractMdocRevocationStatus()));
+		assertThrows(ConditionError.class, () -> run(new EnsureMdocNotRevoked()));
 	}
 
 	/**
@@ -71,5 +103,10 @@ public class VCIGenerateCwtStatusListToken_UnitTest {
 
 	private static X509Certificate toJava(org.multipaz.crypto.X509Cert cert) {
 		return X509CertJvmKt.getJavaX509Certificate(cert);
+	}
+
+	private void run(net.openid.conformance.condition.Condition condition) {
+		condition.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+		condition.execute(env);
 	}
 }
