@@ -181,6 +181,15 @@ public class OIDSSFReceiverStreamStatusUpdateTest extends AbstractOIDSSFReceiver
 		}
 	}
 
+	/** A rejected push of a stream-updated event is recorded at INFO here and graded once at the end of the test. */
+	@Override
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (streamUpdatedEventJtis.contains(event.jti())) {
+			return Condition.ConditionResult.INFO;
+		}
+		return super.getPushDeliveryRejectionSeverity(event);
+	}
+
 	private void onStreamUpdatedEventAcknowledged(String streamId, String jti, String deliveryMethod) {
 		streamUpdatedEventsAcked.add(jti);
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver acknowledged the stream-updated event via " + deliveryMethod + " delivery for stream_id=" + streamId + " (jti=" + jti + ")"),

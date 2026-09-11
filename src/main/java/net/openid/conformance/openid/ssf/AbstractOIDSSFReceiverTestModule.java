@@ -800,6 +800,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 * hold them out of band, so under the default profile this is a WARNING. Later
 	 * acknowledgements are not graded again.
 	 */
+	/** Whether {@link #gradeFirstAcknowledgement()} has run, i.e. the receiver acknowledged at least one SET. */
+	protected boolean isFirstAcknowledgementGraded() {
+		return firstAcknowledgementGraded.get();
+	}
+
 	protected void gradeFirstAcknowledgement() {
 		if (!firstAcknowledgementGraded.compareAndSet(false, true)) {
 			return;
