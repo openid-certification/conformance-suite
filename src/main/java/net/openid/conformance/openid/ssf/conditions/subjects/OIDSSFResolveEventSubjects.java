@@ -37,7 +37,7 @@ import java.util.TreeSet;
  */
 public class OIDSSFResolveEventSubjects extends AbstractCondition {
 
-	public static final String CONFIG_SECTION = "SSF Transmitter";
+	public static final String CONFIG_SECTION = "Shared Signals (SSF)";
 
 	public static final String VALID_SUBJECTS_LABEL = "SSF valid SubjectId";
 
