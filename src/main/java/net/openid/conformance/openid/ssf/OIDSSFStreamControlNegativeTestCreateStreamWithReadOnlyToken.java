@@ -22,6 +22,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		scope, and (2.7.2) requires the transmitter to verify that the authorization represented
 		by the access token is sufficient and to return an RFC 6750 3.1 error otherwise.
 		The testsuite expects to observe the following interactions:
+		 * delete a stream an earlier test left behind, with a full-scope token, so the create
+		   below is answered 403 and not 409
 		 * obtain an access token for the 'ssf.read' scope only; if the authorization server
 		   grants 'ssf.manage' anyway (RFC 6749 section 3.3 allows it) the test stops, since
 		   the scope enforcement cannot be exercised with such a token
@@ -49,14 +51,8 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken extend
 	protected void prepareTransmitterAccess() {
 		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
 
-		eventLog.runBlock("Prepare read-only Transmitter Access", () -> {
-			obtainTransmitterAccessToken();
-			OIDSSFRestrictClientScopeToRead.undo(env);
-			// RFC 6749 3.3 lets the authorization server ignore the requested scope; with a
-			// token that also carries 'ssf.manage' the transmitter's refusal cannot be tested.
-			callAndStopOnFailure(OIDSSFEnsureGrantedScopeIsReadOnly.class, "CAEPIOP-2.7.3");
-		});
-
+		// the tokens are obtained in beforeTestTransmitter: a full-scope one for the cleanup,
+		// then the read-only one under test
 		env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 	}
 
@@ -71,7 +67,19 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken extend
 
 	@Override
 	protected void beforeTestTransmitter() {
-		// the read-only token cannot delete streams, so skip the usual cleanup call
+		// the read-only token cannot delete a stream an earlier module left behind, which would
+		// turn the expected 403 into a 409: clean up with a full-scope token, then narrow again
+		eventLog.runBlock("Clean stream environment if necessary (with a full-scope token)", () -> {
+			restrictScopeToRead = false;
+			obtainTransmitterAccessToken();
+			cleanUpStreamConfigurationIfNecessary();
+		});
+		eventLog.runBlock("Prepare read-only Transmitter Access", () -> {
+			restrictScopeToRead = true;
+			obtainTransmitterAccessToken();
+			OIDSSFRestrictClientScopeToRead.undo(env);
+			callAndStopOnFailure(OIDSSFEnsureGrantedScopeIsReadOnly.class, "CAEPIOP-2.7.3");
+		});
 	}
 
 	@Override
