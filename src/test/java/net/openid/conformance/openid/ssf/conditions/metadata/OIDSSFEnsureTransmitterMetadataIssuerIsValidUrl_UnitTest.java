@@ -69,9 +69,9 @@ public class OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl_UnitTest {
 	}
 
 	@Test
-	void failsForMissingIssuer() {
+	void passesForMissingIssuerAsThatIsGradedSeparately() {
 		prepareIssuer(null);
-		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+		assertDoesNotThrow(() -> createCondition().execute(env));
 	}
 
 	@Test
