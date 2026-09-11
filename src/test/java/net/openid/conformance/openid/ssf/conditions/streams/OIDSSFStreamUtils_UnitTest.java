@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamStatusValue;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,15 @@ public class OIDSSFStreamUtils_UnitTest {
 
 	private static JsonObject stream() {
 		return JsonParser.parseString("{\"stream_id\": \"s1\"}").getAsJsonObject();
+	}
+
+	@Test
+	void aRequestBodyThatIsNotAnObjectYieldsNoStream() {
+		Environment env = new Environment();
+		JsonObject request = new JsonObject();
+		request.add("body_json", JsonParser.parseString("[\"not\", \"an\", \"object\"]"));
+		env.putObject("incoming_request", request);
+		assertNull(OIDSSFStreamUtils.getStreamFromRequestBody(env));
 	}
 
 	@Test
