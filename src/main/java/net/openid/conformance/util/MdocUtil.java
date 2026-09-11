@@ -9,6 +9,8 @@ import org.multipaz.cbor.DataItem;
 import org.multipaz.cose.Cose;
 import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
+import org.multipaz.crypto.Algorithm;
+import org.multipaz.crypto.EcCurve;
 import org.multipaz.crypto.X509CertChain;
 import org.multipaz.crypto.EcPublicKey;
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate;
@@ -18,12 +20,63 @@ import org.multipaz.mdoc.mso.MobileSecurityObject;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Helpers for extracting data from mdoc IssuerSigned structures (ISO 18013-5) as received
  * in OID4VCI credential responses.
  */
 public final class MdocUtil {
+
+	/**
+	 * The curves ISO/IEC 18013-5 permits with each COSE signature algorithm, stated identically
+	 * for the issuerAuth signature (9.1.2.4) and the MSO revocation list (12.3.6.3): "ES256 shall
+	 * be used with curves P-256 and brainpoolP256r1. ES384 shall be used with curves P-384,
+	 * brainpoolP320r1 and brainpoolP384r1. ES512 shall be used with curves P-521 and
+	 * brainpoolP512r1. EdDSA shall be used with curves Ed25519 and Ed448."
+	 */
+	private static final Map<Algorithm, Set<EcCurve>> CURVES_FOR_ALGORITHM = Map.of(
+		Algorithm.ES256, Set.of(EcCurve.P256, EcCurve.BRAINPOOLP256R1),
+		Algorithm.ES384, Set.of(EcCurve.P384, EcCurve.BRAINPOOLP320R1, EcCurve.BRAINPOOLP384R1),
+		Algorithm.ES512, Set.of(EcCurve.P521, EcCurve.BRAINPOOLP512R1),
+		Algorithm.EDDSA, Set.of(EcCurve.ED25519, EcCurve.ED448));
+
+	/** The curve names as ISO/IEC 18013-5 writes them. */
+	private static final Map<EcCurve, String> ISO_CURVE_NAMES = Map.of(
+		EcCurve.P256, "P-256",
+		EcCurve.P384, "P-384",
+		EcCurve.P521, "P-521",
+		EcCurve.BRAINPOOLP256R1, "brainpoolP256r1",
+		EcCurve.BRAINPOOLP320R1, "brainpoolP320r1",
+		EcCurve.BRAINPOOLP384R1, "brainpoolP384r1",
+		EcCurve.BRAINPOOLP512R1, "brainpoolP512r1",
+		EcCurve.ED25519, "Ed25519",
+		EcCurve.ED448, "Ed448");
+
+	/** The name ISO/IEC 18013-5 uses for the curve, falling back to its SECG name. */
+	public static String isoCurveName(EcCurve curve) {
+		return ISO_CURVE_NAMES.getOrDefault(curve, curve.getSECGName());
+	}
+
+	/**
+	 * Returns why a key on {@code curve} may not be used with {@code algorithm} under ISO/IEC
+	 * 18013-5's curve pairing rule, or null when the pairing is permitted. An algorithm the rule
+	 * does not list at all is reported as such; whether it is permitted is for the caller's
+	 * algorithm check.
+	 */
+	public static String describeCurveMismatch(Algorithm algorithm, EcCurve curve) {
+		Set<EcCurve> permitted = CURVES_FOR_ALGORITHM.get(algorithm);
+		if (permitted == null) {
+			return algorithm.name() + " is not one of the signature algorithms ISO/IEC 18013-5 pairs with a curve";
+		}
+		if (permitted.contains(curve)) {
+			return null;
+		}
+		return "ISO/IEC 18013-5 says " + algorithm.name() + " shall be used with "
+			+ permitted.stream().map(MdocUtil::isoCurveName).sorted().collect(Collectors.joining(", "))
+			+ ", but the signing key is on " + isoCurveName(curve);
+	}
 
 	private MdocUtil() {
 		// utility class

@@ -265,6 +265,33 @@ object VicalTestFixtures {
 		return com.nimbusds.jose.util.Base64URL(mdocBase64Url).decode()
 	}
 
+	/**
+	 * As [issuerSignedFromPki], but with the issuerAuth re-signed under [algorithm] by the same
+	 * P-256 DS key - e.g. ES384, a pairing ISO/IEC 18013-5 9.1.2.4 forbids even though the
+	 * signature itself verifies.
+	 */
+	@JvmStatic
+	fun issuerSignedFromPkiSignedWith(pki: IssuerPki, docType: String, algorithm: Algorithm): ByteArray {
+		val issuerSigned = Cbor.decode(issuerSignedFromPki(pki, docType))
+		val original = issuerSigned["issuerAuth"].asCoseSign1
+		val protectedHeaders = mapOf<CoseLabel, DataItem>(
+			CoseNumberLabel(Cose.COSE_LABEL_ALG) to algorithm.coseAlgorithmIdentifier!!.toDataItem()
+		)
+		val resigned = runBlocking {
+			Cose.coseSign1Sign(
+				AsymmetricKey.anonymous(pki.dsKey, algorithm),
+				original.payload!!,
+				true,
+				protectedHeaders,
+				original.unprotectedHeaders
+			)
+		}
+		return Cbor.encode(buildCborMap {
+			put("nameSpaces", issuerSigned["nameSpaces"])
+			put("issuerAuth", resigned.toDataItem())
+		})
+	}
+
 	// SunEC cannot generate brainpool keys and KeyPairGenerator does not fail over to BC,
 	// so generate fixture keys with BC explicitly and convert to a multipaz key
 	private fun createKey(curve: EcCurve): EcPrivateKey {

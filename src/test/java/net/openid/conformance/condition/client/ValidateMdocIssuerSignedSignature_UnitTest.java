@@ -16,6 +16,7 @@ import org.multipaz.testapp.VciMdocUtils;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateMdocIssuerSignedSignature_UnitTest {
@@ -55,6 +56,20 @@ public class ValidateMdocIssuerSignedSignature_UnitTest {
 
 		// Should succeed without throwing
 		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_rejectsAnAlgorithmNotPairedWithTheSigningKeysCurve() {
+		// ES384 over a P-256 key verifies cryptographically but ISO/IEC 18013-5 9.1.2.4 pairs
+		// ES384 with P-384 and the 320/384-bit Brainpool curves only
+		VicalTestFixtures.IssuerPki pki = VicalTestFixtures.generateIssuerPki();
+		byte[] bytes = VicalTestFixtures.issuerSignedFromPkiSignedWith(pki, "org.iso.18013.5.1.mDL",
+			org.multipaz.crypto.Algorithm.ES384);
+		env.putString("mdoc_credential_cbor", Base64.getEncoder().encodeToString(bytes));
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("ES384"), error.getMessage());
+		assertTrue(error.getMessage().contains("P-256"), error.getMessage());
 	}
 
 	@Test
