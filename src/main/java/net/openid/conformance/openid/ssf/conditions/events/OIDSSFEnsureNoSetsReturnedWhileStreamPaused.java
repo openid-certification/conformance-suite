@@ -28,13 +28,20 @@ public class OIDSSFEnsureNoSetsReturnedWhileStreamPaused extends AbstractConditi
 		JsonElement setsEl = bodyJsonEl.getAsJsonObject().get("sets");
 		if (setsEl != null && setsEl.isJsonObject() && !setsEl.getAsJsonObject().isEmpty()) {
 			JsonObject sets = setsEl.getAsJsonObject();
-			throw error("The transmitter returned SETs from a paused stream. "
-					+ "No events may be transmitted while the stream status is 'paused'.",
+			String status = stoppedStatus(env);
+			throw error("The transmitter returned SETs from a " + status + " stream. "
+					+ "No events may be transmitted while the stream status is '" + status + "'.",
 				args("set_count", sets.size(), "set_jtis", sets.keySet(), "polling_response", bodyJsonEl));
 		}
 
-		logSuccess("The paused stream returned no SETs", args("polling_response", bodyJsonEl));
+		logSuccess("The " + stoppedStatus(env) + " stream returned no SETs", args("polling_response", bodyJsonEl));
 
 		return env;
+	}
+
+	/** The status the stream was put into, {@code paused} unless the module recorded another one. */
+	protected static String stoppedStatus(Environment env) {
+		String status = env.getString("ssf", "stream_stopped_status");
+		return status != null ? status : "paused";
 	}
 }
