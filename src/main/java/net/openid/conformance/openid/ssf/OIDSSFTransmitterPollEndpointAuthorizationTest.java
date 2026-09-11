@@ -21,8 +21,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		This test verifies that the transmitter protects the poll endpoint of a POLL stream with
 		the same authorization scheme as the stream management API. SSF 1.0 (7.1.1) says the
 		advertised authorization schemes "SHOULD also be used to protect any polling endpoint";
-		the CAEP Interop Profile (2.7.2) does not name the poll endpoint explicitly, so every
-		finding of this test is reported as a warning under both profiles.
+		the CAEP Interop Profile (2.7.2) does not name the poll endpoint explicitly, so a poll
+		endpoint that answers an unauthenticated request is reported as a warning under both
+		profiles. A poll endpoint that does answer 401 uses HTTP authentication, and RFC 8936
+		(section 3) then requires it to name the supported schemes in a 'WWW-Authenticate'
+		header, so a 401 without that header is a failure; the error code inside the header
+		is a warning.
 		The testsuite expects to observe the following interactions:
 		 * create a stream with poll delivery
 		 * poll the stream's endpoint_url without an Authorization header
@@ -60,7 +64,11 @@ public class OIDSSFTransmitterPollEndpointAuthorizationTest extends AbstractStre
 			// endpoint, so a poll endpoint that answers an unauthenticated request is a finding,
 			// not a failure. RFC 6750 3.1: no error code is expected without credentials.
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "RFC8936-3");
-			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "RFC8936-3", "RFC6750-3");
+			if (pollEndpointAnswered401()) {
+				// RFC 8936 3: a delivery endpoint using HTTP authentication SHALL name the schemes
+				// it supports in a WWW-Authenticate header
+				callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.FAILURE, "RFC8936-3", "RFC6750-3");
+			}
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -71,10 +79,18 @@ public class OIDSSFTransmitterPollEndpointAuthorizationTest extends AbstractStre
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			// WARNING: see above - SSF 1.0 7.1.1 is a SHOULD for the poll endpoint.
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "RFC8936-3");
-			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "RFC8936-3", "RFC6750-3", "RFC6750-3.1");
-			callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("invalid_token"), Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "RFC6750-3.1");
+			if (pollEndpointAnswered401()) {
+				callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.FAILURE, "RFC8936-3", "RFC6750-3");
+				callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("invalid_token"), Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "RFC6750-3.1");
+			}
 			call(exec().unmapKey("endpoint_response"));
 		});
+	}
+
+	/** Whether the poll endpoint rejected the last request with 401, i.e. it uses HTTP authentication. */
+	private boolean pollEndpointAnswered401() {
+		Integer status = env.getInteger("endpoint_response", "status");
+		return status != null && status == 401;
 	}
 
 	@Override
