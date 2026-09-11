@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
@@ -15,6 +16,7 @@ import org.multipaz.testapp.VciMdocUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -128,6 +130,44 @@ public class FetchMdocRevocationList_UnitTest {
 		putCredentialWithStatusList(StatusListCwtTestFixtures.DEFAULT_URI, 0L);
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_reusesACachedListThatIsStillFresh() throws Exception {
+		byte[] token = StatusListCwtTestFixtures.validStatusListToken();
+		seedCache(StatusListCwtTestFixtures.DEFAULT_URI, token, Instant.now().getEpochSecond() + 600);
+		putCredentialWithStatusList(StatusListCwtTestFixtures.DEFAULT_URI, 4L);
+
+		cond.execute(env);
+
+		// served from the cache: no HTTP response recorded, the cached bytes stored
+		assertFalse(env.containsObject(AbstractRevocationListCwtCondition.ENV_RESPONSE));
+		assertArrayEquals(token, Base64.getDecoder().decode(
+			env.getString(AbstractRevocationListCwtCondition.ENV_TOKEN)));
+	}
+
+	@Test
+	public void testEvaluate_refetchesACachedListWhoseFreshnessHasLapsed() throws Exception {
+		byte[] stale = StatusListCwtTestFixtures.validStatusListToken();
+		byte[] fresh = StatusListCwtTestFixtures.validStatusListToken();
+		seedCache(StatusListCwtTestFixtures.DEFAULT_URI, stale, Instant.now().getEpochSecond() - 1);
+		cond.setResponse(ResponseEntity.ok(fresh));
+		putCredentialWithStatusList(StatusListCwtTestFixtures.DEFAULT_URI, 4L);
+
+		cond.execute(env);
+
+		assertTrue(env.containsObject(AbstractRevocationListCwtCondition.ENV_RESPONSE));
+		assertArrayEquals(fresh, Base64.getDecoder().decode(
+			env.getString(AbstractRevocationListCwtCondition.ENV_TOKEN)));
+	}
+
+	private void seedCache(String uri, byte[] token, long freshUntil) {
+		JsonObject entry = new JsonObject();
+		entry.addProperty("token", Base64.getEncoder().encodeToString(token));
+		entry.addProperty("fresh_until", freshUntil);
+		JsonObject cache = new JsonObject();
+		cache.add(uri, entry);
+		env.putObject(AbstractRevocationListCwtCondition.ENV_CACHE, cache);
 	}
 
 	private void putCredentialWithStatusList(String statusListUri, Long statusListIndex) {
