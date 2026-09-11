@@ -1436,10 +1436,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	/**
-	 * The {@code jti} values of events whose push delivery was answered with an error status,
-	 * see {@link #onPushDeliveryNotAcknowledged(String, OIDSSFSecurityEvent)}.
-	 */
-	/**
 	 * Severity of a push delivery the receiver did not answer with 202 (RFC 8935 2.2): FAILURE,
 	 * except for an event with a Complex Subject under the CAEP Interop Profile. Draft-01 of the
 	 * profile (2.5) requires receivers to accept {@code email} and {@code iss_sub} subjects only;
@@ -1492,6 +1488,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return subjects.get(0);
 	}
 
+	/**
+	 * The {@code jti} values of events whose push delivery was answered with an error status,
+	 * see {@link #onPushDeliveryNotAcknowledged(String, OIDSSFSecurityEvent)}.
+	 */
 	protected Set<String> getRejectedPushEventJtis() {
 		return Set.copyOf(rejectedPushEventJtis);
 	}
