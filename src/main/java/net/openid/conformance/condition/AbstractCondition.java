@@ -747,7 +747,10 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return 60;
 	}
 
-	/** Allow a negative test to omit credentials without changing the shared environment. */
+	/**
+	 * Whether outbound requests use the configured mTLS client certificate.
+	 * Negative tests that must connect without a client certificate override this method.
+	 */
 	protected boolean useMtlsForHttpRequests() {
 		return true;
 	}

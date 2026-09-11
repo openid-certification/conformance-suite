@@ -34,7 +34,6 @@ public class PingClientNotificationEndpointWithoutMTLS extends PingClientNotific
 
 	@Override
 	protected boolean useMtlsForHttpRequests() {
-		// HTTP I/O releases the test lock. Keep credentials available to concurrent requests.
 		return false;
 	}
 
