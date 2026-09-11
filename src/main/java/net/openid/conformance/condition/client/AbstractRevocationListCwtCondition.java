@@ -1,8 +1,11 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborDouble;
@@ -24,6 +27,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.Serial;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
@@ -56,6 +60,9 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 
 	/** Environment object holding the revocation list HTTP response (status and headers). */
 	public static final String ENV_RESPONSE = "mdoc_revocation_list_endpoint_response";
+
+	/** Environment object caching the revocation lists already retrieved, keyed by URI. */
+	public static final String ENV_CACHE = "mdoc_revocation_list_cache";
 
 	/**
 	 * The optional Certificate element of the MSO's status reference (base64 DER), the explicit
@@ -167,6 +174,20 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 		}
 	}
 
+	/** A token that is not structurally a COSE_Sign1 over a CWT claims set. */
+	protected static class RevocationListFormatException extends Exception {
+		@Serial
+		private static final long serialVersionUID = 1L;
+
+		RevocationListFormatException(String message) {
+			super(message);
+		}
+
+		RevocationListFormatException(String message, Throwable cause) {
+			super(message, cause);
+		}
+	}
+
 	/**
 	 * Parses the fetched MSO revocation list as a COSE_Sign1 with a CWT claims set payload. Only
 	 * structural failures that make any further checking impossible throw here; the individual
@@ -174,22 +195,30 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 	 * {@link ValidateMdocRevocationListCwtFormat}.
 	 */
 	protected ParsedRevocationListCwt parseRevocationListCwt(Environment env) {
-		byte[] tokenBytes = getRevocationListTokenBytes(env);
+		try {
+			return parseRevocationListCwt(getRevocationListTokenBytes(env));
+		} catch (RevocationListFormatException e) {
+			throw e.getCause() == null ? error(e.getMessage()) : error(e.getMessage(), e.getCause());
+		}
+	}
 
+	/** As {@link #parseRevocationListCwt(Environment)}, for token bytes not (yet) in the environment. */
+	protected static ParsedRevocationListCwt parseRevocationListCwt(byte[] tokenBytes)
+			throws RevocationListFormatException {
 		DataItem decoded;
 		try {
 			decoded = Cbor.INSTANCE.decode(tokenBytes);
 		} catch (Exception e) {
-			throw error("The MSO revocation list is not valid CBOR; ISO/IEC 18013-5 12.3.6.3 requires"
-				+ " it to be a Status List Token in CWT format", e);
+			throw new RevocationListFormatException("The MSO revocation list is not valid CBOR;"
+				+ " ISO/IEC 18013-5 12.3.6.3 requires it to be a Status List Token in CWT format", e);
 		}
 
 		boolean tagged = false;
 		DataItem coseItem = decoded;
 		if (decoded instanceof Tagged tag) {
 			if (tag.getTagNumber() != Tagged.COSE_SIGN1) {
-				throw error("The MSO revocation list is tagged with CBOR tag " + tag.getTagNumber()
-					+ "; draft-ietf-oauth-status-list section 5.2 requires the COSE_Sign1 tag (18)");
+				throw new RevocationListFormatException("The MSO revocation list is tagged with CBOR tag "
+					+ tag.getTagNumber() + "; draft-ietf-oauth-status-list section 5.2 requires the COSE_Sign1 tag (18)");
 			}
 			tagged = true;
 			coseItem = tag.getTaggedItem();
@@ -199,24 +228,25 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 		try {
 			coseSign1 = CoseSign1.Companion.fromDataItem(coseItem);
 		} catch (Exception e) {
-			throw error("The MSO revocation list could not be parsed as a COSE_Sign1 structure;"
-				+ " ISO/IEC 18013-5 12.3.6.3 requires the MSO revocation list to be a COSE_Sign1 object", e);
+			throw new RevocationListFormatException("The MSO revocation list could not be parsed as a"
+				+ " COSE_Sign1 structure; ISO/IEC 18013-5 12.3.6.3 requires the MSO revocation list to be a"
+				+ " COSE_Sign1 object", e);
 		}
 
 		byte[] payload = coseSign1.getPayload();
 		if (payload == null || payload.length == 0) {
-			throw error("The MSO revocation list's COSE_Sign1 structure has no payload,"
-				+ " so it carries no CWT claims set");
+			throw new RevocationListFormatException("The MSO revocation list's COSE_Sign1 structure has no"
+				+ " payload, so it carries no CWT claims set");
 		}
 
 		DataItem claims;
 		try {
 			claims = Cbor.INSTANCE.decode(payload);
 		} catch (Exception e) {
-			throw error("The MSO revocation list's CWT claims set is not valid CBOR", e);
+			throw new RevocationListFormatException("The MSO revocation list's CWT claims set is not valid CBOR", e);
 		}
 		if (!(claims instanceof CborMap)) {
-			throw error("The MSO revocation list's CWT claims set is not a CBOR map");
+			throw new RevocationListFormatException("The MSO revocation list's CWT claims set is not a CBOR map");
 		}
 
 		return new ParsedRevocationListCwt(coseSign1, tagged, claims);
@@ -297,6 +327,87 @@ public abstract class AbstractRevocationListCwtCondition extends AbstractConditi
 			throw error("The MSO revocation list endpoint returned an empty body", args("uri", uri));
 		}
 		return body;
+	}
+
+	/**
+	 * A revocation list that is now available to the downstream conditions.
+	 *
+	 * @param token the list, base64 encoded as the environment stores it
+	 * @param length the length in bytes of the list
+	 * @param reused whether it came from {@link #retrieveRevocationList}'s cache rather than the
+	 *   network, i.e. an earlier credential in this batch referenced the same URI
+	 */
+	protected record RetrievedRevocationList(String token, int length, boolean reused) {
+	}
+
+	/**
+	 * Retrieves the revocation list at {@code uri}, reusing the copy already retrieved for an
+	 * earlier credential of this test while that copy is still fresh.
+	 *
+	 * <p>Credentials are validated one at a time, and a batch issued against several proofs of
+	 * possession normally references one list from every credential in it, so fetching per
+	 * credential would repeat the same request (and, with no connection pooling, the same TLS
+	 * handshake) for bytes already held. Credentials in a batch may legitimately reference
+	 * different lists, so the cache is keyed by URI rather than remembering only the last one.
+	 *
+	 * <p>A cached copy is reused until its exp, or until ttl seconds after it was fetched if that
+	 * is sooner: draft-ietf-oauth-status-list section 5.2 makes ttl the maximum time a consumer
+	 * may cache the token. A copy that cannot be parsed has no freshness limit; the format check
+	 * reports it, and a reuse changes nothing.
+	 *
+	 * <p>On a cache hit no HTTP response is recorded, which is what the calling sequence uses to
+	 * skip re-checking the envelope of a list it has already checked.
+	 */
+	protected RetrievedRevocationList retrieveRevocationList(Environment env, String uri, Mechanism mechanism) {
+		JsonObject cache = env.getObject(ENV_CACHE);
+		if (cache == null) {
+			cache = new JsonObject();
+			env.putObject(ENV_CACHE, cache);
+		}
+
+		JsonElement cached = cache.get(uri);
+		if (cached != null && isFresh(cached.getAsJsonObject())) {
+			env.removeObject(ENV_RESPONSE);
+			String token = OIDFJSON.getString(cached.getAsJsonObject().get("token"));
+			return new RetrievedRevocationList(token, Base64.getDecoder().decode(token).length, true);
+		}
+
+		byte[] body = fetchRevocationList(env, uri, mechanism);
+		String token = Base64.getEncoder().encodeToString(body);
+		JsonObject entry = new JsonObject();
+		entry.addProperty("token", token);
+		Long freshUntil = freshUntil(body);
+		if (freshUntil != null) {
+			entry.addProperty("fresh_until", freshUntil);
+		}
+		cache.add(uri, entry);
+		return new RetrievedRevocationList(token, body.length, false);
+	}
+
+	private static boolean isFresh(JsonObject entry) {
+		JsonElement freshUntil = entry.get("fresh_until");
+		return freshUntil == null || Instant.now().getEpochSecond() < OIDFJSON.getLong(freshUntil);
+	}
+
+	/** The epoch second until which a freshly fetched token may be reused, or null when unknown. */
+	private static Long freshUntil(byte[] token) {
+		DataItem claims;
+		try {
+			claims = parseRevocationListCwt(token).claims();
+		} catch (RevocationListFormatException e) {
+			return null;
+		}
+		Long until = null;
+		DataItem exp = claims.getOrNull(StatusListCwt.CLAIM_EXP);
+		if (exp != null) {
+			until = numericDateSeconds(exp);
+		}
+		DataItem ttl = claims.getOrNull(StatusListCwt.CLAIM_TTL);
+		if (ttl != null && ttl.getMajorType() == MajorType.UNSIGNED_INTEGER) {
+			long byTtl = Instant.now().getEpochSecond() + ttl.getAsNumber();
+			until = until == null ? byTtl : Math.min(until, byTtl);
+		}
+		return until;
 	}
 
 	/** The HTTP GET itself; overridden by the unit tests to serve a canned response. */

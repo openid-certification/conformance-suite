@@ -119,17 +119,18 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		ConditionResult retrievalSeverity = isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING;
 
 		callAndContinueOnFailure(FetchMdocRevocationList.class, retrievalSeverity, "ISO18013-5-12.3.6.2");
-		checkFetchedList(EnsureContentTypeMdocRevocationListCwt.class, ConditionResult.WARNING,
+		checkListItself(EnsureContentTypeMdocRevocationListCwt.class, ConditionResult.WARNING,
 			"ISO18013-5-12.3.6.4", "ISO18013-5-12.3.6.5", "OTSL-8.2");
-		checkFetchedList(ValidateMdocRevocationListCwtFormat.class, retrievalSeverity,
+		checkListItself(ValidateMdocRevocationListCwtFormat.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.3", "ISO18013-5-12.3.6.4");
-		checkFetchedList(VerifyMdocRevocationListCwtSignature.class, retrievalSeverity,
+		checkListItself(VerifyMdocRevocationListCwtSignature.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.3");
-		checkFetchedList(ValidateMdocRevocationListSignerCertificateProfile.class, ConditionResult.WARNING,
+		checkListItself(ValidateMdocRevocationListSignerCertificateProfile.class, ConditionResult.WARNING,
 			"ISO18013-5-B.9");
-		checkFetchedList(ValidateMdocRevocationListCertificateChain.class, retrievalSeverity,
+		// binds this credential's MSO to the list, so it runs even for a list already checked
+		checkRetrievedList(ValidateMdocRevocationListCertificateChain.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.2");
-		checkFetchedList(ExtractMdocRevocationStatus.class, retrievalSeverity,
+		checkRetrievedList(ExtractMdocRevocationStatus.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.1", "ISO18013-5-12.3.6.4");
 		call(condition(EnsureMdocNotRevoked.class)
 			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_STATUS)
@@ -140,13 +141,35 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 	}
 
 	/**
-	 * Calls a check on a fetched MSO revocation list, skipping it when
+	 * Calls a per-credential check on a retrieved MSO revocation list, skipping it when
 	 * {@link FetchMdocRevocationList} stored no token because the MSO carries no Status structure.
 	 */
-	private void checkFetchedList(Class<? extends Condition> conditionClass, ConditionResult onFail,
+	private void checkRetrievedList(Class<? extends Condition> conditionClass, ConditionResult onFail,
 			String... requirements) {
 		call(condition(conditionClass)
 			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(onFail)
+			.dontStopOnFailure()
+			.requirements(requirements));
+	}
+
+	/**
+	 * Calls a check on the revocation list itself - its envelope, its signature and its signer's
+	 * certificate profile - rather than on this credential's relationship to it.
+	 *
+	 * <p>Additionally skipped when the list was not retrieved for this credential, which the
+	 * absence of an HTTP response object marks: the fetch condition records a response only when
+	 * it actually went to the network, so a list already checked for an earlier credential in the
+	 * batch is not checked again. (The checks that bind the list to <em>this</em> credential -
+	 * its certification path and the credential's own status, which re-checks the list's expiry -
+	 * use {@link #checkRetrievedList} and run for every credential.)
+	 */
+	private void checkListItself(Class<? extends Condition> conditionClass, ConditionResult onFail,
+			String... requirements) {
+		call(condition(conditionClass)
+			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_TOKEN)
+			.skipIfObjectsMissing(AbstractRevocationListCwtCondition.ENV_RESPONSE)
 			.onSkip(ConditionResult.INFO)
 			.onFail(onFail)
 			.dontStopOnFailure()
