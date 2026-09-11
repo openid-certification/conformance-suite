@@ -2,14 +2,13 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.AbstractJsonUriIsValidAndHttps;
 import net.openid.conformance.openid.ssf.SsfConstants;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Checks that the stream the transmitter created carries the delivery the receiver asked for.
@@ -25,7 +24,7 @@ import java.net.URISyntaxException;
  * {@code ssf.expected_stream_config}; a request that carried no {@code delivery} is covered by
  * {@link OIDSSFEnsureStreamDeliveryDefaultsToPoll} and skipped here.
  */
-public class OIDSSFEnsureStreamDeliveryMatchesRequest extends AbstractCondition {
+public class OIDSSFEnsureStreamDeliveryMatchesRequest extends AbstractJsonUriIsValidAndHttps {
 
 	@Override
 	@PreEnvironment(required = "ssf")
@@ -72,16 +71,10 @@ public class OIDSSFEnsureStreamDeliveryMatchesRequest extends AbstractCondition 
 					+ "For poll delivery the transmitter supplies the endpoint_url.",
 				args("endpoint_url", endpointUrlEl, "delivery", delivery));
 		}
-		URI endpointUri;
-		try {
-			endpointUri = new URI(endpointUrl);
-		} catch (URISyntaxException e) {
-			throw error("The poll 'endpoint_url' of the stream is not a valid URL",
-				args("endpoint_url", endpointUrl, "error", e.getMessage(), "delivery", delivery));
-		}
-		if (!"https".equalsIgnoreCase(endpointUri.getScheme()) || endpointUri.getHost() == null) {
-			throw error("The poll 'endpoint_url' of the stream is not an https URL",
-				args("endpoint_url", endpointUrl, "delivery", delivery));
+		URL endpointUri = extractURLOrDie(endpointUrlEl, "delivery.endpoint_url");
+		if (!endpointUri.getProtocol().equals(requiredProtocol) || endpointUri.getHost() == null || endpointUri.getHost().isEmpty()) {
+			throw error("The poll 'endpoint_url' of the stream is not an " + requiredProtocol + " URL",
+				args("required", requiredProtocol, "actual_scheme", endpointUri.getProtocol(), "endpoint_url", endpointUrl, "delivery", delivery));
 		}
 
 		logSuccess("The stream configuration carries the requested poll delivery with an https endpoint_url",
