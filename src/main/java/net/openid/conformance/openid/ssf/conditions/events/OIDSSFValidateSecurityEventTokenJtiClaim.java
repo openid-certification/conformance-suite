@@ -30,7 +30,7 @@ public class OIDSSFValidateSecurityEventTokenJtiClaim extends AbstractCondition 
 
 		JsonElement jtiEl = claimsEl.getAsJsonObject().get("jti");
 		if (jtiEl == null) {
-			throw error("jti claim is missing. RFC 8417 (2.2) requires the 'jti' claim in every SET",
+			throw error("jti claim is missing; every SET must carry a 'jti' claim",
 				args("claims", claimsEl));
 		}
 
@@ -56,7 +56,7 @@ public class OIDSSFValidateSecurityEventTokenJtiClaim extends AbstractCondition 
 		JsonElement previousClaimsEl = observed.get(jti);
 		if (previousClaimsEl != null && !previousClaimsEl.equals(claims)) {
 			throw error("The jti claim value was already used by a SET with different claims during this test. "
-					+ "RFC 8417 (2.2) requires jti values to be unique within an event feed.",
+					+ "jti values must be unique within an event feed.",
 				args("jti", jti));
 		}
 

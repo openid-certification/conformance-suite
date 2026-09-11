@@ -52,8 +52,8 @@ public class OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits extends AbstractLe
 
 		if (candidateKeys.isEmpty()) {
 			throw error(kid != null
-					? "Could not find an RSA signing key with the SET's kid in the transmitter JWKS. The CAEP Interop Profile (2.6) requires RS256 with RSA keys."
-					: "Could not find any RSA signing key in the transmitter JWKS. The CAEP Interop Profile (2.6) requires RS256 with RSA keys.",
+					? "Could not find an RSA signing key with the SET's kid in the transmitter JWKS; under the CAEP Interop Profile SETs must be signed with RS256, so the key must be an RSA key."
+					: "Could not find any RSA signing key in the transmitter JWKS; under the CAEP Interop Profile SETs must be signed with RS256, so the key must be an RSA key.",
 				args("kid", kid, "jwks_kids", jwkSet.getKeys().stream().map(JWK::getKeyID).toList()));
 		}
 
@@ -64,7 +64,7 @@ public class OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits extends AbstractLe
 			.map(key -> (key.getKeyID() == null ? "<no kid>" : key.getKeyID()) + " (" + key.size() + " bits)")
 			.toList();
 		if (!keysBelowMinimum.isEmpty()) {
-			throw error("The transmitter JWKS contains candidate RSA signing key(s) below the minimum of 2048 bits required by the CAEP Interop Profile (2.6)",
+			throw error("The transmitter JWKS contains candidate RSA signing key(s) below the minimum of 2048 bits the CAEP Interop Profile requires",
 				args("kid", kid, "keys_below_minimum", keysBelowMinimum, "min_key_size_bits", MIN_RSA_KEY_SIZE_BITS));
 		}
 

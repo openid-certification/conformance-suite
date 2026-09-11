@@ -85,7 +85,7 @@ public class OIDSSFResolveEventSubjects extends AbstractCondition {
 				// reported once by OIDSSFWarnCaepInteropComplexSubjectsConfigured
 				usable.add(subject);
 			} else {
-				log("Skipping '" + VALID_SUBJECTS_LABEL + "' entry: its subject identifier format cannot be used for CAEP events under the CAEP Interop Profile (section 2.5)",
+				log("Skipping '" + VALID_SUBJECTS_LABEL + "' entry: its subject identifier format cannot be used for CAEP events under the CAEP Interop Profile",
 					args("subject", subject, "format", format, "permitted_formats", SsfSubjectIdentifiers.CAEP_INTEROP_EVENT_SUBJECT_FORMATS));
 			}
 		}
@@ -94,7 +94,7 @@ public class OIDSSFResolveEventSubjects extends AbstractCondition {
 		missingFormats.removeAll(coveredFormats);
 		if (!missingFormats.isEmpty()) {
 			throw error("'" + VALID_SUBJECTS_LABEL + "' field in the '" + CONFIG_SECTION + "' section of the test configuration must contain at least one subject identifier "
-					+ "for each subject identifier format the CAEP Interop Profile (section 2.5) requires receivers to accept: " + SsfSubjectIdentifiers.CAEP_INTEROP_EVENT_SUBJECT_FORMATS
+					+ "for each subject identifier format the CAEP Interop Profile requires receivers to accept: " + SsfSubjectIdentifiers.CAEP_INTEROP_EVENT_SUBJECT_FORMATS
 					+ ". Provide a list such as [{\"format\":\"email\",\"email\":\"user@example.com\"}, {\"format\":\"iss_sub\",\"iss\":\"https://idp.example.com\",\"sub\":\"1234\"}]",
 				args("required_formats", SsfSubjectIdentifiers.CAEP_INTEROP_EVENT_SUBJECT_FORMATS,
 					"configured_formats", coveredFormats,
@@ -137,7 +137,7 @@ public class OIDSSFResolveEventSubjects extends AbstractCondition {
 				// RFC 9493 §3: "A Subject Identifier MUST NOT contain any members prohibited or
 				// not described by its Identifier Format" — in configuration input this is
 				// usually a misspelled member, so fail with an actionable message.
-				throw error("'" + label + "' field" + position + " in the '" + CONFIG_SECTION + "' section of the test configuration contains members that RFC 9493 (section 3) does not describe for its subject identifier format: " + unknownMembers
+				throw error("'" + label + "' field" + position + " in the '" + CONFIG_SECTION + "' section of the test configuration contains members the RFC 9493 definition of its subject identifier format does not describe: " + unknownMembers
 						+ ". Remove them or fix the member names.",
 					args("config_key", configKey, "subject", entry, "unknown_members", unknownMembers));
 			}

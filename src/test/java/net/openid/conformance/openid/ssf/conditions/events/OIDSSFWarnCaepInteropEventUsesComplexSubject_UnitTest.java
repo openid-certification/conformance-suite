@@ -77,7 +77,7 @@ public class OIDSSFWarnCaepInteropEventUsesComplexSubject_UnitTest {
 			 "devcie":{"format":"opaque","id":"device-1"}}"""));
 		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
 		assertTrue(e.getMessage().contains("[devcie]"));
-		assertTrue(e.getMessage().contains("not among those defined in SSF 1.0 section 3.3"));
+		assertTrue(e.getMessage().contains("not among the Subject Member names the Complex Subject definition lists"));
 	}
 
 	@Test

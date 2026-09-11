@@ -117,7 +117,7 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 	protected void checkEventsRequested(JsonObject streamConfigInput) {
 		JsonElement eventsRequestedEl = streamConfigInput.get("events_requested");
 		if (eventsRequestedEl == null) {
-			log("No events_requested in stream config (optional per SSF 1.0 8.1.1.1)");
+			log("No events_requested in stream config, which is optional");
 			return;
 		}
 		if (!eventsRequestedEl.isJsonArray()) {

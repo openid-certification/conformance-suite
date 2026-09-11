@@ -68,7 +68,7 @@ public class OIDSSFWarnCaepInteropEventUsesComplexSubject extends AbstractCondit
 		if (!nonStandardMemberNames.isEmpty()) {
 			// SSF 1.0 §3.3 permits additional member names, but a receiver can only interpret the ones
 			// it knows — surface them so reviewers can spot typos or vendor-specific members.
-			message += "; the Subject Member name(s) " + nonStandardMemberNames + " are not among those defined in SSF 1.0 section 3.3 "
+			message += "; the Subject Member name(s) " + nonStandardMemberNames + " are not among the Subject Member names the Complex Subject definition lists "
 				+ SsfSubjectIdentifiers.COMPLEX_SUBJECT_MEMBER_NAMES.stream().sorted().toList();
 		}
 
