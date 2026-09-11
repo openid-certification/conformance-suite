@@ -166,7 +166,6 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckStreamAudience.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
 			// the run cannot continue on a delivery the receiver did not ask for
 			callAndStopOnFailure(OIDSSFEnsureStreamDeliveryMatchesRequest.class, "CAEPIOP-2.3.8.1", "OIDSSF-8.1.1.1", "OIDSSF-6.1.2");
 			callAndContinueOnFailure(OIDSSFStreamRequiredFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
@@ -570,16 +569,18 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			AtomicBoolean wasSolicited = new AtomicBoolean(false);
 			int idx = setIndex;
 			eventLog.runBlock("Validate polled SET " + idx + "/" + totalSets + " (jti=" + jti + ")", () -> {
-				validateSetCommon();
+				callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 
 				if (!currentEventIsVerificationEvent()) {
-					// CAEP events retrieved during the verification phase are validated by
-					// processCaepEventsFromPollResponse once the verification event has arrived
+					// CAEP events retrieved during the verification phase are validated, envelope
+					// included, by processCaepEventsFromPollResponse once the verification event
+					// has arrived
 					eventLog.log(getName(),
 						args("msg", "Skipping non-verification SET during verification phase",
 							"jti", jti));
 					return;
 				}
+				validateSetCommonAfterParsing();
 				validatedNonCaepJtis.add(jti);
 
 				callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");

@@ -21,8 +21,8 @@ public class OIDSSFEnsureSecurityEventValuesAreJsonObjects extends AbstractCondi
 
 		JsonElement eventsEl = env.getElementFromObject("set_token", "claims.events");
 		if (eventsEl == null || !eventsEl.isJsonObject()) {
-			throw error("SET token does not contain an 'events' claim or it is not a JSON object",
-				args("claims", env.getElementFromObject("set_token", "claims")));
+			log("The SET has no 'events' object; that is graded by the single-event check", args("claims", env.getElementFromObject("set_token", "claims")));
+			return env;
 		}
 
 		JsonObject events = eventsEl.getAsJsonObject();
