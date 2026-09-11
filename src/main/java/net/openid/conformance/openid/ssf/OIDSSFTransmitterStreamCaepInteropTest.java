@@ -39,6 +39,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCom
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDeviceComplianceChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepRiskLevelChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepRiskLevelChangeRiskReasonMissing;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepAssuranceLevelChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepSessionEstablishedEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepSessionPresentedEvent;
@@ -693,6 +694,8 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				// until the profile vote lands (see SsfEvents.CAEP_INTEROP_EVENT_TYPES).
 				callAndContinueOnFailure(OIDSSFValidateCaepRiskLevelChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.8");
+				callAndContinueOnFailure(OIDSSFWarnCaepRiskLevelChangeRiskReasonMissing.class,
+					Condition.ConditionResult.WARNING, "OIDCAEP-3.8");
 				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
 					Condition.ConditionResult.WARNING, "OIDCAEP-3.8");
 				break;
