@@ -250,8 +250,10 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 
 				if (!currentEventIsVerificationEvent()) {
 					eventLog.log(getName(),
-						args("msg", "Skipping non-verification SET pushed while waiting for the held verification event",
+						args("msg", "Validating the envelope of a non-verification SET pushed while waiting for the held verification event",
 							"push_request_id", pushRequest.id()));
+					// its SET envelope (and a stream-updated event's payload) is still validated
+					verifyParsedNonVerificationSet();
 					return;
 				}
 
