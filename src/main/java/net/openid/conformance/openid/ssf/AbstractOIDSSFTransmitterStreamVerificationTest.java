@@ -32,9 +32,11 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurit
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateStreamUpdatedEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnStreamUpdatedEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -106,9 +108,12 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 			env.putObject("ssf", "delivery", deliveryObject);
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
+			rememberSentStreamConfig();
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
+			// the verification cannot be delivered over a delivery the receiver did not ask for
+			callAndStopOnFailure(OIDSSFEnsureStreamDeliveryMatchesRequest.class, "OIDSSF-8.1.1.1", "CAEPIOP-2.3.8.1", "OIDSSF-6.1.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
