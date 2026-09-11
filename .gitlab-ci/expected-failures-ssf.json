@@ -27,5 +27,32 @@
         "condition": "OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery",
         "expected-result": "failure",
         "comment": "The dynamic-auth pairings run the transmitter negative openid-ssf-stream-control-error-token-in-uri-query, which deliberately sends the access token as a URI query parameter to check that the transmitter rejects it (CAEP Interop Profile 2.7.2); the emulated transmitter grades that receiver behaviour as a failure"
+    },
+    {
+        "test-name": "openid-ssf-receiver-happypath",
+        "variant": "*",
+        "configuration-filename": "*ssf-receiver-test-config*.json",
+        "current-block": "",
+        "condition": "OIDSSFWarnUnknownEventsRequestedInStreamRequest",
+        "expected-result": "warning",
+        "comment": "The paired transmitter module openid-ssf-stream-control-happy-path deliberately adds an event type no transmitter supports to events_requested, to check that the transmitter ignores it (SSF 1.0 8.1.1); the emulated transmitter of the receiver test ignores it and warns the receiver about the unknown value"
+    },
+    {
+        "test-name": "openid-ssf-receiver-stream-create-delete",
+        "variant": "*",
+        "configuration-filename": "*ssf-receiver-test-config*.json",
+        "current-block": "",
+        "condition": "OIDSSFWarnUnknownEventsRequestedInStreamRequest",
+        "expected-result": "warning",
+        "comment": "Same cause as for openid-ssf-receiver-happypath: the paired openid-ssf-stream-control-happy-path requests an event type no transmitter supports on purpose (SSF 1.0 8.1.1)"
+    },
+    {
+        "test-name": "openid-ssf-transmitter-stream-caep-interop",
+        "variant": "*",
+        "configuration-filename": "*ssf-transmitter-test-config*.json",
+        "current-block": "Validate CAEP event: credential-change",
+        "condition": "OIDSSFWarnNonStandardCaepCredentialChangeValues",
+        "expected-result": "warning",
+        "comment": "The paired receiver module openid-ssf-receiver-stream-caep-interop deliberately sends one credential-change event whose credential_type is outside the list of CAEP 1.0 3.3.1 (which allows any type supported mutually), to check that the receiver does not report it as an error; the transmitter test warns about the non-standard value as a sender-side check"
     }
 ]
