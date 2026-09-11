@@ -171,11 +171,13 @@ public class OIDSSFValidateCaepCommonOptionalFields_UnitTest {
 	}
 
 	@Test
-	void shouldFailWithFractionalEventTimestamp() {
+	void shouldPassWithFractionalEventTimestamp() {
+		// CAEP 1.0 section 2: "a JSON number representing the number of seconds"; nothing
+		// restricts it to whole seconds
 		JsonObject data = new JsonObject();
 		data.addProperty("event_timestamp", 1700000000.5);
 		setUpCaepEvent(data);
-		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test
