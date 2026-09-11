@@ -49,7 +49,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUp
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnEmptyEventsRequestedInStreamRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnPollRequestContentTypeNotJson;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnUnknownEventsRequestedInStreamRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFLogUnknownEventsRequestedInStreamRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
@@ -1016,7 +1016,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
-				callAndContinueOnFailure(OIDSSFWarnUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFLogUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
@@ -1055,7 +1055,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
-				callAndContinueOnFailure(OIDSSFWarnUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFLogUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
@@ -1071,7 +1071,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
-				callAndContinueOnFailure(OIDSSFWarnUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFLogUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamReplaceRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();

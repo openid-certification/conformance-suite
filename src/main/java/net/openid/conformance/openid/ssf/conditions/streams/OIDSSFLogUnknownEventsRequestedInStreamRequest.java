@@ -11,15 +11,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * SSF 1.0 8.1.1 on {@code events_requested}: "A Receiver SHOULD request only the events that
- * it understands", and "A Transmitter MUST ignore any array values that it does not
- * understand". The emulated transmitter ignores them as required; this condition surfaces
- * them, since a value outside the advertised {@code events_supported} is usually a misspelled
- * or stale event type on the receiver's side. Inspects the parsed stream request body under
- * {@code ssf.stream_input} (create, update and replace requests alike) against the advertised
- * {@code ssf.default_config.events_supported}; callers grade it as a WARNING.
+ * SSF 1.0 8.1.1 on {@code events_requested}: "A Transmitter MUST ignore any array values that
+ * it does not understand". The emulated transmitter ignores them as required; this condition
+ * notes them, since a value outside the advertised {@code events_supported} is worth a look
+ * (a misspelled or stale event type, or one this transmitter simply does not offer) but is not
+ * discouraged by the specification, so callers grade it at INFO. Inspects the parsed stream
+ * request body under {@code ssf.stream_input} (create, update and replace requests alike)
+ * against the advertised {@code ssf.default_config.events_supported}.
  */
-public class OIDSSFWarnUnknownEventsRequestedInStreamRequest extends AbstractCondition {
+public class OIDSSFLogUnknownEventsRequestedInStreamRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "ssf")
@@ -46,7 +46,7 @@ public class OIDSSFWarnUnknownEventsRequestedInStreamRequest extends AbstractCon
 		}
 		if (!unknown.isEmpty()) {
 			throw error("events_requested in the stream request contains event types the transmitter does not advertise in events_supported; "
-					+ "they are ignored, as the specification requires, but a receiver should request only event types it knows the transmitter supports",
+					+ "they are ignored, as the specification requires. Check them for misspelled or stale event types",
 				args("unknown_events_requested", unknown, "events_supported", eventsSupported));
 		}
 
