@@ -105,8 +105,10 @@ public class OIDSSFTransmitterStreamVerificationPushTest extends AbstractOIDSSFT
 					// other queued SETs, so a CAEP or stream-updated event arriving here is
 					// not a verification event and must not be validated as one.
 					eventLog.log(getName(),
-						args("msg", "Skipping non-verification SET pushed while waiting for the verification event",
+						args("msg", "Validating the envelope of a non-verification SET pushed while waiting for the verification event",
 							"push_request_id", pushRequest.id()));
+					// its SET envelope (and a stream-updated event's payload) is still validated
+					verifyParsedNonVerificationSet();
 					return;
 				}
 				wasVerificationEvent.set(true);
