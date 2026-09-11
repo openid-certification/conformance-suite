@@ -16,22 +16,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-public class OIDSSFValidateSecurityEventTokenTxnClaim_UnitTest {
+public class OIDSSFEnsureSecurityEventTokenTxnClaimIsString_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private OIDSSFValidateSecurityEventTokenTxnClaim condition;
+	private OIDSSFEnsureSecurityEventTokenTxnClaimIsString condition;
 
 	@BeforeEach
 	public void setUp() {
-		condition = new OIDSSFValidateSecurityEventTokenTxnClaim();
-		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		condition = new OIDSSFEnsureSecurityEventTokenTxnClaimIsString();
+		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 	}
 
 	private void setUpSetToken(JsonElement txn) {
@@ -69,10 +68,9 @@ public class OIDSSFValidateSecurityEventTokenTxnClaim_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenTxnIsMissing() {
+	void shouldPassWhenTxnIsMissing() {
 		setUpSetToken(null);
-		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
-		assertTrue(e.getMessage().contains("SHOULD"));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test

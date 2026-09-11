@@ -26,7 +26,8 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnso
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenJtiClaim;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenTxnClaimIsString;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenTxnClaimMissing;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateStreamUpdatedEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnStreamUpdatedEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
@@ -207,8 +208,9 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8");
 		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.8", "OIDSSF-8.1.1");
 
-		// SSF 1.0 4.1.9: "Transmitters SHOULD set the txn claim"
-		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenTxnClaim.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.9");
+		// SSF 1.0 4.1.9: "Transmitters SHOULD set the txn claim"; a present value is a string per RFC 8417 2.2
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTxnClaimMissing.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.9");
+		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenTxnClaimIsString.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "OIDSSF-4.1.9");
 	}
 
 	/**
