@@ -15,6 +15,7 @@ import org.multipaz.cbor.CborDouble;
 import org.multipaz.cbor.DataItemExtensionsKt;
 
 import java.time.Instant;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -98,8 +99,59 @@ public class ExtractMdocRevocationStatus_UnitTest {
 		assertTrue(error.getMessage().contains("expired"), error.getMessage());
 	}
 
+	@Test
+	public void testEvaluate_readsAListedIdentifierAsInvalidWithoutFailing() throws Exception {
+		useIdentifierList(IdentifierListCwtTestFixtures.validIdentifierListToken());
+		putIdentifier(IdentifierListCwtTestFixtures.LISTED_IDENTIFIER);
+
+		cond.execute(env);
+
+		assertEquals("INVALID", env.getString(AbstractRevocationListCwtCondition.ENV_STATUS));
+	}
+
+	@Test
+	public void testEvaluate_readsAnUnlistedIdentifierAsValid() throws Exception {
+		useIdentifierList(IdentifierListCwtTestFixtures.validIdentifierListToken());
+		putIdentifier(IdentifierListCwtTestFixtures.UNLISTED_IDENTIFIER);
+
+		cond.execute(env);
+
+		assertEquals("VALID", env.getString(AbstractRevocationListCwtCondition.ENV_STATUS));
+	}
+
+	@Test
+	public void testEvaluate_readsAnEmptyIdentifierListAsValid() throws Exception {
+		useIdentifierList(IdentifierListCwtTestFixtures.emptyIdentifierListToken());
+		putIdentifier(IdentifierListCwtTestFixtures.LISTED_IDENTIFIER);
+
+		cond.execute(env);
+
+		assertEquals("VALID", env.getString(AbstractRevocationListCwtCondition.ENV_STATUS));
+	}
+
+	@Test
+	public void testEvaluate_failsWhenTheTokenCarriesNoIdentifierListClaim() throws Exception {
+		useIdentifierList(IdentifierListCwtTestFixtures.identifierListTokenWithoutIdentifierListClaim());
+		putIdentifier(IdentifierListCwtTestFixtures.LISTED_IDENTIFIER);
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("key 65530"), error.getMessage());
+	}
+
 	private void useStatusList(byte[] token) {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
 		env.putString(AbstractRevocationListCwtCondition.ENV_URI, StatusListCwtTestFixtures.DEFAULT_URI);
 		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN, StatusListCwtTestFixtures.encode(token));
+	}
+
+	private void useIdentifierList(byte[] token) {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "identifier_list");
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI, IdentifierListCwtTestFixtures.DEFAULT_URI);
+		env.putString(AbstractRevocationListCwtCondition.ENV_TOKEN, StatusListCwtTestFixtures.encode(token));
+	}
+
+	private void putIdentifier(byte[] identifier) {
+		env.putString(AbstractRevocationListCwtCondition.ENV_IDENTIFIER_LIST_ID,
+			Base64.getEncoder().encodeToString(identifier));
 	}
 }

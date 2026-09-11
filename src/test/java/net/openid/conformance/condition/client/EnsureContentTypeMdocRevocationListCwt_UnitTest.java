@@ -31,19 +31,29 @@ public class EnsureContentTypeMdocRevocationListCwt_UnitTest {
 	}
 
 	@Test
-	public void acceptsTheStatusListContentType() {
+	public void acceptsTheStatusListContentTypeForTheStatusListMechanism() {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
 		putResponse("application/statuslist+cwt");
 		cond.execute(env);
 	}
 
 	@Test
-	public void rejectsAnotherContentType() {
-		putResponse("application/statuslist+jwt");
+	public void acceptsTheIdentifierListContentTypeForTheIdentifierListMechanism() {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "identifier_list");
+		putResponse("application/identifierlist+cwt");
+		cond.execute(env);
+	}
+
+	@Test
+	public void rejectsTheStatusListContentTypeForTheIdentifierListMechanism() {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "identifier_list");
+		putResponse("application/statuslist+cwt");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
 	public void rejectsMissingContentTypeHeader() {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
 		JsonObject response = new JsonObject();
 		response.add("headers", new JsonObject());
 		env.putObject(AbstractRevocationListCwtCondition.ENV_RESPONSE, response);

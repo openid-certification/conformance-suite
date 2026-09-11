@@ -33,7 +33,8 @@ import java.util.Set;
  * Builds Token Status List Tokens in CWT format (and deliberately malformed variants of them)
  * for the MSO revocation list conditions. The well formed tokens come from the suite's own
  * {@link CwtStatusListTokenBuilder}; the malformed ones are assembled by hand with
- * {@link #token}.
+ * {@link #token}, which {@link IdentifierListCwtTestFixtures} also uses since ISO/IEC 18013-5
+ * 12.3.6.3 gives both mechanisms the same envelope.
  */
 final class StatusListCwtTestFixtures {
 

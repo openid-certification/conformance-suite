@@ -37,7 +37,7 @@ public class ValidateMdocRevocationListCwtFormat_UnitTest {
 	public void setUp() {
 		cond = new ValidateMdocRevocationListCwtFormat();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
-		env.putString(AbstractRevocationListCwtCondition.ENV_URI, StatusListCwtTestFixtures.DEFAULT_URI);
+		useStatusList();
 	}
 
 	@Test
@@ -123,6 +123,70 @@ public class ValidateMdocRevocationListCwtFormat_UnitTest {
 
 		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(error.getMessage().contains("ttl claim"), error.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_acceptsAWellFormedIdentifierList() throws Exception {
+		useIdentifierList();
+		putToken(IdentifierListCwtTestFixtures.validIdentifierListToken());
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_acceptsAnEmptyIdentifiersMap() throws Exception {
+		useIdentifierList();
+		putToken(IdentifierListCwtTestFixtures.emptyIdentifierListToken());
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_rejectsTheStatusListMediaTypeInAnIdentifierListTypeHeader() throws Exception {
+		useIdentifierList();
+		putToken(IdentifierListCwtTestFixtures.identifierListTokenWithStatusListType());
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("application/identifierlist+cwt"), error.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_rejectsAStatusListClaimAlongsideTheIdentifierList() throws Exception {
+		useIdentifierList();
+		putToken(IdentifierListCwtTestFixtures.identifierListTokenWithStatusListClaim());
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("StatusList claim (key 65533)"), error.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_rejectsAMissingIdentifierListClaim() throws Exception {
+		useIdentifierList();
+		putToken(IdentifierListCwtTestFixtures.identifierListTokenWithoutIdentifierListClaim());
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("IdentifierList claim (key 65530)"), error.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_rejectsAnIdentifierListSubClaimThatDoesNotMatchTheMsoReference() throws Exception {
+		useIdentifierList();
+		putToken(IdentifierListCwtTestFixtures.validIdentifierListToken());
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI,
+			"https://elsewhere.example.com/identifierlists/9");
+
+		ConditionError error = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(error.getMessage().contains("sub claim (key 2)"), error.getMessage());
+	}
+
+	private void useStatusList() {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "status_list");
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI, StatusListCwtTestFixtures.DEFAULT_URI);
+	}
+
+	private void useIdentifierList() {
+		env.putString(AbstractRevocationListCwtCondition.ENV_MECHANISM, "identifier_list");
+		env.putString(AbstractRevocationListCwtCondition.ENV_URI, IdentifierListCwtTestFixtures.DEFAULT_URI);
 	}
 
 	private void putToken(byte[] token) {
