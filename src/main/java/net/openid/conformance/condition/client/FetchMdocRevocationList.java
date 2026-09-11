@@ -64,9 +64,9 @@ public class FetchMdocRevocationList extends AbstractRevocationListCwtCondition 
 			env.putString(ENV_REFERENCE_CERTIFICATE, base64(certificate.getEncoded()));
 		}
 
-		byte[] body = fetchRevocationList(env, uri, mechanism);
+		RetrievedRevocationList retrieved = retrieveRevocationList(env, uri, mechanism);
 
-		env.putString(ENV_TOKEN, Base64.getEncoder().encodeToString(body));
+		env.putString(ENV_TOKEN, retrieved.token());
 		env.putString(ENV_URI, uri);
 		env.putString(ENV_MECHANISM, mechanism.msoElement);
 
@@ -80,10 +80,13 @@ public class FetchMdocRevocationList extends AbstractRevocationListCwtCondition 
 			position = id;
 		}
 
-		logSuccess("Fetched the MSO revocation list referenced by the mdoc's " + mechanism.msoElement + " element",
+		logSuccess(retrieved.reused()
+				? "Reusing the MSO revocation list already retrieved for an earlier credential"
+					+ " referencing the same " + mechanism.msoElement + " URI"
+				: "Fetched the MSO revocation list referenced by the mdoc's " + mechanism.msoElement + " element",
 			args("uri", uri,
 				mechanism == Mechanism.STATUS_LIST ? "idx" : "id", position,
-				"length", body.length));
+				"length", retrieved.length()));
 		return env;
 	}
 
