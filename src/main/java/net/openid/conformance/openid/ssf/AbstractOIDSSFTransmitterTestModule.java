@@ -30,7 +30,6 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryM
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestAcceptHeaderIncludesJson;
