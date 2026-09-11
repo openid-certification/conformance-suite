@@ -1,0 +1,56 @@
+package net.openid.conformance.openid.ssf.conditions.streams;
+
+import com.google.gson.JsonElement;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * SSF 1.0 8.1.1 on {@code events_requested}: "A Receiver SHOULD request only the events that
+ * it understands", and "A Transmitter MUST ignore any array values that it does not
+ * understand". The emulated transmitter ignores them as required; this condition surfaces
+ * them, since a value outside the advertised {@code events_supported} is usually a misspelled
+ * or stale event type on the receiver's side. Inspects the parsed stream request body under
+ * {@code ssf.stream_input} (create, update and replace requests alike) against the advertised
+ * {@code ssf.default_config.events_supported}; callers grade it as a WARNING.
+ */
+public class OIDSSFWarnUnknownEventsRequestedInStreamRequest extends AbstractCondition {
+
+	@Override
+	@PreEnvironment(required = "ssf")
+	public Environment evaluate(Environment env) {
+
+		JsonElement eventsRequestedEl = env.getElementFromObject("ssf", "stream_input.events_requested");
+		if (eventsRequestedEl == null || !eventsRequestedEl.isJsonArray()) {
+			log("The stream request carries no events_requested array, nothing to compare with events_supported");
+			return env;
+		}
+		JsonElement eventsSupportedEl = env.getElementFromObject("ssf", "default_config.events_supported");
+		if (eventsSupportedEl == null || !eventsSupportedEl.isJsonArray()) {
+			log("The emulated transmitter advertises no events_supported, nothing to compare with");
+			return env;
+		}
+
+		List<String> eventsSupported = OIDFJSON.convertJsonArrayToList(eventsSupportedEl.getAsJsonArray());
+		Set<String> unknown = new LinkedHashSet<>();
+		for (JsonElement el : eventsRequestedEl.getAsJsonArray()) {
+			String eventType = OIDFJSON.isString(el) ? OIDFJSON.getString(el) : null;
+			if (eventType == null || !eventsSupported.contains(eventType)) {
+				unknown.add(String.valueOf(el));
+			}
+		}
+		if (!unknown.isEmpty()) {
+			throw error("events_requested in the stream request contains event types the transmitter does not advertise in events_supported; "
+					+ "they are ignored, as the specification requires, but a receiver should request only event types it knows the transmitter supports",
+				args("unknown_events_requested", unknown, "events_supported", eventsSupported));
+		}
+
+		logSuccess("Every event type in events_requested is advertised in events_supported", args("events_requested", eventsRequestedEl));
+		return env;
+	}
+}
