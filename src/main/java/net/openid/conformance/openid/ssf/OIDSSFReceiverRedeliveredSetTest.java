@@ -196,10 +196,11 @@ public class OIDSSFReceiverRedeliveredSetTest extends AbstractOIDSSFReceiverTest
 			return;
 		}
 		redeliveryGraded = true;
-		callAndContinueOnFailure(new OIDSSFFindingCondition(redelivered
-				? "Receiver deleted the stream before it retrieved the redelivered SET, so its handling could not be assessed."
-				: "Receiver deleted the stream before the SET was delivered the first time, so its handling of a redelivered SET could not be assessed."),
-			Condition.ConditionResult.WARNING, "RFC8936-2.4");
+		callAndContinueOnFailure(new OIDSSFFindingCondition((redelivered
+				? "Receiver deleted the stream before it retrieved the redelivered SET, so its handling could not be assessed. "
+				: "Receiver deleted the stream before the SET was delivered the first time, so its handling of a redelivered SET could not be assessed. ")
+				+ "Keep the stream open and keep polling until the SET was delivered twice and acknowledged, then delete it."),
+			Condition.ConditionResult.FAILURE, "RFC8936-2.4");
 	}
 
 	@Override
@@ -333,10 +334,11 @@ public class OIDSSFReceiverRedeliveredSetTest extends AbstractOIDSSFReceiverTest
 
 			boolean stillQueued = eventStore.getQueuedEvents(streamId).stream().anyMatch(queued -> isRedeliveredEvent(queued.jti()));
 			if (stillQueued) {
-				callAndContinueOnFailure(new OIDSSFFindingCondition(
-						"Receiver never retrieved the redelivered SET (jti=" + event.jti() + ") within " + SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS
-							+ " seconds, so its handling could not be assessed."),
-					Condition.ConditionResult.WARNING, "RFC8936-2.4");
+				// graded when the stream is deleted, see onEventsUndeliverable
+				redeliveryGraded = false;
+				eventLog.log(getName(), args("msg", "Receiver has not retrieved the redelivered SET within " + SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS
+						+ " seconds; its handling is assessed once retrieved, and a stream deletion before that fails the test",
+					"jti", event.jti()));
 				return "done";
 			}
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
