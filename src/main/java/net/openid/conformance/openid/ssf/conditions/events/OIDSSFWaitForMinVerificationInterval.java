@@ -19,7 +19,7 @@ import java.time.format.DateTimeParseException;
  */
 public class OIDSSFWaitForMinVerificationInterval extends AbstractWaitForSpecifiedSeconds {
 
-	protected static final long MAX_WAIT_SECONDS = 120;
+	protected static final long MAX_WAIT_SECONDS = 600;
 
 	@Override
 	protected long getExpectedWaitSeconds(Environment env) {

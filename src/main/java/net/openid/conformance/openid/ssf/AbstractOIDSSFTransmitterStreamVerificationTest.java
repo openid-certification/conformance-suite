@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.WaitFor5Seconds;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoint;
@@ -25,15 +24,12 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEve
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenJtiClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateStreamUpdatedEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnStreamUpdatedEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
@@ -129,10 +125,8 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 
 	protected void triggerVerificationEvent() {
 		eventLog.runBlock("Trigger verification event", () -> {
-			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
-			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
+			triggerVerificationEventAndRequireAcceptance();
+			call(exec().unmapKey("endpoint_response"));
 
 			callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 		});

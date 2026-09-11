@@ -35,7 +35,6 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnso
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogObservedSubjectFormats;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFRecordSecurityEventTokenSubjectFormat;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDeviceComplianceChangeEvent;
@@ -54,7 +53,6 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurit
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenSubIdUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
@@ -206,10 +204,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		eventLog.runBlock("Trigger Stream Verification", () -> {
-			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
-			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
+			triggerVerificationEventAndRequireAcceptance();
 			call(exec().unmapKey("endpoint_response"));
 
 			callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
