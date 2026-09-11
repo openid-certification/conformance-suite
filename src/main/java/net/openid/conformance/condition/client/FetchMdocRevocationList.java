@@ -2,6 +2,8 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import kotlinx.io.bytestring.ByteString;
+import org.multipaz.crypto.X509Cert;
 import org.multipaz.revocation.RevocationStatus;
 
 import java.util.Base64;
@@ -13,7 +15,8 @@ import java.util.Base64;
  *
  * <p>Stores {@code mdoc_revocation_list_token} (the base64 encoded token bytes),
  * {@code mdoc_revocation_list_uri}, {@code mdoc_revocation_list_endpoint_response} and the
- * MSO's index into the list, {@code mdoc_status_list_idx}. Any state left over from a
+ * MSO's index into the list, {@code mdoc_status_list_idx}, plus the status reference's optional
+ * Certificate element as {@code mdoc_revocation_list_reference_certificate}. Any state left over from a
  * previously validated credential is cleared first, so the downstream conditions skip cleanly
  * when this credential carries no status reference (the Status element is optional, "An MSO
  * may contain the Status structure").
@@ -26,6 +29,7 @@ public class FetchMdocRevocationList extends AbstractRevocationListCwtCondition 
 		env.removeObject(ENV_RESPONSE);
 		env.removeNativeValue(ENV_TOKEN);
 		env.removeNativeValue(ENV_URI);
+		env.removeNativeValue(ENV_REFERENCE_CERTIFICATE);
 		env.removeNativeValue(ENV_STATUS_LIST_IDX);
 		env.removeNativeValue(ENV_STATUS);
 
@@ -42,6 +46,12 @@ public class FetchMdocRevocationList extends AbstractRevocationListCwtCondition 
 
 		String uri = statusList.getUri();
 		int idx = statusList.getIdx();
+		X509Cert certificate = statusList.getCertificate();
+		if (certificate != null) {
+			// the optional Certificate element is the explicit trust point for the revocation
+			// list's x5chain (12.3.6.2); recorded for ValidateMdocRevocationListCertificateChain
+			env.putString(ENV_REFERENCE_CERTIFICATE, base64(certificate.getEncoded()));
+		}
 
 		byte[] body = fetchRevocationList(env, uri);
 
@@ -52,5 +62,9 @@ public class FetchMdocRevocationList extends AbstractRevocationListCwtCondition 
 		logSuccess("Fetched the MSO revocation list referenced by the mdoc's status_list element",
 			args("uri", uri, "idx", idx, "length", body.length));
 		return env;
+	}
+
+	private static String base64(ByteString bytes) {
+		return Base64.getEncoder().encodeToString(bytes.toByteArray(0, bytes.getSize()));
 	}
 }

@@ -70,6 +70,16 @@ final class StatusListCwtTestFixtures {
 		return wellFormedStatusListToken(DEFAULT_URI, signer(keyUsage));
 	}
 
+	/**
+	 * A well formed status list token signed by the given key, with the given certificate chain
+	 * in the protected header - for the certification path checks, whose fixtures need chains
+	 * issued by a specific CA rather than the shared fixture IACA.
+	 */
+	static byte[] statusListTokenSignedBy(String uri, EcPrivateKey key, X509CertChain chain)
+			throws Exception {
+		return wellFormedStatusListToken(uri, new AsymmetricKey.X509CertifiedExplicit(chain, key, Algorithm.ES256));
+	}
+
 	private static byte[] wellFormedStatusListToken(String uri, AsymmetricKey.X509CertifiedExplicit signer)
 			throws Exception {
 		return wellFormedStatusListToken(uri, signer, Algorithm.ES256);
