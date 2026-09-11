@@ -249,7 +249,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver never acknowledged " + unacknowledged.size() + " of the " + "delivered events before deleting the stream (jtis: " + unacknowledged + "). "
 						+ "Receivers must acknowledge accepted SETs via 'ack' (RFC 8936 2.4) or a 202 response (RFC 8935 2.2)."),
-				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
+				Condition.ConditionResult.FAILURE, acknowledgementRequirement());
 		}
 		super.fireTestFinished();
 	}

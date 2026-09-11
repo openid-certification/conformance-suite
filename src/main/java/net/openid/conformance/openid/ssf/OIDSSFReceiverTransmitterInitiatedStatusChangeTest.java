@@ -156,14 +156,14 @@ public class OIDSSFReceiverTransmitterInitiatedStatusChangeTest extends Abstract
 		ackedJtis.add(jti);
 		if (jti.equals(pauseAnnouncementJti)) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver acknowledged the stream-updated event announcing 'paused' via " + deliveryMethod + " delivery (jti=" + jti + ")"),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", acknowledgementRequirement());
 			pauseStream(streamId);
 		} else if (jti.equals(enableAnnouncementJti)) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver acknowledged the stream-updated event announcing 'enabled' via " + deliveryMethod + " delivery (jti=" + jti + ")"),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", acknowledgementRequirement());
 		} else if (jti.equals(heldEventJti)) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver acknowledged the event held while the stream was paused via " + deliveryMethod + " delivery (jti=" + jti + ")"),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1", acknowledgementRequirement());
 		}
 	}
 
@@ -249,12 +249,12 @@ public class OIDSSFReceiverTransmitterInitiatedStatusChangeTest extends Abstract
 			String what = jti.equals(heldEventJti) ? "the event held while the stream was paused" : "a stream-updated event announcing the transmitter's status change";
 			if (rejected.contains(jti)) {
 				callAndContinueOnFailure(new OIDSSFFindingCondition("The receiver rejected " + what + " (jti=" + jti + "). Receivers must accept and acknowledge it."),
-					Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-8.1.2.1");
+					Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-8.1.2.1", acknowledgementRequirement());
 			} else if (undelivered.contains(jti)) {
 				eventLog.log(getName(), args("msg", "The receiver deleted the stream before " + what + " was delivered", "jti", jti));
 			} else {
 				callAndContinueOnFailure(new OIDSSFFindingCondition("The receiver never acknowledged " + what + " (jti=" + jti + ") before deleting the stream."),
-					Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "RFC8936-2.4");
+					Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", acknowledgementRequirement());
 			}
 		}
 		if (streamEnabledAgain && !statusReadWhilePaused) {

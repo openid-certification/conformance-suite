@@ -113,17 +113,17 @@ public class OIDSSFReceiverStreamStatusUpdateTest extends AbstractOIDSSFReceiver
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver rejected " + rejected.size() + " stream-updated event(s) reporting the stream status it had requested itself (jtis: " + rejected + "). "
 						+ "A receiver must accept a stream-updated event and must ignore members of an event it does not understand, such as the '" + SsfEvents.UNKNOWN_EVENT_MEMBER_NAME + "' member these events carry."),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-4.2.3");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-4.2.3", acknowledgementRequirement());
 		}
 		if (!unacknowledged.isEmpty()) {
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver retrieved " + unacknowledged.size() + " stream-updated event(s) but never acknowledged them before deleting the stream (jtis: " + unacknowledged + "). "
 						+ "Accepted SETs must be acknowledged via 'ack' on POLL delivery or a 202 response on PUSH delivery."),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "RFC8936-2.4");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", acknowledgementRequirement());
 		}
 		if (rejected.isEmpty() && unacknowledged.isEmpty() && !streamUpdatedEventsAcked.isEmpty()) {
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("The receiver acknowledged every delivered stream-updated event, including the unknown member '" + SsfEvents.UNKNOWN_EVENT_MEMBER_NAME + "' it carried"),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-4.2.3");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-4.2.3", acknowledgementRequirement());
 		}
 	}
 
@@ -184,7 +184,7 @@ public class OIDSSFReceiverStreamStatusUpdateTest extends AbstractOIDSSFReceiver
 	private void onStreamUpdatedEventAcknowledged(String streamId, String jti, String deliveryMethod) {
 		streamUpdatedEventsAcked.add(jti);
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Receiver acknowledged the stream-updated event via " + deliveryMethod + " delivery for stream_id=" + streamId + " (jti=" + jti + ")"),
-			Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-4.2.3");
+			Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5", "OIDSSF-4.2.3", acknowledgementRequirement());
 	}
 
 	@Override
