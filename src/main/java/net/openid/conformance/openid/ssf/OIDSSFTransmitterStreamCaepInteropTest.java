@@ -72,6 +72,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -470,11 +472,15 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			processCaepEventsFromPollResponse(pendingSets, receivedEventTypes);
 		}
 
-		// Poll repeatedly until all 3 CAEP event types are received, or timeout.
-		// Each poll acknowledges previously received SETs and retrieves new ones.
+		// Poll repeatedly until every expected CAEP event type is received. Each poll
+		// acknowledges previously received SETs and retrieves new ones. The window is the
+		// same as under push: 60 seconds per event, restarted whenever a new event type
+		// arrives, since the events are typically triggered by hand one after another.
 		int pollIntervalSeconds = 5;
-		int maxAttempts = 12; // 12 x 5s = 60 seconds
-		for (int attempt = 0; attempt < maxAttempts; attempt++) {
+		Duration perEventWindow = Duration.ofSeconds(60);
+		Instant deadline = Instant.now().plus(perEventWindow);
+		for (int attempt = 0; Instant.now().isBefore(deadline); attempt++) {
+			int receivedBefore = receivedEventTypes.size();
 			eventLog.runBlock("Poll for CAEP events (attempt " + (attempt + 1) + ")", () -> {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
@@ -491,21 +497,23 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			if (receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 				break;
 			}
+			if (receivedEventTypes.size() > receivedBefore) {
+				deadline = Instant.now().plus(perEventWindow);
+			}
 
 			if (morePollEventsAvailable()) {
 				eventLog.log(getName(), "Poll response announced more SETs (moreAvailable); polling again immediately");
 				continue;
 			}
 
-			if (attempt < maxAttempts - 1) {
-				eventLog.log(getName(), "Waiting for CAEP events... received "
-					+ receivedEventTypes.size() + "/" + expectedCaepEventTypes.size() + ", polling again in " + pollIntervalSeconds + "s");
-				try {
-					Thread.sleep(pollIntervalSeconds * 1000L);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new TestFailureException(getId(), "Interrupted while waiting for CAEP events");
-				}
+			eventLog.log(getName(), "Waiting for CAEP events... received "
+				+ receivedEventTypes.size() + "/" + expectedCaepEventTypes.size() + ", polling again in " + pollIntervalSeconds + "s ("
+				+ Duration.between(Instant.now(), deadline).toSeconds() + "s left for the next event type)");
+			try {
+				Thread.sleep(pollIntervalSeconds * 1000L);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new TestFailureException(getId(), "Interrupted while waiting for CAEP events");
 			}
 		}
 
