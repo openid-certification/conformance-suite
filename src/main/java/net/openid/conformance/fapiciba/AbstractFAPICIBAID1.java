@@ -83,6 +83,7 @@ import net.openid.conformance.condition.client.EnsureMinimumAuthenticationReques
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureRecommendedAuthenticationRequestIdEntropy;
+import net.openid.conformance.condition.client.EnsureRegisteredCIBANotificationEndpointMatches;
 import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
 import net.openid.conformance.condition.client.ExpectExpiredTokenErrorFromTokenEndpoint;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
@@ -459,18 +460,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void onConfigure() {
-		if (testType == CIBAMode.PING
-			&& getVariantOrDefault(ClientRegistration.class, ClientRegistration.STATIC_CLIENT) == ClientRegistration.DYNAMIC_CLIENT) {
-			String registeredEndpoint = env.getString("client", "backchannel_client_notification_endpoint");
-			String notificationUri = env.getString("notification_uri");
-			if (!java.util.Objects.equals(notificationUri, registeredEndpoint)) {
-				// RFC 7591 section 3.2.1 permits substitutions. This is a test limitation, not a
-				// registration protocol violation: this module only serves its exposed callback URI.
-				fireTestSkipped("The authorization server registered notification endpoint '" + registeredEndpoint +
-					"', but this test serves '" + notificationUri + "'. The suite cannot use this registration. " +
-					"Configure the authorization server to retain the requested notification endpoint and rerun the test.");
-			}
-		}
 	}
 
 	protected void configClient() {
@@ -599,6 +588,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 		call(profileBehavior.getClientRegistrationResponseValidationSteps());
+		if (testType == CIBAMode.PING) {
+			callAndStopOnFailure(EnsureRegisteredCIBANotificationEndpointMatches.class,
+				Condition.ConditionResult.FAILURE);
+		}
 
 		// The tests expect scope to be part of the 'client' object, but it's not part of DCR so we need to manually
 		// copy it across.
