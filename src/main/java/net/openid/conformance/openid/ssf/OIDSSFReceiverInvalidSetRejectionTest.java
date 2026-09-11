@@ -16,6 +16,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateTamper
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.Instant;
@@ -207,12 +208,19 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		return SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE;
 	}
 
+	/**
+	 * The clauses a rejection is graded against. RFC 8935 2 obliges every receiver to validate
+	 * that a SET "was signed by a key belonging to the issuer"; the CAEP Interop Profile adds
+	 * the key retrieval via jwks_uri (2.4.2) and the signing algorithm (2.6).
+	 */
 	protected String[] requirementsFor(TamperMode tamperMode) {
+		boolean caepInterop = isSsfProfileEnabled(SsfProfile.CAEP_INTEROP);
 		return switch (tamperMode) {
-			case INVALID_SIGNATURE -> new String[] {"CAEPIOP-2.6", "CAEPIOP-2.4.2"};
+			case INVALID_SIGNATURE, UNKNOWN_KID -> caepInterop
+				? new String[] {"RFC8935-2", "CAEPIOP-2.4.2", "CAEPIOP-2.6"}
+				: new String[] {"RFC8935-2"};
 			case WRONG_ISSUER -> new String[] {"OIDSSF-4.1.6"};
 			case WRONG_AUDIENCE -> new String[] {"RFC7519-4.1.3", "RFC8935-2"};
-			case UNKNOWN_KID -> new String[] {"CAEPIOP-2.4.2", "CAEPIOP-2.6"};
 		};
 	}
 

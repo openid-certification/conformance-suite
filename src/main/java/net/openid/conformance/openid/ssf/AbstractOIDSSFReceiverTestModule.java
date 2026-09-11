@@ -837,6 +837,15 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				: new String[] {"CAEPIOP-2.7.2", "RFC6750-2.3"});
 	}
 
+	/**
+	 * The clause that obliges the receiver to acknowledge an accepted SET under the selected
+	 * delivery mode: RFC 8935 2.2 (a 202 response) for push, RFC 8936 2 ("The SET Recipient
+	 * MUST acknowledge receipt") for poll.
+	 */
+	protected String acknowledgementRequirement() {
+		return getVariant(SsfDeliveryMode.class) == SsfDeliveryMode.PUSH ? "RFC8935-2.2" : "RFC8936-2";
+	}
+
 	protected ResponseEntity<?> handleAuthorizationServerMetadataEndpoint() {
 		JsonElement asMetadataEl = env.getElementFromObject("ssf", "authorization_server_metadata");
 		if (asMetadataEl == null) {
@@ -1003,7 +1012,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFWarnUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
-				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1", "CAEPIOP-2.1");
+				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
@@ -1042,7 +1051,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFWarnUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
-				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1", "CAEPIOP-2.1");
+				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = updateResult.get("error");
@@ -1058,7 +1067,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 				callAndContinueOnFailure(OIDSSFWarnUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
-				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1", "CAEPIOP-2.1");
+				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamReplaceRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = replaceResult.get("error");

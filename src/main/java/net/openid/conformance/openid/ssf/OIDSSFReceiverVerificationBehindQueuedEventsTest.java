@@ -158,7 +158,7 @@ public class OIDSSFReceiverVerificationBehindQueuedEventsTest extends AbstractOI
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"Receiver reported an error via 'setErrs' for a valid event that was queued ahead of the verification event (jti=" + jti + "): " + error
 						+ ". Receivers must accept and acknowledge valid events regardless of their position relative to the verification event."),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2", "RFC8936-2.4");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2", acknowledgementRequirement());
 		}
 	}
 
@@ -193,7 +193,7 @@ public class OIDSSFReceiverVerificationBehindQueuedEventsTest extends AbstractOI
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
 					"The receiver never acknowledged " + unacknowledged.size() + " of the " + QUEUED_EVENT_COUNT + " events queued ahead of the verification event "
 						+ "before deleting the stream (jtis: " + unacknowledged + "). Receivers must acknowledge accepted SETs via 'ack' or a 202 response."),
-				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2", "RFC8936-2.4");
+				Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2", acknowledgementRequirement());
 		}
 		super.fireTestFinished();
 	}
