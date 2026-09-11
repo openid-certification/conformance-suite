@@ -17,19 +17,19 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class OIDSSFWarnUnknownEventsRequestedInStreamRequest_UnitTest {
+public class OIDSSFLogUnknownEventsRequestedInStreamRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private OIDSSFWarnUnknownEventsRequestedInStreamRequest condition;
+	private OIDSSFLogUnknownEventsRequestedInStreamRequest condition;
 
 	@BeforeEach
 	void setUp() {
-		condition = new OIDSSFWarnUnknownEventsRequestedInStreamRequest();
-		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
+		condition = new OIDSSFLogUnknownEventsRequestedInStreamRequest();
+		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	private void prepare(String streamInputJson) {
