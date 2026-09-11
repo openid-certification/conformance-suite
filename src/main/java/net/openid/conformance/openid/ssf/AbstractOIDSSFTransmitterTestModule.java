@@ -29,6 +29,7 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
@@ -366,10 +367,12 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		Integer status = env.getInteger("resource_endpoint_response_full", "status");
 		if (status != null && status == 429) {
 			call(exec().unmapKey("endpoint_response"));
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("The transmitter answered the verification request with 429; "
-					+ "a transmitter may do so when verification requests come more often than its min_verification_interval. "
-					+ "The request is repeated once after the Retry-After or the advertised interval."),
-				Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
+			// SSF 1.0 8.1.1: the transmitter SHOULD NOT answer 429 to a receiver that keeps to the
+			// advertised interval, which the suite just did
+			callAndContinueOnFailure(new OIDSSFFindingCondition("The transmitter answered the verification request with 429 although the advertised "
+					+ "min_verification_interval had passed since the previous request. A transmitter should not rate-limit a receiver that "
+					+ "keeps to the interval. The request is repeated once after the Retry-After or the advertised interval."),
+				Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
 			callAndContinueOnFailure(OIDSSFWaitForRetryAfter.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
 			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
