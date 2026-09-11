@@ -1009,7 +1009,7 @@ elif [ "$SUITE_ARG" = "--ssf-tests" ]; then
     EXPECTED_SKIPS_FILE="${SUITE_DIR}/.gitlab-ci/expected-skips-ssf.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    # TESTS="${TESTS} --show-untested-test-modules ssf"
+    TESTS="${TESTS} --show-untested-test-modules ssf"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
 elif [ "$SUITE_ARG" = "--vc-tests" ]; then
     echo "Run VP+VCI tests"

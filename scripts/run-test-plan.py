@@ -1450,11 +1450,6 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        #we don't have automated tests for SSF tests
-        if re.match(r'(openid-ssf-.*)',m):
-            untested_test_modules.remove(m)
-            continue
-
         # We have automated OID4VCI issuer tests, but not comprehensive
         # automated OID4VCI wallet tests, so exclude wallet modules here.
         if re.match(r'oid4vci-.*-wallet-', m):
@@ -1494,6 +1489,7 @@ async def main():
         ekyc_test = re.match(r'ekyc-server-', m)
         authzen_test = re.match(r'authzen-pdp-', m)
         federation_test = re.match(r'openid-federation-', m)
+        ssf_test = all_test_modules[m]['profile'] in ['OIDSSF']
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
         oidcc = all_test_modules[m]['profile'] in ['OIDCC']
@@ -1517,22 +1513,22 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or oid4vci or federation_test:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or oid4vci or federation_test or ssf_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'oidcc':
             if not oidcc:
                 untested_test_modules.remove(m)
                 continue
-            # ignore client/CIBA/logout/ekyc/authzen/federation tests (separate jobs)
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test:
+            # ignore client/CIBA/logout/ekyc/authzen/federation/ssf tests (separate jobs)
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or ssf_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'fapi-authlete':
             # ignore client/CIBA/logout/ekyc/authzen/federation tests (separate jobs)
             # ignore oidcc (separate oidcc_test job) and vp (separate vc_test job)
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oid4vci or oidcc:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or ssf_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oid4vci or oidcc:
                 untested_test_modules.remove(m)
                 continue
             # The KSA-specific FAPI2 OP modules have no server to run against in CI. Unlike
@@ -1552,7 +1548,7 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test:
+            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test or ssf_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
@@ -1587,8 +1583,52 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'all-except-logout':
-            # we don't run the rp initiated logout tests against Authlete
-            if rp_initiated_logout:
+            # we don't run the rp initiated logout tests against Authlete; SSF has its own job
+            if rp_initiated_logout or ssf_test:
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'ssf':
+            if not ssf_test:
+                untested_test_modules.remove(m)
+                continue
+            # Suite-vs-suite pairings cannot host these modules, see makeSsfTests in
+            # .gitlab-ci/run-tests.sh:
+            #  - the emulated transmitter grades an unparsable body as a receiver failure, keeps
+            #    one stream per receiver (no second stream, no per-stream poll endpoint_url) and
+            #    answers status updates only under the default profile;
+            #  - the emulated receiver acknowledges every push, uses the stream it created,
+            #    re-authenticates on no 401 and ends its modules right after the verification,
+            #    so the receiver modules that need a rejection, an abandoned stream, a token
+            #    refresh or a long-lived stream have no counterpart.
+            ssf_modules_without_pairing = {
+                "openid-ssf-stream-subject-control",
+                "openid-ssf-transmitter-poll-endpoint-url-unique-per-stream",
+                "openid-ssf-stream-control-error-create-stream-with-broken-input",
+                "openid-ssf-stream-control-error-create-stream-with-duplicate-config",
+                "openid-ssf-stream-control-error-read-status-of-unknown-stream",
+                "openid-ssf-transmitter-stream-verification-error-unknown-stream",
+                "openid-ssf-transmitter-stream-verification-error-invalid-body",
+                "openid-ssf-stream-control-error-update-stream-with-invalid-token",
+                "openid-ssf-stream-control-error-update-stream-with-invalid-body",
+                "openid-ssf-stream-control-error-update-unknown-stream",
+                "openid-ssf-stream-control-error-replace-stream-with-invalid-body",
+                "openid-ssf-stream-control-error-replace-stream-with-invalid-token",
+                "openid-ssf-stream-control-error-replace-unknown-stream",
+                "openid-ssf-transmitter-paused-stream-holds-events",
+                "openid-ssf-transmitter-disabled-stream-drops-events",
+                "openid-ssf-receiver-stream-status-update",
+                "openid-ssf-receiver-unsolicited-stream-verification",
+                "openid-ssf-receiver-stream-supported-events",
+                "openid-ssf-receiver-invalid-set-rejection",
+                "openid-ssf-receiver-verification-wrong-state",
+                "openid-ssf-receiver-verification-wrong-subject",
+                "openid-ssf-receiver-redelivered-set",
+                "openid-ssf-receiver-removed-subject-event",
+                "openid-ssf-receiver-access-token-expiry",
+                "openid-ssf-receiver-stream-issuer-mismatch",
+                "openid-ssf-receiver-transmitter-initiated-status-change",
+            }
+            if m in ssf_modules_without_pairing:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'vc':
