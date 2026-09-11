@@ -117,6 +117,8 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 	 * they MUST match the expected value" — on mismatch the transmitter MUST
 	 * respond with 400. Returns the transmitter-supplied keys present in the
 	 * request body whose values differ from the stored stream configuration.
+	 * Array values such as {@code events_supported} and {@code events_delivered} are sets of
+	 * event types, so they match regardless of order.
 	 */
 	protected Set<String> computeMismatchedTransmitterSuppliedProperties(JsonObject streamConfigInput, JsonObject storedStreamConfig) {
 		Set<String> mismatched = new HashSet<>();
@@ -124,11 +126,19 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 			if ("stream_id".equals(key) || !streamConfigInput.has(key)) {
 				continue;
 			}
-			if (!streamConfigInput.get(key).equals(storedStreamConfig.get(key))) {
+			if (!isSameValue(streamConfigInput.get(key), storedStreamConfig.get(key))) {
 				mismatched.add(key);
 			}
 		}
 		return mismatched;
+	}
+
+	/** Whether two values match; two arrays match when they hold the same elements in any order. */
+	private static boolean isSameValue(JsonElement sent, JsonElement stored) {
+		if (sent != null && stored != null && sent.isJsonArray() && stored.isJsonArray()) {
+			return new HashSet<>(sent.getAsJsonArray().asList()).equals(new HashSet<>(stored.getAsJsonArray().asList()));
+		}
+		return sent.equals(stored);
 	}
 
 	/**
