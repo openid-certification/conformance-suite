@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClie
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200Or404;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
@@ -28,12 +29,16 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestAcceptHeaderIncludesJson;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestContentTypeIsSecEventJwt;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestMethodIsPost;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidatePollResponse;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForRetryAfter;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseExceedsMaxEvents;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
@@ -348,6 +353,34 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	 * configuration can be compared with what was actually requested after {@code ssf.stream}
 	 * has been replaced by the transmitter's response.
 	 */
+	/**
+	 * Requests a verification event and requires the transmitter to accept the request with
+	 * 204 (SSF 1.0 8.1.4.2). The advertised {@code min_verification_interval} is honoured before
+	 * the request; should the transmitter still answer 429, which SSF 1.0 8.1.1 lets it do when
+	 * requests come more often than the interval, the request is repeated once after the
+	 * {@code Retry-After} or the interval. Leaves the accepted response mapped onto
+	 * {@code endpoint_response}; callers unmap it.
+	 */
+	protected void triggerVerificationEventAndRequireAcceptance() {
+		callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
+		callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		Integer status = env.getInteger("resource_endpoint_response_full", "status");
+		if (status != null && status == 429) {
+			call(exec().unmapKey("endpoint_response"));
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("The transmitter answered the verification request with 429; "
+					+ "a transmitter may do so when verification requests come more often than its min_verification_interval. "
+					+ "The request is repeated once after the Retry-After or the advertised interval."),
+				Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(OIDSSFWaitForRetryAfter.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
+			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		}
+
+		callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
+	}
+
 	protected void rememberSentStreamConfig() {
 		env.putObjectFromJsonString("ssf", "expected_stream_config", env.getString("resource_request_entity"));
 	}
