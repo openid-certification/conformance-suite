@@ -83,12 +83,11 @@ public class OIDSSFValidateCaepSessionEstablishedEvent_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenFpUaIsNotString() {
+	void shouldPassWhenFpUaIsNotStringAsNoTypeIsDefined() {
 		JsonObject data = specExample();
 		data.addProperty("fp_ua", 42);
 		setUpCaepEvent(data);
-		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
-		assertTrue(e.getMessage().contains("fp_ua"));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test
@@ -118,11 +117,10 @@ public class OIDSSFValidateCaepSessionEstablishedEvent_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenExtIdIsNotString() {
+	void shouldPassWhenExtIdIsNotStringAsNoTypeIsDefined() {
 		JsonObject data = specExample();
 		data.addProperty("ext_id", 12345);
 		setUpCaepEvent(data);
-		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
-		assertTrue(e.getMessage().contains("ext_id"));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 }

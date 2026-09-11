@@ -3,7 +3,6 @@ package net.openid.conformance.openid.ssf.conditions.events;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -14,8 +13,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class OIDSSFValidateCaepSessionPresentedEvent_UnitTest {
@@ -65,20 +62,18 @@ public class OIDSSFValidateCaepSessionPresentedEvent_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenFpUaIsNotString() {
+	void shouldPassWhenFpUaIsNotStringAsNoTypeIsDefined() {
 		JsonObject data = specExample();
 		data.addProperty("fp_ua", 42);
 		setUpCaepEvent(data);
-		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
-		assertTrue(e.getMessage().contains("fp_ua"));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test
-	void shouldFailWhenExtIdIsNotString() {
+	void shouldPassWhenExtIdIsNotStringAsNoTypeIsDefined() {
 		JsonObject data = specExample();
 		data.addProperty("ext_id", 12345);
 		setUpCaepEvent(data);
-		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
-		assertTrue(e.getMessage().contains("ext_id"));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 }
