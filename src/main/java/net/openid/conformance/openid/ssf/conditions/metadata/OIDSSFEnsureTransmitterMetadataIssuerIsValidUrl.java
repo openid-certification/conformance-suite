@@ -24,8 +24,9 @@ public class OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl extends AbstractCon
 
 		JsonElement issuerEl = env.getElementFromObject("ssf", "transmitter_metadata.issuer");
 		if (issuerEl == null) {
-			throw error("The transmitter metadata does not contain the required 'issuer' field",
+			log("The transmitter metadata has no 'issuer'; that is graded by the required-fields check",
 				args("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata")));
+			return env;
 		}
 		if (!issuerEl.isJsonPrimitive() || !issuerEl.getAsJsonPrimitive().isString()) {
 			throw error("The transmitter metadata 'issuer' must be a JSON string", args("issuer", issuerEl));
