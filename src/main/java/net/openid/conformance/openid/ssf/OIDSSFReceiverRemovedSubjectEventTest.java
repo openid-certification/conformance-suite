@@ -180,6 +180,15 @@ public class OIDSSFReceiverRemovedSubjectEventTest extends AbstractOIDSSFReceive
 		}
 	}
 
+	/** A rejected push of the removed-subject event is recorded at INFO here and graded once in {@link #onPushDeliveryNotAcknowledged}. */
+	@Override
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (event.jti().equals(removedSubjectEventJti)) {
+			return Condition.ConditionResult.INFO;
+		}
+		return super.getPushDeliveryRejectionSeverity(event);
+	}
+
 	@Override
 	protected void onPushDeliveryNotAcknowledged(String streamId, OIDSSFSecurityEvent event) {
 		super.onPushDeliveryNotAcknowledged(streamId, event);
