@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and request its verification. The verification event answering the first verification request echoes the receiver's 'state' correctly but carries an opaque 'sub_id' whose id is not the stream's; later verification requests are answered normally, so the receiver can complete the verification afterwards.
 		SSF 1.0 8.1.4.1: "Upon receiving a Verification Event, the Event Receiver SHALL parse the SET and validate its claims", and the verification event's sub_id "MUST always be set to have a simple value of type opaque. The id of the value MUST be the stream_id of the stream being verified".
 		A receiver that accepts such an event is reported as a warning: the specification names no receiver reaction for a subject that does not match, unlike for a state mismatch. With PUSH delivery a rejection is validated as an RFC 8935 2.3 error response (a 400 with an 'application/json' body carrying 'err' and 'description'); no particular 'err' code is expected.
-		Note: with POLL delivery a verification event that was retrieved but neither acknowledged nor reported via 'setErrs' is noted after 60 seconds; one the receiver never retrieved raises a warning, since its handling could not be assessed. The test still waits for the stream deletion before it finishes.
+		Note: with POLL delivery a verification event that was retrieved but neither acknowledged nor reported via 'setErrs' is noted after 60 seconds; deleting the stream without ever retrieving it fails the test, since the handling under test was not exercised. The test still waits for the stream deletion before it finishes.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * request a stream verification
@@ -204,8 +204,9 @@ public class OIDSSFReceiverVerificationWrongSubjectTest extends AbstractOIDSSFRe
 			return;
 		}
 		callAndContinueOnFailure(new OIDSSFFindingCondition(
-				"The receiver deleted the stream before the verification event naming another stream was delivered, so its handling could not be assessed."),
-			Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1");
+				"The receiver deleted the stream without ever retrieving the verification event naming another stream, so its handling could not be assessed. "
+					+ "Keep the stream open and keep polling until the verification event was retrieved, then delete it."),
+			Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		wrongSubjectGraded = true;
 	}
 
@@ -242,10 +243,11 @@ public class OIDSSFReceiverVerificationWrongSubjectTest extends AbstractOIDSSFRe
 			eventStore.getQueuedEvents(streamId).forEach(queued -> stillQueuedJtis.add(queued.jti()));
 
 			if (stillQueuedJtis.contains(event.jti())) {
-				callAndContinueOnFailure(new OIDSSFFindingCondition(
-						"Receiver never retrieved the verification event naming another stream (jti=" + event.jti() + ") within "
-							+ SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS + " seconds, so its handling could not be assessed."),
-					Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1");
+				// graded when the stream is deleted, see onEventsUndeliverable
+				wrongSubjectGraded = false;
+				eventLog.log(getName(), args("msg", "Receiver has not retrieved the verification event naming another stream within "
+						+ SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS + " seconds; its handling is assessed once retrieved, and a stream deletion before that fails the test",
+					"jti", event.jti()));
 				return "done";
 			}
 			callAndContinueOnFailure(new OIDSSFFindingCondition(

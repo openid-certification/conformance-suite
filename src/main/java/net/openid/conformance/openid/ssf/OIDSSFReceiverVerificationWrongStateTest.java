@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 		SSF 1.0 8.1.4.1: "the Event Receiver SHALL confirm that the value for state is as expected. If the value of state does not match, an error response with the err field set to invalid_state SHOULD be returned".
 		A receiver that accepts an event echoing a different value than the state it sent fails the test. When the receiver's request carried no state, accepting an event that carries one is reported as a warning only: the receiver has no expected value to confirm, and whether an unrequested state counts as "not as expected" is not settled in SSF 1.0.
 		With PUSH delivery the error response is validated as well: it must be a 400 with an 'application/json' body carrying 'err' and 'description' (RFC 8935 2.3); an 'err' other than 'invalid_state' raises a warning.
-		Note: with POLL delivery a verification event that was retrieved but neither acknowledged nor reported via 'setErrs' is noted after 60 seconds; one the receiver never retrieved raises a warning, since its handling could not be assessed. The test still waits for the stream deletion before it finishes.
+		Note: with POLL delivery a verification event that was retrieved but neither acknowledged nor reported via 'setErrs' is noted after 60 seconds; deleting the stream without ever retrieving it fails the test, since the handling under test was not exercised. The test still waits for the stream deletion before it finishes.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * request a stream verification
@@ -232,8 +232,9 @@ public class OIDSSFReceiverVerificationWrongStateTest extends AbstractOIDSSFRece
 			return;
 		}
 		callAndContinueOnFailure(new OIDSSFFindingCondition(
-				"The receiver deleted the stream before the verification event whose state does not match was delivered, so its handling could not be assessed."),
-			Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1");
+				"The receiver deleted the stream without ever retrieving the verification event whose state does not match, so its handling could not be assessed. "
+					+ "Keep the stream open and keep polling until the verification event was retrieved and rejected, then delete it."),
+			Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		wrongStateGraded = true;
 	}
 
@@ -272,10 +273,11 @@ public class OIDSSFReceiverVerificationWrongStateTest extends AbstractOIDSSFRece
 			eventStore.getQueuedEvents(streamId).forEach(queued -> stillQueuedJtis.add(queued.jti()));
 
 			if (stillQueuedJtis.contains(event.jti())) {
-				callAndContinueOnFailure(new OIDSSFFindingCondition(
-						"Receiver never retrieved the verification event whose state does not match (jti=" + event.jti() + ") within "
-							+ SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS + " seconds, so its handling could not be assessed."),
-					Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1");
+				// graded when the stream is deleted, see onEventsUndeliverable
+				wrongStateGraded = false;
+				eventLog.log(getName(), args("msg", "Receiver has not retrieved the verification event whose state does not match within "
+						+ SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS + " seconds; its handling is assessed once retrieved, and a stream deletion before that fails the test",
+					"jti", event.jti()));
 				return "done";
 			}
 			callAndContinueOnFailure(new OIDSSFFindingCondition(
