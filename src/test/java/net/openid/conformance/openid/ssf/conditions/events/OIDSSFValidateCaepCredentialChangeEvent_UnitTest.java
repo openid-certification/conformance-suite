@@ -137,6 +137,30 @@ public class OIDSSFValidateCaepCredentialChangeEvent_UnitTest {
 	}
 
 	@Test
+	void shouldPassWithOptionalStringFields() {
+		JsonObject data = new JsonObject();
+		data.addProperty("credential_type", "x509");
+		data.addProperty("change_type", "create");
+		data.addProperty("friendly_name", "Jane's laptop certificate");
+		data.addProperty("x509_issuer", "CN=Example CA");
+		data.addProperty("x509_serial", "0x1A2B3C");
+		data.addProperty("fido2_aaguid", "accced6a-63f5-490a-9eea-e59bc1896cfc");
+		setUpCaepEvent(data);
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWhenAnOptionalStringFieldIsNotString() {
+		// CAEP 1.0 3.3.1: x509_serial is "OPTIONAL, JSON string"
+		JsonObject data = new JsonObject();
+		data.addProperty("credential_type", "x509");
+		data.addProperty("change_type", "create");
+		data.addProperty("x509_serial", 123456);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
 	void shouldFailWhenChangeTypeIsNotString() {
 		JsonObject data = new JsonObject();
 		data.addProperty("credential_type", "password");

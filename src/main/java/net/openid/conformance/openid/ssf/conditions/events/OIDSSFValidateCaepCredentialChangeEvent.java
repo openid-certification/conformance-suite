@@ -26,6 +26,8 @@ public class OIDSSFValidateCaepCredentialChangeEvent extends AbstractCondition {
 
 	private static final Set<String> VALID_CHANGE_TYPES = Set.of("create", "revoke", "update", "delete");
 
+	private static final Set<String> OPTIONAL_STRING_FIELDS = Set.of("friendly_name", "x509_issuer", "x509_serial", "fido2_aaguid");
+
 	@PreEnvironment(required = {"ssf"})
 	@Override
 	public Environment evaluate(Environment env) {
@@ -39,6 +41,11 @@ public class OIDSSFValidateCaepCredentialChangeEvent extends AbstractCondition {
 		if (!VALID_CHANGE_TYPES.contains(changeTypeValue)) {
 			throw error("Field 'change_type' MUST be one of: create, revoke, update, delete",
 				args("change_type", changeTypeValue, "valid_values", VALID_CHANGE_TYPES, "event_data", eventData));
+		}
+
+		// CAEP 1.0 3.3.1: "OPTIONAL, JSON string" for each of these
+		for (String optionalStringField : OPTIONAL_STRING_FIELDS) {
+			validateOptionalStringField(eventData, optionalStringField);
 		}
 
 		logSuccess("Credential Change event fields are valid", args("event_data", eventData));
@@ -57,5 +64,16 @@ public class OIDSSFValidateCaepCredentialChangeEvent extends AbstractCondition {
 				args(fieldName, el, "event_data", eventData));
 		}
 		return el;
+	}
+
+	private void validateOptionalStringField(JsonObject eventData, String fieldName) {
+		JsonElement el = eventData.get(fieldName);
+		if (el == null) {
+			return;
+		}
+		if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isString()) {
+			throw error("Field '" + fieldName + "' MUST be a JSON string when present",
+				args(fieldName, el, "event_data", eventData));
+		}
 	}
 }
