@@ -24,12 +24,20 @@ import java.util.Set;
  * listed in the configured VICAL, and that the VICAL entry lists the credential's document type
  * (ISO/IEC 18013-5 Annex C.1.7.1: relying parties should not use a certificate as a trust point
  * for a document type not listed in the entry's docType).
+ *
+ * <p>Records the matched IACA certificate in {@link #ENV_TRUST_POINT} (base64 DER) for the checks
+ * that must validate other material, such as the MSO revocation list's x5chain, against the
+ * same IACA.
  */
 public class ValidateMdocIssuerChainAgainstVical extends AbstractVicalCondition {
+
+	/** Environment string holding the IACA certificate the VICAL lists for the credential's chain. */
+	public static final String ENV_TRUST_POINT = "mdoc_vical_trust_point";
 
 	@Override
 	@PreEnvironment(required = "vical", strings = { "mdoc_credential_cbor" })
 	public Environment evaluate(Environment env) {
+		env.removeNativeValue(ENV_TRUST_POINT);
 
 		DataItem issuerSigned;
 		try {
@@ -110,6 +118,9 @@ public class ValidateMdocIssuerChainAgainstVical extends AbstractVicalCondition 
 					"iaca_certificate_subject", firstEntry.getCertificate().getSubject().getName(),
 					"vical_provider", vicalProvider));
 		}
+
+		env.putString(ENV_TRUST_POINT, Base64.getEncoder().encodeToString(
+			trustPoint.getEncoded().toByteArray(0, trustPoint.getEncoded().getSize())));
 
 		logSuccess("The mdoc issuer certificate chains to an IACA certificate listed in the VICAL for this document type",
 			args("doc_type", docType,

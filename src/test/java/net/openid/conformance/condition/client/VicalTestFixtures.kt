@@ -219,6 +219,15 @@ object VicalTestFixtures {
 	): Pair<EcPrivateKey, X509Cert> =
 		mintLeafUnderIaca(pki.iacaCert, pki.iacaKey, commonName, 3L, keyUsage)
 
+	/**
+	 * Mints a leaf that names the given PKI's IACA as its issuer and carries that IACA's key
+	 * identifier as its authority key identifier, but is signed by [signingKey] rather than the
+	 * IACA's key: a forgery that only a signature check against the IACA can detect.
+	 */
+	@JvmStatic
+	fun mintLeafClaimingIaca(pki: IssuerPki, signingKey: EcPrivateKey, commonName: String): Pair<EcPrivateKey, X509Cert> =
+		mintLeafUnderIaca(pki.iacaCert, signingKey, commonName, 4L)
+
 	private fun mintLeafUnderIaca(
 		iacaCert: X509Cert,
 		iacaKey: EcPrivateKey,

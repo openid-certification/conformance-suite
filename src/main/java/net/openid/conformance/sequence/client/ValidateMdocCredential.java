@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeMdocRevocationLi
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.FetchMdocRevocationList;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListSignerCertificateProfile;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListCertificateChain;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListCwtFormat;
 import net.openid.conformance.condition.client.VerifyMdocRevocationListCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
@@ -71,16 +72,18 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
 		}
-		validateMsoRevocationList();
 		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
 		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
-		// responsible for its credentials' provenance, so it is only a WARNING.
+		// responsible for its credentials' provenance, so it is only a WARNING. Runs before the
+		// revocation list checks because it records the IACA the list's chain must validate
+		// against.
 		call(condition(ValidateMdocIssuerChainAgainstVical.class)
 			.skipIfObjectsMissing("vical")
 			.onSkip(ConditionResult.INFO)
 			.onFail(isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-C.1.7.1"));
+		validateMsoRevocationList();
 		// PKIX-validate the issuerAuth x5chain against the 'Credential Trust Anchor' as the IACA
 		// root (the same config field the SD-JWT x5c check uses), mirroring the SD-JWT VC x5c
 		// chain validation. A configured VICAL supersedes the trust anchor, in which case the
@@ -123,6 +126,8 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			"ISO18013-5-12.3.6.3");
 		checkFetchedList(ValidateMdocRevocationListSignerCertificateProfile.class, ConditionResult.WARNING,
 			"ISO18013-5-B.9");
+		checkFetchedList(ValidateMdocRevocationListCertificateChain.class, retrievalSeverity,
+			"ISO18013-5-12.3.6.2");
 		checkFetchedList(ExtractMdocRevocationStatus.class, retrievalSeverity,
 			"ISO18013-5-12.3.6.1");
 		call(condition(EnsureMdocNotRevoked.class)
