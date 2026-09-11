@@ -727,12 +727,18 @@ makeSsfTests() {
     SSF_AUTH_MODE="ssf_auth_mode=static"
     SSF_AUTH_MODE_DYNAMIC="ssf_auth_mode=dynamic"
 
-    TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-error-read-stream-status-with-invalid-token,openid-ssf-transmitter-stream-verification-error-invalid-token,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-error-read-stream-status-with-invalid-token,openid-ssf-transmitter-stream-verification-error-invalid-token,openid-ssf-stream-control-error-create-stream-with-invalid-token,openid-ssf-stream-control-error-read-stream-with-invalid-token,openid-ssf-stream-control-error-read-unknown-stream,openid-ssf-stream-control-error-delete-stream-with-invalid-token,openid-ssf-stream-control-error-delete-unknown-stream,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
+    # A host receiver module finishes once it has seen one stream lifecycle and answers every
+    # later request with 204, and the transmitter modules of a pairing run in the order of
+    # OIDSSFTransmitterTestPlan, so every module listed together with stream-control-happy-path
+    # must precede it in that plan.
     # Only transmitter modules the emulated transmitter answers without recording a receiver-side
     # failure are paired: an unparsable body is a receiver misbehaviour the emulator grades as
-    # FAILURE, so that negative is not paired. (A read or delete of an unknown stream and a second
-    # create are answered 404 / 409 without a grade, so those negatives could be paired.)
+    # FAILURE, so that negative is not paired. Reads and deletes of an unknown stream and requests
+    # with an invalid token are answered 404 / 401 without a grade and are paired; status and
+    # verification requests for an unknown stream are graded, and the duplicate create leaves its
+    # second stream behind, so those three are not.
     # Run SSF receiver happy path with dynamic auth (client_credentials, client_secret_post) against the SSF
     # transmitter happy path: the receiver test acts as the emulated transmitter AND the OAuth AS, the
     # transmitter test discovers the AS via /.well-known/oauth-authorization-server, obtains a token, and uses it.
@@ -763,7 +769,7 @@ makeSsfTests() {
     # ack/setErrs handling, poll retry loops, post-verification event generation) are
     # exercised in CI too. Entries sharing a config alias are serialized by
     # run-test-plan.py's per-alias queues, so these run after their push counterparts.
-    TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-error-read-stream-status-with-invalid-token,openid-ssf-transmitter-stream-verification-error-invalid-token,openid-ssf-transmitter-poll-endpoint-authorization,openid-ssf-stream-control-create-stream-without-delivery,openid-ssf-transmitter-stream-verification-long-poll,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-error-read-stream-status-with-invalid-token,openid-ssf-transmitter-stream-verification-error-invalid-token,openid-ssf-transmitter-poll-endpoint-authorization,openid-ssf-stream-control-create-stream-without-delivery,openid-ssf-transmitter-stream-verification-long-poll,openid-ssf-transmitter-stream-verification-poll-only,openid-ssf-transmitter-stream-verification-ack-only,openid-ssf-transmitter-stream-verification-set-errs,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
     # POLL with dynamic auth: also covers the poll endpoint's scope enforcement
     # (ssf.manage includes ssf.read, CAEPIOP 2.7.3)
@@ -772,6 +778,15 @@ makeSsfTests() {
     TESTS="${TESTS} openid-ssf-receiver-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-verification-behind-queued-events{openid-ssf-transmitter-test-plan[$POLL_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-stream-verification-poll-and-ack}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
     TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$POLL_DELIVERY][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-create-delete{openid-ssf-transmitter-caep-test-plan[$POLL_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+
+    # The certifiable configuration: both CAEP Interop plans under dynamic auth (OAuth client
+    # credentials against the emulated authorization server), which is the only variant that
+    # yields a certification profile name.
+    TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$PUSH_DELIVERY][$SSF_AUTH_MODE_DYNAMIC][$CLIENT_AUTH_CLIENT_SECRET_POST]:openid-ssf-receiver-stream-caep-interop{openid-ssf-transmitter-caep-test-plan[$PUSH_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_DISCOVERY][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE_DYNAMIC]:openid-ssf-transmitter-metadata,openid-ssf-transmitter-stream-caep-interop}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config-dynamic.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config-dynamic.json"
+    TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$POLL_DELIVERY][$SSF_AUTH_MODE_DYNAMIC][$CLIENT_AUTH_CLIENT_SECRET_POST]:openid-ssf-receiver-stream-caep-interop{openid-ssf-transmitter-caep-test-plan[$POLL_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_DISCOVERY][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE_DYNAMIC]:openid-ssf-transmitter-metadata,openid-ssf-transmitter-stream-caep-interop}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config-dynamic.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config-dynamic.json"
+
+    # Unauthenticated push delivery, hosted by the verification receiver module (create, verify, delete)
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$SSF_AUTH_MODE]:openid-ssf-receiver-stream-verification{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-stream-verification-error-push-no-auth}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
     # Full CAEP interop event flow over POLL: retrieval, acknowledgement, per-subject
     # format coverage and the delete-time undeliverable accounting
