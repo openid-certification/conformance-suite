@@ -17,19 +17,19 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class OIDSSFValidateSecurityEventTokenAudClaim_UnitTest {
+public class OIDSSFWarnSecurityEventTokenAudClaimMissing_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private OIDSSFValidateSecurityEventTokenAudClaim condition;
+	private OIDSSFWarnSecurityEventTokenAudClaimMissing condition;
 
 	@BeforeEach
 	public void setUp() {
-		condition = new OIDSSFValidateSecurityEventTokenAudClaim();
-		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
+		condition = new OIDSSFWarnSecurityEventTokenAudClaimMissing();
+		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
 	}
 
 	private void setClaims(String claimsJson) {
@@ -46,43 +46,19 @@ public class OIDSSFValidateSecurityEventTokenAudClaim_UnitTest {
 
 	@Test
 	void passesForArrayAudience() {
-		setClaims("{\"aud\":[\"https://receiver.example\",\"urn:example:other\"]}");
+		setClaims("{\"aud\":[\"https://receiver.example\"]}");
 		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test
-	void passesWhenMissingAsAbsenceIsGradedSeparately() {
+	void failsWhenMissing() {
 		setClaims("{\"iss\":\"https://transmitter.example\"}");
-		assertDoesNotThrow(() -> condition.execute(env));
-	}
-
-	@Test
-	void failsForEmptyString() {
-		setClaims("{\"aud\":\"\"}");
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 
 	@Test
-	void failsForEmptyArray() {
-		setClaims("{\"aud\":[]}");
-		assertThrows(ConditionError.class, () -> condition.execute(env));
-	}
-
-	@Test
-	void failsForNonStringArrayMember() {
-		setClaims("{\"aud\":[\"https://receiver.example\",42]}");
-		assertThrows(ConditionError.class, () -> condition.execute(env));
-	}
-
-	@Test
-	void failsForNumber() {
+	void leavesTheValueToTheShapeCheck() {
 		setClaims("{\"aud\":42}");
-		assertThrows(ConditionError.class, () -> condition.execute(env));
-	}
-
-	@Test
-	void failsForObject() {
-		setClaims("{\"aud\":{\"value\":\"https://receiver.example\"}}");
-		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 }
