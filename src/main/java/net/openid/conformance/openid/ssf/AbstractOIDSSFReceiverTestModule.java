@@ -47,6 +47,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUp
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnEmptyEventsRequestedInStreamRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnPollRequestContentTypeNotJson;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnUnknownEventsRequestedInStreamRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
@@ -1558,6 +1559,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		if (!Objects.equals("POST", method)) {
 			return reportUnexpectedHttpRequest(path, requestParts);
 		}
+
+		// RFC 8936 2.2: a poll request is sent as application/json
+		callAndContinueOnFailure(OIDSSFWarnPollRequestContentTypeNotJson.class, Condition.ConditionResult.WARNING, "RFC8936-2.2");
 
 		// One handler instance per request: a long poll releases the test lock while it waits,
 		// and a poll request arriving meanwhile must not be handed this request's answer or
