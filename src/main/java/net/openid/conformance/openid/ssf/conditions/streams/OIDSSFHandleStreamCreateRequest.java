@@ -53,6 +53,12 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 
 		String streamId = generateStreamId();
 		String ssfIssuer = env.getString("ssf", "issuer");
+		String issuerOverride = env.getString("ssf", "create_response_issuer_override");
+		if (issuerOverride != null) {
+			// a module testing the receiver's issuer check (SSF 1.0 8.1.1.1) answers with a foreign iss
+			log("Answering the create request with a stream configuration whose iss is not this transmitter's issuer", args("iss", issuerOverride, "issuer", ssfIssuer));
+			ssfIssuer = issuerOverride;
+		}
 		String audience = getStreamAudience(env);
 
 		try {
