@@ -59,7 +59,7 @@ public class OIDSSFValidateCaepRiskLevelChangeEvent extends AbstractCondition {
 		String principal = OIDFJSON.getString(el);
 		if (!KNOWN_PRINCIPALS.contains(principal)) {
 			// CAEP 1.0 3.8 allows "any other entity" - note it for the reviewer only
-			log("Field 'principal' uses a value outside the entities named in CAEP 1.0 section 3.8; this is permitted (\"or any other entity\")",
+			log("Field 'principal' uses a value outside the entities the event definition names; this is permitted, since any other entity may be named",
 				args("principal", principal, "named_principals", KNOWN_PRINCIPALS));
 		}
 	}

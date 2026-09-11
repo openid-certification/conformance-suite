@@ -25,7 +25,7 @@ public class OIDSSFCaepInteropDeliveryMethodsTransmitterMetadataCheck extends Ab
 
 		JsonElement supportedDeliveryMethodsEl = env.getElementFromObject("ssf", "transmitter_metadata.delivery_methods_supported");
 		if (supportedDeliveryMethodsEl == null) {
-			throw error("Transmitter metadata is missing the delivery_methods_supported field required by the CAEP Interop Profile (2.3.2)",
+			throw error("Transmitter metadata is missing the delivery_methods_supported field, which the CAEP Interop Profile requires",
 				args("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata")));
 		}
 

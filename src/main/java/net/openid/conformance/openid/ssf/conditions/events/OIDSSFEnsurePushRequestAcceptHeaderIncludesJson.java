@@ -20,7 +20,7 @@ public class OIDSSFEnsurePushRequestAcceptHeaderIncludesJson extends AbstractCon
 
 		String accept = env.getString("ssf", "push_request.headers.accept");
 		if (accept == null) {
-			throw error("Push delivery request has no Accept header. RFC 8935 requires 'application/json'.",
+			throw error("Push delivery request has no Accept header; a push delivery request must accept 'application/json'.",
 				args("headers", env.getElementFromObject("ssf", "push_request.headers")));
 		}
 

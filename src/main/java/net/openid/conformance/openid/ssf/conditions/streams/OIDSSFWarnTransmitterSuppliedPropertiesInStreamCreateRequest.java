@@ -36,7 +36,7 @@ public class OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest extend
 
 		if (!transmitterSupplied.isEmpty()) {
 			throw error("The Create Stream request carries Transmitter-Supplied stream configuration properties. "
-					+ "SSF 1.0 8.1.1.1 lists only events_requested, delivery and description as request content; the transmitter "
+					+ "Only events_requested, delivery and description are receiver-supplied; the transmitter "
 					+ "decides the other values, so the ones sent were ignored.",
 				args("transmitter_supplied_properties", transmitterSupplied, "stream_input", streamConfigInput));
 		}

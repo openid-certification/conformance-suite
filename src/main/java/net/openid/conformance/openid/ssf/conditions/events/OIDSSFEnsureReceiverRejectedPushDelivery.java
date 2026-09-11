@@ -26,20 +26,20 @@ public class OIDSSFEnsureReceiverRejectedPushDelivery extends AbstractCondition 
 
 		if (status >= 200 && status < 300) {
 			throw error("Receiver accepted an invalid SET (" + invalidSetDescription + ") via push delivery. "
-					+ "Invalid SETs must be rejected with an error response (RFC 8935 2.3).",
+					+ "Invalid SETs must be rejected with an error response.",
 				args("http_status", status));
 		}
 
 		if (status == 0) {
 			throw error("No HTTP response was received for the push delivery of an invalid SET (" + invalidSetDescription + "). "
-					+ "The receiver must reject invalid SETs with an error response (RFC 8935 2.3), not by dropping the connection.",
+					+ "The receiver must reject invalid SETs with an error response, not by dropping the connection.",
 				args("http_status", status));
 		}
 
 		if (status < 400) {
 			// 1xx/3xx: a redirect or informational response is not a rejection
 			throw error("Receiver answered the push delivery of an invalid SET (" + invalidSetDescription + ") with HTTP " + status
-					+ ", which is not an error response. Invalid SETs must be rejected with an error response (RFC 8935 2.3).",
+					+ ", which is not an error response. Invalid SETs must be rejected with an error response.",
 				args("http_status", status));
 		}
 

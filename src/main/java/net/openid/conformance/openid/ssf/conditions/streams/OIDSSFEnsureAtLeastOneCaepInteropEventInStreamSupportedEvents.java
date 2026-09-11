@@ -20,7 +20,7 @@ public class OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents exten
 			// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL. Whether the
 			// transmitter supports a qualifying use case is then decided on events_delivered,
 			// which is REQUIRED and checked by the callers.
-			log("Stream configuration carries no events_supported (OPTIONAL per SSF 1.0 8.1.1); "
+			log("Stream configuration carries no events_supported, which is optional; "
 					+ "CAEP Interop use-case support is checked on events_delivered instead",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
 			return env;

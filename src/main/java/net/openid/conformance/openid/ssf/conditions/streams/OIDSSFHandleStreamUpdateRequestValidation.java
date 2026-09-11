@@ -30,7 +30,7 @@ public class OIDSSFHandleStreamUpdateRequestValidation extends OIDSSFHandleStrea
 		echoedTransmitterSuppliedProperties.retainAll(streamConfigInput.keySet());
 		if (!echoedTransmitterSuppliedProperties.isEmpty()) {
 			log("Found transmitter-supplied properties echoed in the stream update/replace request body. "
-					+ "This is permitted (SSF 1.0 8.1.1.3 / 8.1.1.4) as long as the values match the current stream configuration.",
+					+ "This is permitted as long as the values match the current stream configuration.",
 				args("echoed_transmitter_supplied", echoedTransmitterSuppliedProperties));
 		}
 	}

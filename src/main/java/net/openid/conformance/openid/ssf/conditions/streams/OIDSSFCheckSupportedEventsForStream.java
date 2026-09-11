@@ -20,7 +20,7 @@ public class OIDSSFCheckSupportedEventsForStream extends AbstractCondition {
 		JsonElement supportedEventTypesEl = env.getElementFromObject("ssf", "stream.events_supported");
 		if (supportedEventTypesEl == null) {
 			// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL
-			log("Stream configuration carries no events_supported (OPTIONAL per SSF 1.0 8.1.1); nothing to check",
+			log("Stream configuration carries no events_supported, which is optional; nothing to check",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
 			return env;
 		}

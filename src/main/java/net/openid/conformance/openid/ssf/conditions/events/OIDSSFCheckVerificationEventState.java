@@ -64,7 +64,7 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 		// event" from "transmitter failed to echo state".
 		JsonElement stateEl = verificationEventObject.get("state");
 		if (stateEl == null) {
-			logSuccess("Verification event carries no state — treated as transmitter-initiated (unsolicited) per SSF 1.0 §8.1.4.2",
+			logSuccess("Verification event carries no state; treated as transmitter-initiated (unsolicited)",
 				args("token_claims", claimsJsonObject));
 			return env;
 		}
@@ -85,7 +85,7 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 
 		if (issuedStates.contains(actualVerificationState)) {
 			logSuccess("Retrieved verification state matches an earlier verification request of this test; "
-					+ "SSF 1.0 8.1.4.2 allows verification events to arrive out of order",
+					+ "verification events may arrive out of order",
 				args("expected_state", expectedVerificationState, "actual_state", actualVerificationState, "issued_states", issuedStates));
 			return env;
 		}

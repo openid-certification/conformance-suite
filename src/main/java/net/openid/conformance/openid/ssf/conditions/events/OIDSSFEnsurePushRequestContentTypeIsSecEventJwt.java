@@ -20,7 +20,7 @@ public class OIDSSFEnsurePushRequestContentTypeIsSecEventJwt extends AbstractCon
 
 		String contentType = env.getString("ssf", "push_request.headers.content-type");
 		if (contentType == null) {
-			throw error("Push delivery request has no Content-Type header. RFC 8935 requires 'application/secevent+jwt'.",
+			throw error("Push delivery request has no Content-Type header; a push delivery request must be sent as 'application/secevent+jwt'.",
 				args("headers", env.getElementFromObject("ssf", "push_request.headers")));
 		}
 

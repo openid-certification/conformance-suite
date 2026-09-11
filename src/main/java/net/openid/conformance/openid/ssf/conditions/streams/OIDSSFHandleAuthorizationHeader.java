@@ -25,7 +25,7 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		JsonElement queryParamsEl = env.getElementFromObject("incoming_request", "query_string_params");
 		if (queryParamsEl != null && queryParamsEl.isJsonObject() && queryParamsEl.getAsJsonObject().has("access_token")) {
 			authResult.addProperty("access_token_in_query", true);
-			log("Request carried an access_token URI query parameter, which must not be accepted (CAEP Interop Profile 2.7.2, RFC 6750 2.3)");
+			log("Request carried an access_token URI query parameter, which a transmitter must not accept");
 			return unauthorized(env, authResult, "Access tokens must be sent in the Authorization header, not as a URI query parameter");
 		}
 
