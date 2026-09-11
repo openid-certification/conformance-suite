@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 		This test verifies that the receiver rejects invalid Security Event Tokens.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it delivers four deliberately invalid SETs: one with a corrupted signature, one with a wrong 'iss' claim, one with a wrong 'aud' claim and one signed with a key that is not in the transmitter's JWKS.
 		With PUSH delivery the error response to each rejected SET is validated as well: it must be a 400 with an 'application/json' body carrying 'err' and 'description' (RFC 8935 2.3); an 'err' that is not a registered Security Event Token Error Code, or not the code matching the defect ('invalid_key', 'invalid_issuer', 'invalid_audience'; RFC 8935 2.4), raises a warning.
-		Note: invalid SETs that were retrieved but neither acknowledged nor reported via 'setErrs' are noted after 60 seconds (reporting via 'setErrs' is a MAY, RFC 8936 2.4); invalid SETs the receiver never retrieved raise a warning, since the rejection behavior could not be assessed. The test still waits for the stream deletion before it finishes.
+		Note: invalid SETs that were retrieved but neither acknowledged nor reported via 'setErrs' are noted after 60 seconds (reporting via 'setErrs' is a MAY, RFC 8936 2.4); deleting the stream without ever retrieving an invalid SET fails the test, since the rejection behavior was not exercised: keep the stream open and keep polling until the invalid SETs were retrieved. The test still waits for the stream deletion before it finishes.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
@@ -287,6 +287,26 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 		}
 	}
 
+	/**
+	 * The receiver deleted the stream with invalid SETs it never retrieved: the rejection under
+	 * test was never exercised, which is a failure with a reconfiguration hint, not a warning.
+	 */
+	@Override
+	protected void onEventsUndeliverable(String streamId, List<OIDSSFSecurityEvent> events) {
+		super.onEventsUndeliverable(streamId, events);
+		for (OIDSSFSecurityEvent event : events) {
+			TamperMode tamperMode = invalidSetJtis.get(event.jti());
+			if (tamperMode == null || resolvedInvalidSetJtis.contains(event.jti())) {
+				continue;
+			}
+			resolvedInvalidSetJtis.add(event.jti());
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"Receiver deleted the stream without ever retrieving the invalid SET (" + tamperMode.description() + ", jti=" + event.jti() + "), "
+						+ "so its rejection could not be assessed. Keep the stream open and keep polling until the invalid SETs were retrieved and rejected, then delete it."),
+				Condition.ConditionResult.FAILURE, "RFC8936-2.4");
+		}
+	}
+
 	protected class ResolveSilentlyIgnoredInvalidSetsTask implements Callable<String> {
 
 		protected final String streamId;
@@ -307,16 +327,15 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 				if (resolvedInvalidSetJtis.contains(entry.getKey())) {
 					continue;
 				}
-				resolvedInvalidSetJtis.add(entry.getKey());
 				if (stillQueuedJtis.contains(entry.getKey())) {
-					// The receiver never polled this SET, so its rejection behavior could
-					// not be exercised at all - that undermines what this test is for.
-					callAndContinueOnFailure(new OIDSSFFindingCondition(
-							"Receiver never retrieved the invalid SET (" + entry.getValue().description() + ", jti=" + entry.getKey() + ") within "
-								+ SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS + " seconds, so its rejection behavior could not be assessed."),
-						Condition.ConditionResult.WARNING, "RFC8936-2.4");
+					// Not retrieved yet: the rejection cannot be assessed until the receiver
+					// polls the SET. Graded when the stream is deleted, see onEventsUndeliverable.
+					eventLog.log(getName(), args("msg", "Receiver has not retrieved the invalid SET within " + SILENT_DROP_RESOLUTION_TIMEOUT_SECONDS
+							+ " seconds; its rejection is assessed once retrieved, and a stream deletion before that fails the test",
+						"defect", entry.getValue().description(), "jti", entry.getKey()));
 					continue;
 				}
+				resolvedInvalidSetJtis.add(entry.getKey());
 				// Retrieved but neither acknowledged nor reported: not acknowledging an
 				// invalid SET is correct, and reporting it via 'setErrs' is a MAY
 				// (RFC 8936 2.4) - note it at INFO so the silent rejection is visible.
