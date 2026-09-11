@@ -52,16 +52,28 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
+		JsonElement statusEl = streamStatusInput.get("status");
+		if (statusEl == null || !OIDFJSON.isString(statusEl)) {
+			resultObj.add("error", createErrorObj("bad_request", "Missing or invalid 'status' in request body"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream status update request: 'status' is missing or not a string", args("stream_id", streamId, "error", resultObj.get("error"), "status", statusEl));
+		}
 		StreamStatusValue status;
 		try {
-			status = StreamStatusValue.valueOf(OIDFJSON.tryGetString(streamStatusInput.get("status")));
+			status = StreamStatusValue.valueOf(OIDFJSON.getString(statusEl));
 		} catch (IllegalArgumentException e) {
 			resultObj.add("error", createErrorObj("bad_request", "Invalid stream status input"));
 			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream status update request: Invalid input", args("stream_id", streamId, "error", resultObj.get("error"), "status", streamStatusInput.get("status")));
+			throw error("Failed to handle stream status update request: Invalid input", args("stream_id", streamId, "error", resultObj.get("error"), "status", statusEl));
 		}
 
-		String reason = OIDFJSON.tryGetString(streamStatusInput.get("reason"));
+		JsonElement reasonEl = streamStatusInput.get("reason");
+		if (reasonEl != null && !reasonEl.isJsonNull() && !OIDFJSON.isString(reasonEl)) {
+			resultObj.add("error", createErrorObj("bad_request", "'reason' must be a string"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream status update request: 'reason' is not a string", args("stream_id", streamId, "error", resultObj.get("error"), "reason", reasonEl));
+		}
+		String reason = reasonEl == null || reasonEl.isJsonNull() ? null : OIDFJSON.getString(reasonEl);
 		OIDSSFStreamUtils.updateStreamStatus(streamConfig, status, reason);
 
 		// store updated stream status
