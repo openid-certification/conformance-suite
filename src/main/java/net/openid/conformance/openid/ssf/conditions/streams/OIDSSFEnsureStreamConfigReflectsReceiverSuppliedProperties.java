@@ -23,7 +23,9 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUS
  * SSF 1.0 8.1.1.4 (PUT): "Missing Receiver-Supplied properties MUST be interpreted as
  * requested to be deleted." A deleted {@code delivery} falls back to the transmitter default,
  * poll (8.1.1.1). In both cases {@code events_delivered} stays a subset of the
- * {@code events_requested} that was sent (8.1.1).
+ * {@code events_requested} that was sent (8.1.1). For {@code description} SSF 1.0 8.1.1 lets
+ * the transmitter "truncate the string beyond an allowed max length", so a non-empty prefix of
+ * the sent value is accepted.
  */
 public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends AbstractCondition {
 
@@ -80,12 +82,25 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties extends 
 
 	private static void checkDescription(JsonObject sent, JsonObject actual, Set<String> mismatches, Operation operation) {
 		if (sent.has("description")) {
-			if (!sent.get("description").equals(actual.get("description"))) {
-				mismatches.add("description: sent " + sent.get("description") + " but the stream has " + actual.get("description"));
+			if (!isSameOrTruncated(sent.get("description"), actual.get("description"))) {
+				mismatches.add("description: sent " + sent.get("description") + " but the stream has " + actual.get("description")
+					+ " (a truncated description must be a non-empty prefix of the sent one)");
 			}
 		} else if (operation == Operation.REPLACE && actual.has("description")) {
 			mismatches.add("description: omitted from the PUT body, so it must be deleted, but the stream still has " + actual.get("description"));
 		}
+	}
+
+	/** Whether {@code actual} equals {@code sent}, or is a non-empty prefix of a string {@code sent}. */
+	private static boolean isSameOrTruncated(JsonElement sent, JsonElement actual) {
+		if (sent.equals(actual)) {
+			return true;
+		}
+		if (!OIDFJSON.isString(sent) || !OIDFJSON.isString(actual)) {
+			return false;
+		}
+		String actualDescription = OIDFJSON.getString(actual);
+		return !actualDescription.isEmpty() && OIDFJSON.getString(sent).startsWith(actualDescription);
 	}
 
 	private static void checkEventsRequested(JsonObject sent, JsonObject actual, Set<String> mismatches, Operation operation) {

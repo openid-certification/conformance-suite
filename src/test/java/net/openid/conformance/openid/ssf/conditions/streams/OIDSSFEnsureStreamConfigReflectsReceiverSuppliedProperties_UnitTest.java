@@ -62,6 +62,20 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties_UnitTest
 	}
 
 	@Test
+	void truncatedDescriptionPasses() {
+		String sent = FULL_SENT.replace("\"description\": \"d\"", "\"description\": \"a long description\"");
+		prepare(sent, MATCHING_STREAM.replace("\"description\": \"d\"", "\"description\": \"a long\""));
+		assertDoesNotThrow(() -> condition(Operation.UPDATE).execute(env));
+		assertDoesNotThrow(() -> condition(Operation.REPLACE).execute(env));
+	}
+
+	@Test
+	void emptiedDescriptionFails() {
+		prepare(FULL_SENT, MATCHING_STREAM.replace("\"description\": \"d\"", "\"description\": \"\""));
+		assertThrows(ConditionError.class, () -> condition(Operation.UPDATE).execute(env));
+	}
+
+	@Test
 	void ignoredEventsRequestedFails() {
 		prepare(FULL_SENT, MATCHING_STREAM.replace("[\"urn:b\", \"urn:a\"]", "[\"urn:c\"]"));
 		assertThrows(ConditionError.class, () -> condition(Operation.UPDATE).execute(env));
