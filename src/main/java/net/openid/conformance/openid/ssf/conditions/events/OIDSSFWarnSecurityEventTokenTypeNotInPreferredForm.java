@@ -32,7 +32,7 @@ public class OIDSSFWarnSecurityEventTokenTypeNotInPreferredForm extends Abstract
 
 		if (!SECEVENT_JWT_TYP.equals(tokenType)) {
 			throw error("Token type names the '" + SECEVENT_JWT_MEDIA_TYPE + "' media type but not in the spelling "
-					+ "RFC 8417 section 2.3 recommends: the typ value SHOULD be '" + SECEVENT_JWT_TYP + "'",
+					+ "the SET specification recommends: the typ value should be '" + SECEVENT_JWT_TYP + "'",
 				args("typ", tokenType, "recommended_typ", SECEVENT_JWT_TYP));
 		}
 

@@ -28,14 +28,14 @@ public class OIDSSFEnsureGrantedScopeIsReadOnly extends AbstractCondition {
 		String grantedScope = env.getString("token_endpoint_response", "scope");
 		if (Strings.isNullOrEmpty(grantedScope)) {
 			logSuccess("The token response carries no scope, so the granted scope is identical to the requested '"
-				+ SsfConstants.SCOPE_SSF_READ + "' (RFC 6749 section 5.1)");
+				+ SsfConstants.SCOPE_SSF_READ + "', as a token response without a scope grants the requested one");
 			return env;
 		}
 
 		List<String> grantedScopes = Arrays.asList(grantedScope.trim().split("\\s+"));
 		if (grantedScopes.contains(SsfConstants.SCOPE_SSF_MANAGE)) {
 			throw error("The authorization server granted '" + SsfConstants.SCOPE_SSF_MANAGE + "' although only '"
-					+ SsfConstants.SCOPE_SSF_READ + "' was requested. RFC 6749 section 3.3 permits this, but a token that may "
+					+ SsfConstants.SCOPE_SSF_READ + "' was requested. An authorization server may grant more than was requested, but a token that may "
 					+ "manage streams cannot show whether the transmitter refuses stream creation to a read-only token, so this "
 					+ "test cannot run. Configure the client used in the 'Client' section of the test configuration at the "
 					+ "authorization server so that it can be issued '" + SsfConstants.SCOPE_SSF_READ + "' on its own.",

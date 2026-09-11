@@ -18,7 +18,7 @@ public class OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck exten
 
 		// Optional in OIDSSF-7.1.1 but required by CAEPIOP-2.3.7
 		if (!transmitterMetadata.has("authorization_schemes")) {
-			throw error("Missing required field authorization_schemes! This is required by the CAEP Interop spec.");
+			throw error("Transmitter metadata is missing the authorization_schemes field, which the CAEP Interop Profile requires");
 		}
 
 		JsonElement authorizationSchemesEl = transmitterMetadata.get("authorization_schemes");
