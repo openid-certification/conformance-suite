@@ -5,13 +5,12 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
-import org.multipaz.crypto.Algorithm;
-import org.multipaz.crypto.Crypto;
 
 import java.util.Map;
 import java.util.Set;
@@ -38,16 +37,7 @@ public class CreateVerifierIsoMdocDCAPISessionTranscript extends AbstractConditi
 				.add(nonce)
 				.end()
 				.build());
-		byte[] handoverInfoHash;
-		try {
-			handoverInfoHash = kotlinx.coroutines.BuildersKt.runBlocking(
-				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, handoverInfo, continuation)
-			);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(e);
-		}
+		byte[] handoverInfoHash = MdocUtil.sha256(handoverInfo);
 
 		String handoverInfoDiagnostics = Cbor.INSTANCE.toDiagnostics(handoverInfo,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));

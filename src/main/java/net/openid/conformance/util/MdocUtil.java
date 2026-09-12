@@ -9,12 +9,16 @@ import org.multipaz.cbor.DataItem;
 import org.multipaz.cose.Cose;
 import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
+import org.multipaz.crypto.Algorithm;
+import org.multipaz.crypto.Crypto;
 import org.multipaz.crypto.X509CertChain;
 import org.multipaz.crypto.EcPublicKey;
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate;
 import org.multipaz.crypto.EcPublicKeyOkp;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +31,35 @@ public final class MdocUtil {
 
 	private MdocUtil() {
 		// utility class
+	}
+
+	private static final HexFormat HEX = HexFormat.of();
+
+	/**
+	 * The SHA-256 digest of the given bytes, using the same multipaz implementation as the rest
+	 * of the mdoc handling. multipaz's digest is a suspending function, so it has to be run on
+	 * this thread and the interrupt restored if the wait is interrupted.
+	 */
+	public static byte[] sha256(byte[] bytes) {
+		try {
+			return kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, bytes, continuation)
+			);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
+	}
+
+	/** The given bytes in lower case hex, for logging a session transcript calculation. */
+	public static String hex(byte[] bytes) {
+		return HEX.formatHex(bytes);
+	}
+
+	/** The UTF-8 bytes of the given string in lower case hex, as they are fed into CBOR. */
+	public static String utf8Hex(String value) {
+		return HEX.formatHex(value.getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
