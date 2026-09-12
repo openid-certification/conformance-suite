@@ -53,7 +53,7 @@ import java.util.Map;
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
-		AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.class,
+		AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest.class,
 	}
 )
 public class AuthzenPDPEvaluationsTestPlan implements TestPlan {
