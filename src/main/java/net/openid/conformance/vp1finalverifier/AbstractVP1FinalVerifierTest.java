@@ -111,6 +111,7 @@ import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
@@ -378,6 +379,17 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		env.putString(EnsureRevocationListRequestAcceptedServedMediaType.SERVED_CONTENT_TYPE_ENV_KEY, served.contentType());
 		callAndContinueOnFailure(EnsureRevocationListRequestAcceptedServedMediaType.class, ConditionResult.WARNING, "OTSL-8.1");
 		call(exec().unmapKey("incoming_request"));
+
+		if (env.getElementFromObject(requestId, "query_string_params.time") != null) {
+			eventLog.log(getName(), args(
+				"msg", "The verifier asked for the " + served.description() + " as it was at a past "
+					+ "time (the 'time' query parameter of draft-ietf-oauth-status-list section 8.4). "
+					+ "This test does not support historical resolution, so the request was "
+					+ "answered with 501 and the verifier is expected to retry without the parameter.",
+				"requested_uri", requestedUri));
+			return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+				.body("Historical status resolution (the time query parameter) is not supported");
+		}
 
 		env.putString(EnsureVerifierFetchedRevocationList.FETCHED_ENV_KEY, "true");
 		eventLog.log(getName(), args(
