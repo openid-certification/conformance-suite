@@ -384,6 +384,17 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		String description = OIDFJSON.getString(served.get("description"));
 
+		if (env.getElementFromObject(requestId, "query_string_params.time") != null) {
+			eventLog.log(getName(), args(
+				"msg", "The verifier asked for the " + description + " as it was at a past "
+					+ "time (the 'time' query parameter of draft-ietf-oauth-status-list section 8.4). "
+					+ "This test does not support historical resolution, so the request was "
+					+ "answered with 501 and the verifier is expected to retry without the parameter.",
+				"requested_uri", requestedUri));
+			return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+				.body("Historical status resolution (the time query parameter) is not supported");
+		}
+
 		if (!"GET".equals(env.getString(requestId, "method"))) {
 			// only a GET retrieves the list, so nothing else counts as the verifier having fetched it
 			eventLog.log(getName(), args(
