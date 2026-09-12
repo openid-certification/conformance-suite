@@ -31,7 +31,6 @@ public class CreateMdocCredential extends AbstractCondition {
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
 		TestAppUtils testAppUtils = TestAppUtils.INSTANCE;
-		testAppUtils.initialise();
 
 		String requestedDocType = null;
 		Map<String, Set<String>> requestedClaims = null;

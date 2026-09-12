@@ -75,13 +75,18 @@ object TestAppUtils {
     // This domain is for KeylessSdJwtVcCredential
     const val CREDENTIAL_DOMAIN_SDJWT_KEYLESS = "sdjwt_keyless"
 
+	// documentStore and docTypeToDocumentId are process-wide singleton state that
+	// documentStoreInit() replaces wholesale, so provisioning and the lookups that
+	// follow it must run as one critical section across concurrently executing modules.
 	@JvmOverloads
+	@Synchronized
 	fun generateDeviceResponse(
 		sessionTranscript: ByteArray,
 		requestedDocType: String? = null,
 		requestedClaims: Map<String, Set<String>>? = null
 	): ByteArray {
 		return runBlocking {
+			documentStoreInit()
 			generateEncodedDeviceResponse(sessionTranscript, requestedDocType, requestedClaims)
 		}
 	}
@@ -191,12 +196,6 @@ object TestAppUtils {
         EUPersonalID.getDocumentType(),
         UtopiaMovieTicket.getDocumentType()
     )
-
-	fun initialise() {
-		runBlocking {
-			documentStoreInit();
-		}
-	}
 
 	var documentStore: DocumentStore? = null
 
