@@ -3,13 +3,12 @@ package net.openid.conformance.condition.as;
 import com.nimbusds.jose.util.Base64;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
-import org.multipaz.crypto.Algorithm;
-import org.multipaz.crypto.Crypto;
 
 import java.util.Map;
 import java.util.Set;
@@ -30,27 +29,14 @@ public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends A
 				.add(mdocGeneratedNonce)
 				.end()
 				.build());
-		byte[] clientIdHash;
-		byte[] responseUriHash;
-		try {
-			clientIdHash = kotlinx.coroutines.BuildersKt.runBlocking(
-				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, clientIdToHash, continuation)
-			);
-			byte[] responseUriToHash = Cbor.INSTANCE.encode(
-				CborArray.Companion.builder()
-					.add(responseUri)
-					.add(mdocGeneratedNonce)
-					.end()
-					.build());
-			responseUriHash = kotlinx.coroutines.BuildersKt.runBlocking(
-				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, responseUriToHash, continuation)
-			);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(e);
-		}
+		byte[] responseUriToHash = Cbor.INSTANCE.encode(
+			CborArray.Companion.builder()
+				.add(responseUri)
+				.add(mdocGeneratedNonce)
+				.end()
+				.build());
+		byte[] clientIdHash = MdocUtil.sha256(clientIdToHash);
+		byte[] responseUriHash = MdocUtil.sha256(responseUriToHash);
 
 		DataItem oid4vpHandover = CborArray.Companion.builder()
 			.add(clientIdHash)
