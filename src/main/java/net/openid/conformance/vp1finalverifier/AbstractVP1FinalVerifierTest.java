@@ -320,6 +320,17 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			// recorded rather than checked here: these handlers run without the test lock (see
 			// below), which calling conditions requires. finaliseChecks() checks it at the end.
 			env.putObject(VP1FinalRevocationListRequest.ENV_KEY, requestParts);
+			if (req.getParameter("time") != null) {
+				// draft-ietf-oauth-status-list section 8.4: historical resolution is not
+				// supported, so a request with the time query parameter gets a 501
+				eventLog.log(getName(), "The verifier asked for the revocation list as it was at a "
+					+ "past time (the 'time' query parameter of draft-ietf-oauth-status-list "
+					+ "section 8.4). This test does not support historical resolution, so the "
+					+ "request was answered with 501 and the verifier is expected to retry "
+					+ "without the parameter.");
+				return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_IMPLEMENTED)
+					.body("Historical status resolution (the time query parameter) is not supported");
+			}
 		}
 		if (AbstractCreateStatusListReference.STATUS_LIST_PATH.equals(path)) {
 			// served without moving the test to RUNNING: that takes the test lock, which is
