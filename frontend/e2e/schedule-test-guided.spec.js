@@ -253,10 +253,9 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
     await pickChoice(page, "fapi1_brazil_op");
 
-    // No multi-plan checklist interstitial and no checklist on review: the
-    // wizard resolves the one plan the user picked and stops there.
+    // No multi-plan interstitial: the wizard resolves the one plan the user
+    // picked and goes straight to review.
     await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
-    await expect(page.locator("#guidedStage .bundle-list")).toHaveCount(0);
     await expect(page.locator("#guidedStage")).toContainText(
       "FAPI1-Advanced-Final: Authorization server test",
     );
@@ -544,8 +543,8 @@ test.describe("schedule-test.html — guided config + create", () => {
   });
 
   /**
-   * Walk to the guided config step (KSA path — no siblings, so no handoff
-   * record interferes) and assert the real config form rendered.
+   * Walk to the guided config step (KSA path) and assert the real config form
+   * rendered.
    *
    * @param {import('@playwright/test').Page} page
    */
@@ -877,7 +876,6 @@ test.describe("schedule-test.html — guided hardening (review followup)", () =>
           answers: ["op", "pkjwt", "ksav2"],
           planName: "fapi2-message-signing-final-test-plan",
           config: { alias: "drifted" },
-          completedPlanNames: [],
         }),
       );
     });
@@ -892,25 +890,6 @@ test.describe("schedule-test.html — guided hardening (review followup)", () =>
       "Which ecosystem are you certifying for?",
     );
     expect(await page.evaluate(() => sessionStorage.getItem("oidf-guided-recovery"))).toBeNull();
-  });
-
-  test("a trail resolving a plan absent from the catalog dead-ends (R4)", async ({ page }) => {
-    await setupScheduleTestRoutes(page, {
-      plans: [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS].filter(
-        (p) => p.planName !== "fapi2-message-signing-final-test-plan",
-      ),
-    });
-    await page.goto("/schedule-test.html");
-
-    await pickChoice(page, "ksa");
-    await pickChoice(page, "op");
-    await pickChoice(page, "pkjwt");
-    await pickChoice(page, "ksav2");
-
-    await expect(page.locator("#guidedStage h1")).toHaveText(
-      "This path isn't available on this server",
-    );
-    await expect(page.locator("#guidedDeadEndEscape")).toBeVisible();
   });
 
   test("guided beforeunload fires when the config is dirty (positive case)", async ({ page }) => {

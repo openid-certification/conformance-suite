@@ -143,9 +143,8 @@ export const MOCK_PLANS = [
  *   SAMA v2 resolution target, and the Chile → OP leaf (mTLS + Grant Management).
  * - fapi-ciba-id1-client-test-plan / fapi-ciba-id1-test-plan: Brazil and
  *   ConnectID CIBA guided leaves.
- * - fapi1-advanced-final-test-plan: Brazil OP FAPI leaf (carries the
- *   also_required → DCR bundle).
- * - fapi1-advanced-final-brazil-dcr-test-plan: the bundle sibling.
+ * - fapi1-advanced-final-test-plan / fapi1-advanced-final-brazil-dcr-test-plan:
+ *   the two Brazil OP leaves (OpenFinance and OpenInsurance).
  */
 export const MOCK_GUIDED_PLANS = [
   {

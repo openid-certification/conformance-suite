@@ -1058,8 +1058,7 @@ export function startGuidedJourney(modeController, deps) {
           <p class="review-config-hint">These sections of the test configuration will need your input:</p>
           <div class="config-preview">${configChips || '<cts-badge variant="secondary">Test information</cts-badge>'}</div>
         </cts-card>
-      </div>
-`;
+      </div>`;
 
     renderActionBar([
       BACK_BUTTON,

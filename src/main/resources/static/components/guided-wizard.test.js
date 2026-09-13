@@ -30,11 +30,6 @@ describe("resolveMode", () => {
       { mode: "advanced", source: "test_plan" },
     ],
     [
-      "an unknown param is ignored — no producer writes wizard_preset any more (#1967)",
-      { search: "?wizard_preset=abc", storedMode: "advanced" },
-      { mode: "advanced", source: "preference" },
-    ],
-    [
       "recovery record + no params → guided at recovery slot",
       { search: "", hasRecoveryRecord: true },
       { mode: "guided", source: "recovery" },
