@@ -9,11 +9,9 @@
  * this module must be updated by hand — the colocated integrity test
  * (`guided-wizard-tree.test.js`) catches structural breakage.
  *
- * One deliberate data deviation from the YAML: the YAML's `also_required`
- * links between sibling plans are not carried over. The wizard resolves one
- * plan per journey and no longer tries to orchestrate multi-plan
- * certification bundles (#1967) — where a sibling plan matters, say so in
- * the choice's `description`.
+ * Each journey resolves exactly one plan, so a `result` carries only
+ * `plan_name` and `variants`. Where a certification needs a second plan
+ * (the Brazil OP plans), the choice's `description` says so.
  *
  * From the YAML header:
  * - Each choice has either `next` (another question) or `result` (a leaf).

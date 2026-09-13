@@ -4,11 +4,9 @@ import { GUIDED_WIZARD_TREE } from "./guided-wizard-tree.js";
 /**
  * Integrity tests for the guided-mode decision tree. The tree is hand-edited
  * data (converted from MR !2029's guided-wizard.yaml), so these tests are the
- * build-time guard against the class of breakage the YAML shipped with. Any
- * future content edit that adds a choice with both/neither of `next`/`result`,
- * a result without `plan_name`/`variants`, or a resurrected `also_required`
- * link (removed with the multi-plan bundle flow, #1967) fails here before it
- * can dead-end a user.
+ * build-time guard on its shape: a choice with both or neither of
+ * `next`/`result`, a result without `plan_name`/`variants`, or a result
+ * carrying any other key fails here before it can dead-end a user.
  */
 
 /**
