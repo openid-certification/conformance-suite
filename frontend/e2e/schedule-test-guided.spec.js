@@ -266,6 +266,28 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
   });
 
+  test("OpenInsurance Brazil OP offers the FAPI and DCR plans, each naming the other", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "open_insurance_brazil");
+    await pickChoice(page, "op");
+    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
+    const choices = page.locator("#guidedStage .choice");
+    await expect(choices).toHaveCount(2);
+    await expect(choices.nth(0)).toContainText("requires the Dynamic Client Registration plan");
+    await expect(choices.nth(1)).toContainText("requires the FAPI Security Profile plan");
+
+    await pickChoice(page, "dcr_opin_op");
+    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
+    await expect(page.locator("#guidedStage")).toContainText(
+      "FAPI1-Advanced-Final: Brazil Dynamic Client Registration Authorization server test",
+    );
+    await expect(page.locator("#guidedStage")).toContainText("Open Insurance Brazil");
+  });
+
   test("ConnectID RP CIBA path resolves to the client CIBA plan", async ({ page }) => {
     await setupScheduleTestRoutes(page);
     await page.goto("/schedule-test.html");
