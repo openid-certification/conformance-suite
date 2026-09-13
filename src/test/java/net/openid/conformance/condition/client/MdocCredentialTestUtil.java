@@ -3,6 +3,9 @@ package net.openid.conformance.condition.client;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.CreateMdocCredential;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.ArrayBuilder;
 import org.multipaz.cbor.Bstr;
@@ -35,6 +38,22 @@ final class MdocCredentialTestUtil {
 		String mdocBase64Url = VciMdocUtils.createMdocCredential(
 			new ECKeyGenerator(Curve.P_256).generate().toJSONString(), docType, null);
 		return new Base64URL(mdocBase64Url).decode();
+	}
+
+	/**
+	 * Runs the emulated wallet's CreateMdocCredential and ParseCredentialAsMdoc against a fixed
+	 * session transcript, leaving the presented credential in the environment the way the VP
+	 * wallet tests see it.
+	 */
+	static void putPresentedCredential(Environment env, TestInstanceEventLog eventLog) {
+		CreateMdocCredential create = new CreateMdocCredential();
+		create.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		ParseCredentialAsMdoc parse = new ParseCredentialAsMdoc();
+		parse.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
+		env.putString("session_transcript",
+			"g/b2gnZPcGVuSUQ0VlBEQ0FQSUhhbmRvdmVyWCBd0cMpz6ie3V5hrfH0TMRNv/K/U1jcr0o2rN+i0gMNWA==");
+		create.execute(env);
+		parse.execute(env);
 	}
 
 	/** Stores the IssuerSigned bytes in the environment the way ParseMdocCredentialFromVCIIssuance does. */

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.documenttype.knowntypes.DrivingLicense;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -32,6 +33,21 @@ public class ValidateMdocMsoValidUntilWithinDsCertificateValidity_UnitTest {
 		cond = new ValidateMdocMsoValidUntilWithinDsCertificateValidity();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
 		env = new Environment();
+	}
+
+	@Test
+	public void testEvaluate_passesForCredentialTheEmulatedIssuerCreates() throws Exception {
+		MdocCredentialTestUtil.putCredential(env,
+			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_passesForCredentialTheEmulatedWalletPresents() {
+		MdocCredentialTestUtil.putPresentedCredential(env, eventLog);
+
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test

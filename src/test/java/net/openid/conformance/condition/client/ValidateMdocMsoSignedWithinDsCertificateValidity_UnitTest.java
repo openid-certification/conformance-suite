@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.multipaz.cbor.Tagged;
 import org.multipaz.cbor.Tstr;
+import org.multipaz.documenttype.knowntypes.DrivingLicense;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -38,6 +39,21 @@ public class ValidateMdocMsoSignedWithinDsCertificateValidity_UnitTest {
 
 	private static Tagged tdate(Instant instant) {
 		return new Tagged(Tagged.DATE_TIME_STRING, new Tstr(instant.toString()));
+	}
+
+	@Test
+	public void testEvaluate_passesForCredentialTheEmulatedIssuerCreates() throws Exception {
+		MdocCredentialTestUtil.putCredential(env,
+			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_passesForCredentialTheEmulatedWalletPresents() {
+		MdocCredentialTestUtil.putPresentedCredential(env, eventLog);
+
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test
