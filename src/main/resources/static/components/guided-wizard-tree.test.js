@@ -138,16 +138,17 @@ describe("GUIDED_WIZARD_TREE integrity", () => {
     }
   });
 
-  it("declares no also_required links — one journey resolves one plan (#1967)", () => {
-    // The wizard no longer orchestrates multi-plan certification bundles, so
-    // nothing reads `also_required`. Re-adding it to the data would silently
-    // do nothing; fail here instead.
+  it("gives every result exactly the WizardResult keys", () => {
+    // A result is plan_name + variants and nothing else. Any other key is
+    // data the wizard silently ignores, so a typo or a key from an earlier
+    // tree format fails here instead of doing nothing.
     for (const { path, step } of collectSteps()) {
       for (const choice of step.choices) {
-        expect(
-          Object.hasOwn(choice.result ?? {}, "also_required"),
-          `${path}/${choice.id} declares also_required`,
-        ).toBe(false);
+        if (!choice.result) continue;
+        expect(Object.keys(choice.result).sort(), `result keys of ${path}/${choice.id}`).toEqual([
+          "plan_name",
+          "variants",
+        ]);
       }
     }
   });
