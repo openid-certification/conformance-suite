@@ -21,6 +21,10 @@ import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDiges
 import net.openid.conformance.condition.client.ValidateMdocTrustAnchorIacaCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
+import net.openid.conformance.condition.client.ValidateMdocMsoSignedWithinDsCertificateValidity;
+import net.openid.conformance.condition.client.ValidateMdocMsoValidFromNotBeforeSigned;
+import net.openid.conformance.condition.client.ValidateMdocMsoValidUntilWithinDsCertificateValidity;
+import net.openid.conformance.condition.client.ValidateMdocMsoValidityPeriodIsCurrent;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 
@@ -68,6 +72,16 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			ConditionResult.WARNING, "ISO18013-5-B.1.4");
 		callAndContinueOnFailure(ValidateMdocTrustAnchorIacaCertificateProfile.class,
 			ConditionResult.WARNING, "ISO18013-5-B.1.2");
+		// The ValidityInfo checks an mdoc reader performs (ISO 18013-5 9.3.1 step 5): a credential
+		// failing them is rejected by any conformant reader, whoever issued it
+		callAndContinueOnFailure(ValidateMdocMsoSignedWithinDsCertificateValidity.class,
+			ConditionResult.FAILURE, "ISO18013-5-9.3.1");
+		callAndContinueOnFailure(ValidateMdocMsoValidFromNotBeforeSigned.class,
+			ConditionResult.FAILURE, "ISO18013-5-9.1.2.4");
+		callAndContinueOnFailure(ValidateMdocMsoValidityPeriodIsCurrent.class,
+			ConditionResult.FAILURE, "ISO18013-5-9.3.1");
+		callAndContinueOnFailure(ValidateMdocMsoValidUntilWithinDsCertificateValidity.class,
+			ConditionResult.WARNING, "ISO18013-5-9.3.1");
 		if (haip) {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");

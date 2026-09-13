@@ -57,6 +57,29 @@ final class MdocDsCertificateTestFixtures {
 		});
 	}
 
+	/**
+	 * Creates an mDL IssuerSigned credential signed with a digitalSignature-only self-signed
+	 * certificate whose validity period is exactly the given one, for the MSO ValidityInfo
+	 * checks against the document signer certificate.
+	 */
+	static byte[] credentialWithDsCertValidity(Date notBefore, Date notAfter) throws Exception {
+		ECKey signingKey = new ECKeyGenerator(Curve.P_256).generate();
+
+		X500Name name = new X500Name("CN=Dated DS Cert");
+		X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+			name,
+			BigInteger.valueOf(System.nanoTime()),
+			notBefore,
+			notAfter,
+			name,
+			SubjectPublicKeyInfo.getInstance(signingKey.toECPublicKey().getEncoded()));
+		builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
+		byte[] certDer = builder
+			.build(new JcaContentSignerBuilder("SHA256withECDSA").build(signingKey.toECPrivateKey()))
+			.getEncoded();
+		return credentialWithX5c(DrivingLicense.MDL_DOCTYPE, signingKey, certDer);
+	}
+
 	/** Builds a self-signed CA-style certificate for the given DN and returns it as PEM. */
 	static String selfSignedCertPem(String dn) throws Exception {
 		ECKey key = new ECKeyGenerator(Curve.P_256).generate();
