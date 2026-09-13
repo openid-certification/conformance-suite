@@ -397,7 +397,7 @@ function questionLede(stepId) {
     client_auth: "How does your software authenticate the client to the authorization server?",
     ksa_spec_version: "SAMA v1 maps to FAPI1 Advanced; SAMA v2 maps to FAPI2 Message Signing.",
     scope: "The kind of access this client requests determines the scope under test.",
-    plan: "Pick the plan you want to set up now. Certifications that need more than one plan are set up one plan at a time.",
+    plan: "Pick the plan you want to set up now.",
   });
   return m[stepId] || "Choose the option that matches your deployment.";
 }

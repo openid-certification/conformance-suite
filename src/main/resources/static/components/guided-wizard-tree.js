@@ -131,7 +131,7 @@ export const GUIDED_WIZARD_TREE = {
                     id: "fapi1_brazil_op",
                     label: "FAPI Security Profile",
                     description:
-                      "Server-side FAPI tests for Open Finance Brazil, also requires the below DCR.",
+                      "Server-side FAPI tests for Open Finance Brazil. Certification also requires the Dynamic Client Registration plan.",
                     result: {
                       plan_name: "fapi1-advanced-final-test-plan",
                       variants: {
@@ -145,7 +145,8 @@ export const GUIDED_WIZARD_TREE = {
                   {
                     id: "dcr_brazil_op",
                     label: "Dynamic Client Registration",
-                    description: "DCR tests - required for Open Finance Brazil",
+                    description:
+                      "DCR tests for Open Finance Brazil. Certification also requires the FAPI Security Profile plan.",
                     result: {
                       plan_name: "fapi1-advanced-final-brazil-dcr-test-plan",
                       variants: {
@@ -207,10 +208,10 @@ export const GUIDED_WIZARD_TREE = {
                 question: "Which certification plan are you creating?",
                 choices: [
                   {
-                    id: "fapi1_brazil_op",
+                    id: "fapi1_opin_op",
                     label: "FAPI Security Profile",
                     description:
-                      "Server-side FAPI tests for Open Finance Brazil, also requires the below DCR.",
+                      "Server-side FAPI tests for Open Insurance Brazil. Certification also requires the Dynamic Client Registration plan.",
                     result: {
                       plan_name: "fapi1-advanced-final-test-plan",
                       variants: {
@@ -222,9 +223,10 @@ export const GUIDED_WIZARD_TREE = {
                     },
                   },
                   {
-                    id: "dcr_brazil_op",
+                    id: "dcr_opin_op",
                     label: "Dynamic Client Registration",
-                    description: "DCR tests - required for Open Finance Brazil",
+                    description:
+                      "DCR tests for Open Insurance Brazil. Certification also requires the FAPI Security Profile plan.",
                     result: {
                       plan_name: "fapi1-advanced-final-brazil-dcr-test-plan",
                       variants: {
