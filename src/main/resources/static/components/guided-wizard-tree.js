@@ -203,14 +203,41 @@ export const GUIDED_WIZARD_TREE = {
             {
               id: "op",
               label: "OP (Authorization Server)",
-              result: {
-                plan_name: "fapi1-advanced-final-test-plan",
-                variants: {
-                  client_auth_type: "private_key_jwt",
-                  fapi_auth_request_method: "pushed",
-                  fapi_profile: "openinsurance_brazil",
-                  fapi_response_mode: "plain_response",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi1_opin_op",
+                    label: "FAPI Security Profile",
+                    description:
+                      "Server-side FAPI tests for Open Insurance Brazil. Certification also requires the Dynamic Client Registration plan.",
+                    result: {
+                      plan_name: "fapi1-advanced-final-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_auth_request_method: "pushed",
+                        fapi_profile: "openinsurance_brazil",
+                        fapi_response_mode: "plain_response",
+                      },
+                    },
+                  },
+                  {
+                    id: "dcr_opin_op",
+                    label: "Dynamic Client Registration",
+                    description:
+                      "DCR tests for Open Insurance Brazil. Certification also requires the FAPI Security Profile plan.",
+                    result: {
+                      plan_name: "fapi1-advanced-final-brazil-dcr-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_auth_request_method: "pushed",
+                        fapi_response_mode: "plain_response",
+                        fapi_profile: "openinsurance_brazil",
+                      },
+                    },
+                  },
+                ],
               },
             },
           ],
