@@ -75,7 +75,8 @@ public class ValidateMdocIssuerChainAgainstVical extends AbstractVicalCondition 
 			kotlin.time.Instant now = kotlin.time.Instant.Companion.fromEpochMilliseconds(System.currentTimeMillis());
 			trustResult = kotlinx.coroutines.BuildersKt.runBlocking(
 				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				(scope, continuation) -> trustManager.verify(chainCerts, now, continuation)
+				// true = also validate the validity intervals of CA certificates in the chain
+				(scope, continuation) -> trustManager.verify(chainCerts, now, true, continuation)
 			);
 		} catch (Exception e) {
 			throw error("Failed to evaluate the mdoc issuer certificate chain against the VICAL", e);
