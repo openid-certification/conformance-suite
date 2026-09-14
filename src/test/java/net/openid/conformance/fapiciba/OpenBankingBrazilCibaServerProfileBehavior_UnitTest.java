@@ -21,6 +21,7 @@ import net.openid.conformance.condition.client.ExtractJWKSDirectFromClient2Confi
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilAddSoftwareStatementRedirectUrisToDynamicRegistrationRequest;
@@ -65,6 +66,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 
 	private final OpenBankingBrazilCibaServerProfileBehavior behavior = new OpenBankingBrazilCibaServerProfileBehavior();
+
+	@Test
+	public void requiresMtlsForNotificationEndpoint() {
+		assertThat(behavior.notificationEndpointRequiresMTLS()).isTrue();
+		assertThat(new FAPICIBAServerProfileBehavior().notificationEndpointRequiresMTLS()).isFalse();
+		assertThat(getConditionClasses(behavior.validateNotificationEndpointRequest()))
+			.containsExactly(EnsureNotificationEndpointRequestHasClientCertificate.class);
+	}
 
 	@Test
 	public void validatesTokenEndpointIdTokenIsEncrypted() {
@@ -231,10 +240,12 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
 			CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class,
 			FAPIEnsureClientJwksContainsAnEncryptionKey.class);
+		assertThat(conditionCalls.get(1).isStopOnFailure()).isTrue();
 		assertThat(conditionCalls.get(1).getRequirements()).containsExactly(
 			"CIBA-4",
 			"BrazilCIBA-6.2.2",
 			"BrazilCIBA-6.2.4",
+			"BrazilOB22-5.1-1",
 			"BrazilOB22-5.1.1-1",
 			"BrazilOB22-6.2",
 			"BrazilOB22-6.3",
@@ -263,6 +274,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	public void createsDataConsentBeforeBrazilCibaRequest() {
 		TestableFAPICIBAID1 module = new TestableFAPICIBAID1();
 		module.addTokenEndpointClientAuthentication = NoOpClientAuthentication.class;
+		module.profileBehavior = behavior;
 		behavior.setModule(module);
 
 		List<Class<? extends Condition>> conditionClasses = getConditionClasses(

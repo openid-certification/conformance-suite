@@ -40,6 +40,11 @@ class FAPICIBAConfigurationFields_UnitTest {
 		"mtls2.ca"
 	);
 	private static final String BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD = "client.brazil_ciba_maximum_expiry";
+	private static final Set<String> NOTIFICATION_MTLS_FIELDS = Set.of(
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca"
+	);
 
 	private static VariantService.TestPlanHolder plan;
 	private static JsonObject variantSummary;
@@ -115,6 +120,29 @@ class FAPICIBAConfigurationFields_UnitTest {
 			Map.of("fapi_ciba_profile", FAPICIBAProfile.OPENBANKING_BRAZIL.toString()));
 
 		assertTrue(fields.contains(BRAZIL_CIBA_MAXIMUM_EXPIRY_FIELD));
+	}
+
+	@Test
+	void brazilRpEmulatorShowsNotificationMtlsFields() {
+		Set<String> fields = effectiveFields(
+			clientPlan,
+			clientVariantSummary,
+			Map.of("fapi_ciba_profile", FAPICIBAProfile.OPENBANKING_BRAZIL.toString()));
+
+		assertTrue(fields.containsAll(NOTIFICATION_MTLS_FIELDS));
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = FAPICIBAProfile.class, names = {
+		"PLAIN_FAPI", "OPENBANKING_UK", "CONNECTID_AU"
+	})
+	void nonBrazilRpEmulatorDoesNotShowNotificationMtlsFields(FAPICIBAProfile profile) {
+		Set<String> fields = effectiveFields(
+			clientPlan,
+			clientVariantSummary,
+			Map.of("fapi_ciba_profile", profile.toString()));
+
+		assertTrue(Collections.disjoint(fields, NOTIFICATION_MTLS_FIELDS));
 	}
 
 	@Test

@@ -9,6 +9,8 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,8 +50,20 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 			""").getAsJsonObject();
 		response = request.deepCopy();
 		response.addProperty("client_id", "registered-client");
+		JsonObject softwareStatement = JsonParser.parseString("""
+			{
+			  "claims": {
+			    "software_jwks_uri": "https://directory.example/client.jwks",
+			    "software_redirect_uris": [
+			      "https://client.example/callback",
+			      "https://client.example/alternative-callback"
+			    ]
+			  }
+			}
+			""").getAsJsonObject();
 		env.putObject("dynamic_registration_request", request);
 		env.putObject("client", response);
+		env.putObject("software_statement_assertion", softwareStatement);
 	}
 
 	@Test
@@ -58,10 +72,9 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
-	public void acceptsRedirectUrisInDifferentOrder() {
+	public void acceptsRedirectUrisThatAreASubsetOfSoftwareStatementUris() {
 		response.add("redirect_uris", JsonParser.parseString("""
 			[
-			  "https://client.example/alternative-callback",
 			  "https://client.example/callback"
 			]
 			"""));
@@ -70,17 +83,17 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
-	public void rejectsChangedRedirectUriSet() {
+	public void rejectsRedirectUriOutsideSoftwareStatement() {
 		response.add("redirect_uris", JsonParser.parseString("""
 			[
 			  "https://client.example/callback",
-			  "https://client.example/unrequested-callback"
+			  "https://attacker.example/callback"
 			]
 			"""));
 
 		assertThatThrownBy(() -> condition.execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("does not match the request: redirect_uris");
+			.hasMessageContaining("not contained in software_redirect_uris");
 	}
 
 	@Test
@@ -112,6 +125,13 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
+	public void rejectsOpaqueHttpsNotificationEndpointWithoutHost() {
+		response.addProperty("backchannel_client_notification_endpoint", "https:notify");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
 	public void rejectsChangedRequestSigningAlgorithm() {
 		response.addProperty("backchannel_authentication_request_signing_alg", "RS256");
 
@@ -133,19 +153,59 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
-	public void distinguishesMismatchedResponseMetadata() {
+	public void acceptsRequestJwksUriSubstitutionWhenResponseUsesSoftwareStatementValue() {
+		env.getObject("dynamic_registration_request")
+			.addProperty("jwks_uri", "https://client.example/requested.jwks");
+
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsJwksUriThatDoesNotMatchSoftwareStatement() {
 		response.addProperty("jwks_uri", "https://directory.example/different-client.jwks");
 
 		assertThatThrownBy(() -> condition.execute(env))
 			.isInstanceOf(ConditionError.class)
-			.hasMessageContaining("does not match the request: jwks_uri");
+			.hasMessageContaining("does not match software_jwks_uri");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "tls_client_auth", "self_signed_tls_client_auth" })
+	public void rejectsMtlsAuthenticationSubstitution(String method) {
+		response.addProperty("token_endpoint_auth_method", method);
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 
 	@Test
-	public void rejectsChangedAuthenticationMetadata() {
-		response.addProperty("token_endpoint_auth_method", "tls_client_auth");
+	public void rejectsMissingPrivateKeyJwtSigningAlgorithm() {
+		response.remove("token_endpoint_auth_signing_alg");
 
 		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsAuthenticationMethodOutsideProfile() {
+		response.addProperty("token_endpoint_auth_method", "client_secret_basic");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsNonPs256PrivateKeyJwtAuthentication() {
+		response.addProperty("token_endpoint_auth_signing_alg", "RS256");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void acceptsProfileValuesSubstitutedForRequestedValues() {
+		JsonObject request = env.getObject("dynamic_registration_request");
+		request.addProperty("backchannel_authentication_request_signing_alg", "RS256");
+		request.addProperty("id_token_signed_response_alg", "RS256");
+		request.addProperty("id_token_encrypted_response_alg", "RSA-OAEP-256");
+
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test
@@ -156,8 +216,22 @@ public class ValidateOpenBankingBrazilCibaDynamicRegistrationResponse_UnitTest {
 	}
 
 	@Test
+	public void rejectsIdTokenSigningAlgorithmOutsideProfile() {
+		response.addProperty("id_token_signed_response_alg", "RS256");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
 	public void rejectsMissingIdTokenEncryptionMethod() {
 		response.remove("id_token_encrypted_response_enc");
+
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	public void rejectsUnboundAccessTokens() {
+		response.addProperty("tls_client_certificate_bound_access_tokens", false);
 
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}

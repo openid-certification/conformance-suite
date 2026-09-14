@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
+import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
@@ -71,11 +72,11 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			public void evaluate() {
 				callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class,
 					Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-				callAndContinueOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
-					Condition.ConditionResult.FAILURE,
+				callAndStopOnFailure(ValidateOpenBankingBrazilCibaDynamicRegistrationResponse.class,
 					"CIBA-4",
 					"BrazilCIBA-6.2.2",
 					"BrazilCIBA-6.2.4",
+					"BrazilOB22-5.1-1",
 					"BrazilOB22-5.1.1-1",
 					"BrazilOB22-6.2",
 					"BrazilOB22-6.3",
@@ -133,6 +134,22 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	@Override
 	public boolean shouldAddBindingMessageToAuthorizationEndpointRequest() {
 		return false;
+	}
+
+	@Override
+	public boolean notificationEndpointRequiresMTLS() {
+		return true;
+	}
+
+	@Override
+	public ConditionSequence validateNotificationEndpointRequest() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(EnsureNotificationEndpointRequestHasClientCertificate.class,
+					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.3.4");
+			}
+		};
 	}
 
 	@Override

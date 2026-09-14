@@ -1,5 +1,19 @@
 [
     {
+        "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_ciba_profile": "openbanking_brazil",
+            "ciba_mode": "ping",
+            "client_registration": "static_client"
+        },
+        "configuration-filename": "*fapi-ciba-brazil-op-test-config-certless-ping.json",
+        "current-block": "Verify notification callback",
+        "condition": "EnsureNotificationEndpointRequestHasClientCertificate",
+        "expected-result": "failure",
+        "comment": "Only this OP driver is paired with the negative RP test that deliberately omits its notification certificate. The OP must return 401 and report this violation; the RP module itself must pass."
+    },
+    {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
         "variant": "*",
         "configuration-filename": "authlete-*.json",

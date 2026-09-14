@@ -9,18 +9,23 @@ import net.openid.conformance.testmodule.Environment;
 public class CreateCIBANotificationEndpointUri extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "base_url")
+	@PreEnvironment
 	@PostEnvironment(strings = "notification_uri")
 	public Environment evaluate(Environment env) {
-		String baseUrl = env.getString("base_url");
+		// The required base URL depends on the profile, so validate it here rather than requiring
+		// both the regular and mTLS URL unconditionally in @PreEnvironment.
+		boolean mtlsRequired = Boolean.TRUE.equals(env.getBoolean("notification_endpoint_requires_mtls"));
+		String baseUrl = mtlsRequired ? env.getString("base_mtls_url") : env.getString("base_url");
 
-		if (baseUrl.isEmpty()) {
-			throw error("Base URL is empty");
+		if (Strings.isNullOrEmpty(baseUrl)) {
+			throw error(mtlsRequired ? "Base mTLS URL is empty" : "Base URL is empty");
 		}
 
 		// see https://gitlab.com/openid/conformance-suite/wikis/Developers/Build-&-Run#ciba-notification-endpoint
+		// The override only serves /test/, not /test-mtls/. There is no mTLS override; deployments
+		// must set fintechlabs.base_mtls_url to their publicly reachable mTLS origin.
 		String externalUrlOverride = env.getString("external_url_override");
-		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+		if (!mtlsRequired && !Strings.isNullOrEmpty(externalUrlOverride)) {
 			baseUrl = externalUrlOverride;
 		}
 
