@@ -23,6 +23,7 @@ import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
 import net.openid.conformance.condition.client.ValidateMdocMsoSignedWithinDsCertificateValidity;
 import net.openid.conformance.condition.client.ValidateMdocMsoValidFromNotBeforeSigned;
+import net.openid.conformance.condition.client.ValidateMdocMsoValidUntilAfterValidFrom;
 import net.openid.conformance.condition.client.ValidateMdocMsoValidUntilWithinDsCertificateValidity;
 import net.openid.conformance.condition.client.ValidateMdocMsoValidityPeriodIsCurrent;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -77,6 +78,8 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateMdocMsoSignedWithinDsCertificateValidity.class,
 			ConditionResult.FAILURE, "ISO18013-5-9.3.1");
 		callAndContinueOnFailure(ValidateMdocMsoValidFromNotBeforeSigned.class,
+			ConditionResult.FAILURE, "ISO18013-5-9.1.2.4");
+		callAndContinueOnFailure(ValidateMdocMsoValidUntilAfterValidFrom.class,
 			ConditionResult.FAILURE, "ISO18013-5-9.1.2.4");
 		callAndContinueOnFailure(ValidateMdocMsoValidityPeriodIsCurrent.class,
 			ConditionResult.FAILURE, "ISO18013-5-9.3.1");
