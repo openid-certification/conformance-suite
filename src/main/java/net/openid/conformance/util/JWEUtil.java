@@ -87,6 +87,21 @@ public class JWEUtil {
 	 * @param alg
 	 * @return
 	 */
+	/**
+	 * The type of key the given JWE algorithm requires, or null for an algorithm that is neither
+	 * RSA nor ECDH-ES based. {@link #selectAsymmetricKeyForEncryption} selects a key by this, so
+	 * a caller that has already chosen a key can use this to check the algorithm agrees with it.
+	 */
+	public static KeyType keyTypeForEncryptionAlg(JWEAlgorithm alg) {
+		if(JWEAlgorithm.Family.RSA.contains(alg)) {
+			return KeyType.RSA;
+		}
+		if(JWEAlgorithm.Family.ECDH_ES.contains(alg)) {
+			return KeyType.EC;
+		}
+		return null;
+	}
+
 	public static JWK selectAsymmetricKeyForEncryption(JWKSet jwkSet, JWEAlgorithm alg) {
 		return selectAsymmetricKeyForEncryption(jwkSet, alg, null);
 	}
@@ -105,12 +120,7 @@ public class JWEUtil {
 			return null;
 		}
 
-		KeyType keyType = null;
-		if(JWEAlgorithm.Family.RSA.contains(alg)) {
-			keyType = KeyType.RSA;
-		} else if(JWEAlgorithm.Family.ECDH_ES.contains(alg)) {
-			keyType = KeyType.EC;
-		}
+		KeyType keyType = keyTypeForEncryptionAlg(alg);
 
 		JWKMatcher jwkMatcher = new JWKMatcher.Builder().keyType(keyType).keyUses(KeyUse.ENCRYPTION, null).build();
 		boolean requiresKidMatch = kid != null && !kid.isBlank();

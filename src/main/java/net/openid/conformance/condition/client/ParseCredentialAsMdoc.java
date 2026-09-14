@@ -9,6 +9,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
@@ -34,6 +35,7 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 
 		String diagnostics = Cbor.INSTANCE.toDiagnostics(bytes,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
+		String msoDiagnostics = MdocUtil.deviceResponseMsoDiagnostics(Cbor.INSTANCE.decode(bytes));
 
 		// Extract IssuerSigned from DeviceResponse for downstream conditions (e.g. revocation check)
 		try {
@@ -115,6 +117,7 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 
 		logSuccess("Parsed mdoc & validated issuer-signed and device-signed data",
 			args("cbor_diagnostic", diagnostics,
+				"mso_cbor_diagnostic", msoDiagnostics,
 				"docType", doc.getDocType(),
 				"disclosed_elements", disclosedElements,
 				"device_signed_elements", deviceSignedElements));

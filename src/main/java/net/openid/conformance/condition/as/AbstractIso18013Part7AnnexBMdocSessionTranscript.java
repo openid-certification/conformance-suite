@@ -3,18 +3,18 @@ package net.openid.conformance.condition.as;
 import com.nimbusds.jose.util.Base64;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.MdocUtil;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
-import org.multipaz.crypto.Algorithm;
-import org.multipaz.crypto.Crypto;
 
 import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends AbstractCondition {
+
 	public void createSessionTranscript(Environment env, String clientId, String responseUri, String nonce, String mdocGeneratedNonce) {
 		// the contents of the handover / session transcript is as defined in ISO 18013 part 7 section B.4.4
 
@@ -30,27 +30,14 @@ public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends A
 				.add(mdocGeneratedNonce)
 				.end()
 				.build());
-		byte[] clientIdHash;
-		byte[] responseUriHash;
-		try {
-			clientIdHash = kotlinx.coroutines.BuildersKt.runBlocking(
-				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, clientIdToHash, continuation)
-			);
-			byte[] responseUriToHash = Cbor.INSTANCE.encode(
-				CborArray.Companion.builder()
-					.add(responseUri)
-					.add(mdocGeneratedNonce)
-					.end()
-					.build());
-			responseUriHash = kotlinx.coroutines.BuildersKt.runBlocking(
-				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
-				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, responseUriToHash, continuation)
-			);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(e);
-		}
+		byte[] responseUriToHash = Cbor.INSTANCE.encode(
+			CborArray.Companion.builder()
+				.add(responseUri)
+				.add(mdocGeneratedNonce)
+				.end()
+				.build());
+		byte[] clientIdHash = MdocUtil.sha256(clientIdToHash);
+		byte[] responseUriHash = MdocUtil.sha256(responseUriToHash);
 
 		DataItem oid4vpHandover = CborArray.Companion.builder()
 			.add(clientIdHash)
@@ -58,6 +45,7 @@ public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends A
 			.add(nonce)
 			.end()
 			.build();
+		byte[] oid4vpHandoverBytes = Cbor.INSTANCE.encode(oid4vpHandover);
 
 		byte[] sessionTranscript = Cbor.INSTANCE.encode(
 			CborArray.Companion.builder()
@@ -75,9 +63,25 @@ public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends A
 
 		env.putString("session_transcript", transcript_b64);
 
+		// every input and intermediate of the ISO/IEC 18013-7 B.4.4 OID4VPHandover calculation,
+		// with all bytes in hex, as one ordered multi-line string (a map's entries render in
+		// arbitrary order in the log UI) so a mismatching counterparty can compare step by step
+		String calculationDetail = String.join("\n",
+			"client_id (utf8 bytes): " + MdocUtil.utf8Hex(clientId),
+			"mdocGeneratedNonce, the value carried in the JWE apu header (utf8 bytes): " + MdocUtil.utf8Hex(mdocGeneratedNonce),
+			"ClientIdToHash = CBOR([client_id, mdocGeneratedNonce], both text strings): " + MdocUtil.hex(clientIdToHash),
+			"clientIdHash = SHA-256(ClientIdToHash): " + MdocUtil.hex(clientIdHash),
+			"response_uri (utf8 bytes): " + MdocUtil.utf8Hex(responseUri),
+			"ResponseUriToHash = CBOR([response_uri, mdocGeneratedNonce], both text strings): " + MdocUtil.hex(responseUriToHash),
+			"responseUriHash = SHA-256(ResponseUriToHash): " + MdocUtil.hex(responseUriHash),
+			"nonce from the authorization request (utf8 bytes): " + MdocUtil.utf8Hex(nonce),
+			"OID4VPHandover = CBOR([clientIdHash (bstr), responseUriHash (bstr), nonce (tstr)]): " + MdocUtil.hex(oid4vpHandoverBytes),
+			"SessionTranscript = CBOR([null, null, OID4VPHandover]): " + MdocUtil.hex(sessionTranscript));
+
 		log("Created session transcript",
 			args("session_transcript_input", sessionTranscriptInput,
 				"session_transcript_b64", transcript_b64,
-				"cbor_diagnostic", diagnostics));
+				"cbor_diagnostic", diagnostics,
+				"calculation_detail", calculationDetail));
 	}
 }

@@ -118,6 +118,7 @@ public class ParseMdocCredentialFromVCIIssuance extends AbstractCondition {
 		// Log success with the parsed structure
 		logSuccess("Parsed mdoc credential (IssuerSigned) from VCI issuance response",
 			args("cbor_diagnostic", diagnostics,
+				"mso_cbor_diagnostic", MdocUtil.msoDiagnostics(dataItem),
 				"has_nameSpaces", nameSpaces != null,
 				"doctype", mso.getDocType(),
 				"device_key_jwk", deviceKeyJwk));

@@ -1,23 +1,31 @@
 package net.openid.conformance.util;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
+import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cose.Cose;
 import org.multipaz.cose.CoseNumberLabel;
 import org.multipaz.cose.CoseSign1;
+import org.multipaz.crypto.Algorithm;
+import org.multipaz.crypto.Crypto;
 import org.multipaz.crypto.X509CertChain;
 import org.multipaz.crypto.EcPublicKey;
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate;
 import org.multipaz.crypto.EcPublicKeyOkp;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Helpers for extracting data from mdoc IssuerSigned structures (ISO 18013-5) as received
@@ -27,6 +35,87 @@ public final class MdocUtil {
 
 	private MdocUtil() {
 		// utility class
+	}
+
+	private static final HexFormat HEX = HexFormat.of();
+
+	/**
+	 * The SHA-256 digest of the given bytes, using the same multipaz implementation as the rest
+	 * of the mdoc handling. multipaz's digest is a suspending function, so it has to be run on
+	 * this thread and the interrupt restored if the wait is interrupted.
+	 */
+	public static byte[] sha256(byte[] bytes) {
+		try {
+			return kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, bytes, continuation)
+			);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
+	}
+
+	/** The given bytes in lower case hex, for logging a session transcript calculation. */
+	public static String hex(byte[] bytes) {
+		return HEX.formatHex(bytes);
+	}
+
+	/** The UTF-8 bytes of the given string in lower case hex, as they are fed into CBOR. */
+	public static String utf8Hex(String value) {
+		return HEX.formatHex(value.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * The public part of a response encryption key as JSON, for logging a session transcript
+	 * calculation, or a note in place of it when there is no such key (the handover then carries
+	 * null instead of a thumbprint) or the key is symmetric and so has no public part.
+	 */
+	public static String describeEncryptionJwk(JWK jwk) {
+		if (jwk == null) {
+			return "<none - the handover uses null in place of the thumbprint>";
+		}
+		JWK publicJwk = jwk.toPublicJWK();
+		if (publicJwk == null) {
+			return "<symmetric key - it has no public part>";
+		}
+		return publicJwk.toJSONString();
+	}
+
+	/**
+	 * The Mobile Security Object of an already CBOR-decoded IssuerSigned in diagnostic notation.
+	 * In the IssuerSigned diagnostic the MSO appears only as opaque hex: it is the content of the
+	 * issuerAuth COSE_Sign1's payload byte string, which the diagnostic printer does not decode
+	 * (it only expands tag 24 wrapped byte strings). Decoding the payload separately makes the
+	 * digests, validityInfo and status reference readable in the log. Best effort - a structure
+	 * whose payload cannot be decoded reports that instead of failing the condition.
+	 */
+	public static String msoDiagnostics(DataItem issuerSigned) {
+		try {
+			CoseSign1 issuerAuth = issuerSigned.getOrNull("issuerAuth").getAsCoseSign1();
+			// the payload is the tag 24 wrapped MobileSecurityObjectBytes, which the diagnostic
+			// printer expands
+			return Cbor.INSTANCE.toDiagnostics(issuerAuth.getPayload(),
+				Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
+		} catch (Exception e) {
+			return "<the issuerAuth payload could not be decoded: " + e.getMessage() + ">";
+		}
+	}
+
+	/**
+	 * The Mobile Security Object of every document in an already CBOR-decoded DeviceResponse in
+	 * diagnostic notation, one after another. See {@link #msoDiagnostics(DataItem)}.
+	 */
+	public static String deviceResponseMsoDiagnostics(DataItem deviceResponse) {
+		try {
+			List<String> perDocument = new ArrayList<>();
+			for (DataItem document : deviceResponse.getOrNull("documents").getAsArray()) {
+				perDocument.add(msoDiagnostics(document.getOrNull("issuerSigned")));
+			}
+			return String.join("\n", perDocument);
+		} catch (Exception e) {
+			return "<the documents in the DeviceResponse could not be decoded: " + e.getMessage() + ">";
+		}
 	}
 
 	/**
