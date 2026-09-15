@@ -4,7 +4,7 @@ import net.openid.conformance.condition.client.AddConnectIdCiba3DSPaymentAuthori
 import net.openid.conformance.condition.client.SetConnectIdCibaLoginHintToCardPrimaryAccountNumber;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-connectid-ensure-authorization-request-with-3ds-payment-authorization-details-succeeds",
@@ -12,7 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends a ConnectID CIBA backchannel authentication request for the 3DS payment authentication use case. The signed request object includes binding_message, a card primary account number login_hint, and valid authorization_details of type 3ds:payment_authorisation. The server must authenticate successfully.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "openbanking_brazil"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "connectid_au" })
 public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWith3DSPaymentAuthorizationDetailsSucceeds extends AbstractFAPICIBAID1 {
 
 	@Override

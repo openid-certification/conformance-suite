@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -15,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = {"poll"})
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAClientPingDuplicateNotificationTest extends AbstractFAPICIBAClientTest {
 
 	private static final String FIRST_RESOURCE_ENDPOINT_CALL_COMPLETE = "first_resource_endpoint_call_complete";

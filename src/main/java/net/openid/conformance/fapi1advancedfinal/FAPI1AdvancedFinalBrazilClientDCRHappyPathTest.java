@@ -54,7 +54,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -87,7 +87,7 @@ import jakarta.servlet.http.HttpSession;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "openbanking_ksa"})
+@VariantApplicableOnly(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil", "openinsurance_brazil" })
 public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI1AdvancedFinalClientTest {
 	boolean resourceEndpointCalled = false;
 	boolean clientConfigEndpointCalled = false;

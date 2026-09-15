@@ -8,7 +8,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-brazil-ensure-bad-payment-signature-fails",
@@ -32,13 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-		"plain_fapi",
-		"openbanking_uk",
-		"consumerdataright_au",
-		"openinsurance_brazil",
-		"openbanking_ksa"
-})
+@VariantApplicableOnly(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil" })
 public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override

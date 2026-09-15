@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantApplicableOnly;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -14,7 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = {"poll"})
-@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAClientPingWithWrongAuthReqIdTest extends AbstractFAPICIBAClientPingWithInvalidNotificationTest {
 
 	@Override

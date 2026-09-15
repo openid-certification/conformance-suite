@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.AddRequestedExpNegative1sToAuthor
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPICIBAProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-ensure-requested-expiry-negative-fails-for-brazil",
@@ -13,8 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends requested_expiry with the negative value -1. The authorization server must reject the invalid parameter value with invalid_request.",
 	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPICIBAProfile.class,
-	values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+@VariantApplicableOnly(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1EnsureRequestedExpiryNegativeFailsForBrazil
 	extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 

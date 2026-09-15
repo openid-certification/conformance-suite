@@ -11,7 +11,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantApplicableOnly;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-australia-connectid-ensure-invalid-purpose-fails",
@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test sends an authentication request with a `purpose` parameter that exceeds the maximum length, and should end with the user being redirected back to the conformance suite with a correct error response or with an error from the PAR endpoint.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "cbuae", "ksa", "openbanking_chile", "fapi_client_credentials_grant" })
+@VariantApplicableOnly(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
 public class FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override
