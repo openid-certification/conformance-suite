@@ -73,8 +73,9 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			ConditionResult.WARNING, "ISO18013-5-B.1.4");
 		callAndContinueOnFailure(ValidateMdocTrustAnchorIacaCertificateProfile.class,
 			ConditionResult.WARNING, "ISO18013-5-B.1.2");
-		// The ValidityInfo checks an mdoc reader performs (ISO 18013-5 9.3.1 step 5): a credential
-		// failing them is rejected by any conformant reader, whoever issued it
+		// The ValidityInfo checks an mdoc reader performs (ISO 18013-5 9.3.1 step 5), and the
+		// ordering rules 9.1.2.4 places on the issuer: a credential failing them is rejected by any
+		// conformant reader or is malformed, whoever issued it
 		callAndContinueOnFailure(ValidateMdocMsoSignedWithinDsCertificateValidity.class,
 			ConditionResult.FAILURE, "ISO18013-5-9.3.1");
 		callAndContinueOnFailure(ValidateMdocMsoValidFromNotBeforeSigned.class,
@@ -83,6 +84,9 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			ConditionResult.FAILURE, "ISO18013-5-9.1.2.4");
 		callAndContinueOnFailure(ValidateMdocMsoValidityPeriodIsCurrent.class,
 			ConditionResult.FAILURE, "ISO18013-5-9.3.1");
+		// The published edition only lets a reader reject an MSO that outlives its certificate;
+		// the second edition drafts make validUntil <= notAfter an issuer SHALL, so this becomes a
+		// FAILURE once that edition is published
 		callAndContinueOnFailure(ValidateMdocMsoValidUntilWithinDsCertificateValidity.class,
 			ConditionResult.WARNING, "ISO18013-5-9.3.1");
 		if (haip) {

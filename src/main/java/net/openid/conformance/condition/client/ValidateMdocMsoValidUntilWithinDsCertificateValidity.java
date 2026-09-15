@@ -9,9 +9,9 @@ import java.time.Instant;
 
 /**
  * Checks that the MSO 'validUntil' timestamp is not later than the notAfter of the document
- * signer certificate in the issuerAuth x5chain. ISO/IEC 18013-5 section 9.3.1 step 5 says an
- * mdoc reader MAY reject an MSO that outlives its signing certificate, so callers should treat
- * a failure as a warning.
+ * signer certificate in the issuerAuth x5chain. ISO/IEC 18013-5:2021 section 9.3.1 step 5 says
+ * an mdoc reader MAY reject an MSO that outlives its signing certificate, so callers treat a
+ * failure as a warning; the second edition drafts make this an issuer SHALL.
  */
 public class ValidateMdocMsoValidUntilWithinDsCertificateValidity extends AbstractValidateMdocMsoValidityInfo {
 
