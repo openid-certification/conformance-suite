@@ -74,11 +74,12 @@ public class TestKeysAndCerts_UnitTest {
 
 	@Test
 	public void validityCoversEveryMsoTheSuiteSigns() {
-		// the generators backdate or round the MSO 'signed' by up to an hour and set
-		// validUntil a year ahead
+		// The certificate is reused for a day, and the generators backdate or round the MSO
+		// 'signed' by up to an hour and set validUntil a year after it, so a credential minted
+		// just before rotation needs notAfter >= mint + 1 day + 365 days.
 		Instant now = Instant.now();
 		assertThat(dsCert.getNotBefore().toInstant()).isBeforeOrEqualTo(now.minus(Duration.ofHours(1)));
-		assertThat(dsCert.getNotAfter().toInstant()).isAfterOrEqualTo(now.plus(Duration.ofDays(365)));
+		assertThat(dsCert.getNotAfter().toInstant()).isAfterOrEqualTo(now.plus(Duration.ofDays(366)));
 	}
 
 	@Test
