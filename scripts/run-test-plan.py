@@ -1474,11 +1474,6 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        if m == 'fapi1-advanced-final-brazil-ensure-encryption-required':
-            # this module is now only used for OPIN (for which we don't have a mock provider to test against), and only until they switch to the new security profile, expected to be in summer 2024
-            untested_test_modules.remove(m)
-            continue
-
         if re.match(r'fapi2-security-profile-final-grant-management-', m):
             # There is still no reference implementation for the grant management spec implemented
             untested_test_modules.remove(m)
