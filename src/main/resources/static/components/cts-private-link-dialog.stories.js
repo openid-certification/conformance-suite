@@ -138,6 +138,11 @@ export const GenerateShowsResult = {
       });
       expect(canvasElement.querySelector(".plinkMessage")?.textContent).toContain("server restart");
       expect(canvasElement.querySelector(".plinkCopyBtn")).toBeTruthy();
+      expect(canvasElement.querySelector(".plinkEmailBtn a")?.getAttribute("href")).toBe(
+        `mailto:?subject=OpenID%20Foundation%20Conformance%20Test%20Results&body=${encodeURIComponent(
+          SHARE_LINK,
+        )}`,
+      );
 
       // Changing the expiry discards the result: the link on screen was
       // minted for the previous expiry, so it must not stay displayed under
