@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -69,6 +70,15 @@ public class TestKeysAndCerts_UnitTest {
 		assertThat(dsCert.getNotAfter()).isAfter(now);
 		long validityMillis = dsCert.getNotAfter().getTime() - dsCert.getNotBefore().getTime();
 		assertThat(validityMillis).isLessThanOrEqualTo(Duration.ofDays(457).toMillis());
+	}
+
+	@Test
+	public void validityCoversEveryMsoTheSuiteSigns() {
+		// the generators backdate or round the MSO 'signed' by up to an hour and set
+		// validUntil a year ahead
+		Instant now = Instant.now();
+		assertThat(dsCert.getNotBefore().toInstant()).isBeforeOrEqualTo(now.minus(Duration.ofHours(1)));
+		assertThat(dsCert.getNotAfter().toInstant()).isAfterOrEqualTo(now.plus(Duration.ofDays(365)));
 	}
 
 	@Test

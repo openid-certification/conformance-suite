@@ -180,9 +180,13 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 			.addRDN(BCStyle.CN, commonName)
 			.build()
 
+		// The validity period covers every MSO signed under this certificate, as ISO 18013-5
+		// 9.3.1 step 5 requires: the generators backdate or round 'signed' by up to an hour and
+		// set validUntil a year ahead, so notBefore sits a day back and notAfter 400 days ahead
+		// (Table B.3 allows up to 457 days).
 		val now = System.currentTimeMillis()
-		val notBefore = Date(now - 5L * 60 * 1000)
-		val notAfter = Date(now + 90L * 24 * 60 * 60 * 1000)
+		val notBefore = Date(now - 24L * 60 * 60 * 1000)
+		val notAfter = Date(now + 400L * 24 * 60 * 60 * 1000)
 
 		val builder = X509v3CertificateBuilder(
 			iacaHolder.subject,

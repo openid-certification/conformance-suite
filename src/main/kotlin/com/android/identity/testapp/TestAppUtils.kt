@@ -355,6 +355,11 @@ object TestAppUtils {
         )
 
         val now = Clock.System.now().truncateToWholeSeconds()
+        // The one hour backdate came from the multipaz test app code in
+        // https://github.com/openwallet-foundation/multipaz/pull/814 with no stated reason. It
+        // might be to allow for clock skew - and if it were removed we would still want to allow
+        // for clock skew, as a verifier's clock may run behind ours. A real wallet is in any case
+        // unlikely to present a credential its issuer minted only seconds earlier.
         val signedAt = now - 1.hours
         val validFrom =  now - 1.hours
         val validUntil = now + 365.days
