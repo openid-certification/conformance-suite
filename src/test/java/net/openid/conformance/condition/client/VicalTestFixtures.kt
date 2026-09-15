@@ -199,7 +199,59 @@ object VicalTestFixtures {
 	fun generateBrainpoolSigner(): VicalSigner = generateSigner(curve = EcCurve.BRAINPOOLP256R1)
 
 	/** A test IACA root with a document signer certificate issued by it. */
-	class IssuerPki(val iacaCert: X509Cert, val dsKey: EcPrivateKey, val dsCert: X509Cert)
+	class IssuerPki(
+		val iacaCert: X509Cert,
+		val dsKey: EcPrivateKey,
+		val dsCert: X509Cert,
+		val iacaKey: EcPrivateKey
+	)
+
+	/**
+	 * Mints another end-entity leaf under the given PKI's IACA, e.g. a status list signer. The key
+	 * usage defaults to the digitalSignature-only value the Annex B leaf profiles require.
+	 */
+	@JvmStatic
+	@JvmOverloads
+	fun mintLeafUnderIaca(
+		pki: IssuerPki,
+		commonName: String,
+		keyUsage: Set<X509KeyUsage> = setOf(X509KeyUsage.DIGITAL_SIGNATURE)
+	): Pair<EcPrivateKey, X509Cert> =
+		mintLeafUnderIaca(pki.iacaCert, pki.iacaKey, commonName, 3L, keyUsage)
+
+	/**
+	 * Mints a leaf that names the given PKI's IACA as its issuer and carries that IACA's key
+	 * identifier as its authority key identifier, but is signed by [signingKey] rather than the
+	 * IACA's key: a forgery that only a signature check against the IACA can detect.
+	 */
+	@JvmStatic
+	fun mintLeafClaimingIaca(pki: IssuerPki, signingKey: EcPrivateKey, commonName: String): Pair<EcPrivateKey, X509Cert> =
+		mintLeafUnderIaca(pki.iacaCert, signingKey, commonName, 4L)
+
+	private fun mintLeafUnderIaca(
+		iacaCert: X509Cert,
+		iacaKey: EcPrivateKey,
+		commonName: String,
+		serial: Long,
+		keyUsage: Set<X509KeyUsage> = setOf(X509KeyUsage.DIGITAL_SIGNATURE)
+	): Pair<EcPrivateKey, X509Cert> {
+		val key = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
+		val cert = runBlocking {
+			X509Cert.Builder(
+				key.publicKey,
+				AsymmetricKey.anonymous(iacaKey, Algorithm.ES256),
+				ASN1Integer(serial),
+				X500Name.fromName("CN=$commonName,O=OpenID Foundation,C=UT"),
+				X500Name.fromName(iacaCert.subject.name),
+				Clock.System.now() - 1.days,
+				Clock.System.now() + 90.days
+			).includeSubjectKeyIdentifier(true)
+				.setAuthorityKeyIdentifierToCertificate(iacaCert)
+				.setKeyUsage(keyUsage)
+				.build()
+		}
+		return Pair(key, cert)
+	}
 
 	/** Generates a test IACA root CA and a DS certificate signed by it. */
 	@JvmStatic
@@ -221,22 +273,8 @@ object VicalTestFixtures {
 				.setKeyUsage(setOf(X509KeyUsage.KEY_CERT_SIGN, X509KeyUsage.CRL_SIGN))
 				.build()
 		}
-		val dsKey = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
-		val dsCert = runBlocking {
-			X509Cert.Builder(
-				dsKey.publicKey,
-				AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(iacaCert)), iacaKey),
-				ASN1Integer(2L),
-				X500Name.fromName("CN=OIDF Test DS,O=OpenID Foundation,C=UT"),
-				iacaName,
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 90.days
-			).includeSubjectKeyIdentifier(true)
-				.setAuthorityKeyIdentifierToCertificate(iacaCert)
-				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
-				.build()
-		}
-		return IssuerPki(iacaCert, dsKey, dsCert)
+		val (dsKey, dsCert) = mintLeafUnderIaca(iacaCert, iacaKey, "OIDF Test DS", 2L)
+		return IssuerPki(iacaCert, dsKey, dsCert, iacaKey)
 	}
 
 	/** PEM-encodes a certificate. */
@@ -263,6 +301,33 @@ object VicalTestFixtures {
 		val mdocBase64Url = org.multipaz.testapp.VciMdocUtils.createMdocCredential(
 			deviceJwk.toPublicJWK().toJSONString(), docType, issuerJwk.toJSONString())
 		return com.nimbusds.jose.util.Base64URL(mdocBase64Url).decode()
+	}
+
+	/**
+	 * As [issuerSignedFromPki], but with the issuerAuth re-signed under [algorithm] by the same
+	 * P-256 DS key - e.g. ES384, a pairing ISO/IEC 18013-5 9.1.2.4 forbids even though the
+	 * signature itself verifies.
+	 */
+	@JvmStatic
+	fun issuerSignedFromPkiSignedWith(pki: IssuerPki, docType: String, algorithm: Algorithm): ByteArray {
+		val issuerSigned = Cbor.decode(issuerSignedFromPki(pki, docType))
+		val original = issuerSigned["issuerAuth"].asCoseSign1
+		val protectedHeaders = mapOf<CoseLabel, DataItem>(
+			CoseNumberLabel(Cose.COSE_LABEL_ALG) to algorithm.coseAlgorithmIdentifier!!.toDataItem()
+		)
+		val resigned = runBlocking {
+			Cose.coseSign1Sign(
+				AsymmetricKey.anonymous(pki.dsKey, algorithm),
+				original.payload!!,
+				true,
+				protectedHeaders,
+				original.unprotectedHeaders
+			)
+		}
+		return Cbor.encode(buildCborMap {
+			put("nameSpaces", issuerSigned["nameSpaces"])
+			put("issuerAuth", resigned.toDataItem())
+		})
 	}
 
 	// SunEC cannot generate brainpool keys and KeyPairGenerator does not fail over to BC,

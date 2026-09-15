@@ -14,6 +14,7 @@ import org.bouncycastle.asn1.x509.DistributionPoint;
 import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -32,14 +33,27 @@ import java.util.Set;
 
 /**
  * Shared certificate profile checks for the ISO/IEC 18013-5 Annex B certificate profiles
- * (Table B.1 IACA root, Table B.3 document signer). Each check appends human-readable
- * violation strings to the caller's list; the calling condition decides severity.
+ * (Table B.1 IACA root, Table B.3 document signer, Table B.9 MSO revocation list signer). Each
+ * check appends human-readable violation strings to the caller's list; the calling condition
+ * decides severity.
  */
 public final class MdocCertificateProfileChecks {
 
 	private MdocCertificateProfileChecks() {
 		// utility class
 	}
+
+	public static final String OID_SUBJECT_KEY_IDENTIFIER = "2.5.29.14";
+	public static final String OID_KEY_USAGE = "2.5.29.15";
+	public static final String OID_CRL_DISTRIBUTION_POINTS = "2.5.29.31";
+	public static final String OID_AUTHORITY_KEY_IDENTIFIER = "2.5.29.35";
+	public static final String OID_EXTENDED_KEY_USAGE = "2.5.29.37";
+
+	/** RFC 5280 KeyUsage bit names, in bit order. */
+	public static final List<String> KEY_USAGE_NAMES = List.of(
+		"digitalSignature", "nonRepudiation", "keyEncipherment", "dataEncipherment",
+		"keyAgreement", "keyCertSign", "cRLSign", "encipherOnly", "decipherOnly"
+	);
 
 	public static final Set<String> ECDSA_SIGNATURE_ALGORITHM_OIDS = Set.of(
 		"1.2.840.10045.4.3.2", // ecdsa-with-SHA256
@@ -71,6 +85,93 @@ public final class MdocCertificateProfileChecks {
 	);
 
 	private static final int MAX_SERIAL_OCTETS = 20;
+
+	/**
+	 * Checks the key usage rule the Annex B leaf profiles share: a critical key usage extension
+	 * asserting digitalSignature and nothing else (Table B.3 for the document signer, Table B.9
+	 * for the MSO revocation list signer).
+	 *
+	 * @param profile the table to name in the violation messages, e.g. "Table B.3"
+	 */
+	public static void checkDigitalSignatureOnlyKeyUsage(X509Certificate cert, String profile,
+			List<String> violations) {
+		boolean[] keyUsage = cert.getKeyUsage();
+		if (keyUsage == null) {
+			violations.add("the key usage extension is missing; ISO/IEC 18013-5 " + profile
+				+ " requires it to be present, critical, and to assert digitalSignature only");
+			return;
+		}
+
+		Set<String> criticalOids = cert.getCriticalExtensionOIDs();
+		if (criticalOids == null || !criticalOids.contains(OID_KEY_USAGE)) {
+			violations.add("the key usage extension is not marked critical; ISO/IEC 18013-5 "
+				+ profile + " requires it to be critical");
+		}
+
+		if (keyUsage.length == 0 || !keyUsage[0]) {
+			violations.add("the key usage extension does not assert digitalSignature, which"
+				+ " ISO/IEC 18013-5 " + profile + " requires");
+		}
+		for (int i = 1; i < keyUsage.length && i < KEY_USAGE_NAMES.size(); i++) {
+			if (keyUsage[i]) {
+				violations.add("the key usage extension asserts " + KEY_USAGE_NAMES.get(i)
+					+ ", but ISO/IEC 18013-5 " + profile
+					+ " requires digitalSignature to be the only bit set");
+			}
+		}
+	}
+
+	/**
+	 * Checks that the certificate's authority key identifier matches the issuing certificate's
+	 * subject key identifier, as the Annex B leaf profiles require. Silent when either extension
+	 * is absent or when the issuing certificate is unknown (a chain carrying only the leaf);
+	 * whether a missing authority key identifier is itself a violation is profile specific and is
+	 * left to the caller.
+	 */
+	public static void checkAuthorityKeyIdentifierMatchesIssuer(X509Certificate cert,
+			X509Certificate issuingCert, List<String> violations) {
+		if (issuingCert == null) {
+			return;
+		}
+		byte[] akiValue = cert.getExtensionValue(OID_AUTHORITY_KEY_IDENTIFIER);
+		byte[] skiValue = issuingCert.getExtensionValue(OID_SUBJECT_KEY_IDENTIFIER);
+		if (akiValue == null || skiValue == null) {
+			return;
+		}
+		try {
+			byte[] akiKeyId = AuthorityKeyIdentifier.getInstance(
+				JcaX509ExtensionUtils.parseExtensionValue(akiValue)).getKeyIdentifierOctets();
+			byte[] skiKeyId = SubjectKeyIdentifier.getInstance(
+				JcaX509ExtensionUtils.parseExtensionValue(skiValue)).getKeyIdentifier();
+			if (akiKeyId != null && !Arrays.equals(akiKeyId, skiKeyId)) {
+				violations.add("the authority key identifier does not match the subject key"
+					+ " identifier of the issuing certificate");
+			}
+		} catch (Exception e) {
+			violations.add("the authority key identifier could not be compared with the issuing"
+				+ " certificate's subject key identifier: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Checks that no extension other than the given ones is marked critical, as the Annex B leaf
+	 * profiles require ("further extensions ... marked non-critical").
+	 *
+	 * @param profile the table to name in the violation messages, e.g. "Table B.3"
+	 */
+	public static void checkNoOtherCriticalExtensions(X509Certificate cert, Set<String> allowedCriticalOids,
+			String profile, List<String> violations) {
+		Set<String> criticalOids = cert.getCriticalExtensionOIDs();
+		if (criticalOids == null) {
+			return;
+		}
+		for (String oid : criticalOids) {
+			if (!allowedCriticalOids.contains(oid)) {
+				violations.add("extension " + oid + " is marked critical; ISO/IEC 18013-5 " + profile
+					+ " only permits further extensions when they are non-critical");
+			}
+		}
+	}
 
 	public static X509CertificateHolder holderOf(X509Certificate cert) {
 		try {

@@ -1,7 +1,17 @@
 package net.openid.conformance.sequence.client;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AbstractRevocationListCwtCondition;
+import net.openid.conformance.condition.client.EnsureMdocNotRevoked;
+import net.openid.conformance.condition.client.ExtractMdocRevocationStatus;
+import net.openid.conformance.condition.client.EnsureContentTypeMdocRevocationListCwt;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.FetchMdocRevocationList;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListSignerCertificateProfile;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListCertificateChain;
+import net.openid.conformance.condition.client.ValidateMdocRevocationListCwtFormat;
+import net.openid.conformance.condition.client.VerifyMdocRevocationListCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateMatchesIssuingCountry;
@@ -64,13 +74,16 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		}
 		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
 		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
-		// responsible for its credentials' provenance, so it is only a WARNING.
+		// responsible for its credentials' provenance, so it is only a WARNING. Runs before the
+		// revocation list checks because it records the IACA the list's chain must validate
+		// against.
 		call(condition(ValidateMdocIssuerChainAgainstVical.class)
 			.skipIfObjectsMissing("vical")
 			.onSkip(ConditionResult.INFO)
 			.onFail(isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING)
 			.dontStopOnFailure()
 			.requirements("ISO18013-5-C.1.7.1"));
+		validateMsoRevocationList();
 		// PKIX-validate the issuerAuth x5chain against the 'Credential Trust Anchor' as the IACA
 		// root (the same config field the SD-JWT x5c check uses), mirroring the SD-JWT VC x5c
 		// chain validation. A configured VICAL supersedes the trust anchor, in which case the
@@ -87,5 +100,79 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				.onSkip(ConditionResult.INFO);
 		}
 		call(chainValidation);
+	}
+
+	/**
+	 * ISO/IEC 18013-5 12.3.6: when the MSO carries a status element, fetch the referenced MSO
+	 * revocation list and check it, whichever of the two mechanisms (status list, 12.3.6.5, or
+	 * identifier list, 12.3.6.4) the element uses. The Status structure is optional ("An MSO may
+	 * contain the Status structure"), so {@link FetchMdocRevocationList} logs a skip and writes no
+	 * {@code mdoc_revocation_list_token} when it is absent, which skips everything below.
+	 *
+	 * <p>Retrieval and format problems, including a list whose status cannot be read, are only a
+	 * warning for presentation, where the wallet under test does not control the credential's
+	 * issuer; a credential whose status reads as revoked is always a failure. The Table B.9
+	 * certificate profile is a warning either way, matching how the document signer certificate
+	 * profile checks are called above.
+	 */
+	private void validateMsoRevocationList() {
+		ConditionResult retrievalSeverity = isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING;
+
+		callAndContinueOnFailure(FetchMdocRevocationList.class, retrievalSeverity, "ISO18013-5-12.3.6.2");
+		checkListItself(EnsureContentTypeMdocRevocationListCwt.class, ConditionResult.WARNING,
+			"ISO18013-5-12.3.6.4", "ISO18013-5-12.3.6.5", "OTSL-8.2");
+		checkListItself(ValidateMdocRevocationListCwtFormat.class, retrievalSeverity,
+			"ISO18013-5-12.3.6.3", "ISO18013-5-12.3.6.4");
+		checkListItself(VerifyMdocRevocationListCwtSignature.class, retrievalSeverity,
+			"ISO18013-5-12.3.6.3");
+		checkListItself(ValidateMdocRevocationListSignerCertificateProfile.class, ConditionResult.WARNING,
+			"ISO18013-5-B.9");
+		// binds this credential's MSO to the list, so it runs even for a list already checked
+		checkRetrievedList(ValidateMdocRevocationListCertificateChain.class, retrievalSeverity,
+			"ISO18013-5-12.3.6.2");
+		checkRetrievedList(ExtractMdocRevocationStatus.class, retrievalSeverity,
+			"ISO18013-5-12.3.6.1", "ISO18013-5-12.3.6.4");
+		call(condition(EnsureMdocNotRevoked.class)
+			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_STATUS)
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.FAILURE)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-12.3.6.1", "ISO18013-5-12.3.6.4"));
+	}
+
+	/**
+	 * Calls a per-credential check on a retrieved MSO revocation list, skipping it when
+	 * {@link FetchMdocRevocationList} stored no token because the MSO carries no Status structure.
+	 */
+	private void checkRetrievedList(Class<? extends Condition> conditionClass, ConditionResult onFail,
+			String... requirements) {
+		call(condition(conditionClass)
+			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_TOKEN)
+			.onSkip(ConditionResult.INFO)
+			.onFail(onFail)
+			.dontStopOnFailure()
+			.requirements(requirements));
+	}
+
+	/**
+	 * Calls a check on the revocation list itself - its envelope, its signature and its signer's
+	 * certificate profile - rather than on this credential's relationship to it.
+	 *
+	 * <p>Additionally skipped when the list was not retrieved for this credential, which the
+	 * absence of an HTTP response object marks: the fetch condition records a response only when
+	 * it actually went to the network, so a list already checked for an earlier credential in the
+	 * batch is not checked again. (The checks that bind the list to <em>this</em> credential -
+	 * its certification path and the credential's own status, which re-checks the list's expiry -
+	 * use {@link #checkRetrievedList} and run for every credential.)
+	 */
+	private void checkListItself(Class<? extends Condition> conditionClass, ConditionResult onFail,
+			String... requirements) {
+		call(condition(conditionClass)
+			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_TOKEN)
+			.skipIfObjectsMissing(AbstractRevocationListCwtCondition.ENV_RESPONSE)
+			.onSkip(ConditionResult.INFO)
+			.onFail(onFail)
+			.dontStopOnFailure()
+			.requirements(requirements));
 	}
 }

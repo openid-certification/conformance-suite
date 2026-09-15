@@ -102,6 +102,17 @@ public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 			throw error("Failed to extract public key from leaf certificate", e);
 		}
 
+		// ISO/IEC 18013-5 9.1.2.4 pairs each signature algorithm with the curves it shall be
+		// used with; a signature that verifies under a forbidden pairing is still non-conformant
+		String curveMismatch = MdocUtil.describeCurveMismatch(algorithm, publicKey.getCurve());
+		if (curveMismatch != null) {
+			throw error("The mdoc issuerAuth signature algorithm is not permitted with the document"
+				+ " signer certificate's key: " + curveMismatch,
+				args("algorithm", algorithm.name(),
+					"curve", MdocUtil.isoCurveName(publicKey.getCurve()),
+					"certificate_subject", certSubject));
+		}
+
 		// Verify the COSE_Sign1 signature
 		try {
 			kotlinx.coroutines.BuildersKt.runBlocking(

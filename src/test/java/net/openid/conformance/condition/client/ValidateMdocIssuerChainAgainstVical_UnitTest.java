@@ -16,6 +16,7 @@ import org.multipaz.crypto.X509Cert;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,6 +52,11 @@ public class ValidateMdocIssuerChainAgainstVical_UnitTest {
 		putVical(VicalTestFixtures.goodSignedVical(List.of(issuerCert)));
 
 		assertDoesNotThrow(() -> cond.execute(env));
+
+		// the matched IACA is recorded for the checks that validate other material against it
+		assertEquals(java.util.Base64.getEncoder().encodeToString(
+				issuerCert.getEncoded().toByteArray(0, issuerCert.getEncoded().getSize())),
+			env.getString(ValidateMdocIssuerChainAgainstVical.ENV_TRUST_POINT));
 	}
 
 	@Test

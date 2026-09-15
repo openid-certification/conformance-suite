@@ -4,12 +4,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.oauth.statuslists.EvenOddStatusListContents;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TestKeysAndCerts;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.testapp.VciMdocUtils;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -21,6 +24,24 @@ import java.util.Set;
  * and needs to create a mdoc credential in response to a credential request.
  */
 public class CreateMdocCredentialForVCI extends AbstractCondition {
+
+	private final SecureRandom random = new SecureRandom();
+
+	/**
+	 * The Token Status List to reference from the MSO's status element (ISO/IEC 18013-5
+	 * 12.3.6.2), or null to issue credentials without revocation information. Supplied by the
+	 * profiles that require it, mirroring how {@code CreateSdJwtCredential} receives the
+	 * SD-JWT status claim.
+	 */
+	private final String statusListUri;
+
+	public CreateMdocCredentialForVCI() {
+		this(null);
+	}
+
+	public CreateMdocCredentialForVCI(String statusListUri) {
+		this.statusListUri = statusListUri;
+	}
 
 	@Override
 	@PostEnvironment(required = "credential_issuance")
@@ -35,14 +56,32 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			throw error("doctype is missing for credential configuration", args("credential_configuration", env.getObject("credential_configuration")));
 		}
 
-		// Optionally get custom issuer signing key from configuration
-		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
-		String issuerSigningJwk = credentialSigningJwkEl != null ? credentialSigningJwkEl.toString() : null;
+		// mdocs are always signed by the suite's own document signer certificate, minted under the
+		// suite's mdoc IACA root, so that wallets which trust that root (e.g. via the interop VICAL
+		// it is listed in) can validate the credentials we issue. The configured signing JWK is for
+		// SD-JWT VCs only; see issue #1663 for parameterizing the mdoc key material.
+		if (env.getElementFromObject("config", "credential.signing_jwk") != null) {
+			log("The 'Signing JWK' field in the 'Credential Issuer' section of the test configuration"
+				+ " is used for SD-JWT VC credentials only. mdoc credentials are signed by the"
+				+ " conformance suite's own document signer certificate, issued under its mdoc IACA"
+				+ " root certificate, which is served at /mdoc-iaca-root.pem and must be configured"
+				+ " as a trust anchor in the wallet under test.",
+				args("iaca_root_pem", TestKeysAndCerts.IACA_ROOT_CERT_PEM));
+		}
+
+		// Allocate a distinct, unpredictable status list index for each credential so that the
+		// credentials in a batch cannot be correlated through a shared status reference
+		// (ISO/IEC 18013-5 12.3.6.5, Token Status List section 12.5 / 13.3).
+		List<Long> statusIndices = statusListUri == null ? null
+			: EvenOddStatusListContents.allocateValidIndices(publicJwkJsonList.size(), random);
 
 		JsonArray credentials = new JsonArray();
-		for (String publicJwkJson : publicJwkJsonList) {
+		for (int i = 0; i < publicJwkJsonList.size(); i++) {
+			String publicJwkJson = publicJwkJsonList.get(i);
+			Long statusListIndex = statusListUri == null ? null : statusIndices.get(i);
 			// Create the mdoc credential for this key
-			String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType, issuerSigningJwk);
+			String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType,
+				null, null, statusListUri, statusListIndex);
 
 			JsonObject credentialObj = new JsonObject();
 			credentialObj.addProperty("credential", mdocB64url);
@@ -56,6 +95,8 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			log("Created mdoc credential (IssuerSigned) for VCI",
 				args("mdoc_b64url", mdocB64url,
 					"doctype", docType,
+					"status_list_uri", statusListUri,
+					"status_list_idx", statusListIndex,
 					"cbor_diagnostic", diagnostics));
 		}
 

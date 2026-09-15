@@ -3,6 +3,7 @@ package net.openid.conformance.oauth.statuslists;
 import java.io.ByteArrayOutputStream;
 import java.io.Serial;
 import java.util.Base64;
+import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -28,9 +29,27 @@ public class TokenStatusList {
 		}
 	}
 
-	public static byte[] decodeStatusList(String encodedStatusList) throws Exception {
+	/**
+	 * Decodes a status list whose compressed byte array is available directly rather than
+	 * base64url encoded — the CWT format carries {@code lst} as a CBOR byte string
+	 * (draft-ietf-oauth-status-list section 5.2).
+	 */
+	public static TokenStatusList decodeCompressed(byte[] compressedStatusList, int bits) {
+		try {
+			return new TokenStatusList(inflate(compressedStatusList), bits);
+		} catch (Exception e) {
+			throw new TokenStatusListException("Could not decode compressed status list representation", e);
+		}
+	}
 
-		byte[] compressed = Base64.getUrlDecoder().decode(encodedStatusList);
+	public static byte[] decodeStatusList(String encodedStatusList) throws Exception {
+		return inflate(Base64.getUrlDecoder().decode(encodedStatusList));
+	}
+
+	/** Refuse to inflate beyond this, so a decompression bomb cannot exhaust the heap. */
+	private static final int MAX_INFLATED_BYTES = 32 * 1024 * 1024;
+
+	private static byte[] inflate(byte[] compressed) throws Exception {
 
 		Inflater inflater = new Inflater(); // ZLIB format
 		inflater.setInput(compressed);
@@ -40,7 +59,18 @@ public class TokenStatusList {
 			byte[] buffer = new byte[1024];
 			while (!inflater.finished()) {
 				int count = inflater.inflate(buffer);
+				if (count == 0 && !inflater.finished()) {
+					// inflate() makes no progress when the stream is truncated (needs more
+					// input) or requires a preset dictionary; without this check the loop
+					// spins forever, hanging the test that is checking the status list
+					throw new DataFormatException(
+						"the zlib stream ended before the compressed data was complete");
+				}
 				output.write(buffer, 0, count);
+				if (output.size() > MAX_INFLATED_BYTES) {
+					throw new DataFormatException(
+						"the decompressed status list exceeds " + MAX_INFLATED_BYTES + " bytes");
+				}
 			}
 		} finally {
 			inflater.end();
@@ -72,6 +102,14 @@ public class TokenStatusList {
 		}
 		long mask = (bitsPerEntry == 32) ? 0xFFFF_FFFFL : ((1L << bitsPerEntry) - 1);
 
+		// past the end the packed bytes read as zero, i.e. VALID, so an index the list does not
+		// cover must be rejected rather than interpreted
+		long entries = ((long) bytes.length * 8) / bitsPerEntry;
+		if (index < 0 || index >= entries) {
+			throw new TokenStatusListException("Index " + index + " is outside the status list, which holds "
+				+ entries + " entries");
+		}
+
 		int bitOffset = index * bitsPerEntry;
 		int byteIndex = bitOffset >>> 3;     // / 8
 		int bitInByte = bitOffset & 7;       // % 8
@@ -97,9 +135,16 @@ public class TokenStatusList {
 		return new TokenStatusList(bytes, bitsPerEntry);
 	}
 
+	/**
+	 * The zlib compressed status list, i.e. the CWT format's {@code lst} byte string
+	 * (draft-ietf-oauth-status-list section 5.2).
+	 */
+	public byte[] compressStatusList() {
+		return compressZlib(bytes);
+	}
+
 	public String encodeStatusList() {
-		byte[] z = compressZlib(bytes);
-		return Base64.getUrlEncoder().withoutPadding().encodeToString(z);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(compressStatusList());
 	}
 
 	private static byte[] packEntries(byte[] entries, int bitsPerEntry) {

@@ -4,7 +4,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
-import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.util.X509CertificateUtil;
 
@@ -60,14 +59,11 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	 * downgrading to legacy chain validation).
 	 */
 	protected X509Certificate parseTrustAnchorPem(String trustAnchorPem) {
-		if (trustAnchorPem == null) {
-			return null;
+		try {
+			return X509CertificateUtil.parseTrustAnchorPem(trustAnchorPem);
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw error(e.getMessage());
 		}
-		X509Certificate cert = X509CertUtils.parse(trustAnchorPem);
-		if (cert == null) {
-			throw error("Configured trust anchor PEM could not be parsed as an X.509 certificate");
-		}
-		return cert;
 	}
 
 	/**
