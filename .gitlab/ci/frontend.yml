@@ -11,9 +11,7 @@ variables:
 .frontend-change-paths: &frontend-change-paths
   - frontend/**/*
   - src/main/resources/static/**/*
-  - src/main/resources/static-legacy/**/*
   - src/main/resources/templates/**/*
-  - src/main/resources/templates-legacy/**/*
   - .gitlab/ci/frontend.yml
 
 # Two rules are needed because `changes:` alone always matches on the first
