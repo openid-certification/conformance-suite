@@ -448,6 +448,7 @@ class CtsStatisticsPage extends LitElement {
     _state: { state: true },
     _options: { state: true },
     _busy: { state: true },
+    _forbiddenMessage: { state: true },
     _errorMessage: { state: true },
     _errorAction: { state: true },
     _dismissedErrorAt: { state: true },
@@ -473,6 +474,8 @@ class CtsStatisticsPage extends LitElement {
     this._busy = false;
     /** @type {string} */
     this._errorMessage = "";
+    /** @type {string} Why the page is unavailable: not an admin, or signed out. */
+    this._forbiddenMessage = FORBIDDEN_MESSAGE;
     /** @type {"retry"|"reset"} Which action the error alert offers. */
     this._errorAction = "retry";
     /** @type {string} `failedAt` of the lastError the user dismissed. */
@@ -650,6 +653,9 @@ class CtsStatisticsPage extends LitElement {
     if (response.status === 401 || response.status === 403) {
       this._poll.stop();
       this._busy = false;
+      // 401 is a session that has lapsed, 403 a signed-in non-admin; both are
+      // terminal here, but only one is fixed by signing in again
+      this._forbiddenMessage = response.status === 401 ? SIGNED_OUT_MESSAGE : FORBIDDEN_MESSAGE;
       this._status = "forbidden";
       return;
     }
@@ -942,39 +948,45 @@ class CtsStatisticsPage extends LitElement {
   render() {
     if (this._status === "forbidden") {
       return html`<cts-alert variant="warning" data-testid="stats-forbidden"
-        >${FORBIDDEN_MESSAGE}</cts-alert
+        >${this._forbiddenMessage}</cts-alert
       >`;
     }
 
     const data = (this._payload && this._payload.data) || null;
     const isLoading = this._status === "loading" || this._status === "pending";
-    // A filter that matches nothing still comes back with the full axis and a
-    // zero in every cell — the periods are the cube's, not the filter's — so
-    // without this the reader is left interpreting five charts of zeros.
-    const noMatch =
+    // A filter or a range that matches nothing still comes back with the full
+    // axis and a zero in every cell — the periods are the cube's, not the
+    // query's — so without this the reader is left interpreting five charts
+    // of zeros. Under a filter the way out is to clear it; under a bare range
+    // it is to widen it, which is the empty state's advice.
+    const nothingInRange =
       Boolean(data) &&
       this._hasPeriods() &&
-      isFiltered(this._state) &&
       !this._hasAnyData(/** @type {StatisticsData} */ (data));
+    const noMatch = nothingInRange && isFiltered(this._state);
+    const emptyRange = nothingInRange && !isFiltered(this._state);
 
     return html`
       ${this._renderError()} ${data ? this._renderTiles(data) : nothing}
       ${data ? this._renderToolbar() : nothing} ${this._renderLastError()}
       ${data ? this._renderFilters(data) : nothing} ${isLoading ? this._renderLoading() : nothing}
-      ${data && this._hasPeriods() && !noMatch ? this._renderTrends(data) : nothing}
+      ${data && this._hasPeriods() && !nothingInRange ? this._renderTrends(data) : nothing}
       ${noMatch ? this._renderNoMatch() : nothing}
-      ${data && !this._hasPeriods() ? this._renderEmpty() : nothing}
-      ${data ? this._renderInsights(data, noMatch) : nothing}
+      ${data && (!this._hasPeriods() || emptyRange) ? this._renderEmpty() : nothing}
+      ${data ? this._renderInsights(data, nothingInRange) : nothing}
     `;
   }
 
   /**
-   * @returns {unknown} The blocking-error alert, or nothing.
+   * @returns {unknown} The error alert, or nothing. Danger when it is all the
+   *   page has to show; a warning when a snapshot is still on screen under it,
+   *   because a refresh that gave up leaves the admin with usable charts.
    */
   _renderError() {
     if (this._status !== "error") return nothing;
+    const snapshotShown = Boolean(this._payload && this._payload.data);
     return html`
-      <cts-alert variant="danger" data-testid="stats-error">
+      <cts-alert variant=${snapshotShown ? "warning" : "danger"} data-testid="stats-error">
         ${this._errorMessage}
         ${this._errorAction === "reset"
           ? html`<cts-button
