@@ -8,7 +8,9 @@
  * e2e fixtures never reach across into the Storybook fixture tree, so the two
  * files are kept in sync by hand. Keep the numbers identical — the e2e
  * assertions and the Storybook play functions quote the same figures, so a
- * drift in one shows up as a puzzling mismatch in the other.
+ * drift in one shows up as a puzzling mismatch in the other. Each file has
+ * what only its suite needs: `statisticsResponseFor` and the 400 here,
+ * `MOCK_STATS_LAST_ERROR` there; everything both export must match.
  *
  * Like the Storybook twin, {@link statisticsOverviewFor} answers one request
  * the way `StatisticsSlicer` would — with ONE deliberate difference: it does
@@ -825,7 +827,10 @@ export const MOCK_STATS_EMPTY = {
     familyTotals: Object.fromEntries(
       FAMILIES.map((family) => [family, { runs: 0, plans: 0, certified: 0 }]),
     ),
-    resultsByFamily: {},
+    // every family, every bucket, no periods: the slicer's shape for an empty cube
+    resultsByFamily: Object.fromEntries(
+      FAMILIES.map((family) => [family, Object.fromEntries(RESULT_BUCKETS.map((b) => [b, []]))]),
+    ),
     users: { activeByPeriod: [], newByPeriod: [] },
     tiles: {
       totalTests: 0,
