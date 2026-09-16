@@ -24,6 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the names that were published when it ran; this test diffs them against what is
  * published now, so that retiring a plan fails the build until the map catches up. It
  * needs no git and no history walk: only the two generated files and the registry.
+ *
+ * <p>The diff cannot see a plan that was both added and retired between two generations:
+ * neither list has it. Closing that would mean regenerating on every plan added, for a
+ * name that is unlikely to have been released and run in between; accepted.
  */
 class LegacyPlanFamilies_UnitTest {
 

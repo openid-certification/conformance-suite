@@ -48,7 +48,10 @@ public class DBStatisticsService implements StatisticsService {
 	 */
 	private static final Duration IDLE_TIMEOUT = TTL;
 
-	/** How often the idle check runs; the eviction is late by at most this much. */
+	/**
+	 * How often the idle check runs. It shares the computation's thread, so an eviction is
+	 * late by at most this much plus one computation.
+	 */
 	private static final Duration IDLE_CHECK = Duration.ofMinutes(15);
 
 	private static final Logger logger = LoggerFactory.getLogger(DBStatisticsService.class);
@@ -69,8 +72,8 @@ public class DBStatisticsService implements StatisticsService {
 		this.resolver = resolver;
 		this.executor = Executors.newSingleThreadScheduledExecutor(daemon("statistics-compute"));
 		this.cache = new AsyncSnapshotCache<>(this::compute, executor, Clock.systemUTC(), TTL, FAILURE_BACKOFF, IDLE_TIMEOUT);
-		// the check shares the computation's thread: it is a few comparisons, and while a
-		// computation runs there is nothing to evict
+		// the check is a few comparisons, and while a computation runs there is nothing to
+		// evict, so it can wait behind one
 		executor.scheduleWithFixedDelay(cache::evictIfIdle, IDLE_CHECK.toMillis(), IDLE_CHECK.toMillis(),
 			TimeUnit.MILLISECONDS);
 	}

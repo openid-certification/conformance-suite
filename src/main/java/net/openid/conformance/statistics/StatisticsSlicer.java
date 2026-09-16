@@ -56,7 +56,6 @@ public final class StatisticsSlicer {
 	/** The result buckets of the stacked results chart, in rendering order. */
 	public static final List<String> RESULT_BUCKETS = List.of(PASSED, WARNING, REVIEW, FAILED, SKIPPED, NEVER_FINISHED);
 
-	/** How many unresolved plan names to report. */
 	private StatisticsSlicer() {
 	}
 
@@ -131,6 +130,7 @@ public final class StatisticsSlicer {
 	 *         if none has. The users series count too, so a plan created before the first
 	 *         run of a family still opens its axis.
 	 */
+	/** @return the index of the first period any series is non-zero in, or 0 if none is */
 	private static int firstPeriodWithData(int size, Map<String, long[]> runs, Map<String, long[]> plans,
 			Map<String, long[]> certified, Users users) {
 		int first = size;
