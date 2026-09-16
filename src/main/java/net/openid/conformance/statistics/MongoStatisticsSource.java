@@ -253,6 +253,7 @@ public class MongoStatisticsSource {
 
 		List<UserTuple> tuples = new ArrayList<>();
 		OwnerIds owners = new OwnerIds();
+		Map<String, String> pool = new HashMap<>();
 		for (Document document : aggregate(DBTestPlanService.COLLECTION, pipeline)) {
 			Document id = document.get("_id", Document.class);
 			String iss = id.getString("iss");
@@ -261,9 +262,13 @@ public class MongoStatisticsSource {
 				// a plan written before authentication completed is not a user
 				continue;
 			}
-			tuples.add(new UserTuple(id.getString("planName"), VariantKeys.canonical(id.get("variant")),
-				CertKeys.canonical(id.get("cert")), owners.idFor(iss, sub),
-				strings(document, "months"), strings(document, "weeks"), count(document, "beforeWindow") > 0));
+			// pooled like the module cells: there is a tuple per user, plan, variant and
+			// certification profile, each carrying its own copies of the same few plan names,
+			// variant keys, profile names and period keys, and the cube keeps the tuples
+			tuples.add(new UserTuple(pooled(pool, id.getString("planName")),
+				pooled(pool, VariantKeys.canonical(id.get("variant"))), pooled(pool, CertKeys.canonical(id.get("cert"))),
+				owners.idFor(iss, sub), strings(document, "months", pool), strings(document, "weeks", pool),
+				count(document, "beforeWindow") > 0));
 		}
 		return tuples;
 	}
@@ -331,13 +336,14 @@ public class MongoStatisticsSource {
 
 	/**
 	 * @param pool  the strings this pipeline has already seen
-	 * @param value one of the two strings a module cell carries
-	 * @return the one instance of it. There is a cell per user, module and month, and the
-	 *         driver decodes a fresh String for every row, so without this the cells hold
-	 *         one copy of the same two dozen month keys and few hundred module names each -
-	 *         which on a production sized database is most of what the cells weigh. The pool
-	 *         is local to the computation and thrown away with it; {@link String#intern()}
-	 *         would put the same strings somewhere they can never be collected from.
+	 * @param value a string a cell or tuple carries
+	 * @return the one instance of it. There is a cell per user, module and month, and a
+	 *         tuple per user, plan, variant and profile, and the driver decodes a fresh
+	 *         String for every row, so without this each holds its own copy of the same two
+	 *         dozen period keys and few hundred names - which on a production sized database
+	 *         is most of what they weigh. The pool is local to the computation and thrown
+	 *         away with it; {@link String#intern()} would put the same strings somewhere
+	 *         they can never be collected from.
 	 */
 	private static String pooled(Map<String, String> pool, String value) {
 		return value == null ? null : pool.computeIfAbsent(value, string -> string);
@@ -527,6 +533,9 @@ public class MongoStatisticsSource {
 	 * @return the counters; the windowed ones all zero if nothing has run inside the window
 	 */
 	public TileRow tiles(Instant now, Instant serverStartedAt, long totalUsers) {
+		// the cutoffs and the stored started values are both ISO-8601 with a fraction of
+		// whatever length the Instant had, so within one second of a cutoff the string order
+		// is not the time order; a counter over a day or a month does not mind
 		String cutoff24h = now.minus(Duration.ofHours(24)).toString();
 		String cutoff7d = now.minus(Duration.ofDays(7)).toString();
 		Instant cutoff = now.minus(LONGEST_RECENCY_WINDOW);
@@ -760,13 +769,13 @@ public class MongoStatisticsSource {
 	}
 
 	/** @return the strings of an {@code $addToSet} result, skipping anything else. */
-	private static List<String> strings(Document document, String key) {
+	private static List<String> strings(Document document, String key, Map<String, String> pool) {
 		List<String> strings = new ArrayList<>();
 		Object value = document.get(key);
 		if (value instanceof List<?> list) {
 			for (Object element : list) {
 				if (element instanceof String string) {
-					strings.add(string);
+					strings.add(pooled(pool, string));
 				}
 			}
 		}
