@@ -20,6 +20,13 @@
  * - `result.plan_name` must match a testPlanName from `@PublishTestPlan`.
  * - `result.variants` keys must match variant parameter names (see
  *   `variant/*.java` enums).
+ * - `result.variants` must set every variant the plan needs that has no
+ *   default, and the combination must be one the plan's Java
+ *   `certificationProfileName()` accepts for that ecosystem. Conversely, the
+ *   leaves for an ecosystem should cover every combination it accepts that
+ *   testers actually certify, or that method should reject the combination.
+ *   Nothing checks this automatically: when changing either side, update the
+ *   other.
  */
 
 /**
