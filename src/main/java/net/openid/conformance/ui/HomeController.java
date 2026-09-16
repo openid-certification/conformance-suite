@@ -43,6 +43,7 @@ import java.net.URI;
  * open an open-redirect vector on the site root.</li>
  * </ul>
  */
+@Hidden // internal endpoint, not part of the documented REST API
 @Controller
 public class HomeController {
 
