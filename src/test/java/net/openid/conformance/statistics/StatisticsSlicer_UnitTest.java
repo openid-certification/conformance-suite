@@ -17,25 +17,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static net.openid.conformance.statistics.StatisticsFixtures.NOW;
+import static net.openid.conformance.statistics.StatisticsFixtures.NO_TILES;
+import static net.openid.conformance.statistics.StatisticsFixtures.RESOLVER;
+import static net.openid.conformance.statistics.StatisticsFixtures.query;
+import static net.openid.conformance.statistics.StatisticsFixtures.runCell;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 class StatisticsSlicer_UnitTest {
 
-	/** A Thursday; the Monday of its ISO week is 2026-03-09. */
-	private static final LocalDate NOW = LocalDate.of(2026, 3, 12);
-
-	private static final TileRow NO_TILES = new TileRow(0, 0, 0, 0, 0, 0, 0);
-
-	private static final SpecFamilyResolver RESOLVER = new SpecFamilyResolver(
-		Map.of("fapi1-plan", SpecFamilyNames.fapi1Advanced, "oidcc-plan", SpecFamilyNames.oidcc),
-		Map.of("fapi1-plan", ProfileNames.optest, "oidcc-plan", ProfileNames.rptest));
-
 	@Test
 	void everyFamilySeriesIsZeroFilledOverAContiguousMonthlyAxis() {
 		StatisticsOverview overview = slice(cube(
-			List.of(runs("2026-01", null, "oidcc-plan", 5), runs("2026-03", null, "fapi1-plan", 3)),
-			List.of(), List.of()), StatisticsQuery.defaults());
+			List.of(runCell("2026-01", null, "oidcc-plan", 5), runCell("2026-03", null, "fapi1-plan", 3)),
+			List.of(), List.of()), query());
 
 		assertThat(overview.granularity()).isEqualTo("month");
 		assertThat(overview.periods()).containsExactly("2026-01", "2026-02", "2026-03");
@@ -60,7 +56,7 @@ class StatisticsSlicer_UnitTest {
 		StatisticsOverview overview = slice(cube(
 			List.of(new RunCell("2026-03", null, "oidcc-plan", false, "", "", 10, 3, 2, 1, 1, 1),
 				new RunCell("2026-03", null, "fapi1-plan", false, "", "", 1, 2, 0, 0, 0, 0)),
-			List.of(), List.of()), StatisticsQuery.defaults());
+			List.of(), List.of()), query());
 
 		Map<String, List<Long>> oidcc = overview.resultsByFamily().get(SpecFamilyNames.oidcc);
 		assertThat(oidcc.get("PASSED")).containsExactly(3L);
@@ -78,10 +74,10 @@ class StatisticsSlicer_UnitTest {
 		StatisticsOverview overview = slice(cube(
 			List.of(new RunCell("2026-03", null, null, true, "", "", 4, 0, 0, 0, 0, 0),
 				new RunCell("2026-03", null, "oidcc-plan", true, "", "", 6, 0, 0, 0, 0, 0),
-				runs("2026-03", null, null, 2),
-				runs("2026-03", null, "retired-plan", 7),
-				runs("2026-03", null, "oidcc-plan", 1)),
-			List.of(), List.of()), StatisticsQuery.defaults());
+				runCell("2026-03", null, null, 2),
+				runCell("2026-03", null, "retired-plan", 7),
+				runCell("2026-03", null, "oidcc-plan", 1)),
+			List.of(), List.of()), query());
 
 		assertThat(overview.testRunsByFamily().get(SpecFamilyResolver.NO_PLAN)).containsExactly(10L);
 		assertThat(overview.testRunsByFamily().get(SpecFamilyResolver.OTHER_RETIRED)).containsExactly(9L);
@@ -91,10 +87,10 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void weeklyGranularityUsesTheMondayAxisOfTheRetainedWindow() {
 		StatisticsOverview overview = slice(cube(
-			List.of(runs("2026-02", "2026-02-23", "oidcc-plan", 5),
-				runs("2026-03", "2026-03-09", "oidcc-plan", 2),
+			List.of(runCell("2026-02", "2026-02-23", "oidcc-plan", 5),
+				runCell("2026-03", "2026-03-09", "oidcc-plan", 2),
 				// outside the 104 week window: monthly only
-				runs("2024-03", "2024-03-11", "oidcc-plan", 99)),
+				runCell("2024-03", "2024-03-11", "oidcc-plan", 99)),
 			List.of(), List.of()), query("granularity", "week"));
 
 		assertThat(overview.granularity()).isEqualTo("week");
@@ -105,8 +101,8 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void fromAndToClipThePeriodAxisAndTheSeries() {
 		StatisticsCube cube = cube(
-			List.of(runs("2025-12", null, "oidcc-plan", 1), runs("2026-01", null, "oidcc-plan", 2),
-				runs("2026-02", null, "oidcc-plan", 4), runs("2026-03", null, "oidcc-plan", 8)),
+			List.of(runCell("2025-12", null, "oidcc-plan", 1), runCell("2026-01", null, "oidcc-plan", 2),
+				runCell("2026-02", null, "oidcc-plan", 4), runCell("2026-03", null, "oidcc-plan", 8)),
 			List.of(), List.of());
 
 		StatisticsOverview overview = slice(cube, query("from", "2026-01", "to", "2026-02"));
@@ -118,7 +114,7 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void theFamilyFilterLeavesEveryOtherFamilyAtZero() {
 		StatisticsOverview overview = slice(cube(
-			List.of(runs("2026-03", null, "oidcc-plan", 5), runs("2026-03", null, "fapi1-plan", 3)),
+			List.of(runCell("2026-03", null, "oidcc-plan", 5), runCell("2026-03", null, "fapi1-plan", 3)),
 			List.of(), List.of()), query("family", SpecFamilyNames.oidcc));
 
 		assertThat(overview.testRunsByFamily().get(SpecFamilyNames.oidcc)).containsExactly(5L);
@@ -129,12 +125,12 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void anOpenEndedAxisStartsWhereTheSliceStartsNotWhereTheCubeDoes() {
 		StatisticsCube cube = cube(
-			List.of(runs("2019-03", null, "oidcc-plan", 5), runs("2026-02", null, "fapi1-plan", 3)),
+			List.of(runCell("2019-03", null, "oidcc-plan", 5), runCell("2026-02", null, "fapi1-plan", 3)),
 			List.of(new PlanCell("2026-01", null, "fapi1-plan", "", "", 1, 0, 0)),
 			List.of(new UserTuple("fapi1-plan", "", "", 1, List.of("2025-12"), List.of(), false)));
 
 		// unfiltered: the whole history, from the first run
-		assertThat(slice(cube, StatisticsQuery.defaults()).periods()).startsWith("2019-03", "2019-04");
+		assertThat(slice(cube, query()).periods()).startsWith("2019-03", "2019-04");
 
 		// a family that first appears years later starts its axis there - at its first
 		// plan owner, which predates its first plan and its first run
@@ -154,7 +150,7 @@ class StatisticsSlicer_UnitTest {
 		// a filter that matches nothing keeps the whole axis, zero filled: an empty axis
 		// means the range covers no data at all, which is a different message to the reader
 		StatisticsOverview nothing = slice(cube, query("plan", "no-such-plan"));
-		assertThat(nothing.periods()).isEqualTo(slice(cube, StatisticsQuery.defaults()).periods());
+		assertThat(nothing.periods()).isEqualTo(slice(cube, query()).periods());
 		assertThat(nothing.testRunsByFamily().get(SpecFamilyNames.oidcc)).containsOnly(0L);
 	}
 
@@ -185,7 +181,7 @@ class StatisticsSlicer_UnitTest {
 		StatisticsOverview overview = slice(cube(List.of(),
 			List.of(new PlanCell("2026-02", null, "oidcc-plan", "", "", 7, 2, 1),
 				new PlanCell("2026-03", null, "retired-plan", "", "", 3, 1, 0)),
-			List.of()), StatisticsQuery.defaults());
+			List.of()), query());
 
 		assertThat(overview.plansByFamily().get(SpecFamilyNames.oidcc)).containsExactly(7L, 0L);
 		assertThat(overview.plansByFamily().get(SpecFamilyResolver.OTHER_RETIRED)).containsExactly(0L, 3L);
@@ -202,7 +198,7 @@ class StatisticsSlicer_UnitTest {
 			List.of(new UserTuple("oidcc-plan", "fapi_profile=plain", "", 1, List.of("2026-01", "2026-02"), List.of(), false),
 				new UserTuple("fapi1-plan", "fapi_profile=plain", "", 1, List.of("2026-02"), List.of(), false),
 				new UserTuple("oidcc-plan", "fapi_profile=brazil", "", 2, List.of("2026-02"), List.of(), false))),
-			StatisticsQuery.defaults());
+			query());
 
 		assertThat(overview.periods()).containsExactly("2026-01", "2026-02", "2026-03");
 		assertThat(overview.users().activeByPeriod()).containsExactly(1L, 2L, 0L);
@@ -213,7 +209,7 @@ class StatisticsSlicer_UnitTest {
 	void aUserWhoseOldestPlanIsStampedBeforeTheSuiteExistedIsNewInTheirFirstRealPeriod() {
 		StatisticsOverview overview = slice(cube(List.of(), List.of(),
 			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("1970-01", "2026-02"), List.of(), false))),
-			StatisticsQuery.defaults());
+			query());
 
 		assertThat(overview.periods()).containsExactly("2026-02", "2026-03");
 		assertThat(overview.users().newByPeriod()).containsExactly(1L, 0L);
@@ -263,7 +259,7 @@ class StatisticsSlicer_UnitTest {
 		// the flag is about the weekly window only: by month, the history is complete
 		StatisticsOverview monthly = slice(cube(List.of(), List.of(),
 			List.of(new UserTuple("oidcc-plan", "", "", 1, List.of("2024-03"), List.of("2024-03-18"), true))),
-			StatisticsQuery.defaults());
+			query());
 		assertThat(monthly.users().newByPeriod().get(0)).isEqualTo(1L);
 	}
 
@@ -324,7 +320,7 @@ class StatisticsSlicer_UnitTest {
 			List.of(new UserTuple("oidcc-plan", "", both, 1, List.of("2026-03"), List.of(), false),
 				new UserTuple("fapi1-plan", "", "Cert B", 2, List.of("2026-03"), List.of(), false)));
 
-		StatisticsOverview unfiltered = slice(cube, StatisticsQuery.defaults());
+		StatisticsOverview unfiltered = slice(cube, query());
 		// one name per entry, the two-profile plan counted under both, busiest first
 		assertThat(unfiltered.dimensions().certProfiles())
 			.extracting(CertProfile::name, CertProfile::users, CertProfile::plans)
@@ -381,7 +377,7 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void dimensionsAreCountedOverTheRequestedRangeNotTheTrimmedAxis() {
 		StatisticsCube cube = cube(
-			List.of(runs("2026-01", null, "oidcc-plan", 5), runs("2026-03", null, "fapi1-plan", 3)),
+			List.of(runCell("2026-01", null, "oidcc-plan", 5), runCell("2026-03", null, "fapi1-plan", 3)),
 			List.of(), List.of());
 
 		// picking the plan first used in March trims the axis to March, but the plan select is
@@ -401,20 +397,20 @@ class StatisticsSlicer_UnitTest {
 		StatisticsCube cube = cube(List.of(new RunCell("2026-03", null, "oidcc-plan", false,
 			"server_metadata=discovery;client_auth_type=mtls", "", 1, 0, 0, 0, 0, 0)), List.of(), List.of());
 
-		assertThat(slice(cube, StatisticsQuery.defaults()).dimensions().variants().keySet())
+		assertThat(slice(cube, query()).dimensions().variants().keySet())
 			.containsExactly("client_auth_type", "server_metadata");
 	}
 
 	@Test
 	void theHeatmapIsSevenRowsOfTwentyFourHoursSlicedByTheRangeOnly() {
 		StatisticsCube cube = new StatisticsCube(
-			List.of(runs("2026-02", "2026-02-23", "oidcc-plan", 1), runs("2026-03", "2026-03-09", "fapi1-plan", 1)),
+			List.of(runCell("2026-02", "2026-02-23", "oidcc-plan", 1), runCell("2026-03", "2026-03-09", "fapi1-plan", 1)),
 			List.of(), List.of(),
 			List.of(new HeatCell("2026-03-09", "07", 5), new HeatCell("2026-03-15", "23", 2),
 				new HeatCell("2026-02-23", "07", 8)),
 			List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
-		List<List<Long>> all = slice(cube, StatisticsQuery.defaults()).heatmap();
+		List<List<Long>> all = slice(cube, query()).heatmap();
 		assertThat(all).hasSize(7);
 		assertThat(all).allSatisfy(row -> assertThat(row).hasSize(24));
 		assertThat(all.get(0).get(7)).isEqualTo(13L);
@@ -441,7 +437,7 @@ class StatisticsSlicer_UnitTest {
 	void tilesStorageAndExternalHostsArePassedThrough() {
 		List<StorageRow> storage = List.of(new StorageRow("TEST_INFO", 10, 20, 30, 40));
 		List<HostRow> hosts = List.of(new HostRow("as.example.com", 9, 3, "2026-03-01T00:00:00Z"));
-		StatisticsCube cube = new StatisticsCube(List.of(runs("2026-03", null, "oidcc-plan", 1)), List.of(),
+		StatisticsCube cube = new StatisticsCube(List.of(runCell("2026-03", null, "oidcc-plan", 1)), List.of(),
 			List.of(), List.of(), List.of(), hosts, storage, new TileRow(1000, 42, 10, 40, 120, 5, 2), RESOLVER, NOW);
 
 		StatisticsOverview overview = slice(cube, query("family", SpecFamilyNames.fapi1Advanced));
@@ -461,7 +457,7 @@ class StatisticsSlicer_UnitTest {
 	@Test
 	void familyTotalsAreAllTimeAndUnfilteredAndTheSyntheticFamiliesAreNamed() {
 		StatisticsCube cube = cube(
-			List.of(runs("2026-03", null, "oidcc-plan", 5), runs("2019-01", null, "fapi1-plan", 100),
+			List.of(runCell("2026-03", null, "oidcc-plan", 5), runCell("2019-01", null, "fapi1-plan", 100),
 				new RunCell("2026-03", null, null, true, "", "", 3, 0, 0, 0, 0, 0)),
 			List.of(new PlanCell("2026-03", null, "oidcc-plan", "", "", 2, 1, 0),
 				new PlanCell("2019-01", null, "fapi1-plan", "", "", 4, 0, 0)),
@@ -488,13 +484,13 @@ class StatisticsSlicer_UnitTest {
 	void unresolvedPlansAreTheTwentyBusiestUnknownPlanNamesAllTime() {
 		List<RunCell> cells = new ArrayList<>();
 		for (int i = 1; i <= 25; i++) {
-			cells.add(runs("2026-03", null, String.format("retired-plan-%02d", i), i));
+			cells.add(runCell("2026-03", null, String.format("retired-plan-%02d", i), i));
 		}
-		cells.add(runs("2026-03", null, "oidcc-plan", 999));
+		cells.add(runCell("2026-03", null, "oidcc-plan", 999));
 		cells.add(new RunCell("2026-03", null, null, true, "", "", 999, 0, 0, 0, 0, 0));
-		cells.add(runs("2026-03", null, null, 999));
+		cells.add(runCell("2026-03", null, null, 999));
 		// an old, out of range month: unresolved plans are counted all time
-		cells.add(runs("2019-01", null, "retired-plan-01", 40));
+		cells.add(runCell("2019-01", null, "retired-plan-01", 40));
 		Collections.shuffle(cells, new Random(42));
 
 		StatisticsOverview overview = slice(cube(cells, List.of(), List.of()),
@@ -515,11 +511,11 @@ class StatisticsSlicer_UnitTest {
 			Map.of("fapi1-plan", SpecFamilyNames.fapi1Advanced), Map.of(), Map.of(),
 			Map.of("fapi-rw-id2-test-plan", SpecFamilyNames.fapi1Advanced));
 		StatisticsCube cube = new StatisticsCube(
-			List.of(runs("2026-03", null, "fapi1-plan", 4), runs("2026-03", null, "fapi-rw-id2-test-plan", 6),
-				runs("2026-03", null, "a-plan-nobody-remembers", 2)),
+			List.of(runCell("2026-03", null, "fapi1-plan", 4), runCell("2026-03", null, "fapi-rw-id2-test-plan", 6),
+				runCell("2026-03", null, "a-plan-nobody-remembers", 2)),
 			List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), NO_TILES, resolver, NOW);
 
-		StatisticsOverview overview = slice(cube, StatisticsQuery.defaults());
+		StatisticsOverview overview = slice(cube, query());
 
 		assertThat(overview.testRunsByFamily().get(SpecFamilyNames.fapi1Advanced)).containsExactly(10L);
 		assertThat(overview.testRunsByFamily().get(SpecFamilyResolver.OTHER_RETIRED)).containsExactly(2L);
@@ -529,7 +525,7 @@ class StatisticsSlicer_UnitTest {
 
 	@Test
 	void anEmptyCubeProducesAnEmptyAxisWithEveryFamilyStillPresent() {
-		StatisticsOverview overview = slice(cube(List.of(), List.of(), List.of()), StatisticsQuery.defaults());
+		StatisticsOverview overview = slice(cube(List.of(), List.of(), List.of()), query());
 
 		assertThat(overview.periods()).isEmpty();
 		assertThat(overview.families()).isEqualTo(RESOLVER.familyOrder());
@@ -552,7 +548,7 @@ class StatisticsSlicer_UnitTest {
 
 	@Test
 	void aRangeThatSelectsNothingStillReturnsAWellFormedPayload() {
-		StatisticsOverview overview = slice(cube(List.of(runs("2026-03", null, "oidcc-plan", 5)), List.of(), List.of()),
+		StatisticsOverview overview = slice(cube(List.of(runCell("2026-03", null, "oidcc-plan", 5)), List.of(), List.of()),
 			query("from", "2026-01", "to", "2026-02"));
 
 		assertThat(overview.periods()).isEmpty();
@@ -572,17 +568,5 @@ class StatisticsSlicer_UnitTest {
 	private static StatisticsCube cube(List<RunCell> runCells, List<PlanCell> planCells, List<UserTuple> userTuples) {
 		return new StatisticsCube(runCells, planCells, userTuples, List.of(), List.of(), List.of(), List.of(),
 			NO_TILES, RESOLVER, NOW);
-	}
-
-	private static RunCell runs(String month, String week, String planName, long runs) {
-		return new RunCell(month, week, planName, false, "", "", runs, 0, 0, 0, 0, 0);
-	}
-
-	private static StatisticsQuery query(String... keysAndValues) {
-		Map<String, String[]> params = new LinkedHashMap<>();
-		for (int i = 0; i < keysAndValues.length; i += 2) {
-			params.put(keysAndValues[i], new String[] {keysAndValues[i + 1]});
-		}
-		return StatisticsQuery.parse(params);
 	}
 }

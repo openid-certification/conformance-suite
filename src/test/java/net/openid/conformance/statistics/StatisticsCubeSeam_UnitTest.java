@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.openid.conformance.statistics.StatisticsFixtures.NOW;
+import static net.openid.conformance.statistics.StatisticsFixtures.NO_TILES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -31,16 +33,11 @@ import static org.assertj.core.api.Assertions.tuple;
  */
 class StatisticsCubeSeam_UnitTest {
 
-	/** A Thursday; the Monday of its ISO week is 2026-03-09. */
-	private static final LocalDate NOW = LocalDate.of(2026, 3, 12);
-
 	private static final String MONTH = "2026-02";
 
 	private static final String WEEK = "2026-02-23";
 
 	private static final String PLAN = "oidcc-plan";
-
-	private static final TileRow NO_TILES = new TileRow(0, 0, 0, 0, 0, 0, 0);
 
 	private static final SpecFamilyResolver RESOLVER = new SpecFamilyResolver(
 		Map.of(PLAN, SpecFamilyNames.oidcc), Map.of(PLAN, ProfileNames.rptest));

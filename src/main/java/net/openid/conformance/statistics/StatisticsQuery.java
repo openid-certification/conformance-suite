@@ -30,11 +30,6 @@ public record StatisticsQuery(Granularity granularity, String from, String to, S
 		variant = variant == null ? Map.of() : Map.copyOf(variant);
 	}
 
-	/** @return the whole history, by month, unfiltered */
-	public static StatisticsQuery defaults() {
-		return new StatisticsQuery(Granularity.MONTH, null, null, null, null, Map.of(), null);
-	}
-
 	/**
 	 * @param params the request parameters, as
 	 *               {@code HttpServletRequest.getParameterMap()} returns them

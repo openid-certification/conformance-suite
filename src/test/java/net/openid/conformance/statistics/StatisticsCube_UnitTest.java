@@ -8,22 +8,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static net.openid.conformance.statistics.StatisticsFixtures.NOW;
+import static net.openid.conformance.statistics.StatisticsFixtures.NO_TILES;
+import static net.openid.conformance.statistics.StatisticsFixtures.RESOLVER;
+import static net.openid.conformance.statistics.StatisticsFixtures.runCell;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 class StatisticsCube_UnitTest {
 
-	/** A Thursday; the Monday of its ISO week is 2026-03-09. */
-	private static final LocalDate NOW = LocalDate.of(2026, 3, 12);
-
 	/** The oldest week 104 weeks of history reaches back to, from {@link #NOW}. */
 	private static final String OLDEST_WEEK = "2024-03-18";
-
-	private static final TileRow NO_TILES = new TileRow(0, 0, 0, 0, 0, 0, 0);
-
-	private static final SpecFamilyResolver RESOLVER = new SpecFamilyResolver(
-		Map.of("fapi1-plan", SpecFamilyNames.fapi1Advanced, "oidcc-plan", SpecFamilyNames.oidcc),
-		Map.of("fapi1-plan", ProfileNames.optest, "oidcc-plan", ProfileNames.rptest));
 
 	@Test
 	void weeklyCellsAreRolledUpIntoOneCellPerMonth() {
@@ -249,9 +244,5 @@ class StatisticsCube_UnitTest {
 	private static StatisticsCube cube(List<RunCell> runCells) {
 		return new StatisticsCube(runCells, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
 			NO_TILES, RESOLVER, NOW);
-	}
-
-	private static RunCell runCell(String month, String week, String planName, long runs) {
-		return new RunCell(month, week, planName, false, "", "", runs, 0, 0, 0, 0, 0);
 	}
 }

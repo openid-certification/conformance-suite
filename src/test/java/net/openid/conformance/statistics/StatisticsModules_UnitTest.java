@@ -13,6 +13,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.openid.conformance.statistics.StatisticsFixtures.NOW;
+import static net.openid.conformance.statistics.StatisticsFixtures.NO_TILES;
+import static net.openid.conformance.statistics.StatisticsFixtures.query;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
@@ -26,13 +29,8 @@ import static org.assertj.core.api.Assertions.within;
  */
 class StatisticsModules_UnitTest {
 
-	/** A Thursday; the Monday of its ISO week is 2026-03-09. */
-	private static final LocalDate NOW = LocalDate.of(2026, 3, 12);
-
 	/** The oldest month a 12 month window reaches back to, from {@link #NOW}. */
 	private static final String OLDEST_MONTH = "2025-04";
-
-	private static final TileRow NO_TILES = new TileRow(0, 0, 0, 0, 0, 0, 0);
 
 	private static final String SHARED = "shared-module";
 
@@ -54,7 +52,7 @@ class StatisticsModules_UnitTest {
 		StatisticsOverview overview = slice(cube(
 			cell("2026-01", OIDCC, 1, 3, 0),
 			cell("2026-02", OIDCC, 1, 2, 0),
-			cell("2026-02", OIDCC, 2, 5, 0)), StatisticsQuery.defaults());
+			cell("2026-02", OIDCC, 2, 5, 0)), query());
 
 		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.testName()).isEqualTo(OIDCC);
@@ -73,7 +71,7 @@ class StatisticsModules_UnitTest {
 			cell("2026-02", OIDCC, 1, 1, 1),
 			cell("2026-03", OIDCC, 1, 8, 4),
 			// another user who never failed it
-			cell("2026-03", OIDCC, 2, 10, 0)), StatisticsQuery.defaults());
+			cell("2026-03", OIDCC, 2, 10, 0)), query());
 
 		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.runs()).isEqualTo(21);
@@ -88,7 +86,7 @@ class StatisticsModules_UnitTest {
 		StatisticsOverview overview = slice(cube(
 			cell("2026-03", OIDCC, 1, 1, 1),
 			cell("2026-03", OIDCC, 2, 1, 1),
-			cell("2026-03", OIDCC, 3, 1, 0)), StatisticsQuery.defaults());
+			cell("2026-03", OIDCC, 3, 1, 0)), query());
 
 		assertThat(overview.modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.failingUsers()).isEqualTo(2);
@@ -106,7 +104,7 @@ class StatisticsModules_UnitTest {
 			cell("", OIDCC, 3, 99, 99));
 
 		assertThat(cube.modules()).extracting(ModuleUserCell::month).containsExactly(OLDEST_MONTH);
-		assertThat(slice(cube, StatisticsQuery.defaults()).modules().rows()).singleElement().satisfies(module -> {
+		assertThat(slice(cube, query()).modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.runs()).isEqualTo(5);
 			assertThat(module.users()).isEqualTo(1);
 		});
@@ -122,7 +120,7 @@ class StatisticsModules_UnitTest {
 			cell("2099-12", FAPI1, 3, 99, 99));
 
 		assertThat(cube.modules()).extracting(ModuleUserCell::month).containsExactly("2026-03");
-		assertThat(slice(cube, StatisticsQuery.defaults()).modules().rows()).singleElement().satisfies(module -> {
+		assertThat(slice(cube, query()).modules().rows()).singleElement().satisfies(module -> {
 			assertThat(module.testName()).isEqualTo(OIDCC);
 			assertThat(module.runs()).isEqualTo(5);
 			assertThat(module.users()).isEqualTo(1);
@@ -188,7 +186,7 @@ class StatisticsModules_UnitTest {
 		assertThat(names(slice(cube, query("family", SpecFamilyNames.fapi1Advanced)))).containsExactly(FAPI1, SHARED);
 		assertThat(names(slice(cube, query("family", SpecFamilyNames.ssf)))).isEmpty();
 		assertThat(names(slice(cube, query("family", SpecFamilyResolver.OTHER_RETIRED)))).isEmpty();
-		assertThat(names(slice(cube, StatisticsQuery.defaults())))
+		assertThat(names(slice(cube, query())))
 			.containsExactly("retired-module", FAPI1, OIDCC, SHARED);
 	}
 
@@ -230,7 +228,7 @@ class StatisticsModules_UnitTest {
 			cells.add(cell("2026-03", "failing-favorite", user, 1, 1));
 		}
 
-		Modules modules = slice(cube(cells.toArray(new ModuleUserCell[0])), StatisticsQuery.defaults()).modules();
+		Modules modules = slice(cube(cells.toArray(new ModuleUserCell[0])), query()).modules();
 
 		List<Module> rows = modules.rows();
 		assertThat(rows).hasSize(51);
@@ -263,7 +261,7 @@ class StatisticsModules_UnitTest {
 			// most run, never failed: first by runs, last by failing users
 			cell("2026-03", "d-module", 1, 20, 0));
 
-		Modules modules = slice(cube, StatisticsQuery.defaults()).modules();
+		Modules modules = slice(cube, query()).modules();
 
 		assertThat(modules.byRuns()).containsExactly("d-module", "b-module", "a-module", "c-module");
 		assertThat(modules.byFailingUsers()).containsExactly("b-module", "a-module", "c-module", "d-module");
@@ -271,7 +269,7 @@ class StatisticsModules_UnitTest {
 
 	@Test
 	void anEmptyCubeHasNoModules() {
-		Modules modules = slice(cube(), StatisticsQuery.defaults()).modules();
+		Modules modules = slice(cube(), query()).modules();
 
 		assertThat(modules.rows()).isEmpty();
 		assertThat(modules.byRuns()).isEmpty();
@@ -297,13 +295,5 @@ class StatisticsModules_UnitTest {
 
 	private static ModuleUserCell cell(String month, String testName, int ownerId, long runs, long failed) {
 		return new ModuleUserCell(month, testName, ownerId, runs, failed);
-	}
-
-	private static StatisticsQuery query(String... keysAndValues) {
-		Map<String, String[]> params = new LinkedHashMap<>();
-		for (int i = 0; i < keysAndValues.length; i += 2) {
-			params.put(keysAndValues[i], new String[] {keysAndValues[i + 1]});
-		}
-		return StatisticsQuery.parse(params);
 	}
 }
