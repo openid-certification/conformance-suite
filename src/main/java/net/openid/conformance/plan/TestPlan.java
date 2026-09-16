@@ -161,6 +161,11 @@ public interface TestPlan {
 	 * Override to define a certification profile name (used in the certification submission)
 	 * for the given variant selection.
 	 *
+	 * Implementations that reject variant combinations for an ecosystem define which combinations are
+	 * certifiable. The guided wizard's paths for that ecosystem
+	 * ({@code src/main/resources/static/components/guided-wizard-tree.js}) must resolve only to accepted
+	 * combinations, and should offer each accepted one testers actually certify; update both together.
+	 *
 	 * @return list of certification profile names, or empty list if none
 	 */
 	default List<String> certificationProfileName(VariantSelection variant) {
