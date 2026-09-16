@@ -73,6 +73,27 @@ function footerFor(data, slots, source, folded) {
 }
 
 /**
+ * The data table's twin of {@link footerFor}: one extra column naming what
+ * "Other" folds in each period, so the breakdown is not reachable only by
+ * hovering the bar.
+ * @param {StatisticsData} data - The payload the chart was built from.
+ * @param {Record<string, string>} slots - Family to color-slot mapping.
+ * @param {string} source - `"runs"`, `"plans"` or `"certified"`.
+ * @param {boolean} folded - Whether the chart produced an "Other" series.
+ * @returns {Array<{label: string, data: Array<string>}>} The column, or none.
+ */
+function extrasFor(data, slots, source, folded) {
+  if (!folded) return [];
+  const periods = Array.isArray(data && data.periods) ? data.periods : [];
+  return [
+    {
+      label: OTHER_TABLE_COLUMN,
+      data: periods.map((_, i) => otherBreakdown(data, slots, i, source).join(", ")),
+    },
+  ];
+}
+
+/**
  * @param {Record<string, string>} a - One family → color mapping.
  * @param {Record<string, string>} b - Another.
  * @returns {boolean} True when they say the same thing.
@@ -86,6 +107,9 @@ const GIVE_UP_MESSAGE =
   `Statistics are still being computed after ${POLL_GIVE_UP_MINUTES} minutes. ` +
   "The server may be busy — try again.";
 const FORBIDDEN_MESSAGE = "Statistics are only available to administrators.";
+const SIGNED_OUT_MESSAGE = "Your session has expired. Sign in again to see statistics.";
+/** Header of the data table column naming what each period's "Other" segment folds. */
+const OTHER_TABLE_COLUMN = "Other includes";
 const UNEXPECTED_MESSAGE = "The statistics endpoint returned an unexpected response.";
 
 /**
@@ -484,6 +508,11 @@ class CtsStatisticsPage extends LitElement {
             runs: footerFor(data, slots, "runs", inputs.runs.folded),
             plans: footerFor(data, slots, "plans", inputs.plans.folded),
             certified: footerFor(data, slots, "certified", inputs.certified.folded),
+          },
+          extras: {
+            runs: extrasFor(data, slots, "runs", inputs.runs.folded),
+            plans: extrasFor(data, slots, "plans", inputs.plans.folded),
+            certified: extrasFor(data, slots, "certified", inputs.certified.folded),
           },
         };
       },
@@ -1213,6 +1242,7 @@ class CtsStatisticsPage extends LitElement {
           .labels=${view.labels}
           .datasets=${view[chart.key].datasets}
           .tooltipFooter=${chart.footer ? view.footers[chart.key] : undefined}
+          .tableExtras=${chart.footer ? view.extras[chart.key] : undefined}
           @cts-chart-click=${chart.drillDown === "result"
             ? this._handleResultChartClick
             : chart.drillDown === "certified"

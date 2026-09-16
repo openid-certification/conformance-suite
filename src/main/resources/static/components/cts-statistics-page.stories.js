@@ -336,17 +336,26 @@ export const Ready = {
     });
 
     await step("the runs chart folds the tail families into one Other series", async () => {
-      const { headers } = chartTable(canvasElement, "stats-chart-runs");
+      const { rows, headers } = chartTable(canvasElement, "stats-chart-runs");
       // Month + six categorical families (OpenID Connect Logout is idle in
-      // the last 12 months, so it does not render at the default range) + Other.
-      expect(headers.length).toBe(8);
-      expect(headers[headers.length - 1]).toBe("Other");
+      // the last 12 months, so it does not render at the default range) +
+      // Other + the table-only column saying what Other holds.
+      expect(headers.length).toBe(9);
+      expect(headers[headers.length - 2]).toBe("Other");
+      expect(headers[headers.length - 1]).toBe("Other includes");
       expect(headers).toContain("FAPI2 Security Profile");
       expect(headers).not.toContain("OpenID Connect Logout");
-      // Folded families are named in the tooltip footer, not as their own
-      // columns.
+      // Folded families are named per period in the last column and in the
+      // tooltip footer, not as columns of their own.
       expect(headers).not.toContain("No plan");
       expect(headers).not.toContain("OpenID Federation");
+      const breakdowns = rows
+        .map((row) => (row.querySelector("td:last-child")?.textContent ?? "").trim())
+        .filter((text) => text.length > 0);
+      expect(breakdowns.length).toBeGreaterThan(0);
+      for (const text of breakdowns) {
+        expect(text).toMatch(/^.+: \d+(, .+: \d+)*$/);
+      }
     });
 
     await step("the results chart is keyed by outcome, not by family", async () => {
