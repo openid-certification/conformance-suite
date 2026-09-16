@@ -118,6 +118,25 @@ describe("ConnectID CIBA guided paths", () => {
   });
 });
 
+describe("Openbanking UK guided paths", () => {
+  it("sets the client type on both RP choices, which the client plan has no default for", () => {
+    const ecosystem = GUIDED_WIZARD_TREE.ecosystems.find((item) => item.id === "open_banking_uk");
+    expect(ecosystem).toBeTruthy();
+
+    const rp = choiceById(
+      /** @type {import("./guided-wizard-tree.js").WizardStep} */ (ecosystem?.steps[0]),
+      "rp",
+    );
+    for (const auth of ["pkjwt", "mtls"]) {
+      const choice = choiceById(
+        /** @type {import("./guided-wizard-tree.js").WizardStep} */ (rp.next),
+        auth,
+      );
+      expect(choice.result?.variants.fapi_client_type, `UK RP ${auth}`).toBe("oidc");
+    }
+  });
+});
+
 describe("GUIDED_WIZARD_TREE integrity", () => {
   it("gives every choice exactly one of next/result", () => {
     for (const { path, step } of collectSteps()) {
