@@ -17,8 +17,7 @@
  * @module plan-list-filter
  */
 
-/** Milliseconds in a day; the only date arithmetic here is a whole day. */
-export const DAY_MS = 86400000;
+import { DAY_MS, SHORT_MONTHS } from "../lib/calendar.js";
 
 /** Matches `QueryParams.VARIANT_PREFIX` on the server. */
 export const VARIANT_PREFIX = "variant.";
@@ -62,22 +61,6 @@ export const FILTER_PARAMS = [...PARAMS_BEFORE_VARIANTS, ...PARAMS_AFTER_VARIANT
 
 /** A `YYYY-MM-DD` date, the form both bounds take when the drill-down builds them. */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** Month names for the period chip and axis labels. Fixed rather than `Intl`, so they read the same everywhere. */
-export const SHORT_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 /**
  * What the plans listing is narrowed to.

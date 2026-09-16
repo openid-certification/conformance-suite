@@ -26,10 +26,8 @@
 // them back on the other side. Pure module, no DOM, no cycle.
 import {
   CERT_PARAM,
-  DAY_MS,
   FAMILY_PARAM,
   PLAN_PARAM,
-  SHORT_MONTHS,
   VARIANT_PREFIX,
   emptyFilter,
   text,
@@ -38,6 +36,7 @@ import {
   variantsFromParams,
 } from "./plan-list-filter.js";
 import { NUMBER_FORMAT } from "./number-format.js";
+import { DAY_MS, SHORT_MONTHS } from "../lib/calendar.js";
 
 /**
  * The statistics payload. Every field is declared as present because the
