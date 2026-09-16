@@ -16,7 +16,6 @@ import { injectStatisticsStyles } from "./statistics-styles.js";
 import { POLL_GIVE_UP_MINUTES, SnapshotPoll } from "./statistics-poll.js";
 import {
   EMPTY_OPTIONS,
-  NUMBER_FORMAT,
   assignFamilySlots,
   buildChartInputs,
   buildDistributions,
@@ -38,6 +37,7 @@ import {
   stateFromUrl,
   urlFromState,
 } from "./statistics-model.js";
+import { formatCount } from "./number-format.js";
 
 /** @typedef {import("./statistics-model.js").StatisticsData} StatisticsData */
 /** @typedef {import("./statistics-model.js").ChartDataset} ChartDataset */
@@ -1148,7 +1148,7 @@ class CtsStatisticsPage extends LitElement {
   _renderTile(testid, value, label, hint) {
     return html`
       <div class="cts-stats-tile" data-testid=${testid}>
-        <span class="cts-stats-tile-value">${NUMBER_FORMAT.format(Number(value) || 0)}</span>
+        <span class="cts-stats-tile-value">${formatCount(value)}</span>
         <span class="cts-stats-tile-label">${label}</span>
         <span class="cts-stats-tile-hint">${hint}</span>
       </div>
@@ -1300,7 +1300,7 @@ class CtsStatisticsPage extends LitElement {
               (plan) => html`
                 <tr>
                   <th scope="row">${plan.planName}</th>
-                  <td>${NUMBER_FORMAT.format(Number(plan.runs) || 0)}</td>
+                  <td>${formatCount(plan.runs)}</td>
                 </tr>
               `,
             )}

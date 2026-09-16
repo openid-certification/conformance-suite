@@ -4,13 +4,8 @@ import "./cts-heatmap.js";
 import "./cts-time.js";
 import { injectDataTableStyles } from "./data-table-styles.js";
 import { injectStatisticsStyles } from "./statistics-styles.js";
-import {
-  DISTRIBUTION_LIMIT,
-  MODULE_LIMIT,
-  NUMBER_FORMAT,
-  formatShare,
-  rangePreset,
-} from "./statistics-model.js";
+import { DISTRIBUTION_LIMIT, MODULE_LIMIT, formatShare, rangePreset } from "./statistics-model.js";
+import { NUMBER_FORMAT, formatCount } from "./number-format.js";
 
 /** @typedef {import("./statistics-model.js").Distribution} Distribution */
 /** @typedef {import("./statistics-model.js").Distributions} Distributions */
@@ -599,9 +594,9 @@ class CtsStatisticsInsights extends LitElement {
               (row) => html`
                 <tr>
                   <th scope="row">${row.testName}</th>
-                  <td>${NUMBER_FORMAT.format(Number(row.runs) || 0)}</td>
-                  <td>${NUMBER_FORMAT.format(Number(row.users) || 0)}</td>
-                  <td>${NUMBER_FORMAT.format(Number(row.failingUsers) || 0)}</td>
+                  <td>${formatCount(row.runs)}</td>
+                  <td>${formatCount(row.users)}</td>
+                  <td>${formatCount(row.failingUsers)}</td>
                   <td>${formatShare(row.failingShare)}</td>
                 </tr>
               `,
@@ -671,8 +666,8 @@ class CtsStatisticsInsights extends LitElement {
               (host) => html`
                 <tr>
                   <th scope="row">${host.host}</th>
-                  <td>${NUMBER_FORMAT.format(Number(host.runs) || 0)}</td>
-                  <td>${NUMBER_FORMAT.format(Number(host.users) || 0)}</td>
+                  <td>${formatCount(host.runs)}</td>
+                  <td>${formatCount(host.users)}</td>
                   <td><cts-time value=${host.lastSeen || ""}></cts-time></td>
                 </tr>
               `,

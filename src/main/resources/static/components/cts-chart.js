@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-alert.js";
 import { injectDataTableStyles } from "./data-table-styles.js";
+import { NUMBER_FORMAT } from "./number-format.js";
 
 /**
  * Same-origin path to the vendored Chart.js UMD bundle. The bundle defines
@@ -57,8 +58,6 @@ const GAP_AFTER_VERTICAL = gapAfter("top");
 const GAP_AFTER_HORIZONTAL = gapAfter("right");
 /** Shortest bar a log value axis draws: a bar sitting on the axis minimum has no height of its own. */
 const MIN_BAR_LENGTH_PX = 2;
-/** Grouped figures for the data table, so 1420 reads as 1,420 there as it does in the tooltip. */
-const CELL_FORMAT = new Intl.NumberFormat();
 /** Fixed plot height; the frame is sized so the x-axis band fits inside it. */
 const FRAME_HEIGHT_PX = 320;
 
@@ -103,7 +102,7 @@ const DEFAULT_CLICK_LABEL = "Show details for";
  * @returns {string} Numbers grouped like the tooltip's, text as is, blanks for anything else.
  */
 function cell(value) {
-  if (typeof value === "number" && Number.isFinite(value)) return CELL_FORMAT.format(value);
+  if (typeof value === "number" && Number.isFinite(value)) return NUMBER_FORMAT.format(value);
   return typeof value === "string" ? value : "";
 }
 

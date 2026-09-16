@@ -1,12 +1,7 @@
 import { LitElement, html, nothing, css } from "lit";
 import { injectDataTableStyles } from "./data-table-styles.js";
-import {
-  NUMBER_FORMAT,
-  heatmapIntensity,
-  heatmapMax,
-  heatmapScaleSteps,
-  heatmapTotal,
-} from "./statistics-model.js";
+import { heatmapIntensity, heatmapMax, heatmapScaleSteps, heatmapTotal } from "./heatmap-model.js";
+import { NUMBER_FORMAT } from "./number-format.js";
 
 /**
  * The sequential hue every cell is mixed from. One hue, light → dark: a

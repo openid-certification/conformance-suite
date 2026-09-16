@@ -2,13 +2,13 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-button.js";
 import {
   EMPTY_OPTIONS,
-  NUMBER_FORMAT,
   RANGE_PRESETS,
   isFiltered,
   memoizeByArgs,
   rangePreset,
   visibleVariants,
 } from "./statistics-model.js";
+import { formatCount } from "./number-format.js";
 import { aria } from "../lib/aria.js";
 
 /** @typedef {import("./statistics-model.js").FilterState} FilterState */
@@ -139,7 +139,7 @@ function injectStyles() {
  * @returns {string} The option's label, "name (count)".
  */
 function withCount(label, count) {
-  return `${label} (${NUMBER_FORMAT.format(Number(count) || 0)})`;
+  return `${label} (${formatCount(count)})`;
 }
 
 /**
