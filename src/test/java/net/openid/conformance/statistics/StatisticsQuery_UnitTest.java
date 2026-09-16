@@ -11,11 +11,15 @@ import static org.assertj.core.api.Assertions.entry;
 
 class StatisticsQuery_UnitTest {
 
+	/** The whole history, by month, unfiltered: what no parameters at all mean. */
+	private static final StatisticsQuery UNFILTERED =
+		new StatisticsQuery(Granularity.MONTH, null, null, null, null, Map.of(), null);
+
 	@Test
 	void anEmptyRequestIsTheUnfilteredMonthlyQuery() {
 		StatisticsQuery query = StatisticsQuery.parse(Map.of());
 
-		assertThat(query).isEqualTo(StatisticsQuery.defaults());
+		assertThat(query).isEqualTo(UNFILTERED);
 		assertThat(query.granularity()).isEqualTo(Granularity.MONTH);
 		assertThat(query.from()).isNull();
 		assertThat(query.to()).isNull();
@@ -59,7 +63,7 @@ class StatisticsQuery_UnitTest {
 			"refresh", "true",
 			"something_else", "x"));
 
-		assertThat(query).isEqualTo(StatisticsQuery.defaults());
+		assertThat(query).isEqualTo(UNFILTERED);
 	}
 
 	@Test
@@ -145,7 +149,7 @@ class StatisticsQuery_UnitTest {
 			"oidcc-plan", Map.of("b", "2"), "Cert A"));
 		// relaxing what is not there changes nothing
 		assertThat(query.withoutVariant("c")).isEqualTo(query);
-		assertThat(StatisticsQuery.defaults().withoutPlan()).isEqualTo(StatisticsQuery.defaults());
+		assertThat(UNFILTERED.withoutPlan()).isEqualTo(UNFILTERED);
 	}
 
 	@Test
