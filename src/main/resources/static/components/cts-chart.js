@@ -55,6 +55,10 @@ const GAP_AFTER_VERTICAL = gapAfter("top");
 
 /** Horizontal bars stack rightwards, so the gap goes on the right. */
 const GAP_AFTER_HORIZONTAL = gapAfter("right");
+/** Shortest bar a log value axis draws: a bar sitting on the axis minimum has no height of its own. */
+const MIN_BAR_LENGTH_PX = 2;
+/** Grouped figures for the data table, so 1420 reads as 1,420 there as it does in the tooltip. */
+const CELL_FORMAT = new Intl.NumberFormat();
 /** Fixed plot height; the frame is sized so the x-axis band fits inside it. */
 const FRAME_HEIGHT_PX = 320;
 
@@ -93,6 +97,15 @@ const PLOT_PROPS = [
  * consumer should say what it does.
  */
 const DEFAULT_CLICK_LABEL = "Show details for";
+
+/**
+ * @param {unknown} value - One data table cell.
+ * @returns {string} Numbers grouped like the tooltip's, text as is, blanks for anything else.
+ */
+function cell(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return CELL_FORMAT.format(value);
+  return typeof value === "string" ? value : "";
+}
 
 /** Per-instance id counter, so each `<figure>` can point at its own `<h3>`. */
 let headingSeq = 0;
@@ -298,10 +311,11 @@ function token(cs, name, fallback) {
  *   default, plots them all). The data table is NEVER truncated — it keeps
  *   every row, and a note under the plot says how many were left out — so
  *   capping the bars hides nothing.
- * @property {Array<{label: string, data: Array<number>}>} tableExtras -
+ * @property {Array<{label: string, data: Array<number|string>}>} tableExtras -
  *   Extra columns for the data table only, appended after the plotted
  *   series. For the second measure a category carries that is context rather
- *   than the thing being compared (the plan count behind a user count).
+ *   than the thing being compared (the plan count behind a user count), or
+ *   for text the tooltip shows that the table would otherwise lack.
  *   Property-only; not settable as an attribute.
  * @property {string} heading - Chart title. Rendered as the `<h3>`, the
  *   table `<caption>`, and the leading half of the canvas `aria-label`.
@@ -514,18 +528,22 @@ class CtsChart extends LitElement {
           // that separates stacked segments, not a stroke adding non-data ink.
           // It sits on the side facing the NEXT segment only, and only on a
           // segment that has a value: a border is painted whatever the
-          // segment's height, so a zero-valued segment with a border is a
-          // solid surface-colored band across the bar (which is what a
-          // results chart with an empty WARNING bucket every month showed),
-          // and a gap on both sides costs each segment twice the ink for the
-          // same separation. Never on the category sides: Chart.js already
-          // spaces categories, and at 90 monthly bars a bar is about 4px wide,
-          // narrower than two 2px borders, so the plot looked empty.
+          // segment's height, so a zero-valued segment with a border would be
+          // a solid surface-colored band across the bar, and a gap on both
+          // sides costs each segment twice the ink for the same separation.
+          // Never on the category sides: Chart.js already spaces categories,
+          // and at 90 monthly bars a bar is about 4px wide, narrower than two
+          // 2px borders.
           borderColor: surface,
           borderWidth: this.horizontal === true ? GAP_AFTER_HORIZONTAL : GAP_AFTER_VERTICAL,
           borderSkipped: false,
           borderRadius: BAR_RADIUS_PX,
           maxBarThickness: MAX_BAR_THICKNESS,
+          // Bars rise from the axis minimum, which on a log axis is 1, so a
+          // count of exactly 1 would draw nothing - the sliver the log scale
+          // exists to show. Zero counts are not on a log axis at all, so this
+          // never invents a bar.
+          ...(this.logScale === true ? { minBarLength: MIN_BAR_LENGTH_PX } : {}),
         };
       }),
     };
@@ -806,8 +824,8 @@ class CtsChart extends LitElement {
                           </button>`
                         : label}
                     </th>
-                    ${datasets.map((ds) => html`<td>${ds.data?.[i] ?? ""}</td>`)}
-                    ${extras.map((extra) => html`<td>${extra.data?.[i] ?? ""}</td>`)}
+                    ${datasets.map((ds) => html`<td>${cell(ds.data?.[i])}</td>`)}
+                    ${extras.map((extra) => html`<td>${cell(extra.data?.[i])}</td>`)}
                   </tr>`,
               )}
             </tbody>
