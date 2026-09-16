@@ -216,6 +216,47 @@ function respondForbidden() {
   return { status: 403 };
 }
 
+/** @returns {StatsRouteResponse} The answer once the browser session has lapsed. */
+function respondUnauthorized() {
+  return { status: 401 };
+}
+
+/**
+ * The full axis with a zero in every cell and no filter to blame: what the
+ * server sends for a range that covers months in which nothing ran.
+ * @returns {StatsRouteResponse} A settled, all-zero snapshot.
+ */
+function respondNothingInRange() {
+  const data = MOCK_STATS_READY.data;
+  /** @param {Record<string, Array<number>>} byFamily - One series per family. */
+  const zeroed = (byFamily) =>
+    Object.fromEntries(
+      Object.entries(byFamily).map(([family, series]) => [family, series.map(() => 0)]),
+    );
+  return {
+    status: 200,
+    body: {
+      ...MOCK_STATS_READY,
+      data: {
+        ...data,
+        testRunsByFamily: zeroed(data.testRunsByFamily),
+        plansByFamily: zeroed(data.plansByFamily),
+        certifiedByFamily: zeroed(data.certifiedByFamily),
+        resultsByFamily: Object.fromEntries(
+          Object.entries(data.resultsByFamily).map(([family, buckets]) => [
+            family,
+            zeroed(buckets),
+          ]),
+        ),
+        users: {
+          activeByPeriod: data.users.activeByPeriod.map(() => 0),
+          newByPeriod: data.users.newByPeriod.map(() => 0),
+        },
+      },
+    },
+  };
+}
+
 /** @returns {StatsRouteResponse} A snapshot of a database with no test runs. */
 function respondEmpty() {
   return { status: 200, body: MOCK_STATS_EMPTY };
@@ -645,6 +686,45 @@ test.describe("statistics.html — admin usage dashboard", () => {
     // the authoritative check, the link is just discoverability).
     await expect(page.locator(".cts-navlink[href='plans.html']")).toBeVisible();
     await expect(page.locator(".cts-navlink[href='statistics.html']")).toHaveCount(0);
+  });
+
+  test("an expired session is told to sign in again, not that it is a non-admin", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page, { respond: respondUnauthorized });
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+
+    const forbidden = page.locator('[data-testid="stats-forbidden"]');
+    await expect(forbidden).toBeVisible();
+    await expect(forbidden).toContainText("Your session has expired. Sign in again");
+    await expect(forbidden).not.toContainText("only available to administrators");
+    await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
+    // Terminal, like the 403: polling a lapsed session would never sign it in.
+    expect(searches).toHaveLength(1);
+  });
+
+  test("a range nothing ran in gets the empty state, not five flat charts", async ({ page }) => {
+    await setupFailFast(page);
+    await setupStatisticsRoute(page, { respond: respondNothingInRange });
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    // The default preset narrows the range and no filter is set, so the way
+    // out is to widen the range: the empty state's advice, not the no-match
+    // state's "Clear filters".
+    await page.goto("/statistics.html");
+
+    const empty = page.locator('[data-testid="stats-empty"]');
+    await expect(empty).toBeVisible();
+    await expect(empty).toHaveAttribute("heading", "Nothing in this range");
+    await expect(page.locator('[data-testid="stats-no-match"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-charts"]')).toHaveCount(0);
+    // The tiles are all-time and the filter row is the way out, so both stay.
+    await expect(page.locator('[data-testid="stats-tiles"] .cts-stats-tile')).toHaveCount(10);
+    await expect(page.locator('[data-testid="stats-filters"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="stats-distributions"]')).toHaveCount(0);
   });
 
   test("an admin's navbar links to Statistics and marks it current", async ({ page }) => {
