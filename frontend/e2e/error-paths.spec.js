@@ -337,7 +337,7 @@ test.describe("log-detail.html — /api/info/:id 404", () => {
   });
 });
 
-test.describe("schedule-test.html — POST /api/plan 400", () => {
+test.describe("schedule-test.html — POST /api/plan errors", () => {
   test.beforeEach(async ({ page }) => {
     // This test drives the advanced island's picker + create button.
     // Guided is the page default, so force the stored mode preference.
@@ -401,15 +401,12 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
     await createBtn.click();
 
-    // Error modal shows. schedule-test.html's catch only parses message bodies
-    // for 500 responses; for 400 it displays statusText ("Bad Request"). Assert
-    // on the modal being visible + a non-empty error message, not the body
-    // content — the real contract is "the user is told something went wrong".
+    // Error modal shows the handler's {"error"} text, not the status line.
     const errorModal = page.locator("#errorModal");
     await expect(errorModal).toBeVisible();
     const errorText = errorModal.locator("#errorMessage");
     await expect(errorText).not.toBeEmpty();
-    await expect(errorText).toContainText("Bad Request");
+    await expect(errorText).toContainText("invalid plan configuration");
 
     // T-8 "realistic next action": after dismissing, the user is still on
     // schedule-test.html (not navigated away to a plan that doesn't exist)
@@ -421,6 +418,53 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     await expect(
       page.locator('#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]'),
     ).toHaveClass(/is-active/);
+  });
+
+  test("POST /api/plan 401 (expired session) keeps the refresh hint in #errorModal", async ({
+    page,
+  }) => {
+    const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
+
+    await setupFailFast(page);
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    // Body shape written by RestAuthenticationEntryPoint.
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 401,
+          contentType: "application/json",
+          body: JSON.stringify({
+            error: "Unauthorized",
+            message: "Full authentication is required to access this resource",
+          }),
+        });
+      }
+      return route.fallback();
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+    await selectPlanViaSearch(page, "oidcc-client-basic-certification-test-plan");
+
+    const createBtn = page.locator("#createPlanBtn");
+    await expect(createBtn).toBeEnabled({ timeout: 5000 });
+    await createBtn.click();
+
+    const errorText = page.locator("#errorModal #errorMessage");
+    await expect(errorText).toContainText(
+      "Unauthorized : Full authentication is required to access this resource",
+    );
+    await expect(errorText).toContainText("Refresh the page to renew your session");
   });
 
   /**
@@ -472,7 +516,9 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     // The modal element exists but never upgraded, so it shows nothing...
     await expect(page.locator("#errorModal")).toBeHidden();
     // ...and the toast carries the error instead.
-    await expect(page.locator("cts-toast-host cts-toast")).toContainText("Bad Request");
+    await expect(page.locator("cts-toast-host cts-toast")).toContainText(
+      "invalid plan configuration",
+    );
 
     // The user is still on the page with their selections intact.
     await expect(page).toHaveURL(/\/schedule-test\.html/);
@@ -533,6 +579,6 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
     await createBtn.click();
 
-    await expect.poll(() => dialogs.join("\n")).toContain("Bad Request");
+    await expect.poll(() => dialogs.join("\n")).toContain("invalid plan configuration");
   });
 });

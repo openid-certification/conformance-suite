@@ -633,6 +633,58 @@ test.describe("schedule-test.html — guided config + create", () => {
     expect(record.answers).toEqual(["op", "pkjwt", "ksav2"]);
   });
 
+  // Each error body shape POST /api/plan can return; the alert must show the
+  // human-readable text, never the JSON envelope, Gson's \u0027 escapes or
+  // proxy HTML.
+  for (const { name, status, contentType = "application/json", body, shown } of [
+    {
+      name: "handler {error} with Gson-escaped quotes",
+      status: 400,
+      body: String.raw`{"error":"TestModule \u0027fapi1-advanced-final-client-test\u0027 requires a value for variant \u0027fapi_client_type\u0027"}`,
+      shown:
+        "TestModule 'fapi1-advanced-final-client-test' requires a value for variant 'fapi_client_type'",
+    },
+    {
+      name: "Spring error page: message wins over the reason phrase",
+      status: 500,
+      body: JSON.stringify({
+        status: 500,
+        error: "Internal Server Error",
+        message: "Invalid configuration for fapi1: PAR/JARM are not used in UK",
+        path: "/api/plan",
+      }),
+      shown: "Invalid configuration for fapi1: PAR/JARM are not used in UK",
+    },
+    {
+      name: "proxy HTML error page falls back to the status line",
+      status: 502,
+      contentType: "text/html",
+      body: "<html><head><title>502 Bad Gateway</title></head><body><center><h1>502 Bad Gateway</h1></center><hr><center>nginx</center></body></html>",
+      shown: /^(Bad Gateway|HTTP 502)$/,
+    },
+    { name: "empty body", status: 403, body: "", shown: /^(Forbidden|HTTP 403)$/ },
+  ]) {
+    test(`create failure body: ${name}`, async ({ page }) => {
+      await setupScheduleTestRoutes(page);
+      await page.route("**/api/plan?*", (route) => {
+        if (route.request().method() === "POST") {
+          return route.fulfill({ status, contentType, body });
+        }
+        return route.fallback();
+      });
+
+      await page.goto("/schedule-test.html");
+      await walkToConfigStep(page);
+      await page.locator("#guidedCreateBtn").click();
+
+      const errorBox = page.locator("#guidedConfigError cts-alert");
+      await expect(errorBox).toBeVisible();
+      // The toast carries the bare message, without the alert's "(HTTP n)" prefix.
+      const toastMessage = page.locator("cts-toast-host cts-toast .oidf-toast-message");
+      await expect(toastMessage).toHaveText(shown);
+    });
+  }
+
   test("create failure: the error is brought to the user — scrolled into view, focused, and toasted (#1860)", async ({
     page,
   }) => {
