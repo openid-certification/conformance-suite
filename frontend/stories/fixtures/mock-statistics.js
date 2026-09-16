@@ -33,7 +33,10 @@
  * restrict the families, narrow the dimensions — so stories can drive the
  * real controls and assert on what comes back. The e2e twin has the same
  * function with one documented difference: it does not clip the axis, because
- * Playwright runs on the real clock rather than Storybook's frozen one.
+ * Playwright runs on the real clock rather than Storybook's frozen one. The
+ * twin also wraps it in `statisticsResponseFor`, which models the 400 for a
+ * malformed `variant.<name>`; this file has `MOCK_STATS_LAST_ERROR` for the
+ * failed-refresh story instead. Everything both files export must match.
  */
 
 const WEEK_COUNT = 26;
@@ -836,7 +839,10 @@ export const MOCK_STATS_EMPTY = {
     familyTotals: Object.fromEntries(
       FAMILIES.map((family) => [family, { runs: 0, plans: 0, certified: 0 }]),
     ),
-    resultsByFamily: {},
+    // every family, every bucket, no periods: the slicer's shape for an empty cube
+    resultsByFamily: Object.fromEntries(
+      FAMILIES.map((family) => [family, Object.fromEntries(RESULT_BUCKETS.map((b) => [b, []]))]),
+    ),
     users: { activeByPeriod: [], newByPeriod: [] },
     tiles: {
       totalTests: 0,
