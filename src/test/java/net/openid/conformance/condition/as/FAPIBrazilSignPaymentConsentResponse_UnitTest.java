@@ -45,7 +45,7 @@ public class FAPIBrazilSignPaymentConsentResponse_UnitTest {
 
 	private JsonObject jwks;
 
-	private final String AUD_VALUE = "https://example.com/open-banking/payments/v4/consents";
+	private final String AUD_VALUE = "https://example.com/open-banking/payments/v5/consents";
 	private JsonObject consentRequestClaimsAudArray;
 	private JsonObject consentRequestClaimsAudString;
 
