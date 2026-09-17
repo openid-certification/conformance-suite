@@ -28,7 +28,7 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse_UnitTest {
 
 	private FAPIBrazilGenerateNewPaymentInitiationResponse condition;
 
-	private String paymentsV4PayloadJson = """
+	private String paymentsPayloadJson = """
 		{
 			"data": [{
 				"localInstrument": "DICT",
@@ -57,21 +57,54 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse_UnitTest {
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test
-	public void test_that_v4_payloads_work(){
+	private void setUpPaymentInitiationRequest() {
 		JsonObject paymentInitiationRequest = new JsonObject();
-		JsonObject paymentsv4Payload = JsonParser.parseString(paymentsV4PayloadJson).getAsJsonObject();
-		paymentInitiationRequest.add("claims", paymentsv4Payload);
+		paymentInitiationRequest.add("claims", JsonParser.parseString(paymentsPayloadJson));
 
 		env.putString("fapi_interaction_id", "fapi_interaction_id");
 		env.putString("consent_id", "consent_id");
+		env.putString("base_mtls_url", "https://mtls.example.com/test-mtls/a/alias");
 		env.putObject("payment_initiation_request", paymentInitiationRequest);
+	}
 
-		condition.evaluate(env);
+	@Test
+	public void test_that_payloads_work() {
+		setUpPaymentInitiationRequest();
+
+		condition.execute(env);
 
 		JsonArray data = env.getElementFromObject("payment_initiation_response", "data").getAsJsonArray();
 		for (JsonElement dataElement : data) {
-			assertThat(OIDFJSON.getString(dataElement.getAsJsonObject().get("endToEndId"))).startsWith("E");
+			JsonObject payment = dataElement.getAsJsonObject();
+			assertThat(OIDFJSON.getString(payment.get("endToEndId"))).startsWith("E");
+			assertThat(OIDFJSON.getString(payment.get("status"))).isEqualTo("RCVD");
+			assertThat(payment.getAsJsonObject("debtorAccount").keySet()).contains("ispb", "number", "accountType");
 		}
+		assertThat(env.getString("payment_initiation_response", "links.self"))
+			.isEqualTo("https://mtls.example.com/test-mtls/a/alias/open-banking/payments/v5/pix/payments");
+		assertThat(env.getString("payment_initiation_response_headers", "x-v")).isEqualTo("5.0.0");
+	}
+
+	@Test
+	public void test_that_debtor_account_is_taken_from_consent() {
+		setUpPaymentInitiationRequest();
+		JsonObject debtorAccount = JsonParser.parseString("""
+			{
+				"ispb": "87654321",
+				"issuer": "6272",
+				"number": "94088392",
+				"accountType": "SVGS"
+			}
+			""").getAsJsonObject();
+		JsonObject consentData = new JsonObject();
+		consentData.add("debtorAccount", debtorAccount);
+		JsonObject consentResponse = new JsonObject();
+		consentResponse.add("data", consentData);
+		env.putObject("consent_response", consentResponse);
+
+		condition.execute(env);
+
+		JsonArray data = env.getElementFromObject("payment_initiation_response", "data").getAsJsonArray();
+		assertThat(data.get(0).getAsJsonObject().get("debtorAccount")).isEqualTo(debtorAccount);
 	}
 }
