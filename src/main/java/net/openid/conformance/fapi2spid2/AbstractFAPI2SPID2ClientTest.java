@@ -824,9 +824,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		} else {
 			if(isPayments) {
 				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+				env.mapKey("consent_response", "get_consent_response");
 				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+				env.unmapKey("consent_response");
 				String signedConsentResponse = env.getString("signed_consent_response");
-				JsonObject headerJson = env.getObject("consent_response_headers");
+				JsonObject headerJson = env.getObject("get_consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
 			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);

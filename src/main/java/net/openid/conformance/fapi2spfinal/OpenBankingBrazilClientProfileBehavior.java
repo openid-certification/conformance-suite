@@ -331,9 +331,11 @@ public class OpenBankingBrazilClientProfileBehavior extends FAPI2ClientProfileBe
 		} else {
 			if (isPayments) {
 				module.doCallAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+				module.getEnv().mapKey("consent_response", "get_consent_response");
 				module.doCallAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+				module.getEnv().unmapKey("consent_response");
 				String signedConsentResponse = module.getEnv().getString("signed_consent_response");
-				JsonObject headerJson = module.getEnv().getObject("consent_response_headers");
+				JsonObject headerJson = module.getEnv().getObject("get_consent_response_headers");
 
 				HttpHeaders headers = headersFromJson(headerJson);
 				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
