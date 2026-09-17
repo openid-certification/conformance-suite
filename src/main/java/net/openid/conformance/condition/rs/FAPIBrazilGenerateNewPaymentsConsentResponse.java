@@ -145,6 +145,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+		headers.addProperty("x-v", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_API_VERSION);
 
 		env.putObject("consent_response_headers", headers);
 
