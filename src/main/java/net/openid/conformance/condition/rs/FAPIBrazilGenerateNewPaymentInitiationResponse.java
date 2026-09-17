@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -15,6 +16,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCondition {
+
+	private static final String DEFAULT_DEBTOR_ACCOUNT = """
+		{
+			"ispb": "12345678",
+			"issuer": "1774",
+			"number": "1234567890",
+			"accountType": "CACC"
+		}
+		""";
+
 	/*
 	{
 		"data": [{
@@ -38,16 +49,22 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCond
 	}
 
 	COPY data from request as is.
-	Then add paymentId, consentId, creationDateTime, statusUpdateDateTime, status, aud, iss, iat, jti claims
+	Then add paymentId, consentId, creationDateTime, statusUpdateDateTime, status, debtorAccount, aud, iss, iat, jti claims
 	 */
 	@Override
-	@PreEnvironment(strings = {"fapi_interaction_id", "consent_id"}, required = {"payment_initiation_request"})
+	@PreEnvironment(strings = {"fapi_interaction_id", "consent_id", "base_mtls_url"}, required = {"payment_initiation_request"})
 	@PostEnvironment(required = {"payment_initiation_response", "payment_initiation_response_headers"})
 	public Environment evaluate(Environment env) {
 
 		String consentId = env.getString("consent_id");
 		Instant baseDate = Instant.now().truncatedTo(ChronoUnit.SECONDS);
 		String creationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
+
+		JsonElement debtorAccount = env.getElementFromObject("consent_response", "data.debtorAccount");
+		if (debtorAccount == null) {
+			// debtorAccount is optional in the consent request but required in the payment response, so the bank supplies it
+			debtorAccount = JsonParser.parseString(DEFAULT_DEBTOR_ACCOUNT);
+		}
 
 		JsonArray requestDataArray = env.getElementFromObject("payment_initiation_request", "claims.data").getAsJsonArray();
 		JsonArray responseDataArray = new JsonArray();
@@ -58,7 +75,8 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCond
 			requestData.addProperty("statusUpdateDateTime", creationDateTime);
 			requestData.addProperty("paymentId", UUID.randomUUID().toString());
 			requestData.addProperty("consentId", consentId);
-			requestData.addProperty("status", "ACSP");
+			requestData.addProperty("status", "RCVD");
+			requestData.add("debtorAccount", debtorAccount.deepCopy());
 
 			responseDataArray.add(requestData);
 		}
@@ -67,7 +85,7 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCond
 		response.add("data", responseDataArray);
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
+		links.addProperty("self", env.getString("base_mtls_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		response.add("links", links);
 
 		JsonObject meta = new JsonObject();
