@@ -554,7 +554,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
       "Stuck / abandoned (>24 h)",
     );
 
-    // The snapshot's own age, not "now".
+    // When the snapshot was taken, not "now".
     const computedAt = page.locator('[data-testid="stats-computed-at"]');
     await expect(computedAt).toContainText("Data as of");
     await expect(computedAt.locator("time")).toHaveAttribute(

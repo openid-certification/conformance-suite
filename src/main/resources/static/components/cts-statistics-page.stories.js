@@ -14,6 +14,7 @@ import {
   MOCK_STATS_WEEKS,
   statisticsOverviewFor,
 } from "@fixtures/mock-statistics.js";
+import { formatCompact } from "../lib/time-format.js";
 import "./cts-statistics-page.js";
 
 export default {
@@ -266,9 +267,11 @@ export const Ready = {
       expect(location.search).toBe("?range=12m");
     });
 
-    await step("toolbar reports the snapshot age and is not busy", async () => {
+    await step("toolbar reports when the snapshot was taken and is not busy", async () => {
       const asOf = canvasElement.querySelector('[data-testid="stats-computed-at"]');
       expect(asOf.textContent).toContain("Data as of");
+      // An absolute time, so it stays true while the page sits open.
+      expect(asOf.textContent).toContain(formatCompact("2026-06-01T09:12:33.000Z"));
       expect(asOf.querySelector("time")?.getAttribute("datetime")).toBe("2026-06-01T09:12:33.000Z");
       const refresh = canvasElement.querySelector('[data-testid="stats-refresh"] button');
       expect(refresh.hasAttribute("disabled")).toBe(false);

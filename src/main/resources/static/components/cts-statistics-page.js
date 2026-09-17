@@ -1156,7 +1156,7 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * @returns {unknown} Refresh button, busy spinner, and the snapshot age.
+   * @returns {unknown} Refresh button, busy spinner, and when the snapshot was taken.
    */
   _renderToolbar() {
     const computedAt = (this._payload && this._payload.computedAt) || "";
@@ -1174,7 +1174,7 @@ class CtsStatisticsPage extends LitElement {
           ? html`<cts-spinner size="sm" label="Refreshing statistics"></cts-spinner>`
           : nothing}
         <p class="cts-stats-asof" role="status" data-testid="stats-computed-at">
-          Data as of <cts-time value=${computedAt}></cts-time>
+          Data as of <cts-time value=${computedAt} mode="compact"></cts-time>
         </p>
       </div>
     `;
