@@ -90,6 +90,7 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCond
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+		headers.addProperty("x-v", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_API_VERSION);
 
 		env.putObject("payment_initiation_response_headers", headers);
 
