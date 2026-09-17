@@ -182,7 +182,12 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 		String codeFlowVariant = variantSelection.getVariantParameterValue(VCIWalletAuthorizationCodeFlowVariant.class);
 		String credentialOfferVariant = variantSelection.getVariantParameterValue(VCICredentialOfferParameterVariant.class);
 
-		if (credentialOfferVariant != null) {
+		// A wallet-initiated flow has no credential offer, so the offer variant is not applicable
+		// there (see @VariantNotApplicableWhen on AbstractVCIWalletTest). The selection still carries
+		// the parameter's value because the modules read it unconditionally, so it is left out of
+		// the name here rather than relied on being absent.
+		boolean walletInitiated = VCIWalletAuthorizationCodeFlowVariant.WALLET_INITIATED.toString().equals(codeFlowVariant);
+		if (credentialOfferVariant != null && !walletInitiated) {
 			return List.of(String.format("%s %s %s %s %s", "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL", "Wallet", credentialFormat, codeFlowVariant, credentialOfferVariant));
 		}
 		return List.of(String.format("%s %s %s %s", "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL", "Wallet", credentialFormat, codeFlowVariant));
