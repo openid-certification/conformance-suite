@@ -9,32 +9,30 @@
  * this module must be updated by hand — the colocated integrity test
  * (`guided-wizard-tree.test.js`) catches structural breakage.
  *
- * One deliberate data fix relative to the YAML: `dcr_brazil_op`'s
- * `also_required` pointed at a nonexistent `fapi2_brazil_op` choice; it now
- * points at `fapi1_brazil_op` ("FAPI Security Profile"), mirroring the
- * existing `fapi1_brazil_op → dcr_brazil_op` reference.
+ * One deliberate data deviation from the YAML: the YAML's `also_required`
+ * links between sibling plans are not carried over. The wizard resolves one
+ * plan per journey and no longer tries to orchestrate multi-plan
+ * certification bundles (#1967) — where a sibling plan matters, say so in
+ * the choice's `description`.
  *
  * From the YAML header:
  * - Each choice has either `next` (another question) or `result` (a leaf).
  * - `result.plan_name` must match a testPlanName from `@PublishTestPlan`.
  * - `result.variants` keys must match variant parameter names (see
  *   `variant/*.java` enums).
- * - `result.also_required` lists sibling choice ids needed for full
- *   certification.
- */
-
-/**
- * @typedef {object} AlsoRequired
- * @property {string} id - Sibling choice id within the same step's `choices`.
- * @property {string} label - Plan label shown in the bundle checklist.
+ * - `result.variants` must set every variant the plan needs that has no
+ *   default, and the combination must be one the plan's Java
+ *   `certificationProfileName()` accepts for that ecosystem. Conversely, the
+ *   leaves for an ecosystem should cover every combination it accepts that
+ *   testers actually certify, or that method should reject the combination.
+ *   Nothing checks this automatically: when changing either side, update the
+ *   other.
  */
 
 /**
  * @typedef {object} WizardResult
  * @property {string} plan_name - testPlanName from `@PublishTestPlan`.
  * @property {Record<string, string>} variants - Variant parameter name → value.
- * @property {AlsoRequired[]} [also_required] - Sibling plans needed for full
- *   certification.
  */
 
 /**
@@ -139,7 +137,8 @@ export const GUIDED_WIZARD_TREE = {
                   {
                     id: "fapi1_brazil_op",
                     label: "FAPI Security Profile",
-                    description: "Server-side FAPI tests for Open Finance Brazil",
+                    description:
+                      "Server-side FAPI tests for Open Finance Brazil. Certification also requires the Dynamic Client Registration plan.",
                     result: {
                       plan_name: "fapi1-advanced-final-test-plan",
                       variants: {
@@ -148,16 +147,13 @@ export const GUIDED_WIZARD_TREE = {
                         fapi_profile: "openbanking_brazil",
                         fapi_response_mode: "plain_response",
                       },
-                      also_required: [
-                        { id: "dcr_brazil_op", label: "Dynamic Client Registration" },
-                      ],
                     },
                   },
                   {
                     id: "dcr_brazil_op",
                     label: "Dynamic Client Registration",
                     description:
-                      "DCR tests — also required for Open Finance Brazil OP certification",
+                      "DCR tests for Open Finance Brazil. Certification also requires the FAPI Security Profile plan.",
                     result: {
                       plan_name: "fapi1-advanced-final-brazil-dcr-test-plan",
                       variants: {
@@ -166,10 +162,6 @@ export const GUIDED_WIZARD_TREE = {
                         fapi_response_mode: "plain_response",
                         fapi_profile: "openbanking_brazil",
                       },
-                      // Data fix vs the YAML: was `fapi2_brazil_op`, which does
-                      // not exist in this step. Symmetric with
-                      // fapi1_brazil_op → dcr_brazil_op above.
-                      also_required: [{ id: "fapi1_brazil_op", label: "FAPI Security Profile" }],
                     },
                   },
                   {
@@ -218,14 +210,41 @@ export const GUIDED_WIZARD_TREE = {
             {
               id: "op",
               label: "OP (Authorization Server)",
-              result: {
-                plan_name: "fapi1-advanced-final-test-plan",
-                variants: {
-                  client_auth_type: "private_key_jwt",
-                  fapi_auth_request_method: "pushed",
-                  fapi_profile: "openinsurance_brazil",
-                  fapi_response_mode: "plain_response",
-                },
+              next: {
+                id: "plan",
+                question: "Which certification plan are you creating?",
+                choices: [
+                  {
+                    id: "fapi1_opin_op",
+                    label: "FAPI Security Profile",
+                    description:
+                      "Server-side FAPI tests for Open Insurance Brazil. Certification also requires the Dynamic Client Registration plan.",
+                    result: {
+                      plan_name: "fapi1-advanced-final-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_auth_request_method: "pushed",
+                        fapi_profile: "openinsurance_brazil",
+                        fapi_response_mode: "plain_response",
+                      },
+                    },
+                  },
+                  {
+                    id: "dcr_opin_op",
+                    label: "Dynamic Client Registration",
+                    description:
+                      "DCR tests for Open Insurance Brazil. Certification also requires the FAPI Security Profile plan.",
+                    result: {
+                      plan_name: "fapi1-advanced-final-brazil-dcr-test-plan",
+                      variants: {
+                        client_auth_type: "private_key_jwt",
+                        fapi_auth_request_method: "pushed",
+                        fapi_profile: "openinsurance_brazil",
+                        fapi_response_mode: "plain_response",
+                      },
+                    },
+                  },
+                ],
               },
             },
           ],
@@ -257,6 +276,7 @@ export const GUIDED_WIZARD_TREE = {
                         fapi_auth_request_method: "by_value",
                         fapi_response_mode: "plain_response",
                         client_auth_type: "private_key_jwt",
+                        fapi_client_type: "oidc",
                       },
                     },
                   },
@@ -270,6 +290,7 @@ export const GUIDED_WIZARD_TREE = {
                         fapi_auth_request_method: "by_value",
                         fapi_response_mode: "plain_response",
                         client_auth_type: "mtls",
+                        fapi_client_type: "oidc",
                       },
                     },
                   },

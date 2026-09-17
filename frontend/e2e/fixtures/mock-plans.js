@@ -393,6 +393,7 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           plain_fapi: { configurationFields: [] },
           openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
+          openinsurance_brazil: { configurationFields: ["resource.consentUrl"] },
         },
       },
       client_auth_type: {
@@ -450,6 +451,7 @@ export const MOCK_GUIDED_PLANS = [
         variantValues: {
           plain_fapi: { configurationFields: [] },
           openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
+          openinsurance_brazil: { configurationFields: ["resource.consentUrl"] },
         },
       },
       client_auth_type: {
