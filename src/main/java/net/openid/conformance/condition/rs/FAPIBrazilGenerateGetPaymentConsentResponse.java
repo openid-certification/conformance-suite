@@ -14,7 +14,7 @@ import java.util.UUID;
 public class FAPIBrazilGenerateGetPaymentConsentResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"consent_response"}, strings = {"fapi_interaction_id", "requested_consent_id"})
+	@PreEnvironment(required = {"consent_response"}, strings = {"fapi_interaction_id", "requested_consent_id", "base_mtls_url"})
 	@PostEnvironment(required = {"get_consent_response", "get_consent_response_headers"})
 	public Environment evaluate(Environment env) {
 		String requestedConsentId = env.getString("requested_consent_id");
@@ -28,17 +28,15 @@ public class FAPIBrazilGenerateGetPaymentConsentResponse extends AbstractConditi
 
 		JsonObject consentResponse = new JsonObject();
 		consentResponse.add("data", existingConsent.get("data"));
-		if(existingConsent.has("links")) {
-			consentResponse.add("links", existingConsent.get("links"));
-		}
+		JsonObject links = new JsonObject();
+		links.addProperty("self", env.getString("base_mtls_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/" + existingConsentId);
+		consentResponse.add("links", links);
 		consentResponse.add("aud", existingConsent.get("aud"));
 		consentResponse.add("iss", existingConsent.get("iss"));
 		consentResponse.addProperty("iat", Instant.now().getEpochSecond());
 		consentResponse.addProperty("jti", UUID.randomUUID().toString());
 
 		JsonObject meta = new JsonObject();
-		meta.addProperty("totalRecords", 1);
-		meta.addProperty("totalPages", 1);
 		Instant baseDateRough = Instant.now();
 		Instant baseDate = baseDateRough.minusNanos(baseDateRough.getNano());
 		String requestDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
