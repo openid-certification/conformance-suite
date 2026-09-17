@@ -4,6 +4,7 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
+  formatDuration,
   toMillis,
 } from "./time-format.js";
 
@@ -160,6 +161,23 @@ describe("time-format", () => {
       // 4-digit strings stay on the Date.parse path (year 2026), so the
       // epoch-ms shortcut does not hijack year-only inputs.
       expect(toMillis("2026")).toBe(new Date("2026").getTime());
+    });
+  });
+
+  describe("formatDuration", () => {
+    it.each([
+      ["under a minute", "2026-05-22T09:00:00Z", "2026-05-22T09:00:45Z", "45s"],
+      ["minutes", "2026-05-22T09:00:00Z", "2026-05-22T09:03:12Z", "3m 12s"],
+      ["hours", "2026-05-22T09:00:00Z", "2026-05-22T11:05:00Z", "2h 5m 0s"],
+      ["over a day stays in hours", "2026-05-22T09:00:00Z", "2026-05-23T10:00:01Z", "25h 0m 1s"],
+      ["end before start", "2026-05-22T09:00:10Z", "2026-05-22T09:00:00Z", "0s"],
+    ])("%s", (_label, start, end, expected) => {
+      expect(formatDuration(start, end)).toBe(expected);
+    });
+
+    it("returns '' when either end is missing", () => {
+      expect(formatDuration("2026-05-22T09:00:00Z", null)).toBe("");
+      expect(formatDuration(undefined, "2026-05-22T09:00:00Z")).toBe("");
     });
   });
 });

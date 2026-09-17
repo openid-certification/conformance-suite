@@ -126,7 +126,15 @@ test.describe("plans.html — bulk delete", () => {
         body: JSON.stringify(
           polls === 1
             ? { state: "RUNNING", plans: 50, tests: 600, logEntries: 7000, target: 100 }
-            : { state: "DONE", plans: 100, tests: 1200, logEntries: 14000, target: 100 },
+            : {
+                state: "DONE",
+                plans: 100,
+                tests: 1200,
+                logEntries: 14000,
+                target: 100,
+                startedAt: "2026-06-01T11:59:30Z",
+                finishedAt: "2026-06-01T12:02:42Z",
+              },
         ),
       });
     });
@@ -160,6 +168,7 @@ test.describe("plans.html — bulk delete", () => {
     await expect(progress).toContainText("DONE", { timeout: 15000 });
     await expect(progress).toContainText("100");
     await expect(progress).toContainText("14,000");
+    await expect(progress).toContainText("Took 3m 12s.");
 
     // and it STAYS: the dialog is the only report of what was deleted, so
     // refreshing the listing must not tear it down while it is being read

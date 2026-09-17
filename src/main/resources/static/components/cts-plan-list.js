@@ -13,6 +13,7 @@ import "./cts-json-view.js";
 import "./cts-spinner.js";
 import "./cts-badge.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
+import { formatDuration } from "../lib/time-format.js";
 import "./cts-plan-status.js";
 import {
   emptyFilter,
@@ -607,7 +608,7 @@ class CtsPlanList extends LitElement {
     // A limit by default, because the first thing anyone should do with this is
     // delete a small batch and look at the result
     this._bulkLimit = "100";
-    /** @type {{state: string, plans: number, tests: number, logEntries: number, target: number|null}|null} */
+    /** @type {{state: string, plans: number, tests: number, logEntries: number, target: number|null, startedAt?: string|null, finishedAt?: string|null}|null} */
     this._bulkProgress = null;
     this._bulkError = null;
     this._bulkBusy = false;
@@ -1557,6 +1558,9 @@ class CtsPlanList extends LitElement {
                 — ${progress.plans.toLocaleString()} of ${(progress.target ?? 0).toLocaleString()}
                 plans, ${progress.tests.toLocaleString()} test runs and
                 ${progress.logEntries.toLocaleString()} log entries removed.
+                ${progress.finishedAt
+                  ? html`Took ${formatDuration(progress.startedAt, progress.finishedAt)}.`
+                  : nothing}
               </p>
               ${running
                 ? html`<cts-button
