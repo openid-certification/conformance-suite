@@ -7,48 +7,34 @@ import {
 } from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
+import { LOG_FILTERS, LOG_SEARCH_FIELDS, serveListing } from "./helpers/listing-server.js";
 
-// All filter / search / sort / pagination behaviour is now client-side over a
-// single 1000-row fetch envelope — matching the cts-dashboard stats pattern.
-// The route helper returns the same PaginationResponse shape regardless of
-// pagination params, which mirrors backend behaviour for a dataset that fits
-// in one page.
+// The SERVER does the filtering, searching, sorting and paging: every change
+// to a chip, the search box or the sort selector is a new `/api/log` request
+// carrying `status` / `result` / `search` / `order`, and "Show more" asks for
+// the next page. The route helper answers each request as the server would
+// (see helpers/listing-server.js), so what the cards show is what the
+// request asked for.
 //
-// `cts-log-list` also resolves a kebab-case `planName` per unique `planId`
-// via `/api/plan/<id>` so the meta-row "Plan" chip shows the spec identifier
-// instead of the opaque MongoDB id. The default plan-name stub is bundled
-// here so every test in this file picks it up — individual tests can still
-// register a more specific `**/api/plan/**` route AFTER calling this helper
-// to override the default (Playwright matches routes in reverse registration
-// order).
+// Each row already carries `planName`, which the server attaches from the
+// plan the test belongs to, so the meta-row "Plan" chip needs no further
+// request: any `/api/plan/<id>` call from the listing is caught by
+// setupFailFast as an unmocked call.
 /**
  * @param {import('@playwright/test').Page} page
- * @param {ReadonlyArray<{planId?: string}>} [rows]
- * @param {Record<string, string>} [planNamesById]
+ * @param {ReadonlyArray<Record<string, unknown>>} [rows]
  */
-async function setupLogListRoute(page, rows = MOCK_LOG_LIST, planNamesById = {}) {
+async function setupLogListRoute(page, rows = MOCK_LOG_LIST) {
   await page.route("**/api/log?*", (route) => {
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        draw: 1,
-        recordsTotal: rows.length,
-        recordsFiltered: rows.length,
-        data: rows,
-      }),
-    });
-  });
-  await page.route("**/api/plan/*", (route) => {
-    const url = new URL(route.request().url());
-    const planId = url.pathname.replace("/api/plan/", "");
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        _id: planId,
-        planName: planNamesById[planId] || `mock-plan-name-${planId}`,
-      }),
+      body: JSON.stringify(
+        serveListing(rows, route.request().url(), {
+          searchFields: LOG_SEARCH_FIELDS,
+          filters: LOG_FILTERS,
+        }),
+      ),
     });
   });
 }
@@ -124,9 +110,11 @@ test.describe("logs.html — Logs List", () => {
     expect(href).toMatch(/^log-detail\.html\?log=test-log-\d+/);
   });
 
-  test("search input live-filters the rendered cards (R3)", async ({ page }) => {
+  test("search input asks the server for the term and shows what it answers (R3)", async ({
+    page,
+  }) => {
     await setupFailFast(page);
-    await setupLogListRoute(page);
+    const logRequests = await recordLogRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
@@ -136,22 +124,25 @@ test.describe("logs.html — Logs List", () => {
     const searchInput = page.locator("#logsListing .cts-log-list-search input");
     await searchInput.fill("rotate-keys");
 
-    // Live filter — no /api/log re-fetch fires. The dataset is already in
-    // memory from the initial fetch.
+    // The term travels to the server (after the typing pauses) and the cards
+    // are what it answered with.
     const items = page.locator('#logsListing [data-testid="log-list-item"]');
     await expect(items).toHaveCount(1);
     await expect(items.first()).toContainText("oidcc-server-rotate-keys");
+    const searched = logRequests.map((u) => new URL(u).searchParams.get("search"));
+    expect(searched).toContain("rotate-keys");
 
-    // Clear the search — full list returns.
+    // Clearing the box asks again, without the term — the full list returns.
     await searchInput.fill("");
     await expect(items).toHaveCount(MOCK_LOG_LIST.length);
+    expect(new URL(logRequests[logRequests.length - 1]).searchParams.has("search")).toBe(false);
   });
 
   test("sort selector defaults to Started (newest) and reorders on change (R4)", async ({
     page,
   }) => {
     await setupFailFast(page);
-    await setupLogListRoute(page);
+    const logRequests = await recordLogRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
@@ -160,9 +151,10 @@ test.describe("logs.html — Logs List", () => {
 
     const sortSelect = page.locator("#logsListing .cts-log-list-sort select");
     await expect(sortSelect).toHaveValue("started-desc");
+    expect(new URL(logRequests[0]).searchParams.get("order")).toBe("started,desc");
 
-    // Switch to name-asc — the first card is the alphabetically-earliest test
-    // name in the fixture.
+    // Switch to name-asc: the SERVER is asked to sort, and the first card is
+    // the alphabetically-earliest test name in the fixture.
     await sortSelect.selectOption("name-asc");
     const firstCardName = page
       .locator('#logsListing [data-testid="log-list-item"]')
@@ -170,6 +162,87 @@ test.describe("logs.html — Logs List", () => {
       .locator(".cts-log-card-name");
     // Fixture's alphabetically-first name is "fapi2-running".
     await expect(firstCardName).toContainText("fapi2-running");
+    expect(new URL(logRequests[logRequests.length - 1]).searchParams.get("order")).toBe(
+      "testName,asc,started,desc",
+    );
+  });
+
+  test("committing the search box after the debounce already asked does not ask again", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const logRequests = await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]').first()).toBeVisible();
+
+    const searchInput = page.locator("#logsListing .cts-log-list-search input");
+    await searchInput.fill("rotate-keys");
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(1);
+    const asked = logRequests.length;
+
+    // `change` fires on the blur that follows typing; the term was already
+    // asked for, so no request follows.
+    await searchInput.press("Enter");
+    await searchInput.blur();
+    await page.locator("#logsListing .cts-log-list-sort select").focus();
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(1);
+    expect(logRequests.length).toBe(asked);
+  });
+
+  test("a re-query keeps the rows on screen, dimmed, until the server answers", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // The first fetch resolves at once; the sort change's fetch is held on an
+    // explicit gate so the in-place state can be observed deterministically.
+    let releaseSecondFetch = () => {};
+    const secondFetchGate = /** @type {Promise<void>} */ (
+      new Promise((resolve) => {
+        releaseSecondFetch = () => resolve();
+      })
+    );
+    let listCalls = 0;
+    await page.route("**/api/log?*", async (route) => {
+      const url = route.request().url();
+      // the runs strip's own window is not what is being gated
+      if (!url.includes("start=0&length=1000")) {
+        listCalls += 1;
+        if (listCalls >= 2) await secondFetchGate;
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          serveListing(MOCK_LOG_LIST, url, {
+            searchFields: LOG_SEARCH_FIELDS,
+            filters: LOG_FILTERS,
+          }),
+        ),
+      });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    const items = page.locator('#logsListing [data-testid="log-list-item"]');
+    await expect(items).toHaveCount(MOCK_LOG_LIST.length);
+
+    await page.locator("#logsListing .cts-log-list-sort select").selectOption("name-asc");
+
+    // No spinner: the rows stay, marked busy, with a status line for readers.
+    const list = page.locator('#logsListing [data-testid="log-list-items"]');
+    await expect(list).toHaveAttribute("aria-busy", "true");
+    await expect(page.locator('#logsListing [data-testid="log-list-refreshing"]')).toHaveText(
+      "Updating…",
+    );
+    await expect(page.locator('#logsListing [data-testid="log-list-loading"]')).toHaveCount(0);
+    await expect(items).toHaveCount(MOCK_LOG_LIST.length);
+
+    releaseSecondFetch();
+    await expect(list).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator('#logsListing [data-testid="log-list-refreshing"]')).toHaveCount(0);
+    await expect(items.first().locator(".cts-log-card-name")).toContainText("fapi2-running");
   });
 
   test("config button in card opens config modal and stops card navigation", async ({ page }) => {
@@ -235,17 +308,15 @@ test.describe("logs.html — Logs List", () => {
     await expect(configModal).toBeHidden();
   });
 
-  test("Plan chip text resolves to planName, not planId", async ({ page }) => {
-    // /api/log only carries `planId`. The cts-log-card-plan-link must show
-    // the human-meaningful kebab-case `planName` from /api/plan/<id> instead
-    // of the opaque MongoDB id, while keeping the link target pointed at
-    // plan-detail by planId.
+  test("Plan chip shows the row's planName, with no per-row plan request", async ({ page }) => {
+    // Each /api/log row carries `planName`, attached by the server from the
+    // plan the test belongs to. The cts-log-card-plan-link shows that
+    // human-meaningful kebab-case name instead of the opaque MongoDB id,
+    // while keeping the link target pointed at plan-detail by planId. No
+    // `/api/plan/<id>` route is mocked here: were the listing still to fetch
+    // one per plan, setupFailFast would report it.
     await setupFailFast(page);
-    await setupLogListRoute(page, MOCK_LOG_LIST, {
-      "plan-001": "oidcc-basic-certification-test-plan",
-      "plan-002": "fapi2-security-profile-final-test-plan",
-      "plan-003": "vci-id-1-wallet-test-plan",
-    });
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
@@ -256,12 +327,9 @@ test.describe("logs.html — Logs List", () => {
     await expect(card001).toBeVisible();
 
     const planLink001 = card001.locator(".cts-log-card-plan-link");
-    // Resolution is async — wait for the chip text to settle on the
-    // resolved planName rather than the optimistic planId fallback.
     await expect(planLink001).toHaveText("oidcc-basic-certification-test-plan");
 
-    // Same id (plan-001) shared with another row — second card also shows
-    // the resolved name, proving the cache hits across rows.
+    // Same plan (plan-001) on another row — the same name.
     const card002 = page.locator(
       '#logsListing [data-testid="log-list-item"][data-test-id="test-log-002"]',
     );
@@ -269,7 +337,7 @@ test.describe("logs.html — Logs List", () => {
       "oidcc-basic-certification-test-plan",
     );
 
-    // Distinct planId resolves to its own planName.
+    // A distinct plan carries its own name.
     const card003 = page.locator(
       '#logsListing [data-testid="log-list-item"][data-test-id="test-log-003"]',
     );
@@ -278,29 +346,21 @@ test.describe("logs.html — Logs List", () => {
     );
 
     // Link target still uses planId (the routable identifier) — only the
-    // visible text changed.
+    // visible text differs.
     await expect(planLink001).toHaveAttribute("href", /plan=plan-001/);
   });
 
-  test("Plan chip falls back to planId when /api/plan/<id> returns 404", async ({ page }) => {
-    // When the plan lookup fails (deleted plan, permission denied), the
-    // chip must stay readable rather than going blank. Falling back to the
-    // raw planId preserves both a usable label and the link target.
+  test("Plan chip falls back to planId when the row carries no planName", async ({ page }) => {
+    // The server leaves `planName` off a row whose plan cannot be found
+    // (deleted plan, or outside the public scope). The chip must stay
+    // readable rather than going blank: the raw planId keeps both a usable
+    // label and the link target.
     await setupFailFast(page);
-    await page.route("**/api/log?*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          draw: 1,
-          recordsTotal: MOCK_LOG_LIST.length,
-          recordsFiltered: MOCK_LOG_LIST.length,
-          data: MOCK_LOG_LIST,
-        }),
-      }),
-    );
-    await page.route("**/api/plan/*", (route) =>
-      route.fulfill({ status: 404, contentType: "application/json", body: "{}" }),
+    await setupLogListRoute(
+      page,
+      MOCK_LOG_LIST.map((row) =>
+        Object.fromEntries(Object.entries(row).filter(([key]) => key !== "planName")),
+      ),
     );
     await setupCommonRoutes(page);
 
@@ -447,16 +507,18 @@ test.describe("logs.html — Faceted filter dropdown and URL sync", () => {
     await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
-    // Capture the request so we can assert public=true was forwarded.
-    const requestPromise = page.waitForRequest(
-      (req) => req.url().includes("/api/log") && req.url().includes("length=1000"),
-    );
+    // Capture the request so we can assert public=true was forwarded. The
+    // runs strip does not fetch on the Published view, so the first /api/log
+    // request is the listing's.
+    const requestPromise = page.waitForRequest((req) => req.url().includes("/api/log?"));
     await page.goto("/logs.html?public=true&result=failed,unknown");
-    const req = await requestPromise;
-    expect(req.url()).toContain("public=true");
-    // The listing sorts client-side over a server-capped window, so the
-    // server must hand over the newest rows, not MongoDB natural order.
-    expect(req.url()).toContain("order=started,desc");
+    const req = new URL((await requestPromise).url());
+    expect(req.searchParams.get("public")).toBe("true");
+    // The server filters, sorts and pages: the chip filter and the default
+    // newest-first ordering travel with the request.
+    expect(req.searchParams.get("result")).toBe("failed,unknown");
+    expect(req.searchParams.get("order")).toBe("started,desc");
+    expect(req.searchParams.get("start")).toBe("0");
 
     // Clicking the summary preserves ?public=true.
     const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
@@ -647,9 +709,9 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     await page.goto("/logs.html");
     await expect(page.locator(ITEM).first()).toBeVisible();
     // Initial My fetch carries no public flag. The runs strip also fires its own
-    // unfiltered window (start=0) on the authed My view, so assert on the LIST's
-    // fetch only — it is the one without start=0.
-    const listRequests = logRequests.filter((u) => !u.includes("start=0"));
+    // 1000-row window on the authed My view, so assert on the LIST's page fetch
+    // only — the one that is not that window.
+    const listRequests = logRequests.filter((u) => !u.includes("start=0&length=1000"));
     expect(listRequests).toHaveLength(1);
     expect(listRequests[0]).not.toContain("public=true");
 
@@ -696,14 +758,6 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
           recordsFiltered: MOCK_LOG_LIST.length,
           data: MOCK_LOG_LIST,
         }),
-      });
-    });
-    await page.route("**/api/plan/*", (route) => {
-      const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
       });
     });
     await setupCommonRoutes(page);

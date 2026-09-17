@@ -15,6 +15,8 @@ public record PlanCreatedResponse(
 	public record ModuleEntry(
 		@Schema(description = "Test module name", example = "oidcc-server") String testModule,
 		@Schema(description = "Module-specific variant values, if any (null otherwise)") Map<String, String> variant,
-		@Schema(description = "Ids of test instances already run for this module (empty at creation)") List<String> instances) {
+		@Schema(description = "Ids of test instances already run for this module (empty at creation)") List<String> instances,
+		@Schema(description = "In a plan listing only: the lifecycle status of the module's latest run, absent when the module has not run or that run cannot be found") String status,
+		@Schema(description = "In a plan listing only: the result of the module's latest run, absent when the module has not run, has no result yet, or that run cannot be found") String result) {
 	}
 }

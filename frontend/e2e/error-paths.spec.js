@@ -245,7 +245,7 @@ test.describe("logs.html — DataTables server error", () => {
   test("GET /api/log 500 surfaces an inline error and no cards render", async ({ page }) => {
     await setupFailFast(page);
 
-    // The cts-log-list component fetches /api/log?length=1000&order=started,desc once at mount.
+    // The cts-log-list component fetches its first /api/log page once at mount.
     // A 500 sets the component's _error state and renders a danger cts-alert
     // inline above the empty list region — there is no #errorModal hop here.
     // The legacy modal contract was specific to the cts-data-table path that

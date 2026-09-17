@@ -646,7 +646,7 @@ export interface paths {
     };
     /**
      * Get all test logs with paging
-     * @description Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs
+     * @description Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs. Each row also carries `planName`, the name of the plan the test belongs to, when that plan can be found. The `status` and `result` filters only narrow that listing.
      */
     get: operations["listTestLogs"];
     put?: never;
@@ -926,6 +926,10 @@ export interface components {
       };
       /** @description Ids of test instances already run for this module (empty at creation) */
       instances?: string[];
+      /** @description In a plan listing only: the lifecycle status of the module's latest run, absent when the module has not run or that run cannot be found */
+      status?: string;
+      /** @description In a plan listing only: the result of the module's latest run, absent when the module has not run, has no result yet, or that run cannot be found */
+      result?: string;
     };
     /** @description Result of creating a test plan instance */
     PlanCreatedResponse: {
@@ -1272,6 +1276,11 @@ export interface components {
        * @enum {string}
        */
       result?: "PASSED" | "FAILED" | "WARNING" | "REVIEW" | "SKIPPED" | "UNKNOWN";
+      /**
+       * @description In a test log listing only: the name of the plan this test belongs to, absent for a standalone test or when the plan cannot be found
+       * @example oidcc-basic-certification-test-plan
+       */
+      planName?: string;
     };
     /** @description The currently authenticated user */
     CurrentUserResponse: {
@@ -1546,7 +1555,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Canceled test successfully; returns the pre-cancellation state (the stop happens in the background) */
+      /** @description Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background) */
       200: {
         headers: {
           [name: string]: unknown;
@@ -3038,6 +3047,16 @@ export interface operations {
       query?: {
         /** @description Published data only */
         public?: boolean;
+        /**
+         * @description Only list tests whose status is one of these, comma-separated and case-insensitive: NOT_YET_CREATED, CREATED, CONFIGURED, RUNNING, WAITING, INTERRUPTED, FINISHED.
+         * @example running,waiting
+         */
+        status?: string;
+        /**
+         * @description Only list tests whose result is one of these, comma-separated and case-insensitive: PASSED, FAILED, WARNING, REVIEW, SKIPPED, UNKNOWN.
+         * @example failed,unknown
+         */
+        result?: string;
         /** @description DataTables echo counter; returned unchanged as 'draw' in the response so a client can match responses to requests */
         draw?: number;
         /** @description 0-based index of the first record to return */
@@ -3065,6 +3084,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PaginationResponse"];
+        };
+      };
+      /** @description A filter names a status or result a test cannot have */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
       /** @description Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data */

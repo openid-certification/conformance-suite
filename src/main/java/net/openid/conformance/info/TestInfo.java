@@ -6,6 +6,7 @@ import net.openid.conformance.logging.MongoKeyWrapper;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,7 +14,7 @@ import java.time.Instant;
 import java.util.Map;
 
 @Document(collection = DBTestInfoService.COLLECTION)
-public class TestInfo {
+public class TestInfo implements TestListRow {
 
 	@Id
 	private String _id;
@@ -36,6 +37,9 @@ public class TestInfo {
 	@Indexed
 	private String publish;
 	private String result;
+	/** Attached to a listing row from the plan the test belongs to; never stored with the test. */
+	@Transient
+	private String planName;
 
 	TestInfo() {
 		// Load constructor
@@ -107,8 +111,18 @@ public class TestInfo {
 		return owner;
 	}
 
+	@Override
 	public String getPlanId() {
 		return planId;
+	}
+
+	public String getPlanName() {
+		return planName;
+	}
+
+	@Override
+	public void setPlanName(String planName) {
+		this.planName = planName;
 	}
 
 	public Status getStatus() {

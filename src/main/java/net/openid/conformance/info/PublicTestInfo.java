@@ -2,10 +2,11 @@ package net.openid.conformance.info;
 
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
+import org.springframework.data.annotation.Transient;
 
 import java.util.Map;
 
-public class PublicTestInfo {
+public class PublicTestInfo implements TestListRow {
 
 	private String _id;
 	private String testId;
@@ -21,6 +22,9 @@ public class PublicTestInfo {
 	private String summary;
 	private String publish;
 	private String result;
+	/** Attached to a listing row from the plan the test belongs to; never stored with the test. */
+	@Transient
+	private String planName;
 
 	public String getId() {
 		return _id;
@@ -54,8 +58,18 @@ public class PublicTestInfo {
 		return owner;
 	}
 
+	@Override
 	public String getPlanId() {
 		return planId;
+	}
+
+	public String getPlanName() {
+		return planName;
+	}
+
+	@Override
+	public void setPlanName(String planName) {
+		this.planName = planName;
 	}
 
 	public Status getStatus() {

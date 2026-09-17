@@ -1,4 +1,7 @@
-/** Mock /api/log response shape for cts-log-list stories. */
+/**
+ * Mock /api/log response shape for cts-log-list stories. Each row carries
+ * `planName`, which the server attaches from the plan the test belongs to.
+ */
 
 const NOW = Date.now();
 const DAY_MS = 86400000;
@@ -15,6 +18,7 @@ export const MOCK_LOG_LIST = [
     description: "Tests basic OpenID Connect server functionality.",
     started: new Date(NOW - DAY_MS).toISOString(),
     planId: "plan-001",
+    planName: "oidcc-basic-certification-test-plan",
     status: "FINISHED",
     result: "PASSED",
     owner: OWNER,
@@ -27,6 +31,7 @@ export const MOCK_LOG_LIST = [
       "Tests key rotation behaviour: server publishes a new key, clients pick it up on next JWKS poll, the overlap window honours the previous key for in-flight requests.",
     started: new Date(NOW - HOUR_MS * 3).toISOString(),
     planId: "plan-001",
+    planName: "oidcc-basic-certification-test-plan",
     status: "FINISHED",
     result: "WARNING",
     owner: OWNER,
@@ -38,6 +43,7 @@ export const MOCK_LOG_LIST = [
     description: "An actively-running test.",
     started: new Date(NOW - HOUR_MS).toISOString(),
     planId: "plan-002",
+    planName: "fapi2-security-profile-final-test-plan",
     status: "RUNNING",
     result: "UNKNOWN",
     owner: OWNER,
@@ -49,6 +55,7 @@ export const MOCK_LOG_LIST = [
     description: "A test waiting on user interaction.",
     started: new Date(NOW - HOUR_MS / 2).toISOString(),
     planId: "plan-002",
+    planName: "fapi2-security-profile-final-test-plan",
     status: "WAITING",
     result: "UNKNOWN",
     owner: OTHER_OWNER,
@@ -60,6 +67,7 @@ export const MOCK_LOG_LIST = [
     description: "A finished test that hit a hard failure during the issuance handshake.",
     started: new Date(NOW - HOUR_MS * 8).toISOString(),
     planId: "plan-003",
+    planName: "vci-id-1-wallet-test-plan",
     status: "FINISHED",
     result: "FAILED",
     owner: OWNER,
@@ -72,6 +80,7 @@ export const MOCK_LOG_LIST = [
       "A verifiable-presentation test whose outcome requires reviewer judgement before a result is recorded.",
     started: new Date(NOW - HOUR_MS * 5).toISOString(),
     planId: "plan-004",
+    planName: "oid4vp-1final-verifier-test-plan",
     status: "FINISHED",
     result: "REVIEW",
     owner: OWNER,
@@ -89,6 +98,7 @@ export const MOCK_LOG_LIST_LARGE = Array.from({ length: 60 }, (_, i) => ({
   description: `Test fixture row ${i + 1} for pagination behaviour.`,
   started: new Date(NOW - HOUR_MS * (i + 1)).toISOString(),
   planId: `plan-${String(Math.floor(i / 5) + 1).padStart(3, "0")}`,
+  planName: `mock-plan-${String(Math.floor(i / 5) + 1).padStart(3, "0")}-name`,
   status: i % 7 === 0 ? "RUNNING" : "FINISHED",
   result: i % 5 === 0 ? "FAILED" : i % 3 === 0 ? "WARNING" : "PASSED",
   owner: OWNER,

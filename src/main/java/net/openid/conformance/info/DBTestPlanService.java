@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import net.openid.conformance.info.Plan.Module;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -30,7 +31,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -197,19 +200,22 @@ public class DBTestPlanService implements TestPlanService {
 
 		Map<String, String> principal = authenticationFacade.isAdmin() ? null : authenticationFacade.getPrincipal();
 
+		PaginationResponse<Plan> response;
 		if (!filter.isEmpty() || owner != null) {
 			Criteria scope = ownerScope(principal, owner);
-			return page.getSliceResponse((search, pageable) ->
+			response = page.getSliceResponse((search, pageable) ->
 					findSlice(scope, filter, search, pageable, Plan.class));
-		}
-		if (principal != null) {
-			return page.getSliceResponse(
+		} else if (principal != null) {
+			response = page.getSliceResponse(
 					p -> plans.findAllByOwnerAsSlice(principal, p),
 					(s, p) -> plans.findAllByOwnerSearchAsSlice(principal, s, p));
+		} else {
+			response = page.getSliceResponse(
+					p -> plans.findAllAsSlice(p),
+					(s, p) -> plans.findAllSearchAsSlice(s, p));
 		}
-		return page.getSliceResponse(
-				p -> plans.findAllAsSlice(p),
-				(s, p) -> plans.findAllSearchAsSlice(s, p));
+		attachLatestRuns(response.data.stream().map(Plan::getModules).toList(), null);
+		return response;
 	}
 
 	/**
@@ -248,15 +254,78 @@ public class DBTestPlanService implements TestPlanService {
 	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page, PlanListFilter filter,
 																	PlanOwner owner) {
 
+		PaginationResponse<PublicPlan> response;
 		if (!filter.isEmpty() || owner != null) {
 			Criteria scope = owner == null ? published()
 					: new Criteria().andOperator(published(), owner.toCriteria());
-			return page.getSliceResponse((search, pageable) ->
+			response = page.getSliceResponse((search, pageable) ->
 					findSlice(scope, filter, search, pageable, PublicPlan.class));
+		} else {
+			response = page.getSliceResponse(
+					p -> plans.findAllPublicAsSlice(p),
+					(s, p) -> plans.findAllPublicSearchAsSlice(s, p));
 		}
-		return page.getSliceResponse(
-				p -> plans.findAllPublicAsSlice(p),
-				(s, p) -> plans.findAllPublicSearchAsSlice(s, p));
+		// only the runs a public reader could open: a test is published with its plan, but can
+		// also be published on its own, and this listing must not say more than /api/info would
+		attachLatestRuns(response.data.stream().map(PublicPlan::getModules).toList(), published());
+		return response;
+	}
+
+	/**
+	 * Attach to every module of a page of plans the status and result of its latest run, looked
+	 * up for the whole page in one query. A module that has never run, or whose latest run
+	 * cannot be found (deleted, or outside the scope), is left without.
+	 *
+	 * @param moduleLists the modules of each plan on the page, some possibly null
+	 * @param runScope    which runs may be shown, or null for any
+	 */
+	private void attachLatestRuns(List<List<Module>> moduleLists, Criteria runScope) {
+
+		List<Module> modules = moduleLists.stream()
+				.filter(Objects::nonNull)
+				.flatMap(List::stream)
+				.toList();
+		Set<String> latest = modules.stream()
+				.map(DBTestPlanService::latestInstance)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+		if (latest.isEmpty()) {
+			return;
+		}
+
+		Criteria criteria = Criteria.where("_id").in(latest);
+		Query query = new Query(runScope == null ? criteria : new Criteria().andOperator(criteria, runScope));
+		query.fields().include("status", "result");
+
+		Map<String, Document> runs = new HashMap<>();
+		for (Document run : mongoTemplate.find(query, Document.class, DBTestInfoService.COLLECTION)) {
+			runs.put(String.valueOf(run.get("_id")), run);
+		}
+		applyLatestRuns(modules, runs);
+	}
+
+	/**
+	 * @param module a plan module
+	 * @return the id of its latest run, or null if it has never run
+	 */
+	static String latestInstance(Module module) {
+		List<String> instances = module.getInstances();
+		return instances == null || instances.isEmpty() ? null : instances.get(instances.size() - 1);
+	}
+
+	/**
+	 * @param modules the modules of a page of plans
+	 * @param runs    test id to the test document's {@code status} and {@code result}, for the
+	 *                latest runs that could be found
+	 */
+	static void applyLatestRuns(List<Module> modules, Map<String, Document> runs) {
+		for (Module module : modules) {
+			String id = latestInstance(module);
+			Document run = id == null ? null : runs.get(id);
+			if (run != null) {
+				module.setLatestRun(run.getString("status"), run.getString("result"));
+			}
+		}
 	}
 
 	/**

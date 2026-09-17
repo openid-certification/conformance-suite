@@ -1,11 +1,6 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  setupTestInfoRoute,
-  expectNoUnmockedCalls,
-} from "./helpers/routes.js";
-import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
 import { MOCK_ADMIN_USER, MOCK_USER } from "./fixtures/mock-users.js";
 
 /**
@@ -28,7 +23,6 @@ const FILTERED_URL =
   "&owner_iss=https%3A%2F%2Faccounts.google.com&to=2025-08-17";
 const DELETE_BUTTON = "[data-testid='plan-bulk-delete']";
 const CONFIRM_BUTTON = "[data-testid='plan-bulk-delete-confirm']";
-const SERVER_SEARCH = "[data-testid='plan-bulk-delete-server-search']";
 
 /**
  * @param {import('@playwright/test').Page} page - The page under test.
@@ -72,7 +66,6 @@ test.describe("plans.html — bulk delete", () => {
 
   test("is not offered to a non-admin, however filtered the listing is", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto(FILTERED_URL);
@@ -83,7 +76,6 @@ test.describe("plans.html — bulk delete", () => {
 
   test("is not offered to an admin when the listing is not narrowed", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html");
@@ -95,7 +87,6 @@ test.describe("plans.html — bulk delete", () => {
 
   test("shows what would go, then deletes it and reports progress", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
     await mockPreview(page, { listed: 348585, deletable: 348583, kept: 2, target: 100 });
 
@@ -175,7 +166,6 @@ test.describe("plans.html — bulk delete", () => {
     // be deleted; if the term did not reach the server, or did not count as narrowing there,
     // this listing would offer a delete button whose request is refused
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     /** @type {Array<string>} */
@@ -234,7 +224,6 @@ test.describe("plans.html — bulk delete", () => {
 
   test("shows the reason when the server refuses", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
     await mockPreview(page, { listed: 10, deletable: 10, kept: 0, target: 10 });
 
@@ -258,7 +247,6 @@ test.describe("plans.html — bulk delete", () => {
 
   test("offers nothing to delete when everything matching is kept", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
     await mockPreview(page, { listed: 32, deletable: 0, kept: 32, target: 0 });
 
@@ -273,28 +261,8 @@ test.describe("plans.html — bulk delete", () => {
     await expect(page.locator(`${CONFIRM_BUTTON} button`)).toBeDisabled();
   });
 
-  test("is refused while a search is narrowing what is on screen", async ({ page }) => {
+  test("what is typed into the search box is what a delete would remove", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await mockPlanRoute(page);
-
-    await page.goto(FILTERED_URL);
-    await expect(page.locator(`${DELETE_BUTTON} button`)).toBeEnabled();
-
-    // the search box narrows only what is rendered, so what would be deleted is
-    // no longer what the admin can see
-    await page.locator("input[type='search']").fill("ciba");
-
-    await expect(page.locator(`${DELETE_BUTTON} button`)).toBeDisabled();
-    await expect(page.locator(DELETE_BUTTON)).toHaveAttribute("title", /search box narrows only/);
-    await expect(page.locator(SERVER_SEARCH)).toBeVisible();
-  });
-
-  test("offers to hand the search to the server, which puts the delete back in reach", async ({
-    page,
-  }) => {
-    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
 
     /** @type {Array<string>} */
     const listingUrls = [];
@@ -310,23 +278,24 @@ test.describe("plans.html — bulk delete", () => {
     await mockPreview(page, { listed: 3, deletable: 3, kept: 0, target: 3 });
 
     await page.goto(FILTERED_URL);
+    await expect(page.locator(`${DELETE_BUTTON} button`)).toBeEnabled();
     await page.locator("input[type='search']").fill("ciba");
-    await page.locator(SERVER_SEARCH).click();
 
-    // the term moved out of the box and into the listing itself
-    await expect(page.locator("input[type='search']")).toHaveValue("");
+    // the search box is the server's search filter: the term is in the listing
+    // itself, its chip and the URL, so it means the same set of plans everywhere
     await expect(page.locator("[data-testid='plan-filter-search']")).toHaveAttribute(
       "label",
       "Search: ciba",
     );
     await expect(page).toHaveURL(/[?&]search=ciba/);
+    await expect(page.locator("input[type='search']")).toHaveValue("ciba");
 
     // the listing was re-fetched from the server WITH the term
     await expect
       .poll(() => listingUrls.some((url) => new URL(url).searchParams.get("search") === "ciba"))
       .toBe(true);
 
-    // and deleting is on the table again, carrying that same term
+    // and deleting stays on the table, carrying that same term
     await expect(page.locator(`${DELETE_BUTTON} button`)).toBeEnabled();
     await page.locator(DELETE_BUTTON).click();
     await expect(page.locator("[data-testid='plan-bulk-delete-counts']")).toContainText(
@@ -346,7 +315,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
 
   test("the owner pill narrows the listing to that account", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html");
@@ -376,7 +344,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     // the server answers a half pair with a 400; the page must not send one, and a
     // hand-edited link must still open the listing
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html?owner=104383237143811096540");
@@ -387,7 +354,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
 
   test("the Started control narrows the listing to an age", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html");
@@ -403,7 +369,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     page,
   }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html");
@@ -441,7 +406,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     page,
   }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html?family=FAPI-CIBA&plan=fapi-ciba-id1-test-plan");
@@ -454,7 +418,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
 
   test("Immutable narrows the listing, and shows what it is narrowed to", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html");
@@ -474,7 +437,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     page,
   }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html");
@@ -506,7 +468,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
 
   test("a retired plan offers no variants, the registry not knowing it", async ({ page }) => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     await page.goto("/plans.html?plan=fapi-ciba-test-plan");
@@ -522,7 +483,6 @@ test.describe("plans.html — narrowing the listing without editing the URL", ()
     // before its <option> children exist, so without setting it after render the
     // control reads "Any time" while the listing is narrowed to a period
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await mockPlanRoute(page);
 
     const twoYearsAgo = new Date();

@@ -1,12 +1,7 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  setupTestInfoRoute,
-  expectNoUnmockedCalls,
-  wrapDataTablesResponse,
-} from "./helpers/routes.js";
-import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { PLAN_SEARCH_FIELDS, serveListing } from "./helpers/listing-server.js";
+import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
 /**
@@ -16,10 +11,12 @@ import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
  * plan id slug, description, module status grid, metadata row), Show-more
  * pagination, and a config-viewer modal.
  *
- * Module status is NOT in the /api/plan payload (Plan.Module carries only
- * testModule + instances). Each module's latest result is fetched from
- * /api/info/<lastInstance> and drives a color-coded status box — so these
- * tests mock /api/info via setupTestInfoRoute(MOCK_PLAN_INFO).
+ * The SERVER searches, sorts and pages: the search box, the sort selector
+ * and "Show more" are each a new /api/plan request, which the route mocks
+ * answer as the server would (helpers/listing-server.js). Each row's modules
+ * carry the status/result of their latest run, so a page renders with no
+ * further request — a `/api/info/<id>` call from the listing would be
+ * reported by setupFailFast as unmocked.
  *
  * The host keeps id="plansListing"; cts-plan-list is Light DOM so descendant
  * queries resolve through to the cards. Plan-name clicks emit
@@ -31,13 +28,13 @@ import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
  */
 async function mockPlanRoute(page) {
   await page.route("**/api/plan*", (route) => {
-    const url = new URL(route.request().url());
-    const isPublic = url.searchParams.get("public") === "true";
-    const body = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
+    const url = route.request().url();
+    const isPublic = new URL(url).searchParams.get("public") === "true";
+    const rows = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(body),
+      body: JSON.stringify(serveListing(rows, url, { searchFields: PLAN_SEARCH_FIELDS })),
     });
   });
 }
@@ -52,7 +49,6 @@ test.describe("plans.html — Plans List", () => {
   test("loads and renders plans as cards", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -93,10 +89,11 @@ test.describe("plans.html — Plans List", () => {
       "View configuration",
     );
 
-    // Module status segments (cts-plan-status overview bar) resolve from
-    // /api/info: a run module recolors to its status, a never-run module stays
-    // a static neutral segment. Each segment is keyed by its accessible name
-    // ("<module>: <status>"); the trailing colon disambiguates id prefixes.
+    // Module status segments (cts-plan-status overview bar) take their colour
+    // from the status/result each listing row carries for the module's latest
+    // run; a never-run module is a static neutral segment. Each segment is
+    // keyed by its accessible name ("<module>: <status>"); the trailing colon
+    // disambiguates id prefixes.
     await expect(
       page.locator(
         "#plansListing [data-testid='plan-status-segment'][aria-label^='oidcc-server:']",
@@ -117,7 +114,6 @@ test.describe("plans.html — Plans List", () => {
   test("navbar brand points at the plans home for authenticated users", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -133,7 +129,6 @@ test.describe("plans.html — Plans List", () => {
   test("admin users see owner pills", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plans.html");
@@ -169,7 +164,6 @@ test.describe("plans.html — Plans List", () => {
         body: JSON.stringify(body),
       });
     });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -193,7 +187,6 @@ test.describe("plans.html — Plans List", () => {
   test("admin viewing ?public=true still hides owner and config", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plans.html?public=true");
@@ -209,7 +202,6 @@ test.describe("plans.html — Plans List", () => {
   test("clicking a plan name navigates to plan-detail.html", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
 
     // Stub plan-detail.html so the navigation target can be verified without
     // the real detail page loading.
@@ -242,7 +234,6 @@ test.describe("plans.html — Plans List", () => {
   test("config button opens modal and exposes copy affordance", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -274,20 +265,9 @@ test.describe("plans.html — Plans List", () => {
     await expect(copyBtn).toBeVisible();
   });
 
-  test("search input filters plans client-side without re-fetching", async ({ page }) => {
+  test("search input asks the server for the term and puts it in the URL", async ({ page }) => {
     await setupFailFast(page);
-
-    /** @type {string[]} */
-    const planRequests = [];
-    await page.route("**/api/plan*", (route) => {
-      planRequests.push(route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_LIST),
-      });
-    });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    const planRequests = await recordPlanRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -295,20 +275,32 @@ test.describe("plans.html — Plans List", () => {
     const cards = page.locator(CARD);
     await expect(cards).toHaveCount(MOCK_PLAN_LIST.length);
 
-    const fetchesBeforeSearch = planRequests.length;
-
     const searchInput = page.locator('#plansListing input[placeholder="Search test plans..."]');
     await expect(searchInput).toBeVisible();
     await searchInput.fill("fapi2");
 
-    // Live filter narrows the rendered cards to the match.
+    // The term travels to the server (after the typing pauses) and the cards
+    // are what it answered with.
     await expect(cards).toHaveCount(1);
     await expect(page.locator("#plansListing")).toContainText(
       "fapi2-security-profile-final-test-plan",
     );
+    const searched = planRequests.map((u) => new URL(u).searchParams.get("search"));
+    expect(searched).toContain("fapi2");
 
-    // No additional /api/plan fetch should fire — search is local.
-    expect(planRequests).toHaveLength(fetchesBeforeSearch);
+    // The search box IS the `search` filter: the URL carries it (shareable,
+    // and what a bulk delete would be aimed with) and its chip is offered.
+    await expect(page).toHaveURL(/[?&]search=fapi2/);
+    await expect(page.locator("[data-testid='plan-filter-search']")).toHaveAttribute(
+      "label",
+      "Search: fapi2",
+    );
+
+    // Removing the chip clears the box and asks again without the term.
+    await page.locator("[data-testid='plan-filter-search'] span[role='button']").click();
+    await expect(cards).toHaveCount(MOCK_PLAN_LIST.length);
+    await expect(searchInput).toHaveValue("");
+    expect(new URL(planRequests[planRequests.length - 1]).searchParams.has("search")).toBe(false);
   });
 });
 
@@ -340,11 +332,11 @@ async function recordPlanRoute(page) {
     const url = route.request().url();
     planRequests.push(url);
     const isPublic = new URL(url).searchParams.get("public") === "true";
-    const body = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
+    const rows = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(body),
+      body: JSON.stringify(serveListing(rows, url, { searchFields: PLAN_SEARCH_FIELDS })),
     });
   });
   return planRequests;
@@ -360,7 +352,6 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -385,7 +376,6 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -409,7 +399,6 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -435,7 +424,6 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   test("R6/R23: anonymous → My tab not rendered, Published shown and active", async ({ page }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -465,7 +453,6 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -495,24 +482,30 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
 
   test("R2: search and sort still function after the tab wiring", async ({ page }) => {
     await setupFailFast(page);
-    await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    const planRequests = await recordPlanRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
     await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
 
-    // Search narrows the rendered cards (client-side).
+    // Search narrows the rendered cards (the server answers the term).
     const searchInput = page.locator('#plansListing input[placeholder="Search test plans..."]');
     await searchInput.fill("fapi2");
     await expect(page.locator(CARD)).toHaveCount(1);
 
-    // Sort selector remains operable.
+    // Sort selector asks the server to sort.
     const sortSelect = page.locator("#plansListing .cts-plan-list-sort select");
     await expect(sortSelect).toBeVisible();
     await sortSelect.selectOption("name-asc");
     await searchInput.fill("");
     await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+    const last = new URL(planRequests[planRequests.length - 1]).searchParams;
+    expect(last.get("order")).toBe("planName,asc,started,desc");
+    expect(last.has("search")).toBe(false);
+    // Alphabetical, as the server was asked.
+    await expect(page.locator(`${CARD} .cts-plan-card-name`)).toHaveText(
+      MOCK_PLAN_LIST.map((p) => p.planName).sort((a, b) => a.localeCompare(b)),
+    );
   });
 });
 
@@ -536,7 +529,6 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -551,7 +543,6 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html?public=true");
@@ -563,7 +554,6 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test("U3: authenticated bare URL is NOT canonicalized (stays My)", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -577,7 +567,6 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test("U4: anonymous plan-detail link carries public=true (href + click)", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
     // Stub the destination so the navigation target can be verified.
     await page.route("**/plan-detail.html*", (route) =>
@@ -606,7 +595,6 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test("U4: authenticated plan-detail link has no public param", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -642,7 +630,6 @@ test.describe("plans.html — runs strip relocated to logs.html", () => {
       });
     });
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -692,7 +679,6 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -713,7 +699,6 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   test("R11: anonymous visitor still sees the Schedule-test CTA", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -734,7 +719,6 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -748,7 +732,6 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -768,7 +751,6 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   test("R18: My empty → empty state offers a Schedule-test action", async ({ page }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -791,7 +773,6 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -824,7 +805,6 @@ test.describe("plans.html — narrow-viewport stacked CTA", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -876,7 +856,6 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -903,7 +882,6 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -927,7 +905,6 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -939,7 +916,6 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   test("R22: focusing the help icon reveals the descriptor tooltip", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -991,7 +967,7 @@ async function recordRefusedThenOkPlanRoute(page) {
  * `family` / `plan` / `variant.<k>` / `cert` / `from` / `to` out of its query
  * string and hands them to `<cts-plan-list>` as a property before the element
  * upgrades, so the FIRST `/api/plan` request already carries them — the
- * SERVER applies them, unlike the search box, which is client-side.
+ * SERVER applies them, as it does the search box's term.
  */
 test.describe("plans.html — drill-down filters", () => {
   test.afterEach(async ({ page }) => {
@@ -1003,7 +979,6 @@ test.describe("plans.html — drill-down filters", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto(
@@ -1068,7 +1043,6 @@ test.describe("plans.html — drill-down filters", () => {
   }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?family=OID4VP&from=2026-05-01&to=2026-06-01");
@@ -1088,7 +1062,6 @@ test.describe("plans.html — drill-down filters", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordRefusedThenOkPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto(
@@ -1131,27 +1104,20 @@ test.describe("plans.html — drill-down filters", () => {
 });
 
 /**
- * `/api/plan?length=1000` is the backend's hard cap
- * (`PaginationRequest.setLength`). When there is a next page beyond it, the
- * server's `recordsTotal` is a SYNTHETIC start+length+1
- * (`PaginationRequest.getSliceResponse`) — one row more than the 1000-row
- * page it actually returned — which is the only signal the listing has that
- * it is not showing everything.
+ * The listing is paged by the SERVER: a page of 25 at a time, with the
+ * server's SYNTHETIC `recordsTotal` (`PaginationRequest.getSliceResponse`:
+ * start+length+1 when a further page exists, otherwise start+data.length) as
+ * the only signal that there is more. "Show more" asks for the next page and
+ * appends it.
  */
-test.describe("plans.html — truncated listing (1000-plan cap)", () => {
+test.describe("plans.html — server-side paging", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("the 1000-plan cap surfaces a notice above the list and a '+' footer count", async ({
-    page,
-  }) => {
+  test("Show more asks the server for the next page and appends it", async ({ page }) => {
     await setupFailFast(page);
-    // 1001 rows: cts-plan-list always requests length=1000, so
-    // wrapDataTablesResponse's slice returns exactly 1000 of them while its
-    // recordsTotal reports the full array length — reproducing the server's
-    // synthetic "one past the cap" total without hand-building the envelope.
-    const rows = Array.from({ length: 1001 }, (_, i) => ({
+    const rows = Array.from({ length: 30 }, (_, i) => ({
       _id: `plan-${String(i).padStart(4, "0")}`,
       planName: `plan-${String(i).padStart(4, "0")}-name`,
       description: "",
@@ -1162,37 +1128,95 @@ test.describe("plans.html — truncated listing (1000-plan cap)", () => {
       publish: null,
       immutable: false,
     }));
+    /** @type {string[]} */
+    const planRequests = [];
     await page.route("**/api/plan*", (route) => {
+      const url = route.request().url();
+      planRequests.push(url);
       return route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(wrapDataTablesResponse(rows, route.request().url())),
+        body: JSON.stringify(serveListing(rows, url, { searchFields: PLAN_SEARCH_FIELDS })),
       });
     });
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
 
-    const notice = page.locator("[data-testid='plan-list-truncated']");
-    await expect(notice).toBeVisible();
-    await expect(notice).toContainText(
-      "Showing the newest 1,000 matching plans — narrow the filters or the date range",
-    );
-
+    // The first page: 25 rows, newest first, and the offer of more.
+    await expect(page.locator(CARD)).toHaveCount(25);
+    const first = new URL(planRequests[0]).searchParams;
+    expect(first.get("start")).toBe("0");
+    expect(first.get("length")).toBe("25");
+    expect(first.get("order")).toBe("started,desc");
     const showMore = page.locator("[data-testid='plan-list-show-more']");
-    await expect(showMore).toContainText("Show more (25 of 1,000+)");
+    await expect(showMore).toContainText("Show more (25 loaded)");
+
+    await showMore.click();
+
+    // The next page is asked for from where the first left off, and appended
+    // in order; with nothing left, the offer goes away.
+    await expect(page.locator(CARD)).toHaveCount(30);
+    const next = new URL(planRequests[planRequests.length - 1]).searchParams;
+    expect(next.get("start")).toBe("25");
+    await expect(page.locator(`${CARD}`).last()).toHaveAttribute("data-plan-id", "plan-0029");
+    await expect(showMore).toHaveCount(0);
   });
 
-  test("a normal listing under the cap shows no truncation notice", async ({ page }) => {
+  test("a re-query keeps the rows on screen, dimmed, until the server answers", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    let releaseSecondFetch = () => {};
+    const secondFetchGate = /** @type {Promise<void>} */ (
+      new Promise((resolve) => {
+        releaseSecondFetch = () => resolve();
+      })
+    );
+    let calls = 0;
+    await page.route("**/api/plan*", async (route) => {
+      calls += 1;
+      if (calls >= 2) await secondFetchGate;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          serveListing(MOCK_PLAN_LIST, route.request().url(), { searchFields: PLAN_SEARCH_FIELDS }),
+        ),
+      });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+
+    await page.locator("#plansListing .cts-plan-list-sort select").selectOption("name-asc");
+
+    // No spinner: the rows stay, marked busy, with a status line for readers.
+    const list = page.locator("#plansListing [data-testid='plan-list-items']");
+    await expect(list).toHaveAttribute("aria-busy", "true");
+    await expect(page.locator("#plansListing [data-testid='plan-list-refreshing']")).toHaveText(
+      "Updating…",
+    );
+    await expect(page.locator("#plansListing cts-loading-state")).toHaveCount(0);
+    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+
+    releaseSecondFetch();
+    await expect(list).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator("#plansListing [data-testid='plan-list-refreshing']")).toHaveCount(0);
+    await expect(page.locator(`${CARD} .cts-plan-card-name`)).toHaveText(
+      MOCK_PLAN_LIST.map((p) => p.planName).sort((a, b) => a.localeCompare(b)),
+    );
+  });
+
+  test("a listing that fits in one page offers no Show more", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
     await expect(page.locator(CARD).first()).toBeVisible();
 
-    await expect(page.locator("[data-testid='plan-list-truncated']")).toHaveCount(0);
     await expect(page.locator("[data-testid='plan-list-show-more']")).toHaveCount(0);
   });
 });

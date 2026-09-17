@@ -1,6 +1,7 @@
 import { LitElement, html, nothing, css, unsafeCSS } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { ifDefined } from "lit/directives/if-defined.js";
+import { classMap } from "lit/directives/class-map.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-icon.js";
@@ -12,6 +13,7 @@ import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-json-view.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
+import { listingParams, readListingPage } from "../lib/listing-request.js";
 
 const RESULT_BADGE_VARIANTS = {
   PASSED: "pass",
@@ -48,22 +50,20 @@ const STATUS_FILTER_CHIPS = ["RUNNING", "WAITING", "FINISHED", "INTERRUPTED"];
 
 const RESULT_FILTER_CHIPS = ["PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", "UNKNOWN"];
 
-const STATUS_SORT_ORDER = {
-  RUNNING: 0,
-  WAITING: 1,
-  INTERRUPTED: 2,
-  FINISHED: 3,
-  CONFIGURED: 4,
-  CREATED: 5,
-  NOT_YET_CREATED: 6,
+// The sort selector's options, as the server's `order` parameter. Every
+// secondary key is newest-first so that ties (the same name, the same status)
+// come out in a stable, useful order.
+const SORT_ORDERS = {
+  "started-desc": "started,desc",
+  "started-asc": "started,asc",
+  "name-asc": "testName,asc,started,desc",
+  // alphabetical: the server sorts the stored status word, so equal statuses
+  // group together, newest first within each
+  "status-asc": "status,asc,started,desc",
 };
 
-// Matches the cap used by cts-dashboard and the previous logs.html URL-filter
-// codepath. The backend PaginationRequest caps `length` at 1000, so this is
-// the largest single-call dataset we can render client-side without paging.
-const MAX_FILTERED_LOGS = 1000;
-
-const PAGE_SIZE = 25;
+// How long after the last keystroke the search box asks the server.
+const SEARCH_DEBOUNCE_MS = 300;
 
 const STYLE_ID = "cts-log-list-styles";
 
@@ -524,6 +524,19 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-2);
   }
+  /* A re-query (sort, search, chip) keeps the rows on screen, dimmed and
+     inert, until the server answers; only the first load and a My/Published
+     swap show the spinner in their place. */
+  .cts-log-list-items.is-refreshing {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 150ms ease-out;
+  }
+  .cts-log-list-refreshing {
+    margin: 0;
+    color: var(--fg-soft);
+    font-size: var(--fs-13);
+  }
   .cts-log-list-footer {
     display: flex;
     flex-direction: column;
@@ -532,12 +545,6 @@ const STYLE_TEXT = css`
     margin-top: var(--space-4);
     color: var(--fg-soft);
     font-size: var(--fs-13);
-  }
-  .cts-log-list-truncation {
-    margin: 0;
-    color: var(--fg-soft);
-    font-size: var(--fs-13);
-    text-align: center;
   }
   .cts-log-list-config-toolbar {
     display: flex;
@@ -614,11 +621,11 @@ function formatVariant(variant) {
  * API the trigger silently does nothing — the production audience runs
  * current browsers (mirrors the cts-action-overflow constraint).
  *
- * The component fetches up to `MAX_FILTERED_LOGS = 1000` rows once via
- * `/api/log?length=1000&order=started,desc` and runs all filter / search /
- * sort / pagination logic client-side. The server-side ordering makes the
- * cap keep the newest rows rather than the oldest. Above 1000 matches, the
- * truncation hint nudges the user to refine the filter.
+ * The SERVER does the work: every filter, the search term and the sort
+ * order travel with the `/api/log` request (`status`, `result`, `search`,
+ * `order`), which returns one page of rows; "Show more" asks for
+ * the next page and appends it. Each row already carries the name of the
+ * plan it belongs to, so rendering a page needs no further requests.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
@@ -638,16 +645,16 @@ class CtsLogList extends LitElement {
     isPublic: { type: Boolean, attribute: "is-public" },
     _logs: { state: true },
     _loading: { state: true },
+    _refreshing: { state: true },
+    _loadingMore: { state: true },
+    _hasMore: { state: true },
     _error: { state: true },
-    _truncated: { state: true },
     _statusFilter: { state: true },
     _resultFilter: { state: true },
     _searchText: { state: true },
     _sortKey: { state: true },
-    _visibleCount: { state: true },
     _selectedConfig: { state: true },
     _selectedTestId: { state: true },
-    _planNames: { state: true },
     _filterOpen: { state: true },
   };
 
@@ -662,13 +669,14 @@ class CtsLogList extends LitElement {
     this.isPublic = false;
     this._logs = [];
     this._loading = true;
+    this._refreshing = false;
+    this._loadingMore = false;
+    this._hasMore = false;
     this._error = null;
-    this._truncated = false;
     this._statusFilter = new Set();
     this._resultFilter = new Set();
     this._searchText = "";
     this._sortKey = "started-desc";
-    this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedTestId = "";
     // Filter dropdown (HTML Popover API). Ids tie the trigger to the panel;
@@ -678,23 +686,23 @@ class CtsLogList extends LitElement {
     this._filterPanelId = nextFilterPanelId();
     this._popoverSupported = popoverApiSupported();
     this._filterOpen = false;
-    // Resolved `planName` per `planId` referenced in `_logs`. `/api/log` only
-    // returns opaque plan ids, so each unique id is fetched via
-    // `/api/plan/<id>` and the kebab-case `planName` cached here for the
-    // meta-row link text and the search haystack. `null` marks "tried, no
-    // name available" so failed lookups (404, deleted plan, permission
-    // denied) don't retry on every re-render — the link falls back to
-    // `planId` in both the unresolved and the null case.
-    this._planNames = new Map();
-    // In-flight planId set so concurrent `_logs` reassignments (e.g. an
-    // initial fetch plus a follow-up refresh) don't fan out duplicate
-    // `/api/plan/<id>` requests for the same id. Non-reactive — never read
-    // from render.
-    this._planNameFetchesInFlight = new Set();
+    // Monotonic id of the most recent listing request. A sort change while a
+    // search is still out, or two quick chip toggles, are two fetches with no
+    // ordering guarantee between them, and the loser must not overwrite the
+    // winner's rows - or clear its loading state. Non-reactive.
+    this._fetchSeq = 0;
+    // The pending search-box debounce, cleared on disconnect. Non-reactive.
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    this._searchTimer = undefined;
+    // The trimmed term the rows were last asked for, so committing the box
+    // (Enter, or the blur that follows typing) does not ask the server for
+    // what it already answered. Non-reactive.
+    this._appliedSearch = "";
     // Pre-bind handlers used by Lit EventParts on rendered cards. Lit
     // dispatches with `this` set to the host element of the listener; the
     // handlers need to retain this component as `this`.
     this._handleSearchInput = this._handleSearchInput.bind(this);
+    this._handleSearchCommit = this._handleSearchCommit.bind(this);
     this._handleSortChange = this._handleSortChange.bind(this);
     this._handleStatusToggle = this._handleStatusToggle.bind(this);
     this._handleResultToggle = this._handleResultToggle.bind(this);
@@ -714,11 +722,12 @@ class CtsLogList extends LitElement {
     // polite live region is appropriate. Mirrors cts-plan-list.
     this.setAttribute("aria-live", "polite");
     this._hydrateFromUrl();
-    this._fetchLogs();
+    this._fetchLogs({ fresh: true });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    clearTimeout(this._searchTimer);
     // The browser evicts an open popover from the top layer without firing
     // `beforetoggle` when the host is removed, so the mirror would otherwise
     // stay stuck. Reset it so a re-attached host renders aria-expanded=false.
@@ -737,8 +746,8 @@ class CtsLogList extends LitElement {
    * back/forward). Resets the status/result chip filters and the free-text
    * search to their defaults so a new dataset never inherits the prior view's
    * filters (R16), drops `?status`/`?result` from the URL (via `_writeUrl`,
-   * which preserves `?public`), resets pagination, and reloads the dataset for
-   * the current `isPublic` view. The caller MUST set/remove the `is-public`
+   * which preserves `?public`), and reloads the dataset for the current
+   * `isPublic` view from its first page. The caller MUST set/remove the `is-public`
    * attribute BEFORE invoking this — `_fetchLogs` reads `this.isPublic`, and
    * Lit reflects the boolean attribute synchronously, so the refetch targets
    * the correct dataset.
@@ -754,118 +763,97 @@ class CtsLogList extends LitElement {
   reloadForViewChange() {
     this._statusFilter = new Set();
     this._resultFilter = new Set();
-    this._searchText = "";
-    this._resetPagination();
+    this._clearSearch();
     this._writeUrl();
-    this._fetchLogs();
+    this._fetchLogs({ fresh: true });
   }
 
-  async _fetchLogs() {
-    this._loading = true;
+  /**
+   * Empty the search box and forget the term it was last asked for, dropping
+   * any debounce still pending so it cannot fire after the reset.
+   * @returns {void}
+   */
+  _clearSearch() {
+    clearTimeout(this._searchTimer);
+    this._searchTimer = undefined;
+    this._searchText = "";
+    this._appliedSearch = "";
+  }
+
+  /**
+   * The endpoint-specific parameters: the status and result lists, as the
+   * `?status=` / `?result=` URL contract spells them (lower-case, comma-joined).
+   * @returns {URLSearchParams} Those parameters, empty when nothing is filtered.
+   */
+  _filterParams() {
+    const params = new URLSearchParams();
+    if (this._statusFilter.size > 0) {
+      params.set("status", Array.from(this._statusFilter).join(",").toLowerCase());
+    }
+    if (this._resultFilter.size > 0) {
+      params.set("result", Array.from(this._resultFilter).join(",").toLowerCase());
+    }
+    return params;
+  }
+
+  /**
+   * Ask the server for a page: the first page of the current filter, search
+   * and sort, or - on "Show more" - the page after the rows already shown,
+   * which is appended to them.
+   *
+   * A re-query keeps the rows it is about to replace on screen, dimmed, so
+   * a sort or a search does not flash the list through the spinner; the
+   * spinner is for when there is nothing to keep - the first load, and a
+   * My/Published swap (`fresh`), where the old rows are the wrong dataset.
+   * @param {{append?: boolean, fresh?: boolean}} [options] - `append` for the
+   *   next page; `fresh` to show the loading state in place of the rows.
+   * @returns {Promise<void>} Resolves once the fetch settles.
+   */
+  async _fetchLogs({ append = false, fresh = false } = {}) {
+    const seq = ++this._fetchSeq;
+    const start = append ? this._logs.length : 0;
+    if (append) {
+      this._loadingMore = true;
+    } else if (fresh || this._logs.length === 0) {
+      this._loading = true;
+    } else {
+      this._refreshing = true;
+    }
     this._error = null;
-    this._truncated = false;
     try {
-      // Ask the backend for the full set, newest-first, mirroring
-      // cts-plan-list. Without `order`, PaginationRequest sorts with
-      // Sort.unsorted() (MongoDB natural order, oldest first), so once a
-      // user has more than MAX_FILTERED_LOGS tests the cap keeps the oldest
-      // rows and the newest never reach the client-side sort below.
-      const url =
-        "/api/log?length=" +
-        MAX_FILTERED_LOGS +
-        "&order=started,desc" +
-        (this.isPublic ? "&public=true" : "");
-      const response = await fetch(url);
+      const params = listingParams({
+        start,
+        order: SORT_ORDERS[this._sortKey] || SORT_ORDERS["started-desc"],
+        search: this._searchText,
+        isPublic: this.isPublic,
+        extra: this._filterParams(),
+      });
+      const response = await fetch(`/api/log?${params}`);
+      // A later request has already been made, so this answer is stale
+      // whatever it says.
+      if (seq !== this._fetchSeq) return;
       if (!response.ok) {
         throw new Error(`Failed to load logs (HTTP ${response.status})`);
       }
       const payload = await response.json();
-      // Accept both PaginationResponse envelope ({ draw, recordsTotal,
-      // recordsFiltered, data }) and a raw array, matching the dual-shape
-      // handling in cts-dashboard / cts-plan-list.
-      const data = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : [];
-      const hasTotal = typeof payload?.recordsTotal === "number";
-      const total = hasTotal ? payload.recordsTotal : data.length;
-      this._logs = data;
-      // Only fall back to "data filled the cap" when the response had no
-      // authoritative total. A response with `recordsTotal === data.length`
-      // is the canonical signal that the dataset is complete, so an exact
-      // 1000-row dataset must not raise the truncation hint.
-      this._truncated = hasTotal ? total > data.length : data.length >= MAX_FILTERED_LOGS;
-      this._resolvePlanNames(data);
+      if (seq !== this._fetchSeq) return;
+      const { rows, hasMore } = readListingPage(payload, start);
+      this._logs = append ? [...this._logs, ...rows] : rows;
+      this._hasMore = hasMore;
     } catch (err) {
+      if (seq !== this._fetchSeq) return;
       this._error = err instanceof Error ? err.message : String(err);
       this._logs = [];
+      this._hasMore = false;
     } finally {
-      this._loading = false;
-    }
-  }
-
-  /**
-   * Resolve a kebab-case `planName` for every unique `planId` referenced by
-   * the freshly loaded logs. `/api/log` only carries the opaque plan id, so
-   * each unique id is fetched via `/api/plan/<id>` once. Results are cached
-   * on `_planNames` (planId → planName, or planId → null when the lookup
-   * fails). The render path consults the map and falls back to `planId`
-   * when an entry is missing or null, so unresolved plans still get a
-   * usable link label.
-   *
-   * Idempotent: ids already in `_planNames` or in
-   * `_planNameFetchesInFlight` are skipped. Honors `isPublic` so the
-   * public-mode listing uses the same `?public=true` route the rest of the
-   * component uses.
-   *
-   * @param {Array<{planId?: string}>} logs - Log rows whose planIds should
-   *   be resolved. Rows without a planId are ignored.
-   */
-  _resolvePlanNames(logs) {
-    const publicSuffix = this.isPublic ? "?public=true" : "";
-    const toFetch = new Set();
-    for (const log of logs) {
-      const id = log && log.planId;
-      if (!id) continue;
-      if (this._planNames.has(id)) continue;
-      if (this._planNameFetchesInFlight.has(id)) continue;
-      toFetch.add(id);
-    }
-    if (toFetch.size === 0) return;
-    for (const id of toFetch) {
-      this._planNameFetchesInFlight.add(id);
-    }
-    const fetches = Array.from(toFetch).map((id) =>
-      fetch(`/api/plan/${encodeURIComponent(id)}${publicSuffix}`)
-        .then((response) => {
-          if (!response.ok) return null;
-          return response.json().catch(() => null);
-        })
-        .then((body) => {
-          const name = body && typeof body.planName === "string" ? body.planName : null;
-          return [id, name];
-        })
-        .catch(() => [id, null]),
-    );
-    Promise.allSettled(fetches).then((results) => {
-      // Re-assign the Map to a new instance so Lit treats the state as
-      // changed (Maps mutated in-place don't trigger reactive updates).
-      // The `status === "fulfilled"` check is for TypeScript narrowing —
-      // every fetch chain ends in `.catch(() => [id, null])`, so each
-      // settled result is in practice always fulfilled. If that catch
-      // ever moves or is removed, a rejected result would leave its id
-      // permanently in `_planNameFetchesInFlight`; the check guards that
-      // shape implicitly by simply not consuming rejected entries.
-      const next = new Map(this._planNames);
-      for (const result of results) {
-        if (result.status !== "fulfilled") continue;
-        const [id, name] = result.value;
-        next.set(id, name);
-        this._planNameFetchesInFlight.delete(id);
+      // A superseded request must not clear the loading state the request that
+      // superseded it set.
+      if (seq === this._fetchSeq) {
+        this._loading = false;
+        this._refreshing = false;
+        this._loadingMore = false;
       }
-      this._planNames = next;
-    });
+    }
   }
 
   _writeUrl() {
@@ -906,18 +894,50 @@ class CtsLogList extends LitElement {
     );
   }
 
-  _resetPagination() {
-    this._visibleCount = PAGE_SIZE;
+  /**
+   * The search box asks the server, so it waits for the typing to pause
+   * rather than sending a request per keystroke.
+   * @param {Event} event - The `input` event.
+   * @returns {void}
+   */
+  _handleSearchInput(event) {
+    this._searchText = /** @type {HTMLInputElement} */ (event.target).value;
+    clearTimeout(this._searchTimer);
+    this._searchTimer = setTimeout(() => {
+      this._searchTimer = undefined;
+      this._applySearch(this._searchText);
+    }, SEARCH_DEBOUNCE_MS);
   }
 
-  _handleSearchInput(event) {
-    this._searchText = event.target.value;
-    this._resetPagination();
+  /**
+   * Enter (or the box's own clear button) commits the term at once. `change`
+   * also fires on the blur after typing, by which time the debounce has
+   * usually already asked; `_applySearch` is what keeps that from asking twice.
+   * @param {Event} event - The `change` event.
+   * @returns {void}
+   */
+  _handleSearchCommit(event) {
+    clearTimeout(this._searchTimer);
+    this._searchTimer = undefined;
+    this._applySearch(/** @type {HTMLInputElement} */ (event.target).value);
+  }
+
+  /**
+   * Ask the server for a term, unless it is the one the rows already answer.
+   * @param {string} term - What the search box holds.
+   * @returns {void}
+   */
+  _applySearch(term) {
+    this._searchText = term;
+    const wanted = term.trim();
+    if (wanted === this._appliedSearch) return;
+    this._appliedSearch = wanted;
+    this._fetchLogs();
   }
 
   _handleSortChange(event) {
     this._sortKey = event.target.value;
-    this._resetPagination();
+    this._fetchLogs();
   }
 
   _toggleSetMember(set, value) {
@@ -931,25 +951,25 @@ class CtsLogList extends LitElement {
     const value = event.currentTarget.dataset.status;
     if (!value) return;
     this._statusFilter = this._toggleSetMember(this._statusFilter, value);
-    this._resetPagination();
     this._writeUrl();
+    this._fetchLogs();
   }
 
   _handleResultToggle(event) {
     const value = event.currentTarget.dataset.result;
     if (!value) return;
     this._resultFilter = this._toggleSetMember(this._resultFilter, value);
-    this._resetPagination();
     this._writeUrl();
+    this._fetchLogs();
   }
 
   _handleClearAllClick(event) {
     event.preventDefault();
     this._statusFilter = new Set();
     this._resultFilter = new Set();
-    this._searchText = "";
-    this._resetPagination();
+    this._clearSearch();
     this._writeUrl();
+    this._fetchLogs();
     // Clearing from inside the panel closes it; clearing from the summary
     // button is a no-op here (the panel is already closed).
     this._hideFilterPanel();
@@ -1001,57 +1021,8 @@ class CtsLogList extends LitElement {
   }
 
   _handleShowMoreClick() {
-    this._visibleCount += PAGE_SIZE;
-  }
-
-  _filteredLogs() {
-    const status = this._statusFilter;
-    const result = this._resultFilter;
-    if (status.size === 0 && result.size === 0) return this._logs;
-    return this._logs.filter(
-      (row) =>
-        (status.size === 0 || status.has(row.status)) &&
-        (result.size === 0 || result.has(row.result)),
-    );
-  }
-
-  _searchedLogs(rows) {
-    const query = this._searchText.trim().toLowerCase();
-    if (!query) return rows;
-    return rows.filter((row) => {
-      const haystack = [
-        row.testName,
-        row.testId,
-        row.description,
-        row.planId,
-        this._planNames.get(row.planId),
-        formatVariant(row.variant),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }
-
-  _sortedLogs(rows) {
-    const key = this._sortKey;
-    const copy = rows.slice();
-    if (key === "started-desc") {
-      copy.sort((a, b) => (b.started || "").localeCompare(a.started || ""));
-    } else if (key === "started-asc") {
-      copy.sort((a, b) => (a.started || "").localeCompare(b.started || ""));
-    } else if (key === "name-asc") {
-      copy.sort((a, b) => (a.testName || "").localeCompare(b.testName || ""));
-    } else if (key === "status-asc") {
-      copy.sort((a, b) => {
-        const aRank = STATUS_SORT_ORDER[a.status] ?? 99;
-        const bRank = STATUS_SORT_ORDER[b.status] ?? 99;
-        if (aRank !== bRank) return aRank - bRank;
-        return (b.started || "").localeCompare(a.started || "");
-      });
-    }
-    return copy;
+    if (this._loadingMore || this._refreshing) return;
+    this._fetchLogs({ append: true });
   }
 
   _describeActiveFilter() {
@@ -1085,8 +1056,10 @@ class CtsLogList extends LitElement {
               type="search"
               aria-label="Search logs"
               placeholder="Search logs"
+              title="Whole words, matched by the server against the test name and description"
               .value=${this._searchText}
               @input=${this._handleSearchInput}
+              @change=${this._handleSearchCommit}
             />
           </label>
         </div>
@@ -1096,7 +1069,7 @@ class CtsLogList extends LitElement {
             <option value="started-desc">Started (newest)</option>
             <option value="started-asc">Started (oldest)</option>
             <option value="name-asc">Test name (A–Z)</option>
-            <option value="status-asc">Status</option>
+            <option value="status-asc">Status (A–Z)</option>
           </select>
         </label>
       </div>
@@ -1176,12 +1149,15 @@ class CtsLogList extends LitElement {
     `;
   }
 
-  _renderActiveFilterSummary(filteredCount) {
+  _renderActiveFilterSummary() {
     const hasFacet = this._statusFilter.size > 0 || this._resultFilter.size > 0;
     const hasSearch = this._searchText.trim().length > 0;
     if (!hasFacet && !hasSearch) return nothing;
-    const truncatedMarker = this._truncated && filteredCount >= MAX_FILTERED_LOGS ? "+" : "";
-    const matchLabel = filteredCount === 1 ? "match" : "matches";
+    // The server never counts: only the rows loaded so far are known, plus
+    // whether there is a further page.
+    const filteredCount = this._logs.length;
+    const truncatedMarker = this._hasMore ? "+" : "";
+    const matchLabel = filteredCount === 1 && !this._hasMore ? "match" : "matches";
     return html`
       <button
         type="button"
@@ -1281,7 +1257,7 @@ class CtsLogList extends LitElement {
                 <span class="cts-log-card-meta-item">
                   <span class="cts-log-card-meta-key">Plan</span>
                   <a class="cts-log-card-plan-link" href="${planHref}"
-                    >${this._planNames.get(log.planId) ?? log.planId}</a
+                    >${log.planName || log.planId}</a
                   >
                 </span>
               `
@@ -1453,47 +1429,45 @@ class CtsLogList extends LitElement {
     if (this._error) {
       return this._renderError();
     }
-    const filtered = this._filteredLogs();
-    const searched = this._searchedLogs(filtered);
-    const sorted = this._sortedLogs(searched);
-    const visible = sorted.slice(0, this._visibleCount);
-    const hasMore = sorted.length > visible.length;
+    const rows = this._logs;
     const hasFilter =
       this._statusFilter.size > 0 ||
       this._resultFilter.size > 0 ||
       this._searchText.trim().length > 0;
-    const empty = sorted.length === 0;
 
     return html`
-      ${this._renderActiveFilterSummary(sorted.length)}
-      ${empty
+      ${this._renderActiveFilterSummary()}
+      ${rows.length === 0
         ? this._renderEmpty(hasFilter)
         : html`
-            <div class="cts-log-list-items" data-testid="log-list-items">
+            <div
+              class=${classMap({ "cts-log-list-items": true, "is-refreshing": this._refreshing })}
+              data-testid="log-list-items"
+              aria-busy=${this._refreshing ? "true" : "false"}
+            >
               ${repeat(
-                visible,
+                rows,
                 (log) => log.testId,
                 (log) => this._renderCard(log),
               )}
             </div>
           `}
       <div class="cts-log-list-footer">
-        ${hasMore
+        ${this._refreshing
+          ? html`<p class="cts-log-list-refreshing" role="status" data-testid="log-list-refreshing">
+              Updating…
+            </p>`
+          : nothing}
+        ${this._hasMore
           ? html`
               <cts-button
                 variant="secondary"
                 size="md"
                 data-testid="log-list-show-more"
-                label="Show more (${visible.length} of ${sorted.length})"
+                label="${this._loadingMore ? "Loading…" : `Show more (${rows.length} loaded)`}"
+                ?disabled=${this._loadingMore || this._refreshing}
                 @cts-click=${this._handleShowMoreClick}
               ></cts-button>
-            `
-          : nothing}
-        ${this._truncated
-          ? html`
-              <p class="cts-log-list-truncation" data-testid="log-list-truncation">
-                Showing the first ${MAX_FILTERED_LOGS} matches. Refine the filter to narrow further.
-              </p>
             `
           : nothing}
       </div>

@@ -24,5 +24,6 @@ public record TestInfoResponse(
 	@Schema(description = "Conformance suite version that ran the test") String version,
 	@Schema(description = "Summary line of the test module") String summary,
 	@Schema(description = "Publication state: null, 'summary' or 'everything'", allowableValues = {"summary", "everything"}) String publish,
-	@Schema(description = "Current result of the test, or null if not yet known") TestModule.Result result) {
+	@Schema(description = "Current result of the test, or null if not yet known") TestModule.Result result,
+	@Schema(description = "In a test log listing only: the name of the plan this test belongs to, absent for a standalone test or when the plan cannot be found", example = "oidcc-basic-certification-test-plan") String planName) {
 }

@@ -1,6 +1,7 @@
 import { LitElement, html, nothing, css, unsafeCSS } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { ifDefined } from "lit/directives/if-defined.js";
+import { classMap } from "lit/directives/class-map.js";
 import "./cts-button.js";
 import "./cts-icon.js";
 import "./cts-modal.js";
@@ -17,17 +18,25 @@ import "./cts-plan-status.js";
 import {
   emptyFilter,
   hasFilters,
+  text,
   toChips,
   toParams,
   urlFromFilter,
   without,
 } from "./plan-list-filter.js";
+import { listingParams, readListingPage } from "../lib/listing-request.js";
 
-const PAGE_SIZE = 25;
+// The sort selector's options, as the server's `order` parameter. The name
+// sort falls back to newest-first so plans of one name come out in a stable,
+// useful order.
+const SORT_ORDERS = {
+  "started-desc": "started,desc",
+  "started-asc": "started,asc",
+  "name-asc": "planName,asc,started,desc",
+};
 
-// The backend's hard cap on `/api/plan?length=`, matching MAX_FILTERED_LOGS
-// in cts-log-list. `PaginationRequest.setLength` rejects anything higher.
-const MAX_PLANS = 1000;
+// How long after the last keystroke the search box asks the server.
+const SEARCH_DEBOUNCE_MS = 300;
 
 /** How often to ask how far a running bulk delete has got. */
 const BULK_POLL_MS = 2000;
@@ -387,13 +396,18 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-2);
   }
-  /* Sits above the list (or the empty state), so it reads as a caveat on the
-     WHOLE dataset the search/filter row is scoped to, not as a per-card note.
-     cts-alert is an undeclared custom element (inline by default absent this
-     rule), so display: block is needed for margin-bottom to take effect. */
-  .cts-plan-list-truncation {
-    display: block;
-    margin-bottom: var(--space-3);
+  /* A re-query (sort, search, chip) keeps the rows on screen, dimmed and
+     inert, until the server answers; only the first load and a My/Published
+     swap show the spinner in their place. */
+  .cts-plan-list-items.is-refreshing {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 150ms ease-out;
+  }
+  .cts-plan-list-refreshing {
+    margin: 0;
+    color: var(--fg-soft);
+    font-size: var(--fs-13);
   }
   .cts-plan-list-footer {
     display: flex;
@@ -514,18 +528,24 @@ function formatVariant(variant) {
 /**
  * Searchable, sortable list of test plans. Fetches from `/api/plan` (or
  * `/api/plan?public=true`) and renders a single-column card layout mirroring
- * `cts-log-list`: a top toolbar (free-text search + sort selector), block-link
+ * `cts-log-list`: a top toolbar (search box + sort selector), block-link
  * cards (plan name headline, plan id slug, description, per-module status
  * overview, metadata row), "Show more" pagination, and a config-viewer modal.
  *
+ * The SERVER does the work: the filters, the search term and the sort order
+ * all travel with the `/api/plan` request, which returns one page of rows;
+ * "Show more" asks for the next page and appends it. The search box IS the
+ * `search` filter - what it holds is what the server matched (a MongoDB
+ * `$text` phrase over the plan name, description and certification profile,
+ * whole words only), so the listing, its chip and a bulk delete all mean the
+ * same set of plans.
+ *
  * Each card's per-module status is a `<cts-plan-status mode="overview">` bar —
  * one color-coded segment per module, each wrapped in a tooltip that reveals
- * the module + status on hover. This component still OWNS status resolution
- * (the component never self-fetches, R5): a segment starts gray (pulsing for
- * modules that have run, static for never-run) and recolors once the
- * per-module `{status, result}` resolves via the lazy, visible-card-gated
- * `/api/info` fan-out below; the shared `segmentVariant` helper maps the
- * resolved data to a segment colour.
+ * the module + status on hover. Every row of the listing already carries the
+ * `{status, result}` of each module's latest run, so rendering a page needs
+ * no further requests; the shared `segmentVariant` helper maps that data to a
+ * segment colour.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
@@ -540,9 +560,10 @@ function formatVariant(variant) {
  *   it via `fetchPlans()`. Reflects the `defer-initial-fetch` attribute (KTD3).
  * @property {import("./plan-list-filter.js").PlanListFilter} filters - What
  *   the listing is narrowed to: `family`, `plan`, plan-level `variant`
- *   values, `cert` and the `from`/`to` bounds on `started`. Forwarded to
- *   `GET /api/plan` (the SERVER applies them — this is not the client-side
- *   search) and rendered as one removable chip each above the toolbar.
+ *   values, `cert` and the `from`/`to` bounds on `started`, plus the
+ *   `search` term the search box holds. Forwarded to `GET /api/plan` (the
+ *   SERVER applies them) and rendered as one removable chip each above the
+ *   toolbar.
  *   Property-only, because it is an object: `plans.html` reads it out of
  *   `location.search` with `planListFilterFromUrl()` and assigns it
  *   BEFORE the element upgrades, exactly as it sets `is-public`, so the
@@ -550,8 +571,8 @@ function formatVariant(variant) {
  *   the page URL (`replaceState`) and refetches.
  *
  * DOM hooks for e2e (`data-testid`): `plan-list-item`, `plan-list-link`,
- * `plan-list-items`, `plan-list-empty`, `plan-list-show-more`,
- * `plan-list-truncated`, plus the filter row's `plan-filters`,
+ * `plan-list-items`, `plan-list-empty`, `plan-list-show-more`, plus the
+ * filter row's `plan-filters`,
  * `plan-filter-<key>` (`family`, `plan`, `cert`, `from`, `variant-<name>`)
  * and `plan-filters-clear`.
  * @fires cts-plan-navigate - When a plan name is clicked, with
@@ -565,11 +586,11 @@ class CtsPlanList extends LitElement {
     filters: { attribute: false },
     _plans: { state: true },
     _loading: { state: true },
+    _refreshing: { state: true },
+    _loadingMore: { state: true },
+    _hasMore: { state: true },
     _error: { state: true },
-    _truncated: { state: true },
-    _searchText: { state: true },
     _sortKey: { state: true },
-    _visibleCount: { state: true },
     _selectedConfig: { state: true },
     _selectedPlanId: { state: true },
     _bulkPreview: { state: true },
@@ -595,11 +616,11 @@ class CtsPlanList extends LitElement {
     this.filters = emptyFilter();
     this._plans = [];
     this._loading = true;
+    this._refreshing = false;
+    this._loadingMore = false;
+    this._hasMore = false;
     this._error = null;
-    this._truncated = false;
-    this._searchText = "";
     this._sortKey = "started-desc";
-    this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedPlanId = "";
     /** @type {{listed: number, deletable: number, kept: number, target: number}|null} */
@@ -626,16 +647,9 @@ class CtsPlanList extends LitElement {
     // Non-reactive: the handle of the status poll, cleared on disconnect
     /** @type {ReturnType<typeof setTimeout>|undefined} */
     this._bulkPollTimer = undefined;
-    // In-flight `/api/info/<instance>` set so repeated renders (search, sort,
-    // show-more, and the re-render the resolution itself triggers) don't fan
-    // out duplicate requests for the same instance. Non-reactive — never read
-    // from render.
-    this._infoFetchesInFlight = new Set();
-    // The {sorted, visible} view computed by the most recent render(), reused
-    // by the status-resolution pass (which runs in updated(), after render)
-    // so the search→sort→slice work happens once per render, not twice.
-    // Non-reactive — never read from render itself.
-    this._currentView = null;
+    // The pending search-box debounce, cleared on disconnect. Non-reactive.
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    this._searchTimer = undefined;
     // Monotonic id of the most recent listing request. Two filter changes in
     // quick succession (a chip removed, then another) are two fetches with no
     // ordering guarantee between them, and the loser must not overwrite the
@@ -645,6 +659,7 @@ class CtsPlanList extends LitElement {
     // dispatches with `this` set to the host element of the listener; these
     // must retain this component as `this`.
     this._handleSearchInput = this._handleSearchInput.bind(this);
+    this._handleSearchCommit = this._handleSearchCommit.bind(this);
     this._handleSortChange = this._handleSortChange.bind(this);
     this._handleShowMoreClick = this._handleShowMoreClick.bind(this);
     this._handlePlanLinkClick = this._handlePlanLinkClick.bind(this);
@@ -668,7 +683,7 @@ class CtsPlanList extends LitElement {
     // The list still renders its loading state (`_loading` defaults true) in
     // the meantime; the page calls `fetchPlans()` once auth resolves.
     if (!this.deferInitialFetch) {
-      this._fetchPlans();
+      this._fetchPlans({ fresh: true });
     }
   }
 
@@ -681,10 +696,10 @@ class CtsPlanList extends LitElement {
    * @returns {Promise<void>} Resolves once the fetch settles.
    */
   fetchPlans() {
-    return this._fetchPlans();
+    return this._fetchPlans({ fresh: true });
   }
 
-  updated(changedProperties) {
+  updated() {
     // Every filter control carries the value it should show as `data-value`; it is applied
     // here because a <select> cannot be set before its options exist (see _renderFilterSelect).
     for (const select of this.querySelectorAll("select[data-value]")) {
@@ -692,52 +707,43 @@ class CtsPlanList extends LitElement {
         select.value = select.dataset.value ?? "";
       }
     }
-
-    // After a render that changed the visible set, fetch the latest result
-    // for the modules of the currently-visible cards. Gating to visible cards
-    // (rather than every loaded plan) bounds the fan-out: a listing can hold
-    // up to 1000 plans and a single FAPI/OIDCC plan has dozens of modules, so
-    // fetching all of them on load would fire thousands of parallel requests.
-    // Search, sort, and "Show more" all change one of these props and
-    // re-enter here, so newly-visible modules get resolved lazily;
-    // resolved/in-flight instances are skipped, so this is idempotent across
-    // the re-render the resolution itself triggers. Renders driven only by
-    // unrelated state (e.g. opening the config modal) do not re-run the
-    // resolver.
-    const viewKeys = ["_plans", "_loading", "_searchText", "_sortKey", "_visibleCount"];
-    if (viewKeys.some((k) => changedProperties.has(k))) {
-      this._resolveVisibleModuleStatuses();
-    }
   }
 
-  async _fetchPlans() {
+  /**
+   * Ask the server for a page: the first page of the current filters and
+   * sort, or - on "Show more" - the page after the rows already shown, which
+   * is appended to them.
+   *
+   * A re-query keeps the rows it is about to replace on screen, dimmed, so
+   * a sort, a search or a chip does not flash the list through the spinner;
+   * the spinner is for when there is nothing to keep - the first load, and
+   * a My/Published swap (`fresh`), where the old rows are the wrong dataset.
+   * @param {{append?: boolean, fresh?: boolean}} [options] - `append` for the
+   *   next page; `fresh` to show the loading state in place of the rows.
+   * @returns {Promise<void>} Resolves once the fetch settles.
+   */
+  async _fetchPlans({ append = false, fresh = false } = {}) {
     const seq = ++this._fetchSeq;
-    this._loading = true;
+    const start = append ? this._plans.length : 0;
+    if (append) {
+      this._loadingMore = true;
+    } else if (fresh || this._plans.length === 0) {
+      this._loading = true;
+    } else {
+      this._refreshing = true;
+    }
     this._error = null;
-    this._truncated = false;
     try {
-      // This component fetches the whole listing once and does search / sort /
-      // "Show more" entirely client-side, so it must ask the backend for the
-      // full set, newest-first — not the paginator's defaults. Without these
-      // params PaginationRequest falls back to length=10 + Sort.unsorted()
-      // (MongoDB natural/insertion order ≈ oldest first), so the component only
-      // ever received the 10 *oldest* plans and the genuinely-latest ones never
-      // appeared. `length=1000` is the backend's hard cap (PaginationRequest
-      // rejects more) and matches the "up to 1000 plans" assumption baked into
-      // the status fan-out below; `order=started,desc` makes the server sort
-      // newest-first so that, when the cap truncates, it keeps the newest plans
-      // rather than the oldest. The client-side `_sortedPlans` (default
-      // `started-desc`) then refines ordering within that set.
-      const params = new URLSearchParams({ length: String(MAX_PLANS), order: "started,desc" });
-      if (this.isPublic) params.set("public", "true");
-      // The drill-down filters are applied by the SERVER, inside the same
-      // owner/admin/public scoping as an unfiltered listing — they can only
-      // narrow what this user could already see. They also matter for the cap
-      // above: filtering server-side is what keeps a 1000-row page from
-      // truncating away the very plans the filter asked for.
-      for (const [key, value] of toParams(this.filters).entries()) params.set(key, value);
-      const url = `/api/plan?${params}`;
-      const response = await fetch(url);
+      // The filters - the search term among them - are applied by the SERVER,
+      // inside the same owner/admin/public scoping as an unfiltered listing:
+      // they can only narrow what this user could already see.
+      const params = listingParams({
+        start,
+        order: SORT_ORDERS[this._sortKey] || SORT_ORDERS["started-desc"],
+        isPublic: this.isPublic,
+        extra: toParams(this.filters),
+      });
+      const response = await fetch(`/api/plan?${params}`);
       // A later request has already been made, so this answer is stale
       // whatever it says: dropping it here is what keeps two quick chip
       // removals from landing out of order.
@@ -745,39 +751,30 @@ class CtsPlanList extends LitElement {
       if (!response.ok) {
         throw new Error(await failureMessage(response));
       }
-      // Real backend (TestPlanApi.getTestPlansForCurrentUser) returns a
-      // PaginationResponse envelope: { draw, recordsTotal, recordsFiltered,
-      // data: [...] }. Some test mocks and the storybook MSW handlers
-      // return a plain array. Accept both.
       const payload = await response.json();
       if (seq !== this._fetchSeq) return;
-      const data = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : [];
-      this._plans = data;
-      // PaginationRequest.getSliceResponse (server) hands back a SYNTHETIC
-      // recordsTotal — start+length+1 when a next page beyond the 1000-row
-      // cap exists, exactly start+numberOfElements otherwise — so
-      // `recordsTotal > data.length` is precisely "there was more than the
-      // cap could return". A plain array (test mocks / storybook, see above)
-      // carries no such signal and is treated as complete: reaching exactly
-      // MAX_PLANS rows by coincidence is not evidence of truncation the way
-      // it is in cts-log-list, where every consumer is expected to send the
-      // envelope in practice too, but a false positive here would put a
-      // permanent, unremovable warning on any fixture or test double that
-      // returns a bare array.
-      const hasTotal = typeof payload?.recordsTotal === "number";
-      this._truncated = hasTotal && payload.recordsTotal > data.length;
+      const { rows, hasMore } = readListingPage(payload, start);
+      // The server resolved every module's latest run as part of the listing,
+      // so a module with no status now is one whose run could not be found -
+      // the neutral segment, not a pending one.
+      for (const plan of rows) {
+        for (const mod of plan.modules || []) mod._statusResolved = true;
+      }
+      this._plans = append ? [...this._plans, ...rows] : rows;
+      this._hasMore = hasMore;
     } catch (err) {
       if (seq !== this._fetchSeq) return;
       this._error = err instanceof Error ? err.message : String(err);
       this._plans = [];
+      this._hasMore = false;
     } finally {
       // A superseded request must not clear the loading state the request that
       // superseded it set.
-      if (seq === this._fetchSeq) this._loading = false;
+      if (seq === this._fetchSeq) {
+        this._loading = false;
+        this._refreshing = false;
+        this._loadingMore = false;
+      }
     }
   }
 
@@ -959,26 +956,8 @@ class CtsPlanList extends LitElement {
 
   disconnectedCallback() {
     clearTimeout(this._bulkPollTimer);
+    clearTimeout(this._searchTimer);
     super.disconnectedCallback();
-  }
-
-  /**
-   * Move what is in the search box into the SERVER's filter, so the listing,
-   * the count and the delete all mean the same set of plans.
-   *
-   * The two searches are not the same search: the box matches any substring of
-   * a plan's name, id, description or variant in rows already fetched, while
-   * the server runs a MongoDB `$text` phrase over the name, description and
-   * certification profile, which matches whole words only. Handing over a
-   * half-typed word therefore finds nothing, which is why this is offered
-   * rather than done automatically.
-   * @returns {void}
-   */
-  _useServerSearch() {
-    const term = this._searchText.trim();
-    if (!term) return;
-    this._searchText = "";
-    this._applyFilters({ ...this.filters, search: term });
   }
 
   /**
@@ -1163,18 +1142,46 @@ class CtsPlanList extends LitElement {
     flashCopyConfirmed(trigger);
   }
 
+  /**
+   * The search box is the `search` filter: what is typed goes to the server,
+   * once the typing pauses rather than per keystroke.
+   * @param {Event} event - The `input` event.
+   * @returns {void}
+   */
   _handleSearchInput(event) {
-    this._searchText = event.target.value;
-    this._visibleCount = PAGE_SIZE;
+    const term = /** @type {HTMLInputElement} */ (event.target).value;
+    clearTimeout(this._searchTimer);
+    this._searchTimer = setTimeout(() => this._applySearch(term), SEARCH_DEBOUNCE_MS);
+  }
+
+  /**
+   * Enter (or the box's own clear button) commits the term at once.
+   * @param {Event} event - The `change` event.
+   * @returns {void}
+   */
+  _handleSearchCommit(event) {
+    clearTimeout(this._searchTimer);
+    this._applySearch(/** @type {HTMLInputElement} */ (event.target).value);
+  }
+
+  /**
+   * @param {string} term - What the search box holds.
+   * @returns {void}
+   */
+  _applySearch(term) {
+    const search = text(term);
+    if (search === text(this.filters && this.filters.search)) return;
+    this._applyFilters({ ...this.filters, search });
   }
 
   _handleSortChange(event) {
     this._sortKey = event.target.value;
-    this._visibleCount = PAGE_SIZE;
+    this._fetchPlans();
   }
 
   _handleShowMoreClick() {
-    this._visibleCount += PAGE_SIZE;
+    if (this._loadingMore || this._refreshing) return;
+    this._fetchPlans({ append: true });
   }
 
   /**
@@ -1209,134 +1216,24 @@ class CtsPlanList extends LitElement {
    */
   _applyFilters(next) {
     this.filters = next;
-    this._visibleCount = PAGE_SIZE;
     const search = urlFromFilter(next, window.location.search);
     window.history.replaceState(null, "", window.location.pathname + search + window.location.hash);
     this._fetchPlans();
   }
 
-  _searchedPlans(rows) {
-    const query = this._searchText.trim().toLowerCase();
-    if (!query) return rows;
-    return rows.filter((row) => {
-      const haystack = [row.planName, row._id, row.description, formatVariant(row.variant)]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }
-
-  _sortedPlans(rows) {
-    const key = this._sortKey;
-    const copy = rows.slice();
-    if (key === "started-desc") {
-      copy.sort((a, b) => (b.started || "").localeCompare(a.started || ""));
-    } else if (key === "started-asc") {
-      copy.sort((a, b) => (a.started || "").localeCompare(b.started || ""));
-    } else if (key === "name-asc") {
-      copy.sort((a, b) => (a.planName || "").localeCompare(b.planName || ""));
-    }
-    return copy;
-  }
-
-  /**
-   * Compute the search → sort → paginate view once so render() and the
-   * status-resolution pass operate on the same visible set.
-   * @returns {{sorted: object[], visible: object[]}} The fully sorted list
-   *   (for empty/pagination decisions) and the visible slice.
-   */
-  _computeView() {
-    const searched = this._searchedPlans(this._plans);
-    const sorted = this._sortedPlans(searched);
-    const visible = sorted.slice(0, this._visibleCount);
-    return { sorted, visible };
-  }
-
-  /**
-   * Fetch `/api/info/<lastInstance>` for the modules of the currently-visible
-   * cards and merge the resolved `{ status, result }` back into the module
-   * entries so their dots recolor. Mirrors the merge shape of
-   * plan-detail.html, but takes its error/batching shape from
-   * cts-log-list._resolvePlanNames: a terminal per-fetch catch settles the
-   * dot at the grey `neutral` color, `Promise.allSettled` never rejects the
-   * batch, and a single batched `_plans` reassign triggers one re-render for
-   * the whole batch. Unique by instance id, so a shared instance is fetched
-   * once and applied to every module that references it.
-   */
-  _resolveVisibleModuleStatuses() {
-    if (this._loading || this._error) return;
-    // Reuse the view computed by the render that just completed (updated()
-    // always runs after render). Fall back to computing only if a render has
-    // not populated it yet.
-    const { visible } = this._currentView || this._computeView();
-    // Group unresolved, not-in-flight modules by their last instance id so
-    // each instance is fetched exactly once.
-    const byInstance = new Map();
-    for (const plan of visible) {
-      for (const mod of plan.modules || []) {
-        if (!Array.isArray(mod.instances) || mod.instances.length === 0) continue;
-        if (mod._statusResolved) continue;
-        const lastInstance = mod.instances[mod.instances.length - 1];
-        if (this._infoFetchesInFlight.has(lastInstance)) continue;
-        if (!byInstance.has(lastInstance)) byInstance.set(lastInstance, []);
-        byInstance.get(lastInstance).push(mod);
-      }
-    }
-    if (byInstance.size === 0) return;
-
-    const publicSuffix = this.isPublic ? "?public=true" : "";
-    for (const inst of byInstance.keys()) this._infoFetchesInFlight.add(inst);
-
-    const fetches = Array.from(byInstance.entries()).map(([inst, mods]) =>
-      fetch(`/api/info/${encodeURIComponent(inst)}${publicSuffix}`)
-        .then((response) => {
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return response.json();
-        })
-        .then((info) => {
-          for (const mod of mods) {
-            mod.status = info.status;
-            mod.result = info.result;
-            mod._statusResolved = true;
-          }
-        })
-        .catch((err) => {
-          // Fail-soft: the run may be inaccessible (404 unpublished/deleted)
-          // or the endpoint may error. Settle the dot at the grey `neutral`
-          // color rather than leaving it pulsing forever, and warn once per
-          // instance so a real /api/info contract drift is visible.
-          for (const mod of mods) mod._statusResolved = true;
-          console.warn(`[cts-plan-list] /api/info/${inst} failed:`, err);
-        })
-        .finally(() => this._infoFetchesInFlight.delete(inst)),
-    );
-
-    Promise.allSettled(fetches).then(() => {
-      // One batched reassign so the whole batch re-renders once (new array
-      // reference; the mutated module objects carry the resolved status).
-      this._plans = [...this._plans];
-    });
-  }
-
   /**
    * Render the per-module status overview for a card as a read-only
    * `<cts-plan-status mode="overview">`. The component reads each module's
-   * resolved `{status, result}` (mutated in place by
-   * `_resolveVisibleModuleStatuses`) via the shared `segmentVariant` helper and
-   * initiates no fetches of its own (R5). A fresh `[...modules]` reference is
-   * passed each render so the child re-renders when status resolution mutates
-   * the module objects in place (Lit's default `hasChanged` is `!==`, and the
-   * `modules` array reference is otherwise stable across the resolution
-   * re-render). The keyed `repeat()` inside the component keys on module
-   * identity, so segment DOM is still reused — no thrash. A no-module plan
-   * renders nothing (avoids an empty grid track adding a card gap).
+   * `{status, result}`, which the listing row carries, via the shared
+   * `segmentVariant` helper and initiates no fetches of its own (R5). A
+   * no-module plan renders nothing (avoids an empty grid track adding a card
+   * gap).
    * @param {object[]|undefined} modules - The plan's module entries.
    * @returns {import('lit').TemplateResult | typeof nothing} The overview bar.
    */
   _renderModuleStatus(modules) {
     if (!modules || modules.length === 0) return nothing;
-    return html`<cts-plan-status mode="overview" .modules=${[...modules]}></cts-plan-status>`;
+    return html`<cts-plan-status mode="overview" .modules=${modules}></cts-plan-status>`;
   }
 
   _renderOwner(owner) {
@@ -1499,30 +1396,14 @@ class CtsPlanList extends LitElement {
           : nothing}
         ${this.isAdmin && !this.isPublic
           ? html`<cts-button
-                variant="danger"
-                size="sm"
-                icon="trash-empty"
-                label="Delete these plans..."
-                data-testid="plan-bulk-delete"
-                ?disabled=${Boolean(this._searchText)}
-                title=${this._searchText
-                  ? "The search box narrows only what is shown here, not what a delete would " +
-                    "remove. Search on the server instead, or clear the box."
-                  : "Delete every plan these filters match"}
-                @cts-click=${this._openBulkDelete}
-              ></cts-button>
-              ${this._searchText
-                ? html`<button
-                    type="button"
-                    class="cts-plan-list-filters-clear"
-                    data-testid="plan-bulk-delete-server-search"
-                    title="Ask the server for the plans matching this term, so it becomes part of
-                      the listing - and of what a delete would remove. Whole words only."
-                    @click=${this._useServerSearch}
-                  >
-                    Search on the server instead
-                  </button>`
-                : nothing}`
+              variant="danger"
+              size="sm"
+              icon="trash-empty"
+              label="Delete these plans..."
+              data-testid="plan-bulk-delete"
+              title="Delete every plan these filters match"
+              @cts-click=${this._openBulkDelete}
+            ></cts-button>`
           : nothing}
       </div>
     `;
@@ -1719,8 +1600,10 @@ class CtsPlanList extends LitElement {
             type="search"
             aria-label="Search test plans"
             placeholder="Search test plans..."
-            .value=${this._searchText}
+            title="Whole words, matched by the server against the plan name, description and certification profile"
+            .value=${text(filters.search)}
             @input=${this._handleSearchInput}
+            @change=${this._handleSearchCommit}
           />
         </label>
         ${this._filterOptions
@@ -1821,29 +1704,6 @@ class CtsPlanList extends LitElement {
   }
 
   /**
-   * The fetch hit the backend's 1000-plan cap: the listing is not everything
-   * that matches, just the newest 1000. Rendered above the list (and above
-   * the empty state, since a search can legitimately narrow a truncated
-   * fetch down to zero visible rows without the underlying dataset stopping
-   * being incomplete) so it reads as a caveat on the whole result, in both
-   * the filtered and the unfiltered case.
-   * @returns {unknown} The notice, or nothing when the listing is complete.
-   */
-  _renderTruncationNotice() {
-    if (!this._truncated) return nothing;
-    return html`
-      <cts-alert
-        variant="warning"
-        class="cts-plan-list-truncation"
-        data-testid="plan-list-truncated"
-      >
-        Showing the newest ${MAX_PLANS.toLocaleString()} matching plans — narrow the filters or the
-        date range (for example use a weekly view) to see all of them.
-      </cts-alert>
-    `;
-  }
-
-  /**
    * Render the empty state, branched by why the list is empty so the copy
    * matches the user's situation (R18). Every non-search empty state offers a
    * "Schedule test" action — on the My view, on the Published view, and for
@@ -1913,7 +1773,13 @@ class CtsPlanList extends LitElement {
   }
 
   render() {
+    // The filter row and the toolbar are part of the page's scope, not of
+    // the result: rendered once, outside the loading/error/loaded branch, so
+    // their node identity is stable across every refetch. The search box in
+    // particular must survive the refetch it causes, or typing would lose
+    // focus each time the server is asked.
     return html`
+      ${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderVariantControls()}
       ${this._renderBody()}
       ${this.isAdmin && !this.isPublic ? this._renderBulkDeleteModal() : nothing}
     `;
@@ -1931,62 +1797,60 @@ class CtsPlanList extends LitElement {
    */
   _renderBody() {
     if (this._loading) {
-      // The filter row is part of the page's scope, not of the result: it
-      // must not flash out and back in around every refetch.
-      return html`${this._renderFilters()} ${this._renderSearchAndSort()}
-      ${this._renderVariantControls()} ${this._renderLoading()}`;
+      return this._renderLoading();
     }
 
     if (this._error) {
-      // The filter row survives a failed fetch too: a filter is what can CAUSE
-      // the failure (a hand-edited `variant.<bad>` is a 400), so hiding the
-      // chips would leave the reader an error with no way to see what was
-      // asked for, let alone clear it.
+      // The filter row (rendered above) survives a failed fetch too: a filter
+      // is what can CAUSE the failure (a hand-edited `variant.<bad>` is a
+      // 400), so hiding the chips would leave the reader an error with no way
+      // to see what was asked for, let alone clear it.
       return html`
-        ${this._renderFilters()}
         <cts-alert variant="danger" role="alert">
           <strong>Error:</strong> ${this._error}
         </cts-alert>
       `;
     }
 
-    const view = this._computeView();
-    this._currentView = view;
-    const { sorted, visible } = view;
-    const hasMore = sorted.length > visible.length;
-    const hasSearch = this._searchText.trim().length > 0;
-    // Once truncated, `sorted.length` is a lower bound, not an exact count,
-    // for as long as it still reflects the untouched, cap-sized fetch — a
-    // local search narrowing it below the cap IS an exact count of the (still
-    // possibly incomplete) fetched set, so the "+" only applies while nothing
-    // has trimmed it below the cap yet, mirroring cts-log-list's marker rule.
-    const sortedCountLabel =
-      this._truncated && sorted.length >= MAX_PLANS
-        ? `${sorted.length.toLocaleString()}+`
-        : `${sorted.length.toLocaleString()}`;
+    const rows = this._plans;
+    const hasSearch = text(this.filters && this.filters.search) !== "";
 
     return html`
-      ${this._renderFilters()} ${this._renderSearchAndSort()} ${this._renderVariantControls()}
-      ${this._renderTruncationNotice()}
-      ${sorted.length === 0
+      ${rows.length === 0
         ? this._renderEmpty(hasSearch)
         : html`
-            <div class="cts-plan-list-items" data-testid="plan-list-items">
+            <div
+              class=${classMap({ "cts-plan-list-items": true, "is-refreshing": this._refreshing })}
+              data-testid="plan-list-items"
+              aria-busy=${this._refreshing ? "true" : "false"}
+            >
               ${repeat(
-                visible,
+                rows,
                 (plan) => plan._id,
                 (plan) => this._renderCard(plan),
               )}
             </div>
           `}
       <div class="cts-plan-list-footer">
-        ${hasMore
+        ${this._refreshing
+          ? html`<p
+              class="cts-plan-list-refreshing"
+              role="status"
+              data-testid="plan-list-refreshing"
+            >
+              Updating…
+            </p>`
+          : nothing}
+        ${this._hasMore
           ? html`
               <cts-button
                 variant="secondary"
                 size="md"
                 data-testid="plan-list-show-more"
-                label="Show more (${visible.length} of ${sortedCountLabel})"
+                label="${this._loadingMore
+                  ? "Loading…"
+                  : `Show more (${rows.length.toLocaleString()} loaded)`}"
+                ?disabled=${this._loadingMore || this._refreshing}
                 @cts-click=${this._handleShowMoreClick}
               ></cts-button>
             `

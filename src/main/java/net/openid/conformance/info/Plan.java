@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.logging.MongoKeyWrapper;
 import net.openid.conformance.variant.VariantSelection;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -42,15 +43,32 @@ public class Plan {
 		private String testModule;
 		private Map<String,String> variant;
 		private List<String> instances;
+		/**
+		 * The status and result of the module's latest run, attached to a listing row from that
+		 * run's test document; never stored with the plan.
+		 */
+		@Transient
+		private String status;
+		@Transient
+		private String result;
 
 		Module() {
 			// Load constructor
 		}
 
 		public Module(String module, Map<String,String> variant) {
+			this(module, variant, Collections.emptyList());
+		}
+
+		/**
+		 * A module that has already run. Stored modules are read back through the no-arg
+		 * constructor, and a new plan's modules have no runs yet, so this is for building the
+		 * shape a listing decorates outside the database.
+		 */
+		Module(String module, Map<String,String> variant, List<String> instances) {
 			this.testModule = module;
 			this.variant = variant;
-			this.instances = Collections.emptyList();
+			this.instances = instances;
 		}
 
 		public String getTestModule() {
@@ -62,6 +80,19 @@ public class Plan {
 		}
 
 		public Map<String,String> getVariant() { return variant; }
+
+		public String getStatus() {
+			return status;
+		}
+
+		public String getResult() {
+			return result;
+		}
+
+		void setLatestRun(String status, String result) {
+			this.status = status;
+			this.result = result;
+		}
 	}
 
 	Plan() {

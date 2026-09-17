@@ -2,6 +2,8 @@ package net.openid.conformance.info;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import net.openid.conformance.pagination.PaginationRequest;
+import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.testmodule.TestModule.Result;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
@@ -49,6 +51,26 @@ public interface TestInfoService {
 	 * @return true for success; false if not allowed
 	 */
 	boolean publishTest(String id, String publish);
+
+	/**
+	 * One page of the test-log listing: every test for an admin, the caller's own for anyone
+	 * else, narrowed by the filter and by the page's search term, ordered and paged as the page
+	 * asks. Each row carries the name of the plan it belongs to.
+	 *
+	 * @param page   the page, ordering and search term asked for
+	 * @param filter the statuses and results to narrow to
+	 * @return that page, in the paging envelope the listing endpoints answer with
+	 */
+	PaginationResponse<TestInfo> getPaginatedTestsForCurrentUser(PaginationRequest page, TestListFilter filter);
+
+	/**
+	 * The same for the published tests, read through the public projection.
+	 *
+	 * @param page   the page, ordering and search term asked for
+	 * @param filter the statuses and results to narrow to
+	 * @return that page, in the paging envelope the listing endpoints answer with
+	 */
+	PaginationResponse<PublicTestInfo> getPaginatedPublicTests(PaginationRequest page, TestListFilter filter);
 
 	void createIndexes();
 

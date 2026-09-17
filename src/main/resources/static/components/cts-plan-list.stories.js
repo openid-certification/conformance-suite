@@ -1,7 +1,8 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent, spyOn } from "storybook/test";
 import { delay, http, HttpResponse } from "msw";
-import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "@fixtures/mock-plans.js";
+import { MOCK_PLAN_LIST } from "@fixtures/mock-plans.js";
+import { PLAN_SEARCH_FIELDS, serveListing } from "@fixtures/listing-server.js";
 import "./cts-plan-list.js";
 import { emptyFilter } from "./plan-list-filter.js";
 
@@ -43,13 +44,18 @@ function innerButton(host) {
   return /** @type {HTMLButtonElement} */ (btn);
 }
 
-// An /api/info handler that never resolves, so module status boxes stay in
-// their initial `pending` state for deterministic assertions. Used by the
-// pending-box story; the resolution stories use instance-keyed handlers.
-const neverResolvingInfo = http.get(
-  "/api/info/:testId",
-  () => new Promise(() => {}), // intentionally never settles
-);
+/**
+ * An `/api/plan` handler that answers each request as the server would: one
+ * page of `rows`, searched, ordered and offset as the request asks (see
+ * `@fixtures/listing-server.js`), so a story exercises the same round trips
+ * the page makes.
+ * @param {ReadonlyArray<Record<string, unknown>>} rows - The whole dataset.
+ */
+function planListing(rows) {
+  return http.get("/api/plan", ({ request }) =>
+    HttpResponse.json(serveListing(rows, request.url, { searchFields: PLAN_SEARCH_FIELDS })),
+  );
+}
 
 /**
  * Read the status-segment color variant for a module from its
@@ -69,26 +75,6 @@ function boxVariant(root, moduleId) {
   if (!seg) return null;
   const cls = [...seg.classList].find((c) => c.startsWith("cts-pst-seg--"));
   return cls ? cls.replace("cts-pst-seg--", "") : null;
-}
-
-/**
- * Build an instance-keyed `/api/info/:testId` handler. Returns the per-instance
- * `{ status, result }` from `infoMap` so module dots resolve to distinct
- * colors; an unknown id 404s (exercising the fail-soft → skip path). Pass a
- * `requested` array to record which instance ids were fetched (used to assert
- * the visible-card fetch gate and that no-instance modules trigger no fetch).
- *
- * @param {Record<string, {status: string, result: string}>} [infoMap]
- * @param {string[]} [requested]
- */
-function infoHandler(infoMap = MOCK_PLAN_INFO, requested) {
-  return http.get("/api/info/:testId", ({ params }) => {
-    const id = /** @type {string} */ (params.testId);
-    if (requested) requested.push(id);
-    const info = infoMap[id];
-    if (!info) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json(info);
-  });
 }
 
 /**
@@ -138,10 +124,7 @@ function chipButton(root, key) {
 export const Default = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -210,10 +193,7 @@ export const Default = {
 export const SearchAndSort = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -228,7 +208,7 @@ export const SearchAndSort = {
       expect(cards.length).toBe(MOCK_PLAN_LIST.length);
     });
 
-    await step("search narrows the rendered cards client-side", async () => {
+    await step("search asks the server, which narrows the cards", async () => {
       expect(searchInput).toBeTruthy();
       await userEvent.type(searchInput, "fapi2");
       await waitFor(() => {
@@ -239,7 +219,7 @@ export const SearchAndSort = {
       expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
     });
 
-    await step("clearing then sorting by name (A–Z) orders the cards", async () => {
+    await step("clearing then sorting by name (A–Z) asks the server to order", async () => {
       await userEvent.clear(searchInput);
       const sortSelect = /** @type {HTMLSelectElement} */ (
         canvasElement.querySelector(".cts-plan-list-sort select")
@@ -259,10 +239,7 @@ export const SearchAndSort = {
 export const ClickPlanName = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -292,10 +269,7 @@ export const ClickPlanName = {
 export const ModifierKeyClickDoesNotDispatch = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -332,10 +306,7 @@ export const ModifierKeyClickDoesNotDispatch = {
 export const ViewConfig = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -433,7 +404,6 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
             },
           ]),
         ),
-        neverResolvingInfo,
       ],
     },
   },
@@ -449,219 +419,78 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
 };
 
 /**
- * Module status segments: a module that has run shows a pulsing `pending`
- * segment (the /api/info fetch is mocked to never resolve here, pinning the
- * initial state); a never-run module (empty `instances`) shows a static `skip`
- * segment. Each segment is wrapped in a tooltip naming the module + status.
+ * Module status segments take their colour from the `status`/`result` each
+ * listing row carries for the module's latest run — the server looks those up
+ * for the whole page, so the listing makes no request per module. Every
+ * colour the mapping produces is exercised (pass / warn / fail), a never-run
+ * module (empty `instances`) is a static neutral segment, and so is a module
+ * whose latest run the server could not find (instances, but no status): it
+ * settles at neutral rather than pulsing forever. Each segment is wrapped in a
+ * tooltip naming the module + status. The `/api/info` handler records any
+ * per-module request, so the story proves there are none.
  */
-export const ModuleStatusBoxes = {
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/plan", () =>
-          HttpResponse.json([
-            {
-              _id: "plan-boxes",
-              planName: "oidcc-basic-certification-test-plan",
-              description: "Box states",
-              variant: {},
-              started: new Date().toISOString(),
-              owner: { sub: "12345", iss: "https://accounts.google.com" },
-              modules: [
-                { testModule: "module-has-run", instances: ["inst-aaa"] },
-                { testModule: "module-never-run", instances: [] },
-              ],
-              config: {},
-              publish: null,
-              immutable: false,
-            },
-          ]),
-        ),
-        neverResolvingInfo,
-      ],
-    },
-  },
-  render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
-    await waitForPlansToLoad(canvasElement);
-
-    // One segment per module, each wrapped in a tooltip naming the module.
-    const segments = canvasElement.querySelectorAll(
-      'cts-plan-status [data-testid="plan-status-segment"]',
-    );
-    expect(segments.length).toBe(2);
-    expect(
-      canvasElement.querySelector(
-        'cts-tooltip[content^="module-has-run"] [data-testid="plan-status-segment"]',
-      ),
-    ).toBeTruthy();
-
-    // Has-run module → pending (pulsing) segment; never-run → static neutral.
-    expect(boxVariant(canvasElement, "module-has-run")).toBe("pending");
-    expect(boxVariant(canvasElement, "module-never-run")).toBe("neutral");
-  },
-};
-
-/**
- * Module status boxes resolve to their concrete color once `/api/info`
- * returns, driven by the instance-keyed handler. Each module's last instance
- * maps to a distinct result in MOCK_PLAN_INFO (pass / warn / fail), so the
- * full mapping is exercised — not just the happy path. A never-run module
- * (empty instances) stays a static skip box and is never fetched.
- */
-export const BoxesResolveToStatus = {
-  parameters: {
-    msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)), infoHandler()],
-    },
-  },
-  render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
-    await waitForPlansToLoad(canvasElement);
-
-    // inst-001 PASSED → pass box (wait for the async resolution).
-    await waitFor(() => {
-      expect(boxVariant(canvasElement, "oidcc-server")).toBe("pass");
-    });
-    // inst-002 WARNING → warn; inst-004 FAILED → fail — the full mapping.
-    expect(boxVariant(canvasElement, "oidcc-server-rotate-keys")).toBe("warn");
-    expect(boxVariant(canvasElement, "fapi2-security-profile-ensure-signed-request")).toBe("fail");
-    // Never-run module (empty instances) stays a static neutral box.
-    expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("neutral");
-  },
-};
-
-/**
- * A no-instance module renders a static skip box and triggers no `/api/info`
- * fetch — only modules that have actually run are resolved. The recording
- * handler proves the fetched ids are exactly the modules that have instances.
- */
-export const NoInstanceModuleNotFetched = {
+export const ModuleStatusSegments = {
   /** @type {string[]} */
-  _requested: [],
+  _infoRequests: [],
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        planListing([
+          ...MOCK_PLAN_LIST,
+          {
+            _id: "plan-run-gone",
+            planName: "oidcc-basic-certification-test-plan",
+            description: "A module whose latest run was deleted",
+            variant: {},
+            started: new Date().toISOString(),
+            owner: { sub: "12345", iss: "https://accounts.google.com" },
+            modules: [{ testModule: "module-run-gone", instances: ["inst-deleted"] }],
+            config: {},
+            publish: null,
+            immutable: false,
+          },
+        ]),
         http.get("/api/info/:testId", ({ params }) => {
-          const id = /** @type {string} */ (params.testId);
-          NoInstanceModuleNotFetched._requested.push(id);
-          const info = MOCK_PLAN_INFO[id];
-          return info ? HttpResponse.json(info) : new HttpResponse(null, { status: 404 });
-        }),
-      ],
-    },
-  },
-  render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
-    NoInstanceModuleNotFetched._requested.length = 0;
-    await waitForPlansToLoad(canvasElement);
-
-    // The never-run module (empty instances) renders a static neutral box.
-    await waitFor(() => {
-      expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("neutral");
-    });
-
-    // Wait for the has-instance modules to resolve, then assert the fetched
-    // ids are exactly the five real instances — the no-instance module added
-    // none.
-    await waitFor(() => {
-      expect(boxVariant(canvasElement, "oidcc-server")).toBe("pass");
-    });
-    const unique = [...new Set(NoInstanceModuleNotFetched._requested)].sort();
-    expect(unique).toEqual(["inst-001", "inst-002", "inst-003", "inst-004", "inst-005"]);
-  },
-};
-
-/**
- * A failed `/api/info` (404 / unpublished / deleted run) settles the box at
- * the neutral skip color rather than leaving it pulsing — and does not throw
- * or blank the card.
- */
-export const InfoErrorSettlesToSkip = {
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        // Empty map → every /api/info is a 404.
-        infoHandler({}),
-      ],
-    },
-  },
-  render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
-    await waitForPlansToLoad(canvasElement);
-
-    // A module that has run but whose /api/info 404s settles at neutral.
-    await waitFor(() => {
-      expect(boxVariant(canvasElement, "oidcc-server")).toBe("neutral");
-    });
-    // The card is still intact (not blanked by the error).
-    expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
-      MOCK_PLAN_LIST.length,
-    );
-  },
-};
-
-/**
- * The `/api/info` fan-out is gated to visible cards: with more than PAGE_SIZE
- * (25) plans loaded, only the first page's module instances are fetched on
- * load. "Show more" reveals page two and lazily fetches its instances.
- */
-export const OffScreenModulesNotFetched = {
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/plan", () =>
-          HttpResponse.json(
-            Array.from({ length: 30 }, (_, i) => {
-              const id = `plan-${String(i).padStart(3, "0")}`;
-              return {
-                _id: id,
-                planName: `${id}-name`,
-                description: "",
-                variant: {},
-                // Descending started so DOM order matches index order.
-                started: new Date(Date.now() - i * 1000).toISOString(),
-                owner: { sub: "12345", iss: "https://accounts.google.com" },
-                modules: [{ testModule: "m", instances: [`inst-${String(i).padStart(3, "0")}`] }],
-                config: {},
-                publish: null,
-                immutable: false,
-              };
-            }),
-          ),
-        ),
-        // Any instance resolves to PASSED; record which ids were fetched.
-        http.get("/api/info/:testId", ({ params }) => {
-          OffScreenModulesNotFetched._requested.push(/** @type {string} */ (params.testId));
+          ModuleStatusSegments._infoRequests.push(/** @type {string} */ (params.testId));
           return HttpResponse.json({ status: "FINISHED", result: "PASSED" });
         }),
       ],
     },
   },
-  /** @type {string[]} */
-  _requested: [],
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement, step }) {
-    OffScreenModulesNotFetched._requested.length = 0;
+    ModuleStatusSegments._infoRequests.length = 0;
     await waitForPlansToLoad(canvasElement);
 
-    await step("only the first page's instances are fetched on load", async () => {
-      // First page (25) instances fetched; page-two instances (inst-025..029)
-      // are NOT fetched until revealed.
-      await waitFor(() => {
-        expect(OffScreenModulesNotFetched._requested.length).toBe(25);
-      });
-      expect(OffScreenModulesNotFetched._requested).not.toContain("inst-029");
+    await step("one segment per module, each wrapped in a tooltip naming it", async () => {
+      const totalModules = MOCK_PLAN_LIST.reduce((n, p) => n + (p.modules?.length || 0), 0) + 1;
+      const segments = canvasElement.querySelectorAll(
+        'cts-plan-status [data-testid="plan-status-segment"]',
+      );
+      expect(segments.length).toBe(totalModules);
+      expect(
+        canvasElement.querySelector(
+          'cts-tooltip[content^="oidcc-server —"] [data-testid="plan-status-segment"]',
+        ),
+      ).toBeTruthy();
     });
 
-    await step("revealing page two lazily fetches its instances", async () => {
-      const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
-      await userEvent.click(innerButton(showMore));
-      await waitFor(() => {
-        expect(OffScreenModulesNotFetched._requested).toContain("inst-029");
-      });
+    await step("the colour is the row's status/result — the full mapping", async () => {
+      // inst-001 PASSED → pass; inst-002 WARNING → warn; inst-004 FAILED → fail.
+      expect(boxVariant(canvasElement, "oidcc-server")).toBe("pass");
+      expect(boxVariant(canvasElement, "oidcc-server-rotate-keys")).toBe("warn");
+      expect(boxVariant(canvasElement, "fapi2-security-profile-ensure-signed-request")).toBe(
+        "fail",
+      );
+    });
+
+    await step("a never-run module and a module whose run is gone are neutral", async () => {
+      expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("neutral");
+      expect(boxVariant(canvasElement, "module-run-gone")).toBe("neutral");
+    });
+
+    await step("no per-module request was made", async () => {
+      expect(ModuleStatusSegments._infoRequests).toEqual([]);
     });
   },
 };
@@ -718,10 +547,7 @@ export const EmptyList = {
 export const EmptySearch = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -832,10 +658,7 @@ export const FilteredApiError = {
 export const AdminView = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
-      ],
+      handlers: [planListing(MOCK_PLAN_LIST)],
     },
   },
   render: () => html`<cts-plan-list is-admin></cts-plan-list>`,
@@ -866,7 +689,6 @@ export const PublicView = {
           const plans = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
           return HttpResponse.json(plans);
         }),
-        neverResolvingInfo,
       ],
     },
   },
@@ -906,110 +728,132 @@ export const PublicView = {
 };
 
 /**
- * Past PAGE_SIZE (25) plans, the listing paginates client-side with a
- * "Show more" button that reveals the next page.
+ * A re-query (sort, search, chip) keeps the rows on screen, dimmed and marked
+ * busy, with a status line, until the server answers — the spinner is only
+ * for the first load and a My/Published swap. The sort change's response is
+ * held so the state is visible.
  */
-export const ShowMorePagination = {
+export const RefreshInPlace = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/plan", () =>
-          HttpResponse.json(
-            Array.from({ length: 30 }, (_, i) => ({
-              _id: `plan-${String(i).padStart(3, "0")}`,
-              planName: `plan-${String(i).padStart(3, "0")}-name`,
-              description: "",
-              variant: {},
-              started: new Date(Date.now() - i * 1000).toISOString(),
-              owner: { sub: "12345", iss: "https://accounts.google.com" },
-              modules: [{ testModule: "m", instances: [] }],
-              config: {},
-              publish: null,
-              immutable: false,
-            })),
-          ),
-        ),
-        neverResolvingInfo,
+        http.get("/api/plan", async ({ request }) => {
+          const params = new URL(request.url).searchParams;
+          if (params.get("order") !== "started,desc") await delay(1500);
+          return HttpResponse.json(
+            serveListing(MOCK_PLAN_LIST, request.url, { searchFields: PLAN_SEARCH_FIELDS }),
+          );
+        }),
       ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement, step }) {
     await waitForPlansToLoad(canvasElement);
+    const sortSelect = /** @type {HTMLSelectElement} */ (
+      canvasElement.querySelector(".cts-plan-list-sort select")
+    );
+    await userEvent.selectOptions(sortSelect, "name-asc");
 
-    await step("first page caps at PAGE_SIZE (25)", async () => {
-      const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-      expect(cards.length).toBe(25);
+    await step("the rows stay, busy, with a status line and no spinner", async () => {
+      await waitFor(() => {
+        const list = canvasElement.querySelector('[data-testid="plan-list-items"]');
+        expect(list?.getAttribute("aria-busy")).toBe("true");
+      });
+      expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
+        MOCK_PLAN_LIST.length,
+      );
+      expect(
+        canvasElement.querySelector('[data-testid="plan-list-refreshing"]')?.textContent,
+      ).toContain("Updating");
+      expect(canvasElement.querySelector("cts-loading-state")).toBeNull();
     });
 
-    await step("Show more reveals the next page", async () => {
+    await step(
+      "once answered, the rows are the sorted ones and the busy state clears",
+      async () => {
+        await waitFor(
+          () => {
+            const list = canvasElement.querySelector('[data-testid="plan-list-items"]');
+            expect(list?.getAttribute("aria-busy")).toBe("false");
+          },
+          { timeout: 3000 },
+        );
+        const names = Array.from(
+          canvasElement.querySelectorAll('[data-testid="plan-list-item"] .cts-plan-card-name'),
+        ).map((el) => el.textContent);
+        expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+      },
+    );
+  },
+};
+
+/**
+ * The SERVER pages the listing, 25 rows at a time: the first request asks for
+ * `start=0&length=25`, and "Show more" asks for the page after the rows
+ * already shown and appends it. The synthetic `recordsTotal` the server
+ * answers with (start+length+1 while there is more) is what tells the listing
+ * to offer the button at all.
+ */
+export const ShowMorePagination = {
+  /** @type {string[]} */
+  _requests: [],
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", ({ request }) => {
+          ShowMorePagination._requests.push(new URL(request.url).search);
+          return HttpResponse.json(
+            serveListing(
+              Array.from({ length: 30 }, (_, i) => ({
+                _id: `plan-${String(i).padStart(3, "0")}`,
+                planName: `plan-${String(i).padStart(3, "0")}-name`,
+                description: "",
+                variant: {},
+                started: new Date(Date.now() - i * 1000).toISOString(),
+                owner: { sub: "12345", iss: "https://accounts.google.com" },
+                modules: [{ testModule: "m", instances: [] }],
+                config: {},
+                publish: null,
+                immutable: false,
+              })),
+              request.url,
+              { searchFields: PLAN_SEARCH_FIELDS },
+            ),
+          );
+        }),
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement, step }) {
+    ShowMorePagination._requests.length = 0;
+    await waitForPlansToLoad(canvasElement);
+
+    await step("the first page is 25 rows, asked for newest-first", async () => {
+      const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(25);
+      const first = new URLSearchParams(ShowMorePagination._requests[0]);
+      expect(first.get("start")).toBe("0");
+      expect(first.get("length")).toBe("25");
+      expect(first.get("order")).toBe("started,desc");
+    });
+
+    await step("Show more asks for the next page and appends it", async () => {
       const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
       expect(showMore).toBeTruthy();
+      expect(innerButton(showMore).textContent).toContain("Show more (25 loaded)");
       await userEvent.click(innerButton(showMore));
 
       await waitFor(() => {
         const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
         expect(cards.length).toBe(30);
       });
+      const next = new URLSearchParams(ShowMorePagination._requests.at(-1) || "");
+      expect(next.get("start")).toBe("25");
+      // Nothing left, so nothing more is offered.
+      expect(canvasElement.querySelector('[data-testid="plan-list-show-more"]')).toBeNull();
     });
-  },
-};
-
-/**
- * The backend caps `/api/plan?length=` at 1000
- * (`PaginationRequest.setLength`); when there is a next page beyond the cap,
- * `PaginationRequest.getSliceResponse` answers with a SYNTHETIC
- * `recordsTotal` one row past what it returned (start+length+1), which is
- * how a plain-array response (every other story here) is told apart from a
- * truncated one. The listing must not present those 1000 rows as complete.
- */
-export const TruncatedListing = {
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/plan", () =>
-          HttpResponse.json({
-            draw: 1,
-            recordsTotal: 1001,
-            recordsFiltered: 1001,
-            data: Array.from({ length: 1000 }, (_, i) => ({
-              _id: `plan-${String(i).padStart(4, "0")}`,
-              planName: `plan-${String(i).padStart(4, "0")}-name`,
-              description: "",
-              variant: {},
-              started: new Date(Date.now() - i * 1000).toISOString(),
-              owner: { sub: "12345", iss: "https://accounts.google.com" },
-              modules: [],
-              config: {},
-              publish: null,
-              immutable: false,
-            })),
-          }),
-        ),
-      ],
-    },
-  },
-  render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-    await waitForPlansToLoad(canvasElement);
-
-    await waitFor(() => {
-      const notice = canvasElement.querySelector('[data-testid="plan-list-truncated"]');
-      expect(notice).toBeTruthy();
-    });
-    expect(
-      canvas.getByText(
-        "Showing the newest 1,000 matching plans — narrow the filters or the date range " +
-          "(for example use a weekly view) to see all of them.",
-      ),
-    ).toBeInTheDocument();
-
-    // The "Show more" footer count carries the same "there may be more"
-    // caveat as the notice above the list.
-    const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
-    expect(showMore).toBeTruthy();
-    expect(innerButton(showMore).textContent).toContain("Show more (25 of 1,000+)");
   },
 };
 
@@ -1069,8 +913,8 @@ export const EmptyPublishedView = {
  * Each filter is a removable chip. The chips are `clickable` badges (the
  * badge IS the click target and nothing wraps it), so each one carries
  * `role="button"`, keyboard activation and the stronger affordance ring.
- * Removing one refetches — the SERVER applies these filters, unlike the
- * search box above the list, which is client-side.
+ * Removing one refetches — the SERVER applies these filters, as it does the
+ * search box above the list.
  */
 export const FilteredByChips = {
   parameters: {
@@ -1084,7 +928,6 @@ export const FilteredByChips = {
           if (url.searchParams.get("family")) return HttpResponse.json([]);
           return HttpResponse.json(MOCK_PLAN_LIST.filter((plan) => plan.publish));
         }),
-        neverResolvingInfo,
       ],
     },
   },
@@ -1109,7 +952,9 @@ export const FilteredByChips = {
       // Exclusive, so it is the NEXT period's start — the day after the last
       // day the chip names.
       expect(params.get("to")).toBe("2026-05-11");
-      expect(params.get("length")).toBe("1000");
+      expect(params.get("start")).toBe("0");
+      expect(params.get("length")).toBe("25");
+      expect(params.get("order")).toBe("started,desc");
     });
 
     await step("one chip per filter, each announced as a remove action", async () => {
@@ -1208,7 +1053,6 @@ export const StaleResponsesAreIgnored = {
           }
           return HttpResponse.json(MOCK_PLAN_LIST);
         }),
-        neverResolvingInfo,
       ],
     },
   },

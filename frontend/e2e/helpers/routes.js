@@ -13,6 +13,7 @@
 import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
+import { LOG_FILTERS, LOG_SEARCH_FIELDS, serveListing } from "./listing-server.js";
 import { MOCK_LOG_LIST } from "../fixtures/mock-log-list.js";
 import {
   MOCK_PLANS,
@@ -218,38 +219,30 @@ export function expectNoUnmockedCalls(page) {
 }
 
 /**
- * Register an /api/log route that records every request URL, plus the per-id
- * /api/plan/<id> name-resolution stub cts-log-list fires. Returns the recorded
- * URL array so a test can assert WHICH dataset (My vs Published) was fetched
- * across My/Published tab switches. Shared by logs.spec.js and
- * logs-url-compat.spec.js (the route-helper convention — AGENTS.md).
+ * Register an /api/log route that serves the rows as the server would - one
+ * page per request, filtered, searched and ordered as the request asks (see
+ * listing-server.js) - and records every request URL. Returns the recorded URL
+ * array so a test can assert WHICH dataset (My vs Published) was fetched
+ * across My/Published tab switches, and with which parameters. Shared by
+ * logs.spec.js and logs-url-compat.spec.js (the route-helper convention —
+ * AGENTS.md).
  *
  * @param {import('@playwright/test').Page} page
- * @param {ReadonlyArray<{planId?: string, testId?: string, status?: string, result?: string}>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)
+ * @param {ReadonlyArray<Record<string, unknown>>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)
  * @returns {Promise<string[]>} requested /api/log URLs, in order
  */
 export async function recordLogRoute(page, rows = MOCK_LOG_LIST) {
   /** @type {string[]} */
   const logRequests = [];
   await page.route("**/api/log?*", (route) => {
-    logRequests.push(route.request().url());
+    const url = route.request().url();
+    logRequests.push(url);
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        draw: 1,
-        recordsTotal: rows.length,
-        recordsFiltered: rows.length,
-        data: rows,
-      }),
-    });
-  });
-  await page.route("**/api/plan/*", (route) => {
-    const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
+      body: JSON.stringify(
+        serveListing(rows, url, { searchFields: LOG_SEARCH_FIELDS, filters: LOG_FILTERS }),
+      ),
     });
   });
   return logRequests;

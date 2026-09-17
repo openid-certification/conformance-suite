@@ -135,6 +135,41 @@ class DBTestPlanService_UnitTest {
 	}
 
 	@Test
+	void theLatestRunOfAModuleIsItsLastInstance() {
+		assertThat(DBTestPlanService.latestInstance(module("m", "first", "second", "latest"))).isEqualTo("latest");
+		assertThat(DBTestPlanService.latestInstance(module("m"))).isNull();
+		assertThat(DBTestPlanService.latestInstance(new Plan.Module("m", Map.of(), null))).isNull();
+	}
+
+	@Test
+	void eachModuleGetsTheStatusAndResultOfItsLatestRunWhenThatRunWasFound() {
+		Plan.Module finished = module("finished", "old-run", "run-1");
+		Plan.Module running = module("running", "run-2");
+		Plan.Module neverRun = module("never-run");
+		Plan.Module runGone = module("run-gone", "run-deleted");
+
+		DBTestPlanService.applyLatestRuns(List.of(finished, running, neverRun, runGone), Map.of(
+			"run-1", new Document("_id", "run-1").append("status", "FINISHED").append("result", "PASSED"),
+			// the earlier run of the same module is not what the listing shows
+			"old-run", new Document("_id", "old-run").append("status", "FINISHED").append("result", "FAILED"),
+			"run-2", new Document("_id", "run-2").append("status", "RUNNING")));
+
+		assertThat(finished.getStatus()).isEqualTo("FINISHED");
+		assertThat(finished.getResult()).isEqualTo("PASSED");
+		// a run that has no result yet is shown as such, not as an unknown run
+		assertThat(running.getStatus()).isEqualTo("RUNNING");
+		assertThat(running.getResult()).isNull();
+		assertThat(neverRun.getStatus()).isNull();
+		assertThat(neverRun.getResult()).isNull();
+		assertThat(runGone.getStatus()).isNull();
+		assertThat(runGone.getResult()).isNull();
+	}
+
+	private static Plan.Module module(String name, String... instances) {
+		return new Plan.Module(name, Map.of(), List.of(instances));
+	}
+
+	@Test
 	void aFamilyWithoutAnyPlansListsNothing() {
 		PlanListFilter filter = new PlanListFilter(Set.of(), Map.of(), null, null, null, null);
 

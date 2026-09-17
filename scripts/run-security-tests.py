@@ -17,6 +17,9 @@ authentication. Tests cover:
 - Certification package: owner success, immutable-plan rules, and that
   unauthenticated / another user cannot prepare a package
 - Public list/export endpoints return only published results
+- Listing endpoints: the /api/log status/result filters, the plan name each
+  test row carries, and the latest-run status each plan module carries, all
+  inside the owner/public scoping
 - Runner running-list, start, and cancel, /lastconfig, and plan metadata
 - API token lifecycle
 
@@ -1543,6 +1546,74 @@ def run_tests():
     runner.check("Statistics: anonymous page request is sent to login",
                  resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
                  f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
+
+    # ===================================================================
+    # 4j. LISTING ENDPOINTS: SERVER-SIDE FILTERS AND PAGE ENRICHMENT
+    # ===================================================================
+    # GET /api/log filters by status/result on the server and attaches each test's planName;
+    # GET /api/plan attaches each module's latest status/result. Both stay inside the
+    # owner/admin/public scoping: the filters can only narrow a listing, never widen it.
+    print("\n--- 4j. Listing endpoints: filters and page enrichment ---")
+
+    resp = owner_client.get(f"{base_url}api/log", params={"order": "started,desc", "length": "50"})
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    mine = [r for r in rows if r.get("_id") in (test_id, other_test_id)]
+    runner.check("Listing: owner's test log rows carry the plan name",
+                 resp.status_code == 200 and len(mine) == 2
+                 and all(r.get("planName") == plan_name for r in mine),
+                 f"HTTP {resp.status_code}, {len(mine)} of the owner's tests listed")
+
+    resp = owner_client.get(f"{base_url}api/log", params={"status": "finished,interrupted",
+                                                          "result": "passed,failed,warning,review,skipped,unknown",
+                                                          "order": "started,desc", "length": "50"})
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    runner.check("Listing: status and result filters only return matching rows",
+                 resp.status_code == 200
+                 and all(r.get("status") in ("FINISHED", "INTERRUPTED") for r in rows),
+                 f"HTTP {resp.status_code}, {len(rows)} rows")
+
+    resp = owner_client.get(f"{base_url}api/log", params={"status": "bogus"})
+    runner.check_status("Listing: an unknown status is refused with 400", resp, 400)
+
+    resp = owner_client.get(f"{base_url}api/log", params={"result": "running"})
+    runner.check_status("Listing: a status used as a result is refused with 400", resp, 400)
+
+    resp = owner_client.get(f"{base_url}api/plan", params={"order": "started,desc", "length": "50"})
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    listed = next((r for r in rows if r.get("_id") == plan_id), None)
+    run_module = next((m for m in (listed or {}).get("modules", [])
+                       if m.get("testModule") == first_module), None)
+    runner.check("Listing: a plan's module carries the status of its latest run",
+                 listed is not None and run_module is not None
+                 and run_module.get("status") is not None,
+                 f"HTTP {resp.status_code}, module: {run_module}")
+
+    never_run = [m for m in (listed or {}).get("modules", []) if not m.get("instances")]
+    runner.check("Listing: a module that never ran carries no status",
+                 all(m.get("status") is None and m.get("result") is None for m in never_run),
+                 f"{len(never_run)} never-run modules")
+
+    resp = unauthenticated_get(base_url, "api/log", verify_ssl, params={"status": "running"})
+    runner.check_status("Listing: filtered test log list requires authentication", resp, 401)
+
+    resp = unauthenticated_get(base_url, "api/log", verify_ssl,
+                               params={"public": "true", "status": "finished", "order": "started,desc"})
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    runner.check("Listing: public filtered test log list returns only published, matching rows",
+                 resp.status_code == 200
+                 and all(r.get("publish") in ("summary", "everything")
+                         and r.get("status") == "FINISHED" for r in rows),
+                 f"HTTP {resp.status_code}, {len(rows)} rows")
+
+    resp = unauthenticated_get(base_url, "api/plan", verify_ssl,
+                               params={"public": "true", "order": "started,desc", "length": "50"})
+    rows = resp.json().get("data", []) if resp.status_code == 200 else []
+    public_plan = next((r for r in rows if r.get("_id") == plan_id), None)
+    runner.check("Listing: public plan list carries module status for the published plan only",
+                 public_plan is not None
+                 and all(r.get("_id") != other_plan_id for r in rows)
+                 and any(m.get("status") is not None for m in public_plan.get("modules", [])),
+                 f"HTTP {resp.status_code}, {len(rows)} rows")
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE

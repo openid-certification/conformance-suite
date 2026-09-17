@@ -49,10 +49,10 @@ const RUNS_ALL_CLEAR = [
   { testId: "r2", status: "FINISHED", result: "WARNING" },
 ];
 
-// The strip's window is the only /api/log request carrying start=0. Match the
-// full window (start=0&length=1000), not a bare "start=0" substring, so the
-// isolation stays correct even if cts-log-list ever adds a start= param to its
-// own fetch — today the list emits only ?length=1000&order=started,desc[&public=true].
+// The strip's window is the only /api/log request asking for 1000 rows; the
+// list pages through 25 at a time. Match the full window (start=0&length=1000),
+// not a bare "start=0" substring, because the list's first page carries
+// start=0 too.
 const isStripFetch = (/** @type {string} */ u) => u.includes("start=0&length=1000");
 
 test.describe("logs.html — runs strip (relocated from plans home)", () => {
@@ -188,11 +188,11 @@ test.describe("logs.html — runs strip (relocated from plans home)", () => {
     page,
   }) => {
     await setupFailFast(page);
-    // Fail ONLY the strip's window (start=0); the list's own fetch (length=1000)
-    // still succeeds. logs.html shares /api/log between the two, so isolating the
-    // failure to the strip's request keeps the list-still-functional claim honest.
+    // Fail ONLY the strip's window; the list's own page fetch still succeeds.
+    // logs.html shares /api/log between the two, so isolating the failure to
+    // the strip's request keeps the list-still-functional claim honest.
     await page.route("**/api/log?*", (route) => {
-      if (route.request().url().includes("start=0")) {
+      if (isStripFetch(route.request().url())) {
         return route.fulfill({ status: 500, body: "" });
       }
       return route.fulfill({
@@ -204,14 +204,6 @@ test.describe("logs.html — runs strip (relocated from plans home)", () => {
           recordsFiltered: MOCK_LOG_LIST.length,
           data: MOCK_LOG_LIST,
         }),
-      });
-    });
-    await page.route("**/api/plan/*", (route) => {
-      const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
       });
     });
     await setupCommonRoutes(page);

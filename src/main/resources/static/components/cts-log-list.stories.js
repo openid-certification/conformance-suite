@@ -2,6 +2,7 @@ import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
 import { http, HttpResponse, delay } from "msw";
 import { MOCK_LOG_LIST, MOCK_LOG_LIST_LARGE } from "@fixtures/mock-log-list.js";
+import { LOG_FILTERS, LOG_SEARCH_FIELDS, serveListing } from "@fixtures/listing-server.js";
 import "./cts-log-list.js";
 
 export default {
@@ -53,28 +54,20 @@ async function openFilterPanel(canvasElement) {
   return canvasElement.querySelector('[data-testid="log-filter-panel"]');
 }
 
-function paginationEnvelope(rows) {
-  return {
-    draw: 1,
-    recordsTotal: rows.length,
-    recordsFiltered: rows.length,
-    data: rows,
-  };
-}
-
-// `cts-log-list` resolves a kebab-case `planName` per unique `planId` via
-// `/api/plan/<id>` so the meta-row "Plan" chip shows the spec identifier
-// instead of the opaque MongoDB id. Every story that mounts the component
-// needs this handler — otherwise the resolver's fetches hit MSW's
-// onUnhandledRequest and pollute the story console with warnings.
-function planResolveHandler(planNamesById = {}) {
-  return http.get("/api/plan/:planId", ({ params }) => {
-    const planId = /** @type {string} */ (params.planId);
-    return HttpResponse.json({
-      _id: planId,
-      planName: planNamesById[planId] || `mock-plan-name-${planId}`,
-    });
-  });
+/**
+ * An `/api/log` handler that answers each request as the server would: one
+ * page of `rows`, filtered, searched, ordered and offset as the request asks
+ * (see `@fixtures/listing-server.js`), so a story exercises the same round
+ * trips the page makes. Each row already carries `planName`, as the server
+ * attaches it, so no `/api/plan/<id>` handler is needed.
+ * @param {ReadonlyArray<Record<string, unknown>>} rows - The whole dataset.
+ */
+function logListing(rows) {
+  return http.get("/api/log", ({ request }) =>
+    HttpResponse.json(
+      serveListing(rows, request.url, { searchFields: LOG_SEARCH_FIELDS, filters: LOG_FILTERS }),
+    ),
+  );
 }
 
 // --- Stories ---
@@ -82,10 +75,7 @@ function planResolveHandler(planNamesById = {}) {
 export const Default = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing(MOCK_LOG_LIST)],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -140,16 +130,30 @@ export const Default = {
   },
 };
 
-export const WithResolvedPlanNames = {
+/**
+ * The meta-row "Plan" chip shows the kebab-case `planName` each row carries
+ * (the server attaches it from the plan the test belongs to) rather than the
+ * opaque plan id, and falls back to the id for a row without one — a plan
+ * the server could not find. No `/api/plan/<id>` handler is registered: a
+ * per-row lookup would surface as an unhandled request.
+ */
+export const PlanNamesFromRows = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler({
-          "plan-001": "oidcc-basic-certification-test-plan",
-          "plan-002": "fapi2-security-profile-final-test-plan",
-          "plan-003": "vci-id-1-wallet-test-plan",
-        }),
+        logListing([
+          ...MOCK_LOG_LIST,
+          {
+            testId: "test-log-orphan",
+            testName: "oidcc-server",
+            variant: {},
+            description: "A test whose plan was deleted.",
+            started: new Date(0).toISOString(),
+            planId: "plan-deleted",
+            status: "FINISHED",
+            result: "PASSED",
+          },
+        ]),
       ],
     },
   },
@@ -157,33 +161,36 @@ export const WithResolvedPlanNames = {
   async play({ canvasElement, step }) {
     await waitForLogsToLoad(canvasElement);
 
-    await step("async plan-name resolution lands on the first chip", async () => {
-      // Wait for the async /api/plan/<id> resolutions to land — the chip
-      // text flips from optimistic planId to resolved planName.
-      await waitFor(() => {
-        const link = canvasElement.querySelector(
-          '[data-test-id="test-log-001"] .cts-log-card-plan-link',
-        );
-        expect(link).not.toBeNull();
-        expect(link.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
-      });
+    await step("the chip reads the row's planName", async () => {
+      const link = canvasElement.querySelector(
+        '[data-test-id="test-log-001"] .cts-log-card-plan-link',
+      );
+      expect(link).not.toBeNull();
+      expect(link.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
     });
 
-    await step("rows that share a planId pick the same resolved name", async () => {
+    await step("rows of the same plan read the same name", async () => {
       const card002 = canvasElement.querySelector(
         '[data-test-id="test-log-002"] .cts-log-card-plan-link',
       );
       expect(card002.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
     });
 
-    await step("distinct planId resolves independently", async () => {
+    await step("a distinct plan reads its own name", async () => {
       const card003 = canvasElement.querySelector(
         '[data-test-id="test-log-003"] .cts-log-card-plan-link',
       );
       expect(card003.textContent.trim()).toBe("fapi2-security-profile-final-test-plan");
     });
 
-    await step("link target is still keyed by planId — only the visible text changes", async () => {
+    await step("a row without a planName falls back to the plan id", async () => {
+      const orphan = canvasElement.querySelector(
+        '[data-test-id="test-log-orphan"] .cts-log-card-plan-link',
+      );
+      expect(orphan.textContent.trim()).toBe("plan-deleted");
+    });
+
+    await step("link target is still keyed by planId — only the visible text differs", async () => {
       const card001Link = canvasElement.querySelector(
         '[data-test-id="test-log-001"] .cts-log-card-plan-link',
       );
@@ -195,10 +202,7 @@ export const WithResolvedPlanNames = {
 export const AdminListing = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing(MOCK_LOG_LIST)],
     },
   },
   render: () => html`<cts-log-list is-admin></cts-log-list>`,
@@ -227,16 +231,12 @@ export const PublicListing = {
           if (url.searchParams.get("public") !== "true") {
             return HttpResponse.json({ error: "expected ?public=true" }, { status: 400 });
           }
-          return HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST));
-        }),
-        http.get("/api/plan/:planId", ({ request, params }) => {
-          const url = new URL(request.url);
-          // Verify the public flag is forwarded on plan-name resolution too.
-          if (url.searchParams.get("public") !== "true") {
-            return HttpResponse.json({ error: "expected ?public=true" }, { status: 400 });
-          }
-          const planId = /** @type {string} */ (params.planId);
-          return HttpResponse.json({ _id: planId, planName: `mock-plan-name-${planId}` });
+          return HttpResponse.json(
+            serveListing(MOCK_LOG_LIST, request.url, {
+              searchFields: LOG_SEARCH_FIELDS,
+              filters: LOG_FILTERS,
+            }),
+          );
         }),
       ],
     },
@@ -256,12 +256,11 @@ export const Loading = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/log", async () => {
+        http.get("/api/log", async ({ request }) => {
           // Hold the response open long enough for the spinner to render.
           await delay(10000);
-          return HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST));
+          return HttpResponse.json(serveListing(MOCK_LOG_LIST, request.url));
         }),
-        planResolveHandler(),
       ],
     },
   },
@@ -278,10 +277,7 @@ export const Loading = {
 export const EmptyDataset = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope([]))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing([])],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -313,10 +309,7 @@ export const EmptyDataset = {
 export const EmptyPublicDataset = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope([]))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing([])],
     },
   },
   render: () => html`<cts-log-list is-public></cts-log-list>`,
@@ -340,10 +333,7 @@ export const EmptyPublicDataset = {
 export const FilterByStatus = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing(MOCK_LOG_LIST)],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -409,10 +399,7 @@ export const FilterByStatus = {
 export const FilterActiveZeroMatches = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing(MOCK_LOG_LIST)],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -436,10 +423,7 @@ export const FilterActiveZeroMatches = {
 export const SearchActive = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing(MOCK_LOG_LIST)],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -460,10 +444,7 @@ export const SearchActive = {
 export const SortByName = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
-        planResolveHandler(),
-      ],
+      handlers: [logListing(MOCK_LOG_LIST)],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -483,29 +464,86 @@ export const SortByName = {
   },
 };
 
-export const Paginated60Items = {
+/**
+ * A re-query (sort, search, chip) keeps the rows on screen, dimmed and marked
+ * busy, with a status line, until the server answers — the spinner is only
+ * for the first load and a My/Published swap, where the old rows are the
+ * wrong dataset. The sort change's response is held so the state is visible.
+ */
+export const RefreshInPlace = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST_LARGE))),
-        planResolveHandler(),
+        http.get("/api/log", async ({ request }) => {
+          const params = new URL(request.url).searchParams;
+          if (params.get("order") !== "started,desc") await delay(1500);
+          return HttpResponse.json(
+            serveListing(MOCK_LOG_LIST, request.url, {
+              searchFields: LOG_SEARCH_FIELDS,
+              filters: LOG_FILTERS,
+            }),
+          );
+        }),
       ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
   async play({ canvasElement, step }) {
     await waitForLogsToLoad(canvasElement);
+    const sortSelect = canvasElement.querySelector(".cts-log-list-sort select");
+    await userEvent.selectOptions(sortSelect, "name-asc");
 
-    await step("first page renders 25 of 60 with a show-more affordance", async () => {
+    await step("the rows stay, busy, with a status line and no spinner", async () => {
+      await waitFor(() => {
+        const list = canvasElement.querySelector('[data-testid="log-list-items"]');
+        expect(list?.getAttribute("aria-busy")).toBe("true");
+      });
+      expect(canvasElement.querySelectorAll('[data-testid="log-list-item"]').length).toBe(
+        MOCK_LOG_LIST.length,
+      );
+      expect(
+        canvasElement.querySelector('[data-testid="log-list-refreshing"]')?.textContent,
+      ).toContain("Updating");
+      expect(canvasElement.querySelector('[data-testid="log-list-loading"]')).toBeNull();
+    });
+
+    await step(
+      "once answered, the rows are the sorted ones and the busy state clears",
+      async () => {
+        await waitFor(
+          () => {
+            const list = canvasElement.querySelector('[data-testid="log-list-items"]');
+            expect(list?.getAttribute("aria-busy")).toBe("false");
+          },
+          { timeout: 3000 },
+        );
+        const first = canvasElement.querySelector(".cts-log-card-name");
+        expect(first?.textContent?.trim().startsWith("f")).toBe(true);
+      },
+    );
+  },
+};
+
+export const Paginated60Items = {
+  parameters: {
+    msw: {
+      handlers: [logListing(MOCK_LOG_LIST_LARGE)],
+    },
+  },
+  render: () => html`<cts-log-list></cts-log-list>`,
+  async play({ canvasElement, step }) {
+    await waitForLogsToLoad(canvasElement);
+
+    await step("the first page is 25 rows with a show-more affordance", async () => {
       const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
       expect(items.length).toBe(25);
 
       const showMore = canvasElement.querySelector('[data-testid="log-list-show-more"]');
       expect(showMore).not.toBeNull();
-      expect(showMore.getAttribute("label")).toContain("25 of 60");
+      expect(showMore.getAttribute("label")).toContain("Show more (25 loaded)");
     });
 
-    await step("clicking show-more reveals the next page", async () => {
+    await step("clicking show-more asks the server for the next page and appends it", async () => {
       const showMore = canvasElement.querySelector('[data-testid="log-list-show-more"]');
       // Click the inner <button> of the cts-button host.
       const inner = showMore.querySelector("button");
@@ -516,31 +554,5 @@ export const Paginated60Items = {
         expect(items.length).toBe(50);
       });
     });
-  },
-};
-
-export const Truncated = {
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("/api/log", () =>
-          HttpResponse.json({
-            draw: 1,
-            recordsTotal: 5000,
-            recordsFiltered: 5000,
-            data: MOCK_LOG_LIST,
-          }),
-        ),
-        planResolveHandler(),
-      ],
-    },
-  },
-  render: () => html`<cts-log-list></cts-log-list>`,
-  async play({ canvasElement }) {
-    await waitForLogsToLoad(canvasElement);
-
-    const hint = canvasElement.querySelector('[data-testid="log-list-truncation"]');
-    expect(hint).not.toBeNull();
-    expect(hint.textContent).toContain("Refine the filter to narrow further");
   },
 };

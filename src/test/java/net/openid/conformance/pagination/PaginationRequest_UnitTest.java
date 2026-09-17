@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +88,35 @@ class PaginationRequest_UnitTest {
 		});
 
 		assertThat(searched).containsExactly("\"fapi ciba\"", null);
+	}
+
+	private static Sort sortAskedFor(String order) {
+		PaginationRequest page = request(0, 0, 25, null);
+		page.setOrder(order);
+		List<Sort> asked = new ArrayList<>();
+		page.getSliceResponse((search, pageable) -> {
+			asked.add(pageable.getSort());
+			return slice(pageable, false);
+		});
+		return asked.get(0);
+	}
+
+	@Test
+	void theOrderIsAFlatListOfColumnAndDirectionPairs() {
+		assertThat(sortAskedFor("started,desc"))
+			.isEqualTo(Sort.by(Sort.Order.desc("started")));
+		assertThat(sortAskedFor("testName,asc,started,desc"))
+			.isEqualTo(Sort.by(Sort.Order.asc("testName"), Sort.Order.desc("started")));
+		// anything but exactly "desc" is ascending, and so is a column with no direction at all
+		assertThat(sortAskedFor("planName,DESC,started"))
+			.isEqualTo(Sort.by(Sort.Order.asc("planName"), Sort.Order.asc("started")));
+	}
+
+	@Test
+	void noOrderAndABlankOrderBothMeanUnsorted() {
+		assertThat(sortAskedFor(null).isUnsorted()).isTrue();
+		assertThat(sortAskedFor("").isUnsorted()).isTrue();
+		assertThat(sortAskedFor(" , ").isUnsorted()).isTrue();
 	}
 
 	@Test

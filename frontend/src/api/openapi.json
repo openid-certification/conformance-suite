@@ -3,7 +3,7 @@
   "info": {
     "title": "OpenID Conformance Suite REST APIs",
     "description": "The REST APIs for driving the OpenID Conformance Suite. <h3>Authentication</h3> To call the APIs supply a bearer token, which can be either: <ul>   <li>an API token obtained from the <a href='/tokens.html'>token management page</a> (full access, scoped to the token's owner), or</li>   <li>a share-link JWT issued by POST /api/info/{testId}/share or POST /api/plan/{id}/share (read-only access scoped to the shared plan and its tests).</li> </ul> <h3>Typical workflow</h3> Most users want to run a test plan and collect its results: <ol>   <li>Find the plan to run, its variants and its configuration fields: GET /api/plan/available. (Tip: after creating the plan once in the <a href='/schedule-test.html'>web UI</a>, GET /api/lastconfig returns the plan name, variant selection and configuration JSON needed for the next step.)</li>   <li>Create a plan instance: POST /api/plan?planName=...&amp;variant=... with the configuration JSON. The response contains the plan id and the list of modules to run.</li>   <li>For each module, create a test instance with POST /api/runner?test={testModule}&amp;plan={planId}, then wait for it to finish with GET /api/runner/{id}/wait-state (or by polling GET /api/info/{id}). A test in the WAITING state needs interaction: GET /api/runner/{id} lists any front-channel URLs to visit.</li>   <li>Read the outcome from GET /api/info/{id} (status and result) and the detailed log from GET /api/log/{id}.</li>   <li>Download the plan's results with GET /api/plan/exporthtml/{id}, or prepare a certification package with POST /api/plan/{id}/certificationpackage.</li> </ol> The <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>run-test-plan.py script</a> implements this whole flow (it is what our own CI uses) and adds functionality like suppressing known failures; the tutorial linked below shows how to use it. <p>The <a href='/v3/api-docs'>raw OpenAPI document</a> behind this page can be fed to an OpenAPI client generator.</p>",
-    "version": "5.2.4"
+    "version": "5.3.0"
   },
   "externalDocs": {
     "description": "Step-by-step tutorial: automated conformance testing and certification package creation",
@@ -225,7 +225,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Canceled test successfully; returns the pre-cancellation state (the stop happens in the background)",
+            "description": "Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background)",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/TestStatusResponse" }
@@ -1465,7 +1465,7 @@
       "get": {
         "tags": ["Test Logs"],
         "summary": "Get all test logs with paging",
-        "description": "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs",
+        "description": "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs. Each row also carries `planName`, the name of the plan the test belongs to, when that plan can be found. The `status` and `result` filters only narrow that listing.",
         "operationId": "listTestLogs",
         "parameters": [
           {
@@ -1474,6 +1474,22 @@
             "description": "Published data only",
             "required": false,
             "schema": { "type": "boolean", "default": false }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Only list tests whose status is one of these, comma-separated and case-insensitive: NOT_YET_CREATED, CREATED, CONFIGURED, RUNNING, WAITING, INTERRUPTED, FINISHED.",
+            "required": false,
+            "schema": { "type": "string" },
+            "example": "running,waiting"
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "description": "Only list tests whose result is one of these, comma-separated and case-insensitive: PASSED, FAILED, WARNING, REVIEW, SKIPPED, UNKNOWN.",
+            "required": false,
+            "schema": { "type": "string" },
+            "example": "failed,unknown"
           },
           {
             "name": "draw",
@@ -1538,6 +1554,12 @@
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/PaginationResponse" }
               }
+            }
+          },
+          "400": {
+            "description": "A filter names a status or result a test cannot have",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
           },
           "401": {
@@ -1944,6 +1966,14 @@
             "type": "array",
             "description": "Ids of test instances already run for this module (empty at creation)",
             "items": { "type": "string" }
+          },
+          "status": {
+            "type": "string",
+            "description": "In a plan listing only: the lifecycle status of the module's latest run, absent when the module has not run or that run cannot be found"
+          },
+          "result": {
+            "type": "string",
+            "description": "In a plan listing only: the result of the module's latest run, absent when the module has not run, has no result yet, or that run cannot be found"
           }
         }
       },
@@ -2410,6 +2440,11 @@
             "type": "string",
             "description": "Current result of the test, or null if not yet known",
             "enum": ["PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", "UNKNOWN"]
+          },
+          "planName": {
+            "type": "string",
+            "description": "In a test log listing only: the name of the plan this test belongs to, absent for a standalone test or when the plan cannot be found",
+            "example": "oidcc-basic-certification-test-plan"
           }
         }
       },
