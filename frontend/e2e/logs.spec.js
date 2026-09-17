@@ -454,6 +454,9 @@ test.describe("logs.html — Faceted filter dropdown and URL sync", () => {
     await page.goto("/logs.html?public=true&result=failed,unknown");
     const req = await requestPromise;
     expect(req.url()).toContain("public=true");
+    // The listing sorts client-side over a server-capped window, so the
+    // server must hand over the newest rows, not MongoDB natural order.
+    expect(req.url()).toContain("order=started,desc");
 
     // Clicking the summary preserves ?public=true.
     const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');

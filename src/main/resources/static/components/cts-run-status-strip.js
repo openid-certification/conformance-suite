@@ -206,7 +206,9 @@ class CtsRunStatusStrip extends LitElement {
     const seq = ++this._fetchSeq;
     this._status = "loading";
     try {
-      const response = await fetch("/api/log?start=0&length=1000");
+      // Newest-first so the 1000-row window is the most recent runs; without
+      // `order` the server returns MongoDB natural order (oldest first).
+      const response = await fetch("/api/log?start=0&length=1000&order=started,desc");
       if (seq !== this._fetchSeq) return;
       if (!response.ok) {
         console.warn(`[cts-run-status-strip] /api/log responded ${response.status}`);

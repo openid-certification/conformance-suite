@@ -615,9 +615,10 @@ function formatVariant(variant) {
  * current browsers (mirrors the cts-action-overflow constraint).
  *
  * The component fetches up to `MAX_FILTERED_LOGS = 1000` rows once via
- * `/api/log?length=1000` (matching `cts-dashboard`'s stats fetch) and runs
- * all filter / search / sort / pagination logic client-side. Above 1000
- * matches, the truncation hint nudges the user to refine the filter.
+ * `/api/log?length=1000&order=started,desc` and runs all filter / search /
+ * sort / pagination logic client-side. The server-side ordering makes the
+ * cap keep the newest rows rather than the oldest. Above 1000 matches, the
+ * truncation hint nudges the user to refine the filter.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
@@ -764,7 +765,16 @@ class CtsLogList extends LitElement {
     this._error = null;
     this._truncated = false;
     try {
-      const url = "/api/log?length=" + MAX_FILTERED_LOGS + (this.isPublic ? "&public=true" : "");
+      // Ask the backend for the full set, newest-first, mirroring
+      // cts-plan-list. Without `order`, PaginationRequest sorts with
+      // Sort.unsorted() (MongoDB natural order, oldest first), so once a
+      // user has more than MAX_FILTERED_LOGS tests the cap keeps the oldest
+      // rows and the newest never reach the client-side sort below.
+      const url =
+        "/api/log?length=" +
+        MAX_FILTERED_LOGS +
+        "&order=started,desc" +
+        (this.isPublic ? "&public=true" : "");
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to load logs (HTTP ${response.status})`);

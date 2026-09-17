@@ -52,7 +52,7 @@ const RUNS_ALL_CLEAR = [
 // The strip's window is the only /api/log request carrying start=0. Match the
 // full window (start=0&length=1000), not a bare "start=0" substring, so the
 // isolation stays correct even if cts-log-list ever adds a start= param to its
-// own fetch — today the list emits only ?length=1000[&public=true].
+// own fetch — today the list emits only ?length=1000&order=started,desc[&public=true].
 const isStripFetch = (/** @type {string} */ u) => u.includes("start=0&length=1000");
 
 test.describe("logs.html — runs strip (relocated from plans home)", () => {
