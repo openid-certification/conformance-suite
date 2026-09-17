@@ -1,0 +1,184 @@
+package net.openid.conformance.statistics;
+
+import net.openid.conformance.statistics.StatisticsOverview.Module;
+import net.openid.conformance.statistics.StatisticsOverview.Modules;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+
+/**
+ * Ranks the test modules of a slice: the ones that are run most, and the ones the most
+ * users hit a failure on.
+ *
+ * <p>Users are counted <b>distinct</b> on both sides. A user who ran one module a hundred
+ * times, failing every time, is one user and one failing user, so the second ranking says
+ * "this many different people got stuck here" rather than "this many runs went wrong" -
+ * which one determined implementer retrying the same module all afternoon would otherwise
+ * dominate.
+ *
+ * <p>Two filters of the query apply, both as registry membership: a module belongs to a
+ * family if any plan of that family runs it, and to a plan if that plan runs it. A module
+ * can therefore appear under several families. The variant and certification profile
+ * filters do <em>not</em> apply - a test run records neither in a form these cells carry -
+ * and the page says so next to the table. The two synthetic families select nothing, for
+ * the same reason: they stand for plans that are not in the registry, and the registry is
+ * the only thing that knows which modules a plan runs.
+ *
+ * <p>The range is applied by month whatever the granularity of the axis is: the modules
+ * table is monthly, so a weekly range is widened to the months its weeks fall in.
+ */
+final class ModuleRanker {
+
+	/** How many modules each of the two rankings contributes to the table. */
+	private static final int TOP = 50;
+
+	private static final int MONTH_KEY_LENGTH = "YYYY-MM".length();
+
+	/** Three decimals: the client shows the share as a whole percentage or one decimal. */
+	private static final double SHARE_SCALE = 1000;
+
+	/** Most run first; the name breaks ties so the table is the same list every request. */
+	private static final Comparator<Module> BY_RUNS =
+		Comparator.comparingLong(Module::runs).reversed().thenComparing(Module::testName);
+
+	/** Most failed-on first, then the busier module, then the name. */
+	private static final Comparator<Module> BY_FAILING_USERS =
+		Comparator.comparingLong(Module::failingUsers).reversed()
+			.thenComparing(Comparator.comparingLong(Module::runs).reversed())
+			.thenComparing(Module::testName);
+
+	private ModuleRanker() {
+	}
+
+	/**
+	 * @param cube  the cube being sliced
+	 * @param query what to show; its range, family and plan apply, its variant and
+	 *              certification profile filters do not
+	 * @return the union of the {@value #TOP} most run modules and the {@value #TOP} modules
+	 *         the most users hit a failure on, most run first, plus the two rankings
+	 */
+	static Modules rank(StatisticsCube cube, StatisticsQuery query) {
+		String from = month(query.from());
+		String to = month(lastDay(query));
+		Map<String, Counts> counted = new LinkedHashMap<>();
+		// The family/plan verdict depends only on the module name, of which there are a few
+		// hundred, while the cells are one per month, module and user - so it is memoized
+		// rather than re-derived per cell.
+		Map<String, Boolean> included = new HashMap<>();
+		Function<String, Boolean> verdict = testName -> matches(cube, query, testName);
+		for (ModuleUserCell cell : cube.modules()) {
+			if (!inRange(cell.month(), from, to) || !included.computeIfAbsent(cell.testName(), verdict)) {
+				continue;
+			}
+			Counts counts = counted.computeIfAbsent(cell.testName(), testName -> new Counts());
+			counts.runs += cell.runs();
+			counts.users.set(cell.ownerId());
+			if (cell.failed() > 0) {
+				// one cell is one user's whole month of that module, so this is that user
+				// counted once however many of their runs failed
+				counts.failingUsers.set(cell.ownerId());
+			}
+		}
+
+		List<Module> modules = new ArrayList<>(counted.size());
+		counted.forEach((testName, counts) -> modules.add(new Module(testName, counts.runs,
+			counts.users.cardinality(), counts.failingUsers.cardinality(), share(counts))));
+		return top(modules);
+	}
+
+	/**
+	 * @param modules every module of the slice
+	 * @return the two rankings, each cut at {@value #TOP}, and their union ordered by runs:
+	 *         a module can be in the table because a lot of people run it or because a lot
+	 *         of people fail it, and each chart plots the head of its own ranking
+	 */
+	private static Modules top(List<Module> modules) {
+		List<Module> byRuns = new ArrayList<>(modules);
+		byRuns.sort(BY_RUNS);
+		List<Module> byFailingUsers = new ArrayList<>(modules);
+		byFailingUsers.sort(BY_FAILING_USERS);
+		List<String> topByRuns = names(byRuns);
+		List<String> topByFailingUsers = names(byFailingUsers);
+
+		Set<String> keep = new HashSet<>(topByRuns);
+		keep.addAll(topByFailingUsers);
+		List<Module> rows = new ArrayList<>(keep.size());
+		for (Module module : byRuns) {
+			if (keep.contains(module.testName())) {
+				rows.add(module);
+			}
+		}
+		return new Modules(List.copyOf(rows), topByRuns, topByFailingUsers);
+	}
+
+	/** @return the names of the first {@value #TOP} of a ranking, in its order */
+	private static List<String> names(List<Module> ranked) {
+		return ranked.stream().limit(TOP).map(Module::testName).toList();
+	}
+
+	/** @return how many of the module's users hit a failure on it, rounded to three decimals */
+	private static double share(Counts counts) {
+		if (counts.users.isEmpty()) {
+			return 0;
+		}
+		double share = (double) counts.failingUsers.cardinality() / counts.users.cardinality();
+		return Math.round(share * SHARE_SCALE) / SHARE_SCALE;
+	}
+
+	private static boolean matches(StatisticsCube cube, StatisticsQuery query, String testName) {
+		if (query.family() != null && !cube.moduleFamilies(testName).contains(query.family())) {
+			return false;
+		}
+		return query.plan() == null || cube.modulePlans(testName).contains(query.plan());
+	}
+
+	private static boolean inRange(String month, String from, String to) {
+		return (from == null || month.compareTo(from) >= 0) && (to == null || month.compareTo(to) <= 0);
+	}
+
+	/**
+	 * @param period a period key from the query, or null for no bound
+	 * @return the month it falls in. A weekly key is cut down to its month rather than
+	 *         being refused, which widens a weekly range to whole months - the modules
+	 *         table has no weekly form to clip to.
+	 */
+	private static String month(String period) {
+		return period == null || period.length() < MONTH_KEY_LENGTH ? null : period.substring(0, MONTH_KEY_LENGTH);
+	}
+
+	/**
+	 * @return the last day of the query's range, or null for no bound. A week key names its
+	 *         Monday, so the week's Sunday is what decides the month a weekly range ends in.
+	 */
+	private static String lastDay(StatisticsQuery query) {
+		if (query.to() == null || query.granularity() != Granularity.WEEK) {
+			return query.to();
+		}
+		return LocalDate.parse(query.to()).plusDays(6).toString();
+	}
+
+	/**
+	 * What is counted per module while the cells are walked.
+	 *
+	 * <p>The two user sets are bit sets rather than {@code Set<Integer>}: {@link OwnerIds}
+	 * hands out dense ids from zero, so a user is one bit here instead of a boxed Integer
+	 * and a hash table entry, and this runs on the request thread over every module cell.
+	 */
+	private static final class Counts {
+
+		private final BitSet users = new BitSet();
+
+		private final BitSet failingUsers = new BitSet();
+
+		private long runs;
+	}
+}

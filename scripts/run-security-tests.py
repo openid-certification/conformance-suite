@@ -852,6 +852,9 @@ def run_tests():
     resp = noauth_client.post(f"{base_url}api/plan/delete-cancel")
     runner.check_status("Unauth: bulk delete cancel rejected", resp, 401)
 
+    resp = noauth_client.get(f"{base_url}api/statistics/overview")
+    runner.check_status("Unauth: statistics rejected", resp, 401)
+
     # `?public=true` is a way PAST the security chain for these two: the public matcher is
     # GET /api/plan/?*, and `?*` is any one segment - delete-preview and delete-status
     # included - so the chain permits them and TestPlanApi's isAdmin() is what refuses them.
@@ -863,6 +866,11 @@ def run_tests():
 
     resp = noauth_client.get(f"{base_url}api/plan/delete-status", params={"public": "true"})
     runner.check_status("Unauth: bulk delete status rejected as a public request too", resp, 403)
+
+    # the statistics endpoint is not on the public matcher at all, so ?public=true is not
+    # even a way past the chain: still the anonymous 401, never the controller's 403
+    resp = noauth_client.get(f"{base_url}api/statistics/overview", params={"public": "true"})
+    runner.check_status("Unauth: statistics rejected as a public request too", resp, 401)
 
     # filter-options rides the same matcher, and is deliberately left there: it answers with
     # the plan REGISTRY - family names, plan names and variant values, the same material
@@ -1489,6 +1497,52 @@ def run_tests():
                      resp.status_code == 200 and ids is not None and plan_id not in ids,
                      f"HTTP {resp.status_code}, ids={ids}")
         user_b.close()
+
+    # ===================================================================
+    # 4i. STATISTICS (ADMIN ONLY)
+    # ===================================================================
+    # GET /api/statistics/overview is listed on the API chain's matcher and the controller
+    # makes the admin decision itself, as TokenApi does. As with the bulk delete, only the
+    # denials can be proved here: an API token never carries ROLE_ADMIN.
+    print("\n--- 4i. Statistics (admin only) ---")
+
+    resp = owner_client.get(f"{base_url}api/statistics/overview")
+    runner.check_status("Statistics: token user cannot read the overview", resp, 403)
+
+    # refused before the parameter is looked at, so nothing is recomputed on a stranger's say-so
+    resp = owner_client.get(f"{base_url}api/statistics/overview", params={"refresh": "true"})
+    runner.check_status("Statistics: token user cannot force a recompute", resp, 403)
+
+    if token_2:
+        stats_user_b = second_user_client()
+        resp = stats_user_b.get(f"{base_url}api/statistics/overview")
+        runner.check_status("Statistics: second token user cannot read the overview", resp, 403)
+        stats_user_b.close()
+
+    # a private link user is denied everything outside its allowlist, and this is not in it
+    stats_pl_client = authenticate_private_link(base_url, plan_jwt, verify_ssl)
+    resp = stats_pl_client.get(f"{base_url}api/statistics/overview")
+    runner.check_status("Statistics: private link user cannot read the overview", resp, 403)
+    stats_pl_client.close()
+
+    # nor is a share link JWT sent as a bearer token, for either kind of link
+    stats_plan_bearer = bearer_client(base_url, plan_jwt, verify_ssl)
+    resp = stats_plan_bearer.get(f"{base_url}api/statistics/overview")
+    runner.check_status_in("Statistics: plan JWT bearer cannot read the overview", resp, {401, 403})
+    stats_plan_bearer.close()
+    stats_test_bearer = bearer_client(base_url, test_jwt, verify_ssl)
+    resp = stats_test_bearer.get(f"{base_url}api/statistics/overview")
+    runner.check_status_in("Statistics: test JWT bearer cannot read the overview", resp, {401, 403})
+    stats_test_bearer.close()
+
+    # /statistics.html is gated to ROLE_ADMIN on the OIDC chain. An anonymous request is sent
+    # to login like any other page; the authenticated non-admin 403 needs a browser session,
+    # which this harness cannot make (the page chain ignores bearer tokens), so only the
+    # redirect is proved here.
+    resp = unauthenticated_get(base_url, "statistics.html", verify_ssl)
+    runner.check("Statistics: anonymous page request is sent to login",
+                 resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+                 f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE

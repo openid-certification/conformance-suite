@@ -9,7 +9,7 @@ export default {
   argTypes: {
     currentPage: {
       control: "select",
-      options: ["plans", "logs", "tokens", "api-docs"],
+      options: ["plans", "logs", "statistics", "tokens", "api-docs"],
     },
   },
 };
@@ -169,6 +169,10 @@ export const Authenticated = {
       expect(tokensLinks.length).toBeGreaterThanOrEqual(2);
     });
 
+    await step("admin-only Statistics link is absent for a regular user", async () => {
+      expect(canvas.queryByText("Statistics")).toBeNull();
+    });
+
     await step("account menu trigger present and closed by default", async () => {
       const trigger = /** @type {HTMLButtonElement} */ (
         canvasElement.querySelector(".cts-account-trigger")
@@ -230,6 +234,14 @@ export const Admin = {
       expect(avatar.classList.contains("is-admin")).toBe(true);
     });
 
+    await step("admin-only Statistics link is present for an admin", async () => {
+      const statsLink = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-navlink[href="statistics.html"]')
+      );
+      expect(statsLink).toBeTruthy();
+      expect(statsLink.textContent.trim()).toBe("Statistics");
+    });
+
     await step("tokens hidden in both nav and menu for admin", async () => {
       // Tokens nav link should be hidden for admin.
       const navLinks = canvasElement.querySelectorAll(".cts-navlink");
@@ -282,6 +294,10 @@ export const Guest = {
       const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
       expect(tokensMenuItem).toBeNull();
     });
+
+    await step("admin-only Statistics link is absent for a guest", async () => {
+      expect(canvasElement.querySelector('.cts-navlink[href="statistics.html"]')).toBeNull();
+    });
   },
 };
 
@@ -309,6 +325,7 @@ export const Unauthenticated = {
       expect(canvas.queryByText("Home")).toBeNull();
       expect(canvas.queryByText("Create Test")).toBeNull();
       expect(canvas.queryByText("Tokens")).toBeNull();
+      expect(canvas.queryByText("Statistics")).toBeNull();
     });
 
     await step("no account menu, no sign out", async () => {
