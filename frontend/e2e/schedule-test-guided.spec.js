@@ -259,15 +259,19 @@ test.describe("schedule-test.html — guided journey", () => {
     if (!barBox || !backBox || !configureBox) {
       throw new Error("action bar is missing a bounding box");
     }
+    // The body's width, not the 390px window: <html> reserves a stable
+    // scrollbar gutter, which on platforms with classic scrollbars takes 15px
+    // of the window before the body lays out.
+    const layoutWidth = await page.evaluate(() => document.body.getBoundingClientRect().width);
     // Edge to edge: a sticky box is only as wide as its containing block, so
     // this holds only while the mode islands stay full-width (the content
     // column lives on .schedule-test-column, inside them).
     expect(barBox.x).toBe(0);
-    expect(barBox.width).toBe(390);
+    expect(barBox.width).toBe(layoutWidth);
     // The buttons still sit on the page's content column, one row.
     expect(backBox.x).toBeGreaterThanOrEqual(16);
     expect(backBox.y).toBe(configureBox.y);
-    expect(configureBox.x + configureBox.width).toBeLessThanOrEqual(390 - 16);
+    expect(configureBox.x + configureBox.width).toBeLessThanOrEqual(layoutWidth - 16);
   });
 
   test("the prefill bridge wraps its buttons under the copy on a phone", async ({ page }) => {
