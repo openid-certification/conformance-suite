@@ -476,3 +476,94 @@ export const SlimLastModuleProgressOnly = {
     expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeNull();
   },
 };
+
+/**
+ * Resolve the slim cluster's bar and Continue button once both have rendered.
+ * @param {HTMLElement} canvasElement
+ * @returns {Promise<{ bar: HTMLElement, buttons: HTMLElement, row: HTMLElement }>}
+ */
+async function waitForProgressRow(canvasElement) {
+  return waitFor(() => {
+    const bar = canvasElement.querySelector('[data-testid="progress"]');
+    const buttons = canvasElement.querySelector(".cts-tnc-buttons");
+    const row = canvasElement.querySelector(".cts-tnc-progress-row");
+    if (!bar || !buttons || !row) throw new Error("progress row not yet rendered");
+    return {
+      bar: /** @type {HTMLElement} */ (bar),
+      buttons: /** @type {HTMLElement} */ (buttons),
+      row: /** @type {HTMLElement} */ (row),
+    };
+  });
+}
+
+// Slim cluster framed at a 390px phone width (the log-detail page's content
+// width on a common phone). The 40-module bar is in its tile grid here, so the
+// Continue button must wrap below the bar and the bar must take the whole row;
+// the regression this guards (logplan-03) squeezed the tiles into a four-column
+// tower beside a floating button.
+export const SlimNarrowContinueBelowBar = {
+  render: () =>
+    html`<div style="width: 390px;">
+      <cts-test-nav-controls
+        test-id="${TEST_ID}"
+        plan-id="${PLAN_ID}"
+        .modules=${makeModules(40, { currentIndex: 5 })}
+        current-instance-id="${CURRENT_INSTANCE_6}"
+        .nextEnabled=${true}
+        slim
+      ></cts-test-nav-controls>
+    </div>`,
+  async play({ canvasElement, step }) {
+    const { bar, buttons, row } = await waitForProgressRow(canvasElement);
+
+    await step("the Continue button wraps below the bar", () => {
+      expect(buttons.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        bar.getBoundingClientRect().bottom,
+      );
+    });
+
+    await step("the bar takes the full row width", () => {
+      expect(Math.abs(bar.getBoundingClientRect().width - row.clientWidth)).toBeLessThanOrEqual(1);
+    });
+
+    await step("the tiles spread across the row instead of a narrow tower", () => {
+      const segments = canvasElement.querySelectorAll('[data-testid="plan-status-segment"]');
+      const columns = new Set(Array.from(segments).map((seg) => seg.offsetLeft));
+      expect(columns.size).toBeGreaterThanOrEqual(6);
+    });
+  },
+};
+
+// Slim cluster on a wide row: the bar renders as a single hairline row and the
+// Continue button sits beside it, vertically centred on the bar.
+export const SlimWideContinueBesideBar = {
+  render: () =>
+    html`<div style="width: 800px;">
+      <cts-test-nav-controls
+        test-id="${TEST_ID}"
+        plan-id="${PLAN_ID}"
+        .modules=${makeModules(40, { currentIndex: 5 })}
+        current-instance-id="${CURRENT_INSTANCE_6}"
+        .nextEnabled=${true}
+        slim
+      ></cts-test-nav-controls>
+    </div>`,
+  async play({ canvasElement, step }) {
+    const { bar, buttons } = await waitForProgressRow(canvasElement);
+
+    await step("the Continue button sits beside the bar", () => {
+      const barRect = bar.getBoundingClientRect();
+      const buttonsRect = buttons.getBoundingClientRect();
+      expect(buttonsRect.left).toBeGreaterThanOrEqual(barRect.right);
+      const barMiddle = barRect.top + barRect.height / 2;
+      expect(buttonsRect.top).toBeLessThan(barMiddle);
+      expect(buttonsRect.bottom).toBeGreaterThan(barMiddle);
+    });
+
+    await step("the bar is a single hairline row", () => {
+      const segments = canvasElement.querySelectorAll('[data-testid="plan-status-segment"]');
+      const top = segments[0].offsetTop;
+      segments.forEach((seg) => expect(seg.offsetTop).toBe(top));
+    });
+  },
+};

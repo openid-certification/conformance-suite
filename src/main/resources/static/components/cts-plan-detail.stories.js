@@ -366,6 +366,64 @@ const FILTER_MODULES = [
   { testModule: "m-never-run" },
 ];
 
+// Narrow card (logplan-06): below the 780px container breakpoint the action
+// buttons drop to their own line. They must line up with the name column, not
+// the row-number gutter, and read primary-first in DOM order (Run Test, View
+// Logs, Download Logs) rather than the wide layout's right-hugging reverse.
+export const ModulesNarrowActionsAlignWithName = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`
+    <cts-plan-modules .modules=${MODULES_WITH_STATUS} plan-id="plan-abc-123"></cts-plan-modules>
+  `,
+  async play({ canvasElement, step }) {
+    const row = /** @type {HTMLElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".module-row");
+        if (!el) throw new Error("module row not yet rendered");
+        return el;
+      })
+    );
+    const name = /** @type {HTMLElement} */ (row.querySelector(".name"));
+    const stack = /** @type {HTMLElement} */ (row.querySelector(".actionStack"));
+
+    await step("the action stack sits on its own line under the name", () => {
+      expect(stack.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        name.getBoundingClientRect().bottom,
+      );
+    });
+
+    await step("the action stack starts at the name column, not the gutter", () => {
+      expect(
+        Math.abs(stack.getBoundingClientRect().left - name.getBoundingClientRect().left),
+      ).toBeLessThanOrEqual(1);
+    });
+
+    await step("actions read primary-first in reading order", () => {
+      const run = row.querySelector(".startBtn");
+      const view = row.querySelector(".viewBtn");
+      const download = row.querySelector(".downloadBtn");
+      if (!run || !view || !download) throw new Error("module row is missing an action button");
+      // Reading order: an earlier line, or the same line further left. At
+      // 320px the third button wraps to a second line under the first.
+      const before = (a, b) => {
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        return ra.top < rb.top - 1 || (Math.abs(ra.top - rb.top) <= 1 && ra.left < rb.left);
+      };
+      expect(before(run, view)).toBe(true);
+      expect(before(view, download)).toBe(true);
+      expect(run.getBoundingClientRect().left).toBeLessThanOrEqual(
+        stack.getBoundingClientRect().left + 1,
+      );
+    });
+  },
+};
+
 export const ModulesResultFilter = {
   render: () => html`
     <cts-plan-modules
@@ -1183,3 +1241,51 @@ export const CertificationSubmissionModal = {
 };
 
 export {};
+
+// The certification modal on a 320px phone (logplan-04): the two action
+// buttons no longer fit side by side inside the dialog body, so they stack
+// full-width in DOM order (Cancel above the primary) and neither escapes the
+// body box. Reuses the desktop story's markup.
+export const CertificationSubmissionModalOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: CertificationSubmissionModal.render,
+
+  async play({ canvasElement, step }) {
+    await step("clicking the trigger opens the modal", async () => {
+      const openBtn = canvasElement.querySelector(".oidf-btn-primary");
+      await userEvent.click(openBtn);
+      const dialog = /** @type {HTMLDialogElement} */ (
+        canvasElement.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
+    });
+
+    // Offset metrics throughout: the dialog's entry animation transiently
+    // scales it, which would skew client rects.
+    const actions = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-cert-package-actions")
+    );
+    const [cancel, create] = /** @type {HTMLElement[]} */ (
+      Array.from(actions.querySelectorAll("cts-button"))
+    );
+
+    await step("the buttons stack, Cancel above the primary", () => {
+      expect(getComputedStyle(actions).flexDirection).toBe("column");
+      expect(cancel.offsetTop + cancel.offsetHeight).toBeLessThanOrEqual(create.offsetTop);
+    });
+
+    await step("each rendered button fills the row and nothing overflows the body", () => {
+      // AGENTS.md §6: measure the inner <button>, not just the cts-button host.
+      for (const host of [cancel, create]) {
+        const inner = /** @type {HTMLElement} */ (host.querySelector("button"));
+        expect(Math.abs(inner.offsetWidth - actions.clientWidth)).toBeLessThanOrEqual(1);
+      }
+      expect(actions.scrollWidth).toBeLessThanOrEqual(actions.clientWidth);
+    });
+  },
+};

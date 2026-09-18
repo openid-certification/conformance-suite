@@ -56,7 +56,8 @@ const RESULT_BADGES = [
 
 // Scoped CSS. KTD2: the host is the size container and a single per-mode
 // property set (plus one @container branch for the bar↔grid switch) drives
-// layout — the bar and grid are the same flex row, not two layouts.
+// layout — the same track is a hairline flex row when wide and a filling
+// grid of tiles when narrow.
 const STYLE_TEXT = css`
   /* Custom elements default to display:inline, which cannot establish size
      containment, so @container would silently never match. Promote the host
@@ -220,19 +221,19 @@ const STYLE_TEXT = css`
     height: 14px;
   }
   @container (max-width: 520px) {
+    /* A filling grid: as many columns as fit at the 40px tap-target minimum,
+       stretched equally so every row of tiles spans the track edge to edge
+       instead of leaving a ragged gutter on the right. */
     cts-plan-status[mode="detail"] .cts-pst-track,
     cts-plan-status[mode="log"] .cts-pst-track {
-      flex-wrap: wrap;
-      /* Equal row and column gaps so the wrapped tiles read as an even grid. */
-      column-gap: var(--space-1);
-      row-gap: var(--space-1);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      gap: var(--space-1);
     }
     cts-plan-status[mode="detail"] .cts-pst-seg,
     cts-plan-status[mode="log"] .cts-pst-seg {
-      /* Don't grow past the 40px tap-target basis — keep tiles a consistent
-         size rather than stretching the last row's items. */
-      flex: 0 1 40px;
-      min-width: 40px;
+      min-width: 0;
+      width: auto;
       min-height: 24px;
     }
   }

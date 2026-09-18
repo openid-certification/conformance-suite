@@ -36,9 +36,13 @@ const STYLE_TEXT = css`
     flex-wrap: wrap;
     gap: var(--space-3);
   }
+  /* The bar's flex basis matches cts-plan-status's own 520px tile breakpoint:
+     the Continue button sits beside the bar only when the bar is wide enough
+     to render as a single hairline row. On narrower rows the button wraps
+     below and the bar takes the full row width for its tile grid. */
   cts-test-nav-controls .cts-tnc-progress-row cts-plan-status {
-    flex: 1 1 200px;
-    min-width: 160px;
+    flex: 1 1 520px;
+    min-width: 0;
   }
   cts-test-nav-controls .cts-tnc-position {
     margin: 0;

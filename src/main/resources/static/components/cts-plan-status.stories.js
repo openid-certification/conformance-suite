@@ -316,9 +316,9 @@ export const ResponsiveBarWide = {
   },
 };
 
-// R6/R7/AE3 — narrow container: the same component wraps into a grid of
-// tappable rectangles (min-width:40px; flex-wrap). Pinned to a 300px host so
-// the @container (max-width:520px) branch trips.
+// R6/R7/AE3 — narrow container: the same component becomes a filling grid of
+// tappable tiles (columns at least 40px, stretched to the track's edges).
+// Pinned to a 300px host so the @container (max-width:520px) branch trips.
 export const ResponsiveGridNarrow = {
   render: () => html`
     <div style="width: 300px;">
@@ -327,15 +327,28 @@ export const ResponsiveGridNarrow = {
   `,
 
   async play({ canvasElement, step }) {
+    const track = /** @type {HTMLElement} */ (
+      canvasElement.querySelector('[data-testid="plan-status-track"]')
+    );
     const segments = canvasElement.querySelectorAll('[data-testid="plan-status-segment"]');
 
-    await step("segments gain a tappable min-width", () => {
-      expect(getComputedStyle(segments[0]).minWidth).toBe("40px");
+    await step("the track is a grid of tappable tiles", () => {
+      expect(getComputedStyle(track).display).toBe("grid");
+      expect(segments[0].getBoundingClientRect().width).toBeGreaterThanOrEqual(40);
+      expect(segments[0].getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
     });
 
-    await step("the row wraps (segments occupy more than one row)", () => {
+    await step("the tiles wrap (segments occupy more than one row)", () => {
       const tops = new Set(Array.from(segments).map((s) => s.offsetTop));
       expect(tops.size).toBeGreaterThan(1);
+    });
+
+    await step("a full row of tiles spans the track edge to edge (logplan-07)", () => {
+      const trackRect = track.getBoundingClientRect();
+      const firstRowTop = segments[0].offsetTop;
+      const firstRow = Array.from(segments).filter((s) => s.offsetTop === firstRowTop);
+      const rightmost = firstRow[firstRow.length - 1].getBoundingClientRect();
+      expect(Math.abs(rightmost.right - trackRect.right)).toBeLessThanOrEqual(1);
     });
   },
 };
