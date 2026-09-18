@@ -417,6 +417,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			exposeMtlsPath("par_endpoint", "par");
 		}
 
+		adjustServerConfigurationForMtlsEndpointAliasesVariant();
+
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (fapiClientType == FAPIClientType.OIDC) {
 			callAndStopOnFailure(EnsureServerConfigurationHasRequiredOidcMetadata.class, "OIDCD-3");
@@ -431,6 +433,15 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	/**
+	 * Hook for the "no mtls_endpoint_aliases" test flavor (issue #1048). Default: no-op - the
+	 * default happy path always advertises mtls_endpoint_aliases per RFC8705 section 5, and
+	 * correct alias usage is enforced by the clientAuthType/isBrazil()/isKSA()-driven checks in
+	 * handleClientRequestForPath/handleHttpMtls.
+	 */
+	protected void adjustServerConfigurationForMtlsEndpointAliasesVariant() {
 	}
 
 	/**
@@ -551,24 +562,32 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(isBrazil() || isKSA()) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
-					"using the token_endpoint found in mtls_endpoint_aliases.");
-			} else {
-				return tokenEndpoint(requestId);
-			}
+			// The token endpoint always requires a client certificate to bind the issued access
+			// token to (see checkMtlsCertificate() in tokenEndpoint()), regardless of client
+			// authentication type or profile, so it must always be called over mTLS.
+			throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+				"using the token_endpoint found in mtls_endpoint_aliases.");
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(isKSA()) {
-				throw new TestFailureException(getId(), "User info endpoint must be called over an mTLS secured connection " +
-						"using the userinfo_endpoint found in mtls_endpoint_aliases.");
-			} else {
-				return userinfoEndpoint(requestId);
+			// The access token presented here is always mTLS certificate-bound (see the
+			// unconditional checkMtlsCertificate() call in tokenEndpoint()), so per RFC8705
+			// section 3 it must always be presented with the matching client certificate,
+			// regardless of client authentication type or profile.
+			throw new TestFailureException(getId(), "User info endpoint must be called over an mTLS secured connection " +
+					"using the userinfo_endpoint found in mtls_endpoint_aliases.");
+		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
+			// The accounts endpoint is always mTLS-protected, like the token/userinfo endpoints
+			// above - see the unconditional checkMtlsCertificate() call in accountsEndpoint().
+			// (There is no non-mTLS accounts_endpoint published anywhere for the client to fall
+			// back to - see exposeMtlsPath("accounts_endpoint", ...) in configure().)
+			throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
@@ -617,9 +636,20 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
+		} else if (path.equals("userinfo")) {
+			return userinfoEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
 			return accountsEndpoint(requestId);
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+			// PAR is a client-authenticated endpoint: a client registered for private_key_jwt has
+			// no business presenting an mTLS certificate there instead, outside the always-mTLS
+			// Brazil/KSA ecosystems - see the equivalent check in FAPI2's handleClientRequestForMtlsPath.
+			if (clientAuthType != ClientAuthType.MTLS && !isBrazil() && !isKSA()) {
+				throw new TestFailureException(getId(), "invalid_client",
+					"The PAR endpoint was called over an mTLS secured connection, but this is not " +
+					"expected when using " + clientAuthType + " client authentication. The regular " +
+					"(non-mTLS) pushed_authorization_request_endpoint must be used.");
+			}
 			return parEndpoint(requestId);
 		}
 		if (isBrazil()) {
@@ -910,8 +940,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Userinfo endpoint")
-			.mapKey("incoming_request", requestId));
+		call(exec().startBlock("Userinfo endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
