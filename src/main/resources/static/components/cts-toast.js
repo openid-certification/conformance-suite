@@ -60,8 +60,13 @@ const STYLE_TEXT = css`
     display: flex;
     align-items: flex-start;
     gap: var(--space-3);
-    min-width: 280px;
-    max-width: 420px;
+    /* The card sizes to its content between 280px and 420px, but never
+   * wider than the viewport minus the host's 16px side gutters, so on
+   * narrow phones its left edge stays on screen; border-box keeps padding
+   * and borders inside that width. */
+    box-sizing: border-box;
+    min-width: min(280px, calc(100vw - 2 * var(--space-4)));
+    max-width: min(420px, calc(100vw - 2 * var(--space-4)));
     padding: var(--space-3) var(--space-4);
     background: var(--bg-elev);
     color: var(--fg);

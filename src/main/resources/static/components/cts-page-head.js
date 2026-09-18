@@ -39,6 +39,19 @@ const STYLE_TEXT = css`
     gap: var(--space-3);
     flex-shrink: 0;
   }
+  /* On phones the actions cluster drops below the title as its own
+   * full-width row. The text block is flex: 1, so wrapping alone would
+   * never happen; the explicit 100% basis is what forces the drop. */
+  @media (max-width: 480px) {
+    .oidf-page-head {
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .oidf-page-head-actions {
+      flex-basis: 100%;
+      justify-content: flex-start;
+    }
+  }
 `;
 
 function injectStyles() {

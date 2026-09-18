@@ -2,6 +2,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OIDF Conformance: Error</title>
 
     <!-- Latest compiled and minified CSS -->
@@ -10,6 +11,23 @@
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="/css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
+    <style>
+        /* Label column sized to its longest word so "Status" / "Message"
+         * never break mid-word on narrow screens; values take the rest. */
+        .oidf-error-list {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: var(--space-2) var(--space-4);
+            margin: 0;
+        }
+        .oidf-error-list dt {
+            font-weight: var(--fw-medium);
+        }
+        .oidf-error-list dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+    </style>
 </head>
 
 
@@ -26,20 +44,14 @@
         <div class="header">
             <div class="card p-3">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="row">
-                            <div class="col-md-1">Status:</div>
-                            <div class="col-md-11">[[${status}]]</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-1">Error:</div>
-                            <div class="col-md-11">[[${error}]]</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-1">Message:</div>
-                            <div class="col-md-11">[[${message}]]</div>
-                        </div>
-                    </div>
+                    <dl class="oidf-error-list">
+                        <dt>Status:</dt>
+                        <dd>[[${status}]]</dd>
+                        <dt>Error:</dt>
+                        <dd>[[${error}]]</dd>
+                        <dt>Message:</dt>
+                        <dd>[[${message}]]</dd>
+                    </dl>
                 </div>
             </div>
         </div>
