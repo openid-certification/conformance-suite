@@ -288,6 +288,38 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(bodyBox.width).toBeGreaterThan(240);
   });
 
+  test("the guided island shows a skeleton, not a placeholder heading, while plans load", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    // Hold the catalog so the page stays in its loading phase.
+    let release = /** @type {(value?: unknown) => void} */ (() => {});
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/plan/available", async (route) => {
+      await held;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      });
+    });
+    await page.goto("/schedule-test.html");
+
+    const stage = page.locator("#guidedStage");
+    await expect(page.locator("#guidedIsland")).toBeVisible();
+    await expect(stage).toHaveAttribute("aria-busy", "true");
+    await expect(stage.locator(".stage-skeleton")).toBeVisible();
+    await expect(stage.locator("h1")).toHaveCount(0);
+    await expect(stage).not.toContainText("Guided setup");
+
+    release();
+    await expect(stage.locator("h1")).toHaveText("Which ecosystem are you certifying for?");
+    await expect(stage).not.toHaveAttribute("aria-busy", "true");
+    await expect(stage.locator(".stage-skeleton")).toHaveCount(0);
+  });
+
   test("Brazil OP FAPI path goes straight to review — one journey, one plan (#1967)", async ({
     page,
   }) => {
@@ -904,6 +936,21 @@ test.describe("schedule-test.html — guided config + create", () => {
 test.describe("schedule-test.html — guided hardening (review followup)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
+  });
+
+  test("the guided skeleton gives way to an error when the page init chain fails", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    // The config-form adapter module is awaited by the init chain before the
+    // journey starts; its load failure rejects the chain.
+    await page.route("**/components/config-form-adapter.js", (route) => route.abort());
+    await page.goto("/schedule-test.html");
+
+    const stage = page.locator("#guidedStage");
+    await expect(stage.locator("cts-alert")).toContainText("Unable to load the guided setup");
+    await expect(stage).not.toHaveAttribute("aria-busy", "true");
+    await expect(stage.locator(".stage-skeleton")).toHaveCount(0);
   });
 
   test("guest viewer (isGuest) gets the sign-in prompt, not the create button (R6)", async ({

@@ -760,6 +760,9 @@ export function startGuidedJourney(modeController, deps) {
    * @param {{focus?: boolean}} [opts]
    */
   function renderCurrent(direction = "forward", opts = {}) {
+    // The first render replaces the page's loading skeleton (schedule-test.html
+    // marks the stage aria-busy while the catalog loads).
+    stage.removeAttribute("aria-busy");
     navigate(
       () => {
         if (state.phase === "ecosystem") return renderEcosystemStep();
