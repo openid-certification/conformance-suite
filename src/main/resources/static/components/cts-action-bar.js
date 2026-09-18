@@ -106,6 +106,18 @@ const STYLE_TEXT = css`
   .oidf-action-bar[data-position="static"] {
     position: static;
   }
+  /* Phone widths: buttons that no longer fit on one row wrap (flex-wrap on
+     the inner wrapper). Let every button grow so a wrapped row is a
+     full-width button, flush with the column, rather than two left-hugging
+     buttons with ragged right edges. */
+  @media (max-width: 480px) {
+    .oidf-action-bar__inner cts-button {
+      flex: 1 1 auto;
+    }
+    .oidf-action-bar__inner cts-button .oidf-btn {
+      width: 100%;
+    }
+  }
   .oidf-action-bar__inner {
     margin: 0 auto;
     display: flex;

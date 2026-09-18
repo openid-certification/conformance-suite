@@ -185,9 +185,15 @@
            bar no extra room, since the island itself ends flush with the
            bar. The fallback `80px` covers the first paint before
            cts-action-bar publishes --cts-action-bar-height. */
-        #guidedIsland,
-        #scheduleTestPage {
+        #scheduleTestPage,
+        #guidedIsland:has(> #guidedStageActions:not([hidden])) {
             padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
+        }
+        /* The guided bar is hidden on the choose steps (renderActionBar /
+           clearActionBar in guided-wizard.js); those steps only need normal
+           section spacing, not a bar-height blank band above the footer. */
+        #guidedIsland {
+            padding-bottom: var(--space-6);
         }
 
         /* The padding-bottom above only guarantees room
@@ -303,6 +309,23 @@
         }
         #guidedIsland .cert-progress li[data-state="done"] .dot { background: var(--status-pass); }
         #guidedIsland .cert-progress li[data-state="current"] .dot { background: var(--orange-400); box-shadow: 0 0 0 3px var(--orange-100); }
+        /* Phone widths: four equal columns with the label under the dot, so
+           the rail never wraps "Create" onto a second line with a dangling
+           connector. The connectors are decorative and drop out. */
+        @media (max-width: 480px) {
+            #guidedIsland .cert-progress {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: var(--space-1);
+            }
+            #guidedIsland .cert-progress li {
+                flex-direction: column;
+                align-items: center;
+                gap: var(--space-1);
+                text-align: center;
+            }
+            #guidedIsland .cert-progress .sep { display: none; }
+        }
         #guidedIsland .cert-progress .sep {
             width: var(--space-5);
             height: 1px;
@@ -325,6 +348,18 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
             margin-right: var(--space-1);
+        }
+        /* Phone widths: the label takes the first row so every chip starts
+           at the same x below it instead of one chip beside the label and
+           the rest ragged underneath. */
+        @media (max-width: 640px) {
+            #guidedIsland .trail-label { flex-basis: 100%; margin-right: 0; }
+        }
+        /* Touch screens: the chips are backtrack buttons; give them a 40px
+           target and a wider gap so a thumb lands on one answer, not two. */
+        @media (pointer: coarse) {
+            #guidedIsland .cert-trail { gap: var(--space-3); }
+            #guidedIsland .chip { min-height: 40px; padding-block: var(--space-2); }
         }
         #guidedIsland .chip {
             display: inline-flex;
@@ -376,7 +411,7 @@
         #guidedIsland .choice-grid {
             display: grid;
             gap: var(--space-3);
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
             border: 0;
             padding: 0;
             margin: 0;
@@ -523,7 +558,27 @@
             font-size: var(--fs-13);
             color: var(--orange-700);
         }
-        #guidedIsland table.variant-table .vt-desc { color: var(--fg-muted); font-size: var(--fs-13); line-height: var(--lh-base); }
+        #guidedIsland table.variant-table .vt-desc { color: var(--fg-muted); font-size: var(--fs-13); line-height: var(--lh-base); overflow-wrap: anywhere; }
+        /* Phone widths: the three-column table cannot fit a ~350px card, and
+           cts-card clips overflow, so the "What it means" column was cut
+           off. Stack each row as parameter / value / description; the
+           header row stays in the DOM (visually hidden) for screen readers. */
+        @media (max-width: 640px) {
+            #guidedIsland table.variant-table thead {
+                position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden;
+            }
+            #guidedIsland table.variant-table,
+            #guidedIsland table.variant-table tbody,
+            #guidedIsland table.variant-table tr,
+            #guidedIsland table.variant-table td { display: block; }
+            #guidedIsland table.variant-table td { padding: 0; border: 0; }
+            #guidedIsland table.variant-table tr { padding: var(--space-3) 0; border-bottom: 1px solid var(--border); }
+            #guidedIsland table.variant-table tr:first-child { padding-top: 0; }
+            #guidedIsland table.variant-table tr:last-child { border-bottom: 0; padding-bottom: 0; }
+            #guidedIsland table.variant-table .vt-param { white-space: normal; }
+            #guidedIsland table.variant-table .vt-value { display: inline-block; margin-top: var(--space-1); }
+            #guidedIsland table.variant-table .vt-desc { margin-top: var(--space-1); }
+        }
         #guidedIsland .review-config-hint {
             font-size: var(--fs-13);
             color: var(--fg-muted);
@@ -559,8 +614,20 @@
         #guidedIsland .escape-card .ec-title { font-weight: var(--fw-bold); display: block; }
         #guidedIsland .escape-card .ec-sub { font-size: var(--fs-13); color: var(--fg-muted); display: block; }
         #guidedIsland .escape-card .ec-chev { margin-left: auto; }
+        /* Phone widths: the whole card is the button, so the trailing
+           chevron is decorative; drop it to give the copy the room, and
+           top-align the search icon with the title. */
+        @media (max-width: 480px) {
+            #guidedIsland .escape-card { align-items: flex-start; }
+            #guidedIsland .escape-card .ec-chev { display: none; }
+        }
 
         .actions-right { margin-left: auto; display: flex; gap: var(--space-3); }
+        /* Matches cts-action-bar's phone rule: the spacer grows with the
+           buttons it wraps so they can stretch across the row. */
+        @media (max-width: 480px) {
+            .actions-right { flex: 1 1 auto; }
+        }
 
         /* Persistent render target inside #guidedStageActions. Layout-invisible
            so the buttons participate directly in the action bar's inner flex
@@ -628,6 +695,15 @@
             align-items: flex-start;
         }
         .plan-selected-summary .resolved-plan-body { flex: 1 1 auto; min-width: 0; }
+        /* Phone widths: the Change button drops under the pip + title row
+           instead of squeezing the title into a ~100px column beside it. */
+        @media (max-width: 640px) {
+            .plan-selected-summary .resolved-plan { flex-wrap: wrap; }
+            .plan-selected-summary .resolved-plan-body {
+                flex-basis: calc(100% - var(--space-10) - var(--space-4));
+            }
+            .plan-selected-summary #planSelectedChangeBtn { margin-inline-start: auto; }
+        }
         .plan-selected-summary .pip {
             flex: none;
             width: var(--space-10);

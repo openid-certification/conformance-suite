@@ -313,6 +313,14 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsStatusBarOverflow {
     display: contents;
   }
+  /* Touch screens: the bar's primary action is the most-tapped control on
+     the page; the small button keeps its desktop density but grows to a
+     44px target under a thumb. */
+  @media (pointer: coarse) {
+    cts-log-detail-header .ctsStatusBar cts-button .oidf-btn-sm {
+      min-height: 44px;
+    }
+  }
   /* Test name leads the bar's left cluster (Row 1, ahead of the status
      pill and result-count badges) so the bar's title — "which test is
      this?" — reads before the badges that describe it. Slightly larger
@@ -530,6 +538,11 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     line-height: 1.6;
     color: var(--fg);
+    /* Module descriptions are rendered verbatim and can carry a long
+       unbreakable token (a base64 id, a URL); without a break opportunity
+       the paragraph widened the page past the phone viewport. */
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   cts-log-detail-header .ctsHeroBody p {
     margin: 0 0 var(--space-3);
@@ -2112,10 +2125,12 @@ class CtsLogDetailHeader extends LitElement {
         <div class="logMetaValue">
           <span class="mono">${test.testId}</span>
         </div>
-        <div class="logMetaLabel">Created:</div>
-        <div class="logMetaValue tabular-nums">
-          <cts-time mode="absolute" value=${test.created}></cts-time>
-        </div>
+        ${test.created
+          ? html`<div class="logMetaLabel">Created:</div>
+              <div class="logMetaValue tabular-nums">
+                <cts-time mode="absolute" value=${test.created}></cts-time>
+              </div>`
+          : nothing}
         ${test.description
           ? html`
               <div class="logMetaLabel">Description:</div>

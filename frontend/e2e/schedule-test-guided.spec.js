@@ -288,6 +288,54 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(bodyBox.width).toBeGreaterThan(240);
   });
 
+  test("phone layout: rail, trail, variant table and bar reservation adapt", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Choose step: no bar is shown, so the island must not reserve a
+    // bar-height band above the footer.
+    const island = page.locator("#guidedIsland");
+    await expect(page.locator("#guidedStage .choice-grid")).toBeVisible();
+    const chooseReservation = await island.evaluate((el) =>
+      parseFloat(getComputedStyle(el).paddingBottom),
+    );
+    expect(chooseReservation).toBeLessThan(60);
+
+    await walkKsaOpToReview(page);
+
+    // Progress rail: four steps on one row, no wrapped "Create".
+    const stepTops = await page
+      .locator("#guidedProgress li")
+      .evaluateAll((items) => items.map((li) => Math.round(li.getBoundingClientRect().top)));
+    expect(stepTops).toHaveLength(4);
+    expect(new Set(stepTops).size).toBe(1);
+
+    // Trail: the label owns its own row and every chip starts at the same x.
+    const chipLefts = await page
+      .locator("#guidedTrail .chip")
+      .evaluateAll((chips) => chips.map((c) => Math.round(c.getBoundingClientRect().left)));
+    expect(chipLefts.length).toBeGreaterThan(1);
+    expect(new Set(chipLefts).size).toBe(1);
+
+    // Variant table: stacked rows, description fully inside the viewport.
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table).toBeVisible();
+    const desc = table.locator(".vt-desc").first();
+    await expect(desc).toHaveCSS("display", "block");
+    const descBox = await desc.boundingBox();
+    if (!descBox) throw new Error("variant description is missing a bounding box");
+    expect(descBox.x + descBox.width).toBeLessThanOrEqual(390);
+    expect(descBox.width).toBeGreaterThan(200);
+
+    // Review step: the sticky bar is shown, so the reservation is back.
+    const reviewReservation = await island.evaluate((el) =>
+      parseFloat(getComputedStyle(el).paddingBottom),
+    );
+    expect(reviewReservation).toBeGreaterThanOrEqual(80);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  });
+
   test("the guided island shows a skeleton, not a placeholder heading, while plans load", async ({
     page,
   }) => {
