@@ -15,6 +15,7 @@ import java.util.Map;
 	specFamily = TestPlan.SpecFamilyNames.fapi1Advanced,
 	testModules = {
 		FAPI1AdvancedFinalClientTest.class,
+		FAPI1AdvancedFinalClientTestHappyPathNoMtlsEndpointAliases.class,
 		FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
 		FAPI1AdvancedFinalClientTestDiscoveryIssuerMismatch.class,
 		FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
