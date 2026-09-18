@@ -43,6 +43,13 @@ import { css } from "lit";
  * test.html's outer `<main>`), or sticky has no room to hold at the
  * viewport bottom and releases far too early.
  *
+ * A sticky box can never be wider than its containing block, so the bar
+ * only spans the viewport when that block does: the containing block must
+ * be a full-width element, with the page's content column applied to a
+ * sibling wrapper (schedule-test.html's `.schedule-test-column`) rather
+ * than to an ancestor of the bar. The `align-to` preset then lands the
+ * inner wrapper on that same column.
+ *
  * @property {string} align-to - Content-width preset for the inner wrapper.
  *   See ALIGN_PRESETS for the supported names. Unknown values warn once and
  *   fall back to the default preset.
@@ -92,6 +99,9 @@ const STYLE_TEXT = css`
     bottom: 0;
     left: 0;
     right: 0;
+    /* Clear the home indicator on phones whose viewport meta opts into
+       viewport-fit=cover; resolves to 0px everywhere else. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .oidf-action-bar[data-position="static"] {
     position: static;
