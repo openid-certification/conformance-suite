@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect } from "storybook/test";
+import { expect, waitFor } from "storybook/test";
 import "./cts-page-head.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
@@ -111,6 +111,60 @@ export const WithActions = {
       const innerBtn = button.querySelector("button");
       expect(innerBtn).toBeTruthy();
       expect(innerBtn.textContent.trim()).toBe("New plan");
+    });
+  },
+};
+
+/**
+ * Phone layout (mobile1, 320px): the actions cluster drops under the title
+ * and subtitle as its own full-width row instead of squeezing the H1 into
+ * a two-line wrap beside the buttons.
+ */
+export const WithActionsOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () =>
+    html`<cts-page-head title="Test plans" sub="Browse and rerun published plans">
+      <cts-link-button slot="actions" href="#" variant="secondary" label="Export"></cts-link-button>
+      <cts-button slot="actions" variant="primary" label="New plan"></cts-button>
+    </cts-page-head>`,
+
+  async play({ canvasElement, step }) {
+    const actions = /** @type {HTMLElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".oidf-page-head-actions");
+        expect(el.children.length).toBe(2);
+        return el;
+      })
+    );
+    const title = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-page-head-title"));
+    const sub = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-page-head-sub"));
+
+    await step("the head wraps on phones", async () => {
+      const head = canvasElement.querySelector(".oidf-page-head");
+      expect(getComputedStyle(head).flexWrap).toBe("wrap");
+    });
+
+    await step("actions row sits below the title and subtitle", async () => {
+      const actionsBox = actions.getBoundingClientRect();
+      expect(actionsBox.top).toBeGreaterThanOrEqual(title.getBoundingClientRect().bottom);
+      expect(actionsBox.top).toBeGreaterThanOrEqual(sub.getBoundingClientRect().bottom);
+    });
+
+    await step("title stays on a single line", async () => {
+      const lineHeight = parseFloat(getComputedStyle(title).lineHeight);
+      expect(title.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5);
+    });
+
+    await step("actions row is left-aligned and full width", async () => {
+      const headBox = canvasElement.querySelector(".oidf-page-head").getBoundingClientRect();
+      const actionsBox = actions.getBoundingClientRect();
+      expect(actionsBox.left).toBeCloseTo(headBox.left, 0);
+      expect(actionsBox.width).toBeCloseTo(headBox.width, 0);
     });
   },
 };
