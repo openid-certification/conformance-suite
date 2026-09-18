@@ -842,7 +842,12 @@ class CtsChart extends LitElement {
           : nothing}
         <details class="cts-chart-data cts-data-disclosure">
           <summary>Show data table</summary>
-          <div class="cts-data-table-scroll">
+          <div
+            class="cts-data-table-scroll"
+            role="group"
+            aria-label="${this.heading} data table"
+            tabindex="0"
+          >
             <table class="cts-chart-table cts-data-table">
               <caption>${this.heading}</caption>
               <thead>

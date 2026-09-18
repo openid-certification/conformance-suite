@@ -33,10 +33,16 @@ const STYLE_TEXT = css`
   /* A wide table scrolls inside this box rather than widening its card or
      the page. The box is a sibling of the <summary>, not the <details>
      itself: the summary's focus ring is drawn outside its border box and an
-     overflow on the disclosure would clip it. */
+     overflow on the disclosure would clip it. It carries tabindex="0" so a
+     keyboard user can reach it and scroll it with the arrow keys. */
   .cts-data-table-scroll {
     overflow-x: auto;
     max-width: 100%;
+  }
+  .cts-data-table-scroll:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-2, 4px);
   }
   /* Inside a scrolling wrapper a header scrolls sideways with its column
      rather than stacking one word per line; tables without the wrapper keep
