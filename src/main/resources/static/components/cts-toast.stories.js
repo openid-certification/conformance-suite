@@ -245,7 +245,7 @@ export const StackedToastsOnMobile = {
 
     await step("cards leave the 16px gutter on both sides", async () => {
       // --space-4 resolves to 16px from oidf-tokens.css; the host is pinned
-      // 16px from the right and the card width is capped at 100vw - 32px.
+      // 16px from both sides and the cards never grow wider than the host.
       for (const card of cards) {
         const box = card.getBoundingClientRect();
         expect(box.left).toBeGreaterThanOrEqual(16);
