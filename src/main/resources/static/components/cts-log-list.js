@@ -244,6 +244,17 @@ const STYLE_TEXT = css`
     flex-direction: column;
     gap: var(--space-1);
   }
+  /* Below 640px rows abut at a 36px pitch so the whole column is tappable
+     with no dead gaps between neighbouring options; desktop keeps the
+     compact rows. */
+  @media (max-width: 640px) {
+    .cts-log-filter-options {
+      gap: 0;
+    }
+    .cts-log-filter-option {
+      min-height: 36px;
+    }
+  }
   .cts-log-filter-option {
     display: flex;
     align-items: center;
@@ -345,6 +356,10 @@ const STYLE_TEXT = css`
   .cts-log-card {
     position: relative;
     display: grid;
+    /* Grid items keep min-width:auto, so a bare auto column would grow to
+       the widest unbreakable token (a variant value) and spill past the
+       card. minmax(0, 1fr) lets the column shrink to the card instead. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
     padding: var(--space-4);
     background: var(--bg-elev);
@@ -440,8 +455,10 @@ const STYLE_TEXT = css`
   }
   .cts-log-card-meta-item {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1);
+    min-width: 0;
   }
   .cts-log-card-meta-key {
     color: var(--fg-soft);
@@ -453,6 +470,9 @@ const STYLE_TEXT = css`
   .cts-log-card-meta-value.is-mono {
     font-family: var(--font-mono);
     font-size: var(--fs-12);
+    /* Variant tokens have no natural break points; they only split when
+       one is wider than the card. */
+    overflow-wrap: anywhere;
   }
   /* Light-DOM anchor: the underline fade (line underline + transparent at
      rest, token color on hover, transition on text-decoration-color) comes
@@ -465,6 +485,7 @@ const STYLE_TEXT = css`
     text-underline-offset: 2px;
     font-family: var(--font-mono);
     font-size: var(--fs-12);
+    overflow-wrap: anywhere;
   }
   /* Nested controls lift above the headline link's ::after overlay so the
      browser routes clicks on them to the control, not the card link. */
@@ -541,15 +562,23 @@ const STYLE_TEXT = css`
   }
   .cts-log-list-config-toolbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
     margin-bottom: var(--space-4);
+  }
+  /* cts-tooltip is display:contents, so the button is the flex item. With
+     margin-left:auto it stays at the row's end when the Test ID leaves room
+     and drops to its own right-aligned row when it does not. */
+  .cts-log-list-config-toolbar > cts-tooltip > cts-button {
+    margin-left: auto;
   }
   .cts-log-list-config-toolbar code {
     font-family: var(--font-mono);
     font-size: var(--fs-13);
-    word-break: break-all;
+    /* The ID only breaks when it is wider than the whole row. */
+    overflow-wrap: anywhere;
   }
 `;
 

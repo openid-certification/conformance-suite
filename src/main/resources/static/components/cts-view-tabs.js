@@ -38,9 +38,9 @@ const STYLE_TEXT = css`
     line-height: var(--lh-snug);
     color: var(--fg-soft);
     text-decoration: none;
-    /* Labels never wrap mid-label ("My Test / Plans"); below ~360px viewports
-     the row may clip instead, which is accepted (see the mobile-stacking
-     plan's scope boundaries). */
+    /* Labels never wrap mid-label ("My Test / Plans"); below a 330px
+     container the dataset noun is visually hidden instead (see the narrowest
+     block at the bottom of this sheet) so both tabs stay on one row. */
     white-space: nowrap;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
@@ -143,6 +143,27 @@ const STYLE_TEXT = css`
       min-height: 44px;
     }
   }
+  /* Narrowest state: "My Test Plans" + "Published Test Plans (?)" need about
+   310px and the anchors never wrap, so in a narrower container the second
+   tab would drop under the first's underline and the pair stop reading as
+   tabs. The dataset noun is hidden and the anchors' side padding tightened so
+   the row reads "My | Published (?)" on one line. The noun is clipped, not
+   display:none, so it stays in the accessibility tree and the links keep
+   their full names. A 375px or 390px phone (335px and 350px containers)
+   keeps the full labels. */
+  @container (width < 330px) {
+    .cts-view-tabs-noun {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .cts-view-tabs > a {
+      padding-inline: var(--space-2);
+    }
+  }
 `;
 
 /**
@@ -182,7 +203,11 @@ function ensureStylesInjected() {
  * container width the row stacks — the anchors keep a single line, the divider
  * moves to a full-width `::after` line under them, and the CTA drops to its own
  * full-width 44px-tall row beneath the divider (DOM order is unchanged; the
- * stacking is pure CSS in the `@container` block of `STYLE_TEXT`).
+ * stacking is pure CSS in the `@container` block of `STYLE_TEXT`). Below a
+ * 330px container width the dataset noun (rendered in its own span) is
+ * visually hidden and the anchors' side padding tightened so the two tabs
+ * still share one row; the noun is clipped rather than removed, so the links
+ * keep their full accessible names.
  *
  * The canonical "Published" signal is `?public=true`; "My" is the absence of
  * the `public` param (KTD2). The control merely reads/writes that param:
@@ -366,7 +391,13 @@ class CtsViewTabs extends LitElement {
   render() {
     const active = this._activeView;
     // Append the dataset noun when set ("My Test Plans"); otherwise plain "My".
-    const suffix = this.datasetNoun ? ` ${this.datasetNoun}` : "";
+    // The noun is its own span so the narrowest container state can hide it,
+    // and the whole label sits in one span: the anchor is inline-flex, so a
+    // bare text run and the noun span would be separate flex items and the
+    // space between them would collapse.
+    const suffix = this.datasetNoun
+      ? html`<span class="cts-view-tabs-noun"> ${this.datasetNoun}</span>`
+      : nothing;
     // Inactive anchors carry aria-current="false" (a valid token) rather than
     // omitting the attribute, mirroring cts-log-toc. Only the active anchor
     // matches the `[aria-current='page']` selector the URL-compat gate asserts.
@@ -378,7 +409,7 @@ class CtsViewTabs extends LitElement {
               href="${this._hrefFor("my")}"
               aria-current="${active === "my" ? "page" : "false"}"
               @click=${this._handleTabClick}
-              >My${suffix}</a
+              ><span class="cts-view-tabs-label">My${suffix}</span></a
             >`
           : nothing}
         <a
@@ -386,7 +417,7 @@ class CtsViewTabs extends LitElement {
           href="${this._hrefFor("published")}"
           aria-current="${active === "published" ? "page" : "false"}"
           @click=${this._handleTabClick}
-          >Published${suffix}${this.publishedHelp
+          ><span class="cts-view-tabs-label">Published${suffix}</span>${this.publishedHelp
             ? html`<cts-tooltip content="${this.publishedHelp}" placement="bottom"
                 ><cts-icon
                   name="circle-help"

@@ -544,3 +544,140 @@ export const Truncated = {
     expect(hint.textContent).toContain("Refine the filter to narrow further");
   },
 };
+
+// Narrowest phone (mobile1, 320×568). The card grid column once grew to the
+// widest unbreakable variant token and pushed the Config button past the
+// card; the Config modal toolbar squeezed the Test ID and the copy button
+// onto one row so both broke mid-string; and the filter rows were 25px tall.
+// The first row carries a real-shaped 15-character test id so the modal
+// toolbar is measured with the id length the suite actually issues.
+const NARROW_LOG_LIST = [
+  { ...MOCK_LOG_LIST[0], testId: "rYNgsdGKU4AlVX3" },
+  ...MOCK_LOG_LIST.slice(1),
+];
+
+export const MobileNarrowestFits = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+    msw: {
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(NARROW_LOG_LIST))),
+        http.get("/api/plan/:planId", ({ params }) =>
+          HttpResponse.json({
+            _id: params.planId,
+            planName: "oidcc-basic-certification-test-plan",
+            config: { "server.issuer": "https://op.example.com" },
+          }),
+        ),
+      ],
+    },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`<cts-log-list is-admin></cts-log-list>`,
+  async play({ canvasElement, step }) {
+    await waitForLogsToLoad(canvasElement);
+    const rect = (el) => el.getBoundingClientRect();
+    const root = document.documentElement;
+    const trigger = /** @type {HTMLElement} */ (
+      canvasElement.querySelector('[data-testid="log-filter-trigger"]')
+    );
+
+    await step("every card keeps its children inside its border", async () => {
+      expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+      const cards = Array.from(canvasElement.querySelectorAll('[data-testid="log-list-item"]'));
+      expect(cards.length).toBe(NARROW_LOG_LIST.length);
+      for (const card of cards) {
+        const box = rect(card);
+        expect(box.right).toBeLessThanOrEqual(root.clientWidth);
+        const children = card.querySelectorAll(
+          ".cts-log-card-header, .cts-log-card-meta-item, .cts-log-card-actions, .showConfigBtn, .log-owner",
+        );
+        expect(children.length).toBeGreaterThan(0);
+        for (const child of Array.from(children)) {
+          expect(rect(child).right).toBeLessThanOrEqual(box.right + 0.5);
+          expect(rect(child).left).toBeGreaterThanOrEqual(box.left - 0.5);
+        }
+      }
+    });
+
+    await step("the variant wraps under its label instead of clipping", async () => {
+      const card = /** @type {HTMLElement} */ (
+        canvasElement.querySelector('[data-test-id="rYNgsdGKU4AlVX3"]')
+      );
+      const value = /** @type {HTMLElement} */ (
+        card.querySelector(".cts-log-card-meta-value.is-mono")
+      );
+      expect(value.textContent).toContain("client_auth_type=client_secret_basic");
+      expect(rect(value).right).toBeLessThanOrEqual(rect(card).right + 0.5);
+    });
+
+    await step("filter rows are at least 36px tall and abut", async () => {
+      const panel = await openFilterPanel(canvasElement);
+      const groups = Array.from(panel.querySelectorAll(".cts-log-filter-options"));
+      expect(groups.length).toBe(2);
+      for (const group of groups) {
+        const options = Array.from(group.querySelectorAll(".cts-log-filter-option"));
+        expect(options.length).toBeGreaterThan(1);
+        options.forEach((option, i) => {
+          expect(rect(option).height).toBeGreaterThanOrEqual(36);
+          if (i > 0) {
+            expect(Math.abs(rect(option).top - rect(options[i - 1]).bottom)).toBeLessThanOrEqual(1);
+          }
+          const box = option.querySelector("input");
+          expect(rect(box).width).toBe(16);
+        });
+      }
+      await userEvent.click(trigger);
+      await waitFor(() => {
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      });
+    });
+
+    await step("the config modal toolbar keeps the id and the button whole", async () => {
+      const configHost = canvasElement.querySelector(
+        '.showConfigBtn[data-test-id="rYNgsdGKU4AlVX3"]',
+      );
+      expect(configHost).not.toBeNull();
+      await userEvent.click(configHost.querySelector("button"));
+      const toolbar = /** @type {HTMLElement} */ (
+        await waitFor(() => {
+          const dialog = document.querySelector("#cts-log-list-config-modal dialog[open]");
+          if (!dialog) throw new Error("config modal not yet open");
+          const el = dialog.querySelector(".cts-log-list-config-toolbar");
+          expect(el).not.toBeNull();
+          return el;
+        })
+      );
+      const code = /** @type {HTMLElement} */ (toolbar.querySelector("code"));
+      const button = /** @type {HTMLElement} */ (toolbar.querySelector("cts-button button"));
+      expect(code.textContent).toBe("rYNgsdGKU4AlVX3");
+
+      // Both stay inside the toolbar, and the button hugs its right edge.
+      expect(rect(code).right).toBeLessThanOrEqual(rect(toolbar).right + 0.5);
+      expect(rect(button).right).toBeLessThanOrEqual(rect(toolbar).right + 0.5);
+      expect(Math.abs(rect(button).right - rect(toolbar).right)).toBeLessThanOrEqual(1);
+
+      // Neither overlaps the other: side by side, or the button on its own row.
+      const sideBySide = rect(button).left >= rect(code).right;
+      const stacked = rect(button).top >= rect(code).bottom - 0.5;
+      expect(sideBySide || stacked).toBe(true);
+
+      // The id is one line box, and so is the button label.
+      const lineTops = (el) => {
+        const tops = new Set();
+        for (const node of Array.from(el.childNodes)) {
+          if (node.nodeType !== Node.TEXT_NODE || !node.textContent?.trim()) continue;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          for (const r of Array.from(range.getClientRects())) tops.add(Math.round(r.top));
+        }
+        return tops;
+      };
+      expect(lineTops(code).size).toBe(1);
+      expect(lineTops(button).size).toBe(1);
+      expect(rect(button).height).toBeLessThan(40);
+    });
+  },
+};

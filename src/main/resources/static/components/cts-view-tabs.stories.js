@@ -442,3 +442,79 @@ export const MobileTabsOnly = {
     expect(getComputedStyle(nav).borderBottomWidth).toBe("0px");
   },
 };
+
+// Narrowest state: at 320px "My Test Plans" + "Published Test Plans (?)" no
+// longer fit on one row and the anchors never wrap, so below a 330px container
+// the dataset noun is hidden and the anchor padding tightened. Both tabs must
+// share a single row, and the noun must stay in the DOM so the accessible name
+// is unchanged. Pinned to mobile1 (320×568).
+export const MobileNarrowestHidesNoun = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () =>
+    html`<cts-view-tabs
+      authenticated
+      create-test-href="schedule-test.html"
+      dataset-noun="Test Plans"
+      published-help="Published test plans are conformance test configurations that implementers have chosen to make public."
+    ></cts-view-tabs>`,
+
+  async play({ canvasElement, step }) {
+    const nav = /** @type {HTMLElement} */ (canvasElement.querySelector("nav.cts-view-tabs"));
+    const my = /** @type {HTMLElement} */ (canvasElement.querySelector("a[data-view='my']"));
+    const published = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("a[data-view='published']")
+    );
+    const rect = (el) => el.getBoundingClientRect();
+
+    await step("both tabs sit on one row inside the nav", async () => {
+      expect(Math.round(rect(my).top)).toBe(Math.round(rect(published).top));
+      expect(rect(published).right).toBeLessThanOrEqual(rect(nav).right + 0.5);
+      expect(nav.scrollWidth).toBeLessThanOrEqual(nav.clientWidth);
+    });
+
+    await step("the noun is clipped visually but kept in the accessibility tree", async () => {
+      const nouns = Array.from(canvasElement.querySelectorAll(".cts-view-tabs-noun"));
+      expect(nouns.length).toBe(2);
+      for (const noun of nouns) {
+        const style = getComputedStyle(noun);
+        expect(style.display).not.toBe("none");
+        expect(style.position).toBe("absolute");
+        expect(noun.getBoundingClientRect().width).toBeLessThanOrEqual(1);
+      }
+      // The links keep their full accessible names.
+      expect(within(canvasElement).getByRole("link", { name: "My Test Plans" })).toBe(my);
+      expect(my.textContent?.trim()).toBe("My Test Plans");
+      // The help icon injects its own <style> into the anchor's light DOM, so
+      // only the leading text is the label.
+      expect(published.textContent?.trim().startsWith("Published Test Plans")).toBe(true);
+    });
+
+    await step("the anchors use the tighter side padding", async () => {
+      expect(getComputedStyle(my).paddingLeft).toBe("8px");
+      expect(getComputedStyle(my).paddingRight).toBe("8px");
+    });
+
+    await step("the help icon still renders after the Published label", async () => {
+      const help = canvasElement.querySelector('[data-testid="published-help"]');
+      expect(help).not.toBeNull();
+      expect(published.contains(help)).toBe(true);
+    });
+
+    await step("the CTA still stacks on its own row below the tabs", async () => {
+      const cta = /** @type {HTMLElement} */ (
+        canvasElement.querySelector('[data-testid="schedule-test-cta"]')
+      );
+      const link = await waitFor(() => {
+        const a = cta.querySelector("a");
+        expect(a).toBeTruthy();
+        return /** @type {HTMLAnchorElement} */ (a);
+      });
+      expect(rect(link).top).toBeGreaterThanOrEqual(rect(published).bottom);
+    });
+  },
+};

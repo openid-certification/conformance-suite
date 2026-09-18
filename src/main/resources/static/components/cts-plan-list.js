@@ -185,9 +185,20 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     color: var(--fg-soft);
   }
+  /* A select sizes to its longest option, and the Plan filter offers every
+     plan name the suite has ever published, so the control is capped at the
+     toolbar's width. The label keeps its flex-none sizing; only the control
+     inside it shrinks. */
+  .cts-plan-list-age {
+    min-width: 0;
+    max-width: 100%;
+  }
   .cts-plan-list-sort select,
   .cts-plan-list-age select {
     box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 auto;
     height: var(--control-height);
     padding: 0 36px 0 var(--space-3);
     background: var(--bg-elev);
@@ -229,6 +240,10 @@ const STYLE_TEXT = css`
   .cts-plan-card {
     position: relative;
     display: grid;
+    /* Grid items keep min-width:auto, so a bare auto column would grow to
+       the widest unbreakable token (a variant value) and spill past the
+       card. minmax(0, 1fr) lets the column shrink to the card instead. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
     padding: var(--space-4);
     background: var(--bg-elev);
@@ -319,8 +334,10 @@ const STYLE_TEXT = css`
   }
   .cts-plan-card-meta-item {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1);
+    min-width: 0;
   }
   .cts-plan-card-meta-key {
     color: var(--fg-soft);
@@ -332,6 +349,9 @@ const STYLE_TEXT = css`
   .cts-plan-card-meta-value.is-mono {
     font-family: var(--font-mono);
     font-size: var(--fs-12);
+    /* Variant tokens have no natural break points; they only split when
+       one is wider than the card. */
+    overflow-wrap: anywhere;
   }
   /* Nested controls lift above the headline link's ::after overlay so the
      browser routes clicks on them to the control, not the card link. */
