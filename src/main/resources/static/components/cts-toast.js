@@ -41,8 +41,13 @@ const STYLE_TEXT = css`
     position: fixed;
     bottom: var(--space-4);
     right: var(--space-4);
+    /* Pinned to both side gutters so its width is the viewport minus the
+   * gutters, whatever the scrollbar takes; the cards size to their content
+   * against that width and hug the right edge. */
+    left: var(--space-4);
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: var(--space-2);
     z-index: 1000;
     pointer-events: none;
@@ -61,12 +66,12 @@ const STYLE_TEXT = css`
     align-items: flex-start;
     gap: var(--space-3);
     /* The card sizes to its content between 280px and 420px, but never
-   * wider than the viewport minus the host's 16px side gutters, so on
+   * wider than the host, which stops at the 16px side gutters, so on
    * narrow phones its left edge stays on screen; border-box keeps padding
    * and borders inside that width. */
     box-sizing: border-box;
-    min-width: min(280px, calc(100vw - 2 * var(--space-4)));
-    max-width: min(420px, calc(100vw - 2 * var(--space-4)));
+    min-width: min(280px, 100%);
+    max-width: min(420px, 100%);
     padding: var(--space-3) var(--space-4);
     background: var(--bg-elev);
     color: var(--fg);
