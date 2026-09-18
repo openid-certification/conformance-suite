@@ -443,7 +443,58 @@ export const RowHoverStyleRegistered = {
     expect(css).toContain(".oidf-test-selector__row:hover");
     expect(css).toContain("var(--ink-50)");
     expect(css).toContain(".oidf-test-selector__row:focus-visible");
-    expect(css).toContain("var(--focus-ring)");
+    expect(css).toContain("outline-offset: -2px");
+  },
+};
+
+/**
+ * The list clips its rows to its rounded corners (overflow: hidden) and the
+ * rows sit flush against its edges, so an outer focus ring loses its top
+ * and left segments. The row and star rings are drawn inside their own
+ * box (negative outline-offset) so every edge paints.
+ */
+export const RowAndStarFocusRingsAreInset = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement, step }) {
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+    const list = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__list")
+    );
+    const firstRow = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__row")
+    );
+    const firstStar = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__fav")
+    );
+
+    /** @param {HTMLElement} el */
+    const expectInsetRing = (el) => {
+      const style = getComputedStyle(el);
+      expect(style.outlineStyle).toBe("solid");
+      expect(parseFloat(style.outlineWidth)).toBeGreaterThan(0);
+      // Negative offset at least as wide as the ring keeps it inside the box.
+      expect(parseFloat(style.outlineOffset)).toBeLessThanOrEqual(-parseFloat(style.outlineWidth));
+      expect(style.boxShadow).toBe("none");
+    };
+
+    await step("the list clips its children", async () => {
+      expect(getComputedStyle(list).overflow).toBe("hidden");
+    });
+
+    await step("ArrowDown from the search focuses the first row with an inset ring", async () => {
+      searchInput.focus();
+      await userEvent.keyboard("{ArrowDown}");
+      await waitFor(() => expect(document.activeElement).toBe(firstRow));
+      expectInsetRing(firstRow);
+    });
+
+    await step("Tab moves to the row's star, also with an inset ring", async () => {
+      await userEvent.keyboard("{Tab}");
+      await waitFor(() => expect(document.activeElement).toBe(firstStar));
+      expectInsetRing(firstStar);
+    });
   },
 };
 

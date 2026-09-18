@@ -707,3 +707,50 @@ export const HeightRecoversOnceFontsSettle = {
     }
   },
 };
+
+const LONG_URL_HELP =
+  "Base URL of the directory keystore, e.g. https://keystore.sandbox.directory.openbankingbrasil.org.br/";
+
+/**
+ * A help text (or key) that is one unbreakable token must wrap inside the
+ * field. Without overflow-wrap the field's min-content width follows the
+ * URL past the viewport and the whole page pans sideways on phones.
+ */
+export const LongUrlHelpTextWrapsOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`
+    <cts-form-field
+      name="directory.keystore"
+      .schema=${{ type: "string", title: "Directory keystore base", description: LONG_URL_HELP }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement, step }) {
+    const host = /** @type {HTMLElement} */ (canvasElement.querySelector("cts-form-field"));
+    const help = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-help"));
+    const label = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-label"));
+    const input = /** @type {HTMLInputElement} */ (canvasElement.querySelector("input"));
+
+    await step("help text and label opt into breaking anywhere", async () => {
+      expect(getComputedStyle(help).overflowWrap).toBe("anywhere");
+      expect(getComputedStyle(label).overflowWrap).toBe("anywhere");
+    });
+
+    await step("the URL wraps instead of widening the field", async () => {
+      const hostWidth = host.getBoundingClientRect().width;
+      expect(help.getBoundingClientRect().width).toBeLessThanOrEqual(hostWidth + 1);
+      expect(input.getBoundingClientRect().width).toBeLessThanOrEqual(hostWidth + 1);
+      expect(host.scrollWidth).toBeLessThanOrEqual(host.clientWidth);
+    });
+
+    await step("the page itself does not scroll horizontally", async () => {
+      const root = document.documentElement;
+      expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+    });
+  },
+};
