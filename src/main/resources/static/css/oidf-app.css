@@ -352,6 +352,17 @@ cts-link-button > a:focus,
   font-family: var(--font-sans);
   font-size: var(--fs-13);
   color: var(--orange-500);
+  display: inline-flex;
+  align-items: center;
+}
+/* Touch screens: a 20px text line is too small a target for the three
+   near-identical "Generate ... JWKS" links; pad them to a 44px hit area. */
+@media (pointer: coarse) {
+  .oidf-jwks-generator-link {
+    min-height: 44px;
+    padding-inline: var(--space-2);
+    margin-inline: calc(-1 * var(--space-2));
+  }
 }
 .oidf-jwks-generator-link:hover,
 .oidf-jwks-generator-link:focus {

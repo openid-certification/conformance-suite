@@ -26,6 +26,14 @@ const STYLE_TEXT = css`
     cursor: pointer;
     line-height: 1;
   }
+  /* Touch screens: a 30px kebab is easy to miss; grow the trigger to a
+     44px target and keep the desktop size for pointer devices. */
+  @media (pointer: coarse) {
+    cts-action-overflow .overflowTrigger {
+      width: 44px;
+      height: 44px;
+    }
+  }
   cts-action-overflow .overflowTrigger:hover {
     background: var(--bg-muted);
   }

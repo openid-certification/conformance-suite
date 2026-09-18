@@ -1820,6 +1820,82 @@ export const StatusBarStacksOnMobile = {
   },
 };
 
+/**
+ * Module descriptions are rendered verbatim. One with a long unbreakable
+ * token (a base64 id, a URL) must wrap inside the hero instead of widening
+ * the page: on a phone that overflow made Chrome lay the whole page out
+ * at ~510px and shrink everything.
+ */
+export const HeroBodyWrapsLongTokenOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{
+        ...COMPLETED_TEST,
+        description:
+          'Evaluates the request {"subject":{"id":"CiRmZDA2MTRkMy1jMzlhLTQ3ODEtYjdiZC04Yjk2ZjVhNTEwMGQSBWxvY2Fs"}} against the PDP.',
+      }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const body = /** @type {HTMLElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".ctsHeroBody");
+        if (!el) throw new Error("hero body not yet rendered");
+        return el;
+      })
+    );
+
+    await step("the long token wraps inside the hero body", async () => {
+      expect(getComputedStyle(body).overflowWrap).toBe("anywhere");
+      expect(body.scrollWidth).toBeLessThanOrEqual(body.clientWidth + 1);
+      // The paragraph is no wider than the column it sits in: before the
+      // wrap rule its min-content width was the token's full length.
+      const paragraph = /** @type {HTMLElement} */ (body.querySelector("p"));
+      expect(paragraph.getBoundingClientRect().width).toBeLessThanOrEqual(
+        body.getBoundingClientRect().width + 1,
+      );
+    });
+  },
+};
+
+/**
+ * The drawer's metadata grid must not emit an orphan "Created:" label when
+ * the test carries no created timestamp (some API shapes omit it).
+ */
+export const DrawerOmitsCreatedWhenMissing = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, created: undefined }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const detailsHost = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('[data-testid="drawer-test-details"]');
+        if (!el) throw new Error("drawer-test-details not yet rendered");
+        return el;
+      })
+    );
+
+    await step("open the Test details disclosure", async () => {
+      await userEvent.click(detailsHost.querySelector("summary"));
+      await waitFor(() => expect(detailsHost.open).toBe(true));
+    });
+
+    await step("no Created label renders without a value", async () => {
+      const labels = Array.from(detailsHost.querySelectorAll(".logMetaLabel")).map((el) =>
+        el.textContent.trim(),
+      );
+      expect(labels).not.toContain("Created:");
+      expect(labels).toContain("Test ID:");
+    });
+  },
+};
+
 export const DrawerCollapsedByDefault = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
