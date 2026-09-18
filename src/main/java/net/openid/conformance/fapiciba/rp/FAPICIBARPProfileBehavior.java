@@ -81,8 +81,14 @@ public class FAPICIBARPProfileBehavior {
 		return false;
 	}
 
+	/**
+	 * Access tokens are always mTLS certificate-bound in FAPI-CIBA regardless of profile or
+	 * client authentication type - see the unconditional checkMtlsCertificate() call in
+	 * AbstractFAPICIBAClientTest.tokenEndpoint(). Per RFC8705 section 3, any endpoint accepting
+	 * such a token, including userinfo, must therefore be called over mTLS.
+	 */
 	public boolean userInfoEndpointRequiresMTLS() {
-		return false;
+		return true;
 	}
 
 	public boolean claimsProfileSpecificMtlsPath(String path) {

@@ -305,6 +305,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		profileBehavior.exposeProfileSpecificEndpoints();
 
+		adjustServerConfigurationForMtlsEndpointAliasesVariant();
+
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (shouldValidateConfiguredNotificationEndpoint()) {
 			callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
@@ -319,6 +321,15 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	/**
+	 * Hook for the "no mtls_endpoint_aliases" test flavor (issue #1048). Default: no-op — the
+	 * default happy path always advertises mtls_endpoint_aliases per RFC8705 section 5, and
+	 * correct alias usage is enforced by the clientAuthType/profileBehavior-driven checks in
+	 * handleHttp/handleHttpMtls.
+	 */
+	protected void adjustServerConfigurationForMtlsEndpointAliasesVariant() {
 	}
 
 	@Override
@@ -400,6 +411,12 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		switch (path) {
 			case "backchannel":
+				if (clientAuthType != ClientAuthType.MTLS && !profileBehavior.requiresMtlsForBackchannelEndpoint()) {
+					throw new TestFailureException(getId(), "invalid_client",
+						"The backchannel endpoint was called over an mTLS secured connection, but this is not " +
+						"expected when using " + clientAuthType + " client authentication. The regular " +
+						"(non-mTLS) backchannel_authentication_endpoint must be used.");
+				}
 				return backchannelEndpoint(requestId);
 			case "token":
 				return tokenEndpoint(requestId);
@@ -713,7 +730,13 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected Object userinfoEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Userinfo endpoint").mapKey("incoming_request", requestId));
+		call(exec().startBlock("Userinfo endpoint"));
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		checkMtlsCertificate();
+
+		call(exec().unmapKey("token_endpoint_request"));
+		call(exec().mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
