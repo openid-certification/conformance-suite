@@ -123,6 +123,51 @@ export const PendingImages = {
  * Drop a file on the inline zone — the preview thumbnail replaces the empty
  * state and Upload becomes enabled.
  */
+/**
+ * A pending image on a phone. The three-column row leaves the description,
+ * hint and buttons a sliver beside the drop zone, so below 520px the zone
+ * becomes a full-width strip and the body takes the card's width under it.
+ */
+export const PendingImagesOnPhone = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: PendingImages.render,
+  async play({ canvasElement, step }) {
+    const item = /** @type {HTMLElement} */ (
+      canvasElement.querySelector('[data-testid="pending-image"]')
+    );
+    const zone = /** @type {HTMLElement} */ (item.querySelector(".oidf-image-upload__inline-zone"));
+    const body = /** @type {HTMLElement} */ (item.querySelector(".oidf-image-upload__inline-body"));
+    const rect = (/** @type {Element} */ el) => el.getBoundingClientRect();
+
+    await step("the body sits under the zone and takes the card's width", async () => {
+      expect(item.clientWidth).toBeLessThan(400);
+      expect(rect(body).top).toBeGreaterThanOrEqual(rect(zone).bottom - 1);
+      expect(Math.round(rect(body).left)).toBe(Math.round(rect(zone).left));
+      expect(rect(body).width).toBeGreaterThan(item.clientWidth * 0.7);
+    });
+
+    await step("the hint reads as sentences, not one word per line", async () => {
+      const hint = /** @type {HTMLElement} */ (
+        item.querySelector(".oidf-image-upload__inline-hint")
+      );
+      const lineHeight = parseFloat(getComputedStyle(hint).lineHeight);
+      expect(rect(hint).height).toBeLessThan(lineHeight * 5);
+    });
+
+    await step("nothing pokes out of the card", async () => {
+      expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth);
+      for (const control of item.querySelectorAll(".oidf-image-upload__inline-actions > *")) {
+        expect(rect(control).right).toBeLessThanOrEqual(rect(item).right + 0.5);
+      }
+    });
+  },
+};
+
 export const DropToEnableUpload = {
   render: () => html`
     <cts-image-upload

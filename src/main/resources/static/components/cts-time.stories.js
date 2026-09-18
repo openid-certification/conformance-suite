@@ -6,6 +6,7 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
+  formatDate,
 } from "../lib/time-format.js";
 
 export default {
@@ -80,6 +81,20 @@ export const Compact = {
     expect(t).toBeTruthy();
     // Compact visible form (medium date + short time), full form on hover.
     expect(t?.textContent?.trim()).toBe(formatCompact(FIXED));
+    expect(t?.getAttribute("title")).toBe(formatAbsolute(FIXED));
+  },
+};
+
+export const DateOnly = {
+  render: () => html`<cts-time value=${FIXED} mode="date"></cts-time>`,
+
+  async play({ canvasElement }) {
+    const t = getTimeEl(canvasElement);
+    expect(t).toBeTruthy();
+    // The calendar date alone on screen — one short token for a narrow table
+    // column — with the time of day still reachable on hover.
+    expect(t?.textContent?.trim()).toBe(formatDate(FIXED));
+    expect(t?.textContent).not.toContain(":");
     expect(t?.getAttribute("title")).toBe(formatAbsolute(FIXED));
   },
 };

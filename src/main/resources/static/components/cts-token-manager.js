@@ -38,6 +38,15 @@ const STYLE_TEXT = css`
     width: 1%;
     white-space: nowrap;
   }
+  /* The expiry is a date on one line; the time of day is on the <time>'s
+     title. The id is the column that gives way on a phone, so it wraps
+     anywhere rather than pushing the table past its box. */
+  .cts-token-manager [data-column-key="expires"] {
+    white-space: nowrap;
+  }
+  .cts-token-manager [data-column-key="_id"] {
+    overflow-wrap: anywhere;
+  }
   .cts-token-manager-created-modal-body p {
     margin: 0 0 var(--space-3) 0;
   }
@@ -390,10 +399,11 @@ class CtsTokenManager extends LitElement {
   _cellRenderer(row, key) {
     if (key === "expires") {
       // A null/absent expiry means the token never expires; cts-time renders
-      // nothing for empty input, so keep the explicit "Never" label here.
+      // nothing for empty input, so keep the explicit "Never" label here. The
+      // date alone fits a phone-width column; the time is on the title.
       return html`<span class="tabular-nums"
         >${row.expires
-          ? html`<cts-time mode="compact" value=${row.expires}></cts-time>`
+          ? html`<cts-time mode="date" value=${row.expires}></cts-time>`
           : "Never"}</span
       >`;
     }

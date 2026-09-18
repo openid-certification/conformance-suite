@@ -107,6 +107,47 @@ export const Default = {
   },
 };
 
+/**
+ * The token table on a phone. The expiry is a date on one line — the time of
+ * day is on the `<time>`'s title — so a row is a row, not three lines of
+ * wrapped timestamp beside a wrapped id.
+ */
+export const TokensOnPhone = {
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  parameters: {
+    ...Default.parameters,
+    viewport: { defaultViewport: "mobile1" },
+  },
+  render: Default.render,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
+    });
+    const listing = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("cts-data-table#tokensListing")
+    );
+
+    await step("each expiry is one line of date, with the time on hover", async () => {
+      expect(listing.clientWidth).toBeLessThan(400);
+      const times = /** @type {Array<HTMLElement>} */ ([...listing.querySelectorAll("time")]);
+      expect(times.length).toBe(2);
+      for (const time of times) {
+        expect(time.textContent).not.toContain(":");
+        expect(time.getAttribute("title")).toContain(":");
+        const lineHeight = parseFloat(getComputedStyle(time).lineHeight);
+        expect(time.getBoundingClientRect().height).toBeLessThan(lineHeight * 2);
+      }
+    });
+
+    await step("the table stays inside its box", async () => {
+      expect(listing.scrollWidth).toBeLessThanOrEqual(listing.clientWidth);
+    });
+  },
+};
+
 export const CreateTemporaryToken = {
   parameters: {
     msw: {
