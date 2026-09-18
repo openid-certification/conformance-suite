@@ -260,8 +260,8 @@ const STYLE_TEXT = css`
     outline: 2px solid var(--orange-400);
     outline-offset: 2px;
   }
-  /* Narrow-card reflow. Drops the actions column and lets the action
-     stack span the full row width on a second line, so module names
+  /* Narrow-card reflow. Drops the actions column and moves the action
+     stack to a second line under the name column, so module names
      and status badges keep their breathing room and touch targets
      stay at the cts-button minimum height. The 780px threshold
      covers two squeeze zones the viewport-only breakpoint missed:
@@ -276,8 +276,12 @@ const STYLE_TEXT = css`
       padding: var(--space-3);
       row-gap: var(--space-2);
     }
+    /* Actions align with the name column (never under the row-number
+       gutter) and read left-to-right in DOM order, primary first. */
     cts-plan-modules .module-row .actionStack {
-      grid-column: 1 / -1;
+      grid-column: 2 / -1;
+      flex-direction: row;
+      justify-content: flex-start;
     }
   }
 `;
