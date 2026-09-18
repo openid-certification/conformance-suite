@@ -183,6 +183,10 @@ const STYLE_TEXT = css`
     font-size: var(--fs-12);
     line-height: var(--lh-snug);
     color: var(--fg-soft);
+    /* Config keys and help text can be a single unbreakable token (a URL,
+       a JWT); they must wrap inside the field instead of setting its
+       min-content width past the viewport. */
+    overflow-wrap: anywhere;
   }
   .oidf-form-field .oidf-input,
   .oidf-form-field .oidf-select,
@@ -281,6 +285,7 @@ const STYLE_TEXT = css`
   .oidf-form-field .oidf-help {
     /* mirrors .t-meta from oidf-tokens.css */
     color: var(--fg-soft);
+    overflow-wrap: anywhere;
   }
   .oidf-form-field .oidf-checkbox-row {
     display: flex;
