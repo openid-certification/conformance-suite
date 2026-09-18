@@ -45,6 +45,9 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		// Happy path for DPoP sender constrained without DPoP nonce
 		FAPI2SPFinalClientTestHappyPathNoDpopNonce.class,
 
+		// Happy path where the server does not publish mtls_endpoint_aliases
+		FAPI2SPFinalClientTestHappyPathNoMtlsEndpointAliases.class,
+
 		// JARM tests
 		FAPI2SPFinalClientTestEnsureJarmWithoutIssFails.class,
 		FAPI2SPFinalClientTestEnsureJarmWithInvalidIssFails.class,
