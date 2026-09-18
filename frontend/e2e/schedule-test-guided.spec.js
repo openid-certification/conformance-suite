@@ -270,6 +270,24 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(configureBox.x + configureBox.width).toBeLessThanOrEqual(390 - 16);
   });
 
+  test("the prefill bridge wraps its buttons under the copy on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+    await page.locator("#modeAdvancedBtn").click();
+
+    const prompt = page.locator("#bridgePrompt");
+    await expect(prompt).toBeVisible();
+    const bodyBox = await prompt.locator(".bp-body").boundingBox();
+    const actionsBox = await prompt.locator(".bp-actions").boundingBox();
+    if (!bodyBox || !actionsBox) throw new Error("bridge prompt is missing a bounding box");
+    // Actions drop onto their own line instead of squeezing the copy into a
+    // one-word-per-line column beside them.
+    expect(actionsBox.y).toBeGreaterThanOrEqual(bodyBox.y + bodyBox.height - 1);
+    expect(bodyBox.width).toBeGreaterThan(240);
+  });
+
   test("Brazil OP FAPI path goes straight to review — one journey, one plan (#1967)", async ({
     page,
   }) => {

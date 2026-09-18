@@ -550,8 +550,9 @@
         /* Guided→advanced prefill bridge (lives in the advanced island) */
         .bridge-prompt {
             display: flex;
+            flex-wrap: wrap;
             gap: var(--space-3);
-            align-items: center;
+            align-items: flex-start;
             border: 1.5px solid var(--orange-300);
             background: var(--orange-50);
             border-radius: var(--radius-3);
@@ -560,10 +561,21 @@
             box-sizing: border-box;
         }
         .bridge-prompt .bp-icon { color: var(--orange-600); flex: none; }
-        .bridge-prompt .bp-body { flex: 1 1 auto; min-width: 0; }
+        /* The body needs at least ~240px of line length beside the icon and
+           the two buttons; when the row can't give it that (a phone-width
+           column) the actions wrap onto their own line instead of the copy
+           collapsing into a one-word-per-line column. */
+        .bridge-prompt .bp-body { flex: 1 1 240px; min-width: 0; }
         .bridge-prompt .bp-title { font-weight: var(--fw-bold); color: var(--fg); font-size: var(--fs-14); }
         .bridge-prompt .bp-sub { font-size: var(--fs-13); color: var(--fg-muted); margin-top: 2px; }
-        .bridge-prompt .bp-actions { display: flex; gap: var(--space-2); flex: none; }
+        .bridge-prompt .bp-actions {
+            display: flex;
+            gap: var(--space-2);
+            flex: none;
+            /* Hugs the end of whichever line it lands on: beside the copy on
+               a wide row, right-aligned below it once wrapped. */
+            margin-inline-start: auto;
+        }
 
         /* GL#1897: collapsed "here's your plan" card shown in place of
            #planSearch when the plan arrived via a preset/shared-configuration
