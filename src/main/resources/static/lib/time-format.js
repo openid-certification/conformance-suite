@@ -136,3 +136,17 @@ export function formatCompact(value) {
     timeStyle: "short",
   });
 }
+
+/**
+ * Calendar date only (e.g. `May 22, 2026`) via the medium date style. Used in
+ * narrow table columns where the day is what the reader is comparing and the
+ * time of day still reaches them on hover through the absolute form.
+ *
+ * @param {string | number | Date | null | undefined} value Input timestamp.
+ * @returns {string} Locale date string, or `""` when input is missing/unparseable.
+ */
+export function formatDate(value) {
+  const t = toMillis(value);
+  if (t === null) return "";
+  return new Date(t).toLocaleDateString(undefined, { dateStyle: "medium" });
+}

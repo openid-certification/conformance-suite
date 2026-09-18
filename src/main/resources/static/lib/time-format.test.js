@@ -4,6 +4,7 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
+  formatDate,
   toMillis,
 } from "./time-format.js";
 
@@ -31,6 +32,7 @@ describe("time-format", () => {
       expect(formatAbsolute(/** @type {any} */ (value))).toBe("");
       expect(formatTimeOfDay(/** @type {any} */ (value))).toBe("");
       expect(formatCompact(/** @type {any} */ (value))).toBe("");
+      expect(formatDate(/** @type {any} */ (value))).toBe("");
       expect(toMillis(/** @type {any} */ (value))).toBeNull();
     });
 
@@ -114,6 +116,15 @@ describe("time-format", () => {
           timeStyle: "short",
         }),
       );
+    });
+  });
+
+  describe("formatDate", () => {
+    it("matches the medium-date locale form byte-for-byte, with no time of day", () => {
+      expect(formatDate(FIXED_ISO)).toBe(
+        new Date(FIXED_ISO).toLocaleDateString(undefined, { dateStyle: "medium" }),
+      );
+      expect(formatDate(FIXED_ISO)).not.toContain(":");
     });
   });
 

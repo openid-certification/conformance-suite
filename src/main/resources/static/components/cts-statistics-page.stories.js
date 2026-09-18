@@ -445,6 +445,48 @@ export const Ready = {
  * The weekly presets: a different granularity, not just a shorter range, so
  * the axis, the labels and the headings all change with them.
  */
+/**
+ * The filter row on a phone. Every control is its own row there, so each
+ * select spans the column and each granularity strip shares it equally
+ * between its presets — no staircase of right edges.
+ */
+export const FiltersOnPhone = {
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  parameters: {
+    msw: { handlers: [slicingHandler()] },
+    viewport: { defaultViewport: "mobile1" },
+  },
+  render: () => html`<cts-statistics-page></cts-statistics-page>`,
+  async play({ canvasElement, step }) {
+    await waitForCharts(canvasElement);
+    const filters = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("cts-statistics-filters")
+    );
+    const width = (/** @type {Element} */ el) => el.getBoundingClientRect().width;
+
+    await step("every select spans the column", async () => {
+      expect(filters.clientWidth).toBeLessThan(400);
+      const selects = [...filters.querySelectorAll("select.oidf-select")];
+      expect(selects.length).toBeGreaterThanOrEqual(3);
+      for (const select of selects) {
+        expect(Math.round(width(select))).toBe(Math.round(filters.clientWidth));
+      }
+    });
+
+    await step("each granularity strip is full width with equal presets", async () => {
+      const strips = [...filters.querySelectorAll(".cts-stats-range")];
+      expect(strips.length).toBe(2);
+      for (const strip of strips) {
+        expect(Math.round(width(strip))).toBe(Math.round(filters.clientWidth));
+        const widths = [...strip.querySelectorAll("button")].map((b) => Math.round(width(b)));
+        expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(2);
+      }
+    });
+  },
+};
+
 export const Weekly = {
   parameters: { msw: { handlers: [slicingHandler()] } },
   render: () => html`<cts-statistics-page></cts-statistics-page>`,

@@ -119,6 +119,27 @@ const STYLE_TEXT = css`
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
   }
+  /* On a phone every control is its own row: a select sized to its longest
+     option and a strip sized to its labels leave a staircase of right edges
+     down the column, so each spans the column and each strip's presets share
+     it equally. */
+  @media (max-width: 640px) {
+    cts-statistics-filters .oidf-select,
+    cts-statistics-filters .oidf-select[data-testid="stats-plan"] {
+      width: 100%;
+      max-width: none;
+    }
+    .cts-stats-ranges {
+      display: flex;
+      width: 100%;
+    }
+    .cts-stats-range {
+      flex: 1 1 100%;
+    }
+    .cts-stats-range button {
+      flex: 1;
+    }
+  }
 `;
 
 /**

@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect } from "storybook/test";
+import { expect, waitFor } from "storybook/test";
 import "./cts-heatmap.js";
 
 /** Monday-first days, the order `StatisticsOverview.heatmap` delivers. */
@@ -162,6 +162,66 @@ export const Default = {
       const rows = [...table.querySelectorAll("tbody tr")];
       expect(rows.length).toBe(7);
       expect(rows[1].querySelectorAll("td")[14].textContent).toBe("132");
+    });
+  },
+};
+
+/**
+ * The grid on a phone. Twenty-four hours do not fit, so the grid scrolls
+ * inside its box — and says so: the day labels stay put, a fade on the right
+ * edge marks that there is more, and it goes once the reader reaches the end.
+ */
+export const ScrollsOnPhone = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  args: Default.args,
+  render: Default.render,
+
+  async play({ canvasElement, step }) {
+    const host = /** @type {any} */ (canvasElement.querySelector("cts-heatmap"));
+    await host.updateComplete;
+    const scroller = /** @type {HTMLElement} */ (host.querySelector(".cts-heatmap-scroller"));
+    const box = /** @type {HTMLElement} */ (scroller.querySelector(".cts-heatmap-scroll"));
+
+    await step("the grid overflows its box, not the page", async () => {
+      expect(box.clientWidth).toBeLessThan(400);
+      expect(box.scrollWidth).toBeGreaterThan(box.clientWidth);
+      expect(host.scrollWidth).toBeLessThanOrEqual(host.clientWidth);
+    });
+
+    await step("the fade and the hint say there is more to the right", async () => {
+      // The measurement lands from a ResizeObserver, and the fade eases in.
+      await waitFor(() => expect(scroller.hasAttribute("data-scroll-end")).toBe(false));
+      const fade = getComputedStyle(scroller, "::after");
+      expect(fade.pointerEvents).toBe("none");
+      await waitFor(() => expect(parseFloat(fade.opacity)).toBe(1));
+      expect(host.querySelector('[data-testid="cts-heatmap-hint"]')).toBeTruthy();
+    });
+
+    await step("the hours a phone hides are reachable by keyboard", async () => {
+      expect(box.tabIndex).toBe(0);
+      expect(box.getAttribute("aria-label")).toBe("Test runs by day and hour grid");
+    });
+
+    await step("day labels stay in view while the hours scroll", async () => {
+      const rowhead = /** @type {HTMLElement} */ (host.querySelector(".cts-heatmap-rowhead"));
+      expect(getComputedStyle(rowhead).position).toBe("sticky");
+      const before = rowhead.getBoundingClientRect().left;
+      box.scrollLeft = 120;
+      await waitFor(() => expect(scroller.hasAttribute("data-scroll-end")).toBe(false));
+      expect(Math.round(rowhead.getBoundingClientRect().left)).toBe(Math.round(before));
+    });
+
+    await step("the fade goes once the reader has reached the end", async () => {
+      box.scrollLeft = box.scrollWidth;
+      await waitFor(() => expect(scroller.hasAttribute("data-scroll-end")).toBe(true));
+      await waitFor(() =>
+        expect(parseFloat(getComputedStyle(scroller, "::after").opacity)).toBe(0),
+      );
     });
   },
 };

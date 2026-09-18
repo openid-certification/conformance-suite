@@ -339,8 +339,10 @@ export const Horizontal = {
     await step("a long name is elided on the axis, never clipped", async () => {
       // The tick callback reads the label out of the chart's own list by
       // index, so it is called the way Chart.js calls it: (value, index).
+      // Chart.js binds the scale as `this`, which is where the tick font
+      // and the chart width come from.
       const tickAt = (/** @type {number} */ index) =>
-        chart.options.scales.y.ticks.callback(index, index);
+        chart.options.scales.y.ticks.callback.call(chart.scales.y, index, index);
       expect(tickAt(0)).toBe("Profile 00");
       const longTick = tickAt(chart.data.labels.indexOf(LONG_PROFILE));
       // Elided, never clipped: the full name is still in the tooltip and the
@@ -364,6 +366,95 @@ export const Horizontal = {
         cell.textContent.trim(),
       );
       expect(lastRow).toEqual(["Profile 14", "4", "8"]);
+    });
+  },
+};
+
+/**
+ * The same chart on a phone. Chart.js grows the category axis to fit its
+ * longest tick and clips the START of every label once the axis is wider
+ * than the canvas allows, so the tick is elided to a share of the chart's
+ * width rather than to a character count.
+ */
+export const HorizontalOnPhone = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  args: Horizontal.args,
+  render: Horizontal.render,
+
+  async play({ canvasElement, step }) {
+    const { chart } = await waitForChart(canvasElement);
+    const scale = chart.scales.y;
+    const tickAt = (/** @type {number} */ index) =>
+      chart.options.scales.y.ticks.callback.call(scale, index, index);
+
+    await step("no tick is wider than its share of the chart", async () => {
+      expect(chart.width).toBeLessThan(400);
+      const maxWidth = chart.width * 0.45;
+      const font = `12px ${getComputedStyle(document.documentElement).getPropertyValue("--font-sans")}`;
+      const ctx = scale.ctx;
+      ctx.font = font;
+      for (let index = 0; index < chart.data.labels.length; index += 1) {
+        expect(ctx.measureText(tickAt(index)).width).toBeLessThanOrEqual(maxWidth);
+      }
+      // The axis fits inside the canvas, so nothing is drawn off its left edge.
+      expect(scale.width).toBeLessThanOrEqual(chart.width * 0.5);
+    });
+
+    await step("the long name is cut from its end, never its start", async () => {
+      const longTick = tickAt(chart.data.labels.indexOf(LONG_PROFILE));
+      expect(longTick.endsWith("…")).toBe(true);
+      expect(longTick.length).toBeLessThan(28);
+      expect(LONG_PROFILE.startsWith(longTick.slice(0, -1))).toBe(true);
+      // Every row is still named by its own leading characters.
+      expect(tickAt(0)).toBe("Profile 00");
+    });
+  },
+};
+
+/**
+ * The data table under a chart on a phone: wider than the card, it scrolls
+ * inside its own box rather than widening the card or the page.
+ */
+export const DataTableOnPhone = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  args: Default.args,
+  render: Default.render,
+
+  async play({ canvasElement, step }) {
+    await waitForChart(canvasElement);
+    const host = /** @type {HTMLElement} */ (canvasElement.querySelector("cts-chart"));
+    const details = /** @type {HTMLDetailsElement} */ (host.querySelector(".cts-chart-data"));
+    details.open = true;
+    const scroller = /** @type {HTMLElement} */ (host.querySelector(".cts-data-table-scroll"));
+    const table = /** @type {HTMLTableElement} */ (scroller.querySelector("table"));
+
+    await step("the table is wider than the card and scrolls in its own box", async () => {
+      expect(host.clientWidth).toBeLessThan(400);
+      expect(table.scrollWidth).toBeGreaterThan(scroller.clientWidth);
+      expect(getComputedStyle(scroller).overflowX).toBe("auto");
+      expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth);
+    });
+
+    await step("neither the host nor the page grows to fit it", async () => {
+      expect(host.scrollWidth).toBeLessThanOrEqual(host.clientWidth);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth);
+    });
+
+    await step("headers stay on one line instead of stacking one word each", async () => {
+      const th = /** @type {HTMLElement} */ (table.querySelector("thead th:last-child"));
+      expect(getComputedStyle(th).whiteSpace).toBe("nowrap");
+      const lineHeight = parseFloat(getComputedStyle(th).lineHeight);
+      expect(th.getBoundingClientRect().height).toBeLessThan(lineHeight * 2);
     });
   },
 };

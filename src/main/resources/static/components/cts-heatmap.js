@@ -40,6 +40,43 @@ const STYLE_TEXT = css`
      page sideways. */
   .cts-heatmap-scroll {
     overflow-x: auto;
+    scrollbar-width: thin;
+    padding-bottom: var(--space-1, 4px);
+  }
+  /* The box is a tab stop (arrow keys scroll it), so it shows where focus is. */
+  .cts-heatmap-scroll:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-2, 4px);
+  }
+  /* The scroll box's positioned parent: an absolutely positioned fade inside
+     the scroll box itself would scroll away with the cells. The fade says
+     "there is more to the right" and goes once the reader has reached the
+     end (data-scroll-end, kept by the component), or when nothing overflows. */
+  .cts-heatmap-scroller {
+    position: relative;
+  }
+  .cts-heatmap-scroller::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 var(--space-1, 4px) auto;
+    width: 32px;
+    background: linear-gradient(to right, transparent, var(--bg-elev));
+    pointer-events: none;
+    transition: opacity var(--dur-1, 120ms) var(--ease-standard, ease);
+  }
+  .cts-heatmap-scroller[data-scroll-end]::after {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cts-heatmap-scroller::after {
+      transition: none;
+    }
+  }
+  .cts-heatmap-hint {
+    margin: var(--space-1, 4px) 0 0;
+    font-size: var(--fs-12, 12px);
+    color: var(--fg-soft);
   }
   .cts-heatmap-grid {
     display: grid;
@@ -59,6 +96,23 @@ const STYLE_TEXT = css`
   }
   .cts-heatmap-colhead {
     text-align: center;
+  }
+  /* Day labels stay put while the hours scroll under them, so a cell in
+     view is never separated from its row's name. The corner cell is sticky
+     too, so the hour headers pass under it rather than through the gap. */
+  .cts-heatmap-rowhead,
+  .cts-heatmap-corner {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    /* The label's box fills its whole row, and the shadow paints the 2px
+       gaps beside and below it, so no scrolled-under cell shows around it. */
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background: var(--bg-elev);
+    box-shadow: 2px 2px 0 var(--bg-elev);
   }
   .cts-heatmap-rowhead {
     padding-right: var(--space-2, 8px);
@@ -174,6 +228,8 @@ class CtsHeatmap extends LitElement {
     caption: { type: String },
     valueLabel: { type: String, attribute: "value-label" },
     cellTitle: { attribute: false },
+    _overflows: { state: true },
+    _atEnd: { state: true },
   };
 
   constructor() {
@@ -194,6 +250,15 @@ class CtsHeatmap extends LitElement {
     this.cellTitle = undefined;
     /** @type {string} Ties the <figure> to its own <h3>. */
     this._headingId = `cts-heatmap-heading-${++headingSeq}`;
+    /** @type {boolean} Whether the grid is wider than its scroll box. */
+    this._overflows = false;
+    /** @type {boolean} Whether the scroll box is scrolled to its right end. */
+    this._atEnd = true;
+    /** @type {ResizeObserver | null} */
+    this._resizeObserver = null;
+    /** @type {HTMLElement | null} The scroll box the observer is watching. */
+    this._observedBox = null;
+    this._handleScroll = this._handleScroll.bind(this);
   }
 
   createRenderRoot() {
@@ -203,6 +268,72 @@ class CtsHeatmap extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = null;
+    }
+  }
+
+  /**
+   * Watch the scroll box's size once it exists: the grid is only in the DOM
+   * once there is data, and a resize (the phone rotating, a sidebar opening)
+   * changes whether it overflows at all.
+   * @param {Map<string, unknown>} changed - The properties that changed.
+   */
+  updated(changed) {
+    super.updated(changed);
+    const box = this._scrollBox();
+    if (!box) {
+      if (this._resizeObserver) {
+        this._resizeObserver.disconnect();
+        this._resizeObserver = null;
+      }
+      this._observedBox = null;
+      return;
+    }
+    if (!this._resizeObserver && typeof ResizeObserver === "function") {
+      this._resizeObserver = new ResizeObserver(() => this._measureScroll());
+    }
+    // The observer reports once on observe(), which is the first measurement;
+    // it arrives outside the update cycle, so it never chains a second render
+    // onto this one. Observing the same box again would queue another
+    // notification per render, so each box is observed once.
+    if (this._resizeObserver) {
+      if (this._observedBox !== box) {
+        if (this._observedBox) this._resizeObserver.unobserve(this._observedBox);
+        this._resizeObserver.observe(box);
+        this._observedBox = box;
+      }
+    } else {
+      this._measureScroll();
+    }
+  }
+
+  /** @returns {HTMLElement | null} The grid's scroll box, once rendered. */
+  _scrollBox() {
+    return this.querySelector(".cts-heatmap-scroller > .cts-heatmap-scroll");
+  }
+
+  _handleScroll() {
+    this._measureScroll();
+  }
+
+  /**
+   * Whether the grid overflows its box and whether the reader has scrolled
+   * to its end — the two facts the fade and the hint are drawn from.
+   */
+  _measureScroll() {
+    const box = this._scrollBox();
+    if (!box) return;
+    const overflows = box.scrollWidth > box.clientWidth + 1;
+    // Within a pixel: fractional scroll positions never land exactly on the end.
+    const atEnd = !overflows || box.scrollLeft + box.clientWidth >= box.scrollWidth - 1;
+    if (overflows !== this._overflows) this._overflows = overflows;
+    if (atEnd !== this._atEnd) this._atEnd = atEnd;
   }
 
   /**
@@ -287,7 +418,9 @@ class CtsHeatmap extends LitElement {
   /**
    * The grid itself. It is one `role="img"` rather than 168 announced boxes:
    * a screen reader walking every cell is unusable, and the data table below
-   * is the same numbers in a form that is meant to be read linearly.
+   * is the same numbers in a form that is meant to be read linearly. Its
+   * scroll box is a tab stop, so a keyboard can reach the hours a narrow
+   * screen hides.
    * @param {Array<string>} rows - Row labels.
    * @param {Array<string>} cols - Column labels.
    * @param {number} max - The largest value, for the ramp.
@@ -299,23 +432,36 @@ class CtsHeatmap extends LitElement {
       `${this.heading}: ${rows.length} rows by ${cols.length} columns` +
       `${peak ? `, ${peak}` : ""}. Data table available below.`;
     return html`
-      <div class="cts-heatmap-scroll">
+      <div class="cts-heatmap-scroller" data-scroll-end=${this._atEnd ? "" : nothing}>
         <div
-          class="cts-heatmap-grid"
-          role="img"
-          aria-label=${label}
-          style="grid-template-columns: auto repeat(${cols.length}, minmax(14px, 1fr));"
+          class="cts-heatmap-scroll"
+          role="group"
+          aria-label="${this.heading} grid"
+          tabindex="0"
+          @scroll=${this._handleScroll}
         >
-          <span></span>
-          ${cols.map((col) => html`<span class="cts-heatmap-colhead">${col}</span>`)}
-          ${rows.map(
-            (row, rowIndex) => html`
-              <span class="cts-heatmap-rowhead">${row}</span>
-              ${cols.map((col, colIndex) => this._renderCell(rowIndex, colIndex, max))}
-            `,
-          )}
+          <div
+            class="cts-heatmap-grid"
+            role="img"
+            aria-label=${label}
+            style="grid-template-columns: auto repeat(${cols.length}, minmax(14px, 1fr));"
+          >
+            <span class="cts-heatmap-corner"></span>
+            ${cols.map((col) => html`<span class="cts-heatmap-colhead">${col}</span>`)}
+            ${rows.map(
+              (row, rowIndex) => html`
+                <span class="cts-heatmap-rowhead">${row}</span>
+                ${cols.map((col, colIndex) => this._renderCell(rowIndex, colIndex, max))}
+              `,
+            )}
+          </div>
         </div>
       </div>
+      ${this._overflows
+        ? html`<p class="cts-heatmap-hint" data-testid="cts-heatmap-hint">
+            Scroll sideways for later hours.
+          </p>`
+        : nothing}
     `;
   }
 
@@ -381,7 +527,7 @@ class CtsHeatmap extends LitElement {
     return html`
       <details class="cts-heatmap-data cts-data-disclosure">
         <summary>Show data table</summary>
-        <div class="cts-heatmap-scroll">
+        <div class="cts-data-table-scroll">
           <table class="cts-heatmap-table cts-data-table">
             <caption>${this.heading}</caption>
             <thead>

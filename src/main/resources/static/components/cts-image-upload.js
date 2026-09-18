@@ -181,6 +181,25 @@ const STYLE_TEXT = css`
     align-items: center;
     margin-top: var(--space-1);
   }
+  /* Below this width the three-column row leaves the description, hint and
+     buttons a sliver beside the 96px drop zone, so the status dot keeps its
+     column and everything else stacks in the second: the zone as a
+     full-width strip, the body under it, the two buttons sharing the row. */
+  @media (max-width: 520px) {
+    .oidf-image-upload__inline {
+      grid-template-columns: var(--space-6) 1fr;
+    }
+    .oidf-image-upload__inline-zone {
+      grid-column: 2;
+      width: 100%;
+    }
+    .oidf-image-upload__inline-body {
+      grid-column: 2;
+    }
+    .oidf-image-upload__inline-actions > * {
+      flex: 1 1 auto;
+    }
+  }
 
   /* ---------- Description field (shared) ---------- */
 
