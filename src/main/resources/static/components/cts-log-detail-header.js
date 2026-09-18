@@ -231,11 +231,17 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsStatusBar {
     position: relative;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    /* Phone-first: the name + verdict badges own row 1, the result-count
+       pills share row 2 with the actions, and the created timestamp sits
+       alone on row 3. The pills need a full-width track to lay out as a
+       row; the three-column template only applies from 640px (below). */
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "left    middle  primary"
-      "created created created";
+      "left    left"
+      "middle  primary"
+      "created created";
     column-gap: var(--space-3);
+    row-gap: var(--space-2);
     align-items: center;
     padding: 20px;
     margin-inline: -20px;
@@ -289,6 +295,9 @@ const STYLE_TEXT = css`
     gap: var(--space-2);
     flex-wrap: wrap;
     min-width: 0;
+    /* Keeps row 2 the height of the actions cluster when a bar variant has
+       no pills (needs-start, waiting), so the kebab still gets a row. */
+    align-self: center;
   }
   cts-log-detail-header .ctsStatusBarSupport {
     color: var(--fg-muted);
@@ -299,6 +308,7 @@ const STYLE_TEXT = css`
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    justify-self: end;
   }
   cts-log-detail-header .ctsStatusBarOverflow {
     display: contents;
@@ -333,6 +343,11 @@ const STYLE_TEXT = css`
     cts-log-detail-header .ctsStatusBar {
       position: sticky;
       top: 0;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "left    middle  primary"
+        "created created created";
+      row-gap: 0;
     }
     /* Reveal the faux drop-shadow only when the bar is sticky. A
        static bar at mobile widths gets no shadow — it sits flush with

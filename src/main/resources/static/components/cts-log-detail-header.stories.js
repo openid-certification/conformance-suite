@@ -1763,6 +1763,63 @@ export const StatusBarTruncatesLongTestNameOnMobile = {
   },
 };
 
+/**
+ * Status-bar phone layout. Below 640px the bar's grid re-flows into three
+ * rows — name + verdict badges, then the result-count pills sharing a row
+ * with the actions, then the created timestamp. With the desktop
+ * 'auto 1fr auto' template the 1fr middle track was a few dozen pixels
+ * wide on a phone, so the pills stacked into a column that the kebab
+ * painted over.
+ */
+export const StatusBarStacksOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const bar = /** @type {HTMLElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".ctsStatusBar");
+        if (!el) throw new Error("status bar not yet rendered");
+        return el;
+      })
+    );
+    const rect = (el) => el.getBoundingClientRect();
+    const left = /** @type {HTMLElement} */ (bar.querySelector(".ctsStatusBarLeft"));
+    const middle = /** @type {HTMLElement} */ (bar.querySelector(".ctsStatusBarMiddle"));
+    const primary = /** @type {HTMLElement} */ (bar.querySelector(".ctsStatusBarPrimary"));
+    const created = /** @type {HTMLElement} */ (bar.querySelector(".ctsStatusBarCreated"));
+
+    await step("the bar re-flows into three rows", async () => {
+      const areas = getComputedStyle(bar).gridTemplateAreas;
+      expect(areas).toContain('"left left"');
+      expect(areas).toContain('"middle primary"');
+      // Row 1 (name + badges) sits above row 2 (pills + actions), which sits
+      // above row 3 (created).
+      expect(rect(middle).top).toBeGreaterThanOrEqual(rect(left).bottom - 1);
+      expect(rect(created).top).toBeGreaterThanOrEqual(rect(middle).bottom - 1);
+    });
+
+    await step("result pills line up horizontally, not in a column", async () => {
+      const pills = Array.from(middle.querySelectorAll("cts-badge"));
+      expect(pills.length).toBeGreaterThan(1);
+      const tops = new Set(pills.map((p) => Math.round(rect(p).top)));
+      expect(tops.size).toBe(1);
+    });
+
+    await step("the actions cluster never overlaps the pills", async () => {
+      const m = rect(middle);
+      const p = rect(primary);
+      expect(p.left).toBeGreaterThanOrEqual(m.right - 1);
+      // Everything stays inside the bar's own box: no horizontal spill.
+      expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth + 1);
+    });
+  },
+};
+
 export const DrawerCollapsedByDefault = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
