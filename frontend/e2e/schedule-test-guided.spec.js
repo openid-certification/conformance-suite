@@ -242,6 +242,34 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(configureBox.x).toBeGreaterThan(backBox.x + backBox.width);
   });
 
+  test("the sticky action bar spans the full viewport width on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+
+    const bar = page.locator("#guidedStageActions .oidf-action-bar");
+    await bar.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+    const barBox = await bar.boundingBox();
+    const backBox = await page.locator("#guidedStageActions").getByText("Back").boundingBox();
+    const configureBox = await page
+      .locator("#guidedStageActions")
+      .getByText("Configure this plan")
+      .boundingBox();
+    if (!barBox || !backBox || !configureBox) {
+      throw new Error("action bar is missing a bounding box");
+    }
+    // Edge to edge: a sticky box is only as wide as its containing block, so
+    // this holds only while the mode islands stay full-width (the content
+    // column lives on .schedule-test-column, inside them).
+    expect(barBox.x).toBe(0);
+    expect(barBox.width).toBe(390);
+    // The buttons still sit on the page's content column, one row.
+    expect(backBox.x).toBeGreaterThanOrEqual(16);
+    expect(backBox.y).toBe(configureBox.y);
+    expect(configureBox.x + configureBox.width).toBeLessThanOrEqual(390 - 16);
+  });
+
   test("Brazil OP FAPI path goes straight to review — one journey, one plan (#1967)", async ({
     page,
   }) => {

@@ -169,17 +169,24 @@ cts-link-button > a:focus,
   padding: var(--space-6) var(--space-5);
 }
 
-/* ---- schedule-test page wrapper -------------------------------- */
+/* ---- schedule-test page wrapper --------------------------------
+   Unlike .listing-page / .narrow-page, <main> itself is full-width and the
+   content column lives on `.schedule-test-column` wrappers INSIDE each mode
+   island. The islands are the containing blocks of the sticky
+   cts-action-bar, and a sticky box can never be wider than its containing
+   block, so the islands must span the viewport for the bar to. The bar's
+   `align-to="schedule-test-page"` preset lands its buttons on this same
+   column (--maxw-page + --space-5 gutters).
+   No padding-bottom here: the sticky bar needs that reservation on its
+   own containing block — see the schedule-test.html inline stylesheet,
+   where each island carries it directly. */
 .schedule-test-page {
+  padding-top: var(--space-6);
+}
+.schedule-test-column {
   max-width: var(--maxw-page);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
-  /* No padding-bottom here: cts-action-bar's sticky bar needs that
-     reservation on its own containing block — the #guidedIsland /
-     #scheduleTestPage island div one level in, not this outer <main> — or
-     sticky has no room to hold at the viewport bottom. See the
-     schedule-test.html inline stylesheet, where each island carries it
-     directly. */
+  padding-inline: var(--space-5);
 }
 .schedule-test-page > h2 {
   margin: 0 0 var(--space-6);

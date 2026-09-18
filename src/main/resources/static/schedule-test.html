@@ -637,26 +637,30 @@
              are independent state surfaces; switching only flips visibility
              (never resets either island, R8). Mode resolution + persistence
              live in /components/guided-wizard.js (booted below). -->
-        <div class="schedule-test-mode-head">
-            <p class="schedule-test-mode-head__title">Schedule a test plan</p>
-            <div class="mode-toggle" role="group" aria-label="Selection mode">
-                <button type="button" class="mode-toggle__btn" id="modeGuidedBtn" aria-pressed="false">
-                    <cts-icon name="bulb" size="16" aria-hidden="true"></cts-icon> Guided
-                </button>
-                <button type="button" class="mode-toggle__btn" id="modeAdvancedBtn" aria-pressed="false">
-                    <cts-icon name="settings" size="16" aria-hidden="true"></cts-icon> Advanced
-                </button>
+        <div class="schedule-test-column">
+            <div class="schedule-test-mode-head">
+                <p class="schedule-test-mode-head__title">Schedule a test plan</p>
+                <div class="mode-toggle" role="group" aria-label="Selection mode">
+                    <button type="button" class="mode-toggle__btn" id="modeGuidedBtn" aria-pressed="false">
+                        <cts-icon name="bulb" size="16" aria-hidden="true"></cts-icon> Guided
+                    </button>
+                    <button type="button" class="mode-toggle__btn" id="modeAdvancedBtn" aria-pressed="false">
+                        <cts-icon name="settings" size="16" aria-hidden="true"></cts-icon> Advanced
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- ══ GUIDED ISLAND — the guided certification journey ════════ -->
         <div id="guidedIsland" tabindex="-1" hidden>
+          <div class="schedule-test-column">
             <ol class="cert-progress" id="guidedProgress" aria-label="Guided setup progress"></ol>
             <nav class="cert-trail" id="guidedTrail" aria-label="Your answers"></nav>
             <section class="guided-stage" id="guidedStage" tabindex="-1">
                 <h1 tabindex="-1">Guided setup</h1>
             </section>
             <div aria-live="polite" class="sr-only" id="guidedLiveRegion"></div>
+          </div>
             <!-- Per-step sticky actions (Back / Continue / Create). Lives
                  inside the island so hiding the island hides the bar; the
                  journey controller fills + toggles it per phase. It renders
@@ -668,6 +672,7 @@
 
         <!-- ══ ADVANCED ISLAND — the classic schedule-test surface ═════ -->
         <div id="scheduleTestPage" tabindex="-1">
+          <div class="schedule-test-column">
 
             <div class="schedule-test-header">
                 <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
@@ -738,6 +743,7 @@
                 <div id="jwksGeneratorRow" class="oidf-jwks-generator-row" hidden></div>
                 <cts-config-form id="ctsConfigForm"></cts-config-form>
             </div>
+          </div>
 
             <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions">
                 <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled></cts-button>
