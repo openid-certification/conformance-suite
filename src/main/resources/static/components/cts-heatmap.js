@@ -268,6 +268,9 @@ class CtsHeatmap extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    // A reconnect (the element moved in the DOM) does not re-run updated()
+    // on its own, so ask for one to re-attach the resize observer.
+    if (this.hasUpdated) this.requestUpdate();
   }
 
   disconnectedCallback() {
@@ -276,6 +279,7 @@ class CtsHeatmap extends LitElement {
       this._resizeObserver.disconnect();
       this._resizeObserver = null;
     }
+    this._observedBox = null;
   }
 
   /**
