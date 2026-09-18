@@ -3,12 +3,17 @@ package net.openid.conformance.fapiciba;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
+import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.ClientManagementEndpointAndAccessTokenRequired;
 import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration;
+import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
+import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
@@ -148,6 +153,35 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			public void evaluate() {
 				callAndStopOnFailure(EnsureNotificationEndpointRequestHasClientCertificate.class,
 					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.3.4");
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence addResourceEndpointProfileHeaders(boolean isSecondClient) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				if (!isSecondClient) {
+					callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class,
+						"FAPI1-BASE-6.2.2-3");
+				}
+				callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+				callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class,
+					"BrazilOB22-5.2-9");
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence validateResourceEndpointResponseHeaders(boolean isSecondClient) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class,
+					Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+				callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class,
+					Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 			}
 		};
 	}

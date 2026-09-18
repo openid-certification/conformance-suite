@@ -172,6 +172,7 @@ public class LogEntryHelper {
 		String brazilFapi22 = specLinks.get("BrazilOB22-");
 		specSectionLinks.put("BrazilOB22-5.1.1", brazilFapi22 + "5.1.1.-ID-Token");
 		specSectionLinks.put("BrazilOB22-5.1", brazilFapi22 + "5.1.-Authorization-Server");
+		specSectionLinks.put("BrazilOB22-5.2", brazilFapi22 + "5.2.-Cliente-confidencial");
 		specSectionLinks.put("BrazilOB22-6.2",
 			brazilFapi22 + "6.2.-Signing-algorithm-considerations");
 		specSectionLinks.put("BrazilOB22-6.3",

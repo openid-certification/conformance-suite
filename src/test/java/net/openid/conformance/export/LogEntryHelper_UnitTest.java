@@ -66,6 +66,8 @@ public class LogEntryHelper_UnitTest {
 			.isEqualTo(spec + "5.1.-Authorization-Server");
 		assertThat(helper.getRequirementLink("BrazilOB22-5.1.1-1"))
 			.isEqualTo(spec + "5.1.1.-ID-Token");
+		assertThat(helper.getRequirementLink("BrazilOB22-5.2-9"))
+			.isEqualTo(spec + "5.2.-Cliente-confidencial");
 		assertThat(helper.getRequirementLink("BrazilOB22-6.2"))
 			.isEqualTo(spec + "6.2.-Signing-algorithm-considerations");
 		assertThat(helper.getRequirementLink("BrazilOB22-6.3"))
