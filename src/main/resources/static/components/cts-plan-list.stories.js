@@ -1255,3 +1255,100 @@ export const StaleResponsesAreIgnored = {
 };
 
 export {};
+
+// Narrowest phone (mobile1, 320×568). Two things once widened the page here:
+// the Family/Plan filter selects sized to their longest option, and the card
+// grid column grew to the widest unbreakable variant token. The fixture
+// carries a plan name longer than the viewport and a three-token variant so
+// the story fails if either regresses.
+const LONG_PLAN_NAME = "fapi2-security-profile-final-test-plan-with-a-name-longer-than-a-phone";
+const NARROW_PLAN_LIST = [
+  {
+    ...MOCK_PLAN_LIST[0],
+    _id: "plan-narrow",
+    planName: LONG_PLAN_NAME,
+    variant: {
+      client_auth_type: "client_secret_basic",
+      client_registration: "dynamic_client",
+      fapi_profile: "openbanking_brazil",
+    },
+  },
+  ...MOCK_PLAN_LIST.slice(1),
+];
+
+export const MobileNarrowestFits = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+    msw: {
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(NARROW_PLAN_LIST)),
+        http.get("/api/plan/filter-options", () =>
+          HttpResponse.json({
+            families: ["OpenID Connect Core", "FAPI 2.0 Security Profile"],
+            plans: [
+              { name: "oidcc-basic-certification-test-plan", family: "OpenID Connect Core" },
+              { name: LONG_PLAN_NAME, family: "FAPI 2.0 Security Profile", retired: false },
+            ],
+          }),
+        ),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`<cts-plan-list is-admin></cts-plan-list>`,
+  async play({ canvasElement, step }) {
+    await waitForPlansToLoad(canvasElement);
+    const rect = (el) => el.getBoundingClientRect();
+    const root = document.documentElement;
+
+    await step("the filter selects never widen the page", async () => {
+      const planSelect = /** @type {HTMLSelectElement} */ (
+        await waitFor(() => {
+          const el = canvasElement.querySelector('[data-testid="plan-name-filter"]');
+          expect(el).not.toBeNull();
+          return el;
+        })
+      );
+      expect(planSelect.options.length).toBeGreaterThan(1);
+      const toolbar = /** @type {HTMLElement} */ (planSelect.closest(".cts-plan-list-toolbar"));
+      for (const select of Array.from(toolbar.querySelectorAll("select"))) {
+        expect(rect(select).right).toBeLessThanOrEqual(rect(toolbar).right + 0.5);
+        expect(rect(select).left).toBeGreaterThanOrEqual(rect(toolbar).left - 0.5);
+      }
+      expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+    });
+
+    await step("every card keeps its children inside its border", async () => {
+      const cards = Array.from(canvasElement.querySelectorAll('[data-testid="plan-list-item"]'));
+      expect(cards.length).toBe(NARROW_PLAN_LIST.length);
+      for (const card of cards) {
+        const box = rect(card);
+        expect(box.right).toBeLessThanOrEqual(root.clientWidth);
+        const children = card.querySelectorAll(
+          ".cts-plan-card-header, .cts-plan-card-meta-item, .cts-plan-card-actions, .plan-owner, cts-plan-status",
+        );
+        expect(children.length).toBeGreaterThan(0);
+        for (const child of Array.from(children)) {
+          expect(rect(child).right).toBeLessThanOrEqual(box.right + 0.5);
+          expect(rect(child).left).toBeGreaterThanOrEqual(box.left - 0.5);
+        }
+      }
+    });
+
+    await step("the long variant wraps under its label instead of clipping", async () => {
+      const card = /** @type {HTMLElement} */ (
+        canvasElement.querySelector('[data-plan-id="plan-narrow"]')
+      );
+      const value = /** @type {HTMLElement} */ (
+        card.querySelector(".cts-plan-card-meta-value.is-mono")
+      );
+      expect(value.textContent).toContain("client_registration=dynamic_client");
+      expect(rect(value).right).toBeLessThanOrEqual(rect(card).right + 0.5);
+      // Three tokens cannot fit on one 12px-mono line in a 280px card.
+      expect(rect(value).height).toBeGreaterThan(20);
+    });
+  },
+};
