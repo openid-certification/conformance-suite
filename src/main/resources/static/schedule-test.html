@@ -65,7 +65,10 @@
             window.__rejectConfigFormAdapterReady = reject;
         });
     </script>
-    <script type="module">
+    <!-- onerror rejects the readiness promise when the module fails to fetch
+         or parse, so the init chain fails (and reports) instead of waiting on
+         a promise that would never settle. -->
+    <script type="module" onerror="window.__rejectConfigFormAdapterReady(new Error('config-form-adapter.js failed to load'))">
         import {
             buildConfigFormSchema,
             computeHiddenFields,
@@ -234,6 +237,41 @@
         .sr-only { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
 
         /* ── Guided journey (ported from prototype 4) ───────────────── */
+
+        /* Loading skeleton for the guided stage: mirrors the ecosystem
+           step's eyebrow / h1 / lede / choice-card grid so the real step
+           replaces it without a jump. Removed wholesale when
+           startGuidedJourney() renders the first step. */
+        #guidedIsland .stage-skeleton > span,
+        #guidedIsland .stage-skeleton__card {
+            display: block;
+            background: var(--bg-sunken);
+            border-radius: var(--radius-2);
+        }
+        #guidedIsland .stage-skeleton__eyebrow { width: 6rem; height: var(--fs-13); margin-bottom: var(--space-3); }
+        #guidedIsland .stage-skeleton__title { width: min(100%, 22rem); height: var(--fs-32); margin-bottom: var(--space-3); }
+        #guidedIsland .stage-skeleton__lede { width: min(100%, 34rem); height: var(--fs-16); margin-bottom: var(--space-2); }
+        #guidedIsland .stage-skeleton__lede--short { width: min(70%, 24rem); margin-bottom: var(--space-6); }
+        #guidedIsland .stage-skeleton__grid {
+            display: grid;
+            gap: var(--space-3);
+            grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+        }
+        #guidedIsland .stage-skeleton__card {
+            height: 5.5rem;
+            border: 1.5px solid var(--border);
+            background: var(--bg-elev);
+            border-radius: var(--radius-3);
+        }
+        @media (prefers-reduced-motion: no-preference) {
+            #guidedIsland .stage-skeleton > span,
+            #guidedIsland .stage-skeleton__card {
+                animation: stage-skeleton-pulse 1.4s ease-in-out infinite;
+            }
+            @keyframes stage-skeleton-pulse {
+                50% { opacity: 0.55; }
+            }
+        }
 
         /* Progress rail */
         #guidedIsland .cert-progress {
@@ -668,8 +706,27 @@
           <div class="schedule-test-column">
             <ol class="cert-progress" id="guidedProgress" aria-label="Guided setup progress"></ol>
             <nav class="cert-trail" id="guidedTrail" aria-label="Your answers"></nav>
-            <section class="guided-stage" id="guidedStage" tabindex="-1">
-                <h1 tabindex="-1">Guided setup</h1>
+            <!-- The stage is empty until startGuidedJourney() renders the first
+                 step, which waits on /api/plan/available. Until then it shows a
+                 skeleton in the shape of that step (eyebrow, heading, lede,
+                 choice cards) so the island neither flashes a placeholder
+                 heading nor jumps when the real content lands. aria-busy hides
+                 the placeholder boxes from assistive tech; the sr-only text is
+                 the only thing announced. -->
+            <section class="guided-stage" id="guidedStage" tabindex="-1" aria-busy="true">
+                <div class="stage-skeleton" aria-hidden="true">
+                    <span class="stage-skeleton__eyebrow"></span>
+                    <span class="stage-skeleton__title"></span>
+                    <span class="stage-skeleton__lede"></span>
+                    <span class="stage-skeleton__lede stage-skeleton__lede--short"></span>
+                    <div class="stage-skeleton__grid">
+                        <span class="stage-skeleton__card"></span>
+                        <span class="stage-skeleton__card"></span>
+                        <span class="stage-skeleton__card"></span>
+                        <span class="stage-skeleton__card"></span>
+                    </div>
+                </div>
+                <p class="sr-only">Loading guided setup…</p>
             </section>
             <div aria-live="polite" class="sr-only" id="guidedLiveRegion"></div>
           </div>
@@ -1011,6 +1068,18 @@
                 var planSearch = document.getElementById('planSearch');
                 if (planSearch) {
                     planSearch.loading = false;
+                }
+                // The guided stage keeps its loading skeleton until the
+                // journey's first render clears aria-busy. If the chain
+                // failed before startJourney ran, swap the skeleton for an
+                // error so guided mode does not claim progress forever.
+                var guidedStage = document.getElementById('guidedStage');
+                if (guidedStage && guidedStage.getAttribute('aria-busy') === 'true') {
+                    guidedStage.removeAttribute('aria-busy');
+                    var loadFailed = document.createElement('cts-alert');
+                    loadFailed.setAttribute('variant', 'danger');
+                    loadFailed.textContent = 'Unable to load the guided setup — please reload the page.';
+                    guidedStage.replaceChildren(loadFailed);
                 }
             });
         });
