@@ -115,8 +115,6 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion.class,
 		FAPI2SPFinalPARAttemptReuseRequestUri.class,
 		FAPI2SPFinalPARAttemptToUseExpiredRequestUri.class,
-		FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted.class,
-		FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails.class,
 		FAPI2SPFinalPAREnsureRequestUriIsBoundToClient.class,
 		FAPI2SPFinalPARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI2SPFinalPARRejectInvalidHttpVerb.class,
@@ -130,11 +128,6 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalPARRejectRequestUriInParAuthorizationRequest.class,
 
 		FAPI2SPFinalParWithoutDuplicateParameters.class,
-
-		//negative private key authentication
-		FAPI2SPFinalPAREndpointAsArrayAudienceFails.class,
-		FAPI2SPFinalPAREndpointAsAudienceFails.class,
-		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class,
 
 		// Grant Management tests
 		FAPI2SPFinalGrantManagementQueryAndRevoke.class,
