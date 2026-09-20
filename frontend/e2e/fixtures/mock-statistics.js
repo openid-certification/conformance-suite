@@ -557,6 +557,72 @@ function narrowModules(family, plan) {
   );
 }
 
+/**
+ * `data.topUsers`, unfiltered, most runs first. `families` is not part of the
+ * payload: it is what {@link narrowTopUsers} narrows on, standing in for the
+ * registry membership the server narrows the underlying runs by. The first
+ * row is a CI account - long opaque subject, its own issuer - because that is
+ * who tops this table in production.
+ * @type {Array<any>}
+ */
+const TOP_USER_ROWS = [
+  {
+    iss: "https://gitlab.com",
+    sub: "4821907",
+    runs: 12840,
+    failed: 310,
+    modules: 412,
+    families: ["FAPI2 Security Profile", "FAPI1 Advanced", "OpenID Connect Core", "FAPI-CIBA"],
+  },
+  {
+    iss: "https://accounts.google.com",
+    sub: "108204713355021946632",
+    runs: 3150,
+    failed: 890,
+    modules: 96,
+    families: ["FAPI2 Security Profile", "OID4VP"],
+  },
+  {
+    iss: "https://accounts.google.com",
+    sub: "115930027481163950274",
+    runs: 1275,
+    failed: 140,
+    modules: 58,
+    families: ["OpenID Connect Core"],
+  },
+  {
+    iss: "https://gitlab.com",
+    sub: "1730055",
+    runs: 640,
+    failed: 52,
+    modules: 31,
+    families: ["OpenID Federation", "OID4VP"],
+  },
+];
+
+/**
+ * @param {any} row - One of {@link TOP_USER_ROWS}.
+ * @returns {any} The row as the payload carries it.
+ */
+function topUserRow(row) {
+  return { iss: row.iss, sub: row.sub, runs: row.runs, failed: row.failed, modules: row.modules };
+}
+
+/**
+ * `data.topUsers` under one query: narrowed exactly as {@link narrowModules}
+ * narrows, because the server counts both over the same runs. A plan narrows
+ * to its family here - the fixture does not say which plans a user ran.
+ * @param {string} family - The family filter, or `""`.
+ * @param {string} plan - The plan filter, or `""`.
+ * @returns {Array<any>} The top users to answer with.
+ */
+function narrowTopUsers(family, plan) {
+  const planRow = plan ? MODULE_ROWS.find((row) => row.planName === plan) : null;
+  if (plan && !planRow) return [];
+  const wanted = family || (planRow ? planRow.family : "");
+  return TOP_USER_ROWS.filter((row) => !wanted || row.families.includes(wanted)).map(topUserRow);
+}
+
 /** @type {any} */
 const TILES = {
   totalTests: 91800,
@@ -629,6 +695,7 @@ export const MOCK_STATS_DATA = {
   dimensions: DIMENSIONS,
   heatmap: HEATMAP,
   modules: rankModules(MOCK_STATS_MODULES),
+  topUsers: TOP_USER_ROWS.map(topUserRow),
   externalHosts: EXTERNAL_HOSTS,
   unresolvedPlans: UNRESOLVED_PLANS,
 };
@@ -772,6 +839,7 @@ export function statisticsOverviewFor(requestUrl) {
       dimensions: narrowDimensions(family),
       heatmap: HEATMAP,
       modules: narrowModules(family, plan),
+      topUsers: narrowTopUsers(family, plan),
       externalHosts: EXTERNAL_HOSTS,
       unresolvedPlans: UNRESOLVED_PLANS,
     },
@@ -848,6 +916,7 @@ export const MOCK_STATS_EMPTY = {
     dimensions: { plans: [], variants: {}, certProfiles: [], entities: [] },
     heatmap: Array.from({ length: 7 }, () => new Array(24).fill(0)),
     modules: { rows: [], byRuns: [], byFailingUsers: [] },
+    topUsers: [],
     externalHosts: [],
     unresolvedPlans: [],
   },

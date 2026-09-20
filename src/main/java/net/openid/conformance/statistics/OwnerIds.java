@@ -1,16 +1,19 @@
 package net.openid.conformance.statistics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Replaces the {@code iss} and {@code sub} of a test plan's owner with a small integer
  * while the cube is being built.
  *
- * <p>The only thing the statistics ever do with a user is count distinct ones, so the
- * identifiers themselves - which name real people - are not worth keeping in a snapshot
- * that lives in memory for twelve hours and is walked on every request. Ids are unique
- * within one cube and mean nothing outside it.
+ * <p>Almost everything the statistics do with a user is count distinct ones, which the id
+ * is enough for, so the cells and tuples that are walked on every request carry the id and
+ * not the identifiers - which name real people. The one thing that has to name a user, the
+ * top users table, gets the identifiers back from {@link #owners()}. Ids are unique within
+ * one cube and mean nothing outside it.
  *
  * <p>Not thread safe: one instance belongs to one cube computation.
  */
@@ -21,7 +24,7 @@ final class OwnerIds {
 
 	private final Map<String, Integer> ids = new HashMap<>();
 
-	private int next;
+	private final List<Owner> owners = new ArrayList<>();
 
 	/**
 	 * @param iss the owner's issuer
@@ -40,7 +43,15 @@ final class OwnerIds {
 	 * @return the id of that owner, the same one every time it is asked for
 	 */
 	int idFor(String iss, String sub) {
-		return ids.computeIfAbsent(compositeKey(iss, sub), key -> next++);
+		return ids.computeIfAbsent(compositeKey(iss, sub), key -> {
+			owners.add(new Owner(iss, sub));
+			return owners.size() - 1;
+		});
+	}
+
+	/** @return every owner an id was handed out for; an id is its owner's index in this list */
+	List<Owner> owners() {
+		return List.copyOf(owners);
 	}
 
 	/**

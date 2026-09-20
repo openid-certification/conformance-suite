@@ -91,6 +91,8 @@ public class StatisticsCube {
 
 	private final List<ModuleUserCell> modules;
 
+	private final List<Owner> moduleOwners;
+
 	private final List<HostRow> externalHosts;
 
 	private final List<StorageRow> storage;
@@ -118,7 +120,7 @@ public class StatisticsCube {
 	 * @param planCells     plans created per period, plan, variant and certification profile
 	 * @param userTuples    the periods each user was active in, per plan, variant and profile
 	 * @param heatCells     runs per day and hour
-	 * @param moduleCells   runs of each test module per month and user
+	 * @param moduleRuns    runs of each test module per month and user, and who the users are
 	 * @param externalHosts the external servers the suite has been pointed at over the
 	 *                      trailing {@value #HOST_MONTHS} months
 	 * @param storage       per collection storage counters
@@ -128,7 +130,7 @@ public class StatisticsCube {
 	 *                      and module windows are measured back from
 	 */
 	public StatisticsCube(List<RunCell> runCells, List<PlanCell> planCells, List<UserTuple> userTuples,
-			List<HeatCell> heatCells, List<ModuleUserCell> moduleCells, List<HostRow> externalHosts,
+			List<HeatCell> heatCells, ModuleRuns moduleRuns, List<HostRow> externalHosts,
 			List<StorageRow> storage, TileRow tiles, SpecFamilyResolver resolver, LocalDate nowUtc) {
 		String oldestWeek = oldestWeek(nowUtc);
 		this.monthlyRuns = rollUpRuns(runCells, Granularity.MONTH, oldestWeek);
@@ -137,7 +139,9 @@ public class StatisticsCube {
 		this.weeklyPlans = rollUpPlans(planCells, Granularity.WEEK, oldestWeek);
 		this.users = normalizeUsers(userTuples, oldestWeek);
 		this.heat = HeatmapBinner.bin(heatCells, oldestWeek);
-		this.modules = inTheModuleWindow(moduleCells, oldestModuleMonth(nowUtc), Granularity.MONTH.periodOf(nowUtc));
+		this.modules = inTheModuleWindow(moduleRuns.cells(), oldestModuleMonth(nowUtc),
+			Granularity.MONTH.periodOf(nowUtc));
+		this.moduleOwners = moduleRuns.owners();
 		this.externalHosts = List.copyOf(externalHosts);
 		this.storage = List.copyOf(storage);
 		this.tiles = tiles;
@@ -181,6 +185,14 @@ public class StatisticsCube {
 	 */
 	public List<ModuleUserCell> modules() {
 		return modules;
+	}
+
+	/**
+	 * @param ownerId the {@link ModuleUserCell#ownerId()} of one of {@link #modules()}
+	 * @return the user it stands for
+	 */
+	public Owner moduleOwner(int ownerId) {
+		return moduleOwners.get(ownerId);
 	}
 
 	/**

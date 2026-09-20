@@ -3,7 +3,7 @@
   "info": {
     "title": "OpenID Conformance Suite REST APIs",
     "description": "The REST APIs for driving the OpenID Conformance Suite. <h3>Authentication</h3> To call the APIs supply a bearer token, which can be either: <ul>   <li>an API token obtained from the <a href='/tokens.html'>token management page</a> (full access, scoped to the token's owner), or</li>   <li>a share-link JWT issued by POST /api/info/{testId}/share or POST /api/plan/{id}/share (read-only access scoped to the shared plan and its tests).</li> </ul> <h3>Typical workflow</h3> Most users want to run a test plan and collect its results: <ol>   <li>Find the plan to run, its variants and its configuration fields: GET /api/plan/available. (Tip: after creating the plan once in the <a href='/schedule-test.html'>web UI</a>, GET /api/lastconfig returns the plan name, variant selection and configuration JSON needed for the next step.)</li>   <li>Create a plan instance: POST /api/plan?planName=...&amp;variant=... with the configuration JSON. The response contains the plan id and the list of modules to run.</li>   <li>For each module, create a test instance with POST /api/runner?test={testModule}&amp;plan={planId}, then wait for it to finish with GET /api/runner/{id}/wait-state (or by polling GET /api/info/{id}). A test in the WAITING state needs interaction: GET /api/runner/{id} lists any front-channel URLs to visit.</li>   <li>Read the outcome from GET /api/info/{id} (status and result) and the detailed log from GET /api/log/{id}.</li>   <li>Download the plan's results with GET /api/plan/exporthtml/{id}, or prepare a certification package with POST /api/plan/{id}/certificationpackage.</li> </ol> The <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>run-test-plan.py script</a> implements this whole flow (it is what our own CI uses) and adds functionality like suppressing known failures; the tutorial linked below shows how to use it. <p>The <a href='/v3/api-docs'>raw OpenAPI document</a> behind this page can be fed to an OpenAPI client generator.</p>",
-    "version": "5.2.4"
+    "version": "5.3.0"
   },
   "externalDocs": {
     "description": "Step-by-step tutorial: automated conformance testing and certification package creation",
@@ -225,7 +225,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Canceled test successfully; returns the pre-cancellation state (the stop happens in the background)",
+            "description": "Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background)",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/TestStatusResponse" }
@@ -985,7 +985,7 @@
       "get": {
         "tags": ["statistics-api"],
         "summary": "Get suite-wide usage statistics across all users (admin only)",
-        "description": "Served from a snapshot that is recomputed in the background at most every 12 hours, because the underlying aggregations group over the whole test database, and dropped after 12 hours without a request, so that it only takes memory while somebody is looking. While a snapshot is being computed and none is held the response is 202 and the client should poll. The filters and the range are applied to that snapshot when the request is answered, so they are free to change and never trigger a recomputation.\n\nIn addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a cell has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.\n\n`data.modules` covers the trailing 12 months only, is clipped to the range by month whatever the granularity, and honors `family` and `plan` as registry membership - a module belongs to every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` counts only runs by an identified user, since the section counts people and a run written before authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.\n\n`data.heatmap` and `data.externalHosts` cover the trailing 12 months, and the summary tiles are windowed too: `inProgress` and `stuck` count runs started since the server came up (a run left RUNNING or WAITING by a restart is not in progress), `totalTests` is the run collection's own document count (an estimate to within a few documents) and `totalUsers` counts users who created a test plan, so somebody who has only ever run standalone tests is not in it. Everything else is all time.",
+        "description": "Served from a snapshot that is recomputed in the background at most every 12 hours, because the underlying aggregations group over the whole test database, and dropped after 12 hours without a request, so that it only takes memory while somebody is looking. While a snapshot is being computed and none is held the response is 202 and the client should poll. The filters and the range are applied to that snapshot when the request is answered, so they are free to change and never trigger a recomputation.\n\nIn addition to the parameters below, any number of plan level variant filters may be sent as `variant.<parameter>=<value>`, e.g. `variant.fapi_profile=openbanking_brazil&variant.client_auth_type=mtls`; a cell has to match all of them. They cannot be declared individually here because the parameter names are the variant parameters of every test plan the suite publishes.\n\n`data.modules` covers the trailing 12 months only, is clipped to the range by month whatever the granularity, and honors `family` and `plan` as registry membership - a module belongs to every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` counts only runs by an identified user, since the section counts people and a run written before authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.\n\n`data.topUsers` lists the 20 users who ran the most test modules, counted over the same runs as `data.modules` and so windowed and filtered the same way. It is the one part of the payload that identifies users, by `iss` and `sub`.\n\n`data.heatmap` and `data.externalHosts` cover the trailing 12 months, and the summary tiles are windowed too: `inProgress` and `stuck` count runs started since the server came up (a run left RUNNING or WAITING by a restart is not in progress), `totalTests` is the run collection's own document count (an estimate to within a few documents) and `totalUsers` counts users who created a test plan, so somebody who has only ever run standalone tests is not in it. Everything else is all time.",
         "operationId": "getStatisticsOverview",
         "parameters": [
           {
@@ -2177,6 +2177,10 @@
             "items": { "type": "array", "items": { "type": "integer", "format": "int64" } }
           },
           "modules": { "$ref": "#/components/schemas/StatisticsModules" },
+          "topUsers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/StatisticsTopUser" }
+          },
           "externalHosts": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/StatisticsExternalHost" }
@@ -2230,6 +2234,16 @@
           "stuck": { "type": "integer", "format": "int64" },
           "certifiedPlans": { "type": "integer", "format": "int64" },
           "publishedPlans": { "type": "integer", "format": "int64" }
+        }
+      },
+      "StatisticsTopUser": {
+        "type": "object",
+        "properties": {
+          "iss": { "type": "string" },
+          "sub": { "type": "string" },
+          "runs": { "type": "integer", "format": "int64" },
+          "failed": { "type": "integer", "format": "int64" },
+          "modules": { "type": "integer", "format": "int64" }
         }
       },
       "StatisticsUnresolvedPlan": {

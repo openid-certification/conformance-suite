@@ -1447,6 +1447,67 @@ test.describe("statistics.html — admin usage dashboard", () => {
     expect(await chartLabels(page, "stats-modules-runs")).toEqual(beforeVariant);
   });
 
+  test("the most active users are listed, each linked to their plans under the same filters", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const searches = await setupStatisticsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/statistics.html");
+    await expectChartsPainted(page);
+    const rows = disclosureRows(page, "stats-top-users");
+    await expect(rows).toHaveCount(4);
+    await expect(rows.first()).toBeHidden();
+    await expect(page.locator('[data-testid="stats-top-users"] > summary')).toHaveText(
+      "Most active users (4)",
+    );
+    await openDisclosure(page, "stats-top-users");
+    await expect(page.locator('[data-testid="stats-top-users"] thead th')).toHaveText([
+      "User",
+      "Issuer",
+      "Runs",
+      "Failed runs",
+      "Modules",
+    ]);
+    await expect(rows.first().locator("th, td")).toHaveText([
+      "4821907",
+      "gitlab.com",
+      "12,840",
+      "310",
+      "412",
+    ]);
+    // the column shows the host; the whole issuer is there for whoever needs it
+    await expect(rows.first().locator("td").first()).toHaveAttribute("title", "https://gitlab.com");
+
+    /**
+     * @param {import('@playwright/test').Locator} row - A row of the table.
+     * @returns {Promise<URLSearchParams>} The query its link carries.
+     */
+    const linkQuery = async (row) => {
+      const href = (await row.locator("a").getAttribute("href")) || "";
+      expect(href.startsWith("plans.html?")).toBe(true);
+      return new URLSearchParams(href.slice(href.indexOf("?")));
+    };
+    // Both halves of the identity - the listing refuses a lone one - and the
+    // selected range, since the default range is not "all time".
+    let query = await linkQuery(rows.first());
+    expect(query.get("owner")).toBe("4821907");
+    expect(query.get("owner_iss")).toBe("https://gitlab.com");
+    expect(query.get("family")).toBeNull();
+    expect(query.get("from")).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(query.get("to")).toMatch(/^\d{4}-\d{2}-01$/);
+
+    // The family narrows the users exactly as it narrows the modules, and the
+    // link follows it so the listing shows the plans behind the count.
+    await page.locator('[data-testid="stats-family"]').selectOption("OID4VP");
+    await expect.poll(() => searches.at(-1), { timeout: POLL_TIMEOUT }).toContain("family=OID4VP");
+    await expect(rows).toHaveCount(2);
+    query = await linkQuery(rows.first());
+    expect(query.get("owner")).toBe("108204713355021946632");
+    expect(query.get("family")).toBe("OID4VP");
+  });
+
   test("a family with no modules gets the section's own empty state", async ({ page }) => {
     await setupFailFast(page);
     await setupStatisticsRoute(page);
@@ -1465,6 +1526,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
     await expect(page.locator('[data-testid="stats-modules-runs"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="stats-modules-failing"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="stats-modules-table"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="stats-top-users"]')).toHaveCount(0);
     // The heading and the caption stay: a reader has to be told WHAT is empty.
     await expect(page.locator('[data-testid="stats-modules"]')).toBeVisible();
     await expect(page.getByText("Modules (12 months)")).toBeVisible();

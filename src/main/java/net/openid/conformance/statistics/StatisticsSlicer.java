@@ -30,9 +30,9 @@ import java.util.Set;
  * the axis the charts end up with: an open-ended axis is trimmed to where the filtered
  * series start, and neither the heatmap nor the filter choices follow that trim, or a
  * filter would narrow them through the back door;</li>
- * <li>the modules table is clipped to the range, by month, and filtered by family and
- * plan, but not by variant or certification profile: a test run records neither in a form
- * the module cells carry - see {@link ModuleRanker};</li>
+ * <li>the modules table and the top users table are clipped to the range, by month, and
+ * filtered by family and plan, but not by variant or certification profile: a test run
+ * records neither in a form the module cells carry - see {@link ModuleCellFilter};</li>
  * <li>the unresolved plan names are all time, and the external hosts cover the trailing
  * {@value StatisticsCube#HOST_MONTHS} months, so that narrowing the range does not hide
  * the diagnostics an admin came for.</li>
@@ -122,7 +122,7 @@ public final class StatisticsSlicer {
 			cube.summaryTiles(), cube.storage(),
 			DimensionCounter.count(cube, query, granularity, range),
 			HeatmapBinner.heatmap(cube.heat(), granularity, range), ModuleRanker.rank(cube, query),
-			cube.externalHosts(), cube.unresolvedPlans());
+			UserRanker.rank(cube, query), cube.externalHosts(), cube.unresolvedPlans());
 	}
 
 	/**

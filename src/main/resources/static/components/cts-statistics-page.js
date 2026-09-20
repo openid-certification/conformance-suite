@@ -20,6 +20,7 @@ import {
   buildChartInputs,
   buildDistributions,
   buildModules,
+  buildTopUsers,
   defaultFilterState,
   drillDownRefusal,
   drillDownUrl,
@@ -524,6 +525,7 @@ class CtsStatisticsPage extends LitElement {
     this._hasAnyData = memoizeByArgs(hasAnyData);
     this._distributions = memoizeByArgs(buildDistributions);
     this._modules = memoizeByArgs(buildModules);
+    this._topUsers = memoizeByArgs(buildTopUsers);
   }
 
   createRenderRoot() {
@@ -1337,6 +1339,7 @@ class CtsStatisticsPage extends LitElement {
     /** @type {Distributions|null} */
     const distributions = noMatch ? null : this._distributions(data.dimensions);
     const modules = noMatch ? null : this._modules(data.modules);
+    const topUsers = noMatch ? [] : this._topUsers(data.topUsers, this._state, data);
     return html`
       <cts-statistics-insights
         data-testid="stats-insights"
@@ -1345,6 +1348,7 @@ class CtsStatisticsPage extends LitElement {
         ?busy=${this._busy}
         .distributions=${distributions}
         .modules=${modules}
+        .topUsers=${topUsers}
         .heatmap=${data.heatmap}
         .hosts=${data.externalHosts}
       ></cts-statistics-insights>

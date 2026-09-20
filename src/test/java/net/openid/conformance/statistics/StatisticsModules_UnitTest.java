@@ -15,6 +15,7 @@ import java.util.Map;
 
 import static net.openid.conformance.statistics.StatisticsFixtures.NOW;
 import static net.openid.conformance.statistics.StatisticsFixtures.NO_TILES;
+import static net.openid.conformance.statistics.StatisticsFixtures.moduleRuns;
 import static net.openid.conformance.statistics.StatisticsFixtures.query;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -289,7 +290,7 @@ class StatisticsModules_UnitTest {
 	}
 
 	private static StatisticsCube cube(ModuleUserCell... cells) {
-		return new StatisticsCube(List.of(), List.of(), List.of(), List.of(), List.of(cells), List.of(), List.of(),
+		return new StatisticsCube(List.of(), List.of(), List.of(), List.of(), moduleRuns(cells), List.of(), List.of(),
 			NO_TILES, RESOLVER, NOW);
 	}
 
