@@ -10,6 +10,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -269,5 +270,83 @@ class VariantNotApplicableWhen_UnitTest {
 			variantInfo.getAllowedValuesForVariant(variantWalletInitiated);
 
 		assertEquals(2, allowedWalletInitiated.size());
+	}
+
+	@Test
+	void testStaticPlusPartialConditionalExclusionIsNotFullyExcluded() {
+		// BY_REFERENCE is statically excluded and BY_VALUE conditionally excluded: no value is left,
+		// but the conditional exclusion alone does not cover the parameter, so it still applies.
+		VariantService.ParameterHolder<VCICredentialOfferParameterVariant> subOptionParam =
+			new VariantService.ParameterHolder<>(VCICredentialOfferParameterVariant.class);
+
+		VariantService.ParameterHolder<VCIWalletAuthorizationCodeFlowVariant> flowParam =
+			new VariantService.ParameterHolder<>(VCIWalletAuthorizationCodeFlowVariant.class);
+
+		VariantService.ConditionalExclusion<VCICredentialOfferParameterVariant> exclusion =
+			new VariantService.ConditionalExclusion<>(flowParam,
+				Map.of("wallet_initiated", Set.of(VCICredentialOfferParameterVariant.BY_VALUE)));
+
+		VariantService.TestModuleVariantInfo<VCICredentialOfferParameterVariant> variantInfo =
+			new VariantService.TestModuleVariantInfo<>(
+				subOptionParam,
+				Set.of("by_reference"),
+				List.of(),
+				Map.of(),
+				Map.of(),
+				Map.of(),
+				List.of(exclusion)
+			);
+
+		Map<VariantService.ParameterHolder<? extends Enum<?>>, Enum<?>> variantWalletInitiated = Map.of(
+			flowParam, VCIWalletAuthorizationCodeFlowVariant.WALLET_INITIATED
+		);
+
+		assertTrue(variantInfo.getAllowedValuesForVariant(variantWalletInitiated).isEmpty());
+		assertFalse(variantInfo.isFullyExcludedForVariant(variantWalletInitiated),
+			"Only a conditional exclusion covering every value makes the parameter not applicable");
+	}
+
+	@Test
+	void testModuleWithStaticallyExcludedValueIsDroppedWhenRemainingValueIsConditionallyExcluded() {
+		// The multi-signed module statically allows only request_uri_multisigned, which the base
+		// class conditionally excludes for direct_post: the module must not run for other request methods.
+		VariantService.TestPlanHolder plan = variantService.getTestPlan("oid4vp-1final-wallet-test-plan");
+		String module = "oid4vp-1final-wallet-multisigned-one-invalid-signature";
+
+		List<String> directPostModules = plan.getTestModulesForVariant(new VariantSelection(Map.of(
+				"vp_profile", "plain_vp",
+				"credential_format", "sd_jwt_vc",
+				"credential_type", "eudi_pid",
+				"client_id_prefix", "redirect_uri",
+				"request_method", "request_uri_unsigned",
+				"response_mode", "direct_post")))
+			.stream().map(m -> m.getTestModule()).toList();
+
+		assertFalse(directPostModules.contains(module));
+		assertTrue(directPostModules.contains("oid4vp-1final-wallet-happy-flow"));
+
+		List<String> multiSignedModules = plan.getTestModulesForVariant(new VariantSelection(Map.of(
+				"vp_profile", "plain_vp",
+				"credential_format", "sd_jwt_vc",
+				"credential_type", "eudi_pid",
+				"client_id_prefix", "x509_san_dns",
+				"request_method", "request_uri_multisigned",
+				"response_mode", "dc_api.jwt")))
+			.stream().map(m -> m.getTestModule()).toList();
+
+		assertTrue(multiSignedModules.contains(module));
+	}
+
+	@Test
+	void testNewInstanceRejectsStaticallyExcludedValueWhenRemainingValueIsConditionallyExcluded() {
+		VariantService.TestModuleHolder module = variantService.getTestModule("oid4vp-1final-wallet-multisigned-one-invalid-signature");
+
+		assertThrows(RuntimeException.class, () -> module.newInstance(new VariantSelection(Map.of(
+			"vp_profile", "plain_vp",
+			"credential_format", "sd_jwt_vc",
+			"credential_type", "eudi_pid",
+			"client_id_prefix", "redirect_uri",
+			"request_method", "request_uri_unsigned",
+			"response_mode", "direct_post"))));
 	}
 }

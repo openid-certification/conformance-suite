@@ -12,17 +12,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
  * credentials grant, which has no authorization flow to produce a grant at all - must not generate
  * these modules.
  *
- * <p>The static {@code @VariantNotApplicable} on {@link FAPI2FinalOPProfile} is what actually drops
- * these modules from those profiles. The conditional
- * {@code @VariantNotApplicableWhen(GrantManagement=enabled, ...)} on
- * {@link AbstractFAPI2SPFinalServerTestModule} - which is what hides the value in the UI dropdown - is
- * not sufficient on its own:
- * because these modules also mark {@code GrantManagement=disabled} not-applicable, the effective set
- * of allowed {@code GrantManagement} values collapses to empty under that profile, and
- * {@code VariantService.isApplicableForVariant} treats an empty effective set as "parameter not
- * applicable, skip" rather than dropping the module. Excluding the profile values directly gives a
- * non-empty effective set that simply does not contain the selected profile, so the module is
- * correctly dropped.
+ * <p>The static {@code @VariantNotApplicable} on {@link FAPI2FinalOPProfile} states that restriction
+ * directly. The conditional {@code @VariantNotApplicableWhen(GrantManagement=enabled, ...)} on
+ * {@link AbstractFAPI2SPFinalServerTestModule} hides the value in the UI dropdown for those profiles.
  */
 @VariantNotApplicable(parameter = GrantManagement.class, values = {"disabled"})
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa",
