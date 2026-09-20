@@ -17,6 +17,7 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWith
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithNoSubFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithWrongAudFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureInvalidClientAssertionsFail;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureOtherScopeOrderSucceeds;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsArrayAudienceFails;
@@ -189,6 +190,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class);
 		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithWrongAudFails.class);
 		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithNoSubFails.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureInvalidClientAssertionsFail.class);
 		fapiTestModules.remove(FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted.class);
 		fapiTestModules.remove(FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails.class);
 		fapiTestModules.remove(FAPI2SPFinalPAREndpointAsArrayAudienceFails.class);
