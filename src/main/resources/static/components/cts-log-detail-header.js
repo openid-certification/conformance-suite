@@ -1351,13 +1351,19 @@ class CtsLogDetailHeader extends LitElement {
    *      "Proceed with test via browser API" button and making an
    *      active test look aborted. CREATED / CONFIGURED / RUNNING /
    *      WAITING are the live statuses.
-   *   2. **Within a terminal status, the verdict wins** (GitLab
-   *      #1858 / #1859). A failed test is reported as
-   *      status=INTERRUPTED, result=FAILED and must read "Test failed"
-   *      (phase `finished-fail`), never "Test interrupted". The
-   *      `interrupted` phase is reserved for an interruption with no
-   *      concrete verdict (an admin force-stop, or an exception before
-   *      any result was assigned).
+   *   2. **Within a terminal status, the verdict wins — but INTERRUPTED
+   *      vouches for FAILED only** (GitLab #1858 / #1859). A failed test
+   *      is reported as status=INTERRUPTED, result=FAILED and must read
+   *      "Test failed" (phase `finished-fail`), never "Test interrupted".
+   *      Every other verdict is trusted only under FINISHED: WARNING and
+   *      REVIEW are written mid-run, so on a test stopped before
+   *      completion they are interim values, and reading them as "passed
+   *      with warnings" would certify a test that never exercised the
+   *      behaviour under test. The `interrupted` phase therefore covers
+   *      every interruption without a FAILED verdict: a stop by the
+   *      tester or an admin, an exception before any result was
+   *      assigned, or a stop after only warnings. `js/module-status.js`
+   *      applies the same rule to the plan surfaces.
    *
    * The runner auto-starts every test module on creation except the
    * rare `autoStart() == false` modules (currently only
@@ -1400,16 +1406,14 @@ class CtsLogDetailHeader extends LitElement {
     if (status === "CONFIGURED") return "needs-start";
     if (status === "WAITING") return "waiting";
     if (status === "RUNNING" || status === "CREATED") return "running";
-    // Rule 2 — terminal status: the concrete verdict wins over INTERRUPTED
-    // (#1859), so dispatch on the verdict before falling back to the status.
-    if (result === "PASSED") return "finished-pass";
+    // Rule 2 — terminal status: FAILED wins over INTERRUPTED (#1859); any other
+    // result under INTERRUPTED is interim, so the interruption wins over it.
     if (result === "FAILED") return "finished-fail";
+    if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
+    if (result === "PASSED") return "finished-pass";
     if (result === "WARNING") return "finished-warn";
     if (result === "REVIEW") return "finished-review";
     if (result === "SKIPPED") return "finished-skip";
-    // No concrete verdict: a genuine interruption — status INTERRUPTED, or the
-    // INTERRUPTED sentinel some paths write into `result` — reads as interrupted.
-    if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
     return "unknown";
   }
 

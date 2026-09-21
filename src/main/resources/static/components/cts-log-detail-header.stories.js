@@ -2072,6 +2072,32 @@ export const TerminalBannerInterrupted = {
   },
 };
 
+export const TerminalBannerInterruptedAfterWarnings = {
+  // A test stopped before completion carries the WARNING written by an earlier
+  // condition as an interim value, not a verdict: it must read "Test interrupted",
+  // never "Test passed with warnings". Only FAILED wins over INTERRUPTED (#1859).
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...WARNING_RESULT_TEST, status: "INTERRUPTED" }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("interrupted");
+    expect(banner.classList.contains("ctsTerminalBanner--fail")).toBe(true);
+    expect(banner.textContent).toContain("Test interrupted");
+    expect(banner.textContent).not.toContain("passed with warnings");
+    // The bar still shows both raw facts: the WARNING recorded so far and the
+    // INTERRUPTED status that stopped the run.
+    const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+    expect(bar.querySelector('cts-badge[variant="warn"][label="WARNING"]')).toBeTruthy();
+    expect(bar.querySelector('cts-badge[variant="fail"][label="INTERRUPTED"]')).toBeTruthy();
+  },
+};
+
 export const NoTerminalBannerWhileRunning = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${RUNNING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
