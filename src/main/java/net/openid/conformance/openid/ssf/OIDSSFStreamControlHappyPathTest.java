@@ -39,7 +39,6 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 
 import java.util.List;
 import java.util.Set;
@@ -292,12 +291,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 				// get processing result" - give the transmitter a moment to apply the change
 				eventLog.log(getName(), "Transmitter answered 202 and the change is not visible yet; reading the stream configuration again in "
 					+ READ_BACK_INTERVAL_SECONDS + "s (attempt " + attempt + "/" + attempts + ")");
-				try {
-					Thread.sleep(READ_BACK_INTERVAL_SECONDS * 1000L);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new TestFailureException(getId(), "Interrupted while waiting for the transmitter to process the accepted request");
-				}
+				sleepReleasingLock(READ_BACK_INTERVAL_SECONDS, "the transmitter to process the accepted request");
 			}
 			// a transmitter that answered 200 and echoed the request but did not persist it fails here
 			callAndContinueOnFailure(new OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties(operation), Condition.ConditionResult.FAILURE, requirement);

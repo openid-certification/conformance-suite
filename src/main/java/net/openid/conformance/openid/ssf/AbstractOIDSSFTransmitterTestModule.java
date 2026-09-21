@@ -56,6 +56,7 @@ import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
@@ -433,23 +434,53 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		return lookupNextPushRequest(5);
 	}
 
+	/**
+	 * Waits up to {@code timeoutSeconds} for the next push request and validates its
+	 * envelope. The test is {@code WAITING} while it waits, so the test lock is free and a stop
+	 * request can take effect; the environment is only touched once the lock is held again.
+	 *
+	 * @return the push request, or {@code null} when none arrived in time
+	 */
 	protected SSfPushRequest lookupNextPushRequest(int timeoutSeconds) {
-
+		SSfPushRequest pushRequest;
+		setStatus(Status.WAITING);
 		try {
-			SSfPushRequest pushRequest = pushRequests.pollFirst(timeoutSeconds, TimeUnit.SECONDS);
-			if (pushRequest == null) {
-				return pushRequest;
-			}
-
-			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
-			env.putObject("ssf", "push_request", pushRequest.requestParts());
-			env.putString("ssf", "push_request_received_at", pushRequest.receivedAt().toString());
-			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
-
-			return pushRequest;
+			pushRequest = pushRequests.pollFirst(timeoutSeconds, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			Thread.currentThread().interrupt();
+			throw new TestFailureException(getId(), "Interrupted while waiting for a push request");
 		}
+		setStatus(Status.RUNNING);
+
+		if (pushRequest == null) {
+			return null;
+		}
+
+		eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
+		env.putObject("ssf", "push_request", pushRequest.requestParts());
+		env.putString("ssf", "push_request_received_at", pushRequest.receivedAt().toString());
+		onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
+
+		return pushRequest;
+	}
+
+	/**
+	 * Sleeps for {@code seconds} between two requests to the transmitter. The test is
+	 * {@code WAITING} while it sleeps, so the test lock is free and a stop request can take
+	 * effect.
+	 *
+	 * @param waitingFor what the sleep waits for, named in the failure raised when the test
+	 *                   is stopped meanwhile
+	 */
+	protected void sleepReleasingLock(long seconds, String waitingFor) {
+		setStatus(Status.WAITING);
+		try {
+			TimeUnit.SECONDS.sleep(seconds);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new TestFailureException(getId(), "Interrupted while waiting for " + waitingFor);
+		}
+		setStatus(Status.RUNNING);
 	}
 
 	/**
