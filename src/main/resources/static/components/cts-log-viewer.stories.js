@@ -11,6 +11,7 @@ import {
   MOCK_BLOCKS_POLL_SECOND,
   MOCK_EMPTY_BLOCK,
   MOCK_BLOCKS_ALIGN,
+  MOCK_BLOCK_INTERRUPTED,
 } from "@fixtures/mock-log-entries.js";
 import { MOCK_TEST_STATUS } from "@fixtures/mock-test-data.js";
 import { BACKOFF_MAX_MULTIPLIER, RESUME_GAP_MULTIPLIER } from "./cts-log-viewer.js";
@@ -1208,6 +1209,46 @@ export const EmptyBlock = {
     await step("header still renders the text from msg", async () => {
       const header = block.querySelector(".startBlock");
       expect(header.textContent).toContain("Awaiting checks");
+    });
+  },
+};
+
+/**
+ * A block interrupted by rows outside it (HTTP/browser traffic) resumes as a
+ * headerless continuation: the label and whole-block counts appear once,
+ * never the raw blockId.
+ */
+export const InterruptedBlock = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCK_INTERRUPTED)],
+  render: () => html`<cts-log-viewer test-id="test-block-interrupted-001"></cts-log-viewer>`,
+  async play({ canvasElement, step }) {
+    await waitForLogLoad(canvasElement);
+
+    await step("only the first piece carries the header", async () => {
+      const pieces = canvasElement.querySelectorAll('.logBlock[data-block-id="6f814d"]');
+      expect(pieces.length).toBe(3);
+      expect(canvasElement.querySelectorAll(".startBlock").length).toBe(1);
+      expect(pieces[0].querySelector(".startBlockMsg").textContent).toBe(
+        "Make request to authorization endpoint",
+      );
+      expect(pieces[1].classList.contains("is-continuation")).toBe(true);
+      expect(pieces[2].classList.contains("is-continuation")).toBe(true);
+      expect(canvasElement.querySelector(".logEntries").textContent).not.toContain("6f814d");
+    });
+
+    await step("a filter that elides the first piece moves the header to the next", async () => {
+      const warningBadge = /** @type {HTMLElement} */ (
+        canvasElement.querySelector('.logResultSummary cts-badge[data-result="WARNING"] .badge')
+      );
+      await userEvent.click(warningBadge);
+      await waitFor(() => {
+        const pieces = canvasElement.querySelectorAll('.logBlock[data-block-id="6f814d"]');
+        expect(pieces.length).toBe(1);
+        expect(pieces[0].classList.contains("is-continuation")).toBe(false);
+        expect(pieces[0].querySelector(".startBlockMsg").textContent).toBe(
+          "Make request to authorization endpoint",
+        );
+      });
     });
   },
 };
