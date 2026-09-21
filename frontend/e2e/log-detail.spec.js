@@ -2093,6 +2093,20 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     }),
   );
 
+  // A test stopped before completion keeps the WARNING an earlier condition
+  // wrote as an interim value; it is not a verdict, so the banner must read
+  // "Test interrupted", never "Test passed with warnings". Only FAILED wins
+  // over INTERRUPTED.
+  test(
+    "terminal-state refresh — INTERRUPTED+WARNING reads as 'Test interrupted'",
+    terminalRefreshTest({
+      result: "WARNING",
+      finalStatus: "INTERRUPTED",
+      bannerText: /Test interrupted/i,
+      statusBadgeLabel: "INTERRUPTED",
+    }),
+  );
+
   // R4 (a genuine interruption with NO concrete verdict still reads "Test
   // interrupted") is covered at the component level by the cts-log-detail-header
   // `TerminalBannerInterrupted` story — the polling helper here can't represent

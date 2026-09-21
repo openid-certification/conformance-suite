@@ -23,6 +23,23 @@ describe("statusBadgeVariant", () => {
     expect(statusBadgeVariant("INTERRUPTED", "FAILED")).toBe("fail");
     expect(statusBadgeVariant("RUNNING", null)).toBe("running");
   });
+
+  it("does not let an interim WARNING or REVIEW pass off a stopped test as a verdict", () => {
+    // WARNING and REVIEW are written mid-run; a test stopped before completion has no verdict.
+    expect(statusBadgeVariant("INTERRUPTED", "WARNING")).toBe("neutral");
+    expect(statusBadgeVariant("INTERRUPTED", "REVIEW")).toBe("neutral");
+    expect(statusBadgeVariant("FINISHED", "WARNING")).toBe("warn");
+    expect(statusBadgeVariant("FINISHED", "REVIEW")).toBe("review");
+  });
+});
+
+describe("statusLabel", () => {
+  it("labels a stopped test with an interim WARNING or REVIEW as INTERRUPTED", () => {
+    expect(statusLabel("INTERRUPTED", "WARNING")).toBe("INTERRUPTED");
+    expect(statusLabel("INTERRUPTED", "REVIEW")).toBe("INTERRUPTED");
+    expect(statusLabel("INTERRUPTED", "FAILED")).toBe("FAILED");
+    expect(statusLabel("FINISHED", "WARNING")).toBe("WARNING");
+  });
 });
 
 describe("segmentVariant", () => {
@@ -77,6 +94,7 @@ describe("segmentStatusWord", () => {
     expect(segmentStatusWord(resolved("RUNNING", null))).toBe("running");
     expect(segmentStatusWord(resolved("WAITING", null))).toBe("waiting");
     expect(segmentStatusWord(resolved("INTERRUPTED", null))).toBe("interrupted");
+    expect(segmentStatusWord(resolved("INTERRUPTED", "WARNING"))).toBe("interrupted");
     // A 404'd fetch settles with no status at all: it reads as not run.
     expect(segmentStatusWord(resolved(undefined, undefined))).toBe("not run");
     expect(statusLabel(undefined, undefined)).toBe("PENDING");
