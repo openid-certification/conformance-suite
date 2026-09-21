@@ -444,12 +444,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			if (!solicitedVerificationFound && attempt < VERIFICATION_POLL_MAX_ATTEMPTS) {
 				eventLog.log(getName(), "Solicited verification event not yet delivered; polling again in "
 					+ VERIFICATION_POLL_INTERVAL_SECONDS + "s (attempt " + attemptNr + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
-				try {
-					Thread.sleep(VERIFICATION_POLL_INTERVAL_SECONDS * 1000L);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new TestFailureException(getId(), "Interrupted while waiting for the solicited verification event");
-				}
+				sleepReleasingLock(VERIFICATION_POLL_INTERVAL_SECONDS, "the solicited verification event");
 			}
 		}
 
@@ -510,12 +505,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			eventLog.log(getName(), "Waiting for CAEP events... received "
 				+ receivedEventTypes.size() + "/" + expectedCaepEventTypes.size() + ", polling again in " + pollIntervalSeconds + "s ("
 				+ Duration.between(Instant.now(), deadline).toSeconds() + "s left for the next event type)");
-			try {
-				Thread.sleep(pollIntervalSeconds * 1000L);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new TestFailureException(getId(), "Interrupted while waiting for CAEP events");
-			}
+			sleepReleasingLock(pollIntervalSeconds, "CAEP events");
 		}
 
 		eventLog.runBlock("Verify all expected CAEP Interop events were received", () -> {

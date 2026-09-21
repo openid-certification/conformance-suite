@@ -357,12 +357,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 			if (attempt < VERIFICATION_POLL_MAX_ATTEMPTS) {
 				eventLog.log(getName(), "Solicited verification event not yet delivered; polling again in "
 					+ VERIFICATION_POLL_INTERVAL_SECONDS + "s (attempt " + attempt + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
-				try {
-					Thread.sleep(VERIFICATION_POLL_INTERVAL_SECONDS * 1000L);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new TestFailureException(getId(), "Interrupted while waiting for the solicited verification event");
-				}
+				sleepReleasingLock(VERIFICATION_POLL_INTERVAL_SECONDS, "the solicited verification event");
 			}
 		}
 		return false;
