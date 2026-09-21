@@ -7,7 +7,7 @@ description: Use when asked whether a whole conformance-suite test family (a spe
 
 Deep, whole-family audit of one test family in this repository. Answers three questions: which tests are **wrong**, which are **missing**, and whether the plans are **ready for certification**. Output is a verdict-first report, published as an artifact, backed by verbatim spec clauses and hand-verified file references.
 
-Paths below are relative to the repository root. The helper script is `.claude/skills/reviewing-test-suite-against-specs/fetch-spec.py` (Python 3 stdlib only). Put downloaded spec text and other working files under `tmp/spec-review/<family>/` (`tmp/` is gitignored) or the session scratchpad.
+Paths below are relative to the repository root. The helper script is `.claude/skills/reviewing-test-suite-against-specs/fetch-spec.py` (Python 3 stdlib only). Put spec text that is not already in library/specs/ and other working files under `tmp/spec-review/<family>/` (`tmp/` is gitignored) or the session scratchpad.
 
 ## Step 1 — Inventory the family (you, before any fan-out)
 
@@ -21,23 +21,29 @@ Paths below are relative to the repository root. The helper script is `.claude/s
 
 ## Step 2 — Get the spec text verbatim
 
-Never review from WebFetch summaries or memory. Download every document the code tags (all `specLinks` prefixes the family uses, plus the RFCs it builds on) as plain text:
+Start from `library/specs/manifest.json`: it maps every `LogEntryHelper` tag prefix to the checked-in text of the **linked** version (and a `latest` snapshot where one exists) under `library/specs/`. Those files are numbered plain text (`grep -n '^8\.3\.  ' <file>`). ISO documents are in `../conformance-suite-private/library/iso/` when that checkout exists. Only fetch what the library does not have — a newer draft than its `latest`, anything in the manifest's `excluded` list (third-party profiles, and OIDF documents the code links at a mutable working-group URL such as `CAEPIOP-`), an RFC the code does not tag — and put those under `tmp/spec-review/<family>/specs` as below. Do not re-fetch a document the library already holds.
+
+Never review from WebFetch summaries or memory. For anything the library does not hold, fetch it as plain text:
 
 ```bash
 S=.claude/skills/reviewing-test-suite-against-specs/fetch-spec.py
 python3 $S fetch \
-  vci-final https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-final.html \
-  rfc9449 https://www.rfc-editor.org/rfc/rfc9449.txt --out tmp/spec-review/vci/specs
-python3 $S diff-headings specs/vci-final.txt specs/vci-10-wg.txt
-python3 $S map-tags OID4VCI-1FINAL src/main/java/net/openid/conformance/vci10issuer specs/vci-final.txt
+  vci-ID2 https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html \
+  --out tmp/spec-review/vci/specs
+python3 $S diff-headings tmp/spec-review/vci/specs/vci-ID2.txt \
+  library/specs/openid/openid-4-verifiable-credential-issuance-1_0.txt
+python3 $S map-tags OID4VCI-1FINAL src/main/java/net/openid/conformance/vci10issuer \
+  library/specs/openid/openid-4-verifiable-credential-issuance-1_0.txt
 python3 $S links https://openid.net/how-to-certify-your-implementation/ verifiable
 ```
 
-Fetch **both** the version LogEntryHelper links to and the latest published version on openid.net (Final > Implementer's Draft > WG draft). Published openid.net URLs follow `openid-<spec>-1_0-final.html`, `-ID2.html`, `-ID1.html`, `-NN.html` (numbered draft), and bare `-1_0.html` (latest alias; recommend the immutable form when they are identical). Working-group draft URLs are not guessable — read them out of the spec repo's README (`curl -s https://raw.githubusercontent.com/openid/<Repo>/main/README.md | grep -oE 'https://openid\.github\.io/[^ )]+'`); repos publish `-1_0-wg-draft` (errata) and `-1_1-wg-draft` separately, and renamed repos leave redirect stubs that fetch as a six-line page. Read the HTTP status line `fetch` prints (a 404 page still converts to text; on an error the script deletes any stale file of that name). The MUST/SHOULD counts are a sanity signal, not a measure.
+`diff-headings` and `map-tags` both take plain file paths, so a `library/specs/...` file works exactly like a freshly fetched one — vci-final and rfc9449 are already in the library, so the example above only fetches the older ID2 draft and diffs/maps it against the library's stored Final text. `map-tags` only matches numeric tags, so appendix tags (`OID4VCI-1FINALA-F.1`, `HAIPA-D.1`) are reported as "no tags" rather than mapped; list them with `grep -rhoE '"[A-Za-z0-9-]+A-[A-Z](\.[0-9]+)*"'` and check each against the text's `Appendix X.` headings by hand — that is how a tag citing a non-existent appendix gets found.
 
-For IETF drafts the code links, find the current revision from the datatracker page (`fetch <name>-dt https://datatracker.ietf.org/doc/<draft-name>/` then grep `Latest revision`) and fetch `https://www.ietf.org/archive/id/<draft-name>-NN.txt` for both the linked and the current revision. Then find which revision the **certification target** pins: grep the References section of the Final spec and of any profile (HAIP) for `draft-ietf-...-NN`; a profile's "versions mentioned here override" clause wins. The linked version is right if it matches the pinned one, whatever the datatracker says.
+The library's `linked` text is the version LogEntryHelper links to; fetch only the latest published version on openid.net (Final > Implementer's Draft > WG draft) when the library has no `latest` or it is stale. When the linked version is already Final, still fetch the errata working-group head of that same major version (`-1_0-wg-draft`) and `diff-headings` it against the library text, even if the library's `latest` is a later major version (OID4VCI's `latest` is the 1.1 draft, a renumbered document): zero drift is a result worth reporting, and any drift is a finding. Published openid.net URLs follow `openid-<spec>-1_0-final.html`, `-ID2.html`, `-ID1.html`, `-NN.html` (numbered draft), and bare `-1_0.html` (latest alias; recommend the immutable form when they are identical). Working-group draft URLs are not guessable — read them out of the spec repo's README (`curl -s https://raw.githubusercontent.com/openid/<Repo>/main/README.md | grep -oE 'https://openid\.github\.io/[^ )]+'`); repos publish `-1_0-wg-draft` (errata) and `-1_1-wg-draft` separately, and renamed repos leave redirect stubs that fetch as a six-line page. Read the HTTP status line `fetch` prints (a 404 page still converts to text; on an error the script deletes any stale file of that name). The MUST/SHOULD counts are a sanity signal, not a measure.
 
-Run `diff-headings` between versions, then `map-tags` for each prefix the family uses against every fetched version. Reading the table: a `—` in every column is a section that does not exist at all (usually a typo such as 7.2.1 for 7.2, or a pre-Final section number); a `—` in one column, or titles that differ across columns, is version drift and the link lands on the wrong text. Hand the table to the reviewers. `headings` output is tab-separated (number, title); it ignores indented numbered lines so RFC list items are not mistaken for sections.
+For an IETF draft the code links that the library holds only the linked revision of, find the current revision from the datatracker page (`fetch <name>-dt https://datatracker.ietf.org/doc/<draft-name>/` then grep `Latest revision`) and fetch `https://www.ietf.org/archive/id/<draft-name>-NN.txt` for the current revision (the library already has the linked one; diff against that). Then find which revision the **certification target** pins. Read it from the spec's own "Pre-Final" / "versions mentioned here" section (OID4VCI 14.x, HAIP 9.4) or from the published HTML, not from the References section of a library text: texts rendered from XML (`source_format` `xml` / `zip-xml` in the manifest) re-resolve their IETF bibliography at render time, so their References list the I-D revision current on the render date, not the one the document pins. A profile's "versions mentioned here override" clause wins. The linked version is right if it matches the pinned one, whatever the datatracker says.
+
+Run `diff-headings` between versions, then `map-tags` for each prefix the family uses against every fetched version. Point `map-tags` at every directory that carries the family's tags, not only `<family>/`: shared code (`fapi2spfinal/VCI*`, `sequence/client/*VCI*`, `condition/as/*`) holds tags too, and a prefix shared with another family (HAIP, SDJWT) needs a copied subset of the family's files so the other family's uses are not swept in. Reading the table: a `—` in every column is a section that does not exist at all (usually a typo such as 7.2.1 for 7.2, or a pre-Final section number); a `—` in one column, or titles that differ across columns, is version drift and the link lands on the wrong text. Hand the table to the reviewers. `headings` output is tab-separated (number, title); it ignores indented numbered lines so RFC list items are not mistaken for sections.
 
 ## Step 3 — Fan out four reviewers in parallel
 
