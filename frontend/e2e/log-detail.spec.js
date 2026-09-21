@@ -504,7 +504,8 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     const header = page.locator("cts-log-detail-header");
     await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
-    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    // The bar's primary is Stop, the one action a paused test supports.
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toContainText("Stop");
     await expect(header).not.toContainText("Start Test");
     await expect(header).not.toContainText("Click Start");
     await expect(header).not.toContainText("Action required");
@@ -599,8 +600,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const repeat = page.locator('cts-log-detail-header [data-testid="status-bar-repeat"]');
     await expect(repeat).toBeVisible();
     await expect(repeat).toContainText("Repeat Test");
-    // Repeat is not Start (#1862): the WAITING bar still has no primary.
-    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    // Repeat is not Start (#1862): the WAITING bar's primary is Stop.
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toContainText("Stop");
+    await expect(page.locator('[data-testid="status-bar-primary"]')).not.toContainText(
+      "Start Test",
+    );
 
     await repeat.locator("button").first().click();
     await expect.poll(() => runnerCalls.length, { timeout: 5000 }).toBeGreaterThan(0);
@@ -611,7 +615,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     page,
   }) => {
     // The shortcut used to click `[data-testid="status-bar-primary"]`, which on
-    // a live bar is Stop (running) or Start Test (needs-start) — so repointing
+    // a live bar is Stop (waiting / running) or Start Test (needs-start) — so repointing
     // it at `[data-action="repeat-test"]` is what makes the shortcut agree with
     // the button in every phase. Without this, the selector change is unguarded.
     await setupFailFast(page);
