@@ -32,6 +32,14 @@
           "sha256": "64dba018706aca1300db36168467453240fde4a5fda5580b91137ef645aaf91a",
           "source_format": "txt",
           "source_url": "https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-07.txt"
+        },
+        {
+          "fetched": "2026-09-21",
+          "file": "ietf/draft-ietf-oauth-attestation-based-client-auth-11.txt",
+          "role": "latest",
+          "sha256": "4879fdb1d8443591c8230ffcc4bee91709b70bc24b9a6be1ffbfcf5ccc34aae9",
+          "source_format": "txt",
+          "source_url": "https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-11.txt"
         }
       ]
     },
@@ -48,6 +56,14 @@
           "sha256": "c1cb38fde3c41f32a7915bebbff2c76b121da9712a07ecb2a25a9802e428b38d",
           "source_format": "txt",
           "source_url": "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-13.txt"
+        },
+        {
+          "fetched": "2026-09-21",
+          "file": "ietf/draft-ietf-oauth-sd-jwt-vc-19.txt",
+          "role": "latest",
+          "sha256": "394c4640c581c301adaf24d1d356238e2c290b5c9e8b130141ca0e28732144fb",
+          "source_format": "txt",
+          "source_url": "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-19.txt"
         }
       ]
     },
@@ -64,6 +80,14 @@
           "sha256": "1af031dbe47fe4f0fefa24ac3893b8c3db0a147f679ebf48ea45b20877dfac5f",
           "source_format": "txt",
           "source_url": "https://www.ietf.org/archive/id/draft-ietf-oauth-status-list-15.txt"
+        },
+        {
+          "fetched": "2026-09-21",
+          "file": "ietf/draft-ietf-oauth-status-list-21.txt",
+          "role": "latest",
+          "sha256": "21e4867a01f73cee2ebc1408d150c87f77898c3d1549ebc25c80fa352221f846",
+          "source_format": "txt",
+          "source_url": "https://www.ietf.org/archive/id/draft-ietf-oauth-status-list-21.txt"
         }
       ]
     },
@@ -211,6 +235,19 @@
           "source_format": "zip-xml",
           "source_sha256": "3fe1e03dce355ba96cd626cdfecff1bcbf96060bbb6c6ef685d250b03793934d",
           "source_url": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.zip"
+        },
+        {
+          "doc_name": "openid-4-verifiable-credential-issuance-1_1-01",
+          "fetched": "2026-09-21",
+          "file": "openid/openid-4-verifiable-credential-issuance-1_1-wg-draft-6464865e67.txt",
+          "generator": "xml2rfc 3.34.0",
+          "path": "1.1/openid-4-verifiable-credential-issuance-1_1.md",
+          "published_url": "https://openid.github.io/OpenID4VCI/openid-4-verifiable-credential-issuance-1_1-wg-draft.html",
+          "role": "latest",
+          "sha256": "673d2f8cb2a7f3b71bdd57178e010ba723c4f875450f3c61e432b633cdad487b",
+          "source_format": "github-md",
+          "source_sha256": "e4ad39158eab3232071a35f5a633a8420aa8802e9876ad269d7f44affe46515a",
+          "source_url": "https://codeload.github.com/openid/OpenID4VCI/tar.gz/6464865e673ac0095068c934c84dec78eab17101"
         }
       ]
     },
@@ -231,6 +268,19 @@
           "source_format": "zip-xml",
           "source_sha256": "61e0248414a540c49cd9b0e91ccbc84581462433fd63d59e6dae109e52deeb4d",
           "source_url": "https://openid.net/specs/openid-4-verifiable-presentations-1_0.zip"
+        },
+        {
+          "doc_name": "openid-4-verifiable-presentations-1_1-01",
+          "fetched": "2026-09-21",
+          "file": "openid/openid-4-verifiable-presentations-1_1-wg-draft-5c7cc02898.txt",
+          "generator": "xml2rfc 3.34.0",
+          "path": "1.1/openid-4-verifiable-presentations-1_1.md",
+          "published_url": "https://openid.github.io/OpenID4VP/openid-4-verifiable-presentations-1_1-wg-draft.html",
+          "role": "latest",
+          "sha256": "8b016285600fcef69c15e133e7b36258eda9c53634501a1c5885eae61eb9cfbf",
+          "source_format": "github-md",
+          "source_sha256": "79ef3ef02fed18dfa94088c520c6c58a550b9a3fe73a9c39de44f37589bd002f",
+          "source_url": "https://codeload.github.com/openid/OpenID4VP/tar.gz/5c7cc028985722c7e7140a988d4af330632a43a5"
         }
       ]
     },
@@ -595,6 +645,19 @@
           "source_format": "zip-xml",
           "source_sha256": "3bb8c357e0e9c09efc42d0bb712673ca10bb5aaa9d4121fceb015a292aa4f6a2",
           "source_url": "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.zip"
+        },
+        {
+          "doc_name": "openid4vc-high-assurance-interoperability-profile-1_1-01",
+          "fetched": "2026-09-21",
+          "file": "openid/openid4vc-high-assurance-interoperability-profile-1_1-wg-draft-8a3f6fd0e0.txt",
+          "generator": "xml2rfc 3.34.0",
+          "path": "1.1/openid4vc-high-assurance-interoperability-profile-1_1.md",
+          "published_url": "https://openid.github.io/OpenID4VC-HAIP/openid4vc-high-assurance-interoperability-profile-1_1-wg-draft.html",
+          "role": "latest",
+          "sha256": "35a11c35c06d171e84cca5517efc78c1d35004e68569041e3289a2bd92a13156",
+          "source_format": "github-md",
+          "source_sha256": "5d43807ec33c9a64c4fd39824cd536865872c68f53d9a0e4bca2a0f32c95f024",
+          "source_url": "https://codeload.github.com/openid/OpenID4VC-HAIP/tar.gz/8a3f6fd0e006c4ba6b52daefa3eba7f0704ce640"
         }
       ]
     },
