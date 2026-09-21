@@ -35,6 +35,10 @@ extensions_to_check = [
 config_ignore = [
     '.idea/',
     'src/main/resources/static/vendor/',
+    # Specification texts are stored byte-for-byte as published (or as rendered by xml2rfc);
+    # library/specs/manifest.json records their sha256.
+    'library/specs/ietf/',
+    'library/specs/openid/',
     # Playwright snapshot files captured via toMatchSnapshot() / toMatchAriaSnapshot().
     # The serialiser preserves trailing whitespace from the rendered DOM and
     # writes files without a trailing newline; both shapes are required for
