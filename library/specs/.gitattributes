@@ -1,0 +1,4 @@
+# Texts are hash-checked by LogEntryHelper_UnitTest; never convert their line endings, and
+# leave their whitespace alone in `git diff --check` (scripts/checkwhitespace.py skips them too).
+ietf/*.txt -text -whitespace
+openid/*.txt -text -whitespace
