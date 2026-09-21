@@ -1382,6 +1382,11 @@ class CtsLogViewer extends LitElement {
    * any block starts (or have no `blockId`) render as flat siblings —
    * preserves the legacy behaviour for pre-block prefix entries.
    *
+   * A block interrupted by entries outside it (HTTP and browser rows logged
+   * while a block is open) resumes as a headerless `.logBlock.is-continuation`
+   * container, so the label and the whole-block counts appear once per block.
+   * The first piece that survives the filter carries the header.
+   *
    * Each `<cts-log-entry>` host is stamped with `data-entry-id` so the
    * document-level `cts-scroll-to-entry` listener (in
    * `js/log-detail.js`) can locate the target by the same `_id` the
@@ -1400,6 +1405,11 @@ class CtsLogViewer extends LitElement {
     let blockChildren = [];
     /** @type {{ msg?: string, blockId: string } | null} */
     let blockStart = null;
+    /** @type {Set<string>} */
+    const headedBlockIds = new Set();
+    // A filter can elide a block's first piece, leaving a later piece to
+    // carry the header without its startBlock row.
+    const blockLabels = new Map(this._blockSummaries.map((b) => [b.blockId, b.label]));
 
     const flushBlock = () => {
       if (currentBlockId === null) {
@@ -1411,17 +1421,27 @@ class CtsLogViewer extends LitElement {
         // child survived — an all-filtered-out block leaves no empty header.
         // When NOT filtering, an empty block (a streamed startBlock awaiting
         // its first child) still renders its header — see the EmptyBlock story.
-        const counts = this._blockCounts.get(currentBlockId);
-        const headerText = (blockStart && blockStart.msg) || currentBlockId;
-        out.push(html`
-          <div class="logBlock" data-block-id=${currentBlockId}>
-            <div class="startBlock">
-              <span class="startBlockMsg">${headerText}</span>
-              <span class="startBlockCounts">${this._renderBlockBadges(counts)}</span>
+        if (headedBlockIds.has(currentBlockId)) {
+          out.push(html`
+            <div class="logBlock is-continuation" data-block-id=${currentBlockId}>
+              ${blockChildren}
             </div>
-            ${blockChildren}
-          </div>
-        `);
+          `);
+        } else {
+          headedBlockIds.add(currentBlockId);
+          const counts = this._blockCounts.get(currentBlockId);
+          const headerText =
+            (blockStart && blockStart.msg) || blockLabels.get(currentBlockId) || currentBlockId;
+          out.push(html`
+            <div class="logBlock" data-block-id=${currentBlockId}>
+              <div class="startBlock">
+                <span class="startBlockMsg">${headerText}</span>
+                <span class="startBlockCounts">${this._renderBlockBadges(counts)}</span>
+              </div>
+              ${blockChildren}
+            </div>
+          `);
+        }
       }
       blockChildren = [];
       blockStart = null;
