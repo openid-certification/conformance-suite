@@ -1,10 +1,23 @@
 package net.openid.conformance.export;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
+
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,5 +95,91 @@ public class LogEntryHelper_UnitTest {
 
 		assertThat(helper.getRequirementLink("BrazilOB22-5.12"))
 			.isEqualTo(spec + "5.12");
+	}
+
+	private static final Path SPEC_LIBRARY = Path.of("library", "specs");
+
+	private static JsonObject specLibraryManifest() throws Exception {
+		JsonObject manifest = JsonParser.parseString(Files.readString(SPEC_LIBRARY.resolve("manifest.json"), StandardCharsets.UTF_8))
+			.getAsJsonObject();
+		assertThat(manifest.getAsJsonObject("documents").entrySet())
+			.as("library/specs/manifest.json must list at least one document")
+			.isNotEmpty();
+		return manifest;
+	}
+
+	@Test
+	public void everySpecLinkIsAccountedForInTheSpecLibraryManifest() throws Exception {
+		JsonObject manifest = specLibraryManifest();
+		Map<String, String> linkUrlByPrefix = new HashMap<>();
+		List<String> problems = new ArrayList<>();
+		for (Map.Entry<String, JsonElement> doc : manifest.getAsJsonObject("documents").entrySet()) {
+			String linkUrl = OIDFJSON.getStringOrNull(doc.getValue().getAsJsonObject().get("link_url"));
+			if (linkUrl == null) {
+				problems.add(doc.getKey() + ": document has no link_url in the manifest");
+				linkUrl = "";
+			}
+			for (JsonElement prefix : doc.getValue().getAsJsonObject().getAsJsonArray("prefixes")) {
+				if (linkUrlByPrefix.put(OIDFJSON.getString(prefix), linkUrl) != null) {
+					problems.add(OIDFJSON.getString(prefix) + ": listed more than once in manifest");
+				}
+			}
+		}
+		for (String prefix : manifest.getAsJsonObject("excluded").keySet()) {
+			if (linkUrlByPrefix.put(prefix, "") != null) {
+				problems.add(prefix + ": listed more than once in manifest");
+			}
+		}
+		for (Map.Entry<String, String> link : LogEntryHelper.specLinks.entrySet()) {
+			String expected = linkUrlByPrefix.remove(link.getKey());
+			String actual = link.getValue().split("#", 2)[0];
+			if (expected == null) {
+				problems.add(link.getKey() + ": not in library/specs/manifest.json");
+			} else if (!expected.isEmpty() && !expected.equals(actual)) {
+				problems.add(link.getKey() + ": LogEntryHelper links " + actual + " but the manifest has " + expected);
+			}
+		}
+		linkUrlByPrefix.keySet().forEach(prefix -> problems.add(prefix + ": in manifest but not in LogEntryHelper"));
+
+		assertThat(problems)
+			.as("library/specs/manifest.json must list every LogEntryHelper.specLinks prefix; see library/README.md")
+			.isEmpty();
+	}
+
+	@Test
+	public void specLibraryFilesMatchTheirManifestHashes() throws Exception {
+		JsonObject documents = specLibraryManifest().getAsJsonObject("documents");
+		List<String> problems = new ArrayList<>();
+		for (Map.Entry<String, JsonElement> doc : documents.entrySet()) {
+			boolean hasLinked = false;
+			for (JsonElement v : doc.getValue().getAsJsonObject().getAsJsonArray("versions")) {
+				JsonObject version = v.getAsJsonObject();
+				String role = OIDFJSON.getStringOrNull(version.get("role"));
+				hasLinked |= "linked".equals(role);
+				String fileName = OIDFJSON.getStringOrNull(version.get("file"));
+				if (fileName == null) {
+					problems.add(doc.getKey() + ": version has no file in the manifest");
+					continue;
+				}
+				Path file = SPEC_LIBRARY.resolve(fileName);
+				if (!Files.isRegularFile(file)) {
+					problems.add(doc.getKey() + ": " + file + " is missing");
+					continue;
+				}
+				String expectedSha256 = OIDFJSON.getStringOrNull(version.get("sha256"));
+				if (expectedSha256 == null) {
+					problems.add(doc.getKey() + ": " + file + " has no sha256 in the manifest");
+					continue;
+				}
+				String sha256 = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file)));
+				if (!sha256.equals(expectedSha256)) {
+					problems.add(doc.getKey() + ": " + file + " does not match the sha256 in the manifest");
+				}
+			}
+			if (!hasLinked) {
+				problems.add(doc.getKey() + ": no version with role 'linked'");
+			}
+		}
+		assertThat(problems).isEmpty();
 	}
 }
