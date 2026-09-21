@@ -191,7 +191,8 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   CONFIGURED                  → "Click Start Test" prompt │
 //   │                                 (Start in sticky bar)     │
 //   │   WAITING                     → R24 instructions + browser│
-//   │                                 slot (never a Start CTA)  │
+//   │                                 slot (Stop in sticky bar, │
+//   │                                 never a Start CTA)        │
 //   │   RUNNING                     → info alert + browser slot │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Drawer (Region C — <details> disclosures)                 │
@@ -856,8 +857,8 @@ function ensureStylesInjected() {
  *      PASSED / SKIPPED use the persistent objective summary and do not
  *      need a separate hero; CONFIGURED renders the "Click Start Test"
  *      prompt (the Start CTA itself lives in the sticky status bar);
- *      WAITING renders R24 instructions + the browser slot and never
- *      offers Start (#1862); RUNNING renders the running-test info
+ *      WAITING renders R24 instructions + the browser slot, offers Stop
+ *      in the sticky bar and never Start (#1862); RUNNING renders the running-test info
  *      alert + browser slot; INTERRUPTED renders the failure list with
  *      the FINAL_ERROR alert pinned at the top of the hero.
  *   6. Region C drawer — `<details>` disclosures: "Test details"
@@ -940,8 +941,8 @@ function ensureStylesInjected() {
  *   `everything` (omitted for unpublish); bubbles.
  * @fires cts-start-test - When the Start Test button is clicked on a
  *   CONFIGURED (not-yet-started) test, with `{ detail: { testId } }`; bubbles.
- * @fires cts-stop-test - When the Stop button is clicked on a running
- *   test, with `{ detail: { testId } }`; bubbles.
+ * @fires cts-stop-test - When the Stop button is clicked on a waiting or
+ *   running test, with `{ detail: { testId } }`; bubbles.
  */
 class CtsLogDetailHeader extends LitElement {
   static properties = {
@@ -1623,7 +1624,7 @@ class CtsLogDetailHeader extends LitElement {
    * `data-action="repeat-test"` is the stable hook for the page-level
    * Cmd/Ctrl+Shift+X shortcut in `js/log-detail.js`, which must not depend on
    * `status-bar-primary` (that testid is Start Test on the needs-start bar and
-   * Stop on the running bar).
+   * Stop on the waiting and running bars).
    * @param {"primary"|"secondary"} variant - cts-button prominence.
    * @param {string} testid - `data-testid` for the button.
    * @returns {import('lit').TemplateResult|typeof nothing} The button, or
@@ -1650,6 +1651,11 @@ class CtsLogDetailHeader extends LitElement {
    * modules), so offering a Start button here is always wrong (#1862) —
    * clicking it would just reload or 404. The hero below the bar
    * carries any concrete action (visit-URL prompt, instructions).
+   *
+   * Stop is offered, as on the running bar: a test paused on an external
+   * event is exactly the one a user gives up on, and the runner can only
+   * act on a stop request while the test is not holding its lock — which
+   * is the WAITING state.
    * @param {TestInfo} test - Test info driving the bar.
    * @returns {import('lit').TemplateResult} The WAITING bar template.
    */
@@ -1664,7 +1670,7 @@ class CtsLogDetailHeader extends LitElement {
         </div>
         <div class="ctsStatusBarMiddle"></div>
         <div class="ctsStatusBarPrimary">
-          ${this._renderRepeatButton("secondary", "status-bar-repeat")}
+          ${this._renderStopButton()} ${this._renderRepeatButton("secondary", "status-bar-repeat")}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}
@@ -1710,6 +1716,22 @@ class CtsLogDetailHeader extends LitElement {
     `;
   }
 
+  /**
+   * Stop button shared by the WAITING and RUNNING bars — the two phases in
+   * which a test is live and can be cancelled through DELETE /api/runner/{id}.
+   * @returns {import('lit').TemplateResult} The Stop button.
+   */
+  _renderStopButton() {
+    return html`<cts-button
+      variant="secondary"
+      size="sm"
+      icon="stop"
+      label="Stop"
+      data-testid="status-bar-primary"
+      @cts-click=${this._handleStopTest}
+    ></cts-button>`;
+  }
+
   _renderRunningBar(test) {
     const counts = this._getResultCounts();
     return html`
@@ -1722,15 +1744,7 @@ class CtsLogDetailHeader extends LitElement {
           ${this._renderResultPills(counts)}
         </div>
         <div class="ctsStatusBarPrimary">
-          <cts-button
-            variant="secondary"
-            size="sm"
-            icon="stop"
-            label="Stop"
-            data-testid="status-bar-primary"
-            @cts-click=${this._handleStopTest}
-          ></cts-button>
-          ${this._renderRepeatButton("secondary", "status-bar-repeat")}
+          ${this._renderStopButton()} ${this._renderRepeatButton("secondary", "status-bar-repeat")}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}

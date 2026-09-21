@@ -2037,7 +2037,7 @@ function handleKeydown(event) {
     // "Repeat Test" was removed once the status bar took over the affordance.
     // Target `data-action="repeat-test"`, NOT `status-bar-primary`: since
     // #1903 the live bars carry Repeat as a secondary action, and on the
-    // needs-start / running bars the primary slot is Start Test / Stop —
+    // needs-start / waiting / running bars the primary slot is Start Test / Stop —
     // so keying on the primary testid would fire the wrong action there.
     const inner = document.querySelector(
       'cts-log-detail-header [data-action="repeat-test"] button',
