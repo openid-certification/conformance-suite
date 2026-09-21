@@ -1016,6 +1016,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				performFinalCleanup();
 			}
 
+			if (Status.INTERRUPTED.equals(newStatus)
+				&& (Result.WARNING.equals(getResult()) || Result.REVIEW.equals(getResult()))) {
+				// WARNING and REVIEW are written while the test is still running and only become a
+				// verdict once the test runs to completion. A test stopped before that has no verdict:
+				// leaving the interim value would report it as passed with warnings, so it is reset
+				// before INTERRUPTED becomes visible. FAILED stays, as it is the verdict of a test that
+				// stopped on a failure.
+				setResult(Result.UNKNOWN);
+			}
+
 			if (Status.FINISHED.equals(newStatus) && getResult() == Result.UNKNOWN) {
 				throw new TestFailureException(getId(), "Illegal test state; tried to move from " + oldStatus + " -> " + newStatus + " but 'result' is UNKNOWN");
 			}
