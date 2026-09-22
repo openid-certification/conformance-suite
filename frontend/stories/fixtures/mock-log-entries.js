@@ -470,3 +470,63 @@ export const MOCK_BLOCKS_ALIGN = [
     http: "request",
   },
 ];
+
+/**
+ * One block interrupted twice by HTTP/browser rows that carry no `blockId`,
+ * as a front-channel flow logs while "Make request to authorization
+ * endpoint" is open. The block resumes after each interruption.
+ */
+export const MOCK_BLOCK_INTERRUPTED = [
+  {
+    _id: "int-start",
+    testId: "test-block-interrupted-001",
+    src: "StartBlockAuth",
+    time: NOW - 9000,
+    msg: "Make request to authorization endpoint",
+    blockId: "6f814d",
+    startBlock: true,
+  },
+  {
+    _id: "int-1",
+    testId: "test-block-interrupted-001",
+    src: "BuildRequestObject",
+    time: NOW - 8900,
+    msg: "Built request object",
+    blockId: "6f814d",
+    result: "SUCCESS",
+  },
+  {
+    _id: "int-http-1",
+    testId: "test-block-interrupted-001",
+    src: "fapi1-test",
+    time: NOW - 8800,
+    msg: "Incoming HTTP request to /callback",
+    http: "incoming",
+  },
+  {
+    _id: "int-2",
+    testId: "test-block-interrupted-001",
+    src: "CreateRandomImplicitSubmitUrl",
+    time: NOW - 8700,
+    msg: "Created random implicit submission URL",
+    blockId: "6f814d",
+    result: "SUCCESS",
+  },
+  {
+    _id: "int-browser",
+    testId: "test-block-interrupted-001",
+    src: "WebRunner",
+    time: NOW - 8600,
+    msg: "Completed processing of webpage",
+    result: "INFO",
+  },
+  {
+    _id: "int-3",
+    testId: "test-block-interrupted-001",
+    src: "ExtractImplicitHashToCallbackResponse",
+    time: NOW - 8500,
+    msg: "implicit_hash is empty",
+    blockId: "6f814d",
+    result: "WARNING",
+  },
+];
