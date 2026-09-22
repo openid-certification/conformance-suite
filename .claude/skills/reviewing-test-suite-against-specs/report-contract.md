@@ -1,6 +1,6 @@
 # Report contract
 
-The published report has these parts, in this order. A section with nothing in it says so in one line rather than disappearing.
+The published report has these parts, in this order. A section with nothing in it says so in one line rather than disappearing. `report-template.html` lays them out as HTML with the anchors the table of contents expects; fill it rather than writing a page from scratch.
 
 1. **Verdict** — "Ready" or "Not yet", then one paragraph on why, then the three questions (missing? wrong? ready?) each answered in a sentence with counts.
 2. **Tally strip** — modules run in CI / total, variant values never run, unit-test coverage, negative tests on each role, wrong anchors, third-party counterparties.
