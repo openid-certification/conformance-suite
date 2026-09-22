@@ -11,6 +11,7 @@ import org.multipaz.crypto.X509Cert;
 import org.multipaz.crypto.X509CertChain;
 import org.multipaz.mdoc.rical.SignedRical;
 
+import java.time.Instant;
 import java.util.Base64;
 
 /**
@@ -20,6 +21,11 @@ import java.util.Base64;
  * edition is published.
  */
 public abstract class AbstractRicalCondition extends AbstractCondition {
+
+	/** The instant the RICAL and the certificate chains are judged against. */
+	protected Instant now() {
+		return Instant.now();
+	}
 
 	/** Decodes the base64 signed RICAL stored in the 'rical' environment object. */
 	protected byte[] getRicalBytes(Environment env) {
@@ -119,11 +125,11 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 		try {
 			org.multipaz.trustmanagement.RicalTrustManager trustManager =
 				new org.multipaz.trustmanagement.RicalTrustManager(signedRical, "rical");
-			kotlin.time.Instant now = kotlin.time.Instant.Companion.fromEpochMilliseconds(System.currentTimeMillis());
+			kotlin.time.Instant atTime = kotlin.time.Instant.Companion.fromEpochMilliseconds(now().toEpochMilli());
 			return kotlinx.coroutines.BuildersKt.runBlocking(
 				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
 				// true = also validate the validity intervals of CA certificates in the chain
-				(scope, continuation) -> trustManager.verify(chainCerts, now, true, continuation)
+				(scope, continuation) -> trustManager.verify(chainCerts, atTime, true, continuation)
 			);
 		} catch (Exception e) {
 			throw error("Failed to evaluate the certificate chain against the RICAL", e);
@@ -143,7 +149,7 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 	protected String ricalTrustPathDefect(SignedRical signedRical,
 			org.multipaz.trustmanagement.TrustResult trustResult) {
 		kotlin.time.Instant notAfter = signedRical.getRical().getNotAfter();
-		if (notAfter != null && notAfter.toEpochMilliseconds() < System.currentTimeMillis()) {
+		if (notAfter != null && notAfter.toEpochMilliseconds() < now().toEpochMilli()) {
 			return "the RICAL's own 'notAfter' (" + notAfter + ") is in the past, so ISO/IEC 18013-5"
 				+ " Annex F.3.2.5 does not allow its entries to be used as trust anchors";
 		}

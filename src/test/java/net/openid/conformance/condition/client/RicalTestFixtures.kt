@@ -8,6 +8,8 @@ import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import net.openid.conformance.testmodule.Environment
 import org.multipaz.asn1.ASN1Integer
 import org.multipaz.cbor.Bstr
@@ -33,6 +35,7 @@ import org.multipaz.crypto.X500Name
 import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
 import org.multipaz.crypto.X509KeyUsage
+import java.io.File
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
@@ -94,6 +97,24 @@ object RicalTestFixtures {
 				.setKeyUsage(setOf(X509KeyUsage.KEY_CERT_SIGN, X509KeyUsage.CRL_SIGN))
 				.build()
 		}
+		return readerPkiUnder(caCert, caKey, Clock.System.now() - 1.days, Clock.System.now() + 90.days)
+	}
+
+	/**
+	 * The suite's committed reader CA (scripts/certs-keys/vp-signing-ca.*), which external
+	 * trust lists such as the Geneva 2026 interop RICAL register, with a freshly minted reader
+	 * certificate under it with the given validity window. Reads the files relative to the
+	 * repository root, where the unit tests run.
+	 */
+	@JvmStatic
+	fun readerPkiUnderCommittedCa(notBefore: Instant, notAfter: Instant): ReaderPki {
+		val caCert = X509Cert.fromPem(File("scripts/certs-keys/vp-signing-ca.crt").readText())
+		val caKey = EcPrivateKey.fromJwk(
+			Json.parseToJsonElement(File("scripts/certs-keys/vp-signing-ca-jwk.json").readText()).jsonObject)
+		return readerPkiUnder(caCert, caKey, notBefore, notAfter)
+	}
+
+	private fun readerPkiUnder(caCert: X509Cert, caKey: EcPrivateKey, notBefore: Instant, notAfter: Instant): ReaderPki {
 		val readerKey = runBlocking { Crypto.createEcPrivateKey(EcCurve.P256) }
 		val readerCert = runBlocking {
 			X509Cert.Builder(
@@ -101,9 +122,9 @@ object RicalTestFixtures {
 				AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(caCert)), caKey),
 				ASN1Integer(2L),
 				X500Name.fromName("CN=OIDF Test Reader,O=OpenID Foundation,C=UT"),
-				caName,
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 90.days
+				caCert.subject,
+				notBefore,
+				notAfter
 			).includeSubjectKeyIdentifier(true)
 				.setAuthorityKeyIdentifierToCertificate(caCert)
 				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
@@ -111,6 +132,16 @@ object RicalTestFixtures {
 		}
 		return ReaderPki(caCert, readerKey, readerCert)
 	}
+
+	/**
+	 * The RICAL published for the Geneva 2026 mdoc interop event by Aptitude, fetched from
+	 * https://geneva2026.mdoc.online/trustedlists/Rical.rical on 2026-09-22: a real-world list
+	 * with a brainpoolP256r1 signer, every entry missing isTrustAnchor, a mis-tagged serial
+	 * number, and the suite's committed reader CA among its entries.
+	 */
+	@JvmStatic
+	fun geneva2026InteropRical(): ByteArray =
+		RicalTestFixtures::class.java.getResourceAsStream("/rical/geneva-2026-interop.rical")!!.use { it.readAllBytes() }
 
 	/**
 	 * A reader certificate that names [claimedIssuer] as its issuer (by name and Authority Key
