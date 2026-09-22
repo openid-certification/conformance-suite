@@ -17,13 +17,9 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWith
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithNoSubFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithWrongAudFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureInvalidClientAssertionsFail;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureOtherScopeOrderSucceeds;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsArrayAudienceFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsAudienceFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARTokenEndpointAsAudienceFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRegisteredRedirectUri;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails;
@@ -189,11 +185,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class);
 		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithWrongAudFails.class);
 		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithNoSubFails.class);
-		fapiTestModules.remove(FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted.class);
-		fapiTestModules.remove(FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails.class);
-		fapiTestModules.remove(FAPI2SPFinalPAREndpointAsArrayAudienceFails.class);
-		fapiTestModules.remove(FAPI2SPFinalPAREndpointAsAudienceFails.class);
-		fapiTestModules.remove(FAPI2SPFinalPARTokenEndpointAsAudienceFails.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureInvalidClientAssertionsFail.class);
 
 		// Profile-specific tests (plain_fapi / connectid_au / openbanking_brazil / consumerdataright_au)
 		fapiTestModules.remove(FAPI2SPFinalEnsureRegisteredRedirectUri.class);

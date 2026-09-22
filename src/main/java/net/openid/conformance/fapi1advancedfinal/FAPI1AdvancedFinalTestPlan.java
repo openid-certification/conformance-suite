@@ -67,6 +67,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalEnsureClientAssertionWithNoSubFails.class,
 		FAPI1AdvancedFinalEnsureClientAssertionWithWrongIssFails.class,
 		FAPI1AdvancedFinalEnsureClientAssertionWithWrongSubFails.class,
+		FAPI1AdvancedFinalEnsureClientAssertionWithInvalidSignatureFails.class,
 		FAPI1AdvancedFinalEnsureClientAssertionWithIssAudSucceeds.class,
 
 		//Refresh token tests
@@ -89,6 +90,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongAudFails.class,
 		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongIssFails.class,
 		FAPI1AdvancedFinalPAREnsureClientAssertionWithWrongSubFails.class,
+		FAPI1AdvancedFinalPAREnsureClientAssertionWithInvalidSignatureFails.class,
 		FAPI1AdvancedFinalPAREnsureRequestUriIsBoundToClient.class,
 		FAPI1AdvancedFinalPARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI1AdvancedFinalPARRejectInvalidHttpVerb.class,

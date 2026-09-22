@@ -69,8 +69,7 @@ import java.util.Map;
 
 		// private_key_jwt specific tests - not possible to test with mtls
 		FAPICIBAID1EnsureWithoutClientAssertionInTokenEndpointFails.class,
-		FAPICIBAID1EnsureWithoutClientAssertionInBackchannelAuthorizationRequestFails.class,
-		FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInBackchannelAuthorizationRequestIsRS256Fails.class,
+		FAPICIBAID1EnsureInvalidClientAssertionsInBackchannelAuthorizationRequestFail.class,
 		FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInTokenEndpointRequestIsRS256Fails.class,
 		FAPICIBAID1EnsureClientAssertionWithIssAudToTokenEndpointSucceeds.class,
 
