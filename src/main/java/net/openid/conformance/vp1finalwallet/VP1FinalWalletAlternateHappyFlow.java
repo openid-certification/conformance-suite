@@ -54,8 +54,12 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 		createAuthorizationRequestSteps = createAuthorizationRequestSteps.
 			then(condition(AddRandomParameterToAuthorizationEndpointRequest.class));
 
-		createAuthorizationRequestSteps.replace(AddVP1FinalEncryptionParametersToClientMetadata.class,
-			condition(AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc.class));
+		if (responseMode == VP1FinalWalletResponseMode.DIRECT_POST_JWT
+			|| responseMode == VP1FinalWalletResponseMode.DC_API_JWT) {
+			// only the encrypted response modes advertise an encryption key
+			createAuthorizationRequestSteps.replace(AddVP1FinalEncryptionParametersToClientMetadata.class,
+				condition(AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc.class));
+		}
 
 		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.REDIRECT_URI
 			&& (responseMode == VP1FinalWalletResponseMode.DIRECT_POST
