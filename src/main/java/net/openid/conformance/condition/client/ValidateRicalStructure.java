@@ -103,7 +103,7 @@ public class ValidateRicalStructure extends AbstractRicalCondition {
 	}
 
 	private void checkTopLevel(DataItem rical, List<String> findings) {
-		long now = System.currentTimeMillis();
+		long nowMillis = now().toEpochMilli();
 
 		DataItem version = rical.getOrNull("version");
 		if (!(version instanceof Tstr)) {
@@ -119,24 +119,24 @@ public class ValidateRicalStructure extends AbstractRicalCondition {
 		}
 
 		Long date = CborStructureChecks.tdateMillis(rical.getOrNull("date"), "date", findings, true);
-		if (date != null && date > now + CLOCK_SKEW_MILLIS) {
+		if (date != null && date > nowMillis + CLOCK_SKEW_MILLIS) {
 			findings.add("'date' (RICAL issuance) is in the future");
 		}
 		if (date != null && date < EARLIEST_PLAUSIBLE_MILLIS) {
 			findings.add("'date' (RICAL issuance) is implausibly old");
 		}
 		Long nextUpdate = CborStructureChecks.tdateMillis(rical.getOrNull("nextUpdate"), "nextUpdate", findings, false);
-		if (nextUpdate != null && nextUpdate < now - CLOCK_SKEW_MILLIS) {
+		if (nextUpdate != null && nextUpdate < nowMillis - CLOCK_SKEW_MILLIS) {
 			findings.add("'nextUpdate' is in the past - the RICAL is overdue for an update");
 		}
-		if (nextUpdate != null && nextUpdate > now + FIFTY_YEARS_MILLIS) {
+		if (nextUpdate != null && nextUpdate > nowMillis + FIFTY_YEARS_MILLIS) {
 			findings.add("'nextUpdate' is implausibly far in the future");
 		}
 		Long notAfter = CborStructureChecks.tdateMillis(rical.getOrNull("notAfter"), "notAfter", findings, false);
-		if (notAfter != null && notAfter < now - CLOCK_SKEW_MILLIS) {
+		if (notAfter != null && notAfter < nowMillis - CLOCK_SKEW_MILLIS) {
 			findings.add("'notAfter' is in the past - the RICAL is no longer valid");
 		}
-		if (notAfter != null && notAfter > now + FIFTY_YEARS_MILLIS) {
+		if (notAfter != null && notAfter > nowMillis + FIFTY_YEARS_MILLIS) {
 			findings.add("'notAfter' is implausibly far in the future");
 		}
 		// the two windows are relative to issuance, so a value before 'date' is nonsensical

@@ -39,7 +39,7 @@ public class ValidateRicalSignerCertificate extends AbstractRicalCondition {
 		String subject = signerCert.getSubjectX500Principal().getName();
 
 		try {
-			signerCert.checkValidity();
+			signerCert.checkValidity(java.util.Date.from(now()));
 		} catch (CertificateExpiredException | CertificateNotYetValidException e) {
 			throw error("The RICAL signer certificate is outside its validity period", e,
 				args("subject", subject,
