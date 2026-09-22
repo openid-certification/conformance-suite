@@ -44,6 +44,19 @@ class OwnerIds_UnitTest {
 	}
 
 	@Test
+	void anIdIsTheIndexOfItsOwner() {
+		OwnerIds ids = new OwnerIds();
+
+		int google = ids.idFor("https://accounts.google.com", "1234");
+		int gitlab = ids.idFor("https://gitlab.com", "1234");
+		ids.idFor("https://accounts.google.com", "1234");
+
+		assertThat(ids.owners()).hasSize(2);
+		assertThat(ids.owners().get(google)).isEqualTo(new Owner("https://accounts.google.com", "1234"));
+		assertThat(ids.owners().get(gitlab)).isEqualTo(new Owner("https://gitlab.com", "1234"));
+	}
+
+	@Test
 	void aRunWithNoIdentityIsNotAUser() {
 		assertThat(OwnerIds.isUser(null, "1234")).isFalse();
 		assertThat(OwnerIds.isUser("https://gitlab.com", null)).isFalse();

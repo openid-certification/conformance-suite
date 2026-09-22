@@ -41,6 +41,9 @@ import java.util.Map;
  *                         failure on, over the trailing
  *                         {@value StatisticsCube#MODULE_MONTHS} months, with the two
  *                         rankings the charts plot
+ * @param topUsers         the users who ran the most test modules over the trailing
+ *                         {@value StatisticsCube#MODULE_MONTHS} months, most runs first,
+ *                         filtered the way {@link #modules()} is
  * @param externalHosts    the external servers the suite has been pointed at over the
  *                         trailing {@value StatisticsCube#HOST_MONTHS} months
  * @param unresolvedPlans  the busiest plan names that could not be resolved to a family,
@@ -52,7 +55,7 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	Map<String, List<Long>> plansByFamily, Map<String, Map<String, List<Long>>> resultsByFamily,
 	Map<String, List<Long>> certifiedByFamily, Map<String, FamilyTotals> familyTotals, Users users, Tiles tiles,
 	List<StorageRow> storage, Dimensions dimensions, List<List<Long>> heatmap, Modules modules,
-	List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
+	List<TopUser> topUsers, List<HostRow> externalHosts, List<UnresolvedPlan> unresolvedPlans) {
 
 	/**
 	 * One family's whole history, unfiltered.
@@ -192,6 +195,24 @@ public record StatisticsOverview(List<String> periods, String granularity, List<
 	 */
 	@Schema(name = "StatisticsModules")
 	public record Modules(List<Module> rows, List<String> byRuns, List<String> byFailingUsers) {
+	}
+
+	/**
+	 * One of the users who ran the most test modules, over the trailing
+	 * {@value StatisticsCube#MODULE_MONTHS} months.
+	 *
+	 * <p>Counted over the same cells as {@link Module} and so filtered the same way: by
+	 * range, family and plan, not by variant or certification profile. Runs outside a test
+	 * plan count here, although no listing of the user's plans will show them.
+	 *
+	 * @param iss     the issuer that authenticated the user
+	 * @param sub     the user's subject at that issuer
+	 * @param runs    test module runs by the user in the window
+	 * @param failed  how many of those runs ended in FAILED
+	 * @param modules distinct test modules the user ran
+	 */
+	@Schema(name = "StatisticsTopUser")
+	public record TopUser(String iss, String sub, long runs, long failed, long modules) {
 	}
 
 	/**

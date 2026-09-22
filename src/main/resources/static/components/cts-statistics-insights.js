@@ -129,6 +129,13 @@ const MODULES_CAPTION =
   "however many times a module failed for them · family and plan filters apply; variant and " +
   "certification filters do not";
 
+/** One text node, for the reason {@link MODULES_CAPTION} gives. */
+const TOP_USERS_HINT =
+  "The 20 users who ran the most test modules within the last 12 months, over the selected range " +
+  "(by whole months). Family and plan filters apply, counting runs of any module that family or " +
+  "plan includes; variant and certification filters do not. Each links to that user's test " +
+  "plans; runs outside a test plan are counted here but have no plan to list.";
+
 const STYLE_ID = "cts-statistics-insights-styles";
 
 const STYLE_TEXT = css`
@@ -201,11 +208,18 @@ const STYLE_TEXT = css`
   .cts-stats-modules-full {
     grid-column: 1 / -1;
   }
-  /* Module names are long, unspaced and hyphenated; without this the first
-     column sets the table's width and pushes the four counts off the card on
-     a narrow viewport. */
+  /* Module names are long, unspaced and hyphenated, and so is a user's
+     subject; without this the first column sets the table's width and pushes
+     the counts off the card on a narrow viewport. */
   .cts-stats-modules-table th[scope="row"],
+  .cts-stats-top-users th[scope="row"],
   .cts-stats-hosts th[scope="row"] {
+    overflow-wrap: anywhere;
+  }
+  /* The issuer is the one column of words among the counts. */
+  .cts-stats-top-users th:nth-child(2),
+  .cts-stats-top-users td:nth-child(2) {
+    text-align: left;
     overflow-wrap: anywhere;
   }
 
@@ -266,6 +280,11 @@ function injectStyles() {
  *   loosely for the same `lit-analyzer` reason as `distributions`). Null
  *   hides the whole section; an object with no `rows` renders its empty
  *   state, because "no module ran in this window" is an answer.
+ * @property {Array<object>} topUsers - The users who ran the most test modules,
+ *   as `buildTopUsers` returns them (`TopUserRow`; typed loosely for the same
+ *   `lit-analyzer` reason as `distributions`). Counted over the same runs as
+ *   the modules, so listed in that section and hidden with it; empty renders
+ *   nothing.
  * @property {Array<Array<number>>} heatmap - 7 rows (Mon-Sun) × 24 UTC hours.
  * @property {string} range - The selected range preset's value ("12m"), for
  *   the heatmap caption and the modules heading. Empty leaves both unqualified.
@@ -281,6 +300,7 @@ class CtsStatisticsInsights extends LitElement {
   static properties = {
     distributions: { attribute: false },
     modules: { attribute: false },
+    topUsers: { attribute: false },
     heatmap: { attribute: false },
     range: { type: String },
     hosts: { attribute: false },
@@ -295,6 +315,8 @@ class CtsStatisticsInsights extends LitElement {
     this.distributions = null;
     /** @type {ReturnType<typeof import("./statistics-model.js").buildModules>|null} */
     this.modules = null;
+    /** @type {Array<import("./statistics-model.js").TopUserRow>} */
+    this.topUsers = [];
     /** @type {Array<Array<number>>} */
     this.heatmap = [];
     /** @type {string} */
@@ -504,7 +526,7 @@ class CtsStatisticsInsights extends LitElement {
                 "Modules most users failed",
                 modules.byFailingUsers,
               )}
-              ${this._renderModuleTable(rows)}
+              ${this._renderModuleTable(rows)} ${this._renderTopUsers()}
             `}
       </div>
     `;
@@ -598,6 +620,50 @@ class CtsStatisticsInsights extends LitElement {
                   <td>${formatCount(row.users)}</td>
                   <td>${formatCount(row.failingUsers)}</td>
                   <td>${formatShare(row.failingShare)}</td>
+                </tr>
+              `,
+            )}
+          </tbody>
+        </table>
+      </details>
+    `;
+  }
+
+  /**
+   * Who ran the most test modules, each linked to that user's plans. Part of
+   * the modules section because it is counted over the same runs: the same
+   * window, the same filters, the same identified users.
+   * @returns {unknown} The disclosure, or nothing when there is nobody to list.
+   */
+  _renderTopUsers() {
+    const users = Array.isArray(this.topUsers) ? this.topUsers : [];
+    if (users.length === 0) return nothing;
+    return html`
+      <details
+        class="cts-data-disclosure cts-stats-modules-full cts-stats-top-users"
+        data-testid="stats-top-users"
+      >
+        <summary>Most active users (${NUMBER_FORMAT.format(users.length)})</summary>
+        <p class="cts-stats-hint">${TOP_USERS_HINT}</p>
+        <table class="cts-data-table">
+          <thead>
+            <tr>
+              <th scope="col">User</th>
+              <th scope="col">Issuer</th>
+              <th scope="col">Runs</th>
+              <th scope="col">Failed runs</th>
+              <th scope="col">Modules</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(
+              (user) => html`
+                <tr>
+                  <th scope="row"><a href=${user.href}>${user.sub}</a></th>
+                  <td title=${user.iss}>${user.issuerHost}</td>
+                  <td>${formatCount(user.runs)}</td>
+                  <td>${formatCount(user.failed)}</td>
+                  <td>${formatCount(user.modules)}</td>
                 </tr>
               `,
             )}

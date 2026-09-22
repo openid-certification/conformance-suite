@@ -16,8 +16,10 @@ package net.openid.conformance.statistics;
  * @param month    {@code YYYY-MM} in UTC
  * @param testName the test module name, as stored on {@code TEST_INFO.testName}
  * @param ownerId  an id standing in for the user's {@code iss} and {@code sub}, meaningful
- *                 only among module cells of the same cube - {@link UserTuple} ids are
- *                 handed out separately and are not the same numbers
+ *                 only among module cells of the same cube, which
+ *                 {@link StatisticsCube#moduleOwner(int)} turns back into the user -
+ *                 {@link UserTuple} ids are handed out separately and are not the same
+ *                 numbers
  * @param runs     runs of that module by that user in that month
  * @param failed   how many of those runs ended in FAILED
  */

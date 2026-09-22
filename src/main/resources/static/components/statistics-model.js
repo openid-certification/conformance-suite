@@ -66,6 +66,9 @@ import { DAY_MS, SHORT_MONTHS } from "../lib/calendar.js";
  * @property {ModulesPayload} modules - The modules section over the trailing
  *   12 months: every module worth listing, plus the two rankings the charts
  *   plot; narrowed by family and plan only.
+ * @property {Array<TopUserPayload>} topUsers - The users who ran the most test
+ *   modules over the trailing 12 months, most runs first; narrowed the way
+ *   `modules` is.
  * @property {Array<object>} externalHosts - External servers tested against, all time.
  * @property {Array<{planName: string, runs: number}>} unresolvedPlans - Busiest unresolved plan names.
  */
@@ -1385,6 +1388,86 @@ export function buildModules(modules) {
     byRuns: moduleDatasets(rows, modules && modules.byRuns, "runs"),
     byFailingUsers: moduleDatasets(rows, modules && modules.byFailingUsers, "failingUsers"),
   };
+}
+
+/**
+ * One of the payload's `topUsers`.
+ * @typedef {object} TopUserPayload
+ * @property {string} iss - The issuer that authenticated the user.
+ * @property {string} sub - The user's subject at that issuer.
+ * @property {number} runs - Test module runs by the user in the window.
+ * @property {number} failed - How many of those runs FAILED.
+ * @property {number} modules - Distinct test modules the user ran.
+ */
+
+/**
+ * A row of the top users table: the payload's row, the issuer cut down to
+ * what fits a column, and where its link goes.
+ * @typedef {TopUserPayload & {issuerHost: string, href: string}} TopUserRow
+ */
+
+/**
+ * @param {string} iss - An issuer.
+ * @returns {string} Its host, which is what tells issuers apart at a glance;
+ *   the issuer itself when it is not a URL.
+ */
+function issuerHost(iss) {
+  try {
+    return new URL(iss).host || iss;
+  } catch {
+    return iss;
+  }
+}
+
+/**
+ * The plans listing narrowed to one user, under the filters the top users
+ * table was counted under: family, plan and - when a range is selected - the
+ * range. The variant and certification filters are left out because the
+ * server leaves them out of the count.
+ *
+ * Unlike {@link drillDownUrl} this never declines: a synthetic family selects
+ * no module cells, so there is no row to link from.
+ * @param {FilterState} state - The page's filter state.
+ * @param {{iss: string, sub: string}} user - The user to list the plans of.
+ * @param {StatisticsData} data - The payload the table came from; its first
+ *   and last period are the bounds of a selected range.
+ * @returns {string} A relative `plans.html?…` URL.
+ */
+export function userPlansUrl(state, user, data) {
+  const periods = list(data && data.periods);
+  const granularity = (data && data.granularity) || "month";
+  const ranged = rangePreset(state && state.range).periods > 0 && periods.length > 0;
+  const first = ranged ? periodBounds(periods[0], granularity) : null;
+  const last = ranged ? periodBounds(periods[periods.length - 1], granularity) : null;
+  // serialized by the listing's own `toParams`, for the reason `drillDownUrl` gives
+  const query = planListParams({
+    ...emptyFilter(),
+    owner: text(user && user.sub),
+    owner_iss: text(user && user.iss),
+    family: text(state && state.family),
+    plan: text(state && state.plan),
+    from: first ? first.from : "",
+    to: last ? last.to : "",
+  }).toString();
+  return `${PLANS_PAGE}?${query}`;
+}
+
+/**
+ * The rows of the top users table, each with the link to that user's plans.
+ *
+ * Pure, and meant to be called through {@link memoizeByArgs} so that a render
+ * for the busy flag hands the section the rows it already has.
+ * @param {Array<TopUserPayload>} topUsers - The payload's `data.topUsers`.
+ * @param {FilterState} state - The page's filter state.
+ * @param {StatisticsData} data - The payload the rows came from.
+ * @returns {Array<TopUserRow>} The rows, server order.
+ */
+export function buildTopUsers(topUsers, state, data) {
+  return list(topUsers).map((user) => ({
+    ...user,
+    issuerHost: issuerHost(text(user.iss)),
+    href: userPlansUrl(state, user, data),
+  }));
 }
 
 /** Byte units, biggest last; `formatBytes` walks them from the small end. */

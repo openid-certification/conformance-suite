@@ -280,7 +280,7 @@ public class MongoStatisticsSource {
 	 * <p>The user is part of the group key because the modules table counts people rather
 	 * than runs: a user who failed the same module twenty times is one user who hit a
 	 * failure on it. Grouping that out in the database keeps what crosses the wire to one
-	 * row per month, module and user, and leaves the {@code iss} and {@code sub} behind.
+	 * row per month, module and user.
 	 *
 	 * <p>The window is a string comparison on {@code started}, which {@code TestInfo} writes
 	 * as an ISO-8601 UTC string, so the {@code $match} in front of the group is an index
@@ -288,11 +288,11 @@ public class MongoStatisticsSource {
 	 * external hosts and the tiles, which are all windowed for the same reason.
 	 *
 	 * @param nowUtc today in UTC; the window ends with the month it falls in
-	 * @return one cell per month, test module and user. Rows with no test module name, and
-	 *         rows whose owner is not a real identity, are dropped: neither can be counted
-	 *         as a user of a named module.
+	 * @return one cell per month, test module and user, and the users the cells' owner ids
+	 *         stand for. Rows with no test module name, and rows whose owner is not a real
+	 *         identity, are dropped: neither can be counted as a user of a named module.
 	 */
-	public List<ModuleUserCell> modules(LocalDate nowUtc) {
+	public ModuleRuns modules(LocalDate nowUtc) {
 		List<Bson> pipeline = List.of(
 			Aggregates.match(Filters.gte("started", StatisticsCube.oldestModuleMonth(nowUtc))),
 			Aggregates.group(new Document("month", monthExpression())
@@ -311,7 +311,7 @@ public class MongoStatisticsSource {
 				cells.add(cell);
 			}
 		}
-		return cells;
+		return new ModuleRuns(cells, owners.owners());
 	}
 
 	/**

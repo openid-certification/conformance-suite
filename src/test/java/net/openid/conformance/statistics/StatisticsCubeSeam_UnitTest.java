@@ -159,6 +159,10 @@ class StatisticsCubeSeam_UnitTest {
 		// one person in two months is one user, and another person is another user
 		assertThat(cells.get(1).ownerId()).isEqualTo(cells.get(0).ownerId());
 		assertThat(cells.get(2).ownerId()).isNotEqualTo(cells.get(0).ownerId());
+		// ... and the ids lead back to who they are, which the top users table names
+		assertThat(owners.owners().get(cells.get(0).ownerId())).isEqualTo(new Owner("https://idp", "alice"));
+		assertThat(owners.owners().get(cells.get(2).ownerId())).isEqualTo(new Owner("https://idp", "bob"));
+		assertThat(owners.owners()).hasSize(2);
 		// ... and the cells share one instance of each month key and module name: there is
 		// one cell per user, module and month, and the decoder hands out a fresh string for
 		// every row, so the copies would be most of what the cells weigh
@@ -238,6 +242,6 @@ class StatisticsCubeSeam_UnitTest {
 		return new StatisticsCube(
 			runRows.stream().map(MongoStatisticsSource::runCell).toList(),
 			planRows.stream().map(MongoStatisticsSource::planCell).toList(),
-			List.of(), List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			List.of(), List.of(), ModuleRuns.NONE, List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 	}
 }

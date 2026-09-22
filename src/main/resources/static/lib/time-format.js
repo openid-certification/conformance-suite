@@ -136,3 +136,24 @@ export function formatCompact(value) {
     timeStyle: "short",
   });
 }
+
+/**
+ * How long something took, in the largest units that matter (e.g. `45s`,
+ * `3m 12s`, `2h 5m 0s`). A negative span from clock skew clamps to `0s`.
+ *
+ * @param {string | number | Date | null | undefined} start When it began.
+ * @param {string | number | Date | null | undefined} end When it finished.
+ * @returns {string} The span, or `""` when either input is missing/unparseable.
+ */
+export function formatDuration(start, end) {
+  const from = toMillis(start);
+  const to = toMillis(end);
+  if (from === null || to === null) return "";
+  const totalSec = Math.max(0, Math.round((to - from) / 1000));
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}

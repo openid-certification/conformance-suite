@@ -385,6 +385,8 @@ export interface paths {
      *
      *     `data.modules` covers the trailing 12 months only, is clipped to the range by month whatever the granularity, and honors `family` and `plan` as registry membership - a module belongs to every family that has a plan running it. The `variant.<parameter>` and `cert` filters do not apply to it: a test run records neither in a form the module counts can be keyed by. Its `runs` counts only runs by an identified user, since the section counts people and a run written before authentication completed belongs to nobody, so it does not reconcile exactly with the runs charts.
      *
+     *     `data.topUsers` lists the 20 users who ran the most test modules, counted over the same runs as `data.modules` and so windowed and filtered the same way. It is the one part of the payload that identifies users, by `iss` and `sub`.
+     *
      *     `data.heatmap` and `data.externalHosts` cover the trailing 12 months, and the summary tiles are windowed too: `inProgress` and `stuck` count runs started since the server came up (a run left RUNNING or WAITING by a restart is not in progress), `totalTests` is the run collection's own document count (an estimate to within a few documents) and `totalUsers` counts users who created a test plan, so somebody who has only ever run standalone tests is not in it. Everything else is all time.
      */
     get: operations["getStatisticsOverview"];
@@ -1081,6 +1083,7 @@ export interface components {
       dimensions?: components["schemas"]["StatisticsDimensions"];
       heatmap?: number[][];
       modules?: components["schemas"]["StatisticsModules"];
+      topUsers?: components["schemas"]["StatisticsTopUser"][];
       externalHosts?: components["schemas"]["StatisticsExternalHost"][];
       unresolvedPlans?: components["schemas"]["StatisticsUnresolvedPlan"][];
     };
@@ -1133,6 +1136,16 @@ export interface components {
       certifiedPlans?: number;
       /** Format: int64 */
       publishedPlans?: number;
+    };
+    StatisticsTopUser: {
+      iss?: string;
+      sub?: string;
+      /** Format: int64 */
+      runs?: number;
+      /** Format: int64 */
+      failed?: number;
+      /** Format: int64 */
+      modules?: number;
     };
     StatisticsUnresolvedPlan: {
       planName?: string;
@@ -1546,7 +1559,7 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description Canceled test successfully; returns the pre-cancellation state (the stop happens in the background) */
+      /** @description Cancelled test successfully; returns the pre-cancellation state (the stop happens in the background) */
       200: {
         headers: {
           [name: string]: unknown;

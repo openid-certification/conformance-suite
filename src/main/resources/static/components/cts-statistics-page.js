@@ -20,6 +20,7 @@ import {
   buildChartInputs,
   buildDistributions,
   buildModules,
+  buildTopUsers,
   defaultFilterState,
   drillDownRefusal,
   drillDownUrl,
@@ -524,6 +525,7 @@ class CtsStatisticsPage extends LitElement {
     this._hasAnyData = memoizeByArgs(hasAnyData);
     this._distributions = memoizeByArgs(buildDistributions);
     this._modules = memoizeByArgs(buildModules);
+    this._topUsers = memoizeByArgs(buildTopUsers);
   }
 
   createRenderRoot() {
@@ -1156,7 +1158,7 @@ class CtsStatisticsPage extends LitElement {
   }
 
   /**
-   * @returns {unknown} Refresh button, busy spinner, and the snapshot age.
+   * @returns {unknown} Refresh button, busy spinner, and when the snapshot was taken.
    */
   _renderToolbar() {
     const computedAt = (this._payload && this._payload.computedAt) || "";
@@ -1174,7 +1176,7 @@ class CtsStatisticsPage extends LitElement {
           ? html`<cts-spinner size="sm" label="Refreshing statistics"></cts-spinner>`
           : nothing}
         <p class="cts-stats-asof" role="status" data-testid="stats-computed-at">
-          Data as of <cts-time value=${computedAt}></cts-time>
+          Data as of <cts-time value=${computedAt} mode="compact"></cts-time>
         </p>
       </div>
     `;
@@ -1337,6 +1339,7 @@ class CtsStatisticsPage extends LitElement {
     /** @type {Distributions|null} */
     const distributions = noMatch ? null : this._distributions(data.dimensions);
     const modules = noMatch ? null : this._modules(data.modules);
+    const topUsers = noMatch ? [] : this._topUsers(data.topUsers, this._state, data);
     return html`
       <cts-statistics-insights
         data-testid="stats-insights"
@@ -1345,6 +1348,7 @@ class CtsStatisticsPage extends LitElement {
         ?busy=${this._busy}
         .distributions=${distributions}
         .modules=${modules}
+        .topUsers=${topUsers}
         .heatmap=${data.heatmap}
         .hosts=${data.externalHosts}
       ></cts-statistics-insights>

@@ -13,6 +13,7 @@ import {
   buildChartInputs,
   buildDistributions,
   buildModules,
+  buildTopUsers,
   defaultFilterState,
   distributionDatasets,
   drillDownFamily,
@@ -42,6 +43,7 @@ import {
   stateFromUrl,
   rankBy,
   urlFromState,
+  userPlansUrl,
   usersDatasets,
   visibleVariants,
 } from "./statistics-model.js";
@@ -730,6 +732,83 @@ describe("isSyntheticFamily", () => {
     expect(isSyntheticFamily(/** @type {any} */ ({ syntheticFamilies: "no" }), NO_PLAN)).toBe(
       false,
     );
+  });
+});
+
+describe("userPlansUrl", () => {
+  const user = { iss: "https://accounts.google.com", sub: "1234" };
+  /** @type {any} Three months of a monthly axis. */
+  const monthly = { periods: ["2024-01", "2024-02", "2024-03"], granularity: "month" };
+
+  it("names the user by both halves of the identity, which the listing requires", () => {
+    const url = userPlansUrl({ ...defaultFilterState(), range: "all" }, user, monthly);
+    expect(planListFilterFromUrl(url.slice(url.indexOf("?")))).toEqual({
+      ...emptyFilter(),
+      owner: "1234",
+      owner_iss: "https://accounts.google.com",
+    });
+  });
+
+  it("carries the family, the plan and the whole of a selected range", () => {
+    const state = { ...defaultFilterState(), range: "12m", family: "OID4VP", plan: "oid4vp-plan" };
+    const url = userPlansUrl(state, user, monthly);
+    expect(planListFilterFromUrl(url.slice(url.indexOf("?")))).toEqual({
+      ...emptyFilter(),
+      owner: "1234",
+      owner_iss: "https://accounts.google.com",
+      family: "OID4VP",
+      plan: "oid4vp-plan",
+      from: "2024-01-01",
+      to: "2024-04-01",
+    });
+  });
+
+  it("bounds a weekly range by the first Monday and the end of the last week", () => {
+    /** @type {any} */
+    const weekly = { periods: ["2024-01-01", "2024-01-08"], granularity: "week" };
+    const url = userPlansUrl({ ...defaultFilterState(), range: "12w" }, user, weekly);
+    const filter = planListFilterFromUrl(url.slice(url.indexOf("?")));
+    expect([filter.from, filter.to]).toEqual(["2024-01-01", "2024-01-15"]);
+  });
+
+  it("leaves out the variant and certification filters, which the count ignores", () => {
+    const state = {
+      ...defaultFilterState(),
+      range: "all",
+      variant: { fapi_profile: "openbanking_brazil" },
+      cert: "FAPI2 OP",
+    };
+    const filter = planListFilterFromUrl(
+      userPlansUrl(state, user, monthly).slice("plans.html".length),
+    );
+    expect(filter.variant).toEqual({});
+    expect(filter.cert).toBe("");
+  });
+});
+
+describe("buildTopUsers", () => {
+  it("keeps the server's order and gives each row its issuer host and its link", () => {
+    /** @type {any} */
+    const data = { periods: [], granularity: "month" };
+    const rows = buildTopUsers(
+      [
+        { iss: "https://accounts.google.com", sub: "1234", runs: 9, failed: 2, modules: 3 },
+        { iss: "not a url", sub: "abc", runs: 4, failed: 0, modules: 1 },
+      ],
+      { ...defaultFilterState(), range: "all" },
+      data,
+    );
+    expect(rows.map((row) => [row.sub, row.issuerHost, row.runs])).toEqual([
+      ["1234", "accounts.google.com", 9],
+      ["abc", "not a url", 4],
+    ]);
+    expect(rows[0].href).toBe("plans.html?owner=1234&owner_iss=https%3A%2F%2Faccounts.google.com");
+  });
+
+  it("has no rows for a payload without the section", () => {
+    /** @type {any} */
+    const missing = undefined;
+    expect(buildTopUsers(missing, defaultFilterState(), /** @type {any} */ ({}))).toEqual([]);
   });
 });
 

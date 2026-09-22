@@ -101,7 +101,7 @@ class StatisticsCube_UnitTest {
 			List.of(new PlanCell("2026-02", "2026-02-02", "oidcc-plan", null, null, 3, 1, 1),
 				new PlanCell("2026-02", "2026-02-09", "oidcc-plan", "", "", 4, 0, 2),
 				new PlanCell("2026-02", "2024-01-01", "oidcc-plan", "", "", 5, 5, 5)),
-			List.of(), List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			List.of(), List.of(), ModuleRuns.NONE, List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
 		assertThat(cube.plans(Granularity.MONTH)).singleElement().satisfies(cell -> {
 			assertThat(cell.plans()).isEqualTo(12);
@@ -176,7 +176,7 @@ class StatisticsCube_UnitTest {
 	void aMonthBeforeTheSuiteExistedIsDroppedFromAUserTuple() {
 		StatisticsCube cube = new StatisticsCube(List.of(), List.of(),
 			List.of(new UserTuple("oidcc-plan", null, null, 1, List.of("1970-01", "2026-02"), List.of(), false)),
-			List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			List.of(), ModuleRuns.NONE, List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
 		assertThat(cube.users().get(0).months()).containsExactly("2026-02");
 	}
@@ -196,7 +196,7 @@ class StatisticsCube_UnitTest {
 		StatisticsCube cube = new StatisticsCube(List.of(), List.of(),
 			List.of(new UserTuple("oidcc-plan", null, null, 1,
 				List.of("2026-02", "2020-01"), List.of("2026-02-23", "2024-03-11", "not-a-week"), false)),
-			List.of(), List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			List.of(), ModuleRuns.NONE, List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
 		UserTuple tuple = cube.users().get(0);
 		assertThat(tuple.months()).containsExactly("2020-01", "2026-02");
@@ -231,7 +231,7 @@ class StatisticsCube_UnitTest {
 				new HeatCell("2024-01-01", "00", 9),
 				new HeatCell("bad-day", "07", 1),
 				new HeatCell("2026-03-09", "xx", 1)),
-			List.of(), List.of(), List.of(), NO_TILES, RESOLVER, NOW);
+			ModuleRuns.NONE, List.of(), List.of(), NO_TILES, RESOLVER, NOW);
 
 		assertThat(cube.heat()).extracting(HeatBin::month, HeatBin::week, HeatBin::dow, HeatBin::hour, HeatBin::runs)
 			.containsExactlyInAnyOrder(
@@ -242,7 +242,7 @@ class StatisticsCube_UnitTest {
 	}
 
 	private static StatisticsCube cube(List<RunCell> runCells) {
-		return new StatisticsCube(runCells, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+		return new StatisticsCube(runCells, List.of(), List.of(), List.of(), ModuleRuns.NONE, List.of(), List.of(),
 			NO_TILES, RESOLVER, NOW);
 	}
 }

@@ -158,7 +158,7 @@ public class DBStatisticsService implements StatisticsService {
 		List<PlanCell> plans = timings.time("plans", () -> source.plans(today));
 		List<UserTuple> users = timings.time("users", () -> source.users(today));
 		List<HeatCell> heat = timings.time("heat", () -> source.heat(today));
-		List<ModuleUserCell> modules = timings.time("modules", () -> source.modules(today));
+		ModuleRuns modules = timings.time("modules", () -> source.modules(today));
 		List<HostRow> hosts = timings.time("hosts", () -> source.externalHosts(today));
 		List<StorageRow> storage = timings.time("storage", source::storage);
 		long totalUsers = users.stream().mapToInt(UserTuple::ownerId).distinct().count();
@@ -168,7 +168,7 @@ public class DBStatisticsService implements StatisticsService {
 		logger.info("Computed the statistics cube in {}ms ({}): {} run cells, {} plan cells, {} user tuples, "
 				+ "{} heat cells, {} module cells, {} external hosts; {} months, {} weeks",
 			Duration.between(startedAt, Instant.now()).toMillis(), timings,
-			runs.size(), plans.size(), users.size(), heat.size(), modules.size(), hosts.size(),
+			runs.size(), plans.size(), users.size(), heat.size(), modules.cells().size(), hosts.size(),
 			cube.periods(Granularity.MONTH).size(), cube.periods(Granularity.WEEK).size());
 		return cube;
 	}

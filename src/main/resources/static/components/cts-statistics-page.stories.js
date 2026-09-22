@@ -14,6 +14,7 @@ import {
   MOCK_STATS_WEEKS,
   statisticsOverviewFor,
 } from "@fixtures/mock-statistics.js";
+import { formatCompact } from "../lib/time-format.js";
 import "./cts-statistics-page.js";
 
 export default {
@@ -155,6 +156,25 @@ async function moduleChart(canvasElement, testid) {
 }
 
 /**
+ * The rows of the top users table, read closed: cell text and the link's
+ * query do not depend on the disclosure being open.
+ * @param {HTMLElement} canvasElement - The story root.
+ * @returns {Array<{cells: Array<string>, query: URLSearchParams}>} One entry
+ *   per row: its cells, and the query of its link to the plans listing.
+ */
+function topUsers(canvasElement) {
+  const rows = canvasElement.querySelectorAll('[data-testid="stats-top-users"] tbody tr');
+  return Array.from(rows, (row) => {
+    const href = /** @type {HTMLAnchorElement} */ (row.querySelector("a")).getAttribute("href");
+    expect(href).toMatch(/^plans\.html\?/);
+    return {
+      cells: Array.from(row.querySelectorAll("th, td"), (cell) => (cell.textContent || "").trim()),
+      query: new URLSearchParams(String(href).slice(String(href).indexOf("?"))),
+    };
+  });
+}
+
+/**
  * The modules section's own table — every module, not the twelve either chart
  * plots. Opened first: it is a disclosure, and a closed one tells a play
  * function nothing about what it contains.
@@ -266,9 +286,11 @@ export const Ready = {
       expect(location.search).toBe("?range=12m");
     });
 
-    await step("toolbar reports the snapshot age and is not busy", async () => {
+    await step("toolbar reports when the snapshot was taken and is not busy", async () => {
       const asOf = canvasElement.querySelector('[data-testid="stats-computed-at"]');
       expect(asOf.textContent).toContain("Data as of");
+      // An absolute time, so it stays true while the page sits open.
+      expect(asOf.textContent).toContain(formatCompact("2026-06-01T09:12:33.000Z"));
       expect(asOf.querySelector("time")?.getAttribute("datetime")).toBe("2026-06-01T09:12:33.000Z");
       const refresh = canvasElement.querySelector('[data-testid="stats-refresh"] button');
       expect(refresh.hasAttribute("disabled")).toBe(false);
@@ -962,6 +984,25 @@ export const Modules = {
       expect(rows[14][0]).toBe("oid4vp-1final-verifier-invalid-nonce");
     });
 
+    await step(
+      "the most active users are listed under it, each linked to their plans",
+      async () => {
+        const users = topUsers(canvasElement);
+        expect(users.map((user) => user.cells)).toEqual([
+          ["4821907", "gitlab.com", "12,840", "310", "412"],
+          ["108204713355021946632", "accounts.google.com", "3,150", "890", "96"],
+          ["115930027481163950274", "accounts.google.com", "1,275", "140", "58"],
+          ["1730055", "gitlab.com", "640", "52", "31"],
+        ]);
+        // both halves of the identity, which the listing requires, and the
+        // selected range
+        expect(users[0].query.get("owner")).toBe("4821907");
+        expect(users[0].query.get("owner_iss")).toBe("https://gitlab.com");
+        expect(users[0].query.get("from")).toMatch(/^\d{4}-\d{2}-01$/);
+        expect(users[0].query.get("to")).toMatch(/^\d{4}-\d{2}-01$/);
+      },
+    );
+
     await step("and it follows the family filter", async () => {
       await userEvent.selectOptions(select(canvasElement, "stats-family"), "OID4VP");
       await waitFor(() => {
@@ -974,6 +1015,11 @@ export const Modules = {
         "oid4vp-1final-verifier-happy-path",
         "oid4vp-1final-verifier-invalid-nonce",
       ]);
+      // The users are counted over the same runs, so they narrow too, and
+      // their links carry the family to the listing.
+      const users = topUsers(canvasElement);
+      expect(users.map((user) => user.cells[0])).toEqual(["108204713355021946632", "1730055"]);
+      expect(users[0].query.get("family")).toBe("OID4VP");
       // Two modules, two bars: nothing was cut, so the hint no longer claims
       // anything is only in the table.
       expect(moduleTable(canvasElement).hint).toBe(
@@ -994,6 +1040,8 @@ export const Modules = {
         // The one range wider than the window the server keeps cells for.
         expect(canvas.getByText("Modules (last 12 months)")).toBeInTheDocument();
       }, POLL_TIMEOUT);
+      // no range selected, no dates on the link: every plan the user has
+      expect(topUsers(canvasElement)[0].query.has("from")).toBe(false);
     });
 
     await step("a synthetic family has no modules, and the section says so", async () => {
