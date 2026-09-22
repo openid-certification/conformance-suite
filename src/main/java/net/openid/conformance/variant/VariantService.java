@@ -1056,13 +1056,13 @@ public class VariantService {
 		boolean isApplicableForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
 			return parameters.stream()
 					.allMatch(p -> {
-						// Get effective allowed values considering conditional exclusions
-						Set<?> effectiveAllowedValues = p.getAllowedValuesForVariant(variant);
-
-						// If all values are excluded, this parameter is not applicable - skip validation
-						if (effectiveAllowedValues.isEmpty()) {
+						// The conditional exclusions rule the whole parameter out - skip validation
+						if (p.isFullyExcludedForVariant(variant)) {
 							return true;
 						}
+
+						// Get effective allowed values considering conditional exclusions
+						Set<?> effectiveAllowedValues = p.getAllowedValuesForVariant(variant);
 
 						Object v = variant.get(p.parameter);
 						if (v == null) {
@@ -1266,8 +1266,8 @@ public class VariantService {
 			valuesApplicableOnly.forEach(values ->
 					this.allowedValues.retainAll(values.stream().map(parameter::valueOf).collect(toSet())));
 			if (this.allowedValues.isEmpty()) {
-				// An empty set would otherwise read as "parameter not relevant" and let the module run
-				// under every value, the opposite of what the annotations asked for.
+				// With no value left the module could never be selected, which is never what the
+				// annotations meant to ask for.
 				throw new IllegalArgumentException("Variant parameter '%s' has no applicable values left: the @VariantNotApplicable / @VariantApplicableOnly annotations in the class hierarchy exclude every value of %s".formatted(
 						parameter.variantParameter.name(),
 						parameter.parameterClass.getSimpleName()));
@@ -1314,11 +1314,21 @@ public class VariantService {
 		}
 
 		/**
-		 * Returns true if this parameter is entirely excluded for the given variant selection
-		 * (all values are conditionally excluded).
+		 * Returns true if this parameter is not applicable for the given variant selection: the
+		 * conditional @VariantNotApplicableWhen exclusions on their own cover every value.
+		 *
+		 * Static exclusions do not count. A module whose statically allowed values are all
+		 * conditionally excluded has no value it can run under, so it is not applicable for the
+		 * selection, rather than applicable under every value.
 		 */
 		boolean isFullyExcludedForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
-			return getAllowedValuesForVariant(variant).isEmpty();
+			Set<T> remaining = EnumSet.allOf(parameter.parameterClass);
+
+			for (ConditionalExclusion<T> exclusion : conditionalExclusions) {
+				remaining.removeAll(exclusion.getExcludedValues(variant));
+			}
+
+			return remaining.isEmpty();
 		}
 
 		/**
