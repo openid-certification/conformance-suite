@@ -173,6 +173,7 @@ ensure-buildx-images:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
 
+
 .compare: &compare
   stage: compare
   interruptible: true
@@ -215,14 +216,11 @@ compare_ekyc:
 #  script:
 #    - run_compare authzen_test
 
-#compare_brazil:
-#  <<: *compare
-#  needs: ["brazil_test"]
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == "master"
-#      when: on_success
-#  script:
-#    - run_compare brazil_test
+compare_brazil:
+  <<: *compare
+  needs: ["brazil_test"]
+  script:
+    - run_compare brazil_test
 
 compare_panva:
   <<: *compare
@@ -421,22 +419,6 @@ stop_normal:
       when: manual
       allow_failure: true
 
-.deployment_master_test: &deployment_master_test
-  stage: test
-  interruptible: true
-  image: python:3.13-alpine3.20
-  # Skip running most *_test jobs on demo to avoid overloading server/keep
-  # database size down/make it easier to find user test runs.
-  # See vc_test for an example of how to override.
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "schedule"
-      allow_failure: true
-  artifacts:
-    access: developer
-    when: always
-    paths:
-      - "*.zip"
-
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
@@ -481,7 +463,7 @@ ciba_test:
     - run_ciba_test_plan
 
 brazil_test:
-  <<: *deployment_master_test
+  <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_brazil_test_plan
