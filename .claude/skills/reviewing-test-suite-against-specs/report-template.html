@@ -1,0 +1,187 @@
+<!--
+Report template for reviewing-test-suite-against-specs, Step 5.
+
+Copy this file, keep the <style> block as it is (both themes are defined there), and fill the
+eleven sections in the order report-contract.md gives. Replace every {{...}} placeholder;
+delete nothing else. Findings use the .finding block below; severity pills are crit / imp / min /
+ok / wg. Line numbers go in .where only where you opened the file yourself (Step 4).
+Verdict panel: class "verdict" for Not yet, "verdict ready" for Ready.
+-->
+<title>{{Family}} Certification Readiness</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F7F8F6; --panel:#FFFFFF; --ink:#1B2530; --muted:#5B6875; --rule:#D8DDD9;
+  --accent:#C2561B; --accent-soft:#F6E3D6;
+  --pass:#2F7A4E; --pass-soft:#DFF0E4; --warn:#A66A0F; --warn-soft:#F7EAD0; --fail:#B3382E; --fail-soft:#F6DCD9; --review:#4A5FA8; --review-soft:#DEE3F4;
+  --code-bg:#EEF1EE;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#151A1E; --panel:#1D2429; --ink:#E6E9E7; --muted:#9AA6B0; --rule:#323B42;
+  --accent:#E8834A; --accent-soft:#3B271B;
+  --pass:#6FC38F; --pass-soft:#1E3427; --warn:#E0B060; --warn-soft:#3A2E17; --fail:#EF8A80; --fail-soft:#3F2320; --review:#9DB0F2; --review-soft:#232B45;
+  --code-bg:#242C32;
+}}
+:root[data-theme="dark"]{
+  --ground:#151A1E; --panel:#1D2429; --ink:#E6E9E7; --muted:#9AA6B0; --rule:#323B42;
+  --accent:#E8834A; --accent-soft:#3B271B;
+  --pass:#6FC38F; --pass-soft:#1E3427; --warn:#E0B060; --warn-soft:#3A2E17; --fail:#EF8A80; --fail-soft:#3F2320; --review:#9DB0F2; --review-soft:#232B45;
+  --code-bg:#242C32;
+}
+body{background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15.5px;line-height:1.55;margin:0}
+main{max-width:78ch;margin:0 auto;padding:40px 24px 80px}
+h1,h2,h3{font-family:"Source Serif 4",Georgia,"Times New Roman",serif;text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:2.1rem;font-weight:600}
+h2{font-size:1.45rem;font-weight:600;margin-top:56px;padding-top:18px;border-top:1px solid var(--rule)}
+h3{font-size:1.1rem;font-weight:600;margin-top:28px}
+p{margin:12px 0}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.meta{color:var(--muted);font-size:.9rem;margin-top:8px}
+code,.tag{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:3px}
+pre{background:var(--code-bg);padding:12px 14px;overflow-x:auto;border-radius:4px;font-size:.84em;line-height:1.45}
+pre code{background:none;padding:0}
+.verdict{margin-top:28px;padding:20px 22px;border-left:6px solid var(--fail);background:var(--fail-soft);border-radius:0 6px 6px 0}
+.verdict.ready{border-left-color:var(--pass);background:var(--pass-soft)} .verdict.ready .word{color:var(--pass)}
+.verdict .word{font-family:"Source Serif 4",Georgia,serif;font-size:1.7rem;font-weight:600;color:var(--fail)}
+.verdict p{margin:8px 0 0}
+.three{display:grid;grid-template-columns:1fr;gap:10px;margin:18px 0 0;padding:0;list-style:none}
+.three li{display:grid;grid-template-columns:7.5em 1fr;gap:12px;align-items:baseline}
+.three .q{font-weight:600;color:var(--muted);font-size:.85rem;text-transform:uppercase;letter-spacing:.05em}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin:26px 0 0}
+.tally div{background:var(--panel);padding:12px 14px}
+.tally .n{font-family:"Source Serif 4",Georgia,serif;font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.tally .l{font-size:.78rem;color:var(--muted);margin-top:4px;line-height:1.3}
+.tally .n.bad{color:var(--fail)} .tally .n.ok{color:var(--pass)} .tally .n.mid{color:var(--warn)}
+.tbl{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--rule)}
+th{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pill{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.pill.crit{background:var(--fail-soft);color:var(--fail)} .pill.imp{background:var(--warn-soft);color:var(--warn)} .pill.min{background:var(--review-soft);color:var(--review)} .pill.ok{background:var(--pass-soft);color:var(--pass)} .pill.wg{background:var(--accent-soft);color:var(--accent)}
+.finding{margin:18px 0;padding:0 0 14px;border-bottom:1px dashed var(--rule)}
+.finding:last-child{border-bottom:0}
+.finding h4{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:1rem;font-weight:600;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.finding p{margin:6px 0}
+.clause{border-left:3px solid var(--accent);padding:4px 12px;margin:8px 0;color:var(--ink);background:var(--panel);font-size:.92rem}
+.clause .ref{display:block;font-size:.74rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+.where{font-size:.86rem;color:var(--muted)}
+ul,ol{padding-left:1.3em} li{margin:4px 0}
+.note{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 16px;margin:16px 0;font-size:.92rem}
+.toc{margin:24px 0 0;padding:14px 18px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;font-size:.9rem;columns:2;column-gap:24px}
+.toc a{color:var(--ink);text-decoration:none;display:block;padding:2px 0} .toc a:hover,.toc a:focus{color:var(--accent);text-decoration:underline}
+a{color:var(--accent)} a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:640px){.toc{columns:1}.three li{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+h2,h3{scroll-margin-top:16px}
+thead th{position:sticky;top:0;background:var(--ground)}
+</style>
+
+<main>
+<div class="eyebrow">Conformance suite audit · {{Spec 1.0 Final + Profile}}</div>
+<h1>{{Family}} Certification Readiness</h1>
+<div class="meta">Plans <code>{{plan-name}}</code>, … · master at {{sha}} · reviewed {{date}}</div>
+
+<!-- 1. Verdict -->
+<div class="verdict">
+  <div class="word">Not yet</div>
+  <p>{{One paragraph: why.}}</p>
+  <ul class="three">
+    <li><span class="q">Wrong?</span><span>{{Yes/No. N verified findings where a conformant implementation fails …}}</span></li>
+    <li><span class="q">Missing?</span><span>{{Yes/No. N MUSTs that pass a non-conformant implementation …}}</span></li>
+    <li><span class="q">Ready?</span><span>{{No/Yes. What must change first.}}</span></li>
+  </ul>
+</div>
+
+<!-- 2. Tally strip: .n classes ok / mid / bad colour the number -->
+<div class="tally">
+  <div><div class="n ok">{{21 / 21}}</div><div class="l">{{modules run in CI}}</div></div>
+  <div><div class="n bad">{{2 / 5}}</div><div class="l">{{…}}</div></div>
+  <div><div class="n mid">{{81 / 201}}</div><div class="l">conditions with a unit test</div></div>
+  <div><div class="n">{{14 · 0}}</div><div class="l">negative modules: role A · role B</div></div>
+  <div><div class="n bad">{{≈45}}</div><div class="l">requirement tags pointing at the wrong section</div></div>
+  <div><div class="n">{{1}}</div><div class="l">third-party counterparties in CI</div></div>
+</div>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#target">Certification target</a>
+  <a href="#wrong">Wrong tests</a>
+  <a href="#missing">Missing checks</a>
+  <a href="#cases">Missing test cases by clause</a>
+  <a href="#anchors">Requirement anchors</a>
+  <a href="#infra">CI, unit tests, configuration</a>
+  <a href="#wg">Questions for the working group</a>
+  <a href="#order">Suggested order of work</a>
+  <a href="#method">Method and caveats</a>
+</nav>
+
+<!-- 3. Certification target: which document the code implements, which the links point at,
+        what openid.net says is certifiable, the certification profile in the plans; contradictions first -->
+<h2 id="target">Certification target</h2>
+<p>{{…}}</p>
+<div class="tbl"><table>
+<tr><th>Document</th><th>Code links</th><th>Certification target pins</th><th>Current</th><th>Assessment</th></tr>
+<tr><td>{{…}}</td><td></td><td></td><td></td><td></td></tr>
+</table></div>
+
+<!-- 4. Wrong tests, grouped by role; one .finding per item -->
+<h2 id="wrong">Wrong tests: conformant implementations fail, hang or crash</h2>
+<h3>{{Role A}} under test (suite emulates {{role B}})</h3>
+<div class="finding">
+<h4><span class="pill crit">critical</span>{{Title}}</h4>
+<p>{{What the code does.}}</p>
+<div class="clause"><span class="ref">{{Spec §x.y}}</span>{{Verbatim clause.}}</div>
+<div class="where">{{path/File.java:123 (verified) · path/Other.java}}</div>
+</div>
+
+<!-- 5. Missing checks, grouped by role; MUSTs graded WARNING/INFO together; tolerated sibling specs -->
+<h2 id="missing">Missing checks: non-conformant implementations pass</h2>
+<h3>{{Role A}} under test</h3>
+<ul>
+<li><strong>{{Gap.}}</strong> {{What passes today, clause, where.}} <span class="where">{{file}}</span></li>
+</ul>
+
+<!-- 6. Missing test cases by clause, one table per role -->
+<h2 id="cases">Missing test cases by clause</h2>
+<h3>{{Role A}} under test</h3>
+<div class="tbl"><table>
+<tr><th>Clause</th><th>Requirement</th><th>Feasibility</th></tr>
+<tr><td>{{§x.y}}</td><td>{{…}}</td><td>{{yes / partly / needs real trigger / needs multi-tenant / WG decision}}</td></tr>
+</table></div>
+
+<!-- 7. Anchors -->
+<h2 id="anchors">Requirement anchors pointing at the wrong section</h2>
+<div class="tbl"><table>
+<tr><th>Cited</th><th>Where</th><th>Should be</th></tr>
+<tr><td><code>{{PREFIX-x.y}}</code></td><td>{{File.java:12}}</td><td>{{…}}</td></tr>
+</table></div>
+
+<!-- 8. Infrastructure: coverage matrix, never-run modules and variants, unit tests, config fields, TODOs -->
+<h2 id="infra">CI, unit tests, configuration</h2>
+<div class="tbl"><table>
+<tr><th>Module group</th><th>Runs in CI</th><th>Counterparty</th><th>Gap</th></tr>
+<tr><td>{{…}}</td><td></td><td></td><td></td></tr>
+</table></div>
+<p><strong>Variant values never run:</strong> {{…}} <strong>Untested-module report:</strong> {{which mechanism governs it}} <strong>Unit tests:</strong> {{…}} <strong>Configuration:</strong> {{…}}</p>
+
+<!-- 9. WG questions: pill "wg" for spec questions, "imp" for programme questions -->
+<h2 id="wg">Questions for the working group and the certification programme</h2>
+<ol>
+<li><span class="pill wg">WG</span> {{…}}</li>
+</ol>
+
+<!-- 10. Order of work -->
+<h2 id="order">Suggested order of work</h2>
+<ol>
+<li><strong>Target documents.</strong> {{…}}</li>
+<li><strong>False failures.</strong> {{…}}</li>
+<li><strong>MUSTs to FAILURE.</strong> {{…}}</li>
+<li><strong>Value checks and negatives.</strong> {{…}}</li>
+<li><strong>CI widening.</strong> {{…}}</li>
+<li><strong>Anchors and summaries.</strong> {{…}}</li>
+</ol>
+
+<!-- 11. Method -->
+<h2 id="method">Method and caveats</h2>
+<p>{{What was reviewed, which claims were re-verified by hand, what was not checked.}}</p>
+</main>

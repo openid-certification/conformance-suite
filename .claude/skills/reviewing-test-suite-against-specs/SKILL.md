@@ -62,7 +62,7 @@ Subagent line numbers are unreliable even when the brief tells them to grep: in 
 
 ## Step 5 — Report, publish, remember
 
-Follow `report-contract.md`: verdict first, the three questions answered in one line each, then *conformant implementations fail* (wrong tests), *non-conformant implementations pass* (missing checks), missing-test tables with feasibility, anchor table, infrastructure, **questions for the WG**, suggested order. Publish as an HTML artifact (load `artifact-design` first). Save a `project` memory note with the verdict and blocker list, linked to sibling reviews.
+Follow `report-contract.md`: verdict first, the three questions answered in one line each, then *conformant implementations fail* (wrong tests), *non-conformant implementations pass* (missing checks), missing-test tables with feasibility, anchor table, infrastructure, **questions for the WG**, suggested order. Publish as an HTML artifact: start from `report-template.html` in this directory (it carries the page structure, the section anchors and a light/dark stylesheet shared by every family's report) and fill its placeholders; load `artifact-design` first, and keep the template's tokens rather than restyling, so sibling reports look alike. Save a `project` memory note with the verdict and blocker list, linked to sibling reviews.
 
 ## Common mistakes
 
