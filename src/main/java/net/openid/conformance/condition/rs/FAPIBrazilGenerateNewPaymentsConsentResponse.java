@@ -79,7 +79,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 	}
 	*/
 	@Override
-	@PreEnvironment(strings = {"fapi_interaction_id"}, required = {"new_consent_request"})
+	@PreEnvironment(strings = {"fapi_interaction_id", "base_mtls_url"}, required = {"new_consent_request"})
 	@PostEnvironment(strings = {"consent_id"}, required = {"consent_response", "consent_response_headers"})
 	public Environment evaluate(Environment env) {
 
@@ -92,7 +92,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		Instant baseDateRough = Instant.now();
 		Instant baseDate = baseDateRough.minusNanos(baseDateRough.getNano());
 		String creationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
-		String expirationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(2, ChronoUnit.HOURS));
+		String expirationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(5, ChronoUnit.MINUTES));
 
 		dataElement.addProperty("consentId", consentId);
 		dataElement.addProperty("creationDateTime", creationDateTime);
@@ -122,7 +122,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		consentResponse.add("data", dataElement);
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
+		links.addProperty("self", env.getString("base_mtls_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 		consentResponse.add("links", links);
 
 		JsonObject meta = new JsonObject();
@@ -145,6 +145,7 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+		headers.addProperty("x-v", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_API_VERSION);
 
 		env.putObject("consent_response_headers", headers);
 

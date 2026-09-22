@@ -8,6 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class FAPIBrazilChangeConsentStatusToAuthorized extends AbstractCondition {
 
@@ -25,6 +26,10 @@ public class FAPIBrazilChangeConsentStatusToAuthorized extends AbstractCondition
 		String statusUpdateDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
 
 		data.addProperty("statusUpdateDateTime", statusUpdateDateTime);
+		if (data.has("payment")) {
+			// payments consents must be consumed within 60 minutes of authorisation
+			data.addProperty("expirationDateTime", DateTimeFormatter.ISO_INSTANT.format(baseDate.plus(60, ChronoUnit.MINUTES)));
+		}
 
 		logSuccess("Changed consent status to AUTHORISED", args("consent", consentResponse));
 
