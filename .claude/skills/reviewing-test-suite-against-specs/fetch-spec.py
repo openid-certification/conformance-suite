@@ -29,14 +29,27 @@ import sys
 import urllib.error
 import urllib.request
 
-# Title must start with an uppercase letter: filters "2.0 roles map to..." and
-# "60 minutes." fragments that begin a wrapped line.
-HEADING_RE = re.compile(r"^(\d+(?:\.\d+)*)\.?\s+([A-Z\"'(].*)$")
+# The dot after the number is required: it separates "5.8. aud of a Request Object" from a
+# wrapped body line such as "2.0 roles map to...".
+HEADING_RE = re.compile(r"^(\d+(?:\.\d+)*)\.\s+(\S.*)$")
 
 
 def html_to_text(raw: str) -> str:
     s = re.sub(r"<script.*?</script>", "", raw, flags=re.S)
     s = re.sub(r"<style.*?</style>", "", s, flags=re.S)
+    # Every heading element starts its own line at column 0, whatever indentation or line
+    # breaks the source puts around it: rfc2629 pages wrap <h3>NUM.&nbsp;\nTITLE</h3>, while
+    # xml2rfc-v3 pages indent <hN> itself and put NUM/TITLE (each wrapped in <a>/<code>) on the
+    # next line. Nested tags are left for the generic tag-stripping below; only whitespace here.
+    s = re.sub(r"<h([1-6])\b[^>]*>(.*?)</h\1>",
+               lambda m: "\n" + re.sub(r"(?:\s|&nbsp;|&#160;)+", " ", m.group(2)).strip() + "\n",
+               s, flags=re.S)
+    # Code blocks and list items are indented, as xml2rfc indents figures and lists in RFC text,
+    # so headings() skips a literal "1. https://..." example line the same way it skips RFC list items.
+    s = re.sub(r"<pre\b[^>]*>(.*?)</pre>",
+               lambda m: "\n" + "\n".join("   " + line for line in m.group(1).split("\n")) + "\n",
+               s, flags=re.S)
+    s = re.sub(r"<li\b[^>]*>", "\n   ", s)
     s = re.sub(r"<(br|/p|/div|/li|/h\d|/tr|/pre|/dd|/dt|/section)[^>]*>", "\n", s)
     s = re.sub(r"<[^>]+>", "", s)
     s = html.unescape(s)
@@ -72,22 +85,26 @@ def fetch(name: str, url: str, out_dir: str) -> None:
 def headings(path: str):
     out = []
     with open(path, encoding="utf-8") as f:
-        for line in f:
-            line = line.rstrip("\n")
-            # Indented numbered lines are list items ("   1. The JWT MUST ..."), not headings:
-            # RFC text puts section headings at column 0 and the HTML converter strips indents.
-            if line[:1].isspace():
-                continue
-            m = HEADING_RE.match(line.rstrip())
-            if not m:
-                continue
-            num, title = m.group(1), m.group(2).strip()
-            # Skip table-of-contents-looking lines with page numbers or dotted leaders
-            if re.search(r"\.{3,}|\s\d+$", title):
-                continue
-            if len(title) > 90:
-                continue
-            out.append((num, title))
+        lines = f.read().split("\n")
+    for i, line in enumerate(lines):
+        # Indented numbered lines are list items ("   1. The JWT MUST ..."), not headings:
+        # RFC text puts section headings at column 0 and the HTML converter strips indents.
+        if line[:1].isspace():
+            continue
+        m = HEADING_RE.match(line.rstrip())
+        if not m:
+            continue
+        num, title = m.group(1), m.group(2).strip()
+        # xml2rfc wraps a long title onto indented continuation lines, ended by the blank
+        # line that always follows a heading.
+        for cont in lines[i + 1:]:
+            if not cont.strip() or not cont[:1].isspace():
+                break
+            title += " " + cont.strip()
+        # Skip table-of-contents-looking lines with page numbers or dotted leaders
+        if re.search(r"\.{3,}|\s\d+$", title):
+            continue
+        out.append((num, title))
     # A heading may appear twice (ToC + body); keep the first occurrence per number+title
     seen, uniq = set(), []
     for num, title in out:
