@@ -48,13 +48,6 @@ public class ValidateDiscoveryMetadataSequence extends AbstractConditionSequence
 			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-3");
 		}
 
-		/*
-		// These two lines are in OIDCCDiscoveryEndpointVerification.performEndpointVerification(),
-		// but we're already checking URL and iss for federation entity configurations elsewhere.
-		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
-		*/
-
 		callAndContinueOnFailure(ValidateServerMetadataAgainstSchema.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "RFC8414-2");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInServerMetadata.class, Condition.ConditionResult.WARNING, "OIDCD-3", "RFC8414-2");
 
