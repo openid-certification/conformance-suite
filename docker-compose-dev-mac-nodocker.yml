@@ -14,7 +14,7 @@ services:
   mongodb:
     image: mongo:6.0.13
     volumes:
-     - ./mongo/data:/data/db:delegated
+     - mongodb-data:/data/db
     ports:
      - "27017:27017"
   nginxlocal:
@@ -32,3 +32,6 @@ services:
     extra_hosts:
       # the special host-gateway value resolves to the internal IP address of the host.
       - "server:host-gateway"
+
+volumes:
+  mongodb-data:
