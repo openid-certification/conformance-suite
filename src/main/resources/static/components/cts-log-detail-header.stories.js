@@ -2422,7 +2422,7 @@ export const RepeatTestAvailableWhileRunning = {
   },
 };
 
-export const PublicViewStillHidesRepeatWhileWaiting = {
+export const PublicViewHidesRepeatAndStopWhileWaiting = {
   render: () =>
     html`<cts-log-detail-header
       .testInfo=${WAITING_TEST_WITH_RESULTS}
@@ -2434,8 +2434,29 @@ export const PublicViewStillHidesRepeatWhileWaiting = {
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
-    // A read-only viewer cannot launch runs, in any phase.
+    // A read-only viewer can neither launch nor cancel runs, in any phase.
     expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeNull();
+    expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    expect(within(bar).queryByText(/Stop/)).toBeNull();
+  },
+};
+
+export const PublicViewHidesStopWhileRunning = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${RUNNING_TEST_WITH_RESULTS}
+      is-public
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    expect(bar.querySelector('cts-badge[label="RUNNING"]')).toBeTruthy();
+    expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeNull();
+    expect(within(bar).queryByText(/Stop/)).toBeNull();
   },
 };
 

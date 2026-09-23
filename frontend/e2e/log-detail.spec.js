@@ -1826,6 +1826,53 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(apiRequests.filter((u) => u.includes("/api/runner/"))).toHaveLength(0);
   });
 
+  test("public mode: a WAITING test offers no Stop and sends no DELETE", async ({ page }) => {
+    // A read-only viewer can neither launch nor cancel runs. The WAITING bar
+    // gained Stop for owners; the public view must hide it like Start and
+    // Repeat, or a viewer could cancel someone else's run.
+    /** @type {string[]} */
+    const runnerCalls = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/runner/")) runnerCalls.push(`${req.method()} ${req.url()}`);
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}&public=true`,
+    );
+
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar.locator('cts-badge[label="WAITING"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="status-bar-repeat"]')).toHaveCount(0);
+    await expect(bar).not.toContainText("Stop");
+    expect(runnerCalls.filter((c) => c.startsWith("DELETE"))).toHaveLength(0);
+  });
+
+  test("public mode: a RUNNING test offers no Stop", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}&public=true`,
+    );
+
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar.locator('cts-badge[label="RUNNING"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    await expect(bar).not.toContainText("Stop");
+  });
+
   test("public mode: Download Logs requests /api/log/exporthtml/<id> with public=true", async ({
     page,
   }) => {

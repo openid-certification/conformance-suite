@@ -1719,9 +1719,13 @@ class CtsLogDetailHeader extends LitElement {
   /**
    * Stop button shared by the WAITING and RUNNING bars — the two phases in
    * which a test is live and can be cancelled through DELETE /api/runner/{id}.
-   * @returns {import('lit').TemplateResult} The Stop button.
+   * Omitted in the read-only (public) view, like Start and Repeat: a viewer
+   * who cannot launch a run cannot cancel one either.
+   * @returns {import('lit').TemplateResult|typeof nothing} The Stop button,
+   *   or `nothing` in the read-only (public) view.
    */
   _renderStopButton() {
+    if (this._isReadonly()) return nothing;
     return html`<cts-button
       variant="secondary"
       size="sm"
