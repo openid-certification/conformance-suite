@@ -485,11 +485,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 					callAndContinueOnFailure(ValidateVpClientMetadataEncryptionForHaip.class, ConditionResult.FAILURE, "HAIP-5-5", "OID4VP-1FINAL-8.3");
 				}
-				// HAIP requires an ephemeral encryption key specific to each Authorization Request; reuse is a
-				// FAILURE under HAIP and a WARNING otherwise (base OID4VP §8.3 does not clearly mandate it).
+				// HAIP §5 requires ephemeral encryption keys specific to each Authorization Request; reuse is a
+				// FAILURE under HAIP and a WARNING otherwise (base OID4VP §5.1 only says the jwks parameter
+				// "allows the Verifier to pass ephemeral keys specific to this Authorization Request").
 				ConditionResult reuseSeverity = (getVariant(VPProfile.class) == VPProfile.HAIP)
 					? ConditionResult.FAILURE : ConditionResult.WARNING;
-				callAndContinueOnFailure(VP1FinalCheckEncryptionKeyNotReused.class, reuseSeverity, "HAIP-5-5", "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(VP1FinalCheckEncryptionKeyNotReused.class, reuseSeverity, "HAIP-5-6", "OID4VP-1FINAL-5.1");
 				break;
 			case DIRECT_POST:
 				break;
