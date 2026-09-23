@@ -23,6 +23,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
+import net.openid.conformance.condition.as.EnsureMatchedRicalEntryHasNoTrustConstraints;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
@@ -61,6 +62,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
+import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
@@ -79,9 +81,12 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
+import net.openid.conformance.condition.client.ValidateOwnMdocSigningChainAgainstVical;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.sequence.ValidateJwksSequence;
+import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
+import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -106,10 +111,20 @@ import org.springframework.web.util.HtmlUtils;
 	VP1FinalVerifierRequestMethod.class
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
-	"client.client_id"
+	"client.client_id",
+	"client.rical",
+	"client.rical_url"
+})
+@VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_hash", configurationFields = {
+	"client.rical",
+	"client.rical_url"
 })
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
 	"client.request_object_trust_anchor_pem"
+})
+@VariantConfigurationFields(parameter = VP1FinalVerifierCredentialFormat.class, value = "iso_mdl", configurationFields = {
+	"credential.vical",
+	"credential.vical_url"
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalVerifierResponseMode.class,
@@ -249,6 +264,28 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(RegisterClientRequestObjectTrustAnchor.class);
+		if (clientIdPrefix == VP1FinalVerifierClientIdPrefix.X509_SAN_DNS
+			|| clientIdPrefix == VP1FinalVerifierClientIdPrefix.X509_HASH) {
+			// register and validate the optionally configured RICAL used as the trust source for
+			// the verifier's request object signing chain (superseding the single trust anchor).
+			// Only these prefixes reference a certificate in the request object's x5c header, so
+			// only they have a chain for the RICAL to govern.
+			call(sequence(SetupRicalFromConfiguration.class));
+		}
+		if (getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL) {
+			// register and validate the optionally configured VICAL, then pre-flight check
+			// that the suite's own mdoc signing chain is covered by it - a verifier trusting
+			// the VICAL is expected to reject the presented mdocs otherwise. A WARNING as
+			// this reports on the suite's VICAL registration, not on the verifier under test;
+			// an unfetchable 'VICAL URL' is reported at that same severity for the same reason.
+			call(new SetupVicalFromConfiguration(ConditionResult.WARNING));
+			call(condition(ValidateOwnMdocSigningChainAgainstVical.class)
+				.skipIfObjectsMissing("vical")
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("ISO18013-5-C.1.7.1"));
+		}
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}
@@ -478,6 +515,25 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateRequestObjectAudForVP.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.8");
 
 		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
+
+		// Skipped unless a RICAL is configured. The verifier under test owns its reader
+		// certificate, so a chain that does not validate against the configured reader trust
+		// list is a FAILURE.
+		call(condition(ValidateRequestObjectX5cChainAgainstRical.class)
+			.skipIfObjectsMissing("rical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.FAILURE)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-F.3.2.6"));
+		// trust constraints are ecosystem-defined with no concrete types in the spec, so the
+		// suite cannot evaluate them - a WARNING, to be raised per-profile once an ecosystem
+		// defines machine-checkable constraint semantics
+		call(condition(EnsureMatchedRicalEntryHasNoTrustConstraints.class)
+			.skipIfObjectsMissing("rical")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.WARNING)
+			.dontStopOnFailure()
+			.requirements("ISO18013-5-F.3.2.3"));
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
