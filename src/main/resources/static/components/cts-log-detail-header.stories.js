@@ -696,7 +696,10 @@ export const WaitingHeroWithInstructions = {
       // #1862: WAITING means the test is already running and paused on an
       // external event or a user action described in the hero — a Start
       // button here would reload the page (or 404) and mislead the user.
-      expect(canvasElement.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+      // The bar's primary is Stop, the one action a paused test supports.
+      const primary = canvasElement.querySelector('[data-testid="status-bar-primary"]');
+      expect(primary).toBeTruthy();
+      expect(primary.getAttribute("label")).toBe("Stop");
       expect(canvasElement.textContent).not.toContain("Start Test");
     });
 
@@ -1286,12 +1289,25 @@ export const StatusBarWaiting = {
       expect(bar.textContent).not.toContain("Waiting for user input");
     });
 
-    await step("the bar carries NO primary action while WAITING", async () => {
+    await step("the bar's primary is Stop, never Start, while WAITING", async () => {
       // #1862: a WAITING test is already running — the old Start button
       // here just reloaded the page (or 404'd on visit-URL tests). Start
-      // belongs exclusively to the CONFIGURED (needs-start) phase.
-      expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+      // belongs exclusively to the CONFIGURED (needs-start) phase. Stop is
+      // offered because a test paused on an external event is the one a
+      // user gives up on, and the runner acts on a stop request only while
+      // the test is WAITING.
+      const primary = bar.querySelector('[data-testid="status-bar-primary"]');
+      expect(primary).toBeTruthy();
+      expect(primary.getAttribute("label")).toBe("Stop");
       expect(within(bar).queryByText(/Start Test/)).toBeNull();
+    });
+
+    await step("clicking the bar primary fires cts-stop-test", async () => {
+      const stopHandler = fn();
+      canvasElement.addEventListener("cts-stop-test", stopHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+      expect(stopHandler).toHaveBeenCalledOnce();
+      expect(stopHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST.testId);
     });
 
     await step("test name leads .ctsStatusBarLeft", async () => {
@@ -2072,6 +2088,32 @@ export const TerminalBannerInterrupted = {
   },
 };
 
+export const TerminalBannerInterruptedAfterWarnings = {
+  // A test stopped before completion carries the WARNING written by an earlier
+  // condition as an interim value, not a verdict: it must read "Test interrupted",
+  // never "Test passed with warnings". Only FAILED wins over INTERRUPTED (#1859).
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...WARNING_RESULT_TEST, status: "INTERRUPTED" }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("interrupted");
+    expect(banner.classList.contains("ctsTerminalBanner--fail")).toBe(true);
+    expect(banner.textContent).toContain("Test interrupted");
+    expect(banner.textContent).not.toContain("passed with warnings");
+    // The bar still shows both raw facts: the WARNING recorded so far and the
+    // INTERRUPTED status that stopped the run.
+    const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+    expect(bar.querySelector('cts-badge[variant="warn"][label="WARNING"]')).toBeTruthy();
+    expect(bar.querySelector('cts-badge[variant="fail"][label="INTERRUPTED"]')).toBeTruthy();
+  },
+};
+
 export const NoTerminalBannerWhileRunning = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${RUNNING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
@@ -2196,10 +2238,12 @@ export const WaitingNeverOffersStart = {
       expect(waitingHero.querySelector('[data-slot="browser"]')).toBeTruthy();
     });
 
-    await step("the bar suppresses the primary action entirely", async () => {
+    await step("the bar's only primary is Stop, never Start", async () => {
       const bar = canvasElement.querySelector('[data-testid="status-bar"]');
       expect(bar.textContent).toContain("Waiting — see below for any action required");
-      expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+      const primary = bar.querySelector('[data-testid="status-bar-primary"]');
+      expect(primary).toBeTruthy();
+      expect(primary.getAttribute("label")).toBe("Stop");
       expect(within(bar).queryByText(/Start Test/)).toBeNull();
     });
   },
@@ -2378,7 +2422,7 @@ export const RepeatTestAvailableWhileRunning = {
   },
 };
 
-export const PublicViewStillHidesRepeatWhileWaiting = {
+export const PublicViewHidesRepeatAndStopWhileWaiting = {
   render: () =>
     html`<cts-log-detail-header
       .testInfo=${WAITING_TEST_WITH_RESULTS}
@@ -2390,8 +2434,29 @@ export const PublicViewStillHidesRepeatWhileWaiting = {
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
-    // A read-only viewer cannot launch runs, in any phase.
+    // A read-only viewer can neither launch nor cancel runs, in any phase.
     expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeNull();
+    expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    expect(within(bar).queryByText(/Stop/)).toBeNull();
+  },
+};
+
+export const PublicViewHidesStopWhileRunning = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${RUNNING_TEST_WITH_RESULTS}
+      is-public
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    expect(bar.querySelector('cts-badge[label="RUNNING"]')).toBeTruthy();
+    expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    expect(bar.querySelector('[data-testid="status-bar-repeat"]')).toBeNull();
+    expect(within(bar).queryByText(/Stop/)).toBeNull();
   },
 };
 

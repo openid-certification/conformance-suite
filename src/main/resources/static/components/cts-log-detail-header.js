@@ -191,7 +191,8 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   CONFIGURED                  → "Click Start Test" prompt │
 //   │                                 (Start in sticky bar)     │
 //   │   WAITING                     → R24 instructions + browser│
-//   │                                 slot (never a Start CTA)  │
+//   │                                 slot (Stop in sticky bar, │
+//   │                                 never a Start CTA)        │
 //   │   RUNNING                     → info alert + browser slot │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Drawer (Region C — <details> disclosures)                 │
@@ -856,8 +857,8 @@ function ensureStylesInjected() {
  *      PASSED / SKIPPED use the persistent objective summary and do not
  *      need a separate hero; CONFIGURED renders the "Click Start Test"
  *      prompt (the Start CTA itself lives in the sticky status bar);
- *      WAITING renders R24 instructions + the browser slot and never
- *      offers Start (#1862); RUNNING renders the running-test info
+ *      WAITING renders R24 instructions + the browser slot, offers Stop
+ *      in the sticky bar and never Start (#1862); RUNNING renders the running-test info
  *      alert + browser slot; INTERRUPTED renders the failure list with
  *      the FINAL_ERROR alert pinned at the top of the hero.
  *   6. Region C drawer — `<details>` disclosures: "Test details"
@@ -940,8 +941,8 @@ function ensureStylesInjected() {
  *   `everything` (omitted for unpublish); bubbles.
  * @fires cts-start-test - When the Start Test button is clicked on a
  *   CONFIGURED (not-yet-started) test, with `{ detail: { testId } }`; bubbles.
- * @fires cts-stop-test - When the Stop button is clicked on a running
- *   test, with `{ detail: { testId } }`; bubbles.
+ * @fires cts-stop-test - When the Stop button is clicked on a waiting or
+ *   running test, with `{ detail: { testId } }`; bubbles.
  */
 class CtsLogDetailHeader extends LitElement {
   static properties = {
@@ -1351,13 +1352,19 @@ class CtsLogDetailHeader extends LitElement {
    *      "Proceed with test via browser API" button and making an
    *      active test look aborted. CREATED / CONFIGURED / RUNNING /
    *      WAITING are the live statuses.
-   *   2. **Within a terminal status, the verdict wins** (GitLab
-   *      #1858 / #1859). A failed test is reported as
-   *      status=INTERRUPTED, result=FAILED and must read "Test failed"
-   *      (phase `finished-fail`), never "Test interrupted". The
-   *      `interrupted` phase is reserved for an interruption with no
-   *      concrete verdict (an admin force-stop, or an exception before
-   *      any result was assigned).
+   *   2. **Within a terminal status, the verdict wins — but INTERRUPTED
+   *      vouches for FAILED only** (GitLab #1858 / #1859). A failed test
+   *      is reported as status=INTERRUPTED, result=FAILED and must read
+   *      "Test failed" (phase `finished-fail`), never "Test interrupted".
+   *      Every other verdict is trusted only under FINISHED: WARNING and
+   *      REVIEW are written mid-run, so on a test stopped before
+   *      completion they are interim values, and reading them as "passed
+   *      with warnings" would certify a test that never exercised the
+   *      behaviour under test. The `interrupted` phase therefore covers
+   *      every interruption without a FAILED verdict: a stop by the
+   *      tester or an admin, an exception before any result was
+   *      assigned, or a stop after only warnings. `js/module-status.js`
+   *      applies the same rule to the plan surfaces.
    *
    * The runner auto-starts every test module on creation except the
    * rare `autoStart() == false` modules (currently only
@@ -1400,16 +1407,14 @@ class CtsLogDetailHeader extends LitElement {
     if (status === "CONFIGURED") return "needs-start";
     if (status === "WAITING") return "waiting";
     if (status === "RUNNING" || status === "CREATED") return "running";
-    // Rule 2 — terminal status: the concrete verdict wins over INTERRUPTED
-    // (#1859), so dispatch on the verdict before falling back to the status.
-    if (result === "PASSED") return "finished-pass";
+    // Rule 2 — terminal status: FAILED wins over INTERRUPTED (#1859); any other
+    // result under INTERRUPTED is interim, so the interruption wins over it.
     if (result === "FAILED") return "finished-fail";
+    if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
+    if (result === "PASSED") return "finished-pass";
     if (result === "WARNING") return "finished-warn";
     if (result === "REVIEW") return "finished-review";
     if (result === "SKIPPED") return "finished-skip";
-    // No concrete verdict: a genuine interruption — status INTERRUPTED, or the
-    // INTERRUPTED sentinel some paths write into `result` — reads as interrupted.
-    if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
     return "unknown";
   }
 
@@ -1619,7 +1624,7 @@ class CtsLogDetailHeader extends LitElement {
    * `data-action="repeat-test"` is the stable hook for the page-level
    * Cmd/Ctrl+Shift+X shortcut in `js/log-detail.js`, which must not depend on
    * `status-bar-primary` (that testid is Start Test on the needs-start bar and
-   * Stop on the running bar).
+   * Stop on the waiting and running bars).
    * @param {"primary"|"secondary"} variant - cts-button prominence.
    * @param {string} testid - `data-testid` for the button.
    * @returns {import('lit').TemplateResult|typeof nothing} The button, or
@@ -1646,6 +1651,11 @@ class CtsLogDetailHeader extends LitElement {
    * modules), so offering a Start button here is always wrong (#1862) —
    * clicking it would just reload or 404. The hero below the bar
    * carries any concrete action (visit-URL prompt, instructions).
+   *
+   * Stop is offered, as on the running bar: a test paused on an external
+   * event is exactly the one a user gives up on, and the runner can only
+   * act on a stop request while the test is not holding its lock — which
+   * is the WAITING state.
    * @param {TestInfo} test - Test info driving the bar.
    * @returns {import('lit').TemplateResult} The WAITING bar template.
    */
@@ -1660,7 +1670,7 @@ class CtsLogDetailHeader extends LitElement {
         </div>
         <div class="ctsStatusBarMiddle"></div>
         <div class="ctsStatusBarPrimary">
-          ${this._renderRepeatButton("secondary", "status-bar-repeat")}
+          ${this._renderStopButton()} ${this._renderRepeatButton("secondary", "status-bar-repeat")}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}
@@ -1706,6 +1716,26 @@ class CtsLogDetailHeader extends LitElement {
     `;
   }
 
+  /**
+   * Stop button shared by the WAITING and RUNNING bars — the two phases in
+   * which a test is live and can be cancelled through DELETE /api/runner/{id}.
+   * Omitted in the read-only (public) view, like Start and Repeat: a viewer
+   * who cannot launch a run cannot cancel one either.
+   * @returns {import('lit').TemplateResult|typeof nothing} The Stop button,
+   *   or `nothing` in the read-only (public) view.
+   */
+  _renderStopButton() {
+    if (this._isReadonly()) return nothing;
+    return html`<cts-button
+      variant="secondary"
+      size="sm"
+      icon="stop"
+      label="Stop"
+      data-testid="status-bar-primary"
+      @cts-click=${this._handleStopTest}
+    ></cts-button>`;
+  }
+
   _renderRunningBar(test) {
     const counts = this._getResultCounts();
     return html`
@@ -1718,15 +1748,7 @@ class CtsLogDetailHeader extends LitElement {
           ${this._renderResultPills(counts)}
         </div>
         <div class="ctsStatusBarPrimary">
-          <cts-button
-            variant="secondary"
-            size="sm"
-            icon="stop"
-            label="Stop"
-            data-testid="status-bar-primary"
-            @cts-click=${this._handleStopTest}
-          ></cts-button>
-          ${this._renderRepeatButton("secondary", "status-bar-repeat")}
+          ${this._renderStopButton()} ${this._renderRepeatButton("secondary", "status-bar-repeat")}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarCreated(test)}

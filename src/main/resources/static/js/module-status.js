@@ -27,6 +27,25 @@ const RESULT_VARIANTS = {
 };
 
 /**
+ * Whether `result` is a verdict the lifecycle status can vouch for.
+ *
+ * Under FINISHED every result in `RESULT_VARIANTS` is a verdict. Under
+ * INTERRUPTED only FAILED is: the runner stops a test on its first hard
+ * failure, so INTERRUPTED+FAILED is how a failed test is reported (GitLab
+ * #1858/#1859). WARNING and REVIEW are written while the test is still running
+ * and only become a verdict once it runs to completion, so on a test stopped
+ * before that they are interim values — reading them as "passed with warnings"
+ * would certify a test that never exercised the behaviour under test.
+ * @param {string|null|undefined} status - Module status.
+ * @param {string|null|undefined} result - Module result.
+ * @returns {boolean} `true` when `result` is a settled verdict for `status`.
+ */
+function isSettledVerdict(status, result) {
+  if (!result || !RESULT_VARIANTS[result]) return false;
+  return status !== "INTERRUPTED" || result === "FAILED";
+}
+
+/**
  * Maps module status/result to a canonical cts-badge variant.
  *
  * A settled result verdict wins over the lifecycle status, because a failed
@@ -42,11 +61,12 @@ const RESULT_VARIANTS = {
  * `neutral`, so a skipped module is visibly different from one not yet run.
  *
  * - null/empty status                 -> "neutral" (PENDING — nothing until run)
- * - any settled result (regardless of FINISHED vs INTERRUPTED status):
+ * - any settled result (see `isSettledVerdict`: every verdict under FINISHED,
+ *   only FAILED under INTERRUPTED):
  *     PASSED -> "pass", FAILED -> "fail", WARNING -> "warn",
  *     REVIEW -> "review", SKIPPED -> "skip"
  * - else RUNNING                      -> "running"
- * - else (WAITING, bare INTERRUPTED, UNKNOWN) -> "neutral"
+ * - else (WAITING, INTERRUPTED without a verdict, UNKNOWN) -> "neutral"
  * @param {string|null|undefined} status - Module status: null/undefined,
  *   "RUNNING", "WAITING", "INTERRUPTED", or "FINISHED".
  * @param {string|null|undefined} result - Module result: "PASSED", "FAILED",
@@ -55,7 +75,7 @@ const RESULT_VARIANTS = {
  */
 export function statusBadgeVariant(status, result) {
   if (!status) return "neutral";
-  if (result && RESULT_VARIANTS[result]) return RESULT_VARIANTS[result];
+  if (result && isSettledVerdict(status, result)) return RESULT_VARIANTS[result];
   if (status === "RUNNING") return "running";
   return "neutral";
 }
@@ -66,8 +86,9 @@ export function statusBadgeVariant(status, result) {
  * A settled result verdict wins over the lifecycle status: a failed test is
  * reported as status=INTERRUPTED, result=FAILED and must read "FAILED", not
  * "INTERRUPTED" (GitLab #1859). `status` is the label only when there is no
- * settled verdict — an in-flight test (RUNNING/WAITING), a verdict-less
- * interruption (bare INTERRUPTED), or a never-run module (PENDING).
+ * settled verdict (see `isSettledVerdict`) — an in-flight test
+ * (RUNNING/WAITING), an interruption without a verdict (INTERRUPTED with no
+ * result or with an interim WARNING/REVIEW), or a never-run module (PENDING).
  * @param {string|null|undefined} status - Module status: null/undefined,
  *   "RUNNING", "WAITING", "INTERRUPTED", or "FINISHED".
  * @param {string|null|undefined} result - Module result: "PASSED", "FAILED",
@@ -77,7 +98,7 @@ export function statusBadgeVariant(status, result) {
  */
 export function statusLabel(status, result) {
   if (!status) return "PENDING";
-  if (result && RESULT_VARIANTS[result]) return result;
+  if (result && isSettledVerdict(status, result)) return result;
   if (status === "RUNNING") return "RUNNING";
   return status;
 }

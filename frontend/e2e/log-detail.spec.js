@@ -504,7 +504,8 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     const header = page.locator("cts-log-detail-header");
     await expect(page.locator('[data-testid="hero-waiting"]')).toBeVisible();
-    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    // The bar's primary is Stop, the one action a paused test supports.
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toContainText("Stop");
     await expect(header).not.toContainText("Start Test");
     await expect(header).not.toContainText("Click Start");
     await expect(header).not.toContainText("Action required");
@@ -599,8 +600,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const repeat = page.locator('cts-log-detail-header [data-testid="status-bar-repeat"]');
     await expect(repeat).toBeVisible();
     await expect(repeat).toContainText("Repeat Test");
-    // Repeat is not Start (#1862): the WAITING bar still has no primary.
-    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    // Repeat is not Start (#1862): the WAITING bar's primary is Stop.
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toContainText("Stop");
+    await expect(page.locator('[data-testid="status-bar-primary"]')).not.toContainText(
+      "Start Test",
+    );
 
     await repeat.locator("button").first().click();
     await expect.poll(() => runnerCalls.length, { timeout: 5000 }).toBeGreaterThan(0);
@@ -611,7 +615,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     page,
   }) => {
     // The shortcut used to click `[data-testid="status-bar-primary"]`, which on
-    // a live bar is Stop (running) or Start Test (needs-start) — so repointing
+    // a live bar is Stop (waiting / running) or Start Test (needs-start) — so repointing
     // it at `[data-action="repeat-test"]` is what makes the shortcut agree with
     // the button in every phase. Without this, the selector change is unguarded.
     await setupFailFast(page);
@@ -1822,6 +1826,53 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(apiRequests.filter((u) => u.includes("/api/runner/"))).toHaveLength(0);
   });
 
+  test("public mode: a WAITING test offers no Stop and sends no DELETE", async ({ page }) => {
+    // A read-only viewer can neither launch nor cancel runs. The WAITING bar
+    // gained Stop for owners; the public view must hide it like Start and
+    // Repeat, or a viewer could cancel someone else's run.
+    /** @type {string[]} */
+    const runnerCalls = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/runner/")) runnerCalls.push(`${req.method()} ${req.url()}`);
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING_2,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING_2.testId)}&public=true`,
+    );
+
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar.locator('cts-badge[label="WAITING"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="status-bar-repeat"]')).toHaveCount(0);
+    await expect(bar).not.toContainText("Stop");
+    expect(runnerCalls.filter((c) => c.startsWith("DELETE"))).toHaveLength(0);
+  });
+
+  test("public mode: a RUNNING test offers no Stop", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}&public=true`,
+    );
+
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar.locator('cts-badge[label="RUNNING"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="status-bar-primary"]')).toHaveCount(0);
+    await expect(bar).not.toContainText("Stop");
+  });
+
   test("public mode: Download Logs requests /api/log/exporthtml/<id> with public=true", async ({
     page,
   }) => {
@@ -2089,6 +2140,20 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       result: "FAILED",
       finalStatus: "INTERRUPTED",
       bannerText: /Test failed/i,
+      statusBadgeLabel: "INTERRUPTED",
+    }),
+  );
+
+  // A test stopped before completion keeps the WARNING an earlier condition
+  // wrote as an interim value; it is not a verdict, so the banner must read
+  // "Test interrupted", never "Test passed with warnings". Only FAILED wins
+  // over INTERRUPTED.
+  test(
+    "terminal-state refresh — INTERRUPTED+WARNING reads as 'Test interrupted'",
+    terminalRefreshTest({
+      result: "WARNING",
+      finalStatus: "INTERRUPTED",
+      bannerText: /Test interrupted/i,
       statusBadgeLabel: "INTERRUPTED",
     }),
   );
