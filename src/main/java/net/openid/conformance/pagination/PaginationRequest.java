@@ -129,11 +129,14 @@ public class PaginationRequest {
 
 		Sort sort = Sort.unsorted();
 
-		if (order != null) {
+		if (!Strings.isNullOrEmpty(order)) {
 			String[] orderParts = order.split(",");
 			for (int i = 0; i < orderParts.length; i += 2) {
-				String column = orderParts[i];
-				String dir = (i + 1 < orderParts.length) ? orderParts[i + 1] : "asc";
+				String column = orderParts[i].trim();
+				if (column.isEmpty()) {
+					continue;
+				}
+				String dir = (i + 1 < orderParts.length) ? orderParts[i + 1].trim() : "asc";
 				Order order = dir.equals("desc") ? Sort.Order.desc(column) : Sort.Order.asc(column);
 				sort = sort.and(Sort.by(order));
 			}
