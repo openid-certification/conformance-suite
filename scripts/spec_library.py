@@ -278,11 +278,8 @@ def load_links():
     return parse_spec_links(pathlib.Path(LOG_ENTRY_HELPER).read_text(encoding="utf-8"))
 
 
-def cmd_seed(links=None, exists=http_exists, out=None):
-    if links is None:
-        links = load_links()
-    if out is None:
-        out = sys.stdout
+def seed_skeleton(links, exists=http_exists):
+    """The manifest a fresh import of `links` would produce: documents and exclusions, no hashes."""
     docs, excluded = {}, {}
     for prefix, url in sorted(links.items()):
         c = classify(url)
@@ -307,8 +304,59 @@ def cmd_seed(links=None, exists=http_exists, out=None):
                 docs[doc_id] = {"prefixes": [], "link_url": link_url(url), "versions": [
                     {"role": "linked", "file": f"openid/{doc_id}.txt", "source_url": base + ext, "source_format": fmt}]}
             docs[doc_id]["prefixes"].append(prefix)
-    json.dump({"documents": docs, "excluded": excluded}, out, indent=2, sort_keys=True)
-    out.write("\n")
+    return {"documents": docs, "excluded": excluded}
+
+
+def write_manifest(path, manifest):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, sort_keys=True)
+        f.write("\n")
+
+
+def cmd_seed(links=None, exists=http_exists, out=None, manifest_path=MANIFEST, print_only=False):
+    """Add a manifest entry for every LogEntryHelper prefix the manifest lacks. Entries already
+    there are never changed, and prefixes only the manifest knows are left for `check` to report."""
+    if links is None:
+        links = load_links()
+    if out is None:
+        out = sys.stdout
+    skeleton = seed_skeleton(links, exists)
+    if print_only:
+        json.dump(skeleton, out, indent=2, sort_keys=True)
+        out.write("\n")
+        return 0
+    manifest = json.loads(pathlib.Path(manifest_path).read_text(encoding="utf-8"))
+    known = set(manifest["excluded"])
+    for doc in manifest["documents"].values():
+        known.update(doc["prefixes"])
+    added, new_docs = [], []
+    for doc_id, doc in skeleton["documents"].items():
+        prefixes = [p for p in doc["prefixes"] if p not in known]
+        if not prefixes:
+            continue
+        existing = manifest["documents"].get(doc_id)
+        if existing is None:
+            manifest["documents"][doc_id] = {**doc, "prefixes": prefixes}
+            new_docs.append(doc_id)
+            added.append(f"document {doc_id}: {', '.join(prefixes)} from {doc['versions'][0]['source_url']}")
+        else:
+            existing["prefixes"].extend(prefixes)
+            added.append(f"document {doc_id}: prefix {', '.join(prefixes)} added")
+    for prefix, reason in skeleton["excluded"].items():
+        if prefix not in known:
+            manifest["excluded"][prefix] = reason
+            added.append(f"excluded {prefix}: {json.dumps(reason) if isinstance(reason, dict) else reason}")
+    if not added:
+        print("nothing to add: every LogEntryHelper.specLinks prefix is in the manifest", file=out)
+        return 0
+    write_manifest(manifest_path, manifest)
+    print("\n".join(added), file=out)
+    print(f"\nwritten to {manifest_path}; review the entries, then fetch the text with", file=out)
+    for doc_id in new_docs:
+        print(f"  python3 scripts/spec_library.py sync --only {doc_id}", file=out)
+    if not new_docs:
+        print("  (no new document: nothing to sync)", file=out)
+    return 0
 
 
 def cmd_sync(only=None, refresh=None, refresh_linked=None, manifest_path=MANIFEST, specs_dir=SPECS_DIR,
@@ -366,9 +414,7 @@ def cmd_sync(only=None, refresh=None, refresh_linked=None, manifest_path=MANIFES
                         print(f"ERROR {doc_id}\t{v['role']}\t{type(e).__name__}: {e}")
                         failures += 1
         finally:
-            with open(manifest_path, "w", encoding="utf-8") as f:
-                json.dump(manifest, f, indent=2, sort_keys=True)
-                f.write("\n")
+            write_manifest(manifest_path, manifest)
     for flag, doc_id in refresh_flags.items():
         if doc_id is not None and flag not in refreshed:
             role = "linked" if flag == "--refresh-linked" else "latest"
@@ -405,7 +451,10 @@ def cmd_check(manifest_path=MANIFEST, specs_dir=SPECS_DIR, links=None):
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("seed", help="print a manifest skeleton derived from LogEntryHelper.java (probes openid.net)")
+    seed = sub.add_parser("seed", help="add a manifest entry for every LogEntryHelper.java prefix the manifest "
+                                       "lacks (probes openid.net); existing entries are not touched")
+    seed.add_argument("--print", action="store_true",
+                      help="print the manifest a fresh import would produce instead of editing the file")
     sync = sub.add_parser(
         "sync", help="fetch/render every manifest version whose file is missing and fill in its hashes",
         description="Fetch/render every manifest version whose file is missing and fill in its hashes. An existing "
@@ -423,8 +472,7 @@ def build_parser():
 def main(argv):
     args = build_parser().parse_args(argv[1:])
     if args.command == "seed":
-        cmd_seed()
-        return 0
+        return cmd_seed(print_only=args.print)
     if args.command == "sync":
         return cmd_sync(only=args.only, refresh=args.refresh, refresh_linked=args.refresh_linked)
     return cmd_check()

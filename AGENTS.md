@@ -284,7 +284,7 @@ public class FAPI2SPFinalTestPlan implements TestPlan {}
 
 When interpreting RFCs or technical specifications, present multiple defensible interpretations with trade-offs rather than committing to a single answer. Flag areas of ambiguity explicitly.
 
-The text of the IETF and OIDF specifications referenced by `LogEntryHelper.specLinks` is checked in under `library/specs/` as numbered plain text; `library/specs/manifest.json` maps each requirement-tag prefix to its file (see `library/README.md`). Read the clause there before citing it. When you add or change a `specLinks` entry, update the manifest and run `scripts/spec_library.py sync` in the same commit — `LogEntryHelper_UnitTest` fails otherwise. ISO texts live in `../conformance-suite-private/library/iso/`.
+The text of the IETF and OIDF specifications referenced by `LogEntryHelper.specLinks` is checked in under `library/specs/` as numbered plain text; `library/specs/manifest.json` maps each requirement-tag prefix to its file (see `library/README.md`). Read the clause there before citing it. When you add a `specLinks` entry, run `scripts/spec_library.py seed` (adds the manifest entry), check the entry, run `scripts/spec_library.py sync --only <doc-id>`, and commit the manifest and text with the Java change — `LogEntryHelper_UnitTest` fails otherwise; see "Adding a specification" in `library/README.md`, which also covers a changed URL. ISO texts live in `../conformance-suite-private/library/iso/`.
 
 Key specifications for VP/VCI work:
 - **OID4VP 1.0 Final**: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html

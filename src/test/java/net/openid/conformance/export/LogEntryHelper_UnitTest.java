@@ -142,7 +142,8 @@ public class LogEntryHelper_UnitTest {
 		linkUrlByPrefix.keySet().forEach(prefix -> problems.add(prefix + ": in manifest but not in LogEntryHelper"));
 
 		assertThat(problems)
-			.as("library/specs/manifest.json must list every LogEntryHelper.specLinks prefix; see library/README.md")
+			.as("library/specs/manifest.json must list every LogEntryHelper.specLinks prefix; "
+				+ "run scripts/spec_library.py seed, then sync --only <doc-id>; see 'Adding a specification' in library/README.md")
 			.isEmpty();
 	}
 

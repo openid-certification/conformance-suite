@@ -130,7 +130,7 @@ class SeedTest(unittest.TestCase):
             return url.endswith(("openid-connect-core-1_0.txt", "openid-connect-core-1_0.xml",
                                  "profile-1_0.zip", "profile-1_0.xml"))
         out = io.StringIO()
-        sl.cmd_seed(links=links, exists=exists, out=out)
+        sl.cmd_seed(links=links, exists=exists, out=out, print_only=True)
         manifest = json.loads(out.getvalue())
 
         # (a) RFC6749 has both prefixes, correct link_url, and linked version
@@ -158,6 +158,63 @@ class SeedTest(unittest.TestCase):
         self.assertEqual({"private": "library/iso/18013-5/"}, manifest["excluded"]["ISO18013-5-"])
         self.assertEqual(sl.THIRD_PARTY, manifest["excluded"]["CDR-"])
         self.assertEqual("issue tracker, not a specification", manifest["excluded"]["OpenID4VCI-"])
+
+
+    def seeded(self, links, manifest):
+        """Run seed in place on a temporary copy of `manifest`; return (output, manifest after)."""
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "manifest.json")
+            pathlib.Path(path).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            before = pathlib.Path(path).read_bytes()
+            out = io.StringIO()
+            sl.cmd_seed(links=links, exists=lambda url: False, out=out, manifest_path=path)
+            after = pathlib.Path(path).read_bytes()
+            return out.getvalue(), json.loads(after), before == after
+
+    EXISTING = {"documents": {"rfc6749": {"prefixes": ["RFC6749-"],
+                                          "link_url": "https://tools.ietf.org/html/rfc6749",
+                                          "versions": [{"role": "linked", "file": "ietf/rfc6749.txt",
+                                                        "source_url": "https://www.rfc-editor.org/rfc/rfc6749.txt",
+                                                        "source_format": "txt", "sha256": "abc", "fetched": "2026-09-21",
+                                                        "latest_note": "hand-edited field survives"}]}},
+                "excluded": {"CDR-": "hand-written reason"}}
+
+    def test_seed_adds_only_the_missing_entries(self):
+        links = {"RFC6749-": "https://tools.ietf.org/html/rfc6749#section-",
+                 "RFC6749A-": "https://tools.ietf.org/html/rfc6749#appendix-",
+                 "PAR-": "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
+                 "NOSRC-": "https://openid.net/specs/no-source-1_0.html#section-",
+                 "ISO18013-5-": "https://www.iso.org/standard/69084.html#",
+                 "CDR-": "https://consumerdatastandardsaustralia.github.io/standards/#"}
+        output, manifest, unchanged = self.seeded(links, self.EXISTING)
+        self.assertFalse(unchanged)
+        # new document
+        self.assertEqual(["PAR-"], manifest["documents"]["rfc9126"]["prefixes"])
+        self.assertEqual("ietf/rfc9126.txt", manifest["documents"]["rfc9126"]["versions"][0]["file"])
+        self.assertNotIn("sha256", manifest["documents"]["rfc9126"]["versions"][0])
+        # new prefix on an existing document; its hand-edited version is left alone
+        self.assertEqual(["RFC6749-", "RFC6749A-"], manifest["documents"]["rfc6749"]["prefixes"])
+        self.assertEqual(self.EXISTING["documents"]["rfc6749"]["versions"], manifest["documents"]["rfc6749"]["versions"])
+        # new exclusions; the existing hand-written reason is kept
+        self.assertEqual({"private": "library/iso/18013-5/"}, manifest["excluded"]["ISO18013-5-"])
+        self.assertIn("no .txt/.zip/.xml/.md sibling", manifest["excluded"]["NOSRC-"])
+        self.assertEqual("hand-written reason", manifest["excluded"]["CDR-"])
+        for token in ("rfc9126", "PAR-", "RFC6749A-", "ISO18013-5-", "NOSRC-", "sync --only"):
+            self.assertIn(token, output)
+        self.assertNotIn("CDR-", output)
+
+    def test_seed_with_nothing_missing_leaves_the_file_untouched(self):
+        links = {"RFC6749-": "https://tools.ietf.org/html/rfc6749#section-",
+                 "CDR-": "https://consumerdatastandardsaustralia.github.io/standards/#"}
+        output, _manifest, unchanged = self.seeded(links, self.EXISTING)
+        self.assertTrue(unchanged)
+        self.assertIn("nothing to add", output)
+
+    def test_seed_ignores_manifest_prefixes_that_left_log_entry_helper(self):
+        # A stale manifest prefix is check's job to report; seed must not delete it.
+        output, manifest, unchanged = self.seeded({"RFC6749-": "https://tools.ietf.org/html/rfc6749#section-"}, self.EXISTING)
+        self.assertTrue(unchanged)
+        self.assertIn("CDR-", manifest["excluded"])
 
 
 class ValidateManifestTest(unittest.TestCase):
