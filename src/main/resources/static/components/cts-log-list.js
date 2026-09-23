@@ -615,9 +615,13 @@ function formatVariant(variant) {
  * current browsers (mirrors the cts-action-overflow constraint).
  *
  * The component fetches up to `MAX_FILTERED_LOGS = 1000` rows once via
- * `/api/log?length=1000` (matching `cts-dashboard`'s stats fetch) and runs
- * all filter / search / sort / pagination logic client-side. Above 1000
- * matches, the truncation hint nudges the user to refine the filter.
+ * `/api/log?length=1000&order=started,desc` and runs all filter / search /
+ * sort / pagination logic client-side. The server sorts so that, when the cap
+ * truncates, the newest tests are the ones kept. Choosing "Started (oldest)"
+ * on a truncated dataset refetches with `order=started,asc`, since the oldest
+ * tests are not in the newest window; every other sort works within the
+ * window that is loaded. Above 1000 matches, the truncation hint says which
+ * window is shown.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
@@ -663,6 +667,13 @@ class CtsLogList extends LitElement {
     this._loading = true;
     this._error = null;
     this._truncated = false;
+    // Which end of the `started` ordering the loaded rows come from: "desc"
+    // is the newest window, "asc" the oldest. Only differs in content from the
+    // other window when `_truncated`.
+    this._loadedOrder = "desc";
+    // Bumped per fetch so a response that a later fetch has superseded (e.g.
+    // two quick sort changes) is dropped rather than rendered.
+    this._fetchSeq = 0;
     this._statusFilter = new Set();
     this._resultFilter = new Set();
     this._searchText = "";
@@ -759,17 +770,35 @@ class CtsLogList extends LitElement {
     this._fetchLogs();
   }
 
+  /**
+   * The `started` direction the server should sort by for the current sort
+   * key: ascending only for "Started (oldest)", so a truncated dataset holds
+   * the tests that sort shows first.
+   * @returns {"asc" | "desc"} The direction to send as `order=started,<dir>`.
+   */
+  _wantedOrder() {
+    return this._sortKey === "started-asc" ? "asc" : "desc";
+  }
+
   async _fetchLogs() {
+    const seq = ++this._fetchSeq;
+    const order = this._wantedOrder();
     this._loading = true;
     this._error = null;
     this._truncated = false;
     try {
-      const url = "/api/log?length=" + MAX_FILTERED_LOGS + (this.isPublic ? "&public=true" : "");
-      const response = await fetch(url);
+      const params = new URLSearchParams({
+        length: String(MAX_FILTERED_LOGS),
+        order: `started,${order}`,
+      });
+      if (this.isPublic) params.set("public", "true");
+      const response = await fetch(`/api/log?${params}`);
+      if (seq !== this._fetchSeq) return;
       if (!response.ok) {
         throw new Error(`Failed to load logs (HTTP ${response.status})`);
       }
       const payload = await response.json();
+      if (seq !== this._fetchSeq) return;
       // Accept both PaginationResponse envelope ({ draw, recordsTotal,
       // recordsFiltered, data }) and a raw array, matching the dual-shape
       // handling in cts-dashboard / cts-plan-list.
@@ -781,17 +810,28 @@ class CtsLogList extends LitElement {
       const hasTotal = typeof payload?.recordsTotal === "number";
       const total = hasTotal ? payload.recordsTotal : data.length;
       this._logs = data;
+      this._loadedOrder = order;
       // Only fall back to "data filled the cap" when the response had no
       // authoritative total. A response with `recordsTotal === data.length`
       // is the canonical signal that the dataset is complete, so an exact
       // 1000-row dataset must not raise the truncation hint.
       this._truncated = hasTotal ? total > data.length : data.length >= MAX_FILTERED_LOGS;
+      // The sort selector stays usable while this fetch is in flight, and a
+      // change made then cannot refetch because `_truncated` is only known
+      // now. If it asked for the other end of a truncated dataset, fetch that.
+      if (this._truncated && order !== this._wantedOrder()) {
+        this._fetchLogs();
+        return;
+      }
       this._resolvePlanNames(data);
     } catch (err) {
+      if (seq !== this._fetchSeq) return;
       this._error = err instanceof Error ? err.message : String(err);
       this._logs = [];
     } finally {
-      this._loading = false;
+      // A superseded request must not clear the loading state the request that
+      // superseded it set.
+      if (seq === this._fetchSeq) this._loading = false;
     }
   }
 
@@ -908,6 +948,12 @@ class CtsLogList extends LitElement {
   _handleSortChange(event) {
     this._sortKey = event.target.value;
     this._resetPagination();
+    // An untruncated dataset is complete, so any sort is client-side. A
+    // truncated one only holds one end of the `started` ordering; fetch the
+    // other end when the new sort needs it.
+    if (this._truncated && this._wantedOrder() !== this._loadedOrder) {
+      this._fetchLogs();
+    }
   }
 
   _toggleSetMember(set, value) {
@@ -1482,7 +1528,8 @@ class CtsLogList extends LitElement {
         ${this._truncated
           ? html`
               <p class="cts-log-list-truncation" data-testid="log-list-truncation">
-                Showing the first ${MAX_FILTERED_LOGS} matches. Refine the filter to narrow further.
+                Showing the ${this._loadedOrder === "asc" ? "oldest" : "newest"}
+                ${MAX_FILTERED_LOGS.toLocaleString()} tests. Refine the filter to narrow further.
               </p>
             `
           : nothing}

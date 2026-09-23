@@ -52,7 +52,7 @@ const RUNS_ALL_CLEAR = [
 // The strip's window is the only /api/log request carrying start=0. Match the
 // full window (start=0&length=1000), not a bare "start=0" substring, so the
 // isolation stays correct even if cts-log-list ever adds a start= param to its
-// own fetch — today the list emits only ?length=1000[&public=true].
+// own fetch — today the list emits only ?length=1000&order=…[&public=true].
 const isStripFetch = (/** @type {string} */ u) => u.includes("start=0&length=1000");
 
 test.describe("logs.html — runs strip (relocated from plans home)", () => {
@@ -88,6 +88,21 @@ test.describe("logs.html — runs strip (relocated from plans home)", () => {
 
     // The strip host is a polite live region.
     await expect(page.locator(STRIP)).toHaveAttribute("aria-live", "polite");
+  });
+
+  test("the strip asks the server for the newest runs, so in-flight runs are in its window", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const logRequests = await recordLogRoute(page, RUNS_2_RUNNING_3_FAILING);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
+
+    const stripRequests = logRequests.filter(isStripFetch);
+    expect(stripRequests).toHaveLength(1);
+    expect(new URL(stripRequests[0]).searchParams.get("order")).toBe("started,desc");
   });
 
   test("KTD6: clicking a count navigates to logs.html with the filter applied in place", async ({
