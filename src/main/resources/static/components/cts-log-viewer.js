@@ -1,7 +1,10 @@
 import { LitElement, html, nothing, css } from "lit";
+import { createRef, ref } from "lit/directives/ref.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-badge.js";
 import "./cts-alert.js";
 import "./cts-button.js";
+import "./cts-modal.js";
 import { scrollEntryIntoView } from "./cts-log-entry.js";
 import { selectFindings } from "./log-findings.js";
 
@@ -201,6 +204,15 @@ const STYLE_TEXT = css`
   }
   cts-log-viewer .logEntries:empty {
     display: none;
+  }
+  /* Shared screenshot lightbox — scales large screenshots
+     down to fit rather than cropping them like the row thumbnail does. */
+  cts-log-viewer .lightboxImage {
+    display: block;
+    max-width: 100%;
+    max-height: 70vh;
+    margin: 0 auto;
+    border-radius: var(--radius-2);
   }
   /* Master grid for horizontal alignment across rows. The widest
      severity badge (e.g. INTERRUPTED) and the widest source/HTTP cell
@@ -513,6 +525,8 @@ class CtsLogViewer extends LitElement {
     _error: { state: true },
     _terminal: { state: true },
     _activeFilters: { state: true },
+    _lightboxSrc: { state: true },
+    _lightboxAlt: { state: true },
   };
 
   createRenderRoot() {
@@ -530,6 +544,12 @@ class CtsLogViewer extends LitElement {
     this._entries = [];
     this._loading = true;
     this._error = "";
+    // Shared lightbox: a single cts-modal per viewer instance
+    // shows whichever screenshot was last clicked, rather than one modal
+    // per log entry.
+    this._imageLightboxRef = createRef();
+    this._lightboxSrc = "";
+    this._lightboxAlt = "";
     /**
      * Terminal (polling-stopped) reason, or `""` while polling continues.
      * One of the `TERMINAL_MESSAGES` keys. Once set, no further poll is
@@ -1478,6 +1498,7 @@ class CtsLogViewer extends LitElement {
           .referenceId=${referenceId}
           .testId=${this.testId}
           .isPublic=${this.isPublic}
+          .imageViewable=${true}
           data-entry-id=${entry._id}
           id=${referenceId || nothing}
         ></cts-log-entry>`,
@@ -1533,6 +1554,42 @@ class CtsLogViewer extends LitElement {
       }),
     );
     if (this.isConnected && this.testId) this._fetchEntries();
+  }
+
+  /**
+   * Handles a bubbled `cts-image-view` from a descendant `cts-log-entry`
+   * and opens the shared lightbox showing that screenshot.
+   * @param {CustomEvent<{src: string, alt: string}>} event - Event carrying
+   *   the screenshot data-URI and alt text
+   * @returns {void}
+   */
+  _onImageView(event) {
+    const { src, alt } = event.detail || {};
+    if (!src) return;
+    this._lightboxSrc = src;
+    this._lightboxAlt = alt || "Screenshot";
+    /** @type {any} */ (this._imageLightboxRef.value)?.show();
+  }
+
+  /**
+   * Renders the single shared screenshot lightbox for this viewer.
+   * @returns {unknown} A Lit template.
+   */
+  _renderImageLightbox() {
+    return html`
+      <cts-modal
+        ${ref(this._imageLightboxRef)}
+        heading="Screenshot"
+        size="xl"
+        data-testid="image-lightbox"
+      >
+        <img
+          class="lightboxImage"
+          src=${ifDefined(this._lightboxSrc || undefined)}
+          alt=${this._lightboxAlt || "Screenshot"}
+        />
+      </cts-modal>
+    `;
   }
 
   /**
@@ -1633,8 +1690,9 @@ class CtsLogViewer extends LitElement {
     }
     return html`
       ${this._renderConnectionBanner()} ${this._renderResultSummary()}
-      <div class="logEntries">${this._renderEntries()}</div>
+      <div class="logEntries" @cts-image-view=${this._onImageView}>${this._renderEntries()}</div>
       ${this._shouldShowEmptyState() ? html`<div class="logEmpty">No log entries</div>` : nothing}
+      ${this._renderImageLightbox()}
     `;
   }
 }

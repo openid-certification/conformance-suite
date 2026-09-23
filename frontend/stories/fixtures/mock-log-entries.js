@@ -530,3 +530,17 @@ export const MOCK_BLOCK_INTERRUPTED = [
     result: "WARNING",
   },
 ];
+
+// a REVIEW entry carrying an uploaded screenshot, used to
+// exercise cts-log-viewer's shared image lightbox.
+export const MOCK_REVIEW_WITH_IMAGE = [
+  {
+    _id: "entry-review-img",
+    testId: "test-abc-123",
+    src: "CheckScreenshot",
+    time: NOW - 1000,
+    msg: "Manual review required",
+    result: "REVIEW",
+    img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  },
+];
