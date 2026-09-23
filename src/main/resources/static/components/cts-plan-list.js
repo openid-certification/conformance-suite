@@ -598,6 +598,10 @@ class CtsPlanList extends LitElement {
     this._loading = true;
     this._error = null;
     this._truncated = false;
+    // Which end of the `started` ordering the loaded rows come from: "desc"
+    // is the newest window, "asc" the oldest. Only differs in content from the
+    // other window when `_truncated`.
+    this._loadedOrder = "desc";
     this._searchText = "";
     this._sortKey = "started-desc";
     this._visibleCount = PAGE_SIZE;
@@ -711,25 +715,34 @@ class CtsPlanList extends LitElement {
     }
   }
 
+  /**
+   * The `started` direction the server should sort by for the current sort
+   * key: ascending only for "Started (oldest)", so a truncated listing holds
+   * the plans that sort shows first.
+   * @returns {"asc" | "desc"} The direction to send as `order=started,<dir>`.
+   */
+  _wantedOrder() {
+    return this._sortKey === "started-asc" ? "asc" : "desc";
+  }
+
   async _fetchPlans() {
     const seq = ++this._fetchSeq;
+    const order = this._wantedOrder();
     this._loading = true;
     this._error = null;
     this._truncated = false;
     try {
       // This component fetches the whole listing once and does search / sort /
       // "Show more" entirely client-side, so it must ask the backend for the
-      // full set, newest-first — not the paginator's defaults. Without these
-      // params PaginationRequest falls back to length=10 + Sort.unsorted()
-      // (MongoDB natural/insertion order ≈ oldest first), so the component only
-      // ever received the 10 *oldest* plans and the genuinely-latest ones never
-      // appeared. `length=1000` is the backend's hard cap (PaginationRequest
+      // full set in a known order — not the paginator's defaults, which are
+      // length=10 + Sort.unsorted() (MongoDB natural/insertion order ≈ oldest
+      // first). `length=1000` is the backend's hard cap (PaginationRequest
       // rejects more) and matches the "up to 1000 plans" assumption baked into
-      // the status fan-out below; `order=started,desc` makes the server sort
-      // newest-first so that, when the cap truncates, it keeps the newest plans
-      // rather than the oldest. The client-side `_sortedPlans` (default
-      // `started-desc`) then refines ordering within that set.
-      const params = new URLSearchParams({ length: String(MAX_PLANS), order: "started,desc" });
+      // the status fan-out below. `order` makes the server sort by `started`
+      // so that, when the cap truncates, it keeps the end of the listing the
+      // selected sort shows first: newest, unless the sort is "Started
+      // (oldest)". The client-side `_sortedPlans` then orders within that set.
+      const params = new URLSearchParams({ length: String(MAX_PLANS), order: `started,${order}` });
       if (this.isPublic) params.set("public", "true");
       // The drill-down filters are applied by the SERVER, inside the same
       // owner/admin/public scoping as an unfiltered listing — they can only
@@ -758,6 +771,7 @@ class CtsPlanList extends LitElement {
           ? payload.data
           : [];
       this._plans = data;
+      this._loadedOrder = order;
       // PaginationRequest.getSliceResponse (server) hands back a SYNTHETIC
       // recordsTotal — start+length+1 when a next page beyond the 1000-row
       // cap exists, exactly start+numberOfElements otherwise — so
@@ -771,6 +785,10 @@ class CtsPlanList extends LitElement {
       // returns a bare array.
       const hasTotal = typeof payload?.recordsTotal === "number";
       this._truncated = hasTotal && payload.recordsTotal > data.length;
+      // The sort selector stays usable while this fetch is in flight, and a
+      // change made then cannot refetch because `_truncated` is only known
+      // now. If it asked for the other end of a truncated listing, fetch that.
+      if (this._truncated && order !== this._wantedOrder()) this._fetchPlans();
     } catch (err) {
       if (seq !== this._fetchSeq) return;
       this._error = err instanceof Error ? err.message : String(err);
@@ -1172,6 +1190,12 @@ class CtsPlanList extends LitElement {
   _handleSortChange(event) {
     this._sortKey = event.target.value;
     this._visibleCount = PAGE_SIZE;
+    // An untruncated listing is complete, so any sort is client-side. A
+    // truncated one only holds one end of the `started` ordering; fetch the
+    // other end when the new sort needs it.
+    if (this._truncated && this._wantedOrder() !== this._loadedOrder) {
+      this._fetchPlans();
+    }
   }
 
   _handleShowMoreClick() {
@@ -1826,7 +1850,8 @@ class CtsPlanList extends LitElement {
 
   /**
    * The fetch hit the backend's 1000-plan cap: the listing is not everything
-   * that matches, just the newest 1000. Rendered above the list (and above
+   * that matches, just the newest 1000 (the oldest 1000 when sorted
+   * oldest-first). Rendered above the list (and above
    * the empty state, since a search can legitimately narrow a truncated
    * fetch down to zero visible rows without the underlying dataset stopping
    * being incomplete) so it reads as a caveat on the whole result, in both
@@ -1841,8 +1866,9 @@ class CtsPlanList extends LitElement {
         class="cts-plan-list-truncation"
         data-testid="plan-list-truncated"
       >
-        Showing the newest ${MAX_PLANS.toLocaleString()} matching plans — narrow the filters or the
-        date range (for example use a weekly view) to see all of them.
+        Showing the ${this._loadedOrder === "asc" ? "oldest" : "newest"}
+        ${MAX_PLANS.toLocaleString()} matching plans — narrow the filters or the date range (for
+        example use a weekly view) to see all of them.
       </cts-alert>
     `;
   }
