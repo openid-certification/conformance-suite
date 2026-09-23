@@ -206,7 +206,7 @@ class CtsRunStatusStrip extends LitElement {
     const seq = ++this._fetchSeq;
     this._status = "loading";
     try {
-      const response = await fetch("/api/log?start=0&length=1000");
+      const response = await fetch("/api/log?start=0&length=1000&order=started,desc");
       if (seq !== this._fetchSeq) return;
       if (!response.ok) {
         console.warn(`[cts-run-status-strip] /api/log responded ${response.status}`);
