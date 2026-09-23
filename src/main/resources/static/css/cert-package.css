@@ -57,7 +57,26 @@
 
 .oidf-cert-package-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-2);
   margin-top: var(--space-4);
+}
+
+/* On phones the two buttons no longer fit side by side inside the dialog
+   body, so they stack full-width in DOM order (Cancel, then the primary), so
+   the visual order, the reading order and the tab order all agree. */
+@media (max-width: 480px) {
+  .oidf-cert-package-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* Stretch the host and the inner control: cts-button's host is a block
+     wrapper, so its own width does not reach the rendered <button>. */
+  .oidf-cert-package-actions cts-button {
+    width: 100%;
+  }
+  .oidf-cert-package-actions cts-button .oidf-btn {
+    width: 100%;
+  }
 }

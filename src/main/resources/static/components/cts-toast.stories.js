@@ -201,6 +201,71 @@ export const StackedToasts = {
 };
 
 /**
+ * Narrow phone (mobile1, 320px): the card shrinks to the viewport minus the
+ * host's 16px side gutters instead of overflowing past the left edge, so
+ * the colour rule, icon and close button all stay on screen.
+ */
+export const StackedToastsOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`
+    <cts-toast-host>
+      <cts-toast
+        title="Favourite saved"
+        message="Added to your favourites."
+        kind="ok"
+        .duration=${0}
+      ></cts-toast>
+      <cts-toast
+        title="Save failed"
+        message="The request returned 500. Try again in a moment."
+        kind="error"
+        .duration=${0}
+      ></cts-toast>
+    </cts-toast-host>
+  `,
+  async play({ canvasElement, step }) {
+    const cards = await waitFor(() => {
+      const found = canvasElement.querySelectorAll(".oidf-toast");
+      expect(found.length).toBe(2);
+      return found;
+    });
+
+    await step("every card stays inside the viewport on both sides", async () => {
+      for (const card of cards) {
+        const box = card.getBoundingClientRect();
+        expect(box.left).toBeGreaterThanOrEqual(0);
+        expect(box.right).toBeLessThanOrEqual(window.innerWidth);
+      }
+    });
+
+    await step("cards leave the 16px gutter on both sides", async () => {
+      // --space-4 resolves to 16px from oidf-tokens.css; the host is pinned
+      // 16px from both sides and the cards never grow wider than the host.
+      for (const card of cards) {
+        const box = card.getBoundingClientRect();
+        expect(box.left).toBeGreaterThanOrEqual(16);
+        expect(box.right).toBeLessThanOrEqual(window.innerWidth - 16);
+      }
+    });
+
+    await step("the close button and colour rule are both on screen", async () => {
+      for (const card of cards) {
+        const close = card.querySelector(".oidf-toast-close").getBoundingClientRect();
+        expect(close.right).toBeLessThanOrEqual(window.innerWidth);
+        expect(close.width).toBeGreaterThan(0);
+        const icon = card.querySelector(".oidf-toast-icon").getBoundingClientRect();
+        expect(icon.left).toBeGreaterThanOrEqual(0);
+      }
+    });
+  },
+};
+
+/**
  * Edge case: `kind="error"` swaps the green pass rule for the rust-400
  * fail rule and renders the `close-circle` glyph instead of `circle-check`.
  */

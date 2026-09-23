@@ -153,6 +153,10 @@ const STYLE_TEXT = css`
     margin: 0 0 var(--space-5) 0;
     padding: 0 0 var(--space-4) 0;
     border-bottom: 1px solid var(--ink-100);
+    /* A fieldset's UA default is min-width: min-content, so any unbreakable
+       child (a URL in a help text, a JWT value) would widen the whole form
+       past the viewport and make the page pan sideways. */
+    min-width: 0;
   }
   .oidf-config-form-section:last-of-type {
     border-bottom: 0;
@@ -193,6 +197,24 @@ const STYLE_TEXT = css`
     flex-wrap: wrap;
     gap: var(--space-3);
     margin-top: var(--space-4);
+  }
+  /* Phone widths: the validate button is the only in-form action at the end
+     of a long form, so it becomes a full-width 44px touch target (the
+     desktop keeps the sm size). cts-button renders in light DOM, so the
+     descendant selector reaches the inner .oidf-btn. */
+  @media (max-width: 480px) {
+    .oidf-config-form-actions cts-button {
+      flex: 1 1 auto;
+    }
+    .oidf-config-form-actions cts-button .oidf-btn {
+      width: 100%;
+      height: 44px;
+    }
+    /* The verdict always occupies its own row here (it persists empty as a
+       live region), so the button is not left short of the row by a gap. */
+    .oidf-config-form-actions .oidf-config-form-verdict {
+      flex: 1 1 100%;
+    }
   }
   /* Inline validate verdict — mirrors .oidf-error (cts-form-field) for the
      error tone and .share-modal-success (oidf-app.css) for the success

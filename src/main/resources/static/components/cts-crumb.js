@@ -3,28 +3,36 @@ import "./cts-icon.js";
 
 const STYLE_ID = "cts-crumb-styles";
 
-// Scoped CSS for the breadcrumb. Inline flex row of ghost-link buttons and a
-// terminal `<span>` label, separated by a chevron icon. The link colour comes
-// from --fg-link, sized at --fs-13 so the breadcrumb sits comfortably above
-// the page title (matches the design archive's plan-detail / log-detail
+// Scoped CSS for the breadcrumb. A wrapping flex row of ghost-link buttons and
+// a terminal `<span>` label, each after the first led by a chevron icon. The link colour
+// comes from --fg-link, sized at --fs-13 so the breadcrumb sits comfortably
+// above the page title (matches the design archive's plan-detail / log-detail
 // header treatment).
 const STYLE_TEXT = css`
   cts-crumb {
-    display: inline-flex;
-    align-items: center;
+    display: block;
     font-family: var(--font-sans);
     font-size: var(--fs-13);
     line-height: var(--lh-base);
     color: var(--fg);
   }
+  /* The trail wraps as a row of left-aligned lines. Every crumb after the
+     first carries its chevron as a leading glyph, so a crumb that does not
+     fit moves to the next line as one unit, chevron first, and then wraps
+     its own text across the full width. The flex-start alignment keeps the
+     first lines of neighbouring crumbs level when one runs to two lines. */
   cts-crumb .crumbNav {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: var(--space-2);
+    row-gap: var(--space-1);
   }
   cts-crumb .crumbItem {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
+    gap: var(--space-2);
+    min-width: 0;
   }
   /* .crumbLink is a <button>, so the global \`a\` underline-fade model doesn't
      reach it — replicate it locally: underline present but transparent at
@@ -36,6 +44,11 @@ const STYLE_TEXT = css`
     padding: 0;
     margin: 0;
     font: inherit;
+    /* A <button> centres its text by default; a multi-line crumb must read
+       as a left-aligned line of the trail. */
+    text-align: left;
+    overflow-wrap: anywhere;
+    min-width: 0;
     color: var(--fg-link);
     cursor: pointer;
     text-decoration-line: underline;
@@ -62,12 +75,17 @@ const STYLE_TEXT = css`
   }
   cts-crumb .crumbCurrent {
     color: var(--fg);
+    overflow-wrap: anywhere;
+    min-width: 0;
   }
+  /* One line-box tall so the chevron centres on the crumb's first line even
+     when the crumb text wraps. */
   cts-crumb .crumbSeparator {
     color: var(--fg-faint);
     display: inline-flex;
     align-items: center;
-    line-height: 1;
+    height: 1lh;
+    flex: none;
   }
 `;
 
@@ -80,9 +98,9 @@ function ensureStylesInjected() {
 }
 
 /**
- * Breadcrumb trail for plan-detail and log-detail pages. Renders a row of
- * ghost-link buttons separated by chevron icons, with the final entry shown
- * as non-interactive text. Click a non-terminal crumb to dispatch
+ * Breadcrumb trail for plan-detail and log-detail pages. Renders a wrapping
+ * row of ghost-link buttons separated by chevron icons, with the final entry
+ * shown as non-interactive text. Click a non-terminal crumb to dispatch
  * `cts-crumb-navigate`; the host page handles routing.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
@@ -145,11 +163,12 @@ class CtsCrumb extends LitElement {
     return html`<nav aria-label="Breadcrumb" class="crumbNav">
       ${items.map((item, index) => {
         const isLast = index === lastIndex;
-        const separator = isLast
-          ? nothing
-          : html`<span class="crumbSeparator" aria-hidden="true">
-              <cts-icon name="chevron-right" size="16"></cts-icon>
-            </span>`;
+        const separator =
+          index === 0
+            ? nothing
+            : html`<span class="crumbSeparator" aria-hidden="true">
+                <cts-icon name="chevron-right" size="16"></cts-icon>
+              </span>`;
         const content = isLast
           ? html`<span class="crumbCurrent" aria-current="page">${item.label}</span>`
           : html`<button
@@ -160,7 +179,7 @@ class CtsCrumb extends LitElement {
             >
               ${item.label}
             </button>`;
-        return html`<span class="crumbItem">${content}</span>${separator}`;
+        return html`<span class="crumbItem">${separator}${content}</span>`;
       })}
     </nav>`;
   }

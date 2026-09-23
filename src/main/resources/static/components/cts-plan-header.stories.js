@@ -99,6 +99,44 @@ export const EmptyAlias = {
   },
 };
 
+export const EmptyCertificationProfile = {
+  // A plan whose `certificationProfileName` is an empty array (or a blank
+  // string) has no profile to show, so the "Certification profile:" row is
+  // suppressed rather than rendered as a dangling label over an empty value
+  // (logplan-08). The predicate mirrors plan-detail.html's canCertify check.
+  render: () =>
+    html`<cts-plan-header .plan=${{ ...PLAN, certificationProfileName: [] }}></cts-plan-header>`,
+
+  async play({ canvasElement, step }) {
+    const header = /** @type {any} */ (canvasElement.querySelector("cts-plan-header"));
+    const row = () => header.querySelector('[data-testid="certification-row"]');
+
+    await step("an empty array renders no certification row", async () => {
+      await header.updateComplete;
+      expect(row()).toBeNull();
+    });
+
+    await step("an array of blank strings renders no certification row", async () => {
+      header.plan = { ...PLAN, certificationProfileName: ["", "  "] };
+      await header.updateComplete;
+      expect(row()).toBeNull();
+    });
+
+    await step("a blank string renders no certification row", async () => {
+      header.plan = { ...PLAN, certificationProfileName: "   " };
+      await header.updateComplete;
+      expect(row()).toBeNull();
+    });
+
+    await step("a named profile renders the row with its value", async () => {
+      header.plan = { ...PLAN, certificationProfileName: ["FAPI2SP Final OP w/ MTLS"] };
+      await header.updateComplete;
+      expect(row()).toBeTruthy();
+      expect(row().nextElementSibling?.textContent?.trim()).toBe("FAPI2SP Final OP w/ MTLS");
+    });
+  },
+};
+
 // Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
 // (U3). The plan summary callout renders markdown (block parity with the
 // log-detail hero): paragraphs, autolinked bare URLs, and inline code.

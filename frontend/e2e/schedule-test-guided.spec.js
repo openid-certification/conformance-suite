@@ -242,6 +242,136 @@ test.describe("schedule-test.html — guided journey", () => {
     expect(configureBox.x).toBeGreaterThan(backBox.x + backBox.width);
   });
 
+  test("the sticky action bar spans the full viewport width on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+
+    const bar = page.locator("#guidedStageActions .oidf-action-bar");
+    await bar.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+    const barBox = await bar.boundingBox();
+    const backBox = await page.locator("#guidedStageActions").getByText("Back").boundingBox();
+    const configureBox = await page
+      .locator("#guidedStageActions")
+      .getByText("Configure this plan")
+      .boundingBox();
+    if (!barBox || !backBox || !configureBox) {
+      throw new Error("action bar is missing a bounding box");
+    }
+    // The body's width, not the 390px window: <html> reserves a stable
+    // scrollbar gutter, which on platforms with classic scrollbars takes 15px
+    // of the window before the body lays out.
+    const layoutWidth = await page.evaluate(() => document.body.getBoundingClientRect().width);
+    // Edge to edge: a sticky box is only as wide as its containing block, so
+    // this holds only while the mode islands stay full-width (the content
+    // column lives on .schedule-test-column, inside them).
+    expect(barBox.x).toBe(0);
+    expect(barBox.width).toBe(layoutWidth);
+    // The buttons still sit on the page's content column, one row.
+    expect(backBox.x).toBeGreaterThanOrEqual(16);
+    expect(backBox.y).toBe(configureBox.y);
+    expect(configureBox.x + configureBox.width).toBeLessThanOrEqual(layoutWidth - 16);
+  });
+
+  test("the prefill bridge wraps its buttons under the copy on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+    await page.locator("#modeAdvancedBtn").click();
+
+    const prompt = page.locator("#bridgePrompt");
+    await expect(prompt).toBeVisible();
+    const bodyBox = await prompt.locator(".bp-body").boundingBox();
+    const actionsBox = await prompt.locator(".bp-actions").boundingBox();
+    if (!bodyBox || !actionsBox) throw new Error("bridge prompt is missing a bounding box");
+    // Actions drop onto their own line instead of squeezing the copy into a
+    // one-word-per-line column beside them.
+    expect(actionsBox.y).toBeGreaterThanOrEqual(bodyBox.y + bodyBox.height - 1);
+    expect(bodyBox.width).toBeGreaterThan(240);
+  });
+
+  test("phone layout: rail, trail, variant table and bar reservation adapt", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Choose step: no bar is shown, so the island must not reserve a
+    // bar-height band above the footer.
+    const island = page.locator("#guidedIsland");
+    await expect(page.locator("#guidedStage .choice-grid")).toBeVisible();
+    const chooseReservation = await island.evaluate((el) =>
+      parseFloat(getComputedStyle(el).paddingBottom),
+    );
+    expect(chooseReservation).toBeLessThan(60);
+
+    await walkKsaOpToReview(page);
+
+    // Progress rail: four steps on one row, no wrapped "Create".
+    const stepTops = await page
+      .locator("#guidedProgress li")
+      .evaluateAll((items) => items.map((li) => Math.round(li.getBoundingClientRect().top)));
+    expect(stepTops).toHaveLength(4);
+    expect(new Set(stepTops).size).toBe(1);
+
+    // Trail: the label owns its own row and every chip starts at the same x.
+    const chipLefts = await page
+      .locator("#guidedTrail .chip")
+      .evaluateAll((chips) => chips.map((c) => Math.round(c.getBoundingClientRect().left)));
+    expect(chipLefts.length).toBeGreaterThan(1);
+    expect(new Set(chipLefts).size).toBe(1);
+
+    // Variant table: stacked rows, description fully inside the viewport.
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table).toBeVisible();
+    const desc = table.locator(".vt-desc").first();
+    await expect(desc).toHaveCSS("display", "block");
+    const descBox = await desc.boundingBox();
+    if (!descBox) throw new Error("variant description is missing a bounding box");
+    expect(descBox.x + descBox.width).toBeLessThanOrEqual(390);
+    expect(descBox.width).toBeGreaterThan(200);
+
+    // Review step: the sticky bar is shown, so the reservation is back.
+    const reviewReservation = await island.evaluate((el) =>
+      parseFloat(getComputedStyle(el).paddingBottom),
+    );
+    expect(reviewReservation).toBeGreaterThanOrEqual(80);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  });
+
+  test("the guided island shows a skeleton, not a placeholder heading, while plans load", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    // Hold the catalog so the page stays in its loading phase.
+    let release = /** @type {(value?: unknown) => void} */ (() => {});
+    const held = new Promise((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/plan/available", async (route) => {
+      await held;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      });
+    });
+    await page.goto("/schedule-test.html");
+
+    const stage = page.locator("#guidedStage");
+    await expect(page.locator("#guidedIsland")).toBeVisible();
+    await expect(stage).toHaveAttribute("aria-busy", "true");
+    await expect(stage.locator(".stage-skeleton")).toBeVisible();
+    await expect(stage.locator("h1")).toHaveCount(0);
+    await expect(stage).not.toContainText("Guided setup");
+
+    release();
+    await expect(stage.locator("h1")).toHaveText("Which ecosystem are you certifying for?");
+    await expect(stage).not.toHaveAttribute("aria-busy", "true");
+    await expect(stage.locator(".stage-skeleton")).toHaveCount(0);
+  });
+
   test("Brazil OP FAPI path goes straight to review — one journey, one plan (#1967)", async ({
     page,
   }) => {
@@ -858,6 +988,21 @@ test.describe("schedule-test.html — guided config + create", () => {
 test.describe("schedule-test.html — guided hardening (review followup)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
+  });
+
+  test("the guided skeleton gives way to an error when the page init chain fails", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    // The config-form adapter module is awaited by the init chain before the
+    // journey starts; its load failure rejects the chain.
+    await page.route("**/components/config-form-adapter.js", (route) => route.abort());
+    await page.goto("/schedule-test.html");
+
+    const stage = page.locator("#guidedStage");
+    await expect(stage.locator("cts-alert")).toContainText("Unable to load the guided setup");
+    await expect(stage).not.toHaveAttribute("aria-busy", "true");
+    await expect(stage.locator(".stage-skeleton")).toHaveCount(0);
   });
 
   test("guest viewer (isGuest) gets the sign-in prompt, not the create button (R6)", async ({

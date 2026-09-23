@@ -231,11 +231,17 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsStatusBar {
     position: relative;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    /* Phone-first: the name + verdict badges own row 1, the result-count
+       pills share row 2 with the actions, and the created timestamp sits
+       alone on row 3. The pills need a full-width track to lay out as a
+       row; the three-column template only applies from 640px (below). */
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "left    middle  primary"
-      "created created created";
+      "left    left"
+      "middle  primary"
+      "created created";
     column-gap: var(--space-3);
+    row-gap: var(--space-2);
     align-items: center;
     padding: 20px;
     margin-inline: -20px;
@@ -289,6 +295,9 @@ const STYLE_TEXT = css`
     gap: var(--space-2);
     flex-wrap: wrap;
     min-width: 0;
+    /* Keeps row 2 the height of the actions cluster when a bar variant has
+       no pills (needs-start, waiting), so the kebab still gets a row. */
+    align-self: center;
   }
   cts-log-detail-header .ctsStatusBarSupport {
     color: var(--fg-muted);
@@ -299,9 +308,18 @@ const STYLE_TEXT = css`
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    justify-self: end;
   }
   cts-log-detail-header .ctsStatusBarOverflow {
     display: contents;
+  }
+  /* Touch screens: the bar's primary action is the most-tapped control on
+     the page; the small button keeps its desktop density but grows to a
+     44px target under a thumb. */
+  @media (pointer: coarse) {
+    cts-log-detail-header .ctsStatusBar cts-button .oidf-btn-sm {
+      min-height: 44px;
+    }
   }
   /* Test name leads the bar's left cluster (Row 1, ahead of the status
      pill and result-count badges) so the bar's title — "which test is
@@ -333,6 +351,11 @@ const STYLE_TEXT = css`
     cts-log-detail-header .ctsStatusBar {
       position: sticky;
       top: 0;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "left    middle  primary"
+        "created created created";
+      row-gap: 0;
     }
     /* Reveal the faux drop-shadow only when the bar is sticky. A
        static bar at mobile widths gets no shadow — it sits flush with
@@ -515,6 +538,11 @@ const STYLE_TEXT = css`
     font-size: var(--fs-13);
     line-height: 1.6;
     color: var(--fg);
+    /* Module descriptions are rendered verbatim and can carry a long
+       unbreakable token (a base64 id, a URL); without a break opportunity
+       the paragraph widened the page past the phone viewport. */
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   cts-log-detail-header .ctsHeroBody p {
     margin: 0 0 var(--space-3);
@@ -2097,10 +2125,12 @@ class CtsLogDetailHeader extends LitElement {
         <div class="logMetaValue">
           <span class="mono">${test.testId}</span>
         </div>
-        <div class="logMetaLabel">Created:</div>
-        <div class="logMetaValue tabular-nums">
-          <cts-time mode="absolute" value=${test.created}></cts-time>
-        </div>
+        ${test.created
+          ? html`<div class="logMetaLabel">Created:</div>
+              <div class="logMetaValue tabular-nums">
+                <cts-time mode="absolute" value=${test.created}></cts-time>
+              </div>`
+          : nothing}
         ${test.description
           ? html`
               <div class="logMetaLabel">Description:</div>

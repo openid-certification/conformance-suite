@@ -65,7 +65,10 @@
             window.__rejectConfigFormAdapterReady = reject;
         });
     </script>
-    <script type="module">
+    <!-- onerror rejects the readiness promise when the module fails to fetch
+         or parse, so the init chain fails (and reports) instead of waiting on
+         a promise that would never settle. -->
+    <script type="module" onerror="window.__rejectConfigFormAdapterReady(new Error('config-form-adapter.js failed to load'))">
         import {
             buildConfigFormSchema,
             computeHiddenFields,
@@ -182,9 +185,15 @@
            bar no extra room, since the island itself ends flush with the
            bar. The fallback `80px` covers the first paint before
            cts-action-bar publishes --cts-action-bar-height. */
-        #guidedIsland,
-        #scheduleTestPage {
+        #scheduleTestPage,
+        #guidedIsland:has(> #guidedStageActions:not([hidden])) {
             padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
+        }
+        /* The guided bar is hidden on the choose steps (renderActionBar /
+           clearActionBar in guided-wizard.js); those steps only need normal
+           section spacing, not a bar-height blank band above the footer. */
+        #guidedIsland {
+            padding-bottom: var(--space-6);
         }
 
         /* The padding-bottom above only guarantees room
@@ -235,6 +244,41 @@
 
         /* ── Guided journey (ported from prototype 4) ───────────────── */
 
+        /* Loading skeleton for the guided stage: mirrors the ecosystem
+           step's eyebrow / h1 / lede / choice-card grid so the real step
+           replaces it without a jump. Removed wholesale when
+           startGuidedJourney() renders the first step. */
+        #guidedIsland .stage-skeleton > span,
+        #guidedIsland .stage-skeleton__card {
+            display: block;
+            background: var(--bg-sunken);
+            border-radius: var(--radius-2);
+        }
+        #guidedIsland .stage-skeleton__eyebrow { width: 6rem; height: var(--fs-13); margin-bottom: var(--space-3); }
+        #guidedIsland .stage-skeleton__title { width: min(100%, 22rem); height: var(--fs-32); margin-bottom: var(--space-3); }
+        #guidedIsland .stage-skeleton__lede { width: min(100%, 34rem); height: var(--fs-16); margin-bottom: var(--space-2); }
+        #guidedIsland .stage-skeleton__lede--short { width: min(70%, 24rem); margin-bottom: var(--space-6); }
+        #guidedIsland .stage-skeleton__grid {
+            display: grid;
+            gap: var(--space-3);
+            grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+        }
+        #guidedIsland .stage-skeleton__card {
+            height: 5.5rem;
+            border: 1.5px solid var(--border);
+            background: var(--bg-elev);
+            border-radius: var(--radius-3);
+        }
+        @media (prefers-reduced-motion: no-preference) {
+            #guidedIsland .stage-skeleton > span,
+            #guidedIsland .stage-skeleton__card {
+                animation: stage-skeleton-pulse 1.4s ease-in-out infinite;
+            }
+            @keyframes stage-skeleton-pulse {
+                50% { opacity: 0.55; }
+            }
+        }
+
         /* Progress rail */
         #guidedIsland .cert-progress {
             display: flex;
@@ -265,6 +309,23 @@
         }
         #guidedIsland .cert-progress li[data-state="done"] .dot { background: var(--status-pass); }
         #guidedIsland .cert-progress li[data-state="current"] .dot { background: var(--orange-400); box-shadow: 0 0 0 3px var(--orange-100); }
+        /* Phone widths: four equal columns with the label under the dot, so
+           the rail never wraps "Create" onto a second line with a dangling
+           connector. The connectors are decorative and drop out. */
+        @media (max-width: 480px) {
+            #guidedIsland .cert-progress {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: var(--space-1);
+            }
+            #guidedIsland .cert-progress li {
+                flex-direction: column;
+                align-items: center;
+                gap: var(--space-1);
+                text-align: center;
+            }
+            #guidedIsland .cert-progress .sep { display: none; }
+        }
         #guidedIsland .cert-progress .sep {
             width: var(--space-5);
             height: 1px;
@@ -287,6 +348,18 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
             margin-right: var(--space-1);
+        }
+        /* Phone widths: the label takes the first row so every chip starts
+           at the same x below it instead of one chip beside the label and
+           the rest ragged underneath. */
+        @media (max-width: 640px) {
+            #guidedIsland .trail-label { flex-basis: 100%; margin-right: 0; }
+        }
+        /* Touch screens: the chips are backtrack buttons; give them a 40px
+           target and a wider gap so a thumb lands on one answer, not two. */
+        @media (pointer: coarse) {
+            #guidedIsland .cert-trail { gap: var(--space-3); }
+            #guidedIsland .chip { min-height: 40px; padding-block: var(--space-2); }
         }
         #guidedIsland .chip {
             display: inline-flex;
@@ -338,7 +411,7 @@
         #guidedIsland .choice-grid {
             display: grid;
             gap: var(--space-3);
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
             border: 0;
             padding: 0;
             margin: 0;
@@ -485,7 +558,27 @@
             font-size: var(--fs-13);
             color: var(--orange-700);
         }
-        #guidedIsland table.variant-table .vt-desc { color: var(--fg-muted); font-size: var(--fs-13); line-height: var(--lh-base); }
+        #guidedIsland table.variant-table .vt-desc { color: var(--fg-muted); font-size: var(--fs-13); line-height: var(--lh-base); overflow-wrap: anywhere; }
+        /* Phone widths: the three-column table cannot fit a ~350px card, and
+           cts-card clips overflow, so the "What it means" column was cut
+           off. Stack each row as parameter / value / description; the
+           header row stays in the DOM (visually hidden) for screen readers. */
+        @media (max-width: 640px) {
+            #guidedIsland table.variant-table thead {
+                position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden;
+            }
+            #guidedIsland table.variant-table,
+            #guidedIsland table.variant-table tbody,
+            #guidedIsland table.variant-table tr,
+            #guidedIsland table.variant-table td { display: block; }
+            #guidedIsland table.variant-table td { padding: 0; border: 0; }
+            #guidedIsland table.variant-table tr { padding: var(--space-3) 0; border-bottom: 1px solid var(--border); }
+            #guidedIsland table.variant-table tr:first-child { padding-top: 0; }
+            #guidedIsland table.variant-table tr:last-child { border-bottom: 0; padding-bottom: 0; }
+            #guidedIsland table.variant-table .vt-param { white-space: normal; }
+            #guidedIsland table.variant-table .vt-value { display: inline-block; margin-top: var(--space-1); }
+            #guidedIsland table.variant-table .vt-desc { margin-top: var(--space-1); }
+        }
         #guidedIsland .review-config-hint {
             font-size: var(--fs-13);
             color: var(--fg-muted);
@@ -521,8 +614,20 @@
         #guidedIsland .escape-card .ec-title { font-weight: var(--fw-bold); display: block; }
         #guidedIsland .escape-card .ec-sub { font-size: var(--fs-13); color: var(--fg-muted); display: block; }
         #guidedIsland .escape-card .ec-chev { margin-left: auto; }
+        /* Phone widths: the whole card is the button, so the trailing
+           chevron is decorative; drop it to give the copy the room, and
+           top-align the search icon with the title. */
+        @media (max-width: 480px) {
+            #guidedIsland .escape-card { align-items: flex-start; }
+            #guidedIsland .escape-card .ec-chev { display: none; }
+        }
 
         .actions-right { margin-left: auto; display: flex; gap: var(--space-3); }
+        /* Matches cts-action-bar's phone rule: the spacer grows with the
+           buttons it wraps so they can stretch across the row. */
+        @media (max-width: 480px) {
+            .actions-right { flex: 1 1 auto; }
+        }
 
         /* Persistent render target inside #guidedStageActions. Layout-invisible
            so the buttons participate directly in the action bar's inner flex
@@ -550,8 +655,9 @@
         /* Guided→advanced prefill bridge (lives in the advanced island) */
         .bridge-prompt {
             display: flex;
+            flex-wrap: wrap;
             gap: var(--space-3);
-            align-items: center;
+            align-items: flex-start;
             border: 1.5px solid var(--orange-300);
             background: var(--orange-50);
             border-radius: var(--radius-3);
@@ -560,10 +666,21 @@
             box-sizing: border-box;
         }
         .bridge-prompt .bp-icon { color: var(--orange-600); flex: none; }
-        .bridge-prompt .bp-body { flex: 1 1 auto; min-width: 0; }
+        /* The body needs at least ~240px of line length beside the icon and
+           the two buttons; when the row can't give it that (a phone-width
+           column) the actions wrap onto their own line instead of the copy
+           collapsing into a one-word-per-line column. */
+        .bridge-prompt .bp-body { flex: 1 1 240px; min-width: 0; }
         .bridge-prompt .bp-title { font-weight: var(--fw-bold); color: var(--fg); font-size: var(--fs-14); }
         .bridge-prompt .bp-sub { font-size: var(--fs-13); color: var(--fg-muted); margin-top: 2px; }
-        .bridge-prompt .bp-actions { display: flex; gap: var(--space-2); flex: none; }
+        .bridge-prompt .bp-actions {
+            display: flex;
+            gap: var(--space-2);
+            flex: none;
+            /* Hugs the end of whichever line it lands on: beside the copy on
+               a wide row, right-aligned below it once wrapped. */
+            margin-inline-start: auto;
+        }
 
         /* GL#1897: collapsed "here's your plan" card shown in place of
            #planSearch when the plan arrived via a preset/shared-configuration
@@ -578,6 +695,15 @@
             align-items: flex-start;
         }
         .plan-selected-summary .resolved-plan-body { flex: 1 1 auto; min-width: 0; }
+        /* Phone widths: the Change button drops under the pip + title row
+           instead of squeezing the title into a ~100px column beside it. */
+        @media (max-width: 640px) {
+            .plan-selected-summary .resolved-plan { flex-wrap: wrap; }
+            .plan-selected-summary .resolved-plan-body {
+                flex-basis: calc(100% - var(--space-10) - var(--space-4));
+            }
+            .plan-selected-summary #planSelectedChangeBtn { margin-inline-start: auto; }
+        }
         .plan-selected-summary .pip {
             flex: none;
             width: var(--space-10);
@@ -637,26 +763,49 @@
              are independent state surfaces; switching only flips visibility
              (never resets either island, R8). Mode resolution + persistence
              live in /components/guided-wizard.js (booted below). -->
-        <div class="schedule-test-mode-head">
-            <p class="schedule-test-mode-head__title">Schedule a test plan</p>
-            <div class="mode-toggle" role="group" aria-label="Selection mode">
-                <button type="button" class="mode-toggle__btn" id="modeGuidedBtn" aria-pressed="false">
-                    <cts-icon name="bulb" size="16" aria-hidden="true"></cts-icon> Guided
-                </button>
-                <button type="button" class="mode-toggle__btn" id="modeAdvancedBtn" aria-pressed="false">
-                    <cts-icon name="settings" size="16" aria-hidden="true"></cts-icon> Advanced
-                </button>
+        <div class="schedule-test-column">
+            <div class="schedule-test-mode-head">
+                <p class="schedule-test-mode-head__title">Schedule a test plan</p>
+                <div class="mode-toggle" role="group" aria-label="Selection mode">
+                    <button type="button" class="mode-toggle__btn" id="modeGuidedBtn" aria-pressed="false">
+                        <cts-icon name="bulb" size="16" aria-hidden="true"></cts-icon> Guided
+                    </button>
+                    <button type="button" class="mode-toggle__btn" id="modeAdvancedBtn" aria-pressed="false">
+                        <cts-icon name="settings" size="16" aria-hidden="true"></cts-icon> Advanced
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- ══ GUIDED ISLAND — the guided certification journey ════════ -->
         <div id="guidedIsland" tabindex="-1" hidden>
+          <div class="schedule-test-column">
             <ol class="cert-progress" id="guidedProgress" aria-label="Guided setup progress"></ol>
             <nav class="cert-trail" id="guidedTrail" aria-label="Your answers"></nav>
-            <section class="guided-stage" id="guidedStage" tabindex="-1">
-                <h1 tabindex="-1">Guided setup</h1>
+            <!-- The stage is empty until startGuidedJourney() renders the first
+                 step, which waits on /api/plan/available. Until then it shows a
+                 skeleton in the shape of that step (eyebrow, heading, lede,
+                 choice cards) so the island neither flashes a placeholder
+                 heading nor jumps when the real content lands. aria-busy hides
+                 the placeholder boxes from assistive tech; the sr-only text is
+                 the only thing announced. -->
+            <section class="guided-stage" id="guidedStage" tabindex="-1" aria-busy="true">
+                <div class="stage-skeleton" aria-hidden="true">
+                    <span class="stage-skeleton__eyebrow"></span>
+                    <span class="stage-skeleton__title"></span>
+                    <span class="stage-skeleton__lede"></span>
+                    <span class="stage-skeleton__lede stage-skeleton__lede--short"></span>
+                    <div class="stage-skeleton__grid">
+                        <span class="stage-skeleton__card"></span>
+                        <span class="stage-skeleton__card"></span>
+                        <span class="stage-skeleton__card"></span>
+                        <span class="stage-skeleton__card"></span>
+                    </div>
+                </div>
+                <p class="sr-only">Loading guided setup…</p>
             </section>
             <div aria-live="polite" class="sr-only" id="guidedLiveRegion"></div>
+          </div>
             <!-- Per-step sticky actions (Back / Continue / Create). Lives
                  inside the island so hiding the island hides the bar; the
                  journey controller fills + toggles it per phase. It renders
@@ -668,6 +817,7 @@
 
         <!-- ══ ADVANCED ISLAND — the classic schedule-test surface ═════ -->
         <div id="scheduleTestPage" tabindex="-1">
+          <div class="schedule-test-column">
 
             <div class="schedule-test-header">
                 <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
@@ -738,6 +888,7 @@
                 <div id="jwksGeneratorRow" class="oidf-jwks-generator-row" hidden></div>
                 <cts-config-form id="ctsConfigForm"></cts-config-form>
             </div>
+          </div>
 
             <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions">
                 <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled></cts-button>
@@ -993,6 +1144,18 @@
                 var planSearch = document.getElementById('planSearch');
                 if (planSearch) {
                     planSearch.loading = false;
+                }
+                // The guided stage keeps its loading skeleton until the
+                // journey's first render clears aria-busy. If the chain
+                // failed before startJourney ran, swap the skeleton for an
+                // error so guided mode does not claim progress forever.
+                var guidedStage = document.getElementById('guidedStage');
+                if (guidedStage && guidedStage.getAttribute('aria-busy') === 'true') {
+                    guidedStage.removeAttribute('aria-busy');
+                    var loadFailed = document.createElement('cts-alert');
+                    loadFailed.setAttribute('variant', 'danger');
+                    loadFailed.textContent = 'Unable to load the guided setup — please reload the page.';
+                    guidedStage.replaceChildren(loadFailed);
                 }
             });
         });

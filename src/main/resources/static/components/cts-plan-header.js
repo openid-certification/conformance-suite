@@ -194,9 +194,27 @@ class CtsPlanHeader extends LitElement {
       .join(", ");
   }
 
+  /**
+   * Whether the plan names at least one certification profile. Mirrors the
+   * canCertify predicate in plan-detail.html: an array holding a non-empty
+   * string, or a non-empty string. An empty array or a blank string means
+   * "no profile", so the row is suppressed rather than rendered with an
+   * empty value.
+   * @param {unknown} name - The plan's `certificationProfileName`.
+   * @returns {boolean} True when there is a profile name to show.
+   */
+  _hasCertificationProfile(name) {
+    if (Array.isArray(name)) {
+      return name.some((n) => typeof n === "string" && n.trim() !== "");
+    }
+    return typeof name === "string" && name.trim() !== "";
+  }
+
   _formatCertificationProfile(name) {
-    if (!name) return "";
-    return Array.isArray(name) ? name.join(", ") : name;
+    if (Array.isArray(name)) {
+      return name.filter((n) => typeof n === "string" && n.trim() !== "").join(", ");
+    }
+    return typeof name === "string" ? name : "";
   }
 
   render() {
@@ -242,7 +260,7 @@ class CtsPlanHeader extends LitElement {
               <dd>${ownerText}</dd>
             `
           : nothing}
-        ${plan.certificationProfileName
+        ${this._hasCertificationProfile(plan.certificationProfileName)
           ? html`
               <dt data-testid="certification-row">Certification profile:</dt>
               <dd>${this._formatCertificationProfile(plan.certificationProfileName)}</dd>

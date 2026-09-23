@@ -363,9 +363,12 @@ const STYLE_TEXT = css`
   .oidf-test-selector__row:hover {
     background: var(--ink-50);
   }
+  /* The list clips to its rounded corners (overflow: hidden) and rows sit
+     flush against its edges, so an outer ring would lose its top and left
+     segments. The ring is drawn inside the row box instead. */
   .oidf-test-selector__row:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
+    outline: 2px solid var(--orange-400);
+    outline-offset: -2px;
     position: relative;
     z-index: 1;
   }
@@ -401,8 +404,8 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
   }
   .oidf-test-selector__fav:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
+    outline: 2px solid var(--orange-400);
+    outline-offset: -2px;
     position: relative;
     z-index: 1;
   }

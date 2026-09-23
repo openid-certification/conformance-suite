@@ -4,13 +4,14 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
+  formatDate,
   toMillis,
 } from "../lib/time-format.js";
 
 /**
  * Visible-text strategy for {@link CtsTime}. The `title` attribute always
  * carries the full absolute form regardless of which mode is selected.
- * @typedef {"auto" | "absolute" | "compact" | "time-of-day"} CtsTimeMode
+ * @typedef {"auto" | "absolute" | "compact" | "date" | "time-of-day"} CtsTimeMode
  */
 
 const STYLE_ID = "cts-time-styles";
@@ -62,6 +63,8 @@ function ensureStylesInjected() {
  *   `auto` (default — relative for ≤30 days, absolute beyond),
  *   `absolute` (full locale date/time),
  *   `compact` (medium date + short time, e.g. "May 22, 2026, 9:42 AM"),
+ *   `date` (calendar date only, e.g. "May 22, 2026" — for narrow columns
+ *   where the day is what is compared and the time is on hover),
  *   `time-of-day` (clock time only, e.g. "9:42:13 AM"). The `title`
  *   attribute is always the full absolute form regardless of mode.
  */
@@ -95,6 +98,8 @@ class CtsTime extends LitElement {
         return formatAbsolute(date);
       case "compact":
         return formatCompact(date);
+      case "date":
+        return formatDate(date);
       case "time-of-day":
         return formatTimeOfDay(date);
       case "auto":

@@ -64,15 +64,15 @@ const STYLE_TEXT = css`
     font-family: var(--font-sans);
   }
   /* Hamburger button — hidden at wide widths, revealed inside the
- * narrow-viewport media query below. Lives in the right cluster so
- * the chrome reads "logo … hamburger / avatar" — both controls land
- * under the user's right-thumb reach on phones. */
+ * narrow-viewport media query below. The 44px box is the touch target;
+ * the negative side margins keep the 20px glyph and the brand exactly
+ * where a 36px box would put them. */
   .cts-nav .cts-menu-toggle {
     display: none;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     padding: 0;
-    margin: 0;
+    margin: 0 -4px;
     background: transparent;
     border: 1px solid transparent;
     border-radius: var(--radius-2);
@@ -253,9 +253,12 @@ const STYLE_TEXT = css`
   }
 
   /* Account zone — avatar trigger + popover menu. Replaces the previous
- * inline "Logged in as X" + Tokens + Logout cluster. The trigger is
+ * inline "Logged in as X" + Tokens + Logout cluster. The avatar is
  * always 30x30 regardless of name length, so the navbar's right edge
- * never reflows when the user resolves. */
+ * never reflows when the user resolves. The trigger pads that avatar
+ * out to a 44x44 touch target and pulls the padding back with a
+ * matching negative margin, so its margin box is still 30x30 and the
+ * avatar does not move. */
   .cts-nav .cts-account {
     position: relative;
     display: inline-flex;
@@ -331,18 +334,26 @@ const STYLE_TEXT = css`
     flex-direction: column;
     gap: var(--space-1);
     font-family: var(--font-sans);
+    /* visibility: hidden (not just opacity) takes the closed menu's items
+   * out of the tab order and the accessibility tree. The visibility
+   * transition is delayed by the fade duration so the menu stays
+   * visible while it fades out, then snaps to hidden. */
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
     transform: translateY(-4px);
     transition:
       opacity 120ms ease,
-      transform 120ms ease;
+      transform 120ms ease,
+      visibility 0s linear 120ms;
     z-index: 1000;
   }
   .cts-nav .cts-account[data-open="true"] .cts-account-menu {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
+    transition-delay: 0s;
   }
   .cts-nav .cts-account-header {
     display: flex;
@@ -447,6 +458,13 @@ const STYLE_TEXT = css`
  * hamburger is toggled. The same <ul> serves both layouts; only its
  * positioning and flex direction swap. */
   @media (max-width: 820px) {
+    /* On phones the trigger pads the 30px avatar out to a 44x44 touch
+     * target and pulls the padding back with a matching negative margin, so
+     * its margin box stays 30x30 and the avatar does not move. */
+    .cts-nav .cts-account-trigger {
+      padding: 7px;
+      margin: -7px;
+    }
     .cts-nav {
       gap: var(--space-3);
     }
@@ -493,34 +511,49 @@ const STYLE_TEXT = css`
       background: var(--ink-900);
       border-top: 1px solid var(--ink-800);
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+      /* visibility: hidden keeps the closed panel's links out of the tab
+     * order; the delayed visibility transition lets the fade-out play
+     * before the panel snaps to hidden. */
       opacity: 0;
+      visibility: hidden;
       pointer-events: none;
       transform: translateY(-4px);
       transition:
         opacity 140ms ease,
-        transform 140ms ease;
+        transform 140ms ease,
+        visibility 0s linear 140ms;
       z-index: 999;
     }
     .cts-nav[data-mobile-open="true"] .cts-navlinks {
       opacity: 1;
+      visibility: visible;
       pointer-events: auto;
       transform: translateY(0);
+      transition-delay: 0s;
     }
+    /* Each row is a 44px-tall touch target with the label vertically
+   * centred; border-box so the padding does not stack on the min-height. */
     .cts-nav .cts-navlink {
-      display: block;
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      min-height: 44px;
       padding: var(--space-3);
       font-size: var(--fs-14);
       border-radius: var(--radius-2);
     }
-    /* External links keep their flex layout in the mobile panel so the
-   * icon stays inline with the label. Without this, the base
-   * .cts-navlink { display: block } above would override the
-   * .cts-navlink-external { display: inline-flex } from the
-   * non-media-query rule (same specificity, later wins) and the
-   * block-level icon would drop to its own line. */
+    /* External links stay a flex row in the mobile panel so the icon sits
+   * inline with the label rather than dropping to its own line. */
     .cts-nav .cts-navlink-external {
       display: flex;
       align-items: center;
+    }
+    /* The signed-out "Sign in" button grows to a 44px touch target on
+   * phones; it stays 30px in the desktop bar. */
+    .cts-nav .cts-nav-action {
+      box-sizing: border-box;
+      height: auto;
+      min-height: 44px;
     }
   }
 

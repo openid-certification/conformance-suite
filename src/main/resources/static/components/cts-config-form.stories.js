@@ -1336,3 +1336,119 @@ export const SectionIntro = {
     });
   },
 };
+
+const MOBILE_STORY_VIEWPORT = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+};
+
+const UNBREAKABLE_HELP_SCHEMA = {
+  type: "object",
+  properties: {
+    directory: {
+      type: "object",
+      properties: {
+        keystore: {
+          type: "string",
+          title: "Directory keystore base",
+          description:
+            "Base URL of the directory keystore, e.g. https://keystore.sandbox.directory.openbankingbrasil.org.br/",
+        },
+      },
+    },
+  },
+};
+
+/**
+ * A fieldset defaults to min-width: min-content, so one unbreakable help
+ * text (a URL) would widen the section, the form, and the page past the
+ * viewport. The section must stay at the viewport width and the help text
+ * must wrap inside it.
+ */
+export const UnbreakableHelpTextStaysInsideViewportOnMobile = {
+  ...MOBILE_STORY_VIEWPORT,
+  render: () => html`
+    <cts-config-form
+      .schema=${UNBREAKABLE_HELP_SCHEMA}
+      .uiSchema=${{ sections: [{ key: "directory", title: "Directory" }] }}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement, step }) {
+    const section = /** @type {HTMLElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".oidf-config-form-section");
+        if (!el) throw new Error("section not yet rendered");
+        return el;
+      })
+    );
+    const form = /** @type {HTMLElement} */ (canvasElement.querySelector("form"));
+    const help = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-help"));
+    const input = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-input"));
+
+    await step("the fieldset does not default to min-content width", async () => {
+      expect(getComputedStyle(section).minWidth).toBe("0px");
+    });
+
+    await step("the form does not scroll horizontally", async () => {
+      expect(form.scrollWidth).toBeLessThanOrEqual(form.clientWidth);
+      expect(section.getBoundingClientRect().width).toBeLessThanOrEqual(
+        form.getBoundingClientRect().width + 1,
+      );
+    });
+
+    await step("the help text and input stay within the section", async () => {
+      const sectionRight = section.getBoundingClientRect().right;
+      expect(help.getBoundingClientRect().right).toBeLessThanOrEqual(sectionRight + 1);
+      expect(input.getBoundingClientRect().right).toBeLessThanOrEqual(sectionRight + 1);
+    });
+
+    await step("the page itself does not scroll horizontally", async () => {
+      const root = document.documentElement;
+      expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+    });
+  },
+};
+
+/**
+ * On phones the validate button is the only in-form action at the end of
+ * a long form, so it stretches to the full row and grows to a 44px touch
+ * target. Desktop keeps the sm size (see ValidateButtonShowsSuccessMessage).
+ */
+export const ValidateButtonIsFullWidthTouchTargetOnMobile = {
+  ...MOBILE_STORY_VIEWPORT,
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement, step }) {
+    const button = /** @type {HTMLButtonElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".oidf-config-form-actions .oidf-btn");
+        if (!el) throw new Error("validate button not yet rendered");
+        return el;
+      })
+    );
+    const actions = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-config-form-actions")
+    );
+
+    await step("the button is at least 44px tall", async () => {
+      expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+    });
+
+    await step("the button spans the full actions row", async () => {
+      const rowWidth = actions.getBoundingClientRect().width;
+      expect(button.getBoundingClientRect().width).toBeGreaterThanOrEqual(rowWidth - 1);
+    });
+  },
+};

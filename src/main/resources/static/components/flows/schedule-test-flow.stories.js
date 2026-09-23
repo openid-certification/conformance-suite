@@ -75,23 +75,25 @@ export const FullFlow = {
 
     return html`
       <div class="schedule-test-page">
-        <h2>Create a new test plan</h2>
-        <cts-test-selector
-          .plans=${MOCK_PLANS}
-          @cts-plan-select=${handlePlanSelected}
-        ></cts-test-selector>
-        <div id="config-section" style="display:none">
-          <h3>Configuration</h3>
-          <cts-config-form id="flow-config-form"></cts-config-form>
-          <cts-action-bar position="static" align-to="schedule-test-page">
-            <cts-button
-              id="submit-plan"
-              size="lg"
-              variant="primary"
-              icon="flag"
-              label="Create Test Plan"
-            ></cts-button>
-          </cts-action-bar>
+        <div class="schedule-test-column">
+          <h2>Create a new test plan</h2>
+          <cts-test-selector
+            .plans=${MOCK_PLANS}
+            @cts-plan-select=${handlePlanSelected}
+          ></cts-test-selector>
+          <div id="config-section" style="display:none">
+            <h3>Configuration</h3>
+            <cts-config-form id="flow-config-form"></cts-config-form>
+            <cts-action-bar position="static" align-to="schedule-test-page">
+              <cts-button
+                id="submit-plan"
+                size="lg"
+                variant="primary"
+                icon="flag"
+                label="Create Test Plan"
+              ></cts-button>
+            </cts-action-bar>
+          </div>
         </div>
       </div>
     `;

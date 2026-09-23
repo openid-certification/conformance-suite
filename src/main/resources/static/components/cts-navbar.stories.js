@@ -512,10 +512,35 @@ export const AccountMenuOpens = {
       expect(trigger.getAttribute("aria-expanded")).toBe("false");
     });
 
+    await step("closed menu items are hidden, not just transparent", async () => {
+      // visibility: hidden keeps the Tokens link and Sign out button out of
+      // the tab order while the menu is closed.
+      const menu = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-account-menu"));
+      expect(getComputedStyle(menu).visibility).toBe("hidden");
+      for (const item of canvasElement.querySelectorAll(".cts-account-item")) {
+        expect(getComputedStyle(item).visibility).toBe("hidden");
+      }
+      trigger.focus();
+      await userEvent.tab();
+      const active = /** @type {HTMLElement|null} */ (document.activeElement);
+      if (!active) throw new Error("nothing focused after Tab");
+      expect(active.classList.contains("cts-account-item")).toBe(false);
+    });
+
     await step("clicking the trigger opens the menu and flips ARIA", async () => {
       await userEvent.click(trigger);
       expect(account.getAttribute("data-open")).toBe("true");
       expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    });
+
+    await step("open menu items are visible and focusable", async () => {
+      const menu = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-account-menu"));
+      expect(getComputedStyle(menu).visibility).toBe("visible");
+      const firstItem = /** @type {HTMLElement} */ (
+        canvasElement.querySelector(".cts-account-item")
+      );
+      firstItem.focus();
+      expect(document.activeElement).toBe(firstItem);
     });
 
     await step("tokens link in the open menu points at /tokens.html", async () => {
@@ -852,11 +877,42 @@ export const MobileMenuTogglesNavlinks = {
       expect(nav.getAttribute("data-mobile-open")).toBe("false");
     });
 
+    await step("closed panel links are hidden, not just transparent", async () => {
+      // visibility: hidden removes the links from the tab order and the
+      // accessibility tree; opacity alone would leave four invisible tab
+      // stops between the hamburger and the avatar.
+      const navlinks = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-navlinks"));
+      expect(getComputedStyle(navlinks).visibility).toBe("hidden");
+      const links = canvasElement.querySelectorAll(".cts-navlink");
+      expect(links.length).toBeGreaterThan(0);
+      for (const link of links) {
+        expect(getComputedStyle(link).visibility).toBe("hidden");
+      }
+    });
+
+    await step("Tab from the hamburger skips the hidden links", async () => {
+      toggle.focus();
+      await userEvent.tab();
+      const active = /** @type {HTMLElement|null} */ (document.activeElement);
+      if (!active) throw new Error("nothing focused after Tab");
+      expect(active.classList.contains("cts-navlink")).toBe(false);
+    });
+
     await step("clicking the toggle opens the nav panel", async () => {
       await userEvent.click(toggle);
       expect(toggle.getAttribute("aria-expanded")).toBe("true");
       expect(toggle.getAttribute("aria-label")).toBe("Close navigation menu");
       expect(nav.getAttribute("data-mobile-open")).toBe("true");
+    });
+
+    await step("open panel links become visible and focusable", async () => {
+      const navlinks = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-navlinks"));
+      // transition-delay: 0s on the open state flips visibility immediately.
+      expect(getComputedStyle(navlinks).visibility).toBe("visible");
+      const firstLink = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-navlink"));
+      expect(getComputedStyle(firstLink).visibility).toBe("visible");
+      firstLink.focus();
+      expect(document.activeElement).toBe(firstLink);
     });
 
     await step("navlinks <ul> is the same DOM node across layouts", async () => {
@@ -871,6 +927,106 @@ export const MobileMenuTogglesNavlinks = {
       await userEvent.click(toggle);
       expect(nav.getAttribute("data-mobile-open")).toBe("false");
       expect(toggle.getAttribute("aria-label")).toBe("Open navigation menu");
+    });
+
+    await step("closed panel is hidden again once the fade-out ends", async () => {
+      const navlinks = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-navlinks"));
+      // visibility flips to hidden only after the 140ms fade so the
+      // panel is still painted while it animates out.
+      await waitFor(() => expect(getComputedStyle(navlinks).visibility).toBe("hidden"));
+    });
+  },
+};
+
+/**
+ * Phone touch targets: the hamburger and the account trigger each cover
+ * at least 44x44 CSS px while the drawn glyph and avatar keep their size,
+ * and every row of the open nav panel is at least 44px tall.
+ *
+ * Pinned to mobile1 (320x568) so the hamburger is rendered.
+ */
+export const MobileTouchTargets = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    const toggle = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-menu-toggle")
+    );
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+
+    await step("hamburger hit box is 44x44 around a 20px glyph", async () => {
+      const box = toggle.getBoundingClientRect();
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      const glyph = toggle.querySelector("svg");
+      if (!glyph) throw new Error("hamburger glyph not rendered");
+      const svg = glyph.getBoundingClientRect();
+      expect(svg.width).toBe(20);
+      expect(svg.height).toBe(20);
+    });
+
+    await step("account trigger hit box is 44x44 around the 30px avatar", async () => {
+      const box = trigger.getBoundingClientRect();
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      const avatarEl = trigger.querySelector(".cts-avatar");
+      if (!avatarEl) throw new Error("avatar not rendered");
+      const avatar = avatarEl.getBoundingClientRect();
+      expect(avatar.width).toBe(30);
+      expect(avatar.height).toBe(30);
+      // The padding is pulled back by a negative margin so the avatar sits
+      // centred in the hit box and the trigger's footprint in the row stays
+      // 30px wide.
+      expect(avatar.left - box.left).toBeCloseTo((box.width - avatar.width) / 2, 0);
+    });
+
+    await step("every open nav panel row is at least 44px tall", async () => {
+      await userEvent.click(toggle);
+      const links = canvasElement.querySelectorAll(".cts-navlink");
+      expect(links.length).toBeGreaterThan(0);
+      for (const link of links) {
+        expect(link.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+      }
+    });
+  },
+};
+
+/**
+ * Signed-out phone chrome: the "Sign in" action is at least 44px tall so
+ * it is a usable thumb target next to the hamburger.
+ */
+export const MobileSignInTouchTarget = {
+  args: { currentPage: "" },
+  decorators: [withUnauthenticated()],
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement, step }) {
+    await waitForNavbar(canvasElement);
+
+    await step("sign in button is at least 44px tall", async () => {
+      const signIn = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector(".cts-nav-action")
+      );
+      expect(signIn).toBeTruthy();
+      expect(signIn.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
     });
   },
 };

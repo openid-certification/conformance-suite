@@ -167,6 +167,9 @@ const STYLE_TEXT = css`
      frame; block is what every caller wants. */
   cts-chart {
     display: block;
+    /* A grid or flex item defaults to min-width:auto, which would let the
+       data table's intrinsic width push the host wider than its track. */
+    min-width: 0;
   }
   .cts-chart {
     margin: 0;
@@ -253,16 +256,39 @@ function injectStyles() {
 const HORIZONTAL_LABEL_MAX = 28;
 
 /**
+ * The share of the chart's width a horizontal axis tick may take. Chart.js
+ * grows the category axis to fit its longest tick and, once the axis is wider
+ * than the canvas, clips the START of every label; the bars need the rest.
+ */
+const HORIZONTAL_LABEL_WIDTH_SHARE = 0.45;
+
+/** Fewest characters an elided tick keeps, so it still identifies its row. */
+const HORIZONTAL_LABEL_MIN = 4;
+
+/**
  * Shorten a category label for a horizontal axis tick. The full text stays in
  * the tooltip and the data table, so nothing is lost — only the axis column's
- * share of the card is capped.
+ * share of the card is capped. Two caps apply: {@link HORIZONTAL_LABEL_MAX}
+ * characters, and `maxWidth` pixels when a measurer is given, whichever is
+ * shorter.
  * @param {unknown} label - The tick's label.
- * @returns {string} The label, elided to {@link HORIZONTAL_LABEL_MAX}.
+ * @param {((text: string) => number) | undefined} [measure] - Rendered width of
+ *   a string in the tick's font, or undefined to cap by character count only.
+ * @param {number} [maxWidth] - The widest the tick may render, in pixels.
+ * @returns {string} The label, elided to fit.
  */
-function elide(label) {
+function elide(label, measure, maxWidth = Number.POSITIVE_INFINITY) {
   const text = String(label ?? "");
-  if (text.length <= HORIZONTAL_LABEL_MAX) return text;
-  return `${text.slice(0, HORIZONTAL_LABEL_MAX - 1).trimEnd()}…`;
+  let cut =
+    text.length <= HORIZONTAL_LABEL_MAX
+      ? text
+      : `${text.slice(0, HORIZONTAL_LABEL_MAX - 1).trimEnd()}…`;
+  if (typeof measure !== "function" || measure(cut) <= maxWidth) return cut;
+  let keep = cut.endsWith("…") ? cut.length - 1 : cut.length;
+  while (keep > HORIZONTAL_LABEL_MIN && measure(`${text.slice(0, keep).trimEnd()}…`) > maxWidth) {
+    keep -= 1;
+  }
+  return `${text.slice(0, keep).trimEnd()}…`;
 }
 
 /**
@@ -584,14 +610,33 @@ class CtsChart extends LitElement {
     if (horizontal) {
       // Chart.js grows the category axis to fit its longest label, so one
       // 60-character certification profile name would leave the bars a sliver
-      // of the card. The label is elided in the tick only; the tooltip and the
-      // data table below carry it in full. The index is read out of our own
-      // labels rather than off the scale, so the callback stays an arrow with
-      // no `this` to bind — and the key is only ADDED when it is needed,
-      // because setting `callback: undefined` overrides the category scale's
-      // own formatter and leaves an axis of row numbers.
-      categoryTicks.callback = (/** @type {unknown} */ value, /** @type {number} */ index) =>
-        elide(plottedLabels[index]);
+      // of the card — and on a phone-width canvas even a 28-character name is
+      // wider than the axis can be, at which point Chart.js clips the START of
+      // every label. So the tick is elided to a share of the chart's width,
+      // measured in the tick's own font on the scale's context. The label is
+      // elided in the tick only; the tooltip and the data table below carry
+      // it in full. The index is read out of our own labels rather than off
+      // the scale. Chart.js calls the callback with the scale as `this` and
+      // re-runs it on every resize, so the cut follows the width; called
+      // without a scale, the callback caps by character count alone. The key
+      // is only ADDED when it is needed, because setting `callback: undefined`
+      // overrides the category scale's own formatter and leaves an axis of row
+      // numbers.
+      const tickFont = `${font.size}px ${font.family}`;
+      categoryTicks.callback = function tick(
+        /** @type {unknown} */ value,
+        /** @type {number} */ index,
+      ) {
+        const scale = /** @type {any} */ (this);
+        const ctx = scale && scale.ctx;
+        if (!ctx || !scale.chart) return elide(plottedLabels[index]);
+        ctx.font = tickFont;
+        return elide(
+          plottedLabels[index],
+          (text) => ctx.measureText(text).width,
+          scale.chart.width * HORIZONTAL_LABEL_WIDTH_SHARE,
+        );
+      };
     }
     const categoryAxis = {
       stacked,
@@ -797,38 +842,45 @@ class CtsChart extends LitElement {
           : nothing}
         <details class="cts-chart-data cts-data-disclosure">
           <summary>Show data table</summary>
-          <table class="cts-chart-table cts-data-table">
-            <caption>${this.heading}</caption>
-            <thead>
-              <tr>
-                <th scope="col">${this.categoryLabel || "Period"}</th>
-                ${datasets.map((ds) => html`<th scope="col">${ds.label}</th>`)}
-                ${extras.map((extra) => html`<th scope="col">${extra.label}</th>`)}
-              </tr>
-            </thead>
-            <tbody>
-              ${labels.map(
-                (label, i) =>
-                  html`<tr>
-                    <th scope="row">
-                      ${this.clickable === true
-                        ? html`<button
-                            type="button"
-                            class="cts-chart-row-link"
-                            data-index=${i}
-                            aria-label="${clickLabel} ${label}"
-                            @click=${this._handleRowClick}
-                          >
-                            ${label}
-                          </button>`
-                        : label}
-                    </th>
-                    ${datasets.map((ds) => html`<td>${cell(ds.data?.[i])}</td>`)}
-                    ${extras.map((extra) => html`<td>${cell(extra.data?.[i])}</td>`)}
-                  </tr>`,
-              )}
-            </tbody>
-          </table>
+          <div
+            class="cts-data-table-scroll"
+            role="group"
+            aria-label="${this.heading} data table"
+            tabindex="0"
+          >
+            <table class="cts-chart-table cts-data-table">
+              <caption>${this.heading}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">${this.categoryLabel || "Period"}</th>
+                  ${datasets.map((ds) => html`<th scope="col">${ds.label}</th>`)}
+                  ${extras.map((extra) => html`<th scope="col">${extra.label}</th>`)}
+                </tr>
+              </thead>
+              <tbody>
+                ${labels.map(
+                  (label, i) =>
+                    html`<tr>
+                      <th scope="row">
+                        ${this.clickable === true
+                          ? html`<button
+                              type="button"
+                              class="cts-chart-row-link"
+                              data-index=${i}
+                              aria-label="${clickLabel} ${label}"
+                              @click=${this._handleRowClick}
+                            >
+                              ${label}
+                            </button>`
+                          : label}
+                      </th>
+                      ${datasets.map((ds) => html`<td>${cell(ds.data?.[i])}</td>`)}
+                      ${extras.map((extra) => html`<td>${cell(extra.data?.[i])}</td>`)}
+                    </tr>`,
+                )}
+              </tbody>
+            </table>
+          </div>
         </details>
       </figure>
     `;
