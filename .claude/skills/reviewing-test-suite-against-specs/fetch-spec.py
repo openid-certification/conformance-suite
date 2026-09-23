@@ -50,6 +50,14 @@ def html_to_text(raw: str) -> str:
                lambda m: "\n" + "\n".join("   " + line for line in m.group(1).split("\n")) + "\n",
                s, flags=re.S)
     s = re.sub(r"<li\b[^>]*>", "\n   ", s)
+    # Inside a paragraph a newline is whitespace, so a source line break before "1. Transport-level
+    # errors ..." (AuthZEN 7.2.1, a list the source never marked up) does not start a new line
+    # that headings() would take for a section. A paragraph left unclosed before a block element
+    # matches through to the next </p>; its block content is left as it is.
+    block = re.compile(r"<(?:p|div|pre|ol|ul|li|h[1-6]|table|section|dl|dt|dd|blockquote)\b", re.I)
+    s = re.sub(r"<p\b[^>]*>(.*?)</p>",
+               lambda m: m.group(0) if block.search(m.group(1)) else re.sub(r"\s*\n\s*", " ", m.group(0)),
+               s, flags=re.S)
     s = re.sub(r"<(br|/p|/div|/li|/h\d|/tr|/pre|/dd|/dt|/section)[^>]*>", "\n", s)
     s = re.sub(r"<[^>]+>", "", s)
     s = html.unescape(s)
