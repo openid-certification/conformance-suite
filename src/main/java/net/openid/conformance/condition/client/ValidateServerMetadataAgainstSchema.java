@@ -11,11 +11,9 @@ import net.openid.conformance.util.validation.JsonSchemaValidationInput;
  * Validates the structure of authorization server / OpenID provider metadata (the {@code server}
  * environment object) against a superset JSON schema of RFC 8414 / OpenID Connect Discovery and the
  * various profile extensions. The schema is purely structural (types/formats of whatever fields are
- * present); only those errors are reported as failures. It deliberately does not require any field
- * (not even {@code issuer}): OpenID Federation OP metadata legitimately omits {@code issuer} because
- * the entity identifier is the issuer. Unknown properties are ignored here and instead surfaced as
- * warnings by {@link CheckForUnexpectedParametersInServerMetadata}. Suite-specific "field must be
- * present" requirements (including {@code issuer}) are left to the individual CheckDiscEndpoint* /
+ * present); only those errors are reported as failures. Unknown properties are ignored here and
+ * instead surfaced as warnings by {@link CheckForUnexpectedParametersInServerMetadata}.
+ * Required-field checks (including {@code issuer}) are left to the individual CheckDiscEndpoint* /
  * issuer-check conditions in each protocol's discovery verification.
  */
 public class ValidateServerMetadataAgainstSchema extends AbstractJsonSchemaBasedValidation {

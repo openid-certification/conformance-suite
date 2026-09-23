@@ -235,6 +235,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected void makeAuthorizationRequest() {
 		eventLog.startBlock("Authorization endpoint request");
 		callAndStopOnFailure(EnsureEntityIsOpenIdProvider.class, Condition.ConditionResult.FAILURE);
+		// The test trust anchor supplies no additional OP metadata or metadata policy.
+		callAndContinueOnFailure(ValidateOpenIDProviderIssuer.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3", "OIDCD-3");
 
 		buildRequestObject();
 		env.putObject("authorization_endpoint_request", "claims", env.getObject("request_object_claims"));

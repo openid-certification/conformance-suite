@@ -62,6 +62,7 @@ public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCond
 		openIdProvider.addProperty("require_signed_request_object", true);
 
 		String entityIdentifier = OIDFJSON.getString(server.get("iss"));
+		openIdProvider.addProperty("issuer", entityIdentifier);
 		openIdProvider.addProperty("authorization_endpoint", entityIdentifier + "/authorize");
 		openIdProvider.addProperty("pushed_authorization_request_endpoint", entityIdentifier + "/par");
 		openIdProvider.addProperty("token_endpoint", entityIdentifier + "/token");
