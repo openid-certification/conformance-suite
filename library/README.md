@@ -89,9 +89,25 @@ texts land in the working tree as with a local run:
 ietf.org, openid.net and codeload.github.com, the heading cross-check reads the published page,
 and xml2rfc fetches its bibliography from xml2rfc.ietf.org.
 
-When a `specLinks` entry is added or its URL changes, add or update the manifest entry
-(`python3 scripts/spec_library.py seed` prints what a fresh manifest would contain), run
-`sync`, and commit the manifest and text together.
+### Adding a specification
+
+1. Add the prefix and URL to `LogEntryHelper.specLinks`.
+2. Run `python3 scripts/spec_library.py seed`. It adds a manifest entry for every prefix the
+   manifest lacks and prints what it added; entries already there are not touched. Look at the
+   new entry: `seed` guesses the source from the URL (the first `.txt`/`.zip`/`.xml`/`.md` sibling
+   openid.net serves, or a generic `excluded` reason), and the guess can be wrong. BCP 195, for
+   example, has no single text and is excluded by hand.
+3. Run `python3 scripts/spec_library.py sync --only <doc-id>` (`seed` prints the command). It
+   fetches or renders the text into `specs/` and writes `sha256` and `fetched` into the entry.
+4. Commit `LogEntryHelper`, the manifest and the new text together. `LogEntryHelper_UnitTest`
+   (or `check`, offline and faster) confirms nothing is missing.
+
+The Docker image runs the same subcommands: replace `python3 scripts/spec_library.py` with
+`docker run --rm -v "$PWD:/work" cts-spec-library`.
+
+When an existing prefix moves to a new URL, edit the entry's `link_url` and `source_url` by hand
+and run `sync --refresh-linked <doc-id>`. `seed --print` prints the manifest a fresh import would
+produce, for rebuilding from scratch.
 
 After refreshing a `latest` whose file name changes (sha-named wg-draft snapshots), `git rm`
 the superseded file yourself; `check` lists files under `specs/ietf` or `specs/openid` that no
