@@ -1068,6 +1068,38 @@ export const UploadFulfilled = {
     const img = canvasElement.querySelector(".logUploadedImage");
     expect(img).toBeTruthy();
     expect(img.getAttribute("src")).toBe(UPLOAD_FULFILLED_ENTRY.img);
+
+    // Without a host that opts in via imageViewable there is no lightbox to
+    // open, so the thumbnail must not be offered as a control.
+    expect(canvasElement.querySelector(".logImageButton")).toBeNull();
+    // The frame lives on the image itself, so it survives without the button.
+    expect(getComputedStyle(img).borderTopWidth).toBe("1px");
+  },
+};
+
+export const UploadFulfilledImageViewable = {
+  render: () =>
+    html`<cts-log-entry .entry=${UPLOAD_FULFILLED_ENTRY} .imageViewable=${true}></cts-log-entry>`,
+  async play({ canvasElement, step }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".logImageButton")).toBeTruthy();
+    });
+
+    await step("clicking the thumbnail dispatches cts-image-view with the screenshot", async () => {
+      /** @type {{ detail: {src: string, alt: string} | null }} */
+      const seen = { detail: null };
+      canvasElement.addEventListener("cts-image-view", (e) => {
+        seen.detail = /** @type {CustomEvent} */ (e).detail;
+      });
+      const btn = canvasElement.querySelector(".logImageButton");
+      expect(btn).toBeTruthy();
+      expect(btn.getAttribute("aria-label")).toContain("View full-size screenshot");
+      await userEvent.click(btn);
+      expect(seen.detail?.src).toBe(UPLOAD_FULFILLED_ENTRY.img);
+      expect(seen.detail?.alt).toBe(
+        canvasElement.querySelector(".logUploadedImage").getAttribute("alt"),
+      );
+    });
   },
 };
 

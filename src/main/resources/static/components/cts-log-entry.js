@@ -544,7 +544,8 @@ const STYLE_TEXT = css`
   cts-log-entry .logTimeLink,
   cts-log-entry .curlBtn,
   cts-log-entry a.logRequirement,
-  cts-log-entry .logUploadCta {
+  cts-log-entry .logUploadCta,
+  cts-log-entry .logImageButton {
     position: relative;
     z-index: 1;
   }
@@ -660,10 +661,33 @@ const STYLE_TEXT = css`
        footer's full width instead of sizing to its label. */
     align-self: flex-start;
   }
+  cts-log-entry .logImageButton {
+    /* Wraps the thumbnail so the screenshot can be opened full-size. The
+       frame stays on .logUploadedImage so a non-interactive thumbnail
+       looks the same; the button only adds hover and focus affordances. */
+    display: inline-block;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-2);
+    background: none;
+    cursor: pointer;
+    align-self: flex-start;
+    line-height: 0;
+  }
+  cts-log-entry .logImageButton:hover .logUploadedImage {
+    border-color: var(--fg-link);
+  }
+  cts-log-entry .logImageButton:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
   cts-log-entry .logUploadedImage {
     /* Sized to match cts-image-upload's __thumb so the same screenshot
        reads at a consistent size whether shown mid-upload or here, once
-       committed to the log entry. */
+       committed to the log entry. When the host sets imageViewable,
+       clicking it opens the full-size image via cts-log-viewer's shared
+       lightbox. */
+    display: block;
     width: 96px;
     height: 96px;
     object-fit: cover;
@@ -671,6 +695,7 @@ const STYLE_TEXT = css`
     border: 1px solid var(--border);
     background: var(--bg-muted);
     align-self: flex-start;
+    transition: border-color var(--dur-1) var(--ease-standard);
   }
   cts-log-entry .logRequirement {
     display: inline-block;
@@ -958,6 +983,15 @@ function ensureStylesInjected() {
  *   retired — the timestamp deep-link is a relative `#LOG-NNNN` fragment
  *   that resolves against the page's existing `?log=` query, so no testId
  *   is needed here. Retained pending the removal flagged in code review.
+ * @property {boolean} imageViewable - When true, the uploaded-screenshot
+ *   thumbnail is a button that fires `cts-image-view`. Set by a host that
+ *   listens for that event and shows the full-size image (cts-log-viewer);
+ *   left false, the thumbnail is a plain image so a standalone entry never
+ *   offers a control that does nothing.
+ * @fires cts-image-view - When the uploaded-screenshot thumbnail is
+ *   clicked (only while `imageViewable`), with `detail: { src, alt }`.
+ *   Bubbles so a shared lightbox (e.g. cts-log-viewer's) can open it
+ *   without every row owning its own modal.
  */
 class CtsLogEntry extends LitElement {
   static properties = {
@@ -965,6 +999,7 @@ class CtsLogEntry extends LitElement {
     referenceId: { type: String, attribute: "reference-id" },
     testId: { type: String, attribute: "test-id" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    imageViewable: { type: Boolean, attribute: "image-viewable" },
     _expanded: { state: true },
     _specLinks: { state: true },
   };
@@ -980,6 +1015,7 @@ class CtsLogEntry extends LitElement {
     this.referenceId = "";
     this.testId = "";
     this.isPublic = false;
+    this.imageViewable = false;
     this._expanded = false;
     this._specLinks = null;
   }
@@ -1291,11 +1327,45 @@ class CtsLogEntry extends LitElement {
    */
   _renderUploadedImage() {
     if (!this.entry.img) return nothing;
-    return html`<img
+    const img = html`<img
       class="logUploadedImage"
       src="${this.entry.img}"
-      alt="Uploaded screenshot for ${this.entry.src || "this check"}"
+      alt="${this._uploadedImageAlt}"
     />`;
+    if (!this.imageViewable) return img;
+    return html`<button
+      type="button"
+      class="logImageButton"
+      aria-label="View full-size screenshot for ${this.entry.src || "this check"}"
+      @click=${this._onImageClick}
+    >
+      ${img}
+    </button>`;
+  }
+
+  /**
+   * Alt text for the uploaded screenshot, shared by the row thumbnail and
+   * the full-size lightbox image.
+   * @returns {string} The alt text
+   */
+  get _uploadedImageAlt() {
+    return `Uploaded screenshot for ${this.entry.src || "this check"}`;
+  }
+
+  /**
+   * Opens the uploaded screenshot at full size. Dispatches rather than
+   * rendering its own modal so a single shared lightbox (owned by
+   * cts-log-viewer) can serve every entry in the log instead of one
+   * `cts-modal` per row.
+   * @returns {void}
+   */
+  _onImageClick() {
+    this.dispatchEvent(
+      new CustomEvent("cts-image-view", {
+        bubbles: true,
+        detail: { src: this.entry.img, alt: this._uploadedImageAlt },
+      }),
+    );
   }
 
   render() {
