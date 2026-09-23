@@ -12,6 +12,7 @@ import {
   MOCK_EMPTY_BLOCK,
   MOCK_BLOCKS_ALIGN,
   MOCK_BLOCK_INTERRUPTED,
+  MOCK_REVIEW_WITH_IMAGE,
 } from "@fixtures/mock-log-entries.js";
 import { MOCK_TEST_STATUS } from "@fixtures/mock-test-data.js";
 import { BACKOFF_MAX_MULTIPLIER, RESUME_GAP_MULTIPLIER } from "./cts-log-viewer.js";
@@ -56,6 +57,25 @@ export const WithEntries = {
     await step("entry message text renders", async () => {
       const canvas = within(canvasElement);
       expect(canvas.getByText(/ID token signature validation failed/)).toBeTruthy();
+    });
+  },
+};
+
+export const ImageLightbox = {
+  decorators: [withMockFetch("/api/log/", MOCK_REVIEW_WITH_IMAGE)],
+  render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
+  async play({ canvasElement, step }) {
+    await waitForLogLoad(canvasElement);
+    await step("clicking the thumbnail opens the shared lightbox with the image", async () => {
+      const btn = canvasElement.querySelector(".logImageButton");
+      expect(btn).toBeTruthy();
+      await userEvent.click(btn);
+      await waitFor(() => {
+        const modal = canvasElement.querySelector('cts-modal[data-testid="image-lightbox"]');
+        expect(modal.hasAttribute("open")).toBe(true);
+      });
+      const img = canvasElement.querySelector(".lightboxImage");
+      expect(img.getAttribute("src")).toBe(MOCK_REVIEW_WITH_IMAGE[0].img);
     });
   },
 };

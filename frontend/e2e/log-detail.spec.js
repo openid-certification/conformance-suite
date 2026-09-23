@@ -367,6 +367,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(entry.locator("img.logUploadedImage")).toHaveCount(1);
     await expect(entry.locator('.moreInfo img[src^="data:"]')).toHaveCount(0);
 
+    // The thumbnail is a click target that opens a full-size
+    // lightbox shared across the whole log viewer.
+    await entry.locator(".logImageButton").click();
+    const lightbox = page.locator('cts-modal[data-testid="image-lightbox"]');
+    await expect(lightbox).toHaveAttribute("open", "");
+    await expect(lightbox.locator("img.lightboxImage")).toHaveAttribute("src", richEntry.img);
+
     // schema_link → clickable link to the validated schema.
     await expect(entry.locator("a.moreInfo-schemaLink")).toHaveAttribute(
       "href",
