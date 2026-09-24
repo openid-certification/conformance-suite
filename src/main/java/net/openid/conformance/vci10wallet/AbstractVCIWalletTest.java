@@ -305,6 +305,24 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 	protected VCICredentialOfferParameterVariant vciCredentialOfferParameterVariantType;
 
+	/**
+	 * Developer knob, deliberately not a configuration field: with {@code issueToSecondClient}
+	 * set in the test configuration, the emulated issuer serves a second client after the first
+	 * credential was delivered instead of finishing, and, in the issuer-initiated flow, presents
+	 * that client a credential offer of its own. It lets CI pair this module with the issuer
+	 * multiple-clients module; a wallet under certification has no second client to serve.
+	 */
+	protected boolean issueToSecondClient;
+
+	protected boolean secondClientRoundStarted;
+
+	/**
+	 * How long after the first credential the second client's offer is presented. The wallet
+	 * under test finishes processing the first credential meanwhile, so the offer reaches it
+	 * once it is waiting for one rather than while it is still sending its notification.
+	 */
+	protected static final int SECOND_CLIENT_OFFER_DELAY_SECONDS = 10;
+
 	protected VCI1FinalCredentialFormat vciCredentialFormat;
 
 	protected VCICredentialIssuanceMode vciCredentialIssuanceMode;
@@ -335,6 +353,10 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		if (config.has("maxWaitForAdditionalRequestSeconds")) {
 			maxWaitForAdditionalRequestSeconds = OIDFJSON.getLong(config.get("maxWaitForAdditionalRequestSeconds"));
+		}
+
+		if (config.has("issueToSecondClient")) {
+			issueToSecondClient = OIDFJSON.getBoolean(config.get("issueToSecondClient"));
 		}
 
 		if (config.has("maxWaitForNotificationSeconds")) {
@@ -1319,7 +1341,50 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	 * notification endpoint call before completing or skipping the test.
 	 */
 	protected void onCredentialSent() {
+		if (issueToSecondClient && !secondClientRoundStarted) {
+			secondClientRoundStarted = true;
+			startSecondClientRound();
+			return;
+		}
 		resourceEndpointCallComplete();
+	}
+
+	/**
+	 * Keeps the emulated issuer serving for a second client after the first credential (see
+	 * {@link #issueToSecondClient}). In the issuer-initiated flow a fresh credential offer,
+	 * with its own {@code issuer_state} or pre-authorized code, is presented to the wallet after
+	 * {@link #SECOND_CLIENT_OFFER_DELAY_SECONDS}; the wallet-initiated flow needs nothing, the
+	 * second client starts on its own. The test finishes after the second credential.
+	 */
+	protected void startSecondClientRound() {
+		if (env.getObject("client2") == null) {
+			throw new TestFailureException(getId(),
+				"issueToSecondClient is set in the test configuration, but no second client ('client2') is configured");
+		}
+		if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
+			throw new TestFailureException(getId(),
+				"issueToSecondClient is not supported with the issuer_initiated_dc_api flow");
+		}
+
+		eventLog.startBlock("Second client");
+		if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.WALLET_INITIATED) {
+			eventLog.log(getName(), "The first client received its credential. The test now waits for the second client "
+				+ "to run its own flow, and finishes after its credential.");
+			eventLog.endBlock();
+			setStatus(Status.WAITING);
+			return;
+		}
+
+		eventLog.log(getName(), "The first client received its credential. A new credential offer is created for the "
+			+ "second client and presented to the wallet in " + SECOND_CLIENT_OFFER_DELAY_SECONDS + " seconds; the offer "
+			+ "of the first client is not valid for it.");
+		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
+			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
+		}
+		call(VCIClientProfileBehavior.credentialOfferSteps(vciGrantType, vciCredentialOfferParameterVariantType));
+		getBrowser().goToUrl(env.getString("vci", "credential_offer_redirect_url"), null, "GET", SECOND_CLIENT_OFFER_DELAY_SECONDS);
+		eventLog.endBlock();
+		setStatus(Status.WAITING);
 	}
 
 	/**
@@ -1593,8 +1658,31 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		if (responseEntity != null) {
 			return responseEntity;
 		}
-		checkResourceEndpointRequest(useClientCredentialsAccessToken);
+		try {
+			checkResourceEndpointRequest(useClientCredentialsAccessToken);
+		} catch (TestFailureException e) {
+			// The access token was refused: missing, invalid, or not bound to the key or certificate
+			// presented. The failure is in the log and the test result; the wallet still gets the
+			// answer a resource server gives, so a wallet that sends a wrong key sees the rejection
+			// and can go on, as can a test that sends one on purpose.
+			ResponseEntity<?> response = invalidTokenResponse(e.getMessage());
+			setStatus(Status.WAITING);
+			return response;
+		}
 		return null;
+	}
+
+	/**
+	 * The 401 a resource server answers a rejected access token with (RFC 6750 section 3.1),
+	 * challenging for the token type this test expects.
+	 */
+	protected ResponseEntity<?> invalidTokenResponse(String description) {
+		JsonObject body = new JsonObject();
+		body.addProperty("error", "invalid_token");
+		body.addProperty("error_description", description);
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("WWW-Authenticate", (isDpopConstrain() ? "DPoP" : "Bearer") + " error=\"invalid_token\"");
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).headers(headers).contentType(MediaType.APPLICATION_JSON).body(body);
 	}
 
 	@Override
@@ -1813,7 +1901,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			call(exec().unmapKey("token_endpoint_request"));
 		}
 
-		checkResourceEndpointRequestForVci(false);
+		ResponseEntity<?> errorResponse = checkResourceEndpointRequestForVci(false);
+		if (errorResponse != null) {
+			call(exec().unmapKey("incoming_request").endBlock());
+			return errorResponse;
+		}
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
@@ -2196,6 +2288,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		env.putLong("authorization_code_created_at", System.currentTimeMillis() / 1000L);
+		// a freshly issued code has not been redeemed, whatever happened to the previous one
+		env.putBoolean("authorization_code_used", false);
 		// Store the client_id the code was issued to, for binding check at token endpoint
 		String authorizedClientId = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_id");
 		if (authorizedClientId != null) {
@@ -2412,7 +2506,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		checkResourceEndpointRequestForVci(false);
+		ResponseEntity<?> errorResponse = checkResourceEndpointRequestForVci(false);
+		if (errorResponse != null) {
+			call(exec().unmapKey("incoming_request").endBlock());
+			return errorResponse;
+		}
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 
