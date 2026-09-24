@@ -77,6 +77,18 @@ rendered formats, xml2rfc and mmark on `PATH`:
     python3 scripts/spec_library.py sync --refresh DOC          # re-fetch DOC's `latest` snapshot
     python3 scripts/spec_library.py sync --refresh-linked DOC   # replace the `linked` text (LogEntryHelper moved to a new version)
 
+Without nix, `library/Dockerfile` provides the same tools at the versions the manifest records
+(Python 3.12, xml2rfc 3.34.0, mmark 2.2.48); the repository is mounted, so the manifest and the
+texts land in the working tree as with a local run:
+
+    docker build -t cts-spec-library library/
+    docker run --rm -v "$PWD:/work" cts-spec-library check
+    docker run --rm -v "$PWD:/work" cts-spec-library sync --refresh-linked DOC
+
+`sync` needs outbound network access in either case: the sources come from rfc-editor.org,
+ietf.org, openid.net and codeload.github.com, the heading cross-check reads the published page,
+and xml2rfc fetches its bibliography from xml2rfc.ietf.org.
+
 When a `specLinks` entry is added or its URL changes, add or update the manifest entry
 (`python3 scripts/spec_library.py seed` prints what a fresh manifest would contain), run
 `sync`, and commit the manifest and text together.
