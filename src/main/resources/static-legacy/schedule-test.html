@@ -643,18 +643,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">PDP API Key</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="API Endpoint Key"></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="pdp.api_key"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">PDP JWK Set</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -702,6 +690,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Client secret."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.client_secret"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">PDP API Key</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="API key the suite presents to the AuthZEN PDP as a Bearer token in the Authorization header."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.api_key"></input>
                                         </div>
                                     </div>
                                 </div>
