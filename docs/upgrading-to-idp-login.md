@@ -109,17 +109,38 @@ bypass login entirely, so they need no IdP configuration to come up.
 
 The suite stores the owner of every test, plan, log entry, API token and saved
 configuration as an `(issuer, subject)` pair. Changing identity provider changes
-that pair, so records created before the switch are no longer visible to their
-owner.
+that pair, so records created before the switch would no longer be visible to
+their owner.
 
-The suite does not rewrite them for you. If you need historical records to stay
-with their owners, update the `owner` sub-documents in MongoDB yourself
-(collections `TEST_INFO`, `TEST_PLAN`, `API_TOKEN`, `TEST_CONFIG`, and
-`testOwner` in `EVENT_LOG`), mapping each old `(iss, sub)` to the pair the new
-IdP issues for that user.
+Nothing in the database is rewritten. Instead, a brokered login resolves back to
+the identity it was federated from: when the IdP brokers an upstream account it
+reports that provider's issuer and subject as `idp_iss` / `idp_sub`, and the
+suite uses that pair as the owner whenever both claims are present. That is the
+same pair the pre-IdP login path stored, so historical records stay reachable,
+and private share links issued against them keep working — nothing moved.
 
-If you do that, note that private share links do not survive it. A share link is
-a signed token carrying the plan's owner from the time it was issued, so once a
-plan's ownership moves, previously distributed links stop resolving. They cannot
-be repaired or re-signed — the owner is inside a signature, and the links are
+This applies equally to a browser session and to an API bearer token, so a user
+sees the same records either way.
+
+**Your IdP has to emit both claims for this to work.** Two requirements:
+
+- Both `idp_iss` and `idp_sub` must be present. Either one alone is ignored,
+  because an issuer from one identity combined with a subject from another owns
+  no records at all.
+- They must be populated by a broker (identity-provider) mapper from the upstream
+  provider's assertion, **not** from a user-editable profile attribute. These
+  claims decide which records the caller owns on every request, so a user who can
+  write `idp_sub` on their own profile can take over another user's tests, plans,
+  logs and API tokens. The suite cannot check this for you.
+
+If your IdP does not emit them — a self-hosted instance moving between providers,
+for example — historical records stay with their old owner and become invisible.
+To keep them, update the `owner` sub-documents in MongoDB yourself (collections
+`TEST_INFO`, `TEST_PLAN`, `API_TOKEN`, `TEST_CONFIG`, and `testOwner` in
+`EVENT_LOG`), mapping each old `(iss, sub)` to the pair the new IdP issues.
+
+Note that private share links do not survive *that*. A share link is a signed
+token carrying the plan's owner from the time it was issued, so once a plan's
+ownership moves, previously distributed links stop resolving. They cannot be
+repaired or re-signed — the owner is inside a signature, and the links are
 already in other people's hands. Generate and distribute new links afterwards.

@@ -113,6 +113,89 @@ public class OIDCAuthenticationFacade_UnitTest {
 	}
 
 	/**
+	 * Records created before the move to the IdP are owned by the upstream provider's
+	 * (iss, sub), which the IdP reports as idp_iss/idp_sub for the accounts it
+	 * brokers. Resolving to that pair is what keeps those records reachable.
+	 */
+	@Test
+	public void principal_of_a_brokered_bearer_token_is_the_upstream_identity() {
+		authenticateAs(apiToken(Map.of(
+			"iss", "https://idp.example.com", "sub", "idp-subject",
+			"idp_iss", "https://accounts.google.com", "idp_sub", "1234567890")));
+
+		Assertions.assertEquals(
+			ImmutableMap.of("sub", "1234567890", "iss", "https://accounts.google.com"),
+			facade.getPrincipal());
+	}
+
+	/**
+	 * The owner is matched as a whole sub-document, so a user whose browser session
+	 * and whose API token resolve differently owns two disjoint sets of records -
+	 * tests made in the UI invisible to their own token, and the other way round.
+	 * The two paths take different branches of getPrincipal, so nothing but a test
+	 * across both keeps them together.
+	 */
+	@Test
+	public void a_brokered_session_and_a_brokered_token_own_the_same_records() {
+		Map<String, Object> claims = Map.of(
+			"iss", "https://idp.example.com", "sub", "idp-subject",
+			"idp_iss", "https://accounts.google.com", "idp_sub", "1234567890");
+
+		authenticateAs(oidcLogin(claims));
+		ImmutableMap<String, String> viaSession = facade.getPrincipal();
+
+		authenticateAs(apiToken(claims));
+		ImmutableMap<String, String> viaToken = facade.getPrincipal();
+
+		Assertions.assertEquals(viaSession, viaToken);
+		Assertions.assertEquals(
+			ImmutableMap.of("sub", "1234567890", "iss", "https://accounts.google.com"),
+			viaSession);
+	}
+
+	/**
+	 * Half a pair would combine the issuer of one identity with the subject of
+	 * another, producing an owner that matches no record at all. The IdP identity is
+	 * a real owner; that mongrel is not.
+	 */
+	@Test
+	public void one_brokered_claim_without_the_other_is_ignored() {
+		authenticateAs(apiToken(Map.of(
+			"iss", "https://idp.example.com", "sub", "idp-subject",
+			"idp_sub", "1234567890")));
+
+		Assertions.assertEquals(
+			ImmutableMap.of("sub", "idp-subject", "iss", "https://idp.example.com"),
+			facade.getPrincipal());
+
+		authenticateAs(oidcLogin(Map.of(
+			"iss", "https://idp.example.com", "sub", "idp-subject",
+			"idp_iss", "https://accounts.google.com")));
+
+		Assertions.assertEquals(
+			ImmutableMap.of("sub", "idp-subject", "iss", "https://idp.example.com"),
+			facade.getPrincipal());
+	}
+
+	/**
+	 * An IdP sending either claim in another shape must cost the caller the brokered
+	 * identity and leave them the IdP identity, which owns records. Not a 500, and
+	 * not a coerced string: getClaimAsString would turn a one-element array into the
+	 * literal "[https://accounts.google.com]" and hand it on as an owner matching
+	 * nothing, losing the user every record they have.
+	 */
+	@Test
+	public void a_brokered_claim_of_the_wrong_shape_is_ignored() {
+		authenticateAs(apiToken(Map.of(
+			"iss", "https://idp.example.com", "sub", "idp-subject",
+			"idp_iss", List.of("https://accounts.google.com"), "idp_sub", 1234567890L)));
+
+		Assertions.assertEquals(
+			ImmutableMap.of("sub", "idp-subject", "iss", "https://idp.example.com"),
+			Assertions.assertDoesNotThrow(facade::getPrincipal));
+	}
+
+	/**
 	 * An OAuth2AuthenticationToken from a plain OAuth2 (non-OIDC) flow carries an
 	 * OAuth2User, not an OidcUser. Casting it blindly would throw a
 	 * ClassCastException out of every request that principal makes.
