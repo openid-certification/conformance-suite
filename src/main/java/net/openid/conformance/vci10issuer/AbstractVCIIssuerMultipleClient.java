@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialTimeClaimsNotLinkable;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -55,6 +56,11 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 		}
 
 		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			eventLog.log(getName(), "The first client has obtained its credential. Pre-authorized codes are single-use, "
+				+ "so a new Credential Offer for the second client is needed now: deliver it to the credential offer endpoint "
+				+ "shown in the exposed values.");
+			// close the setup block, so that the offer's processing is logged under its own headings
+			eventLog.endBlock();
 			waitForCredentialOffer();
 			return;
 		}
@@ -70,6 +76,19 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 			callAndStopOnFailure(AddRedirectUriQuerySuffix.class, "RFC6749-3.1.2");
 		}
 		callAndStopOnFailure(CreateRedirectUri.class, "RFC6749-3.1.2");
+
+		if (vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED) {
+			// The issuer_state of client 1's offer binds that offer to client 1's flow, and an issuer
+			// may treat the offer as consumed once its credentials were issued. Client 2 therefore
+			// waits for an offer of its own; handleCredentialOffer() then runs the flow.
+			eventLog.log(getName(), "The first client has obtained its credential. The issuer_state of the first Credential "
+				+ "Offer belongs to that flow and is not sent again, so a new Credential Offer for the second client is needed "
+				+ "now: deliver it to the credential offer endpoint shown in the exposed values.");
+			// close the setup block, so that the offer's processing is logged under its own headings
+			eventLog.endBlock();
+			waitForCredentialOffer();
+			return;
+		}
 
 		performAuthorizationFlow();
 	}

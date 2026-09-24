@@ -17,6 +17,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 	The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce,
 	and successfully requests a credential from the Credential Endpoint.
+
+	In the issuer-initiated variant, and with the pre-authorized code grant, the second client needs a Credential
+	Offer of its own: once the first client has obtained its credential the test returns to WAITING, and a second
+	Credential Offer must be delivered to the credential offer endpoint for the second client. The issuer_state or
+	pre-authorized code of the first offer is never reused.
 	""",
 	profile = "OID4VCI-1_0"
 )
