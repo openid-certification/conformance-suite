@@ -261,12 +261,6 @@
           "tooltip": "Resource Entity Search API Endpoint"
         },
         {
-          "key": "pdp.api_key",
-          "label": "PDP API Key",
-          "type": "string",
-          "tooltip": "API Endpoint Key"
-        },
-        {
           "key": "pdp.jwks",
           "label": "PDP JWK Set",
           "type": "object",
@@ -295,6 +289,12 @@
           "label": "client_secret",
           "type": "string",
           "tooltip": "Client secret."
+        },
+        {
+          "key": "client.api_key",
+          "label": "PDP API Key",
+          "type": "string",
+          "tooltip": "API key the suite presents to the AuthZEN PDP as a Bearer token in the Authorization header."
         },
         {
           "key": "client.client_name",
