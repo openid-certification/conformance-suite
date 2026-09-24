@@ -9,13 +9,13 @@ import net.openid.conformance.testmodule.Environment;
 public class AddApiKeyAuthenticationParametersToAuthzenApiRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "pdp")
+	@PreEnvironment(required = "client")
 	@PostEnvironment(required = "authzen_api_endpoint_request_headers")
 	public Environment evaluate(Environment env) {
-		String secret = env.getString("pdp", "api_key");
+		String secret = env.getString("client", "api_key");
 
 		if (secret == null) {
-			throw error("'PDP API Key' field is missing from the 'AuthZEN' section in the test configuration");
+			throw error("'PDP API Key' field is missing from the 'Client' section in the test configuration");
 		}
 
 		JsonObject headers = env.getObject("authzen_api_endpoint_request_headers");

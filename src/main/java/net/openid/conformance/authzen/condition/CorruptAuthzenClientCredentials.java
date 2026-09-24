@@ -18,26 +18,24 @@ public class CorruptAuthzenClientCredentials extends AbstractCondition {
 	public static final String INVALID_CREDENTIAL_VALUE = "invalid-bogus-credential";
 
 	@Override
-	@PreEnvironment(required = {"client", "pdp"})
-	@PostEnvironment(required = {"client", "pdp"})
+	@PreEnvironment(required = "client")
+	@PostEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
 		JsonObject client = env.getObject("client");
-		JsonObject pdp = env.getObject("pdp");
 		boolean corruptedClientSecret = false;
 		boolean corruptedApiKey = false;
 		if (client.has("client_secret")) {
 			client.addProperty("client_secret", INVALID_CREDENTIAL_VALUE);
-			env.putObject("client", client);
 			corruptedClientSecret = true;
 		}
-		if (pdp.has("api_key")) {
-			pdp.addProperty("api_key", INVALID_CREDENTIAL_VALUE);
-			env.putObject("pdp", pdp);
+		if (client.has("api_key")) {
+			client.addProperty("api_key", INVALID_CREDENTIAL_VALUE);
 			corruptedApiKey = true;
 		}
 		if (!corruptedClientSecret && !corruptedApiKey) {
-			throw error("No PDP authentication credentials available to corrupt — neither client.client_secret nor pdp.api_key is set; the 401 negative test cannot prove the PDP rejected bad credentials");
+			throw error("No PDP authentication credentials available to corrupt — neither client.client_secret nor client.api_key is set; the 401 negative test cannot prove the PDP rejected bad credentials");
 		}
+		env.putObject("client", client);
 		logSuccess("Replaced PDP authentication credentials with an invalid value",
 			args("corrupted_client_secret", corruptedClientSecret, "corrupted_api_key", corruptedApiKey));
 		return env;
