@@ -80,14 +80,6 @@ public class JWEUtil {
 	}
 
 	/**
-	 * Returns a key that has the correct key type and optionally use=enc,
-	 * or null if no key was found.
-	 * Only for RSA or EC keys.
-	 * @param jwkSet
-	 * @param alg
-	 * @return
-	 */
-	/**
 	 * The type of key the given JWE algorithm requires, or null for an algorithm that is neither
 	 * RSA nor ECDH-ES based. {@link #selectAsymmetricKeyForEncryption} selects a key by this, so
 	 * a caller that has already chosen a key can use this to check the algorithm agrees with it.

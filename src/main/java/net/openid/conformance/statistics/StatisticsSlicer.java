@@ -130,7 +130,6 @@ public final class StatisticsSlicer {
 	 *         if none has. The users series count too, so a plan created before the first
 	 *         run of a family still opens its axis.
 	 */
-	/** @return the index of the first period any series is non-zero in, or 0 if none is */
 	private static int firstPeriodWithData(int size, Map<String, long[]> runs, Map<String, long[]> plans,
 			Map<String, long[]> certified, Users users) {
 		int first = size;
