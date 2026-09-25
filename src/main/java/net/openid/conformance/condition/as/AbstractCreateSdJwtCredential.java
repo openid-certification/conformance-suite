@@ -185,7 +185,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 
 		long iat = issuanceTimeSeconds();
 		builder.putClaim("iat", iat);
-		builder.putClaim("exp", Instant.ofEpochSecond(iat).plus(14, ChronoUnit.DAYS).getEpochSecond());
+		builder.putClaim("exp", Instant.ofEpochSecond(iat).plus(23, ChronoUnit.HOURS).getEpochSecond());
 		String baseUrl = env.getString("base_url");
 		builder.putClaim("iss", baseUrl);
 
