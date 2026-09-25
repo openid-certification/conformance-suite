@@ -62,7 +62,8 @@ public class ValidateConfiguredClientCertificatesAgainstRical_UnitTest {
 		RicalTestFixtures.putRical(env, RicalTestFixtures.goodSignedRical(List.of(pki.getCaCert())));
 
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("Second client JWKS"), e.getMessage());
+		// the message names the field as schedule-test.html labels it
+		assertTrue(e.getMessage().contains("'jwks' field in the 'Second client' section"), e.getMessage());
 	}
 
 	@Test

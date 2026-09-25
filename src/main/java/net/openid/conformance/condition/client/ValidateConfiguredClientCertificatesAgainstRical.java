@@ -21,8 +21,8 @@ import java.util.Map;
 
 /**
  * Pre-flight interoperability check for the wallet tests: validates that the certificate chains
- * of the suite's own configured request signing keys (the x5c in 'JWKS', and in the second
- * client's JWKS when present) chain to a reader CA certificate listed in the configured RICAL
+ * of the suite's own configured request signing keys (the x5c in the client's configured
+ * jwks, and in the second client's when present) chain to a reader CA certificate listed in the configured RICAL
  * (ISO/IEC 18013-5 second edition draft Annex F.3.2.6). A wallet that trusts this RICAL is
  * expected to reject the suite's signed requests if the chain is not covered, so a failure here
  * reports a problem with the test configuration or the RICAL registration, not with the wallet
@@ -30,15 +30,19 @@ import java.util.Map;
  */
 public class ValidateConfiguredClientCertificatesAgainstRical extends AbstractRicalCondition {
 
+	/** As labelled on schedule-test.html: the field is 'jwks', in the 'Client' section. */
+	private static final String CLIENT_JWKS_FIELD = "'jwks' field in the 'Client' section";
+	private static final String CLIENT2_JWKS_FIELD = "'jwks' field in the 'Second client' section";
+
 	@Override
 	@PreEnvironment(required = { "client_jwks", "rical" })
 	public Environment evaluate(Environment env) {
 
 		Map<String, List<X509Cert>> chains = new LinkedHashMap<>();
-		chains.put("JWKS", x5cChainFromJwks(env.getObject("client_jwks"), "JWKS"));
+		chains.put(CLIENT_JWKS_FIELD, x5cChainFromJwks(env.getObject("client_jwks"), CLIENT_JWKS_FIELD));
 		JsonObject client2Jwks = env.getObject("client2_jwks");
 		if (client2Jwks != null) {
-			chains.put("Second client JWKS", x5cChainFromJwks(client2Jwks, "Second client JWKS"));
+			chains.put(CLIENT2_JWKS_FIELD, x5cChainFromJwks(client2Jwks, CLIENT2_JWKS_FIELD));
 		}
 
 		SignedRical signedRical;
@@ -81,8 +85,8 @@ public class ValidateConfiguredClientCertificatesAgainstRical extends AbstractRi
 		}
 
 		if (!untrusted.isEmpty()) {
-			throw error("The suite's configured request signing certificate does not chain to a reader CA certificate in the configured RICAL; a wallet that trusts this RICAL is expected to reject the suite's signed requests. Check the '"
-					+ String.join("' and '", untrusted) + "' field in the 'Client' section of the test configuration, or the reader CA's registration with the RICAL provider.",
+			throw error("The suite's configured request signing certificate does not chain to a reader CA certificate in the configured RICAL; a wallet that trusts this RICAL is expected to reject the suite's signed requests. Check the "
+					+ String.join(" and the ", untrusted) + " in the test configuration, or the reader CA's registration with the RICAL provider.",
 				args("results", results, "rical_provider", ricalProvider));
 		}
 
@@ -102,15 +106,15 @@ public class ValidateConfiguredClientCertificatesAgainstRical extends AbstractRi
 		try {
 			signingKey = JWKUtil.getSigningKey(jwks);
 		} catch (ParseException e) {
-			throw error("The '" + fieldLabel + "' field in the 'Client' section of the test configuration could not be parsed as a JWKS", e);
+			throw error("The " + fieldLabel + " of the test configuration could not be parsed as a JWKS", e);
 		} catch (InvalidArgumentException e) {
-			throw error("The '" + fieldLabel + "' field in the 'Client' section of the test configuration does not contain exactly one signing key, so there is no single certificate chain to evaluate against the RICAL",
+			throw error("The " + fieldLabel + " of the test configuration does not contain exactly one signing key, so there is no single certificate chain to evaluate against the RICAL",
 				args("error", e.getMessage()));
 		}
 		List<com.nimbusds.jose.util.Base64> x5c = signingKey.getX509CertChain();
 		if (x5c == null || x5c.isEmpty()) {
-			throw error("The signing key in the '" + fieldLabel
-				+ "' field in the 'Client' section of the test configuration has no 'x5c' certificate chain, so there is no certificate to evaluate against the RICAL");
+			throw error("The signing key in the " + fieldLabel
+				+ " of the test configuration has no 'x5c' certificate chain, so there is no certificate to evaluate against the RICAL");
 		}
 		List<X509Cert> chain = new ArrayList<>();
 		for (com.nimbusds.jose.util.Base64 certB64 : x5c) {
@@ -118,8 +122,8 @@ public class ValidateConfiguredClientCertificatesAgainstRical extends AbstractRi
 				byte[] der = certB64.decode();
 				chain.add(new X509Cert(new ByteString(der, 0, der.length)));
 			} catch (Exception e) {
-				throw error("Failed to parse a certificate in the x5c of the '" + fieldLabel
-					+ "' field in the 'Client' section of the test configuration", e);
+				throw error("Failed to parse a certificate in the x5c of the " + fieldLabel
+					+ " of the test configuration", e);
 			}
 		}
 		return chain;
