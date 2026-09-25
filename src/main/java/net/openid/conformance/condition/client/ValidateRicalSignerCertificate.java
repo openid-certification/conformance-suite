@@ -10,6 +10,7 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.EdECPublicKey;
 
 /**
  * Validates the RICAL signer certificate as far as ISO/IEC 18013-5 second edition draft
@@ -47,8 +48,11 @@ public class ValidateRicalSignerCertificate extends AbstractRicalCondition {
 					"not_after", signerCert.getNotAfter().toString()));
 		}
 
-		if (!(signerCert.getPublicKey() instanceof ECPublicKey)) {
-			throw error("The RICAL signer certificate does not contain an elliptic curve public key",
+		// F.3.2 names ES256/ES384/ES512 and EdDSA as the RICAL signing algorithms, so the signer
+		// key is an elliptic curve key of either family
+		if (!(signerCert.getPublicKey() instanceof ECPublicKey)
+			&& !(signerCert.getPublicKey() instanceof EdECPublicKey)) {
+			throw error("The RICAL signer certificate does not contain an elliptic curve public key, so it cannot have been signed with any of the algorithms ISO/IEC 18013-5 Annex F.3.2 names",
 				args("subject", subject,
 					"key_algorithm", signerCert.getPublicKey().getAlgorithm()));
 		}
