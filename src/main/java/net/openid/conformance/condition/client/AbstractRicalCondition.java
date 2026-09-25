@@ -10,6 +10,7 @@ import org.multipaz.cose.CoseSign1;
 import org.multipaz.crypto.X509Cert;
 import org.multipaz.crypto.X509CertChain;
 import org.multipaz.mdoc.rical.SignedRical;
+import org.multipaz.crypto.X509CertJvmKt;
 
 import java.time.Instant;
 import java.util.Base64;
@@ -179,8 +180,24 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 	 * govern, which is the usual case since the verifier's x5c typically contains just the
 	 * end-entity certificate. The issuer is identified by the chain certificate's Authority Key
 	 * Identifier, as multipaz's RicalTrustManager does — a subject name alone can be shared by
-	 * an old and a renewed CA, or by an unrelated CA, and would name the wrong entry.
+	 * an old and a renewed CA, or by an unrelated CA, and would name the wrong entry — and is
+	 * accepted only when that entry's key actually verifies the chain certificate's signature,
+	 * so a key identifier that collides or was copied cannot select an entry that issued
+	 * nothing in this chain.
 	 */
+	/**
+	 * Whether the candidate issuer's public key verifies the chain certificate's signature.
+	 */
+	private boolean issuedChainCertificate(X509Cert candidateIssuer, X509Cert chainCert) {
+		try {
+			X509CertJvmKt.getJavaX509Certificate(chainCert)
+				.verify(X509CertJvmKt.getJavaX509Certificate(candidateIssuer).getPublicKey());
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	protected org.multipaz.mdoc.rical.RicalCertificateInfo findFirstMatchingRicalEntry(
 			SignedRical signedRical, java.util.List<X509Cert> chainCerts) {
 		for (X509Cert chainCert : chainCerts) {
@@ -198,7 +215,8 @@ public abstract class AbstractRicalCondition extends AbstractCondition {
 				continue;
 			}
 			for (org.multipaz.mdoc.rical.RicalCertificateInfo certInfo : signedRical.getRical().getCertificateInfos()) {
-				if (java.util.Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), chainCertAki)) {
+				if (java.util.Arrays.equals(certInfo.getCertificate().getSubjectKeyIdentifier(), chainCertAki)
+					&& issuedChainCertificate(certInfo.getCertificate(), chainCert)) {
 					return certInfo;
 				}
 			}
