@@ -63,6 +63,16 @@
   margin-top: var(--space-4);
 }
 
+/* Bytes received so far while the package downloads; sits at the start of
+   the actions row, away from the buttons. */
+.oidf-cert-package-progress {
+  align-self: center;
+  margin-right: auto;
+  font-size: var(--fs-14);
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* On phones the two buttons no longer fit side by side inside the dialog
    body, so they stack full-width in DOM order (Cancel, then the primary), so
    the visual order, the reading order and the tab order all agree. */

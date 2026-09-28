@@ -171,11 +171,16 @@
             </div>
 
             <div class="oidf-cert-package-actions">
+                <span id="certificationPackageProgress" class="oidf-cert-package-progress" hidden></span>
                 <cts-button id="cancelCertificationPackageFormModal" label="Cancel"></cts-button>
                 <cts-button id="certificationPackageFormSubmitBtn" type="submit" variant="primary" label="Create Certification Package"></cts-button>
                 <cts-button id="closeCertificationPackageFormModal" hidden label="Close"></cts-button>
             </div>
         </form>
+    </cts-modal>
+
+    <cts-modal id="certificationPackageErrorModal" heading="Certification Package Not Created" size="lg">
+        <div id="certificationPackageErrorBody"></div>
     </cts-modal>
 
     <cts-modal id="reRunTestModal" heading="Run test confirmation"
@@ -230,6 +235,273 @@
         /** Clears any error banners from a dialog's error container. */
         function clearDialogErrors(containerId) {
             document.getElementById(containerId).replaceChildren();
+        }
+
+        /**
+         * Puts the certification package dialog into its in-flight state (the
+         * submit button spins and both buttons are inert, so a second click
+         * can't send a second POST) or back to its idle state.
+         */
+        function setCertificationPackageBusy(busy) {
+            var submitBtn = document.getElementById('certificationPackageFormSubmitBtn');
+            submitBtn.loading = busy;
+            submitBtn.label = busy ? 'Creating Certification Package…' : 'Create Certification Package';
+            document.getElementById('cancelCertificationPackageFormModal').disabled = busy;
+            setCertificationPackageProgress(null);
+        }
+
+        /**
+         * Shows how much of the package has been received, or hides the
+         * counter when bytes is null. The server streams the zip without a
+         * Content-Length, so there is no total to show a percentage of.
+         */
+        function setCertificationPackageProgress(bytes) {
+            var progress = document.getElementById('certificationPackageProgress');
+            progress.hidden = bytes === null;
+            progress.textContent = bytes === null ? '' : 'Downloaded ' + formatByteCount(bytes);
+        }
+
+        /** Formats a byte count as e.g. "512 bytes", "40 KB" or "12.3 MB". */
+        function formatByteCount(bytes) {
+            if (bytes < 1000) {
+                return bytes + ' bytes';
+            }
+            var kilobytes = Math.round(bytes / 1000);
+            if (kilobytes < 1000) {
+                return kilobytes + ' KB';
+            }
+            return (bytes / 1000000).toFixed(1) + ' MB';
+        }
+
+        /**
+         * Reads a response body into a Blob, updating the byte counter as
+         * chunks arrive. Falls back to response.blob() when the body can't be
+         * read as a stream.
+         */
+        function readBodyWithProgress(response) {
+            if (!response.body || typeof response.body.getReader !== 'function') {
+                return response.blob();
+            }
+            var reader = response.body.getReader();
+            var chunks = [];
+            var received = 0;
+            setCertificationPackageProgress(0);
+            function pump() {
+                return reader.read().then(function (result) {
+                    if (result.done) {
+                        return new Blob(chunks, { type: response.headers.get('Content-Type') || 'application/zip' });
+                    }
+                    chunks.push(result.value);
+                    received += result.value.byteLength;
+                    setCertificationPackageProgress(received);
+                    return pump();
+                });
+            }
+            return pump();
+        }
+
+        /** Swaps the dialog from the upload form to the "downloaded" message. */
+        function showCertificationPackageDownloaded() {
+            document.querySelector('#certificationPackageFormModalBody').hidden = true;
+            document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
+            document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
+
+            document.querySelector('#certificationPackageDownloaded').hidden = false;
+            document.querySelector('#closeCertificationPackageFormModal').hidden = false;
+        }
+
+        /**
+         * Returns the filename from a Content-Disposition header, or the
+         * fallback when the header is missing or has no quoted filename.
+         */
+        function filenameFromContentDisposition(header, fallback) {
+            var match = /filename="([^"]+)"/.exec(header || '');
+            return match ? match[1] : fallback;
+        }
+
+        /** Saves a Blob to the user's download directory under the given name. */
+        function saveBlob(blob, filename) {
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            // Revoke on the next task: revoking synchronously can cancel the
+            // download in some browsers before it has started reading the Blob.
+            setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+        }
+
+        /**
+         * Describes a failed_tests entry from the certification package
+         * endpoint in words, e.g. "not run yet", "failed", "interrupted".
+         * @param info the entry's object value
+         */
+        function describeFailedTest(info) {
+            if (info.status === 'NOT_YET_CREATED') {
+                return 'not run yet';
+            }
+            if (info.status !== 'FINISHED') {
+                return String(info.status || 'unknown').toLowerCase();
+            }
+            return String(info.result || 'unknown').toLowerCase();
+        }
+
+        /**
+         * Shows the given cts-alert in the certification package error dialog,
+         * replacing the creation dialog whose instructions no longer apply.
+         * Pass reloadOnClose when the server may already have published the
+         * plan or made it immutable, so closing the dialog reloads the page
+         * rather than leaving it showing the plan's earlier state.
+         */
+        function showCertificationPackageErrorDialog(alert, reloadOnClose) {
+            var errorModal = document.getElementById('certificationPackageErrorModal');
+            errorModal.dataset.reloadOnClose = reloadOnClose ? 'true' : 'false';
+            document.getElementById('certificationPackageErrorBody').replaceChildren(alert);
+            document.getElementById('certificationPackageModal').hide();
+            errorModal.show();
+        }
+
+        /** Returns a danger cts-alert whose text is the given message. */
+        function createCertificationPackageAlert(message) {
+            var alert = document.createElement('cts-alert');
+            alert.setAttribute('variant', 'danger');
+            alert.textContent = message;
+            return alert;
+        }
+
+        /**
+         * Shows why POST /api/plan/{id}/certificationpackage was refused in
+         * its own dialog. The response body is JSON for the failed/incomplete
+         * tests, unknown plan and no certification profile cases, and empty
+         * otherwise. For an unknown plan the server nests its error and
+         * error_description strings inside failed_tests, so only object-valued
+         * failed_tests entries are treated as tests. Built from DOM nodes and
+         * textContent so server-supplied strings can't inject markup.
+         */
+        function showCertificationPackageError(status, body) {
+            var failedTests = body && body.failed_tests && typeof body.failed_tests === 'object'
+                ? body.failed_tests : {};
+            var moduleNames = Object.keys(failedTests).filter(function (name) {
+                return failedTests[name] !== null && typeof failedTests[name] === 'object';
+            });
+
+            if (moduleNames.length > 0) {
+                var alert = createCertificationPackageAlert('');
+                var intro = document.createElement('p');
+                intro.textContent = 'The certification package can’t be created until every test in '
+                    + 'the plan has finished without failing. These tests need attention:';
+                var list = document.createElement('ul');
+                moduleNames.forEach(function (moduleName) {
+                    var info = failedTests[moduleName];
+                    var item = document.createElement('li');
+                    var testId = info.testId;
+                    if (testId && testId !== 'NOT_YET_CREATED') {
+                        var link = document.createElement('a');
+                        link.href = '/log-detail.html?log=' + encodeURIComponent(testId);
+                        link.textContent = moduleName;
+                        item.appendChild(link);
+                    } else {
+                        item.appendChild(document.createTextNode(moduleName));
+                    }
+                    item.appendChild(document.createTextNode(': ' + describeFailedTest(info)));
+                    list.appendChild(item);
+                });
+                alert.append(intro, list);
+                showCertificationPackageErrorDialog(alert);
+                return;
+            }
+
+            var message;
+            var reloadOnClose = false;
+            if (isNonBlankString(failedTests.error_description)) {
+                message = failedTests.error_description;
+            } else if (body && isNonBlankString(body.error_description)) {
+                message = body.error_description;
+            } else if (status === 401) {
+                message = 'Your session has expired. Please log in again and retry.';
+            } else if (status === 403) {
+                message = 'You are not allowed to create a certification package for this plan. '
+                    + 'Reload the page to see the plan’s current state.';
+            } else if (status === 422) {
+                // The only empty-bodied 422 comes after the server has
+                // published the plan, when marking it immutable failed.
+                message = 'The test plan has been published, but it could not be marked as immutable, '
+                    + 'so no certification package was created. Closing this dialog reloads the page '
+                    + 'to show the plan’s current state.';
+                reloadOnClose = true;
+            } else if (status) {
+                // Any other status can come from building the zip, which the
+                // server does after publishing the plan and making it immutable.
+                message = 'Creating the certification package failed (HTTP ' + status + '). '
+                    + 'The test plan may already have been published and marked as immutable. '
+                    + 'Closing this dialog reloads the page to show the plan’s current state.';
+                reloadOnClose = true;
+            } else {
+                message = 'Could not reach the server to create the certification package. '
+                    + 'Check your connection and try again.';
+            }
+            showCertificationPackageErrorDialog(createCertificationPackageAlert(message), reloadOnClose);
+        }
+
+        /** Returns true when the value is a string with a non-whitespace character. */
+        function isNonBlankString(value) {
+            return typeof value === 'string' && value.trim() !== '';
+        }
+
+        /**
+         * Submits the certification package form with fetch so a refusal is
+         * shown in its own dialog instead of the browser navigating to the JSON
+         * error body. On success the zip is saved under the server's filename.
+         * A 200 means the server has already published the plan and marked it
+         * immutable, so a failure after that point must not be reported as the
+         * server being unreachable.
+         */
+        function submitCertificationPackage(form, planId) {
+            clearDialogErrors('certificationPackageFormErrors');
+            setCertificationPackageBusy(true);
+
+            fetch(form.getAttribute('action'), { method: 'POST', body: new FormData(form) })
+                .then((response) => {
+                    if (!response.ok) {
+                        return response.text().catch(() => '').then((text) => {
+                            var body = null;
+                            try {
+                                body = JSON.parse(text);
+                            } catch (e) {
+                                // Empty or non-JSON body; fall back to the status.
+                            }
+                            setCertificationPackageBusy(false);
+                            showCertificationPackageError(response.status, body);
+                        });
+                    }
+                    var filename = filenameFromContentDisposition(
+                        response.headers.get('Content-Disposition'),
+                        'certification-package-' + planId + '.zip');
+                    return readBodyWithProgress(response).then((blob) => {
+                        saveBlob(blob, filename);
+                        setCertificationPackageBusy(false);
+                        showCertificationPackageDownloaded();
+                    }, () => {
+                        setCertificationPackageBusy(false);
+                        showCertificationPackageErrorDialog(createCertificationPackageAlert(
+                            'The test plan has been published and marked as immutable, but the '
+                            + 'certification package download did not complete. Closing this dialog '
+                            + 'reloads the page; then create the certification package again to '
+                            + 'download it.'), true);
+                    });
+                }, () => {
+                    setCertificationPackageBusy(false);
+                    showCertificationPackageError(0, null);
+                })
+                .catch((e) => {
+                    console.error('Handling the certification package response failed', e);
+                    setCertificationPackageBusy(false);
+                    showCertificationPackageErrorDialog(createCertificationPackageAlert(
+                        'Something went wrong while creating the certification package. Closing this '
+                        + 'dialog reloads the page to show the plan’s current state.'), true);
+                });
         }
 
         /**
@@ -784,26 +1056,17 @@
          */
         function wireUpStaticHandlers(planId) {
             document.getElementById('certificationPackageForm').addEventListener('submit', function (evt) {
+                evt.preventDefault();
                 const filesToCheck = ['clientSideDataBtn'];
                 const maxFileSize = 1024000;
                 const fileNum = validateFileSizes(filesToCheck, maxFileSize);
                 if (fileNum >= 0) {
-                    evt.preventDefault();
                     showDialogError('certificationPackageFormErrors',
                         document.getElementById(filesToCheck[fileNum]).files[0].name
                         + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
-                    return false;
+                    return;
                 }
-
-                // Hide previous content + cancel/submit buttons; reveal the
-                // download-info content + Close button.
-                document.querySelector('#certificationPackageFormModalBody').hidden = true;
-                document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
-                document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
-
-                document.querySelector('#certificationPackageDownloaded').hidden = false;
-                document.querySelector('#closeCertificationPackageFormModal').hidden = false;
-                return true;
+                submitCertificationPackage(this, planId);
             });
 
             document.getElementById('cancelCertificationPackageFormModal').addEventListener('cts-click', function () {
@@ -813,6 +1076,14 @@
             document.getElementById('closeCertificationPackageFormModal').addEventListener('cts-click', function () {
                 document.getElementById('certificationPackageModal').hide();
                 window.location.reload();
+            });
+
+            // cts-modal-close fires however the dialog is closed (Close, the
+            // header button or ESC).
+            document.getElementById('certificationPackageErrorModal').addEventListener('cts-modal-close', function () {
+                if (this.dataset.reloadOnClose === 'true') {
+                    window.location.reload();
+                }
             });
 
             // publishModal — confirm button POSTs and navigates. The button
