@@ -114,14 +114,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 		callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class, Condition.ConditionResult.FAILURE);
 
-		JsonObject claims = env.getElementFromObject("federation_response_jwt", "claims").getAsJsonObject();
-		claims.remove("authority_hints");
-		claims.remove("trust_mark_issuers");
-		claims.remove("trust_mark_owners");
-		claims.addProperty("iss", env.getString("trust_anchor_entity_identifier"));
-		claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
-
-		env.putObject("trust_anchor_fetch_response_claims", claims);
+		callAndStopOnFailure(CreateTrustAnchorSubordinateStatement.class, "OIDFED-3.1.3");
 		env.mapKey("entity_configuration_claims", "trust_anchor_fetch_response_claims");
 		env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
 		callAndStopOnFailure(SignEntityStatement.class);
