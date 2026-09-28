@@ -519,10 +519,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
-		env.putObject(requestId, requestParts);
-		env.mapKey("incoming_request", requestId);
-
 		if (isFinished()) {
 			// Requests after the test finished are answered without touching the test log or the
 			// status machine. The static documents stay available, since a receiver cleaning up
@@ -545,6 +541,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		setStatus(Status.RUNNING);
 
+		// The mapping exists only while this thread holds the test lock, taken by the RUNNING
+		// transition above and released by the WAITING one below: concurrent receiver requests
+		// (a JWKS fetch during a push, a status read during a long poll) would otherwise
+		// redirect 'incoming_request' underneath the handler that is reading it.
+		String requestId = mapIncomingRequest(requestParts);
+
 		Object response;
 		try {
 			if (isProbeMethod(req.getMethod())) {
@@ -553,14 +555,30 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				response = dispatchRequest(path, req, res, session, requestParts, requestId);
 			}
 		} finally {
-			if (!Set.of(Status.WAITING, Status.FINISHED).contains(getStatus())) {
+			unmapIncomingRequest(requestId);
+			if (!Set.of(Status.WAITING, Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
 				setStatus(Status.WAITING);
 			}
-			env.removeObject(requestId);
-			env.unmapKey("incoming_request");
 		}
 
 		return response;
+	}
+
+	/**
+	 * Stores the request parts under a fresh key and maps {@code incoming_request} onto it.
+	 * Callers must hold the test lock and must unmap before releasing it, see
+	 * {@link #unmapIncomingRequest(String)}.
+	 */
+	protected String mapIncomingRequest(JsonObject requestParts) {
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		env.mapKey("incoming_request", requestId);
+		return requestId;
+	}
+
+	protected void unmapIncomingRequest(String requestId) {
+		env.unmapKey("incoming_request");
+		env.removeObject(requestId);
 	}
 
 	/**
@@ -749,11 +767,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return ResponseEntity.noContent().build();
 		}
 
-		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
-		env.putObject(requestId, requestParts);
-		env.mapKey("incoming_request", requestId);
-
 		setStatus(Status.RUNNING);
+
+		String requestId = mapIncomingRequest(requestParts);
 
 		Object response;
 		try {
@@ -766,9 +782,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				response = answerProbeRequest(path, requestParts);
 			}
 		} finally {
-			setStatus(Status.WAITING);
-			env.removeObject(requestId);
-			env.unmapKey("incoming_request");
+			unmapIncomingRequest(requestId);
+			if (!Set.of(Status.WAITING, Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
+				setStatus(Status.WAITING);
+			}
 		}
 
 		return response;
