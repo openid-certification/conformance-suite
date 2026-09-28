@@ -48,6 +48,7 @@ import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
 import net.openid.conformance.condition.client.SetLoginHintToConsentId;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import net.openid.conformance.condition.client.StartBrazilResourcesPollingTimer;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn;
 import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaDynamicRegistrationResponse;
@@ -59,6 +60,7 @@ import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -289,6 +291,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			ExtractConsentIdFromConsentEndpointResponse.class,
 			FAPIBrazilAddConsentIdToClientScope.class);
 		assertThat(conditionClasses).doesNotContain(
+			StartBrazilResourcesPollingTimer.class,
 			SetPaymentsScopeOnTokenEndpointRequest.class,
 			FAPIBrazilCreatePaymentConsentRequest.class,
 			FAPIBrazilSignPaymentConsentRequest.class,
@@ -342,10 +345,15 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 
 	private List<ConditionCallBuilder> getConditionCalls(ConditionSequence sequence) {
 		sequence.evaluate();
-		return sequence.getTestExecutionUnits().stream()
-			.filter(ConditionCallBuilder.class::isInstance)
-			.map(ConditionCallBuilder.class::cast)
-			.toList();
+		List<ConditionCallBuilder> calls = new ArrayList<>();
+		for (var unit : sequence.getTestExecutionUnits()) {
+			if (unit instanceof ConditionCallBuilder condition) {
+				calls.add(condition);
+			} else if (unit instanceof ConditionSequence nested) {
+				calls.addAll(getConditionCalls(nested));
+			}
+		}
+		return calls;
 	}
 
 	private String[] getRequirements(List<ConditionCallBuilder> conditionCalls,

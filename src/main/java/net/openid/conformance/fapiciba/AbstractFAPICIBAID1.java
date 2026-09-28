@@ -41,6 +41,8 @@ import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUne
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.EnsureHttpResponseBodyIsEmpty;
+import net.openid.conformance.condition.client.WaitForBrazilResourcesResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
 import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
@@ -172,6 +174,9 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -280,6 +285,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected FAPICIBAServerProfileBehavior profileBehavior;
+
+	private final Set<String> resourceEndpointRequestedConsents = new HashSet<>();
 
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
@@ -988,6 +995,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
+		call(profileBehavior.onSuccessfulTokenEndpointResponse());
+
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "CIBA-10.1.1", "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
@@ -1144,6 +1153,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
 
+		pollResourceEndpoint();
+
 		call(profileBehavior.validateResourceEndpointResponseStatus());
 		call(exec().unmapKey("endpoint_response"));
 
@@ -1156,6 +1167,28 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		call(profileBehavior.validateResourceEndpointResponse());
 
 		eventLog.endBlock();
+	}
+
+	protected void pollResourceEndpoint() {
+		String consentId = profileBehavior.getResourceEndpointPollingConsentId();
+		if (consentId == null || !resourceEndpointRequestedConsents.add(consentId)) {
+			return;
+		}
+		long deadline = env.getLong("brazil_resources_polling_started") + TimeUnit.MINUTES.toNanos(5);
+		int attempt = 0;
+		while (env.getInteger("endpoint_response", "status") == 202) {
+			callAndStopOnFailure(EnsureHttpResponseBodyIsEmpty.class);
+			callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
+			call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
+			callAndStopOnFailure(createResourceEndpointPollingWait(deadline, attempt));
+			attempt++;
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+			updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
+		}
+	}
+
+	protected WaitForBrazilResourcesResponse createResourceEndpointPollingWait(long deadline, int attempt) {
+		return new WaitForBrazilResourcesResponse(deadline, attempt);
 	}
 
 	protected void updateResourceRequestAndCallProtectedResource(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {

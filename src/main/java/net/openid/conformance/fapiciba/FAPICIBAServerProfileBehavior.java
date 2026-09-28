@@ -205,6 +205,10 @@ public class FAPICIBAServerProfileBehavior {
 		return null;
 	}
 
+	public ConditionSequence onSuccessfulTokenEndpointResponse() {
+		return null;
+	}
+
 	/**
 	 * Create steps for updating a resource request (e.g. for retries).
 	 * Default does nothing.
@@ -228,6 +232,10 @@ public class FAPICIBAServerProfileBehavior {
 				}
 			}
 		};
+	}
+
+	public String getResourceEndpointPollingConsentId() {
+		return null;
 	}
 
 	public ConditionSequence validateResourceEndpointResponseStatus() {

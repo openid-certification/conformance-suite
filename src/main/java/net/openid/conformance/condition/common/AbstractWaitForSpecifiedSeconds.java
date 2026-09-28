@@ -10,6 +10,10 @@ public abstract class AbstractWaitForSpecifiedSeconds extends AbstractCondition 
 
 	protected abstract long getExpectedWaitSeconds(Environment env);
 
+	protected void sleepForSeconds(long seconds) throws InterruptedException {
+		TimeUnit.SECONDS.sleep(seconds);
+	}
+
 	@Override
 	public Environment evaluate(Environment env) {
 		try {
@@ -22,7 +26,7 @@ public abstract class AbstractWaitForSpecifiedSeconds extends AbstractCondition 
 				lockManager.releaseLock();
 			}
 			try {
-				TimeUnit.SECONDS.sleep(expectedWaitSeconds);
+				sleepForSeconds(expectedWaitSeconds);
 			} finally {
 				if (lockManager != null) {
 					lockManager.reacquireLock();

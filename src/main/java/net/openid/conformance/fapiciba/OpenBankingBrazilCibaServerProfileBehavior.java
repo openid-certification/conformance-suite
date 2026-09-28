@@ -27,6 +27,7 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjec
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
+import net.openid.conformance.condition.client.StartBrazilResourcesPollingTimer;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaAuthenticationRequestExpiresIn;
 import net.openid.conformance.condition.client.ValidateOpenBankingBrazilCibaDynamicRegistrationResponse;
@@ -38,6 +39,7 @@ import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationS
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.variant.ClientAuthType;
 
+import java.net.URI;
 import java.util.function.Supplier;
 
 public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerProfileBehavior {
@@ -174,6 +176,18 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
+	public String getResourceEndpointPollingConsentId() {
+		// Resources API polling guidance: https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/219512943/Orienta+es+-+DC+Recursos
+		String method = getEnv().getString("resource", "resourceMethod");
+		String path = URI.create(getEnv().getString("protected_resource_url")).getPath();
+		if ((method == null || method.isEmpty() || method.equals("GET"))
+			&& path != null && path.matches(".*/open-banking/resources/v3/resources/?")) {
+			return getEnv().getString("consent_id");
+		}
+		return null;
+	}
+
+	@Override
 	public ConditionSequence validateResourceEndpointResponseHeaders(boolean isSecondClient) {
 		return new AbstractConditionSequence() {
 			@Override
@@ -195,6 +209,16 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			return new OpenBankingBrazilPreAuthorizationSteps(
 				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, false, false, stopAfterConsentEndpoint, false
 			);
+		};
+	}
+
+	@Override
+	public ConditionSequence onSuccessfulTokenEndpointResponse() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(StartBrazilResourcesPollingTimer.class);
+			}
 		};
 	}
 
