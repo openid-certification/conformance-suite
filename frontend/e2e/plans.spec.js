@@ -1183,6 +1183,114 @@ test.describe("plans.html — truncated listing (1000-plan cap)", () => {
     await expect(showMore).toContainText("Show more (25 of 1,000+)");
   });
 
+  /**
+   * Serve `count` plans sorted by `started` per the request's `order` param,
+   * paged by wrapDataTablesResponse (so over 1000 reads as truncated).
+   *
+   * @param {import('@playwright/test').Page} page
+   * @param {number} count - How many plans exist server-side.
+   * @param {number} [firstDelayMs] - Hold the first response this long, so a
+   *   test can act while it is in flight.
+   * @returns {Promise<string[]>} requested /api/plan listing URLs, in order
+   */
+  async function setupSortedPlanRoute(page, count, firstDelayMs = 0) {
+    const now = Date.now();
+    const rows = Array.from({ length: count }, (_, i) => ({
+      _id: `plan-${String(i).padStart(4, "0")}`,
+      planName: `plan-${String(i).padStart(4, "0")}-name`,
+      description: "",
+      variant: {},
+      // plan-0000 is the newest, plan-<count-1> the oldest
+      started: new Date(now - i * 1000).toISOString(),
+      modules: [],
+      config: {},
+      publish: null,
+      immutable: false,
+    }));
+    /** @type {string[]} */
+    const planRequests = [];
+    await page.route("**/api/plan?*", async (route) => {
+      const url = route.request().url();
+      planRequests.push(url);
+      if (planRequests.length === 1 && firstDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, firstDelayMs));
+      }
+      const sorted = rows.slice();
+      if (new URL(url).searchParams.get("order") === "started,asc") sorted.reverse();
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(wrapDataTablesResponse(sorted, url)),
+      });
+    });
+    return planRequests;
+  }
+
+  const firstPlanName = (/** @type {import('@playwright/test').Page} */ page) =>
+    page.locator(CARD).first().locator(".cts-plan-card-name");
+
+  test("Started (oldest) on a truncated listing refetches the oldest plans, and back again", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await setupSortedPlanRoute(page, 1001);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(firstPlanName(page)).toHaveText("plan-0000-name");
+    expect(planRequests).toHaveLength(1);
+    expect(new URL(planRequests[0]).searchParams.get("order")).toBe("started,desc");
+
+    const sortSelect = page.locator("#plansListing .cts-plan-list-sort select");
+    await sortSelect.selectOption("started-asc");
+    // plan-1000 is only in the oldest window, never in the newest 1000
+    await expect(firstPlanName(page)).toHaveText("plan-1000-name");
+    expect(planRequests).toHaveLength(2);
+    expect(new URL(planRequests[1]).searchParams.get("order")).toBe("started,asc");
+    await expect(page.locator("[data-testid='plan-list-truncated']")).toContainText(
+      "Showing the oldest 1,000 matching plans",
+    );
+
+    await sortSelect.selectOption("started-desc");
+    await expect(firstPlanName(page)).toHaveText("plan-0000-name");
+    expect(planRequests).toHaveLength(3);
+    expect(new URL(planRequests[2]).searchParams.get("order")).toBe("started,desc");
+  });
+
+  test("Started (oldest) chosen while the first fetch is in flight still gets the oldest plans", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await setupSortedPlanRoute(page, 1001, 1000);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    // Wait for the listing request to be issued (the component has read the
+    // default sort) before changing the sort while the response is held.
+    await expect.poll(() => planRequests.length).toBe(1);
+    await page.locator("#plansListing .cts-plan-list-sort select").selectOption("started-asc");
+
+    await expect(firstPlanName(page)).toHaveText("plan-1000-name");
+    expect(planRequests).toHaveLength(2);
+    expect(new URL(planRequests[1]).searchParams.get("order")).toBe("started,asc");
+    await expect(page.locator("[data-testid='plan-list-truncated']")).toContainText(
+      "Showing the oldest 1,000 matching plans",
+    );
+  });
+
+  test("a listing under the cap re-sorts client-side without refetching", async ({ page }) => {
+    await setupFailFast(page);
+    const planRequests = await setupSortedPlanRoute(page, 5);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(firstPlanName(page)).toHaveText("plan-0000-name");
+
+    await page.locator("#plansListing .cts-plan-list-sort select").selectOption("started-asc");
+    await expect(firstPlanName(page)).toHaveText("plan-0004-name");
+    expect(planRequests).toHaveLength(1);
+  });
+
   test("a normal listing under the cap shows no truncation notice", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);

@@ -4,6 +4,7 @@ import {
   setupFailFast,
   expectNoUnmockedCalls,
   recordLogRoute,
+  wrapDataTablesResponse,
 } from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
@@ -869,5 +870,143 @@ test.describe("logs.html — Published help tooltip + terminology (U12)", () => 
     const tip = page.locator("body > .oidf-tooltip[role='tooltip']");
     await expect(tip).toBeVisible();
     await expect(tip).toContainText("Published test logs are conformance");
+  });
+});
+
+/**
+ * The list fetches at most 1000 rows (`PaginationRequest`'s hard cap) and
+ * sorts client-side, so the server's `order` decides WHICH 1000 it gets. The
+ * route below sorts by `started` per the request's `order` param and pages
+ * via wrapDataTablesResponse, whose `recordsTotal` of the full array length
+ * reproduces the server's "more than the cap" signal.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {number} count - How many logs exist server-side.
+ * @param {number} [firstDelayMs] - Hold the list's first response this long,
+ *   so a test can act while it is in flight.
+ * @returns {Promise<string[]>} the list's /api/log request URLs, in order
+ *   (the runs strip's own start=0 window is served but not recorded)
+ */
+async function setupSortedLogRoute(page, count, firstDelayMs = 0) {
+  const now = Date.now();
+  const rows = Array.from({ length: count }, (_, i) => ({
+    testId: `log-${String(i).padStart(4, "0")}`,
+    testName: `test-${String(i).padStart(4, "0")}`,
+    variant: {},
+    description: "",
+    // log-0000 is the newest, log-<count-1> the oldest
+    started: new Date(now - i * 1000).toISOString(),
+    status: "FINISHED",
+    result: "PASSED",
+  }));
+  /** @type {string[]} */
+  const listRequests = [];
+  await page.route("**/api/log?*", async (route) => {
+    const url = route.request().url();
+    const params = new URL(url).searchParams;
+    if (params.get("start") !== "0") {
+      listRequests.push(url);
+      if (listRequests.length === 1 && firstDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, firstDelayMs));
+      }
+    }
+    const sorted = rows.slice();
+    if (params.get("order") === "started,asc") sorted.reverse();
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(wrapDataTablesResponse(sorted, url)),
+    });
+  });
+  return listRequests;
+}
+
+test.describe("logs.html — server-side started order (#1979)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  const firstCardName = (/** @type {import('@playwright/test').Page} */ page) =>
+    page
+      .locator('#logsListing [data-testid="log-list-item"]')
+      .first()
+      .locator(".cts-log-card-name");
+
+  test("asks the server for the newest logs, so an over-cap dataset shows the latest first", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const listRequests = await setupSortedLogRoute(page, 1001);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    await expect(firstCardName(page)).toContainText("test-0000");
+    expect(listRequests).toHaveLength(1);
+    expect(new URL(listRequests[0]).searchParams.get("order")).toBe("started,desc");
+    await expect(page.locator('[data-testid="log-list-truncation"]')).toContainText(
+      "Showing the newest 1,000 tests",
+    );
+  });
+
+  test("Started (oldest) on a truncated dataset refetches the oldest logs, and back again", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const listRequests = await setupSortedLogRoute(page, 1001);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(firstCardName(page)).toContainText("test-0000");
+
+    const sortSelect = page.locator("#logsListing .cts-log-list-sort select");
+    await sortSelect.selectOption("started-asc");
+    // test-1000 is only in the oldest window, never in the newest 1000
+    await expect(firstCardName(page)).toContainText("test-1000");
+    expect(listRequests).toHaveLength(2);
+    expect(new URL(listRequests[1]).searchParams.get("order")).toBe("started,asc");
+    await expect(page.locator('[data-testid="log-list-truncation"]')).toContainText(
+      "Showing the oldest 1,000 tests",
+    );
+
+    await sortSelect.selectOption("started-desc");
+    await expect(firstCardName(page)).toContainText("test-0000");
+    expect(listRequests).toHaveLength(3);
+    expect(new URL(listRequests[2]).searchParams.get("order")).toBe("started,desc");
+  });
+
+  test("Started (oldest) chosen while the first fetch is in flight still gets the oldest logs", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const listRequests = await setupSortedLogRoute(page, 1001, 1000);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    // Wait for the list's request to be issued (the component has read the
+    // default sort) before changing the sort while the response is held.
+    await expect.poll(() => listRequests.length).toBe(1);
+    await page.locator("#logsListing .cts-log-list-sort select").selectOption("started-asc");
+
+    await expect(firstCardName(page)).toContainText("test-1000");
+    expect(listRequests).toHaveLength(2);
+    expect(new URL(listRequests[1]).searchParams.get("order")).toBe("started,asc");
+    await expect(page.locator('[data-testid="log-list-truncation"]')).toContainText(
+      "Showing the oldest 1,000 tests",
+    );
+  });
+
+  test("a dataset under the cap re-sorts client-side without refetching", async ({ page }) => {
+    await setupFailFast(page);
+    const listRequests = await setupSortedLogRoute(page, 5);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(firstCardName(page)).toContainText("test-0000");
+
+    await page.locator("#logsListing .cts-log-list-sort select").selectOption("started-asc");
+    await expect(firstCardName(page)).toContainText("test-0004");
+    expect(listRequests).toHaveLength(1);
+    await expect(page.locator('[data-testid="log-list-truncation"]')).toHaveCount(0);
   });
 });
