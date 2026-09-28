@@ -95,6 +95,12 @@ public class OIDSSFEnsureWwwAuthenticateErrorCode_UnitTest {
 	}
 
 	@Test
+	void readsTheErrorCodeOfTheBearerChallengeAmongOtherSchemes() {
+		prepareResponse("{\"www-authenticate\":\"Basic realm=\\\"ssf\\\", Bearer error=\\\"invalid_token\\\", Digest realm=\\\"ssf\\\", error=\\\"not this one\\\"\"}");
+		assertDoesNotThrow(() -> createCondition("invalid_token").execute(env));
+	}
+
+	@Test
 	void parsesQuotedValuesContainingCommasAndEscapes() {
 		Map<String, String> params = OIDSSFEnsureWwwAuthenticateErrorCode.parseAuthParams(
 			" realm=\"a, b\", error_description=\"say \\\"hi\\\"\", error=invalid_token");

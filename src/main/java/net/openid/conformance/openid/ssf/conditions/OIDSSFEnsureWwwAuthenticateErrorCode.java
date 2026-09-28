@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -20,6 +21,9 @@ import java.util.regex.Pattern;
  * <p>
  * Not applicable to requests that carry no authentication information at all: for those RFC 6750
  * section 3.1 says the resource server SHOULD NOT include an error code.
+ * <p>
+ * The Bearer challenge is located as in {@link OIDSSFEnsureWwwAuthenticateHeaderPresent}, in any
+ * position among the challenges the header lists.
  * <p>
  * Expects the response under {@code endpoint_response} (map {@code resource_endpoint_response_full}
  * onto it before calling).
@@ -48,16 +52,17 @@ public class OIDSSFEnsureWwwAuthenticateErrorCode extends AbstractCondition {
 				args("endpoint_response", env.getObject("endpoint_response"), "expected_error", expectedErrorCode));
 		}
 
-		String challenge = OIDSSFEnsureWwwAuthenticateHeaderPresent.findWwwAuthenticateHeader(headersEl.getAsJsonObject());
-		if (challenge == null || challenge.isBlank()) {
+		List<String> headerValues = OIDSSFEnsureWwwAuthenticateHeaderPresent.findWwwAuthenticateHeaderValues(headersEl.getAsJsonObject());
+		if (headerValues.stream().allMatch(String::isBlank)) {
 			throw error("The rejected request did not carry a 'WWW-Authenticate' response header, so it cannot carry the "
 					+ "bearer error code a resource server must return for a rejected request",
 				args("response_headers", headersEl, "expected_error", expectedErrorCode));
 		}
 
-		if (!challenge.regionMatches(true, 0, "Bearer", 0, "Bearer".length())) {
+		String challenge = OIDSSFEnsureWwwAuthenticateHeaderPresent.findBearerChallenge(headerValues);
+		if (challenge == null) {
 			throw error("The 'WWW-Authenticate' response header does not contain a 'Bearer' challenge",
-				args("www_authenticate", challenge, "expected_error", expectedErrorCode));
+				args("www_authenticate", headerValues, "expected_error", expectedErrorCode));
 		}
 
 		Map<String, String> authParams = parseAuthParams(challenge.substring("Bearer".length()));
