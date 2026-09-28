@@ -21,7 +21,8 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventCont
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventValuesAreJsonObjects;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepEventTimestampInFuture;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepEventTimestampImplausible;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
@@ -348,9 +349,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 			receivedEventTypes.add(eventType);
 			validateCaepEventSubject();
-			callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
-				callAndContinueOnFailure(OIDSSFWarnCaepEventTimestampInFuture.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
-			validateCaepEventFields(eventType);
+			validateCaepEventPayload(eventType);
 		});
 	}
 
@@ -614,9 +613,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 				receivedEventTypes.add(eventType);
 				validateCaepEventSubject();
-				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
-				callAndContinueOnFailure(OIDSSFWarnCaepEventTimestampInFuture.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
-				validateCaepEventFields(eventType);
+				validateCaepEventPayload(eventType);
 			});
 		}
 	}
@@ -661,6 +658,35 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		// SSF 1.0 4.1.9: "Transmitters SHOULD set the txn claim"; a present value is a string per RFC 8417 2.2
 		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTxnClaimMissing.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.9");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenTxnClaimIsString.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "OIDSSF-4.1.9");
+	}
+
+	/**
+	 * Validates the payload of the current CAEP event: the common optional claims (CAEP 1.0 2),
+	 * the event-specific claims, and, as a sender-side typo check, that no member outside those
+	 * two lists is present.
+	 */
+	protected void validateCaepEventPayload(String eventType) {
+		callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
+		callAndContinueOnFailure(OIDSSFWarnCaepEventTimestampImplausible.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
+		validateCaepEventFields(eventType);
+		String eventDefinition = caepEventDefinitionRequirement(eventType);
+		callAndContinueOnFailure(OIDSSFWarnCaepEventUnknownMembers.class, Condition.ConditionResult.WARNING,
+			eventDefinition == null ? new String[] {"OIDCAEP-2"} : new String[] {"OIDCAEP-2", eventDefinition});
+	}
+
+	/** The requirement tag of the CAEP 1.0 section that defines the event type's claims, or null for other types. */
+	protected String caepEventDefinitionRequirement(String eventType) {
+		return switch (eventType) {
+			case SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE -> "OIDCAEP-3.1";
+			case SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE -> "OIDCAEP-3.2";
+			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE -> "OIDCAEP-3.3";
+			case SsfEvents.CAEP_ASSURANCE_LEVEL_CHANGE_EVENT_TYPE -> "OIDCAEP-3.4";
+			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE -> "OIDCAEP-3.5";
+			case SsfEvents.CAEP_SESSION_ESTABLISHED_EVENT_TYPE -> "OIDCAEP-3.6";
+			case SsfEvents.CAEP_SESSION_PRESENTED_EVENT_TYPE -> "OIDCAEP-3.7";
+			case SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE -> "OIDCAEP-3.8";
+			default -> null;
+		};
 	}
 
 	/**

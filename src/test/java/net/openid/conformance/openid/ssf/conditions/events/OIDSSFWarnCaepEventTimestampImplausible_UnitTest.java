@@ -19,18 +19,18 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class OIDSSFWarnCaepEventTimestampInFuture_UnitTest {
+public class OIDSSFWarnCaepEventTimestampImplausible_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private OIDSSFWarnCaepEventTimestampInFuture condition;
+	private OIDSSFWarnCaepEventTimestampImplausible condition;
 
 	@BeforeEach
 	public void setUp() {
-		condition = new OIDSSFWarnCaepEventTimestampInFuture();
+		condition = new OIDSSFWarnCaepEventTimestampImplausible();
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
 	}
 
@@ -75,6 +75,12 @@ public class OIDSSFWarnCaepEventTimestampInFuture_UnitTest {
 	}
 
 	@Test
+	void passesAtEarliestPlausibleEventTime() {
+		setUpCaepEvent(dataWithTimestamp(OIDSSFWarnCaepEventTimestampImplausible.EARLIEST_PLAUSIBLE_EVENT_TIME.getEpochSecond()));
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
 	void failsForTimestampBeyondAllowedSkew() {
 		setUpCaepEvent(dataWithTimestamp(Instant.now().getEpochSecond() + 3600));
 		assertThrows(ConditionError.class, () -> condition.execute(env));
@@ -83,6 +89,18 @@ public class OIDSSFWarnCaepEventTimestampInFuture_UnitTest {
 	@Test
 	void failsForMillisecondTimestamp() {
 		setUpCaepEvent(dataWithTimestamp(Instant.now().toEpochMilli()));
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void failsForZeroTimestamp() {
+		setUpCaepEvent(dataWithTimestamp(0));
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void failsForTimestampBeforeEarliestPlausibleEventTime() {
+		setUpCaepEvent(dataWithTimestamp(OIDSSFWarnCaepEventTimestampImplausible.EARLIEST_PLAUSIBLE_EVENT_TIME.getEpochSecond() - 1));
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 }

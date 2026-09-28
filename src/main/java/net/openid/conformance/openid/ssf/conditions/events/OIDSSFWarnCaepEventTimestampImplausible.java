@@ -12,13 +12,17 @@ import java.time.Instant;
 /**
  * CAEP 1.0 section 2 defines {@code event_timestamp} as the time at which the event occurred.
  * A value ahead of the receiver's clock, beyond a small allowance for skew, cannot describe an
- * event that has occurred; callers grade it as a WARNING, since the specification sets no
- * bound. Reads {@code ssf.caep_event.data}; a missing or non-numeric value is left to
- * {@link OIDSSFValidateCaepCommonOptionalFields}.
+ * event that has occurred, and a value before {@link #EARLIEST_PLAUSIBLE_EVENT_TIME} (the same
+ * lower bound the suite holds a SET's {@code iat} to) is a placeholder such as {@code 0} or a
+ * value in the wrong unit rather than an event time. Callers grade both as a WARNING, since
+ * the specification sets no bound. Reads {@code ssf.caep_event.data}; a missing or
+ * non-numeric value is left to {@link OIDSSFValidateCaepCommonOptionalFields}.
  */
-public class OIDSSFWarnCaepEventTimestampInFuture extends AbstractCondition {
+public class OIDSSFWarnCaepEventTimestampImplausible extends AbstractCondition {
 
 	static final Duration ALLOWED_CLOCK_SKEW = Duration.ofMinutes(5);
+
+	static final Instant EARLIEST_PLAUSIBLE_EVENT_TIME = Instant.parse("2024-01-01T00:00:00Z");
 
 	@Override
 	@PreEnvironment(required = "ssf")
@@ -38,8 +42,14 @@ public class OIDSSFWarnCaepEventTimestampInFuture extends AbstractCondition {
 				args("event_timestamp", timestamp, "event_time", eventTime.toString(), "now", Instant.now().toString(),
 					"allowed_clock_skew_seconds", ALLOWED_CLOCK_SKEW.toSeconds()));
 		}
+		if (eventTime.isBefore(EARLIEST_PLAUSIBLE_EVENT_TIME)) {
+			throw error("event_timestamp lies implausibly far in the past for an event on a live stream; "
+					+ "it appears to be a placeholder value rather than the number of seconds since the Unix epoch at which the event occurred",
+				args("event_timestamp", timestamp, "event_time", eventTime.toString(),
+					"earliest_plausible_event_time", EARLIEST_PLAUSIBLE_EVENT_TIME.toString()));
+		}
 
-		logSuccess("event_timestamp is not in the future", args("event_timestamp", timestamp, "event_time", eventTime.toString()));
+		logSuccess("event_timestamp is a plausible event time", args("event_timestamp", timestamp, "event_time", eventTime.toString()));
 		return env;
 	}
 }
