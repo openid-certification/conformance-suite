@@ -12,7 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,5 +68,32 @@ public class OIDSSFEnsureWwwAuthenticateHeaderPresent_UnitTest {
 	void failsWhenHeadersAreMissing() {
 		prepareResponse(null);
 		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
+	void passesForBearerChallengeAfterAnotherScheme() {
+		prepareResponse("{\"www-authenticate\":\"Basic realm=\\\"ssf\\\", Bearer error=\\\"invalid_token\\\"\"}");
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
+	void passesForBearerChallengeInSecondHeaderValue() {
+		prepareResponse("{\"www-authenticate\":[\"Basic realm=\\\"ssf\\\"\", \"Bearer\"]}");
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
+	void failsWhenNoChallengeIsBearer() {
+		prepareResponse("{\"www-authenticate\":\"Basic realm=\\\"Bearer, not really\\\", Digest realm=\\\"ssf\\\"\"}");
+		assertThrows(ConditionError.class, () -> createCondition().execute(env));
+	}
+
+	@Test
+	void splitsChallengesAtTheSchemeTokens() {
+		List<String> challenges = OIDSSFEnsureWwwAuthenticateHeaderPresent.splitChallenges(
+			"Basic realm=\"a, b\", Bearer realm=\"ssf\", error=\"invalid_token\", error_description=\"x=y\", Digest");
+		assertEquals(List.of("Basic realm=\"a, b\"",
+			"Bearer realm=\"ssf\", error=\"invalid_token\", error_description=\"x=y\"",
+			"Digest"), challenges);
 	}
 }
