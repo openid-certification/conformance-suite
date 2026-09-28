@@ -64,8 +64,24 @@ class HtmlToTextTest(unittest.TestCase):
         self.assertIn("\n   2. second\n", text)
         self.assertEqual([], headings_of(text))
 
-    def test_paragraph_line_breaks_are_left_alone(self):
-        self.assertIn("is\nan OAuth", fs.html_to_text("<p>An Authentication Request is\nan OAuth 2.0 request</p>"))
+    def test_paragraph_line_breaks_are_collapsed(self):
+        self.assertIn("is an OAuth", fs.html_to_text("<p>An Authentication Request is\nan OAuth 2.0 request</p>"))
+
+    def test_numbered_lines_inside_a_paragraph_are_not_headings(self):
+        # AuthZEN 7.2.1: a markdown list the source never rendered as <ol>, so the numbered lines
+        # are hard line breaks inside one <p>.
+        raw = ("<p>There are two types of errors, and they are handled differently:\n"
+               "1. Transport-level errors, or errors that pertain to the entire payload.\n"
+               "2. Errors in individual evaluations.</p>")
+        self.assertEqual([], headings_of(fs.html_to_text(raw)))
+
+    def test_paragraph_collapse_leaves_a_list_it_swallowed_alone(self):
+        # An unclosed <p> before a list: the paragraph match runs on to the next </p>, and the
+        # list items must keep their own lines and indentation.
+        raw = "<p>Steps:<ol><li>1. first</li><li>2. second</li></ol><p>Done.</p>"
+        text = fs.html_to_text(raw)
+        self.assertIn("\n   1. first\n", text)
+        self.assertIn("\n   2. second\n", text)
 
     # html_to_text strips only the start/end of the whole document, so a heading must not be
     # first for its leading indentation to be exercised by the test.
