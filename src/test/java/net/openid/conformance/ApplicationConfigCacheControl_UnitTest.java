@@ -9,11 +9,9 @@ import java.util.Arrays;
 /**
  * Guards the cache policy split in {@link ApplicationConfig}:
  *
- * - Production pages send "no-cache" (revalidate every load, but
- *   bfcache-eligible so Back/Forward restores instantly) instead of the
- *   Spring Security blanket "no-store" that blocked the back/forward cache
- *   entirely. The logout-side companion is Clear-Site-Data: "cache"
- *   (WebSecurityOidcLoginConfig).
+ * - Pages send "no-store" in every profile: they never enter the back/forward
+ *   cache, so logout needs no Clear-Site-Data purge, which stalled the logout
+ *   redirect for as long as the browser took to clear the origin's cache.
  * - Production hot asset dirs (/css, /js, /components) get bounded
  *   staleness instead of per-navigation 304 revalidation.
  * - The dev profile keeps "no-store" everywhere so the save-and-see loop
@@ -29,9 +27,9 @@ public class ApplicationConfigCacheControl_UnitTest {
 	}
 
 	@Test
-	public void production_pages_revalidate_but_stay_bfcache_eligible() {
-		Assertions.assertEquals("no-cache", ApplicationConfig.pageCacheControl(false).getHeaderValue(),
-			"pages must send no-cache: revalidation without blocking the back/forward cache");
+	public void production_pages_are_never_stored() {
+		Assertions.assertEquals("no-store", ApplicationConfig.pageCacheControl(false).getHeaderValue(),
+			"pages must send no-store so Back cannot restore an authenticated shell after logout");
 	}
 
 	@Test

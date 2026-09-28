@@ -4,6 +4,7 @@ import jakarta.servlet.Filter;
 import net.openid.conformance.security.idp.RolesAuthoritiesConverter;
 import net.openid.conformance.security.idp.IDPLogoutHandler;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
@@ -51,11 +52,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
-import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
@@ -175,6 +174,11 @@ class WebSecurityOidcLoginConfig {
 		http.addFilterAfter(new RejectPlainHttpTrafficFilter(), WebAsyncManagerIntegrationFilter.class);
 
 		http.authorizeHttpRequests(httpRequests -> {
+			// Boot's error page. A 404 or an exception is dispatched to /error with the
+			// request's own authentication, so while logged out it would be denied, saved as
+			// the page to return to, and the next login would land on /error?continue.
+			httpRequests.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
+
 			httpRequests //
 				.requestMatchers( //
 					"/login.html",  //
@@ -375,18 +379,11 @@ class WebSecurityOidcLoginConfig {
 			// success handler, so redirecting from one commits the response and
 			// the success handler's redirect is lost.
 			logout.logoutSuccessHandler(idpLogoutHandler);
-			// Pages are bfcache-eligible now that they send "Cache-Control:
-			// no-cache" instead of no-store (ApplicationConfig
-			// addResourceHandlers). Evict the browser's cache for this origin
-			// on logout so the Back button cannot restore an
-			// authenticated-looking shell on a shared machine. CACHE only:
-			// cookies/storage are owned by the session logout itself.
-			// Requires the request to look secure, which forward-headers
-			// handling guarantees behind the TLS proxy
-			// (server.forward-headers-strategy=NATIVE) and
-			// RejectPlainHttpTrafficFilter enforces.
-			logout.addLogoutHandler(new HeaderWriterLogoutHandler(
-				new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE)));
+			// No Clear-Site-Data header here: the page shells are served with
+			// "Cache-Control: no-store" (ApplicationConfig.pageCacheControl), so
+			// the Back button cannot restore an authenticated-looking shell after
+			// logout, and the browser has nothing to purge before it follows the
+			// redirect to the IdP.
 		});
 
 		//added to disable x-frame-options only for certain paths

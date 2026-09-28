@@ -42,26 +42,22 @@ public class ApplicationConfig implements WebMvcConfigurer {
 	}
 
 	/**
-	 * Cache policy for the HTML page shells (/plans.html etc.).
+	 * Cache policy for the HTML page shells (/plans.html etc.): "no-store" in every
+	 * profile.
 	 *
-	 * Production: "no-cache" — browsers must revalidate before reuse (a
-	 * deploy is picked up on the next navigation), but unlike the previous
-	 * "no-store" (Spring Security's blanket default) the document may enter
-	 * the back/forward cache, so history traversals restore instantly. The
-	 * shells are static files from a public repository with no user data
-	 * rendered into them — personalisation arrives via /api fetches — so
-	 * there is nothing in them to keep out of caches. The complementary
-	 * logout hardening lives in WebSecurityOidcLoginConfig: a
-	 * Clear-Site-Data: "cache" header on logout evicts cached/bfcached
-	 * pages so Back cannot restore an authenticated-looking shell.
+	 * The shells are static files with no user data rendered into them, so caching
+	 * them would be safe; what "no-store" buys is that a page never enters the browser's
+	 * back/forward cache, so the Back button cannot restore an authenticated-looking
+	 * shell after logout. The alternative, "no-cache" pages evicted on logout by a
+	 * Clear-Site-Data header, made every logout wait for the browser to purge the
+	 * origin's cache, which took tens of seconds on a large profile.
 	 *
-	 * Dev: keep "no-store", matching the spring-boot-devtools default the
-	 * auto-configured handler uses. The save-and-see loop must never serve
-	 * a stale copy, and Last-Modified has one-second granularity — two
-	 * saves within the same second could otherwise yield a false 304.
+	 * Dev additionally relies on it for the save-and-see loop: Last-Modified has
+	 * one-second granularity, so two saves within the same second could otherwise
+	 * yield a false 304.
 	 */
 	static CacheControl pageCacheControl(boolean devProfile) {
-		return devProfile ? CacheControl.noStore() : CacheControl.noCache();
+		return CacheControl.noStore();
 	}
 
 	/** See {@link #SWR_ASSET_PATTERNS}; dev keeps no-store for save-and-see. */

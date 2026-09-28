@@ -49,10 +49,11 @@ import java.util.Map;
  * redirect (the pre-fix behavior) leaves the user on a silent login page with
  * no confirmation that sign-out worked.
  *
- * The logout response must also keep the {@code Clear-Site-Data: "cache"}
- * header: pages are bfcache-eligible (Cache-Control: no-cache), and this
- * header is what evicts the origin's cached/bfcached authenticated shell so
- * the Back button cannot restore it on a shared machine.
+ * The logout response must not carry a {@code Clear-Site-Data} header: the
+ * page shells are served with {@code Cache-Control: no-store}, which keeps them
+ * out of the back/forward cache, and the purge that header triggers held the
+ * browser for as long as clearing the origin's cache took before it followed
+ * the redirect to the IdP.
  *
  * Mirrors the {@link ResourceServerRequestCache_UnitTest} approach: drive the
  * real {@code filterChainOidc} bean (built in a minimal context with mocked
@@ -101,8 +102,7 @@ public class OidcLogoutRedirect_UnitTest {
 		// MockHttpServletRequest leaves empty by default — without this the
 		// request falls through to the authorization filter instead.
 		request.setServletPath("/logout");
-		// The chain's RejectPlainHttpTrafficFilter requires https, and the
-		// ClearSiteDataHeaderWriter only writes on secure requests.
+		// The chain's RejectPlainHttpTrafficFilter requires https.
 		request.setScheme("https");
 		request.setSecure(true);
 		// An authenticated session (the real-world shape of a sign-out click)
@@ -121,8 +121,8 @@ public class OidcLogoutRedirect_UnitTest {
 			"POST /logout must redirect");
 		Assertions.assertEquals("/login.html?logout=true", response.getRedirectedUrl(),
 			"logout must land on login.html with the ?logout=true banner trigger");
-		Assertions.assertEquals("\"cache\"", response.getHeader("Clear-Site-Data"),
-			"logout must keep evicting the origin's cache so Back cannot restore an authenticated shell");
+		Assertions.assertNull(response.getHeader("Clear-Site-Data"),
+			"logout must not ask the browser to purge its cache; no-store pages make that unnecessary and it stalls the redirect");
 		Assertions.assertTrue(session.isInvalid(),
 			"logout must invalidate the authenticated session");
 	}

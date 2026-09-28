@@ -1,5 +1,6 @@
 package net.openid.conformance.security;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
@@ -155,6 +156,23 @@ public class OidcListingPageAccess_UnitTest {
 	public void authenticated_bare_listing_pages_remain_permitted() throws Exception {
 		assertAuthenticatedBareListingIsPermitted("/plans.html");
 		assertAuthenticatedBareListingIsPermitted("/logs.html");
+	}
+
+	@Test
+	public void anonymous_error_dispatch_is_permitted_and_not_saved_for_replay() throws Exception {
+		// Boot dispatches a 404 or an exception to /error with the failing request's own
+		// authentication. Denying that while logged out saved /error as the page to return
+		// to, so the next login landed on /error?continue.
+		MockHttpServletRequest request = buildSecureGet("/error");
+		request.setDispatcherType(DispatcherType.ERROR);
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		filterChainProxy.doFilter(request, response, new MockFilterChain());
+		Assertions.assertEquals(HttpServletResponse.SC_OK, response.getStatus(),
+			"an error dispatch must reach the error page for anonymous users");
+		Assertions.assertNull(response.getRedirectedUrl(),
+			"an error dispatch must not enter the login flow");
+		Assertions.assertNull(new HttpSessionRequestCache().getRequest(request, response),
+			"an error dispatch must not become the page to return to after login");
 	}
 
 	@Configuration
