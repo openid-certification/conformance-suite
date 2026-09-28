@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 		This test verifies that the receiver rejects invalid Security Event Tokens.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it delivers four deliberately invalid SETs: one with a corrupted signature, one with a wrong 'iss' claim, one with a wrong 'aud' claim and one signed with a key that is not in the transmitter's JWKS.
 		With PUSH delivery the error response to each rejected SET is validated as well: it must be a 400 with an 'application/json' body carrying 'err' and 'description' (RFC 8935 2.3); an 'err' that is not a registered Security Event Token Error Code, or not the code matching the defect ('invalid_key', 'invalid_issuer', 'invalid_audience'; RFC 8935 2.4), raises a warning.
-		Note: invalid SETs that were retrieved but neither acknowledged nor reported via 'setErrs' are noted after 60 seconds (reporting via 'setErrs' is a MAY, RFC 8936 2.4); deleting the stream without ever retrieving an invalid SET fails the test, since the rejection behavior was not exercised: keep the stream open and keep polling until the invalid SETs were retrieved. The test still waits for the stream deletion before it finishes.
+		Note: invalid SETs that were retrieved but neither acknowledged nor reported via 'setErrs' are noted after 60 seconds (reporting via 'setErrs' is a MAY, RFC 8936 2.4); deleting the stream before any invalid SET was delivered fails the test, since the rejection behavior was not exercised: keep the stream open until the invalid SETs were pushed or, with POLL delivery, keep polling until they were retrieved. The test still waits for the stream deletion before it finishes.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
@@ -257,19 +257,37 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 
 		@Override
 		public String call() throws Exception {
+			int delivered = 0;
 			for (OIDSSFSecurityEvent event : events) {
 				if (OIDSSFStreamUtils.getStreamConfig(env, streamId) == null) {
-					// The receiver deleted the stream mid-run - a legitimate reaction to
-					// receiving invalid SETs. The remaining tampered SETs can no longer be
+					List<OIDSSFSecurityEvent> skipped = events.stream().filter(ev -> !resolvedInvalidSetJtis.contains(ev.jti())).toList();
+					if (delivered == 0) {
+						// Nothing was pushed, so the rejection under test was never exercised:
+						// a failure with a reconfiguration hint, as for a poll receiver that
+						// deletes the stream without retrieving the SETs.
+						for (OIDSSFSecurityEvent ev : skipped) {
+							TamperMode tamperMode = invalidSetJtis.get(ev.jti());
+							callAndContinueOnFailure(new OIDSSFFindingCondition(
+									"Receiver deleted the stream before any invalid SET could be pushed (" + tamperMode.description() + ", jti=" + ev.jti() + "), "
+										+ "so its rejection could not be assessed. Keep the stream open until the invalid SETs were pushed and rejected, then delete it."),
+								Condition.ConditionResult.FAILURE, requirementsFor(tamperMode, "RFC8935-2.3"));
+							resolvedInvalidSetJtis.add(ev.jti());
+						}
+						return "done";
+					}
+					// The receiver deleted the stream after receiving invalid SETs - a
+					// legitimate reaction. The remaining tampered SETs can no longer be
 					// delivered (the push endpoint URL is gone); resolve them so the test
 					// can finish, and leave the judgement to the deliveries that happened.
 					eventLog.log(getName(), args(
 						"msg", "Receiver deleted the stream before all invalid SETs could be pushed; skipping the remaining deliveries",
 						"stream_id", streamId,
-						"skipped_jtis", events.stream().map(OIDSSFSecurityEvent::jti).filter(jti -> !resolvedInvalidSetJtis.contains(jti)).toList()));
-					events.forEach(ev -> resolvedInvalidSetJtis.add(ev.jti()));
+						"delivered", delivered,
+						"skipped_jtis", skipped.stream().map(OIDSSFSecurityEvent::jti).toList()));
+					skipped.forEach(ev -> resolvedInvalidSetJtis.add(ev.jti()));
 					return "done";
 				}
+				delivered++;
 				TamperMode tamperMode = invalidSetJtis.get(event.jti());
 				// The no-op success consumer: an accepted invalid SET is detected via the
 				// response status below, not via the delivery bookkeeping.
