@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.TestExecutionUnit;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public interface ConditionSequence extends TestExecutionUnit {
 
@@ -21,6 +22,16 @@ public interface ConditionSequence extends TestExecutionUnit {
 		getTestExecutionUnits().forEach(context::run);
 
 		LoggerFactory.getLogger(ConditionSequence.class).info(context.getTestId() + ":   End of sequence " + getClass().getSimpleName());
+	}
+
+	/**
+	 * Evaluates this sequence and returns its units, with this sequence's own modifications applied, as an
+	 * immutable {@link Steps} sequence transformed by the leaf mapper.
+	 */
+	@Override
+	default TestExecutionUnit transform(ExecutionContext context, UnaryOperator<TestExecutionUnit> leafMapper) {
+		evaluate();
+		return Steps.of(getClass().getSimpleName(), getTestExecutionUnits()).transform(context, leafMapper);
 	}
 
 	ConditionSequence replace(Class<? extends Condition> conditionToReplace, TestExecutionUnit builder);

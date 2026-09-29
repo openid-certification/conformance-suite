@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.ConditionSequenceCallBuilder;
 import net.openid.conformance.testmodule.DataUtils;
+import net.openid.conformance.testmodule.ExecutionContext;
 import net.openid.conformance.testmodule.TestExecutionUnit;
 
 import java.lang.reflect.InvocationTargetException;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
@@ -117,6 +119,29 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 		}
 	}
 
+	/**
+	 * Runs evaluate() on an empty list of units. evaluate() appends to the units already built, and the same instance
+	 * is evaluated again whenever a unit holding it runs again or is re-resolved by {@link Steps#modify}.
+	 */
+	private static void evaluateAfresh(ConditionSequence sequence) {
+		if (sequence instanceof AbstractConditionSequence abstractSequence) {
+			abstractSequence.callables.clear();
+		}
+		sequence.evaluate();
+	}
+
+	@Override
+	public void run(ExecutionContext context) {
+		callables.clear();
+		ConditionSequence.super.run(context);
+	}
+
+	@Override
+	public TestExecutionUnit transform(ExecutionContext context, UnaryOperator<TestExecutionUnit> leafMapper) {
+		callables.clear();
+		return ConditionSequence.super.transform(context, leafMapper);
+	}
+
 	private List<TestExecutionUnit> getCallablesWithSubSequencesExpanded() {
 		List<TestExecutionUnit> expandedUnits = new ArrayList<>();
 		for (TestExecutionUnit action: this.callables) {
@@ -133,7 +158,7 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 			}
 
 			if (sequence != null) {
-				sequence.evaluate();
+				evaluateAfresh(sequence);
 				expandedUnits.addAll(sequence.getTestExecutionUnits());
 			} else {
 				expandedUnits.add(action);
