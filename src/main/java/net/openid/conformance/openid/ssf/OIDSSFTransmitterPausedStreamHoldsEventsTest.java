@@ -116,7 +116,7 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 			call(exec().unmapKey("endpoint_response"));
 			callAndContinueOnFailure(new OIDSSFEnsureStreamStatusIs(stoppedStatus), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 
-			// pushes that reached the receiver before this instant were sent while the stream was still enabled
+			// pushes that reached the receiver before this instant (plus the condition's grace) were sent while the stream was still enabled
 			pausedAt = Instant.now();
 			env.putString("ssf", "stream_paused_at", pausedAt.toString());
 			env.putString("ssf", "stream_stopped_status", stoppedStatus.name());
@@ -190,10 +190,10 @@ public class OIDSSFTransmitterPausedStreamHoldsEventsTest extends AbstractOIDSSF
 			if (pushRequest == null) {
 				continue;
 			}
-			if (!pushRequest.receivedAt().isBefore(pausedAt)) {
+			if (!pushRequest.receivedAt().isBefore(pausedAt.plus(OIDSSFEnsureNoSetPushedWhileStreamPaused.PAUSE_GRACE))) {
 				pushesWhilePaused++;
 			}
-			// the condition accepts pushes that reached the receiver before the pause was acknowledged
+			// the condition accepts pushes that reached the receiver before, or shortly after, the pause was acknowledged
 			eventLog.runBlock("Push request received while the stream is " + stoppedStatus(), () ->
 				callAndContinueOnFailure(OIDSSFEnsureNoSetPushedWhileStreamPaused.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1"));
 		}

@@ -72,8 +72,14 @@ public class OIDSSFEnsureNoSetPushedWhileStreamPaused_UnitTest {
 	}
 
 	@Test
-	public void shouldFailWhenPushWasReceivedAtTheInstantOfThePause() {
-		prepare(PAUSED_AT.toString(), PAUSED_AT.toString(), true);
+	public void shouldPassWhenPushWasReceivedWithinTheGraceAfterThePause() {
+		prepare(PAUSED_AT.toString(), PAUSED_AT.plus(OIDSSFEnsureNoSetPushedWhileStreamPaused.PAUSE_GRACE).minusMillis(1).toString(), true);
+		assertDoesNotThrow(() -> condition.execute(env));
+	}
+
+	@Test
+	public void shouldFailWhenPushWasReceivedAtTheEndOfTheGrace() {
+		prepare(PAUSED_AT.toString(), PAUSED_AT.plus(OIDSSFEnsureNoSetPushedWhileStreamPaused.PAUSE_GRACE).toString(), true);
 		assertThrows(ConditionError.class, () -> condition.execute(env));
 	}
 

@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 
@@ -15,10 +16,14 @@ import java.time.format.DateTimeParseException;
  * Runs against the push request most recently taken from the push queue
  * ({@code ssf.push_request}, received at {@code ssf.push_request_received_at}). A push that
  * reached the receiver before the transmitter acknowledged the pause
- * ({@code ssf.stream_paused_at}) was sent while the stream was still enabled and is accepted;
- * one received after the pause was acknowledged is a violation.
+ * ({@code ssf.stream_paused_at}), or within {@link #PAUSE_GRACE} after it, was sent while the
+ * stream was still enabled and is accepted: a delivery worker may have dequeued the SET before
+ * the status change was applied. One received later is a violation.
  */
 public class OIDSSFEnsureNoSetPushedWhileStreamPaused extends AbstractCondition {
+
+	/** How long after the acknowledged pause a push is still attributed to the enabled stream. */
+	public static final Duration PAUSE_GRACE = Duration.ofSeconds(2);
 
 	@Override
 	@PreEnvironment(required = "ssf")
@@ -33,16 +38,17 @@ public class OIDSSFEnsureNoSetPushedWhileStreamPaused extends AbstractCondition 
 		Instant pausedAt = parseInstant(env.getString("ssf", "stream_paused_at"), "ssf.stream_paused_at");
 		Instant receivedAt = parseInstant(env.getString("ssf", "push_request_received_at"), "ssf.push_request_received_at");
 
-		if (receivedAt.isBefore(pausedAt)) {
-			logSuccess("The push request was received before the transmitter acknowledged the pause; it was sent while the stream was still enabled",
-				args("push_request_received_at", receivedAt.toString(), "stream_paused_at", pausedAt.toString()));
+		if (receivedAt.isBefore(pausedAt.plus(PAUSE_GRACE))) {
+			logSuccess("The push request was received before, or within " + PAUSE_GRACE.toSeconds() + " s after, the transmitter acknowledged the pause; "
+					+ "it was sent while the stream was still enabled",
+				args("push_request_received_at", receivedAt.toString(), "stream_paused_at", pausedAt.toString(), "grace_seconds", PAUSE_GRACE.toSeconds()));
 			return env;
 		}
 
 		String status = stoppedStatus(env);
 		throw error("The transmitter pushed a SET while the stream status was '" + status + "'. "
 				+ "No events may be transmitted over a " + status + " stream.",
-			args("push_request_received_at", receivedAt.toString(), "stream_paused_at", pausedAt.toString(),
+			args("push_request_received_at", receivedAt.toString(), "stream_paused_at", pausedAt.toString(), "grace_seconds", PAUSE_GRACE.toSeconds(),
 				"push_request", pushRequestEl));
 	}
 
