@@ -1,8 +1,13 @@
 package net.openid.conformance.testmodule;
 
 /**
- * Marker interface to allow collections of ConditionCallBuilder and TextExecutionBuilder instances.
+ * A step a test module or condition sequence can execute: a condition call, a command, a sequence, ...
  */
+@FunctionalInterface
 public interface TestExecutionUnit {
 
+	/**
+	 * Execute this unit within the given test module context.
+	 */
+	void run(ExecutionContext context);
 }

@@ -26,4 +26,23 @@ public class ConditionSequenceCallBuilder implements TestExecutionUnit {
 	public Supplier<? extends ConditionSequence> getConditionSequenceConstructor() {
 		return conditionSequenceConstructor;
 	}
+
+	/**
+	 * Create a new instance of the sequence to call.
+	 */
+	public ConditionSequence createSequence(ExecutionContext context) {
+		if (conditionSequenceConstructor != null) {
+			return conditionSequenceConstructor.get();
+		}
+		try {
+			return conditionSequenceClass.getDeclaredConstructor().newInstance();
+		} catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+			throw context.fatalError("Fatal failure from condition sequence: " + conditionSequenceClass.getSimpleName(), e);
+		}
+	}
+
+	@Override
+	public void run(ExecutionContext context) {
+		context.run(createSequence(context));
+	}
 }
