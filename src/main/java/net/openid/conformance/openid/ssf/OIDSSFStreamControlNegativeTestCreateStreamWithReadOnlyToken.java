@@ -30,8 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		 * attempt to create a stream with that read-only token
 		 * transmitter rejects the request with a 403 response
 		 * the 403 response should carry a Bearer 'WWW-Authenticate' challenge with
-		   error="insufficient_scope" (RFC 6750 sections 3 and 3.1; reported as a warning if
-		   absent or different, since CAEP Interop 2.7.2 only cites RFC 6750 section 3.1)
+		   error="insufficient_scope" (RFC 6750 sections 3 and 3.1, required by CAEP Interop 2.7.2)
 		 * if the transmitter created the stream regardless, it is deleted again with a
 		   full-scope token
 		""",
@@ -90,12 +89,10 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken extend
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs403.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "CAEPIOP-2.7.3");
-			// WARNING: the WWW-Authenticate MUST is RFC 6750 section 3; CAEPIOP 2.7.2 only
-			// cites section 3.1 (the error codes), so the profile's normative chain to the
-			// header is imprecise - see the condition's javadoc. The 403 above is the
-			// FAILURE-level check.
-			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
-			callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("insufficient_scope"), Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3.1");
+			// RFC 6750 section 3: the 403 MUST carry a WWW-Authenticate challenge, and CAEP
+			// Interop 2.7.2 requires the error codes of RFC 6750 section 3.1 inside it.
+			callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
+			callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("insufficient_scope"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
