@@ -35,4 +35,16 @@ public interface ConditionSequence extends TestExecutionUnit {
 
 	ConditionSequence insertBefore(Class<? extends Condition> conditionToInsertAt, TestExecutionUnit builder);
 
+	/*
+	 * The String overloads address functional conditions (see FunctionalCondition) by their name.
+	 */
+
+	ConditionSequence replace(String conditionName, TestExecutionUnit builder);
+
+	ConditionSequence skip(String conditionName, String message);
+
+	ConditionSequence insertAfter(String conditionName, TestExecutionUnit builder);
+
+	ConditionSequence insertBefore(String conditionName, TestExecutionUnit builder);
+
 }
