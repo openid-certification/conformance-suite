@@ -465,6 +465,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	/**
+	 * Create a new condition call builder and mark it as failure
+	 */
+	protected ConditionCallBuilder conditionRequired(Class<? extends Condition> conditionClass) {
+		return new ConditionCallBuilder(conditionClass).onFail(Condition.ConditionResult.FAILURE);
+	}
+
+	/**
 	 * Create a call to a condition implemented as a lambda, which can be passed to call(). The name identifies the
 	 * condition in the test log, in expected-failure lists, and in sequence replace/skip, so it must be stable and
 	 * unique.
