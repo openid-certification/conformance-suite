@@ -82,6 +82,9 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		try {
 			// validate the (possibly defaulted) delivery method before touching the stored stream
 			JsonObject requestedDelivery = streamConfigInput.getAsJsonObject("delivery");
+			if (requestedDelivery != null && !OIDFJSON.isString(requestedDelivery.get("method"))) {
+				throw new IllegalArgumentException("delivery.method must be a string naming the delivery method (SSF 1.0 8.1.1)");
+			}
 			ensureDeliveryMethodSupported(env, requestedDelivery == null
 				? DELIVERY_METHOD_POLL_RFC_8936_URI : OIDFJSON.getString(requestedDelivery.get("method")));
 

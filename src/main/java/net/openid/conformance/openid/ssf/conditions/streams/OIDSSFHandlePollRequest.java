@@ -123,8 +123,11 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			setErrsEl = pollRequestInput.getAsJsonObject("setErrs");
 			returnImmediately = returnImmediatelyEl != null && OIDFJSON.getBoolean(returnImmediatelyEl);
 			maxCount = maxEventsEl != null ? OIDFJSON.getInt(maxEventsEl) : 16;
+			if (maxCount < 0) {
+				throw new IllegalArgumentException("maxEvents must not be negative");
+			}
 		} catch (RuntimeException e) {
-			resultObj.add("error", createErrorObj("invalid_request", "Malformed poll request parameters: 'maxEvents' must be an integer, 'returnImmediately' a boolean, 'ack' a JSON array and 'setErrs' a JSON object (RFC 8936 2.2)"));
+			resultObj.add("error", createErrorObj("invalid_request", "Malformed poll request parameters: 'maxEvents' must be a non-negative integer, 'returnImmediately' a boolean, 'ack' a JSON array and 'setErrs' a JSON object (RFC 8936 2.2)"));
 			resultObj.addProperty("status_code", 400);
 			log("Failed to handle stream poll request: malformed request parameters", args("error", resultObj.get("error"), "poll_request", pollRequestInput));
 			return env;

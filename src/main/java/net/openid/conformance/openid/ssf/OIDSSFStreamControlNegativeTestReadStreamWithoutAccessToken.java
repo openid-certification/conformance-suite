@@ -17,7 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		'WWW-Authenticate' challenge, and the CAEP Interop Profile 2.7.2 requires the
 		error codes of RFC 6750 section 3.1 inside it.
 		The testsuite expects to observe the following interactions:
-		 * attempt to read a stream configuration without an Authorization header
+		 * attempt to read the stream configurations (a list read without stream_id) without an Authorization header
 		 * transmitter rejects the request with a 401 response
 		 * the 401 response should carry a Bearer 'WWW-Authenticate' challenge (RFC 6750
 		   section 3, required by CAEP Interop 2.7.2)
@@ -29,7 +29,7 @@ public class OIDSSFStreamControlNegativeTestReadStreamWithoutAccessToken extends
 	@Override
 	protected void testTransmitter() {
 
-		eventLog.runBlock("Attempt to read an existing Stream Configuration without an access token", () -> {
+		eventLog.runBlock("Attempt to read the Stream Configurations without an access token", () -> {
 
 			callAndStopOnFailure(OIDSSFEnsureNoAccessTokenInAuthorizationHeaderOverride.class, "OIDSSF-8.1.1.2");
 			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");

@@ -354,7 +354,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	/**
 	 * Requests a verification event and requires the transmitter to accept the request with
 	 * 204 (SSF 1.0 8.1.4.2); another 2xx is a failure but the test goes on, since the event
-	 * may still be delivered, while a refusal stops it. The advertised {@code min_verification_interval} is honoured before
+	 * may still be delivered, while a refusal stops it. The advertised {@code min_verification_interval} is honored before
 	 * the request; should the transmitter still answer 429, which SSF 1.0 8.1.1 lets it do when
 	 * requests come more often than the interval, the request is repeated once after the
 	 * {@code Retry-After} or the interval. Leaves the accepted response mapped onto

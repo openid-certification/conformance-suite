@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * Validates the fields of a CAEP Risk Level Change event as defined in
  * <a href="https://openid.net/specs/openid-caep-1_0-final.html#section-3.8">CAEP 1.0 Section 3.8</a>
- * (a qualifying use case per CAEP Interop Profile 3.4):
+ * (a qualifying use case in section 3.4 of the CAEP Interop Profile working-group draft; draft-01 does not list it):
  * <ul>
  *   <li>{@code principal} (REQUIRED) - JSON string; USER, DEVICE, SESSION, TENANT, ORG_UNIT,
  *       GROUP "or any other entity", so unknown values are logged, not rejected</li>
@@ -21,7 +21,7 @@ import java.util.Set;
  *       level is unknown to the transmitter</li>
  *   <li>{@code risk_reason} (RECOMMENDED) - JSON string when present</li>
  * </ul>
- * The {@code reason_admin} requirement of CAEP Interop Profile 3.4 is checked separately by
+ * The {@code reason_admin} requirement of that working-group draft section is checked separately by
  * {@link OIDSSFEnsureCaepInteropEventReasonAdminPresent}.
  */
 public class OIDSSFValidateCaepRiskLevelChangeEvent extends AbstractCondition {

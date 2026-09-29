@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * <a href="https://openid.net/specs/openid-caep-1_0-final.html#section-2">CAEP 1.0 Section 2</a>:
  * <ul>
  *   <li>{@code event_timestamp} - MUST be a JSON number of seconds since the epoch (a value in
- *       milliseconds, or a negative or fractional value, violates the definition)</li>
+ *       milliseconds or a negative value violates the definition; fractional seconds are accepted)</li>
  *   <li>{@code initiating_entity} - MUST be one of: admin, user, policy, system</li>
  *   <li>{@code reason_admin} - MUST be a JSON object whose keys are BCP 47 language tags</li>
  *   <li>{@code reason_user} - MUST be a JSON object whose keys are BCP 47 language tags</li>

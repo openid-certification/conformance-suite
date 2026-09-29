@@ -44,7 +44,7 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 		if (!ignoredTransmitterSuppliedKeys.isEmpty()) {
 			// SSF 1.0 8.1.1.1 / Table 1: not a parse failure, so not a 400. The transmitter
 			// decides these values (8.1.1.1.1 lets e.g. the audience be agreed out of band);
-			// the request is honoured with the transmitter's own values.
+			// the request is honored with the transmitter's own values.
 			log("Ignoring transmitter-supplied properties in the stream create request; the transmitter's own values are used",
 				args("ignored_keys", ignoredTransmitterSuppliedKeys));
 		}

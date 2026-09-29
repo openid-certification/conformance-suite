@@ -37,7 +37,7 @@ public class OIDSSFEnsureGrantedScopeIsReadOnly extends AbstractCondition {
 			throw error("The authorization server granted '" + SsfConstants.SCOPE_SSF_MANAGE + "' although only '"
 					+ SsfConstants.SCOPE_SSF_READ + "' was requested. An authorization server may grant more than was requested, but a token that may "
 					+ "manage streams cannot show whether the transmitter refuses stream creation to a read-only token, so this "
-					+ "test cannot run. Configure the client used in the 'Client' section of the test configuration at the "
+					+ "test cannot run. Configure the client named by 'Client ID' in the 'Client' section of the test configuration at the "
 					+ "authorization server so that it can be issued '" + SsfConstants.SCOPE_SSF_READ + "' on its own.",
 				args("requested_scope", SsfConstants.SCOPE_SSF_READ, "granted_scope", grantedScope));
 		}

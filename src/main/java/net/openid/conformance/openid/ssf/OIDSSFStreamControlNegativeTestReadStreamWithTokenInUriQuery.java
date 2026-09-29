@@ -4,9 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFMoveAccessTokenToUriQueryOverride;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
-import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-token-in-uri-query",
@@ -17,14 +15,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		MUST NOT accept access tokens via the URI query parameter mechanism of RFC 6750 2.3;
 		a transmitter that honors the query parameter would leak tokens into logs and referrers.
 		The testsuite expects to observe the following interactions:
-		 * read an existing stream configuration, sending a valid access token only as an
+		 * read the stream configurations (a list read without stream_id), sending a valid access token only as an
 		   'access_token' URI query parameter and no Authorization header
 		 * transmitter rejects the request with a 400 or 401 response
 		""",
 	profile = "OIDSSF"
 )
-// Only meaningful with OAuth-issued tokens; static auth is not certifiable under the profile.
-@VariantNotApplicable(parameter = SsfAuthMode.class, values = "static")
 public class OIDSSFStreamControlNegativeTestReadStreamWithTokenInUriQuery extends AbstractStreamControlErrorTest {
 
 	@Override

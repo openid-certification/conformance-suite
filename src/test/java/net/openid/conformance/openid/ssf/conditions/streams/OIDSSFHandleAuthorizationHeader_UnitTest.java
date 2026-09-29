@@ -81,13 +81,15 @@ public class OIDSSFHandleAuthorizationHeader_UnitTest {
 	}
 
 	@Test
-	void missingHeaderIsUnauthorized() {
+	void missingHeaderIsUnauthorizedWithABareChallenge() {
 		env.putString("ssf", "transmitter_access_token", "static-token");
 		prepareRequest(null);
 
 		createCondition().execute(env);
 
 		assertTrue(hasError());
+		// RFC 6750 3.1: no error code without authentication information
+		assertEquals("Bearer", env.getString("ssf", "auth_result.www_authenticate"));
 	}
 
 	// ----- DYNAMIC mode -----

@@ -336,7 +336,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
 		// Event types outside the CAEP/SSF families (e.g. RISC or proprietary) are not
 		// forbidden stream content (SSF 1.0 8.1.1 places no such restriction), so an
-		// unrecognised type is a WARNING, not a FAILURE.
+		// unrecognized type is a WARNING, not a FAILURE.
 		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 		String eventType = env.getString("ssf", "caep_event.type");
 		if (eventType == null) {
@@ -598,7 +598,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			// Event types outside the CAEP/SSF families (e.g. RISC or proprietary) are not
 			// forbidden stream content (SSF 1.0 8.1.1 places no such restriction), so an
-			// unrecognised type is a WARNING, not a FAILURE.
+			// unrecognized type is a WARNING, not a FAILURE.
 			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 			String eventType = env.getString("ssf", "caep_event.type");
 			if (eventType == null) {
@@ -654,7 +654,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIatIsNotInFuture.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "RFC7519-4.1.6");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenJtiClaim.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2");
 		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenAudClaimMissing.class, Condition.ConditionResult.WARNING, "RFC8417-2.2", "OIDSSF-4.1.8");
-		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8");
+		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8", "RFC7519-4.1.3");
 		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.8", "OIDSSF-8.1.1");
 		// SSF 1.0 4.1.9: "Transmitters SHOULD set the txn claim"; a present value is a string per RFC 8417 2.2
 		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTxnClaimMissing.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.9");
