@@ -85,7 +85,9 @@ public class OIDSSFReceiverInvalidSetRejectionTest extends AbstractOIDSSFReceive
 
 	@Override
 	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
-		if (createResult == null) {
+		// a retried create is answered 409 without a stream_id (SSF 1.0 8.1.1.1) and must not
+		// discard the stream already under test
+		if (createResult == null || streamId == null) {
 			return;
 		}
 		createdStreamId = streamId;

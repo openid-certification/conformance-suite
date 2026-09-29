@@ -68,6 +68,11 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 
 	@Override
 	protected void afterStreamCreation(String streamId, JsonObject result, JsonElement error) {
+		// a retried create is answered 409 without a stream_id (SSF 1.0 8.1.1.1) and must not
+		// discard the stream already under test
+		if (result == null || streamId == null) {
+			return;
+		}
 		createdStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 	}
