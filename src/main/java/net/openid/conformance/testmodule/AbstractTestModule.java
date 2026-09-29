@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.FunctionalCondition;
 import net.openid.conformance.condition.common.UnexpectedHttpRequestReceived;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
@@ -461,6 +462,15 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 */
 	protected ConditionCallBuilder condition(Condition condition) {
 		return new ConditionCallBuilder(condition);
+	}
+
+	/**
+	 * Create a call to a condition implemented as a lambda, which can be passed to call(). The name identifies the
+	 * condition in the test log, in expected-failure lists, and in sequence replace/skip, so it must be stable and
+	 * unique.
+	 */
+	protected ConditionCallBuilder check(String name, FunctionalCondition.Body body) {
+		return new ConditionCallBuilder(new FunctionalCondition(name, body));
 	}
 
 	/**

@@ -10,4 +10,14 @@ public interface TestExecutionUnit {
 	 * Execute this unit within the given test module context.
 	 */
 	void run(ExecutionContext context);
+
+	/**
+	 * The identity used by {@code ConditionSequence.replace/skip/insertBefore/insertAfter} to address this unit:
+	 * the condition class for class-based condition calls, or the name for functional conditions.
+	 *
+	 * @return the key, or null if this unit can't be addressed
+	 */
+	default Object key() {
+		return null;
+	}
 }

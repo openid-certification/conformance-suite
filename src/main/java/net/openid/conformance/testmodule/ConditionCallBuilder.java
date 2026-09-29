@@ -3,6 +3,7 @@ package net.openid.conformance.testmodule;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.FunctionalCondition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -294,11 +295,14 @@ public class ConditionCallBuilder implements TestExecutionUnit, ConditionalPreRe
 	}
 
 	/**
-	 * Get the name used to identify this call in logs.
+	 * Get the name used to identify this call in logs: the functional condition name, or the condition class simple name.
 	 *
-	 * @return the condition class simple name
+	 * @return the name of the condition
 	 */
 	public String getName() {
+		if (condition instanceof FunctionalCondition functionalCondition) {
+			return functionalCondition.getMessage();
+		}
 		return conditionClass.getSimpleName();
 	}
 
@@ -403,6 +407,14 @@ public class ConditionCallBuilder implements TestExecutionUnit, ConditionalPreRe
 
 
 
+
+	@Override
+	public Object key() {
+		if (condition instanceof FunctionalCondition functionalCondition) {
+			return functionalCondition.getMessage();
+		}
+		return conditionClass;
+	}
 
 	@Override
 	public void run(ExecutionContext context) {

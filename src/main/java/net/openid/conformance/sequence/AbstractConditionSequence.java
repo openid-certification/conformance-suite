@@ -1,6 +1,7 @@
 package net.openid.conformance.sequence;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.FunctionalCondition;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.ConditionSequenceCallBuilder;
@@ -32,10 +33,10 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 
 
 	private List<TestExecutionUnit> callables = new ArrayList<>();
-	private Map<Class<? extends Condition>, TestExecutionUnit> replacements = new HashMap<>();
-	private Map<Class<? extends Condition>, String> skips = new HashMap<>();
-	private Map<Class<? extends Condition>, TestExecutionUnit> insertBefore = new HashMap<>();
-	private Map<Class<? extends Condition>, TestExecutionUnit> insertAfter = new HashMap<>();
+	private Map<Object, TestExecutionUnit> replacements = new HashMap<>();
+	private Map<Object, String> skips = new HashMap<>();
+	private Map<Object, TestExecutionUnit> insertBefore = new HashMap<>();
+	private Map<Object, TestExecutionUnit> insertAfter = new HashMap<>();
 	private List<TestExecutionUnit> before = new ArrayList<>();
 	private List<TestExecutionUnit> after = new ArrayList<>();
 
@@ -67,6 +68,14 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	 */
 	protected ConditionCallBuilder condition(Class<? extends Condition> conditionClass) {
 		return new ConditionCallBuilder(conditionClass);
+	}
+
+	/**
+	 * Create a call to a condition implemented as a lambda. The name identifies the condition in the test log, in
+	 * expected-failure lists, and in replace/skip/insertBefore/insertAfter, so it must be stable and unique.
+	 */
+	protected ConditionCallBuilder check(String name, FunctionalCondition.Body body) {
+		return new ConditionCallBuilder(new FunctionalCondition(name, body));
 	}
 
 	/**
@@ -141,52 +150,32 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 		List<TestExecutionUnit> expandedUnits = getCallablesWithSubSequencesExpanded();
 
 		// First check that all modifications refer to a condition in this sequence
-		Set<Class<? extends Condition>> conditionClasses = expandedUnits.stream()
-				.map(actionToConditionClass)
-				.filter(c -> c != null)
+		Set<Object> keys = expandedUnits.stream()
+				.map(TestExecutionUnit::key)
+				.filter(k -> k != null)
 				.collect(Collectors.toSet());
-		replacements.keySet().forEach(conditionClass -> {
-			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException("%s: replacement requested for missing condition: %s".formatted(
-					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
-			}
-		});
-		skips.keySet().forEach(conditionClass -> {
-			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException("%s: skip requested for missing condition: %s".formatted(
-					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
-			}
-		});
-		insertBefore.keySet().forEach(conditionClass -> {
-			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException("%s: insertion requested for missing condition: %s".formatted(
-					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
-			}
-		});
-		insertAfter.keySet().forEach(conditionClass -> {
-			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException("%s: insertion requested for missing condition: %s".formatted(
-					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
-			}
-		});
+		checkModificationTargetsExist(keys, replacements.keySet(), "replacement");
+		checkModificationTargetsExist(keys, skips.keySet(), "skip");
+		checkModificationTargetsExist(keys, insertBefore.keySet(), "insertion");
+		checkModificationTargetsExist(keys, insertAfter.keySet(), "insertion");
 
 		List<TestExecutionUnit> units = new ArrayList<>();
 		units.addAll(before);
 		units.addAll(expandedUnits.stream()
 				.map((action) -> {
-					Class<? extends Condition> conditionClass = actionToConditionClass.apply(action);
-					if (conditionClass != null) {
-						if (replacements.containsKey(conditionClass)) {
-							action = replacements.get(conditionClass);
+					Object key = action.key();
+					if (key != null) {
+						if (replacements.containsKey(key)) {
+							action = replacements.get(key);
 						}
-						if (skips.containsKey(conditionClass)) {
-							action = new SkippedCondition(conditionClass.getSimpleName(), skips.get(conditionClass));
+						if (skips.containsKey(key)) {
+							action = new SkippedCondition(keyName(key), skips.get(key));
 						}
-						if (insertBefore.containsKey(conditionClass)) {
-							action = sequenceOf(insertBefore.get(conditionClass), action);
+						if (insertBefore.containsKey(key)) {
+							action = sequenceOf(insertBefore.get(key), action);
 						}
-						if (insertAfter.containsKey(conditionClass)) {
-							action = sequenceOf(action, insertAfter.get(conditionClass));
+						if (insertAfter.containsKey(key)) {
+							action = sequenceOf(action, insertAfter.get(key));
 						}
 					}
 					// otherwise pass through
@@ -196,6 +185,22 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 		units.addAll(after);
 
 		return units;
+	}
+
+	private void checkModificationTargetsExist(Set<Object> keys, Set<Object> targets, String modification) {
+		targets.forEach(target -> {
+			if (!keys.contains(target)) {
+				throw new RuntimeException("%s: %s requested for missing condition: %s".formatted(
+					this.getClass().getSimpleName(), modification, keyName(target)));
+			}
+		});
+	}
+
+	private static String keyName(Object key) {
+		if (key instanceof Class<?> clazz) {
+			return clazz.getSimpleName();
+		}
+		return String.valueOf(key);
 	}
 
 	@Override
@@ -219,6 +224,30 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	@Override
 	public ConditionSequence insertAfter(Class<? extends Condition> conditionToInsertAfter, TestExecutionUnit builder) {
 		this.insertAfter.put(conditionToInsertAfter, builder);
+		return this;
+	}
+
+	@Override
+	public ConditionSequence replace(String conditionName, TestExecutionUnit builder) {
+		this.replacements.put(conditionName, builder);
+		return this;
+	}
+
+	@Override
+	public ConditionSequence skip(String conditionName, String message) {
+		this.skips.put(conditionName, message);
+		return this;
+	}
+
+	@Override
+	public ConditionSequence insertBefore(String conditionName, TestExecutionUnit builder) {
+		this.insertBefore.put(conditionName, builder);
+		return this;
+	}
+
+	@Override
+	public ConditionSequence insertAfter(String conditionName, TestExecutionUnit builder) {
+		this.insertAfter.put(conditionName, builder);
 		return this;
 	}
 
