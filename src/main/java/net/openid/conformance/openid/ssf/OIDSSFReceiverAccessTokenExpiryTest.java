@@ -75,6 +75,9 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 
 	volatile int tokensIssuedAtFirstRejection = -1;
 
+	/** When (epoch seconds) the receiver's expired token was first rejected. */
+	volatile long firstRejectionAt = -1;
+
 	volatile long keepsPresentingExpiredTokenRecordedAt = -1;
 
 	/** An authorized request after the first expiry, necessarily made with a newer token. */
@@ -101,6 +104,12 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 	protected boolean isFinished() {
 		if (keepsPresentingExpiredTokenRecordedAt >= 0) {
 			return isStreamDeleted() || now() - keepsPresentingExpiredTokenRecordedAt >= FINISH_AFTER_REPEATED_REJECTIONS_SECONDS;
+		}
+		if (firstRejectionAt >= 0 && !tokenObtainedAfterRejection && !isStreamDeleted()
+			&& now() - firstRejectionAt >= FINISH_AFTER_REPEATED_REJECTIONS_SECONDS) {
+			// the receiver gave up after the rejection without a new token and without deleting
+			// the stream; the missing token refresh is graded when the test finishes
+			return true;
 		}
 		if (!isStreamDeleted() || !firstTokenExpired) {
 			// the expiry watcher fires even when the receiver deleted the stream early
@@ -211,6 +220,7 @@ public class OIDSSFReceiverAccessTokenExpiryTest extends AbstractOIDSSFReceiverT
 		int count = expiredTokenRejections.incrementAndGet();
 		if (count == 1) {
 			tokensIssuedAtFirstRejection = tokensIssued.get();
+			firstRejectionAt = now();
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Rejected the receiver's expired access token on '" + path + "' with 401 and a WWW-Authenticate invalid_token challenge; the receiver must now obtain a new access token and repeat the request"),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3.1");
 		} else {
