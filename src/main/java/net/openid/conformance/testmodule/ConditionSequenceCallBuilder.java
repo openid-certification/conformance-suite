@@ -3,6 +3,7 @@ package net.openid.conformance.testmodule;
 import net.openid.conformance.sequence.ConditionSequence;
 
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public class ConditionSequenceCallBuilder implements TestExecutionUnit {
 
@@ -44,5 +45,10 @@ public class ConditionSequenceCallBuilder implements TestExecutionUnit {
 	@Override
 	public void run(ExecutionContext context) {
 		context.run(createSequence(context));
+	}
+
+	@Override
+	public TestExecutionUnit transform(ExecutionContext context, UnaryOperator<TestExecutionUnit> leafMapper) {
+		return createSequence(context).transform(context, leafMapper);
 	}
 }

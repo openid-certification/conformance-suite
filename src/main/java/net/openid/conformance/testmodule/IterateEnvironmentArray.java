@@ -11,6 +11,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * A test execution unit that iterates over an environment array and runs a sub-sequence once per element.
@@ -26,7 +27,7 @@ public class IterateEnvironmentArray implements TestExecutionUnit {
 
 	private final String sourceObject;
 	private final String sourcePath;
-	private final ConditionSequenceCallBuilder sequenceCallBuilder;
+	private final TestExecutionUnit body;
 
 	private String currentElementObject;
 	private String currentElementPath;
@@ -43,13 +44,18 @@ public class IterateEnvironmentArray implements TestExecutionUnit {
 		this(sourceObject, sourcePath, new ConditionSequenceCallBuilder(conditionSequenceConstructor));
 	}
 
-	private IterateEnvironmentArray(String sourceObject, String sourcePath, ConditionSequenceCallBuilder sequenceCallBuilder) {
+	/**
+	 * Iterate running the given unit for every element. Unlike a sequence class or supplier, which is created afresh
+	 * for every iteration and is opaque to sequence modifications, a body unit is reached by
+	 * {@link #transform(ExecutionContext, UnaryOperator)}.
+	 */
+	public IterateEnvironmentArray(String sourceObject, String sourcePath, TestExecutionUnit body) {
 		assert sourceObject != null;
 		assert sourcePath != null;
-		assert sequenceCallBuilder != null;
+		assert body != null;
 		this.sourceObject = sourceObject;
 		this.sourcePath = sourcePath;
-		this.sequenceCallBuilder = sequenceCallBuilder;
+		this.body = body;
 	}
 
 	public IterateEnvironmentArray currentElement(String envObjectKey, String envPath) {
@@ -86,8 +92,27 @@ public class IterateEnvironmentArray implements TestExecutionUnit {
 		return sourcePath;
 	}
 
+	/**
+	 * @return the builder of the sequence run for every element, or null if the body was given as a unit
+	 */
 	public ConditionSequenceCallBuilder getSequenceCallBuilder() {
-		return sequenceCallBuilder;
+		return body instanceof ConditionSequenceCallBuilder builder ? builder : null;
+	}
+
+	@Override
+	public TestExecutionUnit transform(ExecutionContext context, UnaryOperator<TestExecutionUnit> leafMapper) {
+		if (body instanceof ConditionSequenceCallBuilder) {
+			// the sequence is created per iteration, so it can't be modified up front
+			return leafMapper.apply(this);
+		}
+		IterateEnvironmentArray copy = new IterateEnvironmentArray(sourceObject, sourcePath, body.transform(context, leafMapper));
+		copy.currentElementObject = currentElementObject;
+		copy.currentElementPath = currentElementPath;
+		copy.currentStringKey = currentStringKey;
+		copy.iterationIndexKey = iterationIndexKey;
+		copy.iterationCountKey = iterationCountKey;
+		copy.logBlockLabelBuilder = logBlockLabelBuilder;
+		return copy;
 	}
 
 	@Override
@@ -115,7 +140,7 @@ public class IterateEnvironmentArray implements TestExecutionUnit {
 				}
 
 				try {
-					context.run(sequenceCallBuilder);
+					context.run(body);
 				} finally {
 					if (!Strings.isNullOrEmpty(blockLabel)) {
 						context.getEventLog().endBlock();
