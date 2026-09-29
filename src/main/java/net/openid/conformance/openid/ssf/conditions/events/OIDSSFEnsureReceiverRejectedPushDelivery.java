@@ -22,7 +22,10 @@ public class OIDSSFEnsureReceiverRejectedPushDelivery extends AbstractCondition 
 	@PreEnvironment(required = "endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		int status = env.getInteger("endpoint_response", "status");
+		Integer status = env.getInteger("endpoint_response", "status");
+		if (status == null) {
+			throw error("No HTTP status was recorded for the push delivery of an invalid SET (" + invalidSetDescription + ")");
+		}
 
 		if (status >= 200 && status < 300) {
 			throw error("Receiver accepted an invalid SET (" + invalidSetDescription + ") via push delivery. "

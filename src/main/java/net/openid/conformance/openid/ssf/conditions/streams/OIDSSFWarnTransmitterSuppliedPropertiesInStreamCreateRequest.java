@@ -15,7 +15,7 @@ import java.util.Set;
  * {@code events_delivered}, {@code min_verification_interval}, {@code inactivity_timeout}) are
  * decided by the transmitter, so a receiver sending them is proposing values it does not
  * control. Nothing forbids that, and Table 1 reserves 400 for a request that "cannot be
- * parsed", so the emulated transmitter honours the request and ignores those values; their
+ * parsed", so the emulated transmitter honors the request and ignores those values; their
  * presence is reported here as a sender-side finding. Callers invoke this condition at WARNING.
  */
 public class OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest extends AbstractOIDSSFHandleReceiverRequest {

@@ -23,7 +23,7 @@ import java.util.Set;
  *   <li>RFC 6749 §4.4.2 makes the {@code scope} parameter OPTIONAL for the
  *       client_credentials grant — a request without it is granted both SSF
  *       scopes (the emulated AS's default per RFC 6749 §3.3).</li>
- *   <li>RFC 6749 §3.3 allows the AS to ignore scopes it does not recognise —
+ *   <li>RFC 6749 §3.3 allows the AS to ignore scopes it does not recognize —
  *       non-SSF scope values (e.g. {@code openid}) are logged and ignored, and
  *       only the requested SSF subset is granted.</li>
  * </ul>
@@ -57,7 +57,7 @@ public class OIDSSFValidateRequestedScope extends AbstractCondition {
 		ignoredScopes.removeAll(SsfConstants.SSF_SCOPES);
 
 		if (!ignoredScopes.isEmpty()) {
-			log("Ignoring requested scope values that are not SSF scopes, as an authorization server may ignore scopes it does not recognise",
+			log("Ignoring requested scope values that are not SSF scopes, as an authorization server may ignore scopes it does not recognize",
 				args("requested_scope", scopeParam, "ignored_scopes", ignoredScopes,
 					"ssf_scopes", SsfConstants.SSF_SCOPES));
 		}

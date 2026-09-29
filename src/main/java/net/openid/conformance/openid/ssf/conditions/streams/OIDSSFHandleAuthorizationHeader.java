@@ -30,7 +30,7 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		}
 
 		if (authorizationHeaderEl == null) {
-			return unauthorized(env, authResult, "Missing authorization header in request");
+			return unauthorizedWithoutCredentials(env, authResult, "Missing authorization header in request");
 		}
 
 		String authorizationHeader = OIDFJSON.getString(authorizationHeaderEl);
@@ -74,8 +74,8 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 
 		JsonElement tokenRecordEl = issuedTokens.get(token);
 		if (tokenRecordEl == null || !tokenRecordEl.isJsonObject()) {
-			log("Bearer token is not recognised", args("authorization_header", authorizationHeader));
-			return unauthorized(env, authResult, "Bearer token is not recognised");
+			log("Bearer token is not recognized", args("authorization_header", authorizationHeader));
+			return unauthorized(env, authResult, "Bearer token is not recognized");
 		}
 
 		JsonObject tokenRecord = tokenRecordEl.getAsJsonObject();
@@ -94,6 +94,15 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		}
 
 		logSuccess("Found valid Bearer token in request", args("token_record", tokenRecord));
+		return env;
+	}
+
+	/** RFC 6750 3.1: without authentication information the challenge SHOULD NOT carry an error code. */
+	protected Environment unauthorizedWithoutCredentials(Environment env, JsonObject authResult, String description) {
+		authResult.add("error", createErrorObj("unauthorized", description));
+		authResult.addProperty("status_code", 401);
+		authResult.addProperty("www_authenticate", "Bearer");
+		log(description);
 		return env;
 	}
 

@@ -131,7 +131,7 @@ public class OIDSSFCallPollEndpoint extends AbstractOIDSSFTransmitterEndpointCal
 
 		String json = new Gson().toJson(pollRequest);
 		env.putString("resource_request_entity", json);
-		// the sent parameters let the response validation check that maxEvents was honoured
+		// the sent parameters let the response validation check that maxEvents was honored
 		env.putObjectFromJsonString("ssf", "poll.request", json);
 
 		log("Configuring poll mode", args("pollMode", pollMode, "poll_request", pollRequest));
