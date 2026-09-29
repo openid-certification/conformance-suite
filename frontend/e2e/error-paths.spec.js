@@ -230,6 +230,356 @@ test.describe("plan-detail.html — dynamic error alert injection", () => {
 });
 
 /**
+ * POST /api/plan/{id}/certificationpackage refusals (#1954). The form is
+ * submitted with fetch, so a 422/403 must render in its own dialog rather
+ * than the browser navigating to the raw JSON error body.
+ */
+test.describe("plan-detail.html — certification package submission", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  async function openCertificationPackageModal(page, certPackageRoute) {
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await page.route("**/api/plan/plan-abc-123/certificationpackage", certPackageRoute);
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const certBtn = page.locator('cts-plan-actions [data-testid="certify-btn"] button');
+    await expect(certBtn).toBeVisible();
+    await certBtn.click();
+    await expect(page.locator("#certificationPackageModal")).toBeVisible();
+  }
+
+  /**
+   * Replaces the certification package response's body stream, which the
+   * page reads chunk by chunk. "error" fails the stream straight away;
+   * "hold" delivers one 1.5 MB chunk and keeps the stream open until the
+   * test calls window.__finishPackage().
+   * @param {import("@playwright/test").Page} page
+   * @param {"error" | "hold"} mode
+   */
+  async function stubCertificationPackageBody(page, mode) {
+    await page.addInitScript((mode) => {
+      const descriptor = /** @type {PropertyDescriptor} */ (
+        Object.getOwnPropertyDescriptor(Response.prototype, "body")
+      );
+      const bodyGetter = /** @type {(this: Response) => ReadableStream | null} */ (descriptor.get);
+      Object.defineProperty(Response.prototype, "body", {
+        /** @this {Response} */
+        get() {
+          if (!this.url.includes("/certificationpackage")) {
+            return bodyGetter.call(this);
+          }
+          return new ReadableStream({
+            start(controller) {
+              if (mode === "error") {
+                controller.error(new TypeError("network error"));
+                return;
+              }
+              controller.enqueue(new Uint8Array(1500000));
+              /** @type {any} */ (window).__finishPackage = () => controller.close();
+            },
+          });
+        },
+      });
+    }, mode);
+  }
+
+  /**
+   * Closes the certification package error dialog and waits for the page
+   * reload that follows when the server may already have changed the plan.
+   * @param {import("@playwright/test").Page} page
+   */
+  async function closeErrorDialogExpectingReload(page) {
+    const reloaded = page.waitForEvent("load");
+    await page.locator("#certificationPackageErrorModal .oidf-modal-footer button").click();
+    await reloaded;
+    await expect(page.locator("#certificationPackageErrorModal")).toBeHidden();
+  }
+
+  function jsonError(status, body) {
+    return (route) =>
+      route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+  }
+
+  test("failed or unrun tests are listed in the dialog, not shown as raw JSON", async ({
+    page,
+  }) => {
+    await openCertificationPackageModal(
+      page,
+      jsonError(422, {
+        error: "Unable to create certification package",
+        error_description: "All tests have not been completed or tests have failed. ",
+        plan_name: "oidcc-basic-certification-test-plan",
+        test_plan_id: "plan-abc-123",
+        variant: "{}",
+        failed_tests: {
+          "oidcc-server": { testId: "test-inst-001", status: "FINISHED", result: "FAILED" },
+          "oidcc-response-type-missing": {
+            testId: "NOT_YET_CREATED",
+            status: "NOT_YET_CREATED",
+            result: "NOT_YET_CREATED",
+          },
+        },
+      }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toHaveCount(1);
+    await expect(alert).toHaveAttribute("variant", "danger");
+    await expect(alert).toContainText("every test in the plan has finished without failing");
+    await expect(alert.locator("li")).toHaveCount(2);
+    await expect(alert).toContainText("oidcc-server: failed");
+    await expect(alert).toContainText("oidcc-response-type-missing: not run yet");
+    await expect(alert.getByRole("link", { name: "oidcc-server" })).toHaveAttribute(
+      "href",
+      "/log-detail.html?log=test-inst-001",
+    );
+    await expect(alert.getByRole("link", { name: "oidcc-response-type-missing" })).toHaveCount(0);
+    await expect(alert).not.toContainText("failed_tests");
+
+    // Still on the plan page; the error has its own dialog in place of the
+    // creation dialog, and closing it leaves the plan page as it was.
+    await expect(page).toHaveURL(/\/plan-detail\.html\?plan=plan-abc-123$/);
+    await expect(page.locator("#certificationPackageModal")).toBeHidden();
+    const errorModal = page.locator("#certificationPackageErrorModal");
+    await expect(errorModal).toBeVisible();
+    await expect(errorModal).not.toContainText("Clicking the");
+    // Nothing changed on the server, so closing must not reload the page.
+    await page.evaluate(() => {
+      /** @type {any} */ (window).__beforeClose = true;
+    });
+    await errorModal.locator(".oidf-modal-footer button").click();
+    await expect(errorModal).toBeHidden();
+    await expect(page.locator("#certificationPackageModal")).toBeHidden();
+    expect(await page.evaluate(() => /** @type {any} */ (window).__beforeClose)).toBe(true);
+  });
+
+  test("an error_description without failed tests is shown as the message", async ({ page }) => {
+    await openCertificationPackageModal(
+      page,
+      jsonError(422, {
+        error: "no_certification_profile",
+        error_description:
+          "This test plan has no certification profile, so it is not part of the certification program.",
+        plan_name: "oidcc-basic-certification-test-plan",
+        test_plan_id: "plan-abc-123",
+        variant: "{}",
+      }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toHaveCount(1);
+    await expect(alert).toContainText("This test plan has no certification profile");
+    await expect(alert).not.toContainText("no_certification_profile");
+  });
+
+  test("an unknown plan shows the server's reason, not its error fields as tests", async ({
+    page,
+  }) => {
+    await openCertificationPackageModal(
+      page,
+      jsonError(422, {
+        error: "Unable to create certification package",
+        error_description: "All tests have not been completed or tests have failed. ",
+        plan_name: "",
+        test_plan_id: "plan-abc-123",
+        variant: "",
+        failed_tests: {
+          error: "invalid_plan_id",
+          error_description: "plan ID plan-abc-123 does not exist",
+        },
+      }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toHaveText("plan ID plan-abc-123 does not exist");
+    await expect(alert.locator("li")).toHaveCount(0);
+  });
+
+  test("an empty-bodied 422 says the plan was published but not made immutable", async ({
+    page,
+  }) => {
+    await openCertificationPackageModal(page, (route) => route.fulfill({ status: 422, body: "" }));
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toContainText(
+      "has been published, but it could not be marked as immutable",
+    );
+    await closeErrorDialogExpectingReload(page);
+  });
+
+  test("a failed download after a 200 is not reported as the server being unreachable", async ({
+    page,
+  }) => {
+    await stubCertificationPackageBody(page, "error");
+    await openCertificationPackageModal(page, (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: "zip-bytes" }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toContainText("download did not complete");
+    await expect(alert).not.toContainText("Could not reach the server");
+    await expect(page.locator("#certificationPackageModal")).toBeHidden();
+    await closeErrorDialogExpectingReload(page);
+  });
+
+  test("an unexpected error while handling the response still ends in the error dialog", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      URL.createObjectURL = () => {
+        throw new Error("createObjectURL unavailable");
+      };
+    });
+    await openCertificationPackageModal(page, (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: "zip-bytes" }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toContainText(
+      "Something went wrong while creating the certification package",
+    );
+    await expect(page.locator("#certificationPackageModal")).toBeHidden();
+    await expect(page.locator("#certificationPackageDownloaded")).toBeHidden();
+    await closeErrorDialogExpectingReload(page);
+  });
+
+  test("a 500 from building the package says the plan may already be published", async ({
+    page,
+  }) => {
+    await openCertificationPackageModal(
+      page,
+      jsonError(500, {
+        timestamp: "2026-09-29T10:00:00.000+00:00",
+        status: 500,
+        error: "Internal Server Error",
+        path: "/api/plan/plan-abc-123/certificationpackage",
+      }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toContainText("failed (HTTP 500)");
+    await expect(alert).toContainText("may already have been published and marked as immutable");
+    await expect(alert).not.toContainText("Internal Server Error");
+    await closeErrorDialogExpectingReload(page);
+  });
+
+  test("an empty-bodied 403 shows a readable message", async ({ page }) => {
+    await openCertificationPackageModal(page, (route) => route.fulfill({ status: 403, body: "" }));
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toHaveCount(1);
+    await expect(alert).toContainText("not allowed to create a certification package");
+    await expect(page.locator("#certificationPackageModal")).toBeHidden();
+  });
+
+  test("a module name containing HTML is rendered as text", async ({ page }) => {
+    await openCertificationPackageModal(
+      page,
+      jsonError(422, {
+        error: "Unable to create certification package",
+        failed_tests: {
+          "<img src=x onerror=window.__xss=1>": {
+            testId: "NOT_YET_CREATED",
+            status: "NOT_YET_CREATED",
+            result: "NOT_YET_CREATED",
+          },
+        },
+      }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = page.locator("#certificationPackageErrorBody cts-alert");
+    await expect(alert).toContainText("<img src=x onerror=window.__xss=1>: not run yet");
+    await expect(alert.locator("img")).toHaveCount(0);
+    const xssRan = await page.evaluate(() => Object.prototype.hasOwnProperty.call(window, "__xss"));
+    expect(xssRan).toBe(false);
+  });
+
+  test("the bytes received so far are shown while the package downloads", async ({ page }) => {
+    await stubCertificationPackageBody(page, "hold");
+    await openCertificationPackageModal(page, (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: "zip-bytes" }),
+    );
+
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const progress = page.locator("#certificationPackageProgress");
+    await expect(progress).toBeVisible();
+    await expect(progress).toHaveText("Downloaded 1.5 MB");
+    // formatByteCount is reachable here only because plan-detail.html's
+    // inline script is a classic script, whose top-level functions are globals.
+    const formatted = await page.evaluate(() =>
+      [999, 1000, 999499, 999500, 1000000].map(/** @type {any} */ (window).formatByteCount),
+    );
+    expect(formatted).toEqual(["999 bytes", "1 KB", "999 KB", "1.0 MB", "1.0 MB"]);
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.evaluate(() => /** @type {any} */ (window).__finishPackage());
+    await downloadPromise;
+
+    await expect(page.locator("#certificationPackageDownloaded")).toBeVisible();
+    await expect(progress).toBeHidden();
+  });
+
+  test("a successful submission downloads the zip under the server's filename", async ({
+    page,
+  }) => {
+    await openCertificationPackageModal(page, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/zip",
+        headers: {
+          "Content-Disposition":
+            'attachment; filename="oidcc-basic-certification-test-plan-plan-abc-123-01-Sep-2026.zip"',
+        },
+        body: "zip-bytes",
+      }),
+    );
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe(
+      "oidcc-basic-certification-test-plan-plan-abc-123-01-Sep-2026.zip",
+    );
+
+    await expect(page.locator("#certificationPackageDownloaded")).toBeVisible();
+    await expect(page.locator("#certificationPackageFormModalBody")).toBeHidden();
+    await expect(page.locator("#closeCertificationPackageFormModal")).toBeVisible();
+    await expect(page.locator("#certificationPackageErrorBody cts-alert")).toHaveCount(0);
+  });
+});
+
+/**
  * The three tests below cover the page-level error branches the filename
  * promises — the GET/POST API failures that fapi.ui.js funnels through
  * FAPI_UI.showError() → #errorModal. Each asserts the error surface AND a
