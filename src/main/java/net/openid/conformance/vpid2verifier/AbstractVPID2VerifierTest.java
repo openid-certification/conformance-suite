@@ -88,7 +88,6 @@ import net.openid.conformance.variant.VPID2VerifierResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
@@ -517,13 +516,21 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 
 		String redirectTo = env.getString("direct_post_response", "body_json.redirect_uri");
 		if (redirectTo != null) {
-			viewToReturn = new RedirectView(redirectTo, false, false, false);
-		} else {
-			viewToReturn = new ModelAndView("resultCaptured",
-				ImmutableMap.of(
-					"returnUrl", "/log-detail.html?log=" + getId()
-				));
+			// Present the verifier's redirect_uri through the usual browser mechanism (a
+			// "visit this url" entry on the test detail page, or the scripted browser when
+			// the configuration has a matching automation entry, as the CI configs do)
+			// rather than abruptly redirecting whichever browser delivered the
+			// authorization request - the verifier's session completes when it is visited.
+			eventLog.log(getName(), args(
+				"msg", "The verifier's redirect_uri must be visited to complete the verifier's "
+					+ "session; it is shown on the test detail page as a URL to visit",
+				"redirect_uri", redirectTo));
+			getBrowser().goToUrl(redirectTo);
 		}
+		viewToReturn = new ModelAndView("resultCaptured",
+			ImmutableMap.of(
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 
 		testFinished = true;
 
