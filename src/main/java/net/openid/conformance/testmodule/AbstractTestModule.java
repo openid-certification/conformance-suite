@@ -1,10 +1,7 @@
 package net.openid.conformance.testmodule;
 
-import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.util.BrainpoolSignatureProvider;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,15 +18,12 @@ import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.runner.TestStatusWaiterService;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.SkippedCondition;
 import net.openid.conformance.settings.ServerSettingsReader;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -69,6 +63,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected TestInfoService testInfo;
 	protected ImageService imageService;
 	private TestLockManager testLockManager;
+	private final ExecutionContext executionContext = new ModuleExecutionContext();
 
 	// Plain field — NOT @Autowired. TestModule instances are reflectively constructed via
 	// Class.getDeclaredConstructor().newInstance() (VariantService) so they are not Spring beans;
@@ -364,10 +359,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	/**
 	 * Call the condition as specified in the builder. The ConditionCallBuilder is accessed in the following order:
 	 *
-	 *  - condition class is instantiated
 	 *  - missing objects are checked
 	 *  - missing strings are checked
 	 *  - missing elements are checked
+	 *  - condition class is instantiated
 	 *  - pre-environment objects are checked
 	 *  - pre-environment strings are checked
 	 *  - condition is evaluated
@@ -379,6 +374,20 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * @param builder the fully configured condition call builder
 	 */
 	protected void call(ConditionCallBuilder builder) {
+		builder.run(executionContext);
+	}
+
+	/**
+	 * Evaluate a condition: skip it if the prerequisites say so, otherwise execute it and record the result.
+	 *
+	 * @param conditionName the name used for logging
+	 * @param stopOnFailure whether a failure of the condition stops the test
+	 * @param onFail the result recorded when the condition fails and the test continues
+	 * @param preRequisiteValidator decides whether the call is skipped
+	 * @param caller executes the condition
+	 */
+	protected void call(String conditionName, boolean stopOnFailure, Condition.ConditionResult onFail,
+		ConditionalPreRequisiteValidator preRequisiteValidator, ConditionalCall caller) {
 
 		if (getStatus() != Status.CREATED) {
 			// We don't run this check for 'CREATED' as the lock is currently not held during 'configure'; see
@@ -386,12 +395,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			if (!env.getLock().isHeldByCurrentThread()) {
 				if (getStatus() != Status.RUNNING) {
 					throw new TestFailureException(getId(), "Condition '" +
-						builder.getConditionClass().getSimpleName() + "' called when test status is '" +
+						conditionName + "' called when test status is '" +
 						getStatus() + "'. This is a bug in the test module and probably means that a call to " +
 						"setStatus(Status.RUNNING) is missing.");
 				}
 
-				throw new TestFailureException(getId(), "Condition '" + builder.getConditionClass().getSimpleName()
+				throw new TestFailureException(getId(), "Condition '" + conditionName
 					+ "' called on a thread that does not hold lock (test status is '" + getStatus() + "'). This " +
 					"is a bug in the test module.");
 			}
@@ -399,130 +408,33 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		try {
 
-			Condition condition = builder.getCondition();
-			if (condition == null) {
-				// create a new condition object from the class above
-				condition = builder.getConditionClass()
-					.getDeclaredConstructor()
-					.newInstance();
-			}
-			condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
-			condition.setLockManager(testLockManager);
+			logger.info(getId() + ": " + (stopOnFailure ? ">>" : "}}") + " Calling Condition " + conditionName);
 
-			logger.info(getId() + ": " + (builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
-
-			// check the environment to see if we need to skip this call
-			for (String req : builder.getSkipIfObjectsMissing()) {
-				if (!env.containsObject(req)) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find key in environment: " + req);
-					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation due to missing required object: " + req,
-						"expected", req,
-						"result", builder.getOnSkip(),
-						"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
-						"requirements", builder.getRequirements()
-					// TODO: log the environment here?
-					));
-					updateResultFromConditionFailure(builder.getOnSkip());
-					return;
-				}
-			}
-			for (String s : builder.getSkipIfStringsMissing()) {
-				if (env.getString(s) == null) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find string in environment: " + s);
-					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation due to missing required string: " + s,
-						"expected", s,
-						"result", builder.getOnSkip(),
-						"requirements", builder.getRequirements()
-						// TODO: log the environment here?
-					));
-					updateResultFromConditionFailure(builder.getOnSkip());
-					return;
-				}
-			}
-			for (String s : builder.getSkipIfStringsPresent()) {
-				if (env.getString(s) != null) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, string present in environment: " + s);
-					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation because string is present: " + s,
-						"expected", s,
-						"result", builder.getOnSkip(),
-						"requirements", builder.getRequirements()
-					));
-					updateResultFromConditionFailure(builder.getOnSkip());
-					return;
-				}
-			}
-			for (String s : builder.getSkipIfLongsMissing()) {
-				if (env.getLong(s) == null) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find long integer in environment: " + s);
-					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation due to missing required long integer: " + s,
-						"expected", s,
-						"result", builder.getOnSkip(),
-						"requirements", builder.getRequirements()
-						// TODO: log the environment here?
-					));
-					updateResultFromConditionFailure(builder.getOnSkip());
-					return;
-				}
-			}
-			for (Pair<String, String> idx : builder.getSkipIfElementsMissing()) {
-				JsonElement el = env.getElementFromObject(idx.getLeft(), idx.getRight());
-				if (el == null) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
-					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
-						"object", idx.getLeft(),
-						"path", idx.getRight(),
-						"mapped", env.isKeyShadowed(idx.getLeft()) ? env.getEffectiveKey(idx.getLeft()) : null,
-						"result", builder.getOnSkip(),
-						"requirements", builder.getRequirements()
- 					// TODO: log the environment here?
-					));
-					updateResultFromConditionFailure(builder.getOnSkip());
-					return;
-				}
-			}
-			for (Pair<String, String> idx : builder.getSkipIfElementsPresent()) {
-				String key = idx.getLeft();
-				String path = idx.getRight();
-				JsonElement el = env.getElementFromObject(key, path);
-				if (el != null) {
-					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, element present in environment: " + key + " " + path);
-					eventLog.log(condition.getMessage(), args(
-						"msg", "Skipped evaluation because element is present: " + key + " " + path,
-						"object", key,
-						"path", path,
-						"mapped", env.isKeyShadowed(key) ? env.getEffectiveKey(key) : null,
-						"result", builder.getOnSkip(),
-						"requirements", builder.getRequirements()
-					));
-					updateResultFromConditionFailure(builder.getOnSkip());
-					return;
-				}
+			Condition.ConditionResult onSkip = preRequisiteValidator.validatePreRequisite(logger, eventLog, getId(), env);
+			if (onSkip != null) {
+				updateResultFromConditionFailure(onSkip);
+				return;
 			}
 
-			condition.execute(env);
+			caller.execute(id, eventLog, testLockManager, env);
 
 		} catch (ConditionError error) {
 			if (error.isPreOrPostError()) {
-				logger.info(getId() + ": [pre/post] Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+				logger.info(getId() + ": [pre/post] Test condition failed " + conditionName + " failure: " + error.getMessage());
 				throw new TestFailureException(error);
 			} else {
-				if (builder.isStopOnFailure()) {
-					logger.info(getId() + ": stopOnFailure Test condition failed " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
+				if (stopOnFailure) {
+					logger.info(getId() + ": stopOnFailure Test condition failed " + conditionName + " failure: " + error.getMessage());
 					throw new TestFailureException(error);
 				} else {
-					logger.info(getId() + ": Test condition failure " + builder.getConditionClass().getSimpleName() + " failure: " + error.getMessage());
-					updateResultFromConditionFailure(builder.getOnFail());
+					logger.info(getId() + ": Test condition failure " + conditionName + " failure: " + error.getMessage());
+					updateResultFromConditionFailure(onFail);
 				}
 			}
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+		} catch (ConditionCallBuilder.ConditionInstantiationException | IllegalArgumentException | SecurityException e) {
 			logException(e);
 			logger.error(getId() + ": Couldn't create condition object", e);
-			throw new TestFailureException(getId(), "Fatal failure from condition: " + builder.getConditionClass().getSimpleName());
+			throw new TestFailureException(getId(), "Fatal failure from condition: " + conditionName);
 		} catch (TestFailureException e) {
 			logger.error(getId() + ": Caught TestFailureException", e);
 			throw e;
@@ -571,77 +483,21 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *
 	 */
 	protected void call(Command builder) {
-
-		for(String e : builder.getExposeStrings()) {
-			exposeEnvString(e);
-		}
-
-		if (!Strings.isNullOrEmpty(builder.getStartBlock())) {
-			eventLog.startBlock(builder.getStartBlock());
-		}
-
-		builder.getEnvCommands().forEach(cmd -> cmd.accept(env));
-
-		if (builder.isEndBlock()) {
-			eventLog.endBlock();
-		}
+		builder.run(executionContext);
 	}
 
 	protected void call(IterateEnvironmentArray builder) {
-		JsonElement sourceElement = env.getElementFromObject(builder.getSourceObject(), builder.getSourcePath());
-		if (sourceElement == null) {
-			throw new TestFailureException(getId(), "Missing environment array for iteration at "
-				+ builder.getSourceObject() + "." + builder.getSourcePath());
-		}
-		if (!sourceElement.isJsonArray()) {
-			throw new TestFailureException(getId(), "Expected environment array for iteration at "
-				+ builder.getSourceObject() + "." + builder.getSourcePath());
-		}
-
-		JsonArray sourceArray = sourceElement.getAsJsonArray();
-		try {
-			for (int i = 0; i < sourceArray.size(); i++) {
-				JsonElement element = sourceArray.get(i);
-				builder.prepareIteration(env, element, i, sourceArray.size());
-
-				String blockLabel = builder.getLogBlockLabel(element, i, sourceArray.size());
-				if (!Strings.isNullOrEmpty(blockLabel)) {
-					eventLog.startBlock(blockLabel);
-				}
-
-				try {
-					call(builder.getSequenceCallBuilder());
-				} finally {
-					if (!Strings.isNullOrEmpty(blockLabel)) {
-						eventLog.endBlock();
-					}
-				}
-			}
-		} finally {
-			builder.cleanupAfterIteration(env, sourceArray.size());
-		}
+		builder.run(executionContext);
 	}
 
 	/**
-	 * Dispatch function to call a more specific subclass as needed.
+	 * Execute any test execution unit.
 	 */
 	protected void call(TestExecutionUnit builder) {
-		if (builder instanceof ConditionCallBuilder callBuilder) {
-			call(callBuilder);
-		} else if (builder instanceof Command command) {
-			call(command);
-		} else if (builder instanceof IterateEnvironmentArray iterateEnvironmentArray) {
-			call(iterateEnvironmentArray);
-		} else if (builder instanceof ConditionSequence sequence) {
-			call(sequence);
-		} else if (builder instanceof ConditionSequenceCallBuilder callBuilder) {
-			call(callBuilder);
-		} else if (builder instanceof SkippedCondition condition) {
-			eventLog.log(condition.getSource(), args(
-					"msg", condition.getMessage()));
-		} else {
-			throw new TestFailureException(getId(), "Unknown class passed to call() function");
+		if (builder == null) {
+			throw new TestFailureException(getId(), "null passed to call() function");
 		}
+		builder.run(executionContext);
 	}
 
 	/**
@@ -653,21 +509,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	protected ConditionSequenceCallBuilder sequence(Supplier<? extends ConditionSequence> conditionSequenceConstructor) {
 		return new ConditionSequenceCallBuilder(conditionSequenceConstructor);
-	}
-
-	private ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
-		try {
-			ConditionSequence conditionSequence = conditionSequenceClass
-				.getDeclaredConstructor()
-				.newInstance();
-
-			return conditionSequence;
-
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			logException(e);
-			logger.error(getId() + ": Couldn't create condition sequence object", e);
-			throw new TestFailureException(getId(), "Fatal failure from condition sequence: " + conditionSequenceClass.getSimpleName());
-		}
 	}
 
 	protected ConditionSequence sequenceOf(TestExecutionUnit... units) {
@@ -702,31 +543,58 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void call(ConditionSequenceCallBuilder builder) {
-		ConditionSequence sequence;
-
-		if (builder.getConditionSequenceConstructor() != null) {
-			sequence = builder.getConditionSequenceConstructor().get();
-		} else {
-			sequence = createSequence(builder.getConditionSequenceClass());
-		}
-
-		call(sequence);
+		call(builder.createSequence(executionContext));
 	}
 
 	protected void call(ConditionSequence sequence) {
 		if (sequence == null) {
 			return;
 		}
-		logger.info(getId() + ":   Starting sequence " + sequence.getClass().getSimpleName());
+		sequence.run(executionContext);
+	}
 
-		// execute the sequence
-		sequence.evaluate();
+	/**
+	 * Exposes this module to the units it executes. Nested units are dispatched through call(TestExecutionUnit).
+	 */
+	private final class ModuleExecutionContext implements ExecutionContext {
 
-		// pass all of the resulting units to the call functions
-		sequence.getTestExecutionUnits()
-			.forEach(this::call);
+		@Override
+		public String getTestId() {
+			return getId();
+		}
 
-		logger.info(getId() + ":   End of sequence " + sequence.getClass().getSimpleName());
+		@Override
+		public Environment getEnv() {
+			return env;
+		}
+
+		@Override
+		public TestInstanceEventLog getEventLog() {
+			return eventLog;
+		}
+
+		@Override
+		public void exposeEnvString(String key) {
+			AbstractTestModule.this.exposeEnvString(key);
+		}
+
+		@Override
+		public void runCondition(String name, boolean stopOnFailure, Condition.ConditionResult onFail,
+			ConditionalPreRequisiteValidator preRequisiteValidator, ConditionalCall call) {
+			AbstractTestModule.this.call(name, stopOnFailure, onFail, preRequisiteValidator, call);
+		}
+
+		@Override
+		public void run(TestExecutionUnit unit) {
+			AbstractTestModule.this.call(unit);
+		}
+
+		@Override
+		public TestFailureException fatalError(String message, Throwable cause) {
+			logException(cause);
+			logger.error(getId() + ": " + message, cause);
+			return new TestFailureException(getId(), message);
+		}
 	}
 
 	@Override

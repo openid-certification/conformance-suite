@@ -1,5 +1,7 @@
 package net.openid.conformance.testmodule;
 
+import com.google.common.base.Strings;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -101,6 +103,31 @@ public class Command implements TestExecutionUnit {
 	public Command exposeEnvironmentString(String key) {
 		exposeStrings.add(key);
 		return this;
+	}
+
+	/**
+	 * Commands in the builder are executed in the following order:
+	 *
+	 *  - environment strings are exposed
+	 *  - log blocks are started
+	 *  - environment commands (map/unmap keys, put/remove values) are applied in the order they were recorded
+	 *  - log blocks are ended
+	 */
+	@Override
+	public void run(ExecutionContext context) {
+		for (String e : exposeStrings) {
+			context.exposeEnvString(e);
+		}
+
+		if (!Strings.isNullOrEmpty(startBlock)) {
+			context.getEventLog().startBlock(startBlock);
+		}
+
+		envCommands.forEach(cmd -> cmd.accept(context.getEnv()));
+
+		if (endBlock) {
+			context.getEventLog().endBlock();
+		}
 	}
 
 	// getters

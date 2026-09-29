@@ -3,6 +3,7 @@ package net.openid.conformance.testmodule;
 import com.google.common.base.Strings;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -87,6 +88,43 @@ public class IterateEnvironmentArray implements TestExecutionUnit {
 
 	public ConditionSequenceCallBuilder getSequenceCallBuilder() {
 		return sequenceCallBuilder;
+	}
+
+	@Override
+	public void run(ExecutionContext context) {
+		Environment env = context.getEnv();
+		JsonElement sourceElement = env.getElementFromObject(sourceObject, sourcePath);
+		if (sourceElement == null) {
+			throw new TestFailureException(context.getTestId(), "Missing environment array for iteration at "
+				+ sourceObject + "." + sourcePath);
+		}
+		if (!sourceElement.isJsonArray()) {
+			throw new TestFailureException(context.getTestId(), "Expected environment array for iteration at "
+				+ sourceObject + "." + sourcePath);
+		}
+
+		JsonArray sourceArray = sourceElement.getAsJsonArray();
+		try {
+			for (int i = 0; i < sourceArray.size(); i++) {
+				JsonElement element = sourceArray.get(i);
+				prepareIteration(env, element, i, sourceArray.size());
+
+				String blockLabel = getLogBlockLabel(element, i, sourceArray.size());
+				if (!Strings.isNullOrEmpty(blockLabel)) {
+					context.getEventLog().startBlock(blockLabel);
+				}
+
+				try {
+					context.run(sequenceCallBuilder);
+				} finally {
+					if (!Strings.isNullOrEmpty(blockLabel)) {
+						context.getEventLog().endBlock();
+					}
+				}
+			}
+		} finally {
+			cleanupAfterIteration(env, sourceArray.size());
+		}
 	}
 
 	public void prepareIteration(Environment env, JsonElement element, int iterationIndex, int iterationCount) {

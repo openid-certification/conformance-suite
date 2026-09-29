@@ -1,9 +1,12 @@
 package net.openid.conformance.testmodule;
 
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +16,7 @@ import java.util.List;
  * Utility class to collect the attributes related to a Condition call, such as which class
  * to call, what to do on failure, when the call should be skipped.
  */
-public class ConditionCallBuilder implements TestExecutionUnit {
+public class ConditionCallBuilder implements TestExecutionUnit, ConditionalPreRequisiteValidator, DataUtils {
 
 	private Class<? extends Condition> conditionClass = null;
 	private Condition condition = null;
@@ -291,6 +294,15 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	}
 
 	/**
+	 * Get the name used to identify this call in logs.
+	 *
+	 * @return the condition class simple name
+	 */
+	public String getName() {
+		return conditionClass.getSimpleName();
+	}
+
+	/**
 	 * Get the Condition class to be constructed and called. Can not be null.
 	 *
 	 * @return the condition class
@@ -389,4 +401,139 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 		return skipIfElementsPresent;
 	}
 
+
+
+
+	@Override
+	public void run(ExecutionContext context) {
+		context.runCondition(getName(), stopOnFailure, onFail, this, createCaller());
+	}
+
+	@Override
+	public ConditionResult validatePreRequisite(Logger logger, TestInstanceEventLog eventLog, String testId, Environment env) {
+		String name = getName();
+
+		// check the environment to see if we need to skip this call
+		for (String req : skipIfObjectsMissing) {
+			if (!env.containsObject(req)) {
+				logger.info(testId + ": [skip] Test condition " + name + " skipped, couldn't find key in environment: " + req);
+				eventLog.log(name, args(
+					"msg", "Skipped evaluation due to missing required object: " + req,
+					"expected", req,
+					"result", onSkip,
+					"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
+					"requirements", getRequirements()
+					// TODO: log the environment here?
+				));
+				return onSkip;
+			}
+		}
+		for (String s : skipIfStringsMissing) {
+			if (env.getString(s) == null) {
+				logger.info(testId + ": [skip] Test condition " + name + " skipped, couldn't find string in environment: " + s);
+				eventLog.log(name, args(
+					"msg", "Skipped evaluation due to missing required string: " + s,
+					"expected", s,
+					"result", onSkip,
+					"requirements", getRequirements()
+					// TODO: log the environment here?
+				));
+				return onSkip;
+			}
+		}
+		for (String s : skipIfStringsPresent) {
+			if (env.getString(s) != null) {
+				logger.info(testId + ": [skip] Test condition " + name + " skipped, string present in environment: " + s);
+				eventLog.log(name, args(
+					"msg", "Skipped evaluation because string is present: " + s,
+					"expected", s,
+					"result", onSkip,
+					"requirements", getRequirements()
+				));
+				return onSkip;
+			}
+		}
+		for (String s : skipIfLongsMissing) {
+			if (env.getLong(s) == null) {
+				logger.info(testId + ": [skip] Test condition " + name + " skipped, couldn't find long integer in environment: " + s);
+				eventLog.log(name, args(
+					"msg", "Skipped evaluation due to missing required long integer: " + s,
+					"expected", s,
+					"result", onSkip,
+					"requirements", getRequirements()
+					// TODO: log the environment here?
+				));
+				return onSkip;
+			}
+		}
+		for (Pair<String, String> idx : skipIfElementsMissing) {
+			JsonElement el = env.getElementFromObject(idx.getLeft(), idx.getRight());
+			if (el == null) {
+				logger.info(testId + ": [skip] Test condition " + name + " skipped, couldn't find element in environment: " + idx.getLeft() + " " + idx.getRight());
+				eventLog.log(name, args(
+					"msg", "Skipped evaluation due to missing required element: " + idx.getLeft() + " " + idx.getRight(),
+					"object", idx.getLeft(),
+					"path", idx.getRight(),
+					"mapped", env.isKeyShadowed(idx.getLeft()) ? env.getEffectiveKey(idx.getLeft()) : null,
+					"result", onSkip,
+					"requirements", getRequirements()
+					// TODO: log the environment here?
+				));
+				return onSkip;
+			}
+		}
+		for (Pair<String, String> idx : skipIfElementsPresent) {
+			String key = idx.getLeft();
+			String path = idx.getRight();
+			JsonElement el = env.getElementFromObject(key, path);
+			if (el != null) {
+				logger.info(testId + ": [skip] Test condition " + name + " skipped, element present in environment: " + key + " " + path);
+				eventLog.log(name, args(
+					"msg", "Skipped evaluation because element is present: " + key + " " + path,
+					"object", key,
+					"path", path,
+					"mapped", env.isKeyShadowed(key) ? env.getEffectiveKey(key) : null,
+					"result", onSkip,
+					"requirements", getRequirements()
+				));
+				return onSkip;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Create the call that executes the condition. A condition given as a class is instantiated afresh on every
+	 * execution, as conditions keep per-execution state.
+	 *
+	 * @return the call
+	 */
+	public ConditionalCall createCaller() {
+		return (String id, TestInstanceEventLog eventLog, TestLockManager testLockManager, Environment env) -> {
+			Condition c = condition != null ? condition : instantiateCondition();
+			c.setProperties(id, eventLog, onFail, getRequirements());
+			c.setLockManager(testLockManager);
+			c.execute(env);
+		};
+	}
+
+	private Condition instantiateCondition() {
+		try {
+			return conditionClass.getDeclaredConstructor().newInstance();
+		} catch (ReflectiveOperationException e) {
+			throw new ConditionInstantiationException(conditionClass, e);
+		}
+	}
+
+	/**
+	 * Thrown when a condition class can't be instantiated; this is a bug in the test suite.
+	 */
+	public static class ConditionInstantiationException extends RuntimeException {
+
+		private static final long serialVersionUID = 1L;
+
+		public ConditionInstantiationException(Class<? extends Condition> conditionClass, Throwable cause) {
+			super("Couldn't create condition object " + conditionClass.getSimpleName(), cause);
+		}
+	}
 }
