@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsRequestedScopes;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
@@ -67,6 +68,9 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
 			}
 		}
+		skipIfElementMissing("server", "scopes_supported", Condition.ConditionResult.INFO,
+			CheckDiscEndpointScopesSupportedContainsRequestedScopes.class, Condition.ConditionResult.WARNING,
+			"OIDCD-3", "RFC8414-2");
 	}
 
 	@Override
