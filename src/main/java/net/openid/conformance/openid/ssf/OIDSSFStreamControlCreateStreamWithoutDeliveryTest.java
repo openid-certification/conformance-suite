@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
@@ -9,7 +10,9 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDe
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFPrepareStreamConfigObject;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFPrepareStreamConfigObjectAddRequestedEvents;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -36,6 +39,16 @@ public class OIDSSFStreamControlCreateStreamWithoutDeliveryTest extends Abstract
 
 	@Override
 	protected void testTransmitter() {
+
+		// SSF 1.0 8.1.1.1 lets a transmitter that does not support poll delivery answer 400; such a
+		// transmitter cannot show the poll default, so the poll delivery variant is the wrong choice
+		JsonElement methodsEl = env.getElementFromObject("ssf", "transmitter_metadata.delivery_methods_supported");
+		if (methodsEl != null && methodsEl.isJsonArray()
+			&& !OIDFJSON.convertJsonArrayToList(methodsEl.getAsJsonArray()).contains(SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI)) {
+			throw new TestFailureException(getId(), "Transmitter metadata does not list poll delivery ('" + SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI
+				+ "') in delivery_methods_supported, so a stream created without a 'delivery' property cannot default to poll. "
+				+ "This test needs a transmitter that supports poll delivery; for a push-only transmitter schedule the plan with push delivery.");
+		}
 
 		eventLog.runBlock("Create Stream Configuration without a 'delivery' property", () -> {
 			callAndStopOnFailure(OIDSSFPrepareStreamConfigObject.class, "OIDSSF-8.1.1.1");
