@@ -857,6 +857,23 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		testInfo.updateTestResult(getId(), getResult());
 	}
 
+	/**
+	 * Records the FAILED result of a stop-on-failure condition whose exception the module
+	 * catches, to answer the client with an error response and keep the test running instead of
+	 * letting the exception end the test via {@link #handleException}. The condition has
+	 * already logged its failure; the result is what the exception would have carried. Returns
+	 * the condition failure, e.g. for the description of the error response. Anything that is
+	 * not a condition failure - a pre- or post-environment error, an exception from the
+	 * framework - is rethrown, since it is a defect of the test rather than of the client.
+	 */
+	protected ConditionError recordConditionFailure(TestFailureException e) {
+		if (!(e.getCause() instanceof ConditionError conditionError) || conditionError.isPreOrPostError()) {
+			throw e;
+		}
+		updateResultFromConditionFailure(Condition.ConditionResult.FAILURE);
+		return conditionError;
+	}
+
 	private void updateResultFromConditionFailure(Condition.ConditionResult onFail) {
 		switch (onFail) {
 			case FAILURE:
