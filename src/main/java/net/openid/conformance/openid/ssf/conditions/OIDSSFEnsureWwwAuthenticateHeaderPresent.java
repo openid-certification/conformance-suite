@@ -20,12 +20,10 @@ import java.util.regex.Pattern;
  * each value may list several challenges (RFC 9110 section 11.6.1); the Bearer challenge is
  * accepted in any position.
  * <p>
- * The severity is the caller's: for the poll endpoint, RFC 8936 section 3 itself says a SET
- * delivery endpoint using HTTP authentication SHALL name its schemes in this header, a FAILURE.
- * For the stream management endpoints the requirement reaches the suite through the CAEP
- * Interop Profile (2.7.2), which cites RFC 6750 section 3.1 (the error codes) rather than
- * section 3 (the header that carries them), so those callers grade a missing header as a
- * WARNING; the rejection itself (401/403) remains their FAILURE-level check.
+ * RFC 6750 section 3 makes the header a MUST for every rejected bearer-token request, RFC 8936
+ * section 3 restates it for a SET delivery endpoint using HTTP authentication, and the CAEP
+ * Interop Profile (2.7.2) requires the error codes of RFC 6750 section 3.1, which only exist
+ * inside this header. Callers grade a missing header as a FAILURE.
  * <p>
  * Expects the response under {@code endpoint_response} (map {@code resource_endpoint_response_full}
  * onto it before calling).

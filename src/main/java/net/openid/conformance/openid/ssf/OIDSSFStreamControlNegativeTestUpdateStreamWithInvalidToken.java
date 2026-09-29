@@ -20,8 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		 * attempt to update the stream with an invalid access token
 		 * transmitter rejects the request with a 400 or 401 response
 		 * a 401 response should carry a Bearer 'WWW-Authenticate' challenge with
-		   error="invalid_token" (RFC 6750 sections 3 and 3.1; reported as a warning if absent,
-		   since CAEP Interop 2.7.2 only cites RFC 6750 section 3.1)
+		   error="invalid_token" (RFC 6750 sections 3 and 3.1, required by CAEP Interop 2.7.2)
 		""",
 	profile = "OIDSSF"
 )
@@ -42,12 +41,10 @@ public class OIDSSFStreamControlNegativeTestUpdateStreamWithInvalidToken extends
 			// rejected the body before the token (400) is not expected to send one.
 			Integer status = env.getInteger("resource_endpoint_response_full", "status");
 			if (status != null && status == 401) {
-				// WARNING: the WWW-Authenticate MUST is RFC 6750 section 3; CAEPIOP 2.7.2 only
-				// cites section 3.1 (the error codes), so the profile's normative chain to the
-				// header is imprecise - see the condition's javadoc. The 401 above is the
-				// FAILURE-level check.
-				callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
-				callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("invalid_token"), Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2", "RFC6750-3.1");
+				// RFC 6750 section 3: the 401 MUST carry a WWW-Authenticate challenge, and CAEP
+				// Interop 2.7.2 requires the error codes of RFC 6750 section 3.1 inside it.
+				callAndContinueOnFailure(OIDSSFEnsureWwwAuthenticateHeaderPresent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3", "RFC6750-3.1");
+				callAndContinueOnFailure(new OIDSSFEnsureWwwAuthenticateErrorCode("invalid_token"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.7.2", "RFC6750-3.1");
 			}
 			call(exec().unmapKey("endpoint_response"));
 		});
