@@ -198,7 +198,8 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				validateStreamStatusResponse("OIDSSF-8.1.2.1", "CAEPIOP-2.3.5");
 				call(exec().unmapKey("endpoint_response"));
 			} else {
-				eventLog.log("Skipping Read Stream Status: status_endpoint missing in ssf-configuration", args());
+				throw new TestFailureException(getId(), "Transmitter metadata does not include a status_endpoint, "
+					+ "which is required by the CAEP Interop Profile (CAEPIOP-2.3.5).");
 			}
 		});
 
