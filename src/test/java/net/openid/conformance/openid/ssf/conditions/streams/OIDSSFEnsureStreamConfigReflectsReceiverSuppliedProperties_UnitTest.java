@@ -76,6 +76,18 @@ public class OIDSSFEnsureStreamConfigReflectsReceiverSuppliedProperties_UnitTest
 	}
 
 	@Test
+	void unsupportedEventsRequestedMayBeDropped() {
+		prepare(FULL_SENT.replace("[\"urn:a\", \"urn:b\"]", "[\"urn:a\", \"urn:b\", \"urn:unknown\"]"), MATCHING_STREAM);
+		assertDoesNotThrow(() -> condition(Operation.UPDATE).execute(env));
+	}
+
+	@Test
+	void addedEventsRequestedFails() {
+		prepare(FULL_SENT, MATCHING_STREAM.replace("[\"urn:b\", \"urn:a\"]", "[\"urn:b\", \"urn:a\", \"urn:c\"]"));
+		assertThrows(ConditionError.class, () -> condition(Operation.UPDATE).execute(env));
+	}
+
+	@Test
 	void ignoredEventsRequestedFails() {
 		prepare(FULL_SENT, MATCHING_STREAM.replace("[\"urn:b\", \"urn:a\"]", "[\"urn:c\"]"));
 		assertThrows(ConditionError.class, () -> condition(Operation.UPDATE).execute(env));
