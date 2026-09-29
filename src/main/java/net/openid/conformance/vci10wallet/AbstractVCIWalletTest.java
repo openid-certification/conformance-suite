@@ -1662,10 +1662,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			checkResourceEndpointRequest(useClientCredentialsAccessToken);
 		} catch (TestFailureException e) {
 			// The access token was refused: missing, invalid, or not bound to the key or certificate
-			// presented. The failure is in the log and the test result; the wallet still gets the
-			// answer a resource server gives, so a wallet that sends a wrong key sees the rejection
-			// and can go on, as can a test that sends one on purpose.
-			ResponseEntity<?> response = invalidTokenResponse(e.getMessage());
+			// presented. The failure goes into the test result here, as the exception would have
+			// put it; the wallet still gets the answer a resource server gives, so a wallet that
+			// sends a wrong key sees the rejection and can go on, as can a test that sends one on
+			// purpose.
+			ConditionError failure = recordConditionFailure(e);
+			ResponseEntity<?> response = invalidTokenResponse(failure.getMessage());
 			setStatus(Status.WAITING);
 			return response;
 		}
