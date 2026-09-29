@@ -12,10 +12,6 @@ import java.util.List;
  * that grants a profile. A profile name records what the run exercised: the role, the delivery
  * method, the OAuth grant the suite used to obtain or issue the access token, and the client
  * authentication method at the token endpoint.
- * <p>
- * Today only the two CAEP Interop Profile plans grant a profile. The plain SSF plans are not
- * part of the certification program and return none; a method for them belongs here once that
- * changes.
  */
 public final class OIDSSFCertification {
 

@@ -4,7 +4,7 @@ import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.VariantSelection;
+// import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +45,10 @@ public class OIDSSFReceiverTestPlanCaepInterop implements TestPlan {
 			)));
 	}
 
-	@Override
-	public List<String> certificationProfileName(VariantSelection variantSelection) {
-		return OIDSSFCertification.caepInteropReceiverProfileName(variantSelection);
-	}
+	// Enable once the SSF certification program is open; the plan is alpha until then.
+	// @Override
+	// public List<String> certificationProfileName(VariantSelection variantSelection) {
+	// 	return OIDSSFCertification.caepInteropReceiverProfileName(variantSelection);
+	// }
 
 }
