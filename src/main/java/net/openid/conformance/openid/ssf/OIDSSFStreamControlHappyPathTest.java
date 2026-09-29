@@ -39,6 +39,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 import java.util.List;
 import java.util.Set;
@@ -205,6 +206,9 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.1");
 				validateStreamStatusResponse("OIDSSF-8.1.2.1");
 				call(exec().unmapKey("endpoint_response"));
+			} else if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+				throw new TestFailureException(getId(), "Transmitter metadata does not include a status_endpoint, "
+					+ "which is required by the CAEP Interop Profile (CAEPIOP-2.3.5).");
 			} else {
 				eventLog.log("Skipping unsupported Read Stream Status Checks, because status_endpoint is missing in ssf-configuration", args());
 			}
