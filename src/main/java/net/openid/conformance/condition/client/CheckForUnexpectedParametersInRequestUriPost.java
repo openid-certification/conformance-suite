@@ -1,14 +1,13 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CheckForUnexpectedParametersInRequestUriPost extends AbstractCondition {
+public class CheckForUnexpectedParametersInRequestUriPost extends AbstractRequestUriPostCondition {
 
 	// As per OID4VP 1.0 Final §5.10.1
 	public static final List<String> expectedFormParams = List.of(
@@ -19,7 +18,7 @@ public class CheckForUnexpectedParametersInRequestUriPost extends AbstractCondit
 	@Override
 	@PreEnvironment(required = "incoming_request")
 	public Environment evaluate(Environment env) {
-		JsonObject formParams = env.getElementFromObject("incoming_request", "body_form_params").getAsJsonObject();
+		JsonObject formParams = getRequestUriPostFormParams(env);
 
 		List<String> unknownParameters = new ArrayList<>();
 		for (String key : formParams.keySet()) {
