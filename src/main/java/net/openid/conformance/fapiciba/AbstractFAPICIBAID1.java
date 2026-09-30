@@ -75,6 +75,7 @@ import net.openid.conformance.condition.client.CreateRandomClientNotificationTok
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
+import net.openid.conformance.condition.client.EnsureHttpResponseBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -137,6 +138,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.RejectNonMTLSCIBANotificationEndpoint;
+import net.openid.conformance.condition.client.WaitForBrazilResourcesResponse;
 import net.openid.conformance.condition.common.CheckCIBAServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
@@ -171,7 +173,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -280,6 +285,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected FAPICIBAServerProfileBehavior profileBehavior;
+
+	private final Set<String> resourceEndpointRequestedConsents = new HashSet<>();
 
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
@@ -988,6 +995,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
+		call(profileBehavior.onSuccessfulTokenEndpointResponse());
+
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "CIBA-10.1.1", "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
@@ -1144,6 +1153,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
 
+		pollResourceEndpoint();
+
 		call(profileBehavior.validateResourceEndpointResponseStatus());
 		call(exec().unmapKey("endpoint_response"));
 
@@ -1156,6 +1167,36 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		call(profileBehavior.validateResourceEndpointResponse());
 
 		eventLog.endBlock();
+	}
+
+	protected void pollResourceEndpoint() {
+		String consentId = profileBehavior.getResourceEndpointPollingConsentId();
+		if (consentId == null || !resourceEndpointRequestedConsents.add(consentId)) {
+			return;
+		}
+		if (env.getInteger("endpoint_response", "status") != 202) {
+			return;
+		}
+		Long pollingStarted = env.getLong("brazil_resources_polling_started");
+		if (pollingStarted == null) {
+			throw new TestFailureException(getId(), "Test setup error: the Resources API polling timer was not started " +
+				"when the CIBA access token was received.");
+		}
+		long deadline = pollingStarted + TimeUnit.MINUTES.toNanos(5);
+		int attempt = 0;
+		while (env.getInteger("endpoint_response", "status") == 202) {
+			callAndStopOnFailure(EnsureHttpResponseBodyIsEmpty.class);
+			callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
+			call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
+			callAndStopOnFailure(createResourceEndpointPollingWait(deadline, attempt));
+			attempt++;
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+			updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
+		}
+	}
+
+	protected WaitForBrazilResourcesResponse createResourceEndpointPollingWait(long deadline, int attempt) {
+		return new WaitForBrazilResourcesResponse(deadline, attempt);
 	}
 
 	protected void updateResourceRequestAndCallProtectedResource(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {
