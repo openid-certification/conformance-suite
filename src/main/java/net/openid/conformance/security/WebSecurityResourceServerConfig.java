@@ -89,13 +89,16 @@ public class WebSecurityResourceServerConfig {
 					return false; // not a private link user, don't apply this rule
 				}
 
-				// Allow only the specific API endpoints needed for viewing shared results
+				// Allow only the specific API endpoints needed for viewing and downloading
+				// shared results. The controllers restrict these to tests in the shared plan.
 				String uri = request.getRequestURI();
 				String method = request.getMethod();
 				if ("GET".equals(method) && (
 					uri.matches("/api/plan/[A-Za-z0-9]+") ||
 					uri.matches("/api/info/[A-Za-z0-9]+") ||
 					uri.matches("/api/log/[A-Za-z0-9]+") ||
+					uri.matches("/api/log/export/[A-Za-z0-9]+") ||
+					uri.matches("/api/log/exporthtml/[A-Za-z0-9]+") ||
 					uri.equals("/api/currentuser"))) {
 					return false; // allow these
 				}
