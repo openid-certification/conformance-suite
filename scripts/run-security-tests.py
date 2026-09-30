@@ -872,6 +872,16 @@ def run_tests():
     resp = noauth_client.get(f"{base_url}api/statistics/overview", params={"public": "true"})
     runner.check_status("Unauth: statistics rejected as a public request too", resp, 401)
 
+    resp = noauth_client.get(f"{base_url}api/admin/settings/cmf-chile")
+    runner.check_status("Unauth: server settings read rejected", resp, 401)
+
+    resp = noauth_client.put(f"{base_url}api/admin/settings/cmf-chile", json={"clientId": "attacker"})
+    runner.check_status("Unauth: server settings save rejected", resp, 401)
+
+    # not on the public matcher either, so ?public=true cannot get past the chain
+    resp = noauth_client.get(f"{base_url}api/admin/settings/cmf-chile", params={"public": "true"})
+    runner.check_status("Unauth: server settings read rejected as a public request too", resp, 401)
+
     # filter-options rides the same matcher, and is deliberately left there: it answers with
     # the plan REGISTRY - family names, plan names and variant values, the same material
     # /api/plan/available carries - and with nothing about anybody's data. Pinned so that
@@ -1541,6 +1551,55 @@ def run_tests():
     # redirect is proved here.
     resp = unauthenticated_get(base_url, "statistics.html", verify_ssl)
     runner.check("Statistics: anonymous page request is sent to login",
+                 resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+                 f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
+
+    # ===================================================================
+    # 4j. SERVER SETTINGS (ADMIN ONLY)
+    # ===================================================================
+    # /api/admin/settings/** holds the operator's Chile CMF Directorio credentials. The controller
+    # makes the admin decision itself; as with statistics only the denials can be proved here,
+    # because an API token never carries ROLE_ADMIN. A refused save must not reach the store, so
+    # each PUT sends a value that would be visible if it had been saved.
+    print("\n--- 4j. Server settings (admin only) ---")
+
+    settings_url = f"{base_url}api/admin/settings/cmf-chile"
+    hostile_settings = {"clientId": "security-test-should-not-be-saved"}
+
+    resp = owner_client.get(settings_url)
+    runner.check_status("Settings: token user cannot read the server settings", resp, 403)
+
+    resp = owner_client.put(settings_url, json=hostile_settings)
+    runner.check_status("Settings: token user cannot save the server settings", resp, 403)
+
+    if token_2:
+        settings_user_b = second_user_client()
+        resp = settings_user_b.get(settings_url)
+        runner.check_status("Settings: second token user cannot read the server settings", resp, 403)
+        settings_user_b.close()
+
+    settings_pl_client = authenticate_private_link(base_url, plan_jwt, verify_ssl)
+    resp = settings_pl_client.get(settings_url)
+    runner.check_status("Settings: private link user cannot read the server settings", resp, 403)
+    resp = settings_pl_client.put(settings_url, json=hostile_settings)
+    runner.check_status("Settings: private link user cannot save the server settings", resp, 403)
+    settings_pl_client.close()
+
+    settings_plan_bearer = bearer_client(base_url, plan_jwt, verify_ssl)
+    resp = settings_plan_bearer.get(settings_url)
+    runner.check_status_in("Settings: plan JWT bearer cannot read the server settings", resp, {401, 403})
+    resp = settings_plan_bearer.put(settings_url, json=hostile_settings)
+    runner.check_status_in("Settings: plan JWT bearer cannot save the server settings", resp, {401, 403})
+    settings_plan_bearer.close()
+    settings_test_bearer = bearer_client(base_url, test_jwt, verify_ssl)
+    resp = settings_test_bearer.get(settings_url)
+    runner.check_status_in("Settings: test JWT bearer cannot read the server settings", resp, {401, 403})
+    settings_test_bearer.close()
+
+    # /settings.html is gated to ROLE_ADMIN on the OIDC chain, like /statistics.html: only the
+    # anonymous redirect to login can be proved without a browser session.
+    resp = unauthenticated_get(base_url, "settings.html", verify_ssl)
+    runner.check("Settings: anonymous page request is sent to login",
                  resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
                  f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
 
