@@ -217,6 +217,12 @@ public interface TestModule {
 	void setTestStatusWaiterService(net.openid.conformance.runner.TestStatusWaiterService service);
 
 	/**
+	 * Provide read-only access to the admin-configured server settings. Wired by TestRunner next to
+	 * {@link #setTestStatusWaiterService}.
+	 */
+	void setServerSettingsReader(net.openid.conformance.settings.ServerSettingsReader reader);
+
+	/**
 	 * Pass along the current variant configuration
 	 */
 	void setVariant(Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant);
