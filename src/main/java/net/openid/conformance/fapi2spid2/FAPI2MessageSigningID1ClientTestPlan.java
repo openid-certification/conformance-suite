@@ -136,6 +136,10 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
+				if (!openid) {
+					throw new RuntimeException("Invalid configuration for %s: OpenID must be selected for ConnectID".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				// as there's only one possible correct configuration, stop here and return just the name
 				return List.of(certProfile + " ConnectID RP");
 			case "cbuae":
@@ -157,6 +161,10 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 				}
 				if (jarm) {
 					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for CBUAE".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!openid) {
+					throw new RuntimeException("Invalid configuration for %s: OpenID must be selected for CBUAE".formatted(
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 
