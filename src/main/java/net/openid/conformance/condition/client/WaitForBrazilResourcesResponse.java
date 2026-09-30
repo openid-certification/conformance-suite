@@ -5,6 +5,9 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.concurrent.TimeUnit;
 
+// The Resources guidance defines five minutes and recommends exponential retry ("Recomendação uso de polling"):
+// https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/219512943/Orienta+es+-+DC+Recursos
+// The suite counts from token receipt to allow time for user approval; the exact delays and cap are suite choices.
 public class WaitForBrazilResourcesResponse extends AbstractWaitForSpecifiedSeconds {
 
 	private final long deadline;
@@ -19,7 +22,7 @@ public class WaitForBrazilResourcesResponse extends AbstractWaitForSpecifiedSeco
 	protected long getExpectedWaitSeconds(Environment env) {
 		long remainingSeconds = TimeUnit.NANOSECONDS.toSeconds(deadline - System.nanoTime());
 		if (remainingSeconds <= 0) {
-			throw error("Resources API still returned HTTP 202 after the five-minute polling budget " +
+			throw error("Resources API still returned HTTP 202 after the suite's five-minute polling budget " +
 				"measured from receipt of the CIBA access token. " +
 				"A final resource response is required to complete this test.");
 		}
