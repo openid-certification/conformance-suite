@@ -766,6 +766,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			// whilst or after we tidy up.
 			getTestExecutionManager().cancelAllBackgroundTasksExceptFinalisation();
 
+			acquireLock();
+			try {
+				endOfTestChecks();
+			} finally {
+				clearLock();
+			}
+
 			Result resultSoFar = getResult();
 			if (resultSoFar == Result.UNKNOWN || resultSoFar == Result.WARNING) {
 				// This is only necessary for placeholders filled by browsercontrol; for images uploaded by the
@@ -810,6 +817,20 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 			return "done";
 		});
+	}
+
+	/**
+	 * Checks a module can only make once the test is over, because they are about the test as a
+	 * whole - for example that a request it was waiting for never came. Called once when the
+	 * test has run to completion, however it got there: {@link #fireTestFinished()} and the
+	 * placeholder watcher in {@link #waitForPlaceholders()} both end here. Not called for a
+	 * test that is stopped or that a failure ends early.
+	 *
+	 * <p>Runs on the finalisation thread with the test lock held, before the test's result is
+	 * decided, so a condition that fails here counts towards the result like any other. The
+	 * test is no longer RUNNING, so the conditions called must not make network requests.
+	 */
+	protected void endOfTestChecks() {
 	}
 
 	@Override
