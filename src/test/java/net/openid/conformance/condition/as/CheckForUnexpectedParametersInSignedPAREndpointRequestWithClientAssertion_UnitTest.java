@@ -16,24 +16,30 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest_UnitTest {
+public class CheckForUnexpectedParametersInSignedPAREndpointRequestWithClientAssertion_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest cond;
+	private CheckForUnexpectedParametersInSignedPAREndpointRequestWithClientAssertion cond;
+
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest();
+		cond = new CheckForUnexpectedParametersInSignedPAREndpointRequestWithClientAssertion();
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test
-	public void testEvaluate_noError() {
+	private void putParRequest(String json) {
+		JsonObject parRequest = JsonParser.parseString(json).getAsJsonObject();
+		env.putObject("par_endpoint_http_request", parRequest);
+	}
 
-		JsonObject parRequest= JsonParser.parseString(
+	@Test
+	public void testEvaluate_requestAndClientAssertion() {
+
+		putParRequest(
 		"""
 		{
 			"body_form_params" : {
@@ -42,47 +48,56 @@ public class AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest_
 				"client_assertion_type" : "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 			}
 		}
-		""").getAsJsonObject();
+		""");
 
-		env.putObject("par_endpoint_http_request", parRequest);
 		cond.execute(env);
 	}
 
 	@Test
-	public void testEvaluate_invalidParam() {
+	public void testEvaluate_requestClientAssertionAndClientId() {
 
-		JsonObject parRequest= JsonParser.parseString(
+		putParRequest(
+		"""
+		{
+			"body_form_params" : {
+				"request" : "abcd1234",
+				"client_id" : "client",
+				"client_assertion" : "abcd1234",
+				"client_assertion_type" : "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+			}
+		}
+		""");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_authorizationRequestParameter() {
+
+		putParRequest(
 		"""
 		{
 			"body_form_params" : {
 				"request" : "abcd1234",
 				"client_assertion" : "abcd1234",
 				"client_assertion_type" : "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-				"invalid" : "invalid"
+				"dpop_jkt" : "abcd1234"
 			}
 		}
-		""").getAsJsonObject();
+		""");
 
-		assertThrows(ConditionError.class, () -> {
-			env.putObject("par_endpoint_http_request", parRequest);
-			cond.execute(env);
-		});
-
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
 	public void testEvaluate_noParams() {
 
-		JsonObject parRequest= JsonParser.parseString(
+		putParRequest(
 		"""
 		{
 		}
-		""").getAsJsonObject();
+		""");
 
-		assertThrows(ConditionError.class, () -> {
-			env.putObject("par_endpoint_http_request", parRequest);
-			cond.execute(env);
-		});
-
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }
