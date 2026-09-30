@@ -134,10 +134,13 @@ public class FAPICIBAResourceResponse_UnitTest {
 		module.initialize(behavior, "http://127.0.0.1:" + server.getAddress().getPort() + "/open-banking/resources/v3/resources");
 	}
 
-	@Test
-	public void brazilPollsUntil200BeforeBothAcceptHeaderProbes() {
+	@ParameterizedTest
+	@ValueSource(ints = {3, 4, 10})
+	public void brazilPollsUntil200BeforeBothAcceptHeaderProbes(int version) {
 		pendingResponses = 2;
 		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
+		module.getEnv().putString("protected_resource_url",
+			"http://127.0.0.1:" + server.getAddress().getPort() + "/open-banking/resources/v" + version + "/resources");
 		module.requestProtectedResource();
 		module.verifyAccessTokenWithResourceEndpointDifferentAcceptHeader();
 		assertThat(resourceCalls).isEqualTo(5);
@@ -221,13 +224,15 @@ public class FAPICIBAResourceResponse_UnitTest {
 		assertThat(resourceCalls).isEqualTo(2);
 	}
 
-	@Test
-	public void brazilRejects202FromOtherApi() {
+	@ParameterizedTest
+	@ValueSource(strings = {"/open-banking/accounts/v2/accounts", "/open-banking/resources/vnext/resources",
+		"/open-banking/resources/v4beta/resources"})
+	public void brazilRejects202OutsideNumericResourcesEndpoint(String path) {
 		responseStatus = 202;
 		responseBody = "";
 		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
 		module.getEnv().putString("protected_resource_url",
-			"http://127.0.0.1:" + server.getAddress().getPort() + "/open-banking/accounts/v2/accounts");
+			"http://127.0.0.1:" + server.getAddress().getPort() + path);
 		assertThrows(TestFailureException.class, () -> module.requestProtectedResource());
 		assertThat(resourceCalls).isEqualTo(1);
 	}

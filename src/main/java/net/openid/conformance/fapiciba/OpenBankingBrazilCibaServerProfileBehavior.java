@@ -181,7 +181,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 		String method = getEnv().getString("resource", "resourceMethod");
 		String path = URI.create(getEnv().getString("protected_resource_url")).getPath();
 		if ((method == null || method.isEmpty() || method.equals("GET"))
-			&& path != null && path.matches(".*/open-banking/resources/v3/resources/?")) {
+			&& path != null && path.matches(".*/open-banking/resources/v\\d+/resources/?")) {
 			return getEnv().getString("consent_id");
 		}
 		return null;
