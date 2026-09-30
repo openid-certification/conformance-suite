@@ -4,6 +4,7 @@ import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
+// import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,13 @@ public class OIDSSFReceiverTestPlanCaepInterop implements TestPlan {
 				OIDSSFReceiverHappyPathTest.class,
 
 				// Happy path tests are not relevant to CAEP-Interop as stream update / replace operations are not supported
-				OIDSSFReceiverStreamStatusUpdateTest.class
+				OIDSSFReceiverStreamStatusUpdateTest.class,
+				// The profile says nothing about stream-updated events (WG question 24), so a
+				// transmitter-initiated status change is exercised under the default profile only
+				OIDSSFReceiverTransmitterInitiatedStatusChangeTest.class,
+
+				// CAEP Interop has no subject endpoints (2.4.4: all subjects are implicitly in the stream)
+				OIDSSFReceiverRemovedSubjectEventTest.class
 			)
 		);
 
@@ -37,5 +44,11 @@ public class OIDSSFReceiverTestPlanCaepInterop implements TestPlan {
 				new Variant(SsfProfile.class, SsfProfile.CAEP_INTEROP)
 			)));
 	}
+
+	// Enable once the SSF certification program is open; the plan is alpha until then.
+	// @Override
+	// public List<String> certificationProfileName(VariantSelection variantSelection) {
+	// 	return OIDSSFCertification.caepInteropReceiverProfileName(variantSelection);
+	// }
 
 }

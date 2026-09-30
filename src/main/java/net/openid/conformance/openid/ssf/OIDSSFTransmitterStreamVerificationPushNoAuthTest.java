@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.ssf;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureNoAuthorizationHeaderIsPresentInPushRequest;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -18,7 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		 * receive the verification event via PUSH delivery without an Authorization header
 		 * validate the verification event
 
-		The test fails if the transmitter includes an Authorization header on the push delivery.
+		A transmitter that includes an Authorization header on the push delivery although none was configured is reported with a warning.
 		""",
 	profile = "OIDSSF"
 )
@@ -32,7 +31,9 @@ public class OIDSSFTransmitterStreamVerificationPushNoAuthTest extends OIDSSFTra
 	}
 
 	@Override
-	protected void onPushDeliveryReceived(String path, JsonObject requestParts) {
+	protected void checkPushDeliveryAuthorization() {
+		// the stream has no authorization_header, so none is expected; the RFC 8935 2.1
+		// method, Content-Type and Accept checks of the base still apply
 		callAndContinueOnFailure(OIDSSFEnsureNoAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 	}
 }

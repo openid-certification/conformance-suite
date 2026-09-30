@@ -30,34 +30,54 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (!streamsObj.isEmpty()) {
+			// SSF 1.0 8.1.1.1: a transmitter that allows one stream per receiver "MUST respond with
+			// HTTP status code 409 Conflict. The Receiver MAY then GET the existing stream
+			// configuration". The emulated transmitter is such a transmitter, so a second create is
+			// answered 409 and not graded; the receiver is expected to carry on with the existing stream.
 			resultObj.add("error", createErrorObj("conflict", "Only one stream allowed for receiver"));
 			resultObj.addProperty("status_code", 409);
-			throw error("Failed to handle stream creation request: Too many streams configured for receiver", args("error", resultObj.get("error")));
+			log("Handled stream creation request: the receiver already has a stream, answered 409", args("existing_stream_ids", streamsObj.keySet()));
+			return env;
 		}
 
-		Set<String> keysNotAllowedInUpdate = checkForInvalidKeysInStreamConfigInput(streamConfigInput);
-		if (!keysNotAllowedInUpdate.isEmpty()) {
-			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream config in request body"));
-			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream creation request: Found invalid keys for stream in request body", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
+		Set<String> ignoredTransmitterSuppliedKeys = findTransmitterSuppliedKeysInStreamConfigInput(streamConfigInput);
+		if (!ignoredTransmitterSuppliedKeys.isEmpty()) {
+			// SSF 1.0 8.1.1.1 / Table 1: not a parse failure, so not a 400. The transmitter
+			// decides these values (8.1.1.1.1 lets e.g. the audience be agreed out of band);
+			// the request is honored with the transmitter's own values.
+			log("Ignoring transmitter-supplied properties in the stream create request; the transmitter's own values are used",
+				args("ignored_keys", ignoredTransmitterSuppliedKeys));
 		}
 
 		JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
-		Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
 
 		String streamId = generateStreamId();
 		String ssfIssuer = env.getString("ssf", "issuer");
+		String issuerOverride = env.getString("ssf", "create_response_issuer_override");
+		if (issuerOverride != null) {
+			// a module testing the receiver's issuer check (SSF 1.0 8.1.1.1) answers with a foreign iss
+			log("Answering the create request with a stream configuration whose iss is not this transmitter's issuer", args("iss", issuerOverride, "issuer", ssfIssuer));
+			ssfIssuer = issuerOverride;
+		}
 		String audience = getStreamAudience(env);
 
 		try {
+			// SSF 1.0 8.1.1.1: all receiver-supplied values (events_requested, delivery,
+			// description) are OPTIONAL - malformed values yield a 400, never a 500.
+			Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
+
 			JsonObject streamConfig = new JsonObject();
 			streamConfig.addProperty("stream_id", streamId);
 			streamConfig.addProperty("iss", ssfIssuer);
 			streamConfig.addProperty("aud", audience);
-			streamConfig.add("description", streamConfigInput.get("description"));
+			if (streamConfigInput.has("description")) {
+				streamConfig.add("description", streamConfigInput.get("description"));
+			}
 			streamConfig.add("events_supported", defaultConfig.get("events_supported"));
 			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
-			streamConfig.add("events_requested", streamConfigInput.getAsJsonArray("events_requested"));
+			if (streamConfigInput.has("events_requested")) {
+				streamConfig.add("events_requested", streamConfigInput.getAsJsonArray("events_requested"));
+			}
 
 			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
 			if (delivery == null) {
@@ -69,6 +89,7 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 
 			// if delivery is configured and set to POLL we generate a poll delivery
 			String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
+			ensureDeliveryMethodSupported(env, deliveryMethod);
 			if (deliveryMethod.equals(DELIVERY_METHOD_POLL_RFC_8936_URI)) {
 				String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
 				String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
@@ -76,6 +97,7 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 				log("Configured endpoint url for POLL delivery for stream_id=%s".formatted(streamId), args("endpoint_url", streamPollEndpointUrl, "delivery", delivery));
 			} else {
 				String pushEndpointUrl = OIDFJSON.getString(delivery.get("endpoint_url"));
+				ensurePushEndpointUrlIsHttps(pushEndpointUrl);
 				log("Found endpoint url for PUSH delivery for stream_id=%s".formatted(streamId), args("endpoint_url", pushEndpointUrl, "delivery", delivery));
 			}
 			streamConfig.add("delivery", delivery);

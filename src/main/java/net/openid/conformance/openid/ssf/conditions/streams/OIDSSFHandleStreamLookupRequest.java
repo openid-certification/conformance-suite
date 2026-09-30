@@ -35,9 +35,13 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 
 			JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 			if (streamConfigEl == null) {
+				// SSF 1.0 8.1.1.2, Table 3: 404 is the transmitter's regular answer for a stream_id it
+				// does not know. A receiver commonly reads the stream of an earlier run before creating
+				// a new one, so this is not graded; the module's own expectations decide what is missing.
 				resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 				resultObj.addProperty("status_code", 404);
-				throw error("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamId));
+				log("Handled stream lookup request: no stream with the given stream_id, answered 404", args("stream_id", streamId));
+				return env;
 			}
 
 			JsonObject streamConfig = streamConfigEl.getAsJsonObject();
@@ -73,6 +77,14 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
 			streams.add(streamConfigResult);
+		}
+
+		if (streams.size() == 1) {
+			// A list response identifies the stream just as well as ?stream_id= - the
+			// stream_id query parameter is optional (SSF 1.0 8.1.1.2: "The GET request
+			// MAY include the stream_id"). Record the id so modules tracking the read
+			// stream also observe list-style reads instead of waiting forever.
+			resultObj.addProperty("stream_id", OIDFJSON.tryGetString(streams.get(0).get("stream_id")));
 		}
 
 		logSuccess("Handled stream lookup request: Found " + streams.size() + " streams",  args("streams", streams));

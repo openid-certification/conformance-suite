@@ -6,8 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.time.Instant;
+import net.openid.conformance.util.JWTUtil;
 
 public class OIDSSFEnsureSecurityEventTokenIatIsNotInFuture extends AbstractCondition {
 
@@ -27,10 +26,15 @@ public class OIDSSFEnsureSecurityEventTokenIatIsNotInFuture extends AbstractCond
 		}
 
 		long iat = OIDFJSON.getLong(setTokenClaims.get("iat"));
-		Instant iatInstant = Instant.ofEpochSecond(iat);
-		Instant now = Instant.now();
-		if (now.isBefore(iatInstant)) {
-			throw error("SET contains 'iat' in the future", args("iat", iatInstant, "now", now));
+
+		try {
+			// Shared RFC 7519 iat validation: a plausible unix-seconds timestamp (catches
+			// iat: 0 and millisecond values) that is not in the future beyond a 5-minute
+			// clock-skew tolerance - a transmitter whose clock is a second ahead of the
+			// suite's must not fail certification.
+			JWTUtil.validateIatClaim(iat);
+		} catch (IllegalArgumentException e) {
+			throw error("SET contains an invalid 'iat' claim: " + e.getMessage(), args("iat", iat));
 		}
 
 		logSuccess("Valid iat claim present in SET claims", args("iat", iat));

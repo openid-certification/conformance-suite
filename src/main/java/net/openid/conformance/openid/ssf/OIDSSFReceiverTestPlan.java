@@ -21,7 +21,16 @@ public class OIDSSFReceiverTestPlan implements TestPlan {
 		OIDSSFReceiverStreamStatusUpdateTest.class,
 		OIDSSFReceiverStreamVerificationTest.class,
 		OIDSSFReceiverUnsolicitedStreamVerificationTest.class,
-		OIDSSFReceiverSupportedEventsTest.class
+		OIDSSFReceiverSupportedEventsTest.class,
+		OIDSSFReceiverInvalidSetRejectionTest.class,
+		OIDSSFReceiverVerificationWrongStateTest.class,
+		OIDSSFReceiverVerificationWrongSubjectTest.class,
+		OIDSSFReceiverStreamIssuerMismatchTest.class,
+		OIDSSFReceiverTransmitterInitiatedStatusChangeTest.class,
+		OIDSSFReceiverVerificationBehindQueuedEventsTest.class,
+		OIDSSFReceiverRedeliveredSetTest.class,
+		OIDSSFReceiverRemovedSubjectEventTest.class,
+		OIDSSFReceiverAccessTokenExpiryTest.class
 	);
 
 	@Override

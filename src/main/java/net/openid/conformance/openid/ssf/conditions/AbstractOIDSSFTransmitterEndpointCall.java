@@ -2,12 +2,17 @@ package net.openid.conformance.openid.ssf.conditions;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractCallProtectedResourceWithBearerToken;
 import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClientResponseException;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCallProtectedResourceWithBearerToken {
 
@@ -33,15 +38,40 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 		JsonObject errorEndpointResponse = new JsonObject();
 		errorEndpointResponse.addProperty("status", e.getStatusCode().value());
 		errorEndpointResponse.addProperty("endpoint_name", getEndpointName());
-		errorEndpointResponse.addProperty("body", e.getResponseBodyAsString());
-		MediaType responseContentType = e.getResponseHeaders().getContentType();
+		String responseBody = e.getResponseBodyAsString();
+		errorEndpointResponse.addProperty("body", responseBody);
+		HttpHeaders responseHeaders = e.getResponseHeaders();
+		MediaType responseContentType = null;
+		if (responseHeaders != null) {
+			// keep the response headers available for follow-up checks (e.g. the RFC 6750
+			// WWW-Authenticate challenge on 401/403 responses)
+			errorEndpointResponse.add("headers", mapToJsonObject(responseHeaders, true));
+			responseContentType = responseHeaders.getContentType();
+		}
 		if (responseContentType != null && (MediaType.APPLICATION_JSON.equals(responseContentType) ||
 			// deal with funky vendor specific content types like application/vnd.foo.bar+json
 			(MediaType.APPLICATION_JSON.getType().equals(responseContentType.getType())
 				&& responseContentType.getSubtype().endsWith(MediaType.APPLICATION_JSON.getSubtype())))
 		) {
-			JsonElement bodyJson = JsonParser.parseString(e.getResponseBodyAsString());
-			errorEndpointResponse.add("body_json", bodyJson);
+			// The body is only material for the follow-up checks, which treat a missing
+			// body_json as "no JSON body"; a body that is not a JSON object or array must
+			// not end the test. JsonParser is lenient and turns bare text into a primitive,
+			// so the root type is checked as well.
+			String parseProblem = null;
+			try {
+				JsonElement bodyJson = JsonParser.parseString(responseBody);
+				if (bodyJson.isJsonObject() || bodyJson.isJsonArray()) {
+					errorEndpointResponse.add("body_json", bodyJson);
+				} else {
+					parseProblem = "not a JSON object or array";
+				}
+			} catch (JsonParseException parseException) {
+				parseProblem = parseException.getMessage();
+			}
+			if (parseProblem != null) {
+				log("The error response declares a JSON content type but its body is not valid JSON",
+					args("content_type", responseContentType.toString(), "body", responseBody, "error", parseProblem));
+			}
 		}
 
 		env.putObject("resource_endpoint_response_full", errorEndpointResponse);
@@ -58,8 +88,24 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 
 	protected abstract String getEndpointName();
 
+	@Override
+	protected HttpHeaders getHeaders(Environment env) {
+		if (env.getString("ssf", "omit_authorization_header") != null) {
+			// CAEPIOP 2.7.2 negative tests probe the transmitter's behavior for requests
+			// that carry no bearer credentials in the Authorization header
+			return new HttpHeaders();
+		}
+		return super.getHeaders(env);
+	}
+
 	protected void configureResourceUrl(Environment env) {
 		String resourceUrl = getResourceEndpointUrl(env);
+		// CAEPIOP 2.7.2 negative tests move the token into the URI query (RFC 6750 2.3)
+		String queryToken = env.getString("ssf", "access_token_query_override");
+		if (queryToken != null) {
+			String encodedToken = URLEncoder.encode(queryToken, StandardCharsets.UTF_8);
+			resourceUrl = resourceUrl + (resourceUrl.contains("?") ? "&" : "?") + "access_token=" + encodedToken;
+		}
 		env.putString("protected_resource_url", resourceUrl);
 	}
 

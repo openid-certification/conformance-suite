@@ -170,7 +170,7 @@ public class OIDSSFResolveEventSubjects_UnitTest {
 		setUp(SsfProfile.CAEP_INTEROP, "{\"valid\":[" + EMAIL_SUBJECT + "]}");
 		ConditionError e = assertThrows(ConditionError.class, () -> condition.execute(env));
 		assertTrue(e.getMessage().contains("'SSF valid SubjectId'"));
-		assertTrue(e.getMessage().contains("section 2.5"));
+		assertTrue(e.getMessage().contains("the CAEP Interop Profile requires receivers to accept"));
 	}
 
 	@Test

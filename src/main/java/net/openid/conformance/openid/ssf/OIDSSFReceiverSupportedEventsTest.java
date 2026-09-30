@@ -3,15 +3,18 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -24,8 +27,12 @@ import java.util.concurrent.TimeUnit;
 	summary = """
 		This test verifies the receiver events delivery.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream and verify it; once verified, it generates all supported events and expects a positive delivery of the events received.
-		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field.
-		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change and device-compliance-change) are available, and only email/iss_sub (and complex) subjects are used.
+		Each delivered event type is sent once per subject declared in the 'SSF valid SubjectId' field,
+		except the SSF framework events (verification, stream-updated), which identify the stream itself
+		and are sent once with the stream's opaque subject (SSF 1.0 8.1.4.1, 8.1.5). The stream-updated event
+		object additionally carries a member that no specification defines; receivers must ignore members they
+		do not understand (SSF 1.0 4.2.3), so the event must be acknowledged like any other.
+		Note that if the caep_interop profile is used, only the CAEP Interop Profile event types (session-revoked, credential-change, device-compliance-change and risk-level-change) are available, and only email/iss_sub (and complex) subjects are used; a receiver rejecting the events with a complex subject is reported as a warning only, since draft-01 of the profile (section 2.5) does not list Complex Subjects.
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * verify the stream
@@ -64,7 +71,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		// event push and treat it as our cue to start sending the supported events.
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			afterInitialStreamVerification(streamId);
 			return;
 		}
@@ -85,8 +92,8 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		// supported events.
 		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
-			afterInitialStreamVerification(streamId);
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			scheduleAfterStreamVerification(() -> afterInitialStreamVerification(streamId));
 			return;
 		}
 
@@ -105,7 +112,9 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 	@Override
 	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
 
-		if (createResult == null) {
+		// a retried create is answered 409 without a stream_id (SSF 1.0 8.1.1.1) and must not
+		// discard the stream already under test
+		if (createResult == null || streamId == null) {
 			return;
 		}
 
@@ -133,17 +142,67 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 
 		for (String eventType : eventsDelivered) {
 
+			if (SsfEvents.SSF_EVENT_TYPES.contains(eventType)) {
+				// The SSF framework events are about the stream, not about a subject: their
+				// sub_id MUST be the opaque stream id (SSF 1.0 8.1.4.1, 8.1.5), and a verification
+				// event the transmitter initiates MUST NOT carry a state (8.1.4.2). One SET each.
+				SsfEvent event = generateSsfFrameworkEventExample(eventType, streamId);
+				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, streamSubject(streamId), event, this::onStreamEventEnqueued);
+				callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
+				continue;
+			}
+
 			for (JsonObject subject : subjects) {
 				SsfEvent event = generateSsfEventExample(eventType, timestamp);
 
-				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event, this::onStreamEventEnqueued);
+				var generateStreamSET = new OIDSSFGenerateStreamSET(eventStore, streamId, subject, event, (sid, jti) -> {
+					// the subject format decides how a rejection is graded, see
+					// getPushDeliveryRejectionSeverity and fireTestFinished
+					recordEventSubject(jti, subject);
+					onStreamEventEnqueued(sid, jti);
+				});
 				callAndContinueOnFailure(generateStreamSET, Condition.ConditionResult.WARNING, event.requirements().toArray(new String[0]));
 			}
 		}
 	}
 
+	private static JsonObject streamSubject(String streamId) {
+		JsonObject subject = new JsonObject();
+		subject.addProperty("format", "opaque");
+		subject.addProperty("id", streamId);
+		return subject;
+	}
+
+	/**
+	 * Event data for the SSF framework event types when they are delivered as "supported
+	 * events": a transmitter-initiated verification event has no claims (SSF 1.0 8.1.4.2 forbids
+	 * a state), a stream-updated event reports the stream's current status (8.1.5: status REQUIRED).
+	 */
+	private SsfEvent generateSsfFrameworkEventExample(String eventType, String streamId) {
+		if (SsfEvents.SSF_STREAM_UPDATED_EVENT_TYPE.equals(eventType)) {
+			JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+			JsonObject streamStatus = streamConfig == null ? null : OIDSSFStreamUtils.getStreamStatus(streamConfig);
+			String status = streamStatus == null
+				? OIDSSFStreamUtils.StreamStatusValue.enabled.name()
+				: OIDFJSON.getString(streamStatus.get("status"));
+			// The event object also carries a member no specification defines: receivers must
+			// ignore members they do not understand (SSF 1.0 4.2.3).
+			return new SsfEvent(eventType,
+				Map.of("status", status,
+					"reason", "Stream status reported as a supported event",
+					SsfEvents.UNKNOWN_EVENT_MEMBER_NAME, SsfEvents.UNKNOWN_EVENT_MEMBER_VALUE),
+				Set.of("OIDSSF-8.1.5", "OIDSSF-4.2.3"));
+		}
+		return new SsfEvent(eventType, Map.of(), Set.of("OIDSSF-8.1.4", "OIDSSF-8.1.4.2"));
+	}
+
 	@Override
 	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+		if (error != null || streamId == null) {
+			// deletion failed (e.g. 404 for an unknown or already-deleted stream) - do not
+			// record it as the successful deletion or reset previously recorded state
+			return;
+		}
 		deletedStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream deletion for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 	}
@@ -151,27 +210,68 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 	@Override
 	protected boolean isFinished() {
 		return createdStreamId != null
-			&& !eventsEnqueued.isEmpty()
 			&& eventsEnqueued.get(createdStreamId) != null
-			&& eventsAcked.get(createdStreamId) != null
 			&& didReceiveExpectedAcksForAllDeliveredEvents()
 			&& createdStreamId.equals(deletedStreamId);
 	}
 
 	protected boolean didReceiveExpectedAcksForAllDeliveredEvents() {
-		if (eventsAcked.get(createdStreamId) == null || eventsEnqueued.get(createdStreamId) == null) {
+		if (createdStreamId == null || eventsEnqueued.get(createdStreamId) == null) {
 			return false;
 		}
-		// Events that could not be delivered because the receiver deleted the stream are never
-		// acknowledged; waiting for them would stall the test until it times out.
+		// Events for which no acknowledgement can arrive any more (never delivered, resolved
+		// via setErrs, push delivery rejected, or left unresolved when the receiver deleted
+		// the stream) must not stall the test until it times out - whether every delivered
+		// event was actually acknowledged is judged in fireTestFinished.
 		Set<String> expectedAcks = new LinkedHashSet<>(eventsEnqueued.get(createdStreamId));
-		expectedAcks.removeAll(getUndeliveredEventJtis());
-		return eventsAcked.get(createdStreamId).containsAll(expectedAcks);
+		expectedAcks.removeAll(getResolvedWithoutAckJtis());
+		return eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(expectedAcks);
 	}
 
 	@Override
 	public void fireTestFinished() {
-		eventLog.log(getName(), "Detected acknowledgements for published events.");
+		Set<String> unacknowledged = new LinkedHashSet<>(
+			createdStreamId == null ? Set.of() : eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
+		unacknowledged.removeAll(createdStreamId == null ? Set.of() : eventsAcked.getOrDefault(createdStreamId, Set.of()));
+		// Undeliverable events were never handed to the receiver, so it cannot be expected to
+		// acknowledge them. Error reports via setErrs are a valid resolution (RFC 8936 2.4),
+		// and rejected push deliveries are already graded by the RFC 8935 2.2 status check.
+		// What remains are events the receiver retrieved but neither acknowledged nor reported
+		// before deleting the stream - the acknowledgement failure graded below.
+		unacknowledged.removeAll(getUndeliveredEventJtis());
+		unacknowledged.removeAll(getErrorReportedEventJtis());
+		unacknowledged.removeAll(getRejectedPushEventJtis());
+		gradeRejectedComplexSubjectEvents();
+		if (unacknowledged.isEmpty()) {
+			eventLog.log(getName(), "Detected acknowledgements for published events.");
+		} else {
+			// The receiver retrieved (or was pushed) these events but deleted the stream
+			// without ever acknowledging them - accepted SETs must be acknowledged via
+			// 'ack' (RFC 8936 2.4) or a 202 response (RFC 8935 2.2).
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver never acknowledged " + unacknowledged.size() + " of the " + "delivered events before deleting the stream (jtis: " + unacknowledged + "). "
+						+ "Receivers must acknowledge accepted SETs via 'ack' (RFC 8936 2.4) or a 202 response (RFC 8935 2.2)."),
+				Condition.ConditionResult.FAILURE, acknowledgementRequirement());
+		}
 		super.fireTestFinished();
+	}
+
+	/**
+	 * Under the CAEP Interop Profile a receiver may reject an event with a Complex Subject
+	 * (draft-01, 2.5, see openid/sharedsignals#351). A rejected push delivery is already graded
+	 * as a warning by the RFC 8935 2.2 status check; a setErrs report on poll delivery would
+	 * otherwise go unmentioned, so both are summarised here as a warning.
+	 */
+	private void gradeRejectedComplexSubjectEvents() {
+		Set<String> rejectedComplexSubjectJtis = new LinkedHashSet<>(getErrorReportedEventJtis());
+		rejectedComplexSubjectJtis.addAll(getRejectedPushEventJtis());
+		rejectedComplexSubjectJtis.removeIf(jti -> !isComplexSubjectEventToleratedUnderProfile(jti));
+		if (rejectedComplexSubjectJtis.isEmpty()) {
+			return;
+		}
+		callAndContinueOnFailure(new OIDSSFFindingCondition(
+				"The receiver rejected " + rejectedComplexSubjectJtis.size() + " event(s) with a Complex Subject (jtis: " + rejectedComplexSubjectJtis + "). "
+					+ "Graded as a warning because draft-01 of the CAEP Interop Profile does not require receivers to accept Complex Subjects."),
+			Condition.ConditionResult.WARNING, "CAEPIOP-2.5", "OIDSSF-3.3");
 	}
 }

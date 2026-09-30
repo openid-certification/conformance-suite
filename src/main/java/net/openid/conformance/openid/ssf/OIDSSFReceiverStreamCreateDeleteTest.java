@@ -46,7 +46,9 @@ public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiver
 	@Override
 	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
 
-		if (createResult == null) {
+		// a retried create is answered 409 without a stream_id (SSF 1.0 8.1.1.1) and must not
+		// discard the stream already under test
+		if (createResult == null || streamId == null) {
 			return;
 		}
 
@@ -56,6 +58,11 @@ public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiver
 
 	@Override
 	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+		if (error != null || streamId == null) {
+			// deletion failed (e.g. 404 for an unknown or already-deleted stream) - do not
+			// record it as the successful deletion or reset previously recorded state
+			return;
+		}
 		deletedStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream deletion for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 	}

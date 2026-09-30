@@ -38,7 +38,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 	}
 
 	@Override
-	@PreEnvironment(required = {"server_jwks", "ssf"})
+	@PreEnvironment(required = {"server_jwks", "ssf", "config"})
 	public Environment evaluate(Environment env) {
 
 		String streamId = getCurrentStreamId(env);
@@ -51,19 +51,17 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
-		String serverIssuer = env.getString("ssf", "issuer");
-		String audience = env.getString("config", "ssf.stream.audience");
+		String serverIssuer = getIssuer(env);
+		String audience = getAudience(env);
 
 		try {
-			JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("server_jwks").toString());
-			JWK jwk = jwkSet.getKeys().get(0);
-			RSAKey rsaKey = RSAKey.parse(jwk.toJSONString());
+			RSAKey rsaKey = getSigningKey(env);
 
 			JWSSigner signer = new RSASSASigner(rsaKey);
 
 			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
 				.type(new JOSEObjectType("secevent+jwt"))
-				.keyID(jwk.getKeyID())
+				.keyID(rsaKey.getKeyID())
 				.build();
 
 			Instant now = Instant.now();
@@ -74,7 +72,9 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 				.jwtID(setJti)
 				.issuer(serverIssuer)
 				.audience(audience)
-				.issueTime(issueTime);
+				.issueTime(issueTime)
+				// SSF 1.0 4.1.9: transmitters SHOULD set txn; each emulated SET stems from its own event
+				.claim("txn", UUID.randomUUID().toString());
 
 			addSubjectAndEvents(streamId, streamConfig, claimsBuilder);
 
@@ -83,7 +83,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 			SignedJWT signedJWT = new SignedJWT(header, claimsSet);
 			signedJWT.sign(signer);
 
-			String setTokenString = signedJWT.serialize();
+			String setTokenString = postProcessSerializedSecurityEventToken(signedJWT.serialize());
 
 			JsonObject setObject = JWTUtil.jwtStringToJsonObjectForEnvironment(setTokenString);
 			setObject.remove("value");
@@ -100,6 +100,35 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 	protected String getCurrentStreamId(Environment env) {
 		return env.getString("ssf", "current_stream_id");
+	}
+
+	/**
+	 * The key the SET is signed with; its key ID becomes the {@code kid} of the JWS header.
+	 * Defaults to the first key of the transmitter's {@code server_jwks}, so the receiver can
+	 * resolve it via the advertised {@code jwks_uri}. Negative tests override this to sign with
+	 * a key the receiver cannot resolve.
+	 */
+	protected RSAKey getSigningKey(Environment env) throws ParseException, JOSEException {
+		JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("server_jwks").toString());
+		JWK jwk = jwkSet.getKeys().get(0);
+		return RSAKey.parse(jwk.toJSONString());
+	}
+
+	protected String getIssuer(Environment env) {
+		return env.getString("ssf", "issuer");
+	}
+
+	protected String getAudience(Environment env) {
+		return env.getString("config", "ssf.stream.audience");
+	}
+
+	/**
+	 * Hook for subclasses that need to alter the serialized SET after signing
+	 * (e.g. to deliberately corrupt the signature for negative tests). The
+	 * default implementation returns the token unchanged.
+	 */
+	protected String postProcessSerializedSecurityEventToken(String setTokenString) {
+		return setTokenString;
 	}
 
 	protected void afterSecurityEventTokenGenerated(Environment env, String streamId, JsonObject streamConfig, String setJti, String setTokenString, JsonObject setObject) {

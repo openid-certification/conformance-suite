@@ -7,18 +7,29 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
+import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStoreIssuedAccessToken;
+import net.openid.conformance.openid.ssf.conditions.as.OIDSSFStopOnFirstFailureSequence;
 import net.openid.conformance.openid.ssf.conditions.as.OIDSSFValidateRequestedScope;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushDeliveryResponseBodyIsEmpty;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogObservedPollRequestVariations;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFGenerateStreamSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsurePushDeliveryEndpointUrlIsHttps;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureTokenScopeSufficient;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMethodMatchesVariant;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
@@ -36,6 +47,10 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSu
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnEmptyEventsRequestedInStreamRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnPollRequestContentTypeNotJson;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFLogUnknownEventsRequestedInStreamRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFResolveEventSubjects;
@@ -51,6 +66,7 @@ import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithC
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretPost;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.OAuthUriUtil;
@@ -63,12 +79,14 @@ import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +94,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
@@ -135,6 +155,57 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	protected final Set<String> undeliveredEventJtis = ConcurrentHashMap.newKeySet();
 
 	/**
+	 * {@code jti} values of events the receiver retrieved via poll but neither acknowledged
+	 * nor reported via {@code setErrs} before deleting the stream, see
+	 * {@link #onEventsUnresolvedAtDeletion(String, List)}. Test modules should stop waiting
+	 * for acknowledgements of these events but still grade the missing acknowledgement.
+	 */
+	protected final Set<String> unresolvedEventJtis = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * {@code jti} values of events the receiver resolved by reporting an error via the
+	 * {@code setErrs} member of a poll request (RFC 8936 2.4). An error report is a valid
+	 * resolution of a SET: no acknowledgement will ever arrive for these events.
+	 */
+	protected final Set<String> errorReportedEventJtis = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * {@code jti} values of events whose push delivery the receiver answered with a non-2xx
+	 * status (or no HTTP response at all), see {@link #onPushDeliveryNotAcknowledged(String,
+	 * OIDSSFSecurityEvent)}. The RFC 8935 2.2 status check grades these per delivery; the
+	 * set only lets test modules stop waiting for acknowledgements that will never arrive.
+	 */
+	protected final Set<String> rejectedPushEventJtis = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Streams with a push delivery task scheduled or running. Delivery is single-flight per
+	 * stream: a second trigger (a verification request, newly generated events, a re-enabled
+	 * stream) while a task is active does not start another one, the running task picks the
+	 * new events up and reschedules itself when it drains the queue.
+	 */
+	private final Set<String> pushDeliveryActive = ConcurrentHashMap.newKeySet();
+
+	/** Starts push delivery for the stream unless a delivery task is already active for it. */
+	protected void schedulePushDelivery(String streamId) {
+		if (pushDeliveryActive.add(streamId)) {
+			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+		}
+	}
+
+	/**
+	 * Set once the receiver fetches the emulated transmitter's signing keys from the
+	 * advertised jwks_uri, see {@link #isJwksEndpointFetched()}.
+	 */
+	protected volatile boolean jwksEndpointFetched;
+
+	/**
+	 * Subject identifier format of each generated event, keyed by {@code jti}. Modules record it
+	 * via {@link #recordEventSubject} when they enqueue an event so the delivery grading can tell
+	 * a Complex Subject event apart, see {@link #getPushDeliveryRejectionSeverity}.
+	 */
+	protected final ConcurrentMap<String, String> subjectFormatByJti = new ConcurrentHashMap<>();
+
+	/**
 	 * The per-{@link ClientAuthType} sequence used to validate client
 	 * authentication on the emulated token endpoint in
 	 * {@link SsfAuthMode#DYNAMIC} mode. Set by the {@code @VariantSetup}
@@ -186,6 +257,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject transmitterMetadata = generateTransmitterMetadata(issuer);
 		env.putObject("ssf", "transmitter_metadata", transmitterMetadata);
+		env.putArray("ssf", "delivery_methods_supported", OIDFJSON.convertListToJsonArray(getSupportedDeliveryMethods()));
 
 		env.putString("ssf", "auth_mode", getVariant(SsfAuthMode.class).name());
 		configureAuthorizationServer(issuer);
@@ -328,6 +400,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected String resolveEffectiveIssuer() {
 
+		// Internal developer knob: deliberately NOT declared in @ConfigurationFields /
+		// the config-field catalog - it exists for suite development setups only.
 		String issuer = env.getString("config", "ssf.transmitter.issuer_override");
 		if (issuer == null) {
 			issuer = BaseUrlUtil.resolveEffectiveBaseUrl(env);
@@ -370,12 +444,30 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String ssfIssuer = env.getString("ssf", "issuer");
 
-		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.POLL) {
-			String pollEndpointUrl = ssfIssuer + "/events";
-			env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
+		// SSF 1.0 8.1.1.1: a stream created without a delivery object defaults to POLL
+		// delivery, regardless of the variant under test - so the poll endpoint URL must
+		// always be available (otherwise the stream config would advertise
+		// "null?stream_id=..." as the poll endpoint_url).
+		String pollEndpointUrl = ssfIssuer + "/events";
+		env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
 
+		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.POLL) {
 			exposeEnvString("ssf_poll_endpoint", "ssf", "poll_endpoint_url");
 		}
+	}
+
+	/**
+	 * The emulated transmitter supports only the delivery method the run was scheduled with:
+	 * the variant is the contract of the run, so a receiver that picks its method from
+	 * {@code delivery_methods_supported} is steered to it, and one that requests the other
+	 * method is refused with a 400 (SSF 1.0 8.1.1.1). Both methods when no variant is set.
+	 */
+	protected List<String> getSupportedDeliveryMethods() {
+		SsfDeliveryMode deliveryMode = getVariantOrDefault(SsfDeliveryMode.class, null);
+		if (deliveryMode == null) {
+			return List.of(DELIVERY_METHOD_PUSH_RFC_8935_URI, DELIVERY_METHOD_POLL_RFC_8936_URI);
+		}
+		return List.of(deliveryMode.getAlias());
 	}
 
 	protected JsonObject generateTransmitterMetadata(String issuer) {
@@ -385,10 +477,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		metadata.addProperty("issuer", issuer);
 		metadata.addProperty("spec_version", "1_0");
 		metadata.addProperty("jwks_uri", issuer + "/jwks");
-		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of( //
-			DELIVERY_METHOD_PUSH_RFC_8935_URI, // PUSH Delivery
-			DELIVERY_METHOD_POLL_RFC_8936_URI // POLL Delivery
-		)));
+		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(getSupportedDeliveryMethods()));
 
 		metadata.addProperty("configuration_endpoint", issuer + "/streams");
 		metadata.addProperty("status_endpoint", issuer + "/status");
@@ -416,7 +505,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 		// Advertise only the event families this emulated transmitter can generate
 		// valid example SETs for (see generateSsfEventExample). SCIM events (RFC 9967)
-		// are intentionally excluded: they are recognised in the validation allow-list
+		// are intentionally excluded: they are recognized in the validation allow-list
 		// (SsfEvents.STANDARD_EVENT_TYPES) but require SCIM-shaped subjects and
 		// event-specific content that we do not yet generate, so advertising them here
 		// would let a correct receiver request events we can only deliver as invalid SETs.
@@ -430,56 +519,155 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
-		env.putObject(requestId, requestParts);
-		env.mapKey("incoming_request", requestId);
-
 		if (isFinished()) {
-			// ignore requests after the test finished.
-			// The transmitter tests might send additional cleanup requests which we don't need to handle here.
-			//
+			// Requests after the test finished are answered without touching the test log or the
+			// status machine. The static documents stay available, since a receiver cleaning up
+			// may re-read them: the transmitter metadata, the signing keys and the stream list,
+			// which is answered like a transmitter without streams would (SSF 1.0 8.1.1.2: an
+			// empty list) since the receiver's stream is gone by then. Everything else gets 204.
+			if ("GET".equals(req.getMethod())) {
+				if ("streams".equals(path) && !requestParts.getAsJsonObject("query_string_params").has("stream_id")) {
+					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new JsonArray());
+				}
+				if ("jwks".equals(path)) {
+					return serveJwks();
+				}
+				if ("ssf-configuration".equals(path)) {
+					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(getSsfConfiguration());
+				}
+			}
 			return ResponseEntity.noContent().build();
 		}
 
 		setStatus(Status.RUNNING);
 
+		// The mapping exists only while this thread holds the test lock, taken by the RUNNING
+		// transition above and released by the WAITING one below: concurrent receiver requests
+		// (a JWKS fetch during a push, a status read during a long poll) would otherwise
+		// redirect 'incoming_request' underneath the handler that is reading it.
+		String requestId = mapIncomingRequest(requestParts);
+
 		Object response;
 		try {
-			switch (path) {
-				case "ssf-configuration" -> response = handleSsfConfigurationEndpoint(requestId);
-				case "jwks" -> response = handleJwksEndpoint();
-				// The token endpoint performs its own client authentication, so it is
-				// intentionally not wrapped in ensureAuthorized().
-				case "token" -> response = handleTokenEndpointRequest(req, requestId);
-				case "events" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleStreamPollingRequest(path, req, res, session, requestParts);
-				});
-				case "streams" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
-				});
-				case "status" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
-				});
-				case "verify" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleVerificationEndpointRequest(path, req, res, session, requestParts);
-				});
-				case "add_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
-				});
-				case "remove_subject" -> response = ensureAuthorized(path, req, res, session, requestParts, () -> {
-					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
-				});
-				default -> response = super.handleHttp(path, req, res, session, requestParts);
+			if (isProbeMethod(req.getMethod())) {
+				response = answerProbeRequest(path, requestParts);
+			} else {
+				response = dispatchRequest(path, req, res, session, requestParts, requestId);
 			}
 		} finally {
-			if (!Set.of(Status.WAITING, Status.FINISHED).contains(getStatus())) {
+			unmapIncomingRequest(requestId);
+			if (!Set.of(Status.WAITING, Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
 				setStatus(Status.WAITING);
 			}
-			env.removeObject(requestId);
-			env.unmapKey("incoming_request");
 		}
 
 		return response;
+	}
+
+	/**
+	 * Stores the request parts under a fresh key and maps {@code incoming_request} onto it.
+	 * Callers must hold the test lock and must unmap before releasing it, see
+	 * {@link #unmapIncomingRequest(String)}.
+	 */
+	protected String mapIncomingRequest(JsonObject requestParts) {
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		env.mapKey("incoming_request", requestId);
+		return requestId;
+	}
+
+	protected void unmapIncomingRequest(String requestId) {
+		env.unmapKey("incoming_request");
+		env.removeObject(requestId);
+	}
+
+	/**
+	 * Routes an SSF request to its handler. Runs with the test lock held in RUNNING state,
+	 * which is why a path no handler serves is graded in place via
+	 * {@link #reportUnexpectedHttpRequest}: the base class's own RUNNING transition would trip
+	 * the status machine and end the test INTERRUPTED.
+	 */
+	protected Object dispatchRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, String requestId) {
+		return switch (path) {
+			case "ssf-configuration" -> handleSsfConfigurationEndpoint(requestId);
+			case "jwks" -> handleJwksEndpoint();
+			// The token endpoint performs its own client authentication, so it is
+			// intentionally not wrapped in ensureAuthorized().
+			case "token" -> handleTokenEndpointRequest(req, requestId);
+			case "events" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleStreamPollingRequest(path, req, res, session, requestParts);
+			});
+			case "streams" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
+			});
+			case "status" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
+			});
+			case "verify" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleVerificationEndpointRequest(path, req, res, session, requestParts);
+			});
+			case "add_subject" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
+			});
+			case "remove_subject" -> ensureAuthorized(path, req, res, session, requestParts, () -> {
+				return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
+			});
+			default -> reportUnexpectedHttpRequest(path, requestParts);
+		};
+	}
+
+	/**
+	 * HEAD and OPTIONS requests are capability probes (a preflight, a health check, an HTTP
+	 * client feeling out the endpoint), not SSF operations, so they are answered without
+	 * authorization checks and without a grade, see {@link #answerProbeRequest}.
+	 */
+	protected boolean isProbeMethod(String method) {
+		return "HEAD".equalsIgnoreCase(method) || "OPTIONS".equalsIgnoreCase(method);
+	}
+
+	/**
+	 * Answers a request that probes for something this transmitter does not offer rather than
+	 * invoking an SSF operation: a well-known document it does not publish (an OAuth client
+	 * library commonly tries {@code /.well-known/openid-configuration} before falling back to
+	 * the configured token endpoint, RFC 8414 5), or a HEAD or OPTIONS request. Such probes say
+	 * nothing about the receiver's conformance (CAEPIOP 2.7.1 leaves the way a receiver finds
+	 * its authorization server out of scope), so they get a 404 and a log entry, no grade.
+	 * Requests to a path or method the SSF operations do not define stay graded as unexpected.
+	 */
+	protected ResponseEntity<?> answerProbeRequest(String path, JsonObject requestParts) {
+		String method = requestParts != null && requestParts.has("method") ? OIDFJSON.getString(requestParts.get("method")) : null;
+		eventLog.log(getName(), args("msg", "Answered a probe request for a path or method the emulated transmitter does not serve with 404; "
+				+ "this is not graded, as such probes are not SSF operations",
+			"path", path, "method", method));
+		return new ResponseEntity<>(Map.of("error", "The test does not serve the path '" + path + "'"), HttpStatus.NOT_FOUND);
+	}
+
+	/**
+	 * Delay before generating events once the receiver acknowledged the stream verification
+	 * event, see {@link #scheduleAfterStreamVerification(Runnable)}.
+	 */
+	protected static final int POST_VERIFICATION_EVENT_GENERATION_DELAY_SECONDS = 1;
+
+	/**
+	 * Runs the post-verification event generation in a background task instead of inline.
+	 * <p>
+	 * With POLL delivery the "receiver acknowledged the verification event" cue is raised while
+	 * the receiver's poll request is being handled (see {@code OIDSSFHandlePollRequest}).
+	 * Generating the events there would hold that HTTP request open for the duration and would
+	 * return the freshly generated SETs in the response to the very request that carried the
+	 * acknowledgement - i.e. as a combined acknowledge-and-poll response (RFC 8936 2.4).
+	 * Neither is something the CAEP Interop Profile requires receivers to support, so the
+	 * emulated transmitter behaves like a real one instead: it answers the poll first, and the
+	 * events become available for the receiver's next poll.
+	 * <p>
+	 * With PUSH delivery the cue is raised on the background push task, so callers there can
+	 * generate events directly.
+	 */
+	protected void scheduleAfterStreamVerification(Runnable generateEvents) {
+		scheduleTask(() -> {
+			generateEvents.run();
+			return "done";
+		}, POST_VERIFICATION_EVENT_GENERATION_DELAY_SECONDS, TimeUnit.SECONDS);
 	}
 
 	@SuppressWarnings("FutureReturnValueIgnored")
@@ -506,7 +694,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		// CAEPIOP §2.7.2 "The SSF Transmitter as a Resource Server": validate the bearer token.
 		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.2");
 		JsonObject authResult = env.getElementFromObject("ssf", "auth_result").getAsJsonObject();
+		if (authResult.has("access_token_in_query")) {
+			gradeAccessTokenInUriQuery();
+		}
 		if (authResult.has("error")) {
+			if (authResult.has("token_expired")) {
+				onExpiredAccessTokenRejected(path);
+			}
 			return errorResponseFromAuthResult(authResult);
 		}
 
@@ -528,7 +722,14 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected ResponseEntity<?> errorResponseFromAuthResult(JsonObject authResult) {
 		int statusCode = OIDFJSON.getInt(authResult.get("status_code"));
-		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authResult.get("error").getAsJsonObject());
+		ResponseEntity.BodyBuilder response = ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON);
+		// RFC 6750 3: 401/403 responses to a bearer-token request carry a WWW-Authenticate
+		// challenge (CAEP Interop Profile 2.7.2 requires RFC 6750 3.1 errors)
+		JsonElement wwwAuthenticate = authResult.get("www_authenticate");
+		if (wwwAuthenticate != null) {
+			response = response.header(HttpHeaders.WWW_AUTHENTICATE, OIDFJSON.getString(wwwAuthenticate));
+		}
+		return response.body(authResult.get("error").getAsJsonObject());
 	}
 
 	/**
@@ -549,11 +750,26 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	@Override
 	public Object handleWellKnown(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
-		env.putObject(requestId, requestParts);
-		env.mapKey("incoming_request", requestId);
+		if (isFinished()) {
+			// as in handleHttp: a receiver re-reading the metadata after the test finished must not
+			// trip the status machine (FINISHED -> RUNNING), but still gets the static documents
+			if ("GET".equals(req.getMethod())) {
+				if (path.startsWith("/.well-known/ssf-configuration")) {
+					return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(getSsfConfiguration());
+				}
+				if (path.startsWith("/.well-known/oauth-authorization-server")) {
+					JsonElement asMetadataEl = env.getElementFromObject("ssf", "authorization_server_metadata");
+					return asMetadataEl == null
+						? ResponseEntity.notFound().build()
+						: ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(asMetadataEl.getAsJsonObject());
+				}
+			}
+			return ResponseEntity.noContent().build();
+		}
 
 		setStatus(Status.RUNNING);
+
+		String requestId = mapIncomingRequest(requestParts);
 
 		Object response;
 		try {
@@ -562,12 +778,14 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			} else if (path.startsWith("/.well-known/oauth-authorization-server")) {
 				response = handleAuthorizationServerMetadataEndpoint();
 			} else {
-				response = super.handleWellKnown(path, req, res, session, requestParts);
+				// any other well-known document is a discovery probe, not an SSF operation
+				response = answerProbeRequest(path, requestParts);
 			}
 		} finally {
-			setStatus(Status.WAITING);
-			env.removeObject(requestId);
-			env.unmapKey("incoming_request");
+			unmapIncomingRequest(requestId);
+			if (!Set.of(Status.WAITING, Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
+				setStatus(Status.WAITING);
+			}
 		}
 
 		return response;
@@ -584,9 +802,93 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected ResponseEntity<?> handleJwksEndpoint() {
-		// Serve only the public keys at the transmitter jwks_uri - it must not leak private key material.
+		// CAEP Interop Profile 2.4.2: the receiver MUST obtain the transmitter's signing
+		// key(s) via the advertised jwks_uri - record the fetch so tests can assert it.
+		jwksEndpointFetched = true;
+		return serveJwks();
+	}
+
+	/** The transmitter's signing keys as published at its jwks_uri: the public keys only. */
+	protected ResponseEntity<?> serveJwks() {
 		JsonObject publicJwks = JWKUtil.toPublicJWKSet(env.getObject("server_jwks"));
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(publicJwks);
+	}
+
+	/**
+	 * Whether the receiver fetched the transmitter's signing keys from the advertised
+	 * jwks_uri at least once during the test run (CAEP Interop Profile 2.4.2).
+	 */
+	protected boolean isJwksEndpointFetched() {
+		return jwksEndpointFetched;
+	}
+
+	/** Set once the first acknowledgement of a SET has been graded, see {@link #gradeFirstAcknowledgement()}. */
+	private final AtomicBoolean firstAcknowledgementGraded = new AtomicBoolean();
+
+	/** Set once a request carrying the access token in the URI query has been graded, see {@link #gradeAccessTokenInUriQuery()}. */
+	private final AtomicBoolean accessTokenInUriQueryGraded = new AtomicBoolean();
+
+	/** Subject operations already graded under the CAEP Interop Profile, see {@link #handleSubjectsEndpointRequest}. */
+	private final Set<StreamSubjectOperation> subjectOperationsGradedUnderCaepInterop = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Grades, at the first acknowledgement of any SET in the run, whether the receiver had
+	 * fetched the transmitter's signing keys from the advertised jwks_uri by then: a receiver
+	 * that acknowledges before fetching them cannot have validated the SET's signature. The
+	 * CAEP Interop Profile 2.4.2 makes the fetch a MUST (FAILURE); SSF 1.0 7.1 only says the
+	 * jwks_uri carries the keys the receiver uses to validate signatures, and the receiver could
+	 * hold them out of band, so under the default profile this is a WARNING. Later
+	 * acknowledgements are not graded again.
+	 */
+	/** Whether {@link #gradeFirstAcknowledgement()} has run, i.e. the receiver acknowledged at least one SET. */
+	protected boolean isFirstAcknowledgementGraded() {
+		return firstAcknowledgementGraded.get();
+	}
+
+	protected void gradeFirstAcknowledgement() {
+		if (!firstAcknowledgementGraded.compareAndSet(false, true)) {
+			return;
+		}
+		boolean caepInterop = isSsfProfileEnabled(SsfProfile.CAEP_INTEROP);
+		String[] requirements = caepInterop
+			? new String[] {"CAEPIOP-2.4.2", "OIDSSF-7.1"}
+			: new String[] {"OIDSSF-7.1"};
+		if (isJwksEndpointFetched()) {
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition(
+					"The receiver fetched the transmitter's signing keys from the advertised jwks_uri before acknowledging its first SET"),
+				Condition.ConditionResult.INFO, requirements);
+		} else {
+			callAndContinueOnFailure(new OIDSSFFindingCondition(
+					"The receiver acknowledged a SET before it fetched the transmitter's signing keys from the advertised jwks_uri, so it cannot have validated the signature"),
+				caepInterop ? Condition.ConditionResult.FAILURE : Condition.ConditionResult.WARNING, requirements);
+		}
+	}
+
+	/**
+	 * Grades, once per run, a request that carried the access token as a URI query parameter.
+	 * RFC 6750 2.3 says that method SHOULD NOT be used (WARNING); the CAEP Interop Profile
+	 * 2.7.2 forbids transmitters to accept it, so a receiver relying on it cannot interoperate
+	 * with a conforming transmitter (FAILURE).
+	 */
+	protected void gradeAccessTokenInUriQuery() {
+		if (!accessTokenInUriQueryGraded.compareAndSet(false, true)) {
+			return;
+		}
+		boolean caepInterop = isSsfProfileEnabled(SsfProfile.CAEP_INTEROP);
+		callAndContinueOnFailure(OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery.class,
+			caepInterop ? Condition.ConditionResult.FAILURE : Condition.ConditionResult.WARNING,
+			caepInterop
+				? new String[] {"CAEPIOP-2.4.3", "CAEPIOP-2.7.2", "RFC6750-2.3"}
+				: new String[] {"CAEPIOP-2.7.2", "RFC6750-2.3"});
+	}
+
+	/**
+	 * The clause that obliges the receiver to acknowledge an accepted SET under the selected
+	 * delivery mode: RFC 8935 2.2 (a 202 response) for push, RFC 8936 2 ("The SET Recipient
+	 * MUST acknowledge receipt") for poll.
+	 */
+	protected String acknowledgementRequirement() {
+		return getVariant(SsfDeliveryMode.class) == SsfDeliveryMode.PUSH ? "RFC8935-2.2" : "RFC8936-2";
 	}
 
 	protected ResponseEntity<?> handleAuthorizationServerMetadataEndpoint() {
@@ -626,16 +928,40 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				// conditions refuse to overwrite a client_authentication left over
 				// from an earlier token request, so clear it before each validation.
 				env.removeObject("client_authentication");
-				call(sequence(validateClientAuthenticationSteps));
+				try {
+					// The shared sequences continue past a failed step (they serve modules that
+					// test the client); this emulated authorization server must refuse the token
+					// instead, so run them stopping at the first failure and answer invalid_client.
+					call(new OIDSSFStopOnFirstFailureSequence(validateClientAuthenticationSteps));
+				} catch (TestFailureException e) {
+					if (e.getCause() instanceof ConditionError conditionError && !conditionError.isPreOrPostError()) {
+						// A stop-on-failure condition has logged its failure but leaves the result
+						// update to the exception it throws; record the refusal explicitly instead.
+						callAndContinueOnFailure(new OIDSSFFindingCondition(
+								"Refused to issue an access token: client authentication failed, see the preceding failure. "
+									+ "The emulated authorization server answers invalid_client (RFC 6749 5.2)."),
+							Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+						return clientAuthenticationFailed();
+					}
+					throw e;
+				}
 			}
 
 			callAndStopOnFailure(OIDSSFValidateRequestedScope.class, "CAEPIOP-2.7.3");
 			callAndStopOnFailure(GenerateBearerAccessToken.class);
-			callAndStopOnFailure(GenerateAccessTokenExpiration.class);
+			int lifetimeSeconds = getAccessTokenLifetimeSeconds();
+			if (lifetimeSeconds > 0) {
+				env.putString("access_token_expiration", Integer.toString(lifetimeSeconds));
+			} else {
+				callAndStopOnFailure(GenerateAccessTokenExpiration.class);
+			}
 			callAndStopOnFailure(OIDSSFStoreIssuedAccessToken.class);
 			callAndStopOnFailure(CreateTokenEndpointResponse.class, "RFC6749-5.1");
 
 			JsonObject tokenResponse = env.getObject("token_endpoint_response");
+			String issuedToken = env.getString("access_token");
+			JsonElement issuedRecord = env.getElementFromObject("ssf", "issued_tokens." + issuedToken);
+			onAccessTokenIssued(issuedToken, issuedRecord != null && issuedRecord.isJsonObject() ? issuedRecord.getAsJsonObject() : new JsonObject());
 			return ResponseEntity.ok()
 				.header("Cache-Control", "no-store")
 				.header("Pragma", "no-cache")
@@ -644,6 +970,53 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		} finally {
 			env.unmapKey("token_endpoint_request");
 		}
+	}
+
+	/**
+	 * Lifetime in seconds of the access tokens the emulated authorization server issues;
+	 * a value of 0 or less keeps the default of {@link GenerateAccessTokenExpiration}. Modules
+	 * that make the receiver live through a token expiry return a short lifetime here.
+	 */
+	protected int getAccessTokenLifetimeSeconds() {
+		return -1;
+	}
+
+	/**
+	 * Called after the emulated authorization server issued an access token to the receiver.
+	 *
+	 * @param accessToken the token value
+	 * @param tokenRecord the stored record: client_id, scope, expires_at (epoch seconds)
+	 */
+	protected void onAccessTokenIssued(String accessToken, JsonObject tokenRecord) {
+		// NOOP
+	}
+
+	/**
+	 * Called when a request was rejected with 401 because the presented access token had
+	 * expired (CAEP Interop Profile 2.7.1 short-lived tokens, 2.7.2 expiration is verified).
+	 *
+	 * @param path the endpoint path the receiver called
+	 */
+	protected void onExpiredAccessTokenRejected(String path) {
+		// NOOP
+	}
+
+	/**
+	 * RFC 6749 5.2: {@code invalid_client} - "Client authentication failed". The authorization
+	 * server MAY answer 401; if the client authenticated via the Authorization header it MUST,
+	 * and MUST include a WWW-Authenticate header matching the client's scheme.
+	 */
+	protected ResponseEntity<?> clientAuthenticationFailed() {
+		JsonObject body = new JsonObject();
+		body.addProperty("error", "invalid_client");
+		body.addProperty("error_description", "Client authentication failed");
+		ResponseEntity.BodyBuilder response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			.header("Cache-Control", "no-store")
+			.header("Pragma", "no-cache");
+		if (OIDCCValidateClientAuthenticationWithClientSecretBasic.class.equals(validateClientAuthenticationSteps)) {
+			response.header("WWW-Authenticate", "Basic realm=\"" + env.getString("ssf", "issuer") + "\"");
+		}
+		return response.contentType(MediaType.APPLICATION_JSON).body(body);
 	}
 
 	protected ResponseEntity<?> tokenError(String error, String description, HttpStatus status) {
@@ -682,10 +1055,19 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "POST": {
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
+				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFLogUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
+				callAndContinueOnFailure(OIDSSFWarnTransmitterSuppliedPropertiesInStreamCreateRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = createResult.get("error");
 				String createdStreamId = OIDFJSON.tryGetString(createResult.get("stream_id"));
+				if (error == null && createdStreamId != null) {
+					// the scheduled delivery mode is the contract of the run for every receiver module
+					callAndContinueOnFailure(new OIDSSFEnsureStreamDeliveryMethodMatchesVariant(createdStreamId, getVariant(SsfDeliveryMode.class)),
+						Condition.ConditionResult.FAILURE, deliveryModeRequirements());
+				}
 				afterStreamCreation(createdStreamId, createResult, error);
 
 				if (error == null && createdStreamId != null
@@ -697,7 +1079,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore, this::onEventsUndeliverable), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
+				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore, this::onEventsUndeliverable, this::onEventsUnresolvedAtDeletion), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -712,6 +1094,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				}
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
+				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFLogUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = updateResult.get("error");
@@ -725,6 +1110,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				}
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(OIDSSFWarnEmptyEventsRequestedInStreamRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFLogUnknownEventsRequestedInStreamRequest.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
+				callAndContinueOnFailure(OIDSSFEnsurePushDeliveryEndpointUrlIsHttps.class, Condition.ConditionResult.FAILURE, "RFC8935-5.3", "CAEPIOP-2.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamReplaceRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = replaceResult.get("error");
@@ -733,7 +1121,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 		}
 
-		return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+		return reportUnexpectedHttpRequest(path, requestParts);
 	}
 
 	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
@@ -790,8 +1178,14 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
-			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+			schedulePushDelivery(streamId);
 		}
+	}
+
+	private String[] deliveryModeRequirements() {
+		return isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
+			? new String[] {"OIDSSF-8.1.1.1", "CAEPIOP-2.4.5.1"}
+			: new String[] {"OIDSSF-8.1.1.1"};
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
@@ -811,10 +1205,20 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String method = req.getMethod();
 		if (!method.equals("POST")) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			// CAEP Interop Profile 2.4.4: all subjects are implicitly in the stream, so the
+			// emulated transmitter neither advertises nor serves the subject endpoints. Calling
+			// them is not forbidden, but shows the receiver does not rely on the implicit
+			// inclusion - graded once per operation kind.
+			if (subjectOperationsGradedUnderCaepInterop.add(operation)) {
+				String endpointName = operation == StreamSubjectOperation.add ? "add-subject" : "remove-subject";
+				callAndContinueOnFailure(new OIDSSFFindingCondition(
+						"The receiver invoked the " + endpointName + " endpoint under the CAEP Interop Profile, which assumes all subjects are implicitly included in the stream; the transmitter does not advertise this endpoint and answers 405"),
+					Condition.ConditionResult.WARNING, "CAEPIOP-2.4.4");
+			}
 			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
 		}
 
@@ -828,6 +1232,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonElement result = subjectChangeResult.get("result");
 		int statusCode = OIDFJSON.getInt(subjectChangeResult.get("status_code"));
 
+		afterStreamSubjectChange(operation, OIDFJSON.tryGetString(subjectChangeResult.get("stream_id")), subjectChangeResult, subjectChangeResult.get("error"));
+
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();
 		}
@@ -835,10 +1241,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
+	/**
+	 * Called after an add-subject or remove-subject request was handled (SSF 1.0 8.1.3).
+	 *
+	 * @param operation the operation
+	 * @param streamId  the stream the subject was added to or removed from, {@code null} when
+	 *                  the request failed before the stream was resolved
+	 * @param result    the handler result, its {@code subject} member holding the subject of the request
+	 * @param error     the error object when the request was rejected, otherwise {@code null}
+	 */
+	protected void afterStreamSubjectChange(StreamSubjectOperation operation, String streamId, JsonObject result, JsonElement error) {
+		// NOOP
+	}
+
 	protected ResponseEntity<?> handleVerificationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		String method = req.getMethod();
 		if (!method.equals("POST")) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		callAndContinueOnFailure(OIDSSFHandleStreamVerificationRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
@@ -848,12 +1267,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		int statusCode = OIDFJSON.getInt(verificationResult.get("status_code"));
 
 		if (HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
-			callAndStopOnFailure(new OIDSSFGenerateStreamVerificationSET(eventStore), "OIDSSF-8.1.4.2");
-
 			String streamId = env.getString("incoming_request", "body_json.stream_id");
+			callAndStopOnFailure(createVerificationSetGenerator(streamId), "OIDSSF-8.1.4.2");
 
 			if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
-				scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, java.util.concurrent.TimeUnit.SECONDS);
+				schedulePushDelivery(streamId);
 			}
 		}
 
@@ -862,6 +1280,15 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	/**
+	 * The generator for the verification SET answering the receiver's verification request
+	 * for {@code streamId}. Modules that test how a receiver treats a defective verification
+	 * event return a tampering generator here.
+	 */
+	protected AbstractOIDSSFGenerateStreamSET createVerificationSetGenerator(String streamId) {
+		return new OIDSSFGenerateStreamVerificationSET(eventStore);
 	}
 
 	protected class OIDSSFHandlePushDeliveryTask implements Callable<String> {
@@ -874,50 +1301,93 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		@Override
 		public String call() throws Exception {
-			OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 16);
-			if (eventsBatch == null) {
-				// stream was removed in-between, so we don't need to push data; the
-				// stream-delete handler has recorded the purged events as undeliverable
-				return "done";
+			try {
+				deliverQueuedEvents();
+			} finally {
+				pushDeliveryActive.remove(streamId);
 			}
-
-			// TODO handle SSF PUSH retry???
-			List<OIDSSFSecurityEvent> events = List.copyOf(eventsBatch.events());
-			for (int i = 0; i < events.size(); i++) {
-				OIDSSFSecurityEvent event = events.get(i);
-
-				// The receiver may delete the stream while this batch is being delivered (e.g. once
-				// it has seen every event type it was waiting for). Pushing the remaining events
-				// would fail with a missing push endpoint, so stop and record them as undelivered.
-				// (Only this batch: events beyond it are still queued and are recorded by the
-				// stream-delete handler before it purges the event store.)
-				if (OIDSSFStreamUtils.getStreamConfig(env, streamId) == null) {
-					onEventsUndeliverable(streamId, events.subList(i, events.size()));
-					return "done";
-				}
-
-				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
-				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
-				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
-				// SHALL → FAILURE severity per the conformance-suite convention.
-				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), Condition.ConditionResult.FAILURE, "RFC8935-2.2");
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// Test finished during the delay — exit gracefully
-					Thread.currentThread().interrupt();
-					return "done";
-				}
-			}
-
-			if (eventsBatch.moreAvailable() || eventStore.hasEventsForStream(streamId)) {
-				// Reschedule to deliver remaining events. The queue check covers events
-				// enqueued by delivery callbacks (e.g. afterPushDeliverySuccess generating
-				// new SETs after seeing the verification event) that were not yet visible
-				// when the original batch was polled.
-				scheduleTask(this, 1, TimeUnit.SECONDS);
+			// Events enqueued after the queue was found empty (the check and this hand-over
+			// both run under the test lock) start a fresh task.
+			JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+			if (streamConfig != null && OIDSSFStreamUtils.getStreamStatusValue(streamConfig).isEventDeliveryEnabled()
+				&& eventStore.hasEventsForStream(streamId)
+				&& !Set.of(Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
+				schedulePushDelivery(streamId);
 			}
 			return "done";
+		}
+
+		private void deliverQueuedEvents() {
+			// TODO handle SSF PUSH retry???
+			// Events are taken from the queue one at a time, so a stream the receiver pauses,
+			// disables or deletes between two deliveries leaves the rest queued: SSF 1.0
+			// 8.1.2.1 says a paused or disabled stream "MUST NOT transmit events" and a paused
+			// one "SHOULD hold" them, and the stream-delete handler records queued events as
+			// undeliverable when it purges the store.
+			while (true) {
+				JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+				if (streamConfig == null) {
+					return;
+				}
+				OIDSSFStreamUtils.StreamStatusValue streamStatus = OIDSSFStreamUtils.getStreamStatusValue(streamConfig);
+				if (!streamStatus.isEventDeliveryEnabled()) {
+					if (eventStore.hasEventsForStream(streamId)) {
+						eventLog.log(getName(), args("msg", "Stream is " + streamStatus + ": holding queued events until the receiver enables the stream again (SSF 1.0 8.1.2.1)",
+							"stream_id", streamId, "held_events", eventStore.getQueuedEvents(streamId).size()));
+					}
+					return;
+				}
+
+				OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 1);
+				if (eventsBatch == null || eventsBatch.events().isEmpty()) {
+					return;
+				}
+				OIDSSFSecurityEvent event = eventsBatch.events().get(0);
+
+				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event,
+					(sid, acknowledgedEvent) -> {
+						gradeFirstAcknowledgement();
+						afterPushDeliverySuccess(sid, acknowledgedEvent);
+					},
+					AbstractOIDSSFReceiverTestModule.this::onPushDeliveryNotAcknowledged), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
+				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
+				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
+				// SHALL → FAILURE severity per the conformance-suite convention, unless the
+				// module knows the receiver may legitimately reject this particular SET.
+				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), getPushDeliveryRejectionSeverity(event), "RFC8935-2.2");
+				// RFC 8935 2.2: "The body of the response MUST be empty." Only an acknowledgement
+				// is held to that; an error response (RFC 8935 2.3) carries a JSON body by design.
+				// (a plain range check: a delivery without any HTTP response leaves status 0)
+				Integer pushResponseStatus = env.getInteger("endpoint_response", "status");
+				if (pushResponseStatus != null && pushResponseStatus >= 200 && pushResponseStatus < 300) {
+					callAndContinueOnFailure(OIDSSFEnsurePushDeliveryResponseBodyIsEmpty.class, Condition.ConditionResult.FAILURE, "RFC8935-2.2");
+				}
+				// Pace the deliveries with the test lock released: this task holds the lock in
+				// RUNNING state, and a raw sleep here would stall every request the receiver
+				// makes in the meantime.
+				callAndContinueOnFailure(WaitForOneSecond.class, Condition.ConditionResult.INFO);
+				if (Set.of(Status.FINISHED, Status.INTERRUPTED).contains(getStatus())) {
+					// Test finished during the delay — exit gracefully
+					return;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Restarts push delivery for events held while the stream was paused or disabled, once the
+	 * receiver enables it again (SSF 1.0 8.1.2.1: held events "SHOULD [be transmitted] when the
+	 * stream's status becomes enabled"). Poll streams need nothing: the next poll returns them.
+	 */
+	protected void resumePushDeliveryIfEnabled(String streamId) {
+		JsonObject streamConfig = streamId == null ? null : OIDSSFStreamUtils.getStreamConfig(env, streamId);
+		if (streamConfig == null || !OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
+			return;
+		}
+		if (OIDSSFStreamUtils.getStreamStatusValue(streamConfig).isEventDeliveryEnabled() && eventStore.hasEventsForStream(streamId)) {
+			eventLog.log(getName(), args("msg", "Stream enabled again: delivering the events held while it was paused or disabled",
+				"stream_id", streamId, "held_events", eventStore.getQueuedEvents(streamId).size()));
+			schedulePushDelivery(streamId);
 		}
 	}
 
@@ -948,6 +1418,126 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return Set.copyOf(undeliveredEventJtis);
 	}
 
+	/**
+	 * Records events the receiver retrieved via poll but neither acknowledged nor reported via
+	 * {@code setErrs} before deleting the stream. No acknowledgement can arrive for them any
+	 * more, so {@code isFinished()} implementations should stop waiting for them - but unlike
+	 * {@link #onEventsUndeliverable(String, List) undeliverable} events the receiver DID
+	 * receive these, so the missing acknowledgement is the receiver's failure and should still
+	 * be graded (RFC 8936 2.4).
+	 */
+	protected void onEventsUnresolvedAtDeletion(String streamId, List<OIDSSFSecurityEvent> events) {
+		List<String> jtis = events.stream().map(OIDSSFSecurityEvent::jti).toList();
+		unresolvedEventJtis.addAll(jtis);
+		eventLog.log(getName(), args(
+			"msg", "Stream was deleted with retrieved events that were neither acknowledged nor reported via setErrs",
+			"stream_id", streamId,
+			"unresolved_event_count", jtis.size(),
+			"unresolved_jtis", jtis));
+	}
+
+	/**
+	 * The {@code jti} values of events the receiver retrieved but never acknowledged nor
+	 * reported before deleting the stream, see {@link #onEventsUnresolvedAtDeletion(String, List)}.
+	 */
+	protected Set<String> getUnresolvedEventJtis() {
+		return Set.copyOf(unresolvedEventJtis);
+	}
+
+	/**
+	 * The {@code jti} values of events the receiver resolved via {@code setErrs} instead of
+	 * acknowledging them, see {@link #onStreamEventErrorReported(String, String, JsonObject)}.
+	 */
+	protected Set<String> getErrorReportedEventJtis() {
+		return Set.copyOf(errorReportedEventJtis);
+	}
+
+	/**
+	 * Severity of a push delivery the receiver did not answer with 202 (RFC 8935 2.2): FAILURE,
+	 * except for an event with a Complex Subject under the CAEP Interop Profile. Draft-01 of the
+	 * profile (2.5) requires receivers to accept {@code email} and {@code iss_sub} subjects only;
+	 * Complex Subjects are expected to be added (openid/sharedsignals#351), but a receiver
+	 * rejecting one today is within the profile, so that is a WARNING. Relies on the subject
+	 * format recorded via {@link #recordEventSubject}.
+	 */
+	protected Condition.ConditionResult getPushDeliveryRejectionSeverity(OIDSSFSecurityEvent event) {
+		if (isComplexSubjectEventToleratedUnderProfile(event.jti())) {
+			eventLog.log(getName(), args(
+				"msg", "The receiver did not accept an event with a Complex Subject; graded as a warning because "
+					+ "draft-01 of the CAEP Interop Profile does not require receivers to accept Complex Subjects (openid/sharedsignals#351)",
+				"jti", event.jti(), "event_type", event.type()));
+			return Condition.ConditionResult.WARNING;
+		}
+		return Condition.ConditionResult.FAILURE;
+	}
+
+	/**
+	 * Whether the event with the given {@code jti} carries a Complex Subject that the selected
+	 * profile does not require the receiver to accept (CAEP Interop Profile draft-01, 2.5).
+	 * Under the default profile Complex Subjects are ordinary SSF subjects (SSF 1.0 3.3).
+	 */
+	protected boolean isComplexSubjectEventToleratedUnderProfile(String jti) {
+		return isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
+			&& SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(subjectFormatByJti.get(jti));
+	}
+
+	/**
+	 * Records the subject an event was generated for, so its rejection can be graded by
+	 * subject format. Call from the enqueue callback handed to {@code OIDSSFGenerateStreamSET}.
+	 */
+	protected void recordEventSubject(String jti, JsonObject subject) {
+		subjectFormatByJti.put(jti, SsfSubjectIdentifiers.getFormat(subject));
+	}
+
+	/**
+	 * The subject to use when a module needs only one: the first declared valid subject whose
+	 * format the selected profile requires the receiver to accept. A Complex Subject listed first
+	 * must not decide the outcome of a module that tests something other than subject formats,
+	 * since the CAEP Interop Profile draft-01 (2.5) lets a receiver reject it.
+	 */
+	protected JsonObject getPrimaryEventSubject() {
+		List<JsonObject> subjects = getEventSubjects();
+		for (JsonObject subject : subjects) {
+			if (!SsfSubjectIdentifiers.FORMAT_COMPLEX.equals(SsfSubjectIdentifiers.getFormat(subject))) {
+				return subject;
+			}
+		}
+		return subjects.get(0);
+	}
+
+	/**
+	 * The {@code jti} values of events whose push delivery was answered with an error status,
+	 * see {@link #onPushDeliveryNotAcknowledged(String, OIDSSFSecurityEvent)}.
+	 */
+	protected Set<String> getRejectedPushEventJtis() {
+		return Set.copyOf(rejectedPushEventJtis);
+	}
+
+	/**
+	 * All {@code jti} values for which no acknowledgement can arrive any more: events never
+	 * delivered, events resolved via {@code setErrs}, push deliveries the receiver rejected,
+	 * and events left unresolved when the stream was deleted. {@code isFinished()}
+	 * implementations that wait for acknowledgements should subtract this set from the
+	 * expected acks so the test finishes (and grades) instead of stalling until the global
+	 * test timeout.
+	 */
+	protected Set<String> getResolvedWithoutAckJtis() {
+		Set<String> resolved = new HashSet<>(undeliveredEventJtis);
+		resolved.addAll(unresolvedEventJtis);
+		resolved.addAll(errorReportedEventJtis);
+		resolved.addAll(rejectedPushEventJtis);
+		return resolved;
+	}
+
+	/**
+	 * Called when a push delivery got an error status (or no HTTP response). The RFC 8935 2.2
+	 * status check grades the delivery itself; this only records that no acknowledgement will
+	 * ever arrive for the event so waiting test modules can finish instead of timing out.
+	 */
+	protected void onPushDeliveryNotAcknowledged(String streamId, OIDSSFSecurityEvent event) {
+		rejectedPushEventJtis.add(event.jti());
+	}
+
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
 		// NOOP
 	}
@@ -956,7 +1546,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		String method = req.getMethod();
 		if (!Set.of("GET", "POST").contains(method)) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
 		boolean isReadStreamStatus = method.equals("GET");
@@ -982,7 +1572,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		if (isUpdateStreamStatus) {
-			onStreamStatusUpdateSuccess(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
+			String updatedStreamId = OIDFJSON.tryGetString(statusOpResult.get("stream_id"));
+			resumePushDeliveryIfEnabled(updatedStreamId);
+			onStreamStatusUpdateSuccess(updatedStreamId, statusOpResult);
 		} else {
 			onStatusStatusLookup(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
 		}
@@ -1006,18 +1598,41 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		// NOOP
 	}
 
+	/**
+	 * Called when the receiver reports an error for a delivered SET via the
+	 * {@code setErrs} member of a poll request (RFC 8936 2.4). An error report resolves the
+	 * SET - no acknowledgement will follow - so the jti is recorded for
+	 * {@link #getResolvedWithoutAckJtis()}. Overriding implementations should call
+	 * {@code super} to keep that accounting intact.
+	 */
+	protected void onStreamEventErrorReported(String streamId, String jti, JsonObject error) {
+		errorReportedEventJtis.add(jti);
+	}
+
 	protected abstract boolean isFinished();
 
 	protected ResponseEntity<?> handleStreamPollingRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		String method = req.getMethod();
 		if (!Objects.equals("POST", method)) {
-			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+			return reportUnexpectedHttpRequest(path, requestParts);
 		}
 
-		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
+		// RFC 8936 2.2: a poll request is sent as application/json
+		callAndContinueOnFailure(OIDSSFWarnPollRequestContentTypeNotJson.class, Condition.ConditionResult.WARNING, "RFC8936-2.2");
 
-		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+		// One handler instance per request: a long poll releases the test lock while it waits,
+		// and a poll request arriving meanwhile must not be handed this request's answer or
+		// vice versa, so the result is read from the instance, not from a shared key.
+		OIDSSFHandlePollRequest pollRequestHandler = new OIDSSFHandlePollRequest(eventStore,
+			(streamId, jti, acknowledgedEvent) -> {
+				gradeFirstAcknowledgement();
+				onStreamEventAcknowledged(streamId, jti, acknowledgedEvent);
+			},
+			this::onStreamEventErrorReported);
+		callAndContinueOnFailure(pollRequestHandler, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
+
+		JsonObject pollResult = pollRequestHandler.getResult();
 
 		JsonElement result = pollResult.get("result");
 		int statusCode = OIDFJSON.getInt(pollResult.get("status_code"));
@@ -1027,6 +1642,20 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	/**
+	 * Logs which RFC 8936 2.4 poll request variations the receiver used, when it polled at all.
+	 * Subclasses that override this method must call {@code super.fireTestFinished()} last, as
+	 * the base implementation hands the test over to finalisation.
+	 */
+	@Override
+	public void fireTestFinished() {
+		JsonElement pollRequestVariations = env.getElementFromObject("ssf", OIDSSFHandlePollRequest.POLL_REQUEST_VARIATIONS_KEY);
+		if (pollRequestVariations != null && pollRequestVariations.isJsonObject() && !pollRequestVariations.getAsJsonObject().isEmpty()) {
+			callAndContinueOnFailure(OIDSSFLogObservedPollRequestVariations.class, Condition.ConditionResult.INFO, "RFC8936-2.4");
+		}
+		super.fireTestFinished();
 	}
 
 	@Override
@@ -1133,7 +1762,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				"previous_level", "HIGH",
 				"initiating_entity", "user",
 				"principal", "USER",
-				"risk_reason", "PASSWORD_FOUND_IN_DATA_BREACH")
+				"risk_reason", "PASSWORD_FOUND_IN_DATA_BREACH",
+				"reason_admin", Map.of("en", "Credential no longer found in breach corpus"))
+				// only OIDCAEP-3.8: risk-level-change is not a use case of the published
+				// CAEP Interop draft-01 (CAEPIOP-3.4 exists only in the WG head)
 				, Set.of("OIDCAEP-3.8"));
 
 			// Examples from RISC spec below: https://openid.net/specs/openid-risc-1_0-final.html

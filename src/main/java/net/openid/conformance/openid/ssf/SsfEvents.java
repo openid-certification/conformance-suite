@@ -1,6 +1,8 @@
 package net.openid.conformance.openid.ssf;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SsfEvents {
@@ -9,8 +11,37 @@ public class SsfEvents {
 
 	public static final String SSF_STREAM_UPDATED_EVENT_TYPE = "https://schemas.openid.net/secevent/ssf/event-type/stream-updated";
 
+	/**
+	 * A member no SSF event type defines. The emulated transmitter adds it to generated SSF
+	 * framework events: transmitters MAY include additional fields anywhere in a SET and
+	 * receivers MUST ignore fields they do not understand (SSF 1.0 4.2.3).
+	 */
+	public static final String UNKNOWN_EVENT_MEMBER_NAME = "x_oidf_extension";
+
+	public static final String UNKNOWN_EVENT_MEMBER_VALUE = "receivers ignore unknown members";
+
+	/**
+	 * The allowable {@code change_type} values of a CAEP credential-change event (CAEP 1.0 3.3.1),
+	 * a closed set.
+	 */
+	public static final List<String> CAEP_CREDENTIAL_CHANGE_TYPES = List.of("create", "revoke", "update", "delete");
+
+	/**
+	 * The {@code credential_type} values CAEP 1.0 3.3.1 lists for a credential-change event
+	 * (further values may be agreed between transmitter and receiver).
+	 */
+	public static final List<String> CAEP_CREDENTIAL_TYPES = List.of(
+		"password", "pin", "x509", "fido2-platform", "fido2-roaming",
+		"fido-u2f", "verifiable-credential", "phone-voice", "phone-sms", "app");
+
+	/**
+	 * The allowable {@code previous_status} / {@code current_status} values of a CAEP
+	 * device-compliance-change event (CAEP 1.0 3.5.1), a closed set.
+	 */
+	public static final List<String> CAEP_DEVICE_COMPLIANCE_STATUSES = List.of("compliant", "not-compliant");
+
 	public static final Set<String> SSF_EVENT_TYPES = Set.of(
-		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-8.1.4.2
+		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-8.1.4.1
 		SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE,
 		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#name-stream-updated-event
 		SsfEvents.SSF_STREAM_UPDATED_EVENT_TYPE
@@ -145,16 +176,59 @@ public class SsfEvents {
 		STANDARD_EVENT_TYPES = Set.copyOf(events);
 	}
 
-	public static final Set<String> CAEP_INTEROP_EVENT_TYPES;
+	/**
+	 * The qualifying use cases of the CAEP Interoperability Profile 1.0 draft-01
+	 * (sections 3.1-3.3) - the published document of the current certification review period,
+	 * see https://openid.net/specs/openid-caep-interoperability-profile-1_0-01.html.
+	 * A CAEP Interop implementation must support at least one of these.
+	 */
+	public static final Set<String> CAEP_INTEROP_QUALIFYING_EVENT_TYPES;
 	static {
 		Set<String> events = new LinkedHashSet<>();
 		events.add(CAEP_SESSION_REVOKED_EVENT_TYPE);
 		events.add(CAEP_CREDENTIAL_CHANGE_EVENT_TYPE);
 		events.add(CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE); // see: https://github.com/openid/sharedsignals/issues/311
+		CAEP_INTEROP_QUALIFYING_EVENT_TYPES = events;
+	}
+
+	/**
+	 * All CAEP event types the suite handles under the interop profile: the
+	 * {@link #CAEP_INTEROP_QUALIFYING_EVENT_TYPES qualifying use cases} of draft-01 plus
+	 * risk-level-change, which the working-group head adds as section 3.4
+	 * (https://github.com/openid/sharedsignals/pull/349) but which is NOT part of the
+	 * published draft-01 under review. The emulated transmitter generates risk-level-change
+	 * events for receivers that request them, and events a transmitter voluntarily delivers
+	 * are validated - but risk-level-change is never REQUIRED of a transmitter and does not
+	 * qualify a stream on its own. Revisit (fold into the qualifying set) once the profile
+	 * vote lands with section 3.4 included.
+	 */
+	public static final Set<String> CAEP_INTEROP_EVENT_TYPES;
+	static {
+		Set<String> events = new LinkedHashSet<>(CAEP_INTEROP_QUALIFYING_EVENT_TYPES);
+		events.add(CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE);
 		CAEP_INTEROP_EVENT_TYPES = events;
 	}
 
 	public static boolean isVerificationEvent(String type) {
 		return SSF_STREAM_VERIFICATION_EVENT_TYPE.equals(type);
+	}
+
+	/**
+	 * The event type the emulated transmitter uses when a receiver test needs one ordinary
+	 * event for a stream: the first of the stream's {@code events_delivered} that is a CAEP
+	 * Interop Profile event, else the first delivered type, else session-revoked.
+	 */
+	public static String preferredEventType(Collection<String> eventsDelivered) {
+		if (eventsDelivered != null) {
+			for (String eventType : eventsDelivered) {
+				if (CAEP_INTEROP_EVENT_TYPES.contains(eventType)) {
+					return eventType;
+				}
+			}
+			if (!eventsDelivered.isEmpty()) {
+				return eventsDelivered.iterator().next();
+			}
+		}
+		return CAEP_SESSION_REVOKED_EVENT_TYPE;
 	}
 }

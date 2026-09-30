@@ -12,17 +12,23 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoin
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAllCaepInteropEventsReceived;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureCaepInteropEventReasonAdminPresent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureCaepInteropEventSubjectFormat;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepInteropEventUsesComplexSubject;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicitedVerificationEventHasNoState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventValuesAreJsonObjects;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepEventTimestampImplausible;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenTypeNotInPreferredForm;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractCaepEventData;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
@@ -30,22 +36,34 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnso
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogObservedSubjectFormats;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFRecordSecurityEventTokenSubjectFormat;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDeviceComplianceChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepRiskLevelChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepRiskLevelChangeRiskReasonMissing;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepAssuranceLevelChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepSessionEstablishedEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepSessionPresentedEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepTokenClaimsChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateStreamUpdatedEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnCaepAssuranceLevelChangeDirectionMissing;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnStreamUpdatedEventUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenAudClaimMissing;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenJtiClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenSubIdClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenSubIdUnknownMembers;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenTxnClaimIsString;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnSecurityEventTokenTxnClaimMissing;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamDeliveryMatchesRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
@@ -57,11 +75,15 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static net.openid.conformance.openid.ssf.SsfEvents.SSF_STREAM_UPDATED_EVENT_TYPE;
 
 @PublishTestModule(
 	testName = "openid-ssf-transmitter-stream-caep-interop",
@@ -77,7 +99,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 		   device-compliance-change — as advertised in events_delivered)
 		 * delete the stream
 
-		The expected CAEP events are determined from the stream's events_delivered field.
+		The expected CAEP events are the qualifying use cases of the CAEP Interop Profile
+		draft-01 (sections 3.1-3.3) found in the stream's events_delivered field. Other
+		advertised CAEP events (e.g. risk-level-change, which the profile's working-group
+		draft adds as a use case) are validated and acknowledged if the transmitter delivers
+		them, but are not required.
 		These events must be triggered on the transmitter side (e.g. via the transmitter's
 		admin UI) and may be delivered in any order. Each received CAEP event is validated
 		against the CAEP 1.0 Final specification. For PUSH delivery, events are received on
@@ -100,6 +126,10 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * tolerating some unsolicited events we still require the solicited echo.
 	 */
 	protected static final int MAX_UNSOLICITED_VERIFICATION_EVENTS = 10;
+
+	protected static final int VERIFICATION_POLL_MAX_ATTEMPTS = 12;
+
+	protected static final int VERIFICATION_POLL_INTERVAL_SECONDS = 5;
 
 	volatile boolean streamDeletedSuccessfully = false;
 
@@ -132,13 +162,16 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			}
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
+			rememberSentStreamConfig();
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckStreamAudience.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
+			// the run cannot continue on a delivery the receiver did not ask for
+			callAndStopOnFailure(OIDSSFEnsureStreamDeliveryMatchesRequest.class, "CAEPIOP-2.3.8.1", "OIDSSF-8.1.1.1", "OIDSSF-6.1.2");
 			callAndContinueOnFailure(OIDSSFStreamRequiredFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			callAndContinueOnFailure(OIDSSFStreamOptionalFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
+			callAndContinueOnFailure(OIDSSFEnsureEventsDeliveredIsSubsetOfSupportedAndRequested.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			call(exec().unmapKey("endpoint_response"));
 
 			// Determine which CAEP events the transmitter will actually deliver
@@ -150,8 +183,8 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
-			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1", "OIDCAEP-3");
-			callAndContinueOnFailure(OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents.class, Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
+			callAndContinueOnFailure(OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents.class, Condition.ConditionResult.FAILURE, "CAEPIOP-3", "OIDSSF-8.1.1");
 			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
@@ -162,9 +195,11 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-8.1.2.1", "CAEPIOP-2.3.5");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1");
+				validateStreamStatusResponse("OIDSSF-8.1.2.1", "CAEPIOP-2.3.5");
 				call(exec().unmapKey("endpoint_response"));
 			} else {
-				eventLog.log("Skipping Read Stream Status: status_endpoint missing in ssf-configuration", args());
+				throw new TestFailureException(getId(), "Transmitter metadata does not include a status_endpoint, "
+					+ "which is required by the CAEP Interop Profile (CAEPIOP-2.3.5).");
 			}
 		});
 
@@ -175,10 +210,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		eventLog.runBlock("Trigger Stream Verification", () -> {
-			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4.1");
-			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
+			triggerVerificationEventAndRequireAcceptance();
 			call(exec().unmapKey("endpoint_response"));
 
 			callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
@@ -302,9 +334,13 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * populated {@code set_token} / {@code ssf.verification.token}.
 	 */
 	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
-		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
+		// Event types outside the CAEP/SSF families (e.g. RISC or proprietary) are not
+		// forbidden stream content (SSF 1.0 8.1.1 places no such restriction), so an
+		// unrecognized type is a WARNING, not a FAILURE.
+		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 		String eventType = env.getString("ssf", "caep_event.type");
 		if (eventType == null) {
+			validateNonCaepSet();
 			return;
 		}
 		String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
@@ -314,8 +350,45 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 			receivedEventTypes.add(eventType);
 			validateCaepEventSubject();
-			callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
-			validateCaepEventFields(eventType);
+			validateCaepEventPayload(eventType);
+		});
+	}
+
+	/**
+	 * jtis of the SETs without a CAEP event whose envelope was already validated - the
+	 * verification events graded during the verification phase and the non-CAEP SETs seen in
+	 * earlier poll responses - so re-delivered or restored SETs are not graded twice.
+	 */
+	private final Set<String> validatedNonCaepJtis = new LinkedHashSet<>();
+
+	/**
+	 * Validates a SET that carries no CAEP event: CAEPIOP 2.6 "All events MUST be signed" and
+	 * the SET envelope rules apply to every SET on the stream. A further verification event is
+	 * checked like the solicited one (subject, and the echoed state when present - SSF 1.0
+	 * 8.1.4.2); a stream-updated event (SSF 1.0 8.1.5) is checked for its status and subject.
+	 * Assumes {@link OIDSSFParseSecurityEventToken} has already populated {@code set_token}.
+	 */
+	protected void validateNonCaepSet() {
+		JsonElement eventsEl = env.getElementFromObject("set_token", "claims.events");
+		Set<String> eventTypes = eventsEl != null && eventsEl.isJsonObject() ? eventsEl.getAsJsonObject().keySet() : Set.of();
+		String blockTitle = currentEventIsVerificationEvent() ? "Validate verification event"
+			: eventTypes.contains(SSF_STREAM_UPDATED_EVENT_TYPE) ? "Validate stream-updated event"
+			: "Validate SET envelope of non-CAEP event";
+		eventLog.runBlock(blockTitle, () -> {
+			validateSetCommonAfterParsing();
+			if (currentEventIsVerificationEvent()) {
+				callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+				if (currentVerificationEventHasState()) {
+					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+				} else {
+					callAndContinueOnFailure(OIDSSFLogAcceptedUnsolicitedVerificationEvent.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4");
+				}
+			} else if (eventTypes.contains(SSF_STREAM_UPDATED_EVENT_TYPE)) {
+				callAndContinueOnFailure(OIDSSFValidateStreamUpdatedEvent.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.5");
+				callAndContinueOnFailure(OIDSSFWarnStreamUpdatedEventUnknownMembers.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.5");
+			} else {
+				eventLog.log(getName(), args("msg", "SET carries an event type this test does not inspect beyond the SET envelope", "event_types", eventTypes));
+			}
 		});
 	}
 
@@ -333,46 +406,82 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	}
 
 	protected void retrieveAndAcknowledgeEventsViaPoll() {
-		eventLog.runBlock("Poll for verification event", () -> {
-			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-			validatePollResponseStatus();
-			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
-			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
-		});
+		// Poll repeatedly for the solicited verification event. SSF 1.0 8.1.4.2:
+		// receivers MUST NOT depend on the verification event being transmitted
+		// synchronously or in any particular order relative to the queue - a single
+		// poll right after triggering is not sufficient. The ~60s window follows the
+		// WG expectation recorded on sharedsignals#339.
+		boolean solicitedVerificationFound = false;
+		// SETs retrieved across all verification poll attempts: each poll response overwrites
+		// ssf.poll.sets, and RFC 8936 §2.4 makes re-delivery of un-acknowledged SETs OPTIONAL,
+		// so CAEP events retrieved in an earlier attempt must be kept here or they are lost.
+		JsonObject pendingSets = new JsonObject();
+		for (int attempt = 1; attempt <= VERIFICATION_POLL_MAX_ATTEMPTS && !solicitedVerificationFound; attempt++) {
+			int attemptNr = attempt;
+			eventLog.runBlock("Poll for verification event (attempt " + attemptNr + ")", () -> {
+				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
+				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
+				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+				validatePollResponse();
+				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
+			});
 
-		// Iterate every SET in the poll response, tolerating unsolicited
-		// (stateless) verification events per SSF 1.0 §8.1.4, and require that
-		// at least one solicited (stated) verification event is present — the
-		// transmitter MUST echo the request state per §8.1.4.2.
-		if (!iterateAndValidatePolledVerificationEvents()) {
+			JsonElement batchEl = env.getElementFromObject("ssf", "poll.sets");
+			if (batchEl != null && batchEl.isJsonObject()) {
+				for (var setEntry : batchEl.getAsJsonObject().entrySet()) {
+					pendingSets.add(setEntry.getKey(), setEntry.getValue());
+				}
+			}
+
+			solicitedVerificationFound = iterateAndValidatePolledVerificationEvents();
+
+			if (!solicitedVerificationFound && morePollEventsAvailable()) {
+				// RFC 8936 2.3: the transmitter holds further unacknowledged SETs - fetch them now
+				eventLog.log(getName(), "Poll response announced more SETs (moreAvailable); polling again immediately (attempt " + attemptNr + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
+				continue;
+			}
+
+			if (!solicitedVerificationFound && attempt < VERIFICATION_POLL_MAX_ATTEMPTS) {
+				eventLog.log(getName(), "Solicited verification event not yet delivered; polling again in "
+					+ VERIFICATION_POLL_INTERVAL_SECONDS + "s (attempt " + attemptNr + "/" + VERIFICATION_POLL_MAX_ATTEMPTS + ")");
+				sleepReleasingLock(VERIFICATION_POLL_INTERVAL_SECONDS, "the solicited verification event");
+			}
+		}
+
+		if (!solicitedVerificationFound) {
 			throw new TestFailureException(getId(),
-				"POLL response did not contain a solicited verification event (with matching 'state') — "
-					+ "transmitter did not echo the state from the verification request (SSF 1.0 §8.1.4.2)");
+				"POLL responses did not contain a solicited verification event (with matching 'state') within the polling window - "
+					+ "transmitter did not echo the state from the verification request (SSF 1.0 8.1.4.2)");
 		}
 
 		Set<String> receivedEventTypes = new LinkedHashSet<>();
 
 		// Per SSF 1.0 8.1.4.2 receivers MUST NOT depend on the verification
 		// event being delivered in any particular order relative to other
-		// queued events. Process any CAEP events that arrived in the same
-		// POLL_ONLY response so they are not lost — RFC 8936 §2.4 makes
-		// re-delivery of un-acknowledged SETs OPTIONAL.
-		JsonElement firstPollSetsEl = env.getElementFromObject("ssf", "poll.sets");
-		if (firstPollSetsEl != null && firstPollSetsEl.isJsonObject() && !firstPollSetsEl.getAsJsonObject().isEmpty()) {
-			processCaepEventsFromPollResponse(firstPollSetsEl.getAsJsonObject(), receivedEventTypes);
+		// queued events. Process the CAEP events retrieved across ALL of the
+		// verification poll attempts (not just the final response), and restore
+		// them to poll.sets so the first POLL_AND_ACKNOWLEDGE below acknowledges
+		// every retrieved SET — RFC 8936 §2.4 makes re-delivery of
+		// un-acknowledged SETs OPTIONAL, so nothing retrieved may be dropped.
+		if (!pendingSets.isEmpty()) {
+			env.putObject("ssf", "poll.sets", pendingSets.deepCopy());
+			processCaepEventsFromPollResponse(pendingSets, receivedEventTypes);
 		}
 
-		// Poll repeatedly until all 3 CAEP event types are received, or timeout.
-		// Each poll acknowledges previously received SETs and retrieves new ones.
+		// Poll repeatedly until every expected CAEP event type is received. Each poll
+		// acknowledges previously received SETs and retrieves new ones. The window is the
+		// same as under push: 60 seconds per event, restarted whenever a new event type
+		// arrives, since the events are typically triggered by hand one after another.
 		int pollIntervalSeconds = 5;
-		int maxAttempts = 12; // 12 x 5s = 60 seconds
-		for (int attempt = 0; attempt < maxAttempts; attempt++) {
+		Duration perEventWindow = Duration.ofSeconds(60);
+		Instant deadline = Instant.now().plus(perEventWindow);
+		for (int attempt = 0; Instant.now().isBefore(deadline); attempt++) {
+			int receivedBefore = receivedEventTypes.size();
 			eventLog.runBlock("Poll for CAEP events (attempt " + (attempt + 1) + ")", () -> {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
-				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-				validatePollResponseStatus();
+				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
 				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+				validatePollResponse();
 				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			});
 
@@ -384,17 +493,19 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			if (receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 				break;
 			}
-
-			if (attempt < maxAttempts - 1) {
-				eventLog.log(getName(), "Waiting for CAEP events... received "
-					+ receivedEventTypes.size() + "/3, polling again in " + pollIntervalSeconds + "s");
-				try {
-					Thread.sleep(pollIntervalSeconds * 1000L);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new TestFailureException(getId(), "Interrupted while waiting for CAEP events");
-				}
+			if (receivedEventTypes.size() > receivedBefore) {
+				deadline = Instant.now().plus(perEventWindow);
 			}
+
+			if (morePollEventsAvailable()) {
+				eventLog.log(getName(), "Poll response announced more SETs (moreAvailable); polling again immediately");
+				continue;
+			}
+
+			eventLog.log(getName(), "Waiting for CAEP events... received "
+				+ receivedEventTypes.size() + "/" + expectedCaepEventTypes.size() + ", polling again in " + pollIntervalSeconds + "s ("
+				+ Duration.between(Instant.now(), deadline).toSeconds() + "s left for the next event type)");
+			sleepReleasingLock(pollIntervalSeconds, "CAEP events");
 		}
 
 		eventLog.runBlock("Verify all expected CAEP Interop events were received", () -> {
@@ -407,8 +518,9 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			JsonElement remainingSets = env.getElementFromObject("ssf", "poll.sets");
 			if (remainingSets != null && remainingSets.isJsonObject() && !remainingSets.getAsJsonObject().isEmpty()) {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
-				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-				validatePollResponseStatus();
+				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
+				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+				validatePollResponse();
 			}
 		});
 	}
@@ -447,14 +559,19 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			AtomicBoolean wasSolicited = new AtomicBoolean(false);
 			int idx = setIndex;
 			eventLog.runBlock("Validate polled SET " + idx + "/" + totalSets + " (jti=" + jti + ")", () -> {
-				validateSetCommon();
+				callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 
 				if (!currentEventIsVerificationEvent()) {
+					// CAEP events retrieved during the verification phase are validated, envelope
+					// included, by processCaepEventsFromPollResponse once the verification event
+					// has arrived
 					eventLog.log(getName(),
 						args("msg", "Skipping non-verification SET during verification phase",
 							"jti", jti));
 					return;
 				}
+				validateSetCommonAfterParsing();
+				validatedNonCaepJtis.add(jti);
 
 				callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 
@@ -473,25 +590,21 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		return false;
 	}
 
-	/**
-	 * Per RFC 8936 §2.5, a successful poll request returns 200 OK. Map the polling response to
-	 * endpoint_response, run the status check, then unmap so the cleanup is always paired.
-	 */
-	protected void validatePollResponseStatus() {
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8936-2.5");
-		call(exec().unmapKey("endpoint_response"));
-	}
-
 	protected void processCaepEventsFromPollResponse(JsonObject pollSets, Set<String> receivedEventTypes) {
 		for (Map.Entry<String, JsonElement> entry : pollSets.entrySet()) {
 			String setToken = OIDFJSON.getString(entry.getValue());
 			env.putString("ssf", "verification.jwt", setToken);
 
 			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
+			// Event types outside the CAEP/SSF families (e.g. RISC or proprietary) are not
+			// forbidden stream content (SSF 1.0 8.1.1 places no such restriction), so an
+			// unrecognized type is a WARNING, not a FAILURE.
+			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1");
 			String eventType = env.getString("ssf", "caep_event.type");
 			if (eventType == null) {
+				if (validatedNonCaepJtis.add(entry.getKey())) {
+					validateNonCaepSet();
+				}
 				continue;
 			}
 			String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
@@ -501,8 +614,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 				receivedEventTypes.add(eventType);
 				validateCaepEventSubject();
-				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
-				validateCaepEventFields(eventType);
+				validateCaepEventPayload(eventType);
 			});
 		}
 	}
@@ -522,10 +634,15 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * (i.e. {@code set_token} is already in the environment).
 	 */
 	protected void validateSetCommonAfterParsing() {
-		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
+		// CAEPIOP 2.6: "All events MUST be signed using the RS256 algorithm with a
+		// minimum of 2048-bit keys" - a forged signature or a weak key must FAIL.
+		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
+		callAndContinueOnFailure(OIDSSFEnsureEventSignerRsaKeySizeAtLeast2048Bits.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTypeNotInPreferredForm.class, Condition.ConditionResult.WARNING, "RFC8417-2.3");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");
+		callAndContinueOnFailure(OIDSSFEnsureSecurityEventValuesAreJsonObjects.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.2");
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenSubIdClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-3.1", "RFC9493-3");
 		// RFC 9493 §3 prohibits members not described by the format; per the suite's
@@ -535,9 +652,42 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.7");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenIatIsNotInFuture.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "RFC7519-4.1.6");
-		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8");
-		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "RFC7519-4.1.3");
-		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenTxnClaim.class, Condition.ConditionResult.INFO, "OIDSSF-4.1.9");
+		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenJtiClaim.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2");
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenAudClaimMissing.class, Condition.ConditionResult.WARNING, "RFC8417-2.2", "OIDSSF-4.1.8");
+		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenAudClaim.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.8", "RFC7519-4.1.3");
+		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.8", "OIDSSF-8.1.1");
+		// SSF 1.0 4.1.9: "Transmitters SHOULD set the txn claim"; a present value is a string per RFC 8417 2.2
+		callAndContinueOnFailure(OIDSSFWarnSecurityEventTokenTxnClaimMissing.class, Condition.ConditionResult.WARNING, "OIDSSF-4.1.9");
+		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenTxnClaimIsString.class, Condition.ConditionResult.FAILURE, "RFC8417-2.2", "OIDSSF-4.1.9");
+	}
+
+	/**
+	 * Validates the payload of the current CAEP event: the common optional claims (CAEP 1.0 2),
+	 * the event-specific claims, and, as a sender-side typo check, that no member outside those
+	 * two lists is present.
+	 */
+	protected void validateCaepEventPayload(String eventType) {
+		callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
+		callAndContinueOnFailure(OIDSSFWarnCaepEventTimestampImplausible.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
+		validateCaepEventFields(eventType);
+		String eventDefinition = caepEventDefinitionRequirement(eventType);
+		callAndContinueOnFailure(OIDSSFWarnCaepEventUnknownMembers.class, Condition.ConditionResult.WARNING,
+			eventDefinition == null ? new String[] {"OIDCAEP-2"} : new String[] {"OIDCAEP-2", eventDefinition});
+	}
+
+	/** The requirement tag of the CAEP 1.0 section that defines the event type's claims, or null for other types. */
+	protected String caepEventDefinitionRequirement(String eventType) {
+		return switch (eventType) {
+			case SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE -> "OIDCAEP-3.1";
+			case SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE -> "OIDCAEP-3.2";
+			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE -> "OIDCAEP-3.3";
+			case SsfEvents.CAEP_ASSURANCE_LEVEL_CHANGE_EVENT_TYPE -> "OIDCAEP-3.4";
+			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE -> "OIDCAEP-3.5";
+			case SsfEvents.CAEP_SESSION_ESTABLISHED_EVENT_TYPE -> "OIDCAEP-3.6";
+			case SsfEvents.CAEP_SESSION_PRESENTED_EVENT_TYPE -> "OIDCAEP-3.7";
+			case SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE -> "OIDCAEP-3.8";
+			default -> null;
+		};
 	}
 
 	/**
@@ -546,18 +696,57 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	protected void validateCaepEventFields(String eventType) {
 		switch (eventType) {
 			case SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE:
-				// No required event-specific fields per CAEP 1.0 Section 3.1
-				eventLog.log(getName(), "Validated session-revoked event (no required event-specific fields)");
+				// CAEP 1.0 3.1 defines no required event-specific fields, but the CAEP
+				// Interop Profile (3.1) requires reason_admin to be a non-empty object.
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.1");
 				break;
 			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepCredentialChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.3");
 				callAndContinueOnFailure(OIDSSFWarnNonStandardCaepCredentialChangeValues.class,
 					Condition.ConditionResult.WARNING, "OIDCAEP-3.3");
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.2");
 				break;
 			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepDeviceComplianceChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.5");
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.FAILURE, "CAEPIOP-3.3");
+				break;
+			case SsfEvents.CAEP_RISK_LEVEL_CHANGE_EVENT_TYPE:
+				// Structural requirements come from CAEP 1.0 Final (3.8) and apply to any
+				// delivered risk-level-change event. Neither CAEP 1.0 Final, where reason_admin
+				// is optional, nor draft-01 of the interop profile, which does not define this
+				// use case, requires reason_admin here; only the WG head's section 3.4 does.
+				// Its absence is noted at INFO, without a requirement link, until a profile
+				// version that defines the use case is the certification target (see
+				// SsfEvents.CAEP_INTEROP_EVENT_TYPES).
+				callAndContinueOnFailure(OIDSSFValidateCaepRiskLevelChangeEvent.class,
+					Condition.ConditionResult.FAILURE, "OIDCAEP-3.8");
+				callAndContinueOnFailure(OIDSSFWarnCaepRiskLevelChangeRiskReasonMissing.class,
+					Condition.ConditionResult.WARNING, "OIDCAEP-3.8");
+				callAndContinueOnFailure(OIDSSFEnsureCaepInteropEventReasonAdminPresent.class,
+					Condition.ConditionResult.INFO);
+				break;
+			case SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE:
+				callAndContinueOnFailure(OIDSSFValidateCaepTokenClaimsChangeEvent.class,
+					Condition.ConditionResult.FAILURE, "OIDCAEP-3.2");
+				break;
+			case SsfEvents.CAEP_ASSURANCE_LEVEL_CHANGE_EVENT_TYPE:
+				callAndContinueOnFailure(OIDSSFValidateCaepAssuranceLevelChangeEvent.class,
+					Condition.ConditionResult.FAILURE, "OIDCAEP-3.4");
+				callAndContinueOnFailure(OIDSSFWarnCaepAssuranceLevelChangeDirectionMissing.class,
+					Condition.ConditionResult.WARNING, "OIDCAEP-3.4");
+				break;
+			case SsfEvents.CAEP_SESSION_ESTABLISHED_EVENT_TYPE:
+				callAndContinueOnFailure(OIDSSFValidateCaepSessionEstablishedEvent.class,
+					Condition.ConditionResult.FAILURE, "OIDCAEP-3.6");
+				break;
+			case SsfEvents.CAEP_SESSION_PRESENTED_EVENT_TYPE:
+				callAndContinueOnFailure(OIDSSFValidateCaepSessionPresentedEvent.class,
+					Condition.ConditionResult.FAILURE, "OIDCAEP-3.7");
 				break;
 			default:
 				eventLog.log(getName(), "Received CAEP event type: " + eventType);
@@ -598,22 +787,33 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		List<String> eventsDelivered = OIDFJSON.convertJsonArrayToList(eventsDeliveredEl.getAsJsonArray());
+		// Only the qualifying use cases of the published CAEP Interop Profile draft-01
+		// (3.1-3.3) are REQUIRED to be demonstrated during the run. Other advertised CAEP
+		// event types (e.g. risk-level-change, which only the WG head defines as a use case)
+		// are still validated and acknowledged if the transmitter delivers them, but a
+		// transmitter must not fail merely because it never triggered one.
 		Set<String> caepEvents = new LinkedHashSet<>();
+		Set<String> nonQualifyingCaepEvents = new LinkedHashSet<>();
 		for (String eventType : eventsDelivered) {
-			if (SsfEvents.CAEP_EVENT_TYPES.contains(eventType)) {
+			if (SsfEvents.CAEP_INTEROP_QUALIFYING_EVENT_TYPES.contains(eventType)) {
 				caepEvents.add(eventType);
+			} else if (SsfEvents.CAEP_EVENT_TYPES.contains(eventType)) {
+				nonQualifyingCaepEvents.add(eventType);
 			}
 		}
 
 		if (caepEvents.isEmpty()) {
 			throw new TestFailureException(getId(),
-				"Stream events_delivered does not contain any CAEP event types. "
-					+ "The transmitter must support at least one CAEP Interop use case (CAEPIOP-3).");
+				"Stream events_delivered does not contain any CAEP Interop qualifying event type. "
+					+ "The transmitter must support at least one of the use cases 'session-revoked', "
+					+ "'credential-change' or 'device-compliance-change' (CAEPIOP-3.1, 3.2, 3.3).");
 		}
 
 		eventLog.log(getName(),
-			 args("msg", "Transmitter can deliver " + caepEvents.size() + " CAEP event type(s)",
-				 "events_delivered", caepEvents));
+			 args("msg", "Transmitter must deliver " + caepEvents.size() + " qualifying CAEP event type(s) during this run"
+					 + (nonQualifyingCaepEvents.isEmpty() ? "" : "; other advertised CAEP event types are validated if delivered but not required"),
+				 "required_caep_events", caepEvents,
+				 "optional_caep_events", nonQualifyingCaepEvents));
 
 		return caepEvents;
 	}

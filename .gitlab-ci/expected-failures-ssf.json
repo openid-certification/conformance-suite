@@ -1,12 +1,14 @@
 [
     {
         "test-name": "openid-ssf-receiver-*",
-        "variant": "*",
+        "variant": {
+            "ssf_profile": "caep_interop"
+        },
         "configuration-filename": "*ssf-receiver-test-config*.json",
         "current-block": "",
         "condition": "OIDSSFWarnCaepInteropComplexSubjectsConfigured",
         "expected-result": "warning",
-        "comment": "The CI receiver configurations deliberately declare a Complex Subject so events are generated for it; Complex Subjects are not yet listed in CAEP Interop Profile 2.5, see https://github.com/openid/sharedsignals/issues/351"
+        "comment": "Under the CAEP Interop profile only: the CI receiver configurations deliberately declare a Complex Subject so events are generated for it; Complex Subjects are not yet listed in CAEP Interop Profile 2.5, see https://github.com/openid/sharedsignals/issues/351"
     },
     {
         "test-name": "openid-ssf-transmitter-stream-caep-interop",
@@ -16,5 +18,23 @@
         "condition": "OIDSSFWarnCaepInteropEventUsesComplexSubject",
         "expected-result": "warning",
         "comment": "The emulated transmitter of the paired receiver test sends events for the Complex Subject declared in the CI receiver configuration; Complex Subjects are not yet listed in CAEP Interop Profile 2.5, see https://github.com/openid/sharedsignals/issues/351. The block name varies with the event type that carries the Complex Subject, hence the wildcard"
+    },
+    {
+        "test-name": "openid-ssf-receiver-happypath",
+        "variant": "*",
+        "configuration-filename": "*ssf-receiver-test-config-dynamic.json",
+        "current-block": "",
+        "condition": "OIDSSFEnsureReceiverDidNotSendAccessTokenInUriQuery",
+        "expected-result": "failure",
+        "comment": "The dynamic-auth pairings run the transmitter negative openid-ssf-stream-control-error-token-in-uri-query, which deliberately sends the access token as a URI query parameter to check that the transmitter rejects it (CAEP Interop Profile 2.7.2); the emulated transmitter grades that receiver behaviour as a failure"
+    },
+    {
+        "test-name": "openid-ssf-transmitter-stream-caep-interop",
+        "variant": "*",
+        "configuration-filename": "*ssf-transmitter-test-config*.json",
+        "current-block": "Validate CAEP event: credential-change",
+        "condition": "OIDSSFWarnNonStandardCaepCredentialChangeValues",
+        "expected-result": "warning",
+        "comment": "The paired receiver module openid-ssf-receiver-stream-caep-interop deliberately sends one credential-change event whose credential_type is outside the list of CAEP 1.0 3.3.1 (which allows any type supported mutually), to check that the receiver does not report it as an error; the transmitter test warns about the non-standard value as a sender-side check"
     }
 ]

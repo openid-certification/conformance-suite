@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+// import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +17,10 @@ import java.util.List;
 
 		This plan exercises the following transmitter behavior:
 		 * transmitter metadata document (required and optional fields, authorization schemes, advertised delivery methods and event types)
-		 * stream configuration management: create, read, delete (update/replace are excluded per CAEPIOP 2.3.8 which restricts stream configuration lifecycle operations)
+		 * stream configuration management: create, read, delete (update/replace are excluded: CAEPIOP 2.3.8.2 lists the stream control operations a transmitter MUST support, and update/replace are not among them)
 		 * stream configuration error handling: invalid access tokens, malformed bodies, unknown stream IDs
 		 * stream verification via the transmitter's verification endpoint
-		 * end-to-end CAEP Interop event delivery (session-revoked, credential-change, device-compliance-change — as advertised in events_delivered) over PUSH and POLL
+		 * end-to-end CAEP Interop event delivery (session-revoked, credential-change, device-compliance-change, risk-level-change — as advertised in events_delivered) over PUSH and POLL
 
 		Each CAEP event received during the interop run is validated against the CAEP 1.0 Final
 		specification (required claims, event-type-specific fields, signature, SET envelope).
@@ -43,7 +44,10 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 			OIDSSFStreamControlNegativeTestReplaceStreamWithInvalidBody.class,
 			OIDSSFStreamControlNegativeTestReplaceStreamWithInvalidToken.class,
 			OIDSSFStreamControlNegativeTestReplaceUnknownStream.class,
-			OIDSSFStreamSubjectControlHappyPathTest.class
+			OIDSSFStreamSubjectControlHappyPathTest.class,
+			// pausing or disabling a stream needs the status update operation, which CAEPIOP 2.3.5 does not require
+			OIDSSFTransmitterPausedStreamHoldsEventsTest.class,
+			OIDSSFTransmitterDisabledStreamDropsEventsTest.class
 		));
 
 		return List.of(new ModuleListEntry(testModules, List.of(
@@ -51,4 +55,9 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 		)));
 	}
 
+	// Enable once the SSF certification program is open; the plan is alpha until then.
+	// @Override
+	// public List<String> certificationProfileName(VariantSelection variantSelection) {
+	// 	return OIDSSFCertification.caepInteropTransmitterProfileName(variantSelection);
+	// }
 }

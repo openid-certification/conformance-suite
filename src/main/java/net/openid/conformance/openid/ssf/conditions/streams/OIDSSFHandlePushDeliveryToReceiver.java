@@ -27,11 +27,20 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 	private final String streamId;
 	private final OIDSSFSecurityEvent event;
 	private final BiConsumer<String, OIDSSFSecurityEvent> onSuccess;
+	private final BiConsumer<String, OIDSSFSecurityEvent> onNotAcknowledged;
 
 	public OIDSSFHandlePushDeliveryToReceiver(String streamId, OIDSSFSecurityEvent event, BiConsumer<String, OIDSSFSecurityEvent> onSuccess) {
+		this(streamId, event, onSuccess, (sid, ev) -> {
+		});
+	}
+
+	public OIDSSFHandlePushDeliveryToReceiver(String streamId, OIDSSFSecurityEvent event,
+		BiConsumer<String, OIDSSFSecurityEvent> onSuccess,
+		BiConsumer<String, OIDSSFSecurityEvent> onNotAcknowledged) {
 		this.streamId = streamId;
 		this.event = event;
 		this.onSuccess = onSuccess;
+		this.onNotAcknowledged = onNotAcknowledged;
 	}
 
 	@Override
@@ -42,6 +51,11 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 
 		this.endpointName = "receiver push endpoint";
 		this.responseEnvironmentKey = "endpoint_response";
+
+		// Remove any response left over from an earlier delivery so follow-up checks
+		// (e.g. the RFC 8935 2.2 202 check) can never run against a stale response
+		// when this delivery fails without producing one.
+		env.removeObject(responseEnvironmentKey);
 
 		log("Call " + endpointName + " for stream_id=" + streamId + " for event " + event.type() + " jti=" + event.jti(),
 			args("stream_id", streamId, "push_endpoint", endpointUri, "jti", event.jti(), "event_type", event.type()));
@@ -62,9 +76,21 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 				return handleClientException(env, e);
 			}
 
-			logSuccess("Got " + endpointName + " response", env.getObject(responseEnvironmentKey));
-
-			onSuccess.accept(streamId, event);
+			int status = env.getInteger(responseEnvironmentKey, "status");
+			if (status >= 200 && status < 300) {
+				logSuccess("Got " + endpointName + " response", env.getObject(responseEnvironmentKey));
+				// RFC 8935 2.2: the receiver acknowledges successful transmission with 202.
+				// Only a success response counts as delivered-and-acknowledged; the strict
+				// 202 status check runs separately in the caller.
+				onSuccess.accept(streamId, event);
+			} else {
+				// RFC 8935 2.3: an error response means the receiver rejected the SET -
+				// it must NOT be recorded as a successful delivery/acknowledgement.
+				log("Receiver answered the push delivery with an error status; not treating the SET as acknowledged",
+					args("status", status, "jti", event.jti(), "event_type", event.type(),
+						"response", env.getObject(responseEnvironmentKey)));
+				onNotAcknowledged.accept(streamId, event);
+			}
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 KeyStoreException | IOException | UnrecoverableKeyException e) {
@@ -72,9 +98,40 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 		}
 	}
 
+	/**
+	 * When the push call fails without an HTTP response, leave a synthetic
+	 * {@code endpoint_response} (status 0) so follow-up status checks (the RFC 8935
+	 * 2.2 202 check, the invalid-SET rejection check) grade a normal FAILURE
+	 * instead of aborting the whole test on a missing pre-environment key.
+	 */
+	@Override
+	protected Environment handleClientException(Environment env, org.springframework.web.client.RestClientException e) {
+		env.putObject(responseEnvironmentKey, synthesizeFailedResponse(0));
+		onNotAcknowledged.accept(streamId, event);
+		return super.handleClientException(env, e);
+	}
+
+	@Override
+	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
+		// preserve the real HTTP status so the rejection is reported accurately
+		env.putObject(responseEnvironmentKey, synthesizeFailedResponse(e.getStatusCode().value()));
+		onNotAcknowledged.accept(streamId, event);
+		return super.handleRestClientResponseException(env, e);
+	}
+
+	private com.google.gson.JsonObject synthesizeFailedResponse(int status) {
+		com.google.gson.JsonObject response = new com.google.gson.JsonObject();
+		response.addProperty("endpoint_name", endpointName);
+		// 0 = no HTTP response was received (connection-level failure)
+		response.addProperty("status", status);
+		return response;
+	}
+
 	protected HttpHeaders createHeaders(String authorizationHeader) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.set(HttpHeaders.CONTENT_TYPE, SsfConstants.SECURITY_EVENT_TOKEN_CONTENT_TYPE);
+		// RFC 8935 2.1: "The Accept header field MUST be application/json"
+		httpHeaders.set(HttpHeaders.ACCEPT, "application/json");
 
 		if (authorizationHeader != null) {
 			httpHeaders.set(HttpHeaders.AUTHORIZATION, authorizationHeader);

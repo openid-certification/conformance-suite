@@ -82,8 +82,19 @@ public class OIDSSFCheckSupportedEventsForStream_UnitTest {
 	}
 
 	@Test
-	void shouldFailWhenEventsSupportedIsMissing() {
+	void shouldPassWhenEventsSupportedIsMissing() {
+		// SSF 1.0 8.1.1: events_supported is Transmitter-Supplied, OPTIONAL
 		prepareStreamConfig(null);
+		assertDoesNotThrow(() -> createCondition().execute(env));
+	}
+
+	@Test
+	void shouldFailWhenEventsSupportedIsNotAnArray() {
+		JsonObject stream = new JsonObject();
+		stream.addProperty("events_supported", SsfEvents.SCIM_FEED_ADD_EVENT_TYPE);
+		JsonObject ssf = new JsonObject();
+		ssf.add("stream", stream);
+		env.putObject("ssf", ssf);
 		assertThrows(ConditionError.class, () -> createCondition().execute(env));
 	}
 }

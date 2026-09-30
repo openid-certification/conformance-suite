@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCaepInteropDeliveryMethodsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldConfigurationEndpoint;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldJwksUri;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldStatusEndpoint;
@@ -14,8 +15,10 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequired
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureNonEmptyArrayClaimsCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFOptionalFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFSpecVersionTransmitterMetadataCheck;
@@ -35,6 +38,7 @@ import net.openid.conformance.variant.VariantParameters;
 		The testsuite expects to observe the following interactions:
 		 * fetch the transmitter configuration metadata
 		 * validate required fields are present
+		 * validate the issuer is an https URL without query or fragment
 		 * validate advertised delivery methods
 		 * validate advertised supported event types
 		""",
@@ -72,11 +76,19 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 
 	private void validateTransmitterMetadata() {
 
-		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2");
-		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.3.7");
+		if (getVariant(SsfServerMetadata.class) == SsfServerMetadata.DISCOVERY) {
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.4");
+		} else {
+			// ssf_server_metadata=static: the metadata is fetched from a configured URL,
+			// not derived from an issuer - there is no expected issuer to compare against
+			// (the 'Transmitter Issuer' config field only exists under the discovery variant).
+			eventLog.log(getName(), "Skipping transmitter metadata issuer check: not applicable for static transmitter metadata");
+		}
+		callAndContinueOnFailure(OIDSSFEnsureTransmitterMetadataIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1");
+		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFOptionalFieldsTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1");
-		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1");
+		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1", "CAEPIOP-2.3.7");
@@ -84,6 +96,12 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1", "OIDSSF-8.1.1");
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			callAndContinueOnFailure(OIDSSFCaepInteropDeliveryMethodsTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.2");
+			// The certification run is scheduled for one delivery mode, so require exactly
+			// that mode to be advertised. Whether 2.3.8.1 obliges transmitters to support
+			// BOTH standard methods is ambiguous (2.4.1 explicitly requires receivers to
+			// support only one) - certification is granted per delivery mode either way.
+			callAndContinueOnFailure(new OIDSSFEnsureDeliveryMethodIsSupported(deliveryMode), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.2", "CAEPIOP-2.3.8.1");
 			callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.1");
 			callAndContinueOnFailure(OIDSSFCheckRequiredFieldJwksUri.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.3");
 			callAndContinueOnFailure(OIDSSFCheckRequiredFieldConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.4");
@@ -103,7 +121,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 			try {
 				callAndStopOnFailure(CheckJwksUri.class);
 				callAndStopOnFailure(FetchServerKeys.class);
-				call(new ValidateJwksSequence("server_jwks", null, "transmitter JWKS", "RFC7517-1.1"));
+				call(new ValidateJwksSequence("server_jwks", null, "transmitter JWKS", "RFC7517-5"));
 			} finally {
 				env.removeObject("transmitter_metadata");
 				env.unmapKey("server");

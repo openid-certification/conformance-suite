@@ -19,8 +19,18 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		JsonObject authResult = new JsonObject();
 		env.putObject("ssf", "auth_result", authResult);
 
+		// CAEPIOP 2.7.2: a transmitter MUST NOT accept access tokens via the URI query
+		// parameter mechanism of RFC 6750 2.3. The emulated transmitter therefore rejects
+		// them, and records the attempt so receiver tests can flag it.
+		JsonElement queryParamsEl = env.getElementFromObject("incoming_request", "query_string_params");
+		if (queryParamsEl != null && queryParamsEl.isJsonObject() && queryParamsEl.getAsJsonObject().has("access_token")) {
+			authResult.addProperty("access_token_in_query", true);
+			log("Request carried an access_token URI query parameter, which a transmitter must not accept");
+			return unauthorized(env, authResult, "Access tokens must be sent in the Authorization header, not as a URI query parameter");
+		}
+
 		if (authorizationHeaderEl == null) {
-			return unauthorized(env, authResult, "Missing authorization header in request");
+			return unauthorizedWithoutCredentials(env, authResult, "Missing authorization header in request");
 		}
 
 		String authorizationHeader = OIDFJSON.getString(authorizationHeaderEl);
@@ -64,14 +74,16 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 
 		JsonElement tokenRecordEl = issuedTokens.get(token);
 		if (tokenRecordEl == null || !tokenRecordEl.isJsonObject()) {
-			log("Bearer token is not recognised", args("authorization_header", authorizationHeader));
-			return unauthorized(env, authResult, "Bearer token is not recognised");
+			log("Bearer token is not recognized", args("authorization_header", authorizationHeader));
+			return unauthorized(env, authResult, "Bearer token is not recognized");
 		}
 
 		JsonObject tokenRecord = tokenRecordEl.getAsJsonObject();
 		long expiresAt = OIDFJSON.getLong(tokenRecord.get("expires_at"));
 		if (Instant.now().getEpochSecond() >= expiresAt) {
 			log("Bearer token has expired", args("token_record", tokenRecord));
+			// lets the module distinguish an expired token from an unknown one
+			authResult.addProperty("token_expired", true);
 			return unauthorized(env, authResult, "Bearer token has expired");
 		}
 
@@ -85,9 +97,20 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 		return env;
 	}
 
+	/** RFC 6750 3.1: without authentication information the challenge SHOULD NOT carry an error code. */
+	protected Environment unauthorizedWithoutCredentials(Environment env, JsonObject authResult, String description) {
+		authResult.add("error", createErrorObj("unauthorized", description));
+		authResult.addProperty("status_code", 401);
+		authResult.addProperty("www_authenticate", "Bearer");
+		log(description);
+		return env;
+	}
+
 	protected Environment unauthorized(Environment env, JsonObject authResult, String description) {
 		authResult.add("error", createErrorObj("unauthorized", description));
 		authResult.addProperty("status_code", 401);
+		// RFC 6750 3 / 3.1: a 401 carries a WWW-Authenticate challenge with the error code
+		authResult.addProperty("www_authenticate", "Bearer error=\"invalid_token\", error_description=\"" + description + "\"");
 		log(description);
 		return env;
 	}

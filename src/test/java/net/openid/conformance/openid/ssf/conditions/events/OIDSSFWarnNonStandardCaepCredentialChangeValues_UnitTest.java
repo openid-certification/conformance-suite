@@ -60,17 +60,6 @@ public class OIDSSFWarnNonStandardCaepCredentialChangeValues_UnitTest {
 	}
 
 	@Test
-	void shouldPassWithAllStandardChangeTypes() {
-		for (String type : new String[]{"create", "revoke", "update", "delete"}) {
-			JsonObject data = new JsonObject();
-			data.addProperty("credential_type", "password");
-			data.addProperty("change_type", type);
-			setUpCaepEvent(data);
-			assertDoesNotThrow(() -> condition.execute(env));
-		}
-	}
-
-	@Test
 	void shouldWarnOnNonStandardCredentialType() {
 		JsonObject data = new JsonObject();
 		data.addProperty("credential_type", "custom-hardware-token");
@@ -80,12 +69,13 @@ public class OIDSSFWarnNonStandardCaepCredentialChangeValues_UnitTest {
 	}
 
 	@Test
-	void shouldWarnOnNonStandardChangeType() {
+	void shouldNotCheckChangeType() {
+		// change_type is a closed set enforced as a FAILURE by OIDSSFValidateCaepCredentialChangeEvent
 		JsonObject data = new JsonObject();
 		data.addProperty("credential_type", "password");
 		data.addProperty("change_type", "suspend");
 		setUpCaepEvent(data);
-		assertThrows(ConditionError.class, () -> condition.execute(env));
+		assertDoesNotThrow(() -> condition.execute(env));
 	}
 
 	@Test

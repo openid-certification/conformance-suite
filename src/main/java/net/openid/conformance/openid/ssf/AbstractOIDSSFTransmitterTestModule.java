@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClie
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200Or404;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
@@ -28,20 +29,34 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFFindingCondition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestAcceptHeaderIncludesJson;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestContentTypeIsSecEventJwt;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsurePushRequestMethodIsPost;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidatePollResponse;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForRetryAfter;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseExceedsMaxEvents;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnPollResponseUnknownMembers;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectPushAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFValidateStreamStatusResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFWarnStreamStatusResponseUnknownMembers;
 import net.openid.conformance.openid.ssf.delivery.SSfPushRequest;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
@@ -98,17 +113,8 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
 	"client.client_secret"
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
-	"client.client_secret",
-	"client.client_secret_jwt_alg"
-})
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
 	"client.jwks"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca"
 })
 @VariantHidesConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"client.client_id",
@@ -124,7 +130,15 @@ import java.util.concurrent.TimeUnit;
 	whenParameter = SsfAuthMode.class, hasValues = "static")
 @VariantNotApplicableWhen(parameter = ClientAuthType.class, values = "*",
 	whenParameter = SsfAuthMode.class, hasValues = "static")
-@VariantNotApplicable(parameter = ClientAuthType.class, values = "client_attestation")
+// client_secret_jwt and mtls client authentication are not implemented for the SSF
+// transmitter tests (mtls additionally needs certificate-bound-token infrastructure);
+// client_attestation is not applicable for SSF. none stays selectable so that a transmitter
+// whose token endpoint takes no client authentication can be tested; RFC 6749 4.4 reserves the
+// client credentials grant for confidential clients, so such a run yields no certification
+// profile name (see OIDSSFCertification).
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"client_attestation", "client_secret_jwt", "mtls"
+})
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
 	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
@@ -194,7 +208,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		try {
 			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.INFO, "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200Or404.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200Or404.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1.2");
 		} catch (Exception ignore) {
 		}
 		boolean danglingStreamConfigFound = env.getElementFromObject("ssf", "stream") != null && env.getElementFromObject("ssf", "streams") != null;
@@ -202,10 +216,20 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			try {
 				callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO, "CAEPIOP-2.3.8.2");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs204Or404.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1.5");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs204Or404.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1.5");
 			} catch (Exception ignore) {
 			}
 		}
+	}
+
+	/**
+	 * Hook invoked from {@link #obtainTransmitterAccessToken()} after the OAuth client
+	 * configuration has been loaded into the {@code client} environment object and before the
+	 * token request is built. Modules can override it to adjust the client (e.g. restrict the
+	 * requested scope) - adjusting it earlier would be overwritten by the configuration load.
+	 */
+	protected void onClientConfigurationObtained() {
+		// NOOP
 	}
 
 	protected void obtainTransmitterAccessToken() {
@@ -236,6 +260,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					break;
 			}
 
+			onClientConfigurationObtained();
+
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
 
@@ -248,7 +274,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					callAndStopOnFailure(AddFormBasedClientSecretToRequest.class);
 					break;
 				case CLIENT_SECRET_JWT:
-					throw new UnsupportedOperationException("TODO implement me");
+					// unreachable: excluded via @VariantNotApplicable
+					throw new UnsupportedOperationException("client_secret_jwt is not supported for SSF transmitter tests");
 				case PRIVATE_KEY_JWT:
 
 					callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
@@ -256,9 +283,10 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					call(sequence(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class));
 					break;
 				case MTLS:
-					throw new UnsupportedOperationException("TODO implement me");
+					// unreachable: excluded via @VariantNotApplicable
+					throw new UnsupportedOperationException("mtls client authentication is not supported for SSF transmitter tests");
 				case NONE:
-					// no authentication configured, fall-through
+					// no client authentication: the token request carries only client_id; not certifiable
 				default:
 					break;
 			}
@@ -304,6 +332,18 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	protected void onPushDeliveryReceived(String path, JsonObject requestParts) {
+		callAndContinueOnFailure(OIDSSFEnsurePushRequestMethodIsPost.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
+		callAndContinueOnFailure(OIDSSFEnsurePushRequestContentTypeIsSecEventJwt.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
+		callAndContinueOnFailure(OIDSSFEnsurePushRequestAcceptHeaderIncludesJson.class, Condition.ConditionResult.FAILURE, "RFC8935-2.1");
+		checkPushDeliveryAuthorization();
+	}
+
+	/**
+	 * Grades the Authorization header of a push delivery. The stream was created with an
+	 * authorization_header, so the transmitter must send it (SSF 1.0 6.1.1); modules that
+	 * create the stream without one override this.
+	 */
+	protected void checkPushDeliveryAuthorization() {
 		callAndContinueOnFailure(OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 
@@ -311,27 +351,136 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		call(sequence(OIDSSFValidateTlsConnectionConditionSequence.class));
 	}
 
+	/**
+	 * Requests a verification event and requires the transmitter to accept the request with
+	 * 204 (SSF 1.0 8.1.4.2); another 2xx is a failure but the test goes on, since the event
+	 * may still be delivered, while a refusal stops it. The advertised {@code min_verification_interval} is honored before
+	 * the request; should the transmitter still answer 429, which SSF 1.0 8.1.1 lets it do when
+	 * requests come more often than the interval, the request is repeated once after the
+	 * {@code Retry-After} or the interval. Leaves the accepted response mapped onto
+	 * {@code endpoint_response}; callers unmap it.
+	 */
+	protected void triggerVerificationEventAndRequireAcceptance() {
+		callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
+		callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		Integer status = env.getInteger("resource_endpoint_response_full", "status");
+		if (status != null && status == 429) {
+			call(exec().unmapKey("endpoint_response"));
+			// SSF 1.0 8.1.1: the transmitter SHOULD NOT answer 429 to a receiver that keeps to the
+			// advertised interval, which the suite just did
+			callAndContinueOnFailure(new OIDSSFFindingCondition("The transmitter answered the verification request with 429 although the advertised "
+					+ "min_verification_interval had passed since the previous request. A transmitter should not rate-limit a receiver that "
+					+ "keeps to the interval. The request is repeated once after the Retry-After or the advertised interval."),
+				Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "OIDSSF-8.1.4.2");
+			callAndContinueOnFailure(OIDSSFWaitForRetryAfter.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.1");
+			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		}
+
+		Integer acceptanceStatus = env.getInteger("resource_endpoint_response_full", "status");
+		if (acceptanceStatus != null && acceptanceStatus >= 200 && acceptanceStatus < 300) {
+			// accepted, if with the wrong status: the event may still arrive, so the test goes on
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+		} else {
+			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
+		}
+	}
+
+	/**
+	 * Keeps the body of the stream configuration request just sent (POST, PATCH or PUT) at
+	 * {@code ssf.expected_stream_config}, so the returned and the read-back stream
+	 * configuration can be compared with what was actually requested after {@code ssf.stream}
+	 * has been replaced by the transmitter's response.
+	 */
+	protected void rememberSentStreamConfig() {
+		env.putObjectFromJsonString("ssf", "expected_stream_config", env.getString("resource_request_entity"));
+	}
+
+	/**
+	 * Grades the response of the poll request just made (RFC 8936 2.3 and 2.5): HTTP 200,
+	 * {@code application/json}, a well-formed {@code sets} object not exceeding the requested
+	 * {@code maxEvents}, and no undefined members. Expects {@code ssf_polling_response} to be
+	 * mapped onto {@code resource_endpoint_response_full}.
+	 */
+	protected void validatePollResponse() {
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8936-2.5");
+		call(exec().unmapKey("endpoint_response"));
+		callAndContinueOnFailure(OIDSSFValidatePollResponse.class, Condition.ConditionResult.FAILURE, "RFC8936-2.3", "RFC8936-2.5");
+		callAndContinueOnFailure(OIDSSFWarnPollResponseExceedsMaxEvents.class, Condition.ConditionResult.WARNING, "RFC8936-2.2");
+		callAndContinueOnFailure(OIDSSFWarnPollResponseUnknownMembers.class, Condition.ConditionResult.WARNING, "RFC8936-2.3");
+	}
+
+	/**
+	 * Whether the last poll response announced further unacknowledged SETs
+	 * ({@code moreAvailable}, RFC 8936 2.3). Poll loops then poll again without waiting.
+	 */
+	protected boolean morePollEventsAvailable() {
+		return Boolean.parseBoolean(env.getString("ssf", "poll.more_available"));
+	}
+
+	/**
+	 * Grades a stream status document (SSF 1.0 8.1.2.1). Expects the response under
+	 * {@code endpoint_response}.
+	 */
+	protected void validateStreamStatusResponse(String... requirements) {
+		callAndContinueOnFailure(OIDSSFValidateStreamStatusResponse.class, Condition.ConditionResult.FAILURE, requirements);
+		callAndContinueOnFailure(OIDSSFWarnStreamStatusResponseUnknownMembers.class, Condition.ConditionResult.WARNING, requirements);
+	}
+
 	protected SSfPushRequest lookupNextPushRequest() {
 		return lookupNextPushRequest(5);
 	}
 
+	/**
+	 * Waits up to {@code timeoutSeconds} for the next push request and validates its
+	 * envelope. The test is {@code WAITING} while it waits, so the test lock is free and a stop
+	 * request can take effect; the environment is only touched once the lock is held again.
+	 *
+	 * @return the push request, or {@code null} when none arrived in time
+	 */
 	protected SSfPushRequest lookupNextPushRequest(int timeoutSeconds) {
-
+		SSfPushRequest pushRequest;
+		setStatus(Status.WAITING);
 		try {
-			SSfPushRequest pushRequest = pushRequests.pollFirst(timeoutSeconds, TimeUnit.SECONDS);
-			if (pushRequest == null) {
-				return pushRequest;
-			}
-
-			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
-			env.putObject("ssf", "push_request", pushRequest.requestParts());
-			env.putString("ssf", "push_request_received_at", pushRequest.receivedAt().toString());
-			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
-
-			return pushRequest;
+			pushRequest = pushRequests.pollFirst(timeoutSeconds, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			Thread.currentThread().interrupt();
+			throw new TestFailureException(getId(), "Interrupted while waiting for a push request");
 		}
+		setStatus(Status.RUNNING);
+
+		if (pushRequest == null) {
+			return null;
+		}
+
+		eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
+		env.putObject("ssf", "push_request", pushRequest.requestParts());
+		env.putString("ssf", "push_request_received_at", pushRequest.receivedAt().toString());
+		onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
+
+		return pushRequest;
+	}
+
+	/**
+	 * Sleeps for {@code seconds} between two requests to the transmitter. The test is
+	 * {@code WAITING} while it sleeps, so the test lock is free and a stop request can take
+	 * effect.
+	 *
+	 * @param waitingFor what the sleep waits for, named in the failure raised when the test
+	 *                   is stopped meanwhile
+	 */
+	protected void sleepReleasingLock(long seconds, String waitingFor) {
+		setStatus(Status.WAITING);
+		try {
+			TimeUnit.SECONDS.sleep(seconds);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new TestFailureException(getId(), "Interrupted while waiting for " + waitingFor);
+		}
+		setStatus(Status.RUNNING);
 	}
 
 	/**
@@ -376,5 +525,29 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			return false;
 		}
 		return verificationEventEl.getAsJsonObject().has("state");
+	}
+
+	/**
+	 * Returns {@code true} if the most recently parsed verification event echoes the
+	 * state of the latest verification request ({@code ssf.verification.state}). An
+	 * event echoing an earlier request's state is a legitimate late delivery (SSF 1.0
+	 * 8.1.4.2) but does not satisfy a wait for the latest request's echo.
+	 */
+	protected boolean currentVerificationEventIsForLatestRequest() {
+		JsonElement claimsEl = env.getElementFromObject("ssf", "verification.token.claims");
+		if (claimsEl == null || !claimsEl.isJsonObject()) {
+			return false;
+		}
+		JsonObject events = claimsEl.getAsJsonObject().getAsJsonObject("events");
+		if (events == null) {
+			return false;
+		}
+		JsonElement verificationEventEl = events.get(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE);
+		if (verificationEventEl == null || !verificationEventEl.isJsonObject()) {
+			return false;
+		}
+		String eventState = OIDFJSON.tryGetString(verificationEventEl.getAsJsonObject().get("state"));
+		String latestState = env.getString("ssf", "verification.state");
+		return eventState != null && eventState.equals(latestState);
 	}
 }

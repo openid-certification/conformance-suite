@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoint;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -17,7 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		 * trigger a verification event
 		 * retrieve the verification event via POLL_ONLY (without acknowledging)
 		 * validate the verification event
-		 * acknowledge the verification event via ACKNOWLEDGE_ONLY
+		 * acknowledge the verification event via ACKNOWLEDGE_ONLY and validate the response (200 with an empty 'sets' object)
 
 		Transmitter-initiated verification events (without 'state') are accepted per
 		SSF 1.0 §8.1.4-2; the test succeeds once a verification event carrying the
@@ -30,21 +29,18 @@ public class OIDSSFTransmitterStreamVerificationAckOnlyTest extends AbstractOIDS
 
 	@Override
 	protected void performVerification() {
-		eventLog.runBlock("Poll for verification events via POLL_ONLY", () -> {
-			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
-			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
-		});
-
-		if (!iterateAndValidateVerificationEventsInPollResponse("POLL_ONLY")) {
+		if (!pollForSolicitedVerificationEvent("POLL_ONLY", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY)) {
 			throw new TestFailureException(getId(),
-				"Poll response did not contain a solicited verification event (with matching 'state')");
+				"Poll responses did not contain a solicited verification event (with matching 'state') within the polling window");
 		}
 
 		eventLog.runBlock("Acknowledge verification event via ACKNOWLEDGE_ONLY", () -> {
 			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
+			// RFC 8936 2.5: an acknowledge-only request is answered like any poll, with 200 and a
+			// (here empty, maxEvents being 0) sets object
+			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
+			validatePollResponse();
 		});
 	}
 }

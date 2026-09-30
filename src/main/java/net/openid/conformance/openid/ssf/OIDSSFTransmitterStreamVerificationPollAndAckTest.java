@@ -36,7 +36,7 @@ public class OIDSSFTransmitterStreamVerificationPollAndAckTest extends AbstractO
 		// validation runs in step 3 on the second poll.
 		eventLog.runBlock("Retrieve first verification event batch via POLL_ONLY", () -> {
 			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-6.1.2", "RFC8936-2.4");
 			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 		});
@@ -44,17 +44,14 @@ public class OIDSSFTransmitterStreamVerificationPollAndAckTest extends AbstractO
 		// Step 2: trigger a second verification event so there is something new to retrieve.
 		triggerVerificationEvent();
 
-		// Step 3: POLL_AND_ACKNOWLEDGE — ack the first event, retrieve the second.
-		eventLog.runBlock("Acknowledge first and retrieve second verification event batch via POLL_AND_ACKNOWLEDGE", () -> {
-			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
-			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
-			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
-			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
-		});
-
-		if (!iterateAndValidateVerificationEventsInPollResponse("POLL_AND_ACKNOWLEDGE")) {
+		// Step 3: POLL_AND_ACKNOWLEDGE - ack the first batch, retrieve the second;
+		// retries poll (without re-acking) until the event echoing the SECOND request
+		// arrives. The first request's event may itself only show up now (SSF 1.0
+		// 8.1.4.2 allows asynchronous, out-of-order delivery); the state check accepts
+		// it as an earlier echo and the loop keeps polling for the second.
+		if (!pollForSolicitedVerificationEvent("POLL_AND_ACKNOWLEDGE", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE)) {
 			throw new TestFailureException(getId(),
-				"Second poll response did not contain a solicited verification event (with matching 'state')");
+				"Poll responses did not contain a solicited verification event (with matching 'state') within the polling window");
 		}
 	}
 }

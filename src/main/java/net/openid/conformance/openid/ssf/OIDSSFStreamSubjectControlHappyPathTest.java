@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantParameters;
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
+		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-7.2.1
 	}
 )
 @VariantParameters({
@@ -78,7 +78,7 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTrans
 
 		eventLog.runBlock("Validate TLS Connection", this::validateTlsConnection);
 
-		// see https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html
+		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-01.html
 		eventLog.runBlock("Prepare Transmitter Access Token", this::obtainTransmitterAccessToken);
 
 		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
@@ -99,17 +99,17 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTrans
 		// - iss_sub
 		// - opaque (for the Verification event only)
 		eventLog.runBlock("Add Subject to Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFAddSubjectToStreamConfigCall.class, "OIDSSF-8.1.3.1");
+			callAndStopOnFailure(OIDSSFAddSubjectToStreamConfigCall.class, "OIDSSF-8.1.3.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.3.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.3.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
 		// remove subject(s)
 		eventLog.runBlock("Remove Subject from Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFRemoveSubjectToStreamConfigCall.class, "OIDSSF-8.1.3.2");
+			callAndStopOnFailure(OIDSSFRemoveSubjectToStreamConfigCall.class, "OIDSSF-8.1.3.3");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.3.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.3.3");
 			call(exec().unmapKey("endpoint_response"));
 		});
 

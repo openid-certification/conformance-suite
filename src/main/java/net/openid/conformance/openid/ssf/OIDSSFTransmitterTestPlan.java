@@ -17,7 +17,22 @@ public class OIDSSFTransmitterTestPlan implements TestPlan {
 
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		OIDSSFTransmitterMetadataTest.class,
-		OIDSSFStreamControlHappyPathTest.class,
+		// The modules that leave no stream behind run before the happy path: run-test-plan.py
+		// executes the plan in this order, and the suite-vs-suite counterpart (the emulated
+		// transmitter hosted by a receiver test module) finishes - and stops serving - once
+		// the happy path completes the full stream lifecycle.
+		OIDSSFStreamControlNegativeTestReadStreamWithoutAccessToken.class,
+		OIDSSFStreamControlNegativeTestReadStreamWithTokenInUriQuery.class,
+		OIDSSFStreamControlNegativeTestCreateStreamWithReadOnlyToken.class,
+		OIDSSFStreamControlNegativeTestReadStreamStatusWithInvalidAccessToken.class,
+		OIDSSFStreamControlNegativeTestReadStatusOfUnknownStream.class,
+		OIDSSFTransmitterStreamVerificationNegativeTestInvalidBody.class,
+		OIDSSFTransmitterStreamVerificationNegativeTestInvalidToken.class,
+		OIDSSFTransmitterStreamVerificationNegativeTestUnknownStream.class,
+		OIDSSFTransmitterPollEndpointAuthorizationTest.class,
+		OIDSSFStreamControlCreateStreamWithoutDeliveryTest.class,
+		OIDSSFTransmitterPollEndpointUrlUniquePerStreamTest.class,
+		OIDSSFTransmitterStreamVerificationLongPollTest.class,
 		OIDSSFStreamControlNegativeTestCreateStreamWithBrokenInput.class,
 		OIDSSFStreamControlNegativeTestCreateStreamWithInvalidAccessToken.class,
 		OIDSSFStreamControlNegativeTestCreateStreamWithDuplicateConfig.class,
@@ -36,6 +51,10 @@ public class OIDSSFTransmitterTestPlan implements TestPlan {
 		OIDSSFTransmitterStreamVerificationPollOnlyTest.class,
 		OIDSSFTransmitterStreamVerificationPollAndAckTest.class,
 		OIDSSFTransmitterStreamVerificationAckOnlyTest.class,
+		OIDSSFTransmitterStreamVerificationSetErrsTest.class,
+		OIDSSFStreamControlHappyPathTest.class,
+		OIDSSFTransmitterPausedStreamHoldsEventsTest.class,
+		OIDSSFTransmitterDisabledStreamDropsEventsTest.class,
 		OIDSSFTransmitterStreamVerificationPushNoAuthTest.class
 	);
 

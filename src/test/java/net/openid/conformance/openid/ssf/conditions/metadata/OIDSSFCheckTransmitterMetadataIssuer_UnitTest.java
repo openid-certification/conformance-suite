@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class OIDSSFOIDSSFCheckTransmitterMetadataIssuerTest {
+public class OIDSSFCheckTransmitterMetadataIssuer_UnitTest {
 
 	OIDSSFCheckTransmitterMetadataIssuer issuerCheck;
 
