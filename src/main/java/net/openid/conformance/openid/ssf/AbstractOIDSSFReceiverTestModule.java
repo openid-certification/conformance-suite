@@ -831,6 +831,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	/** Subject operations already graded under the CAEP Interop Profile, see {@link #handleSubjectsEndpointRequest}. */
 	private final Set<StreamSubjectOperation> subjectOperationsGradedUnderCaepInterop = ConcurrentHashMap.newKeySet();
 
+	/** Whether {@link #gradeFirstAcknowledgement()} has run, i.e. the receiver acknowledged at least one SET. */
+	protected boolean isFirstAcknowledgementGraded() {
+		return firstAcknowledgementGraded.get();
+	}
+
 	/**
 	 * Grades, at the first acknowledgement of any SET in the run, whether the receiver had
 	 * fetched the transmitter's signing keys from the advertised jwks_uri by then: a receiver
@@ -840,11 +845,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	 * hold them out of band, so under the default profile this is a WARNING. Later
 	 * acknowledgements are not graded again.
 	 */
-	/** Whether {@link #gradeFirstAcknowledgement()} has run, i.e. the receiver acknowledged at least one SET. */
-	protected boolean isFirstAcknowledgementGraded() {
-		return firstAcknowledgementGraded.get();
-	}
-
 	protected void gradeFirstAcknowledgement() {
 		if (!firstAcknowledgementGraded.compareAndSet(false, true)) {
 			return;
