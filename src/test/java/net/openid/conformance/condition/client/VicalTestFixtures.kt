@@ -71,8 +71,8 @@ object VicalTestFixtures {
 			ASN1Integer(1L),
 			name,
 			name,
-			validFrom,
-			validUntil
+			validFrom.wholeSeconds(),
+			validUntil.wholeSeconds()
 		).includeSubjectKeyIdentifier(true)
 		if (includeEku) {
 			// ExtKeyUsageSyntax ::= SEQUENCE OF KeyPurposeId; id-mdl-kp-mdlVICAL per Annex C.1.7.2
@@ -243,8 +243,8 @@ object VicalTestFixtures {
 				ASN1Integer(serial),
 				X500Name.fromName("CN=$commonName,O=OpenID Foundation,C=UT"),
 				X500Name.fromName(iacaCert.subject.name),
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 90.days
+				(Clock.System.now() - 1.days).wholeSeconds(),
+				(Clock.System.now() + 90.days).wholeSeconds()
 			).includeSubjectKeyIdentifier(true)
 				.setAuthorityKeyIdentifierToCertificate(iacaCert)
 				.setKeyUsage(keyUsage)
@@ -266,8 +266,8 @@ object VicalTestFixtures {
 				ASN1Integer(1L),
 				iacaName,
 				iacaName,
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 365.days
+				(Clock.System.now() - 1.days).wholeSeconds(),
+				(Clock.System.now() + 365.days).wholeSeconds()
 			).includeSubjectKeyIdentifier(true)
 				.setBasicConstraints(true, 0)
 				.setKeyUsage(setOf(X509KeyUsage.KEY_CERT_SIGN, X509KeyUsage.CRL_SIGN))
@@ -360,4 +360,7 @@ object VicalTestFixtures {
 		}
 		return bytes
 	}
+
+	/** X.509 validity has one-second resolution; the builder truncates and warns otherwise. */
+	private fun Instant.wholeSeconds(): Instant = Instant.fromEpochSeconds(epochSeconds)
 }
