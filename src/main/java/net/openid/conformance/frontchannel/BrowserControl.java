@@ -441,7 +441,7 @@ public class BrowserControl implements DataUtils {
 							// wait for webpage to finish loading
 							WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(100));
 							try {
-								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+								waiting.until((ExpectedCondition<Boolean>) webDriver -> "complete".equals(((JavascriptExecutor) webDriver).executeScript("return document.readyState")));
 							} catch (TimeoutException timeoutException) {
 								logger.error(testId + ": WebRunner caught exception: ", timeoutException);
 								eventLog.log("BROWSER", ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
