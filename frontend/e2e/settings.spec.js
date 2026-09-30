@@ -88,6 +88,9 @@ test.describe("settings.html — admin server settings", () => {
     await expect(page.getByLabel("Directory token endpoint URL")).toHaveValue(
       "https://directory.sandbox.example.cl/token",
     );
+    await expect(page.getByLabel("Software statement endpoint URL")).toHaveValue(
+      "https://directory.sandbox.example.cl/software-statement",
+    );
     await expect(page.getByLabel("Directory client ID")).toHaveValue("oidf-conformance");
     const secret = page.getByLabel("Directory client secret");
     await expect(secret).toHaveValue("");
@@ -138,11 +141,15 @@ test.describe("settings.html — admin server settings", () => {
 
     await page.goto("/settings.html");
     await page.getByLabel("Directory client ID").fill("renamed-client");
+    await page
+      .getByLabel("Software statement endpoint URL")
+      .fill("https://directory.sandbox.example.cl/ssa-v2");
     await page.getByRole("button", { name: "Save" }).click();
 
     await expect.poll(() => puts.length).toBe(1);
     const body = puts[0];
     expect(body.clientId).toBe("renamed-client");
+    expect(body.softwareStatementEndpoint).toBe("https://directory.sandbox.example.cl/ssa-v2");
     expect(body).not.toHaveProperty("clientSecret");
     expect(body).not.toHaveProperty("clearClientSecret");
     expect(body).not.toHaveProperty("clientJwks");

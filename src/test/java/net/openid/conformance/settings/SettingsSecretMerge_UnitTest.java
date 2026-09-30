@@ -13,12 +13,12 @@ public class SettingsSecretMerge_UnitTest {
 	private static final CertificateEntry STORED_NEGATIVE = new CertificateEntry("neg-1", "expired", "CERT-N", "KEY-N");
 
 	private static final CMFChileSettings STORED = new CMFChileSettings(
-		"https://old.example.cl/token", "old-client", "old-secret", "{\"keys\":[]}",
+		"https://old.example.cl/token", "https://old.example.cl/ssa", "old-client", "old-secret", "{\"keys\":[]}",
 		List.of(STORED_POSITIVE), List.of(STORED_NEGATIVE), Instant.parse("2026-01-01T00:00:00Z"), "Old Admin");
 
 	private static CMFChileSettingsUpdate update(String secret, boolean clear, String jwks,
 			List<CertificateEntryUpdate> positive, List<CertificateEntryUpdate> negative) {
-		return new CMFChileSettingsUpdate("https://new.example.cl/token", "new-client", secret, clear, jwks, positive, negative);
+		return new CMFChileSettingsUpdate("https://new.example.cl/token", "https://new.example.cl/ssa", "new-client", secret, clear, jwks, positive, negative);
 	}
 
 	private static CMFChileSettingsUpdate keepEverything() {
@@ -32,16 +32,18 @@ public class SettingsSecretMerge_UnitTest {
 		CMFChileSettings merged = SettingsSecretMerge.merge(STORED, keepEverything());
 
 		assertThat(merged.directoryTokenEndpoint()).isEqualTo("https://new.example.cl/token");
+		assertThat(merged.softwareStatementEndpoint()).isEqualTo("https://new.example.cl/ssa");
 		assertThat(merged.clientId()).isEqualTo("new-client");
 	}
 
 	@Test
 	public void blankPlainFieldsBecomeUnset() {
-		CMFChileSettingsUpdate blank = new CMFChileSettingsUpdate("  ", "", null, false, null, List.of(), List.of());
+		CMFChileSettingsUpdate blank = new CMFChileSettingsUpdate("  ", " ", "", null, false, null, List.of(), List.of());
 
 		CMFChileSettings merged = SettingsSecretMerge.merge(STORED, blank);
 
 		assertThat(merged.directoryTokenEndpoint()).isNull();
+		assertThat(merged.softwareStatementEndpoint()).isNull();
 		assertThat(merged.clientId()).isNull();
 	}
 

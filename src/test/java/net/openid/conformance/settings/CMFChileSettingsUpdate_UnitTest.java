@@ -18,6 +18,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 		CMFChileSettingsUpdate update = CMFChileSettingsUpdate.fromJson(json("""
 			{
 			  "directoryTokenEndpoint": "https://directory.example.cl/token",
+			  "softwareStatementEndpoint": "https://directory.example.cl/software-statement",
 			  "clientId": "abc",
 			  "clientSecret": "s3cret",
 			  "clearClientSecret": true,
@@ -31,6 +32,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 			}"""));
 
 		assertThat(update.directoryTokenEndpoint()).isEqualTo("https://directory.example.cl/token");
+		assertThat(update.softwareStatementEndpoint()).isEqualTo("https://directory.example.cl/software-statement");
 		assertThat(update.clientId()).isEqualTo("abc");
 		assertThat(update.clientSecret()).isEqualTo("s3cret");
 		assertThat(update.clearClientSecret()).isTrue();
@@ -46,6 +48,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 		CMFChileSettingsUpdate update = CMFChileSettingsUpdate.fromJson(json("{}"));
 
 		assertThat(update.directoryTokenEndpoint()).isNull();
+		assertThat(update.softwareStatementEndpoint()).isNull();
 		assertThat(update.clientSecret()).isNull();
 		assertThat(update.clearClientSecret()).isFalse();
 		assertThat(update.clientJwks()).isNull();
@@ -68,6 +71,13 @@ public class CMFChileSettingsUpdate_UnitTest {
 		assertThatThrownBy(() -> CMFChileSettingsUpdate.fromJson(json("{\"clientId\": 7}")))
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessageContaining("clientId");
+	}
+
+	@Test
+	public void rejectsANonStringSoftwareStatementEndpoint() {
+		assertThatThrownBy(() -> CMFChileSettingsUpdate.fromJson(json("{\"softwareStatementEndpoint\": []}")))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("softwareStatementEndpoint");
 	}
 
 	@Test

@@ -14,6 +14,7 @@ mTLS (see `2026-09-29-cmf-chile-dcr-discovery-pilot-design.md`, "Open points for
 The section holds:
 
 - the Directorio token endpoint URL;
+- the Directorio software statement (SSA) generation endpoint URL;
 - the Directorio client ID;
 - the Directorio client secret;
 - the client JWKS (with private keys);
@@ -45,14 +46,14 @@ New package `net.openid.conformance.settings`:
 
 | Unit | Purpose |
 |---|---|
-| `CMFChileSettings` (record) | Stored model: `directoryTokenEndpoint`, `clientId`, `clientSecret`, `clientJwks` (JSON, including private members), `positiveCertificates`, `negativeCertificates`, `updatedAt`, `updatedBy`. |
+| `CMFChileSettings` (record) | Stored model: `directoryTokenEndpoint`, `softwareStatementEndpoint`, `clientId`, `clientSecret`, `clientJwks` (JSON, including private members), `positiveCertificates`, `negativeCertificates`, `updatedAt`, `updatedBy`. |
 | `CertificateEntry` (record) | `id` (server-assigned), `label`, `certificateChainPem`, `privateKeyPem`. |
 | `ServerSettingsRepository` | The only class that accesses MongoDB collection `SERVER_SETTINGS`, one document per section; this section's `_id` is `cmf-chile`. |
 | `CMFChileSettingsValidator` | Pure validation of a merged `CMFChileSettings`; returns a list of `{field, message}`. |
 | `SettingsSecretMerge` | Pure merge of an update request onto the stored settings, applying the write-only rules below. |
 | `CMFChileSettingsView` (record) | Redacted shape returned to the browser. |
 | `ServerSettingsService` | Load, merge, validate, save, audit, and keep the parsed settings cached. Also exposes the module-facing read accessor, `Optional<CMFChileDirectorySettings> getCMFChileDirectorySettings()` (see "Module-facing model"). |
-| `CMFChileDirectorySettings` (record) | Parsed, module-facing form of the whole section: `directoryTokenEndpoint`, `clientId`, `clientSecret`, `clientJwks` (Nimbus `JWKSet`), `positiveCertificates`, `negativeCertificates`. |
+| `CMFChileDirectorySettings` (record) | Parsed, module-facing form of the whole section: `directoryTokenEndpoint`, `softwareStatementEndpoint`, `clientId`, `clientSecret`, `clientJwks` (Nimbus `JWKSet`), `positiveCertificates`, `negativeCertificates`. |
 | `ClientCertificate` (record) | `label`, `certificateChain` (`List<X509Certificate>`, leaf first), `privateKey` (`java.security.PrivateKey`), with a `leaf()` convenience. |
 | `CMFChileSettingsParser` | Pure conversion of a stored `CMFChileSettings` into a `CMFChileDirectorySettings`. The PEM and JWKS parsing is shared with `CMFChileSettingsValidator`. |
 | `ServerSettingsReader` | Read-only interface handed to test modules; `ServerSettingsService` implements it. |
@@ -77,6 +78,7 @@ returns a view with every field unset, not 404.
 ```json
 {
   "directoryTokenEndpoint": "https://…/token",
+  "softwareStatementEndpoint": "https://…/software-statement",
   "clientId": "abc",
   "clientSecretSet": true,
   "clientJwks": { "set": true, "keys": [ { "kid": "k1", "kty": "RSA", "alg": "PS256", "use": "sig" } ] },
@@ -114,7 +116,8 @@ which case nothing is stored; or 403 for a non-admin.
 Validation runs on the merged result. Messages use the UI labels, as AGENTS.md requires for
 configuration errors.
 
-- Directory token endpoint URL: when set, an absolute `https://` URL.
+- Directory token endpoint URL and Software statement endpoint URL: when set, each an absolute
+  `https://` URL.
 - Client JWKS: when set, parses with Nimbus, and every key has a private part and a `kid`.
 - Each certificate entry:
   - its label is non-empty and unique within its list;
@@ -150,6 +153,7 @@ is schema-driven for the test configuration form.
 | UI label | Control |
 |---|---|
 | Directory token endpoint URL | text input |
+| Software statement endpoint URL | text input |
 | Directory client ID | text input |
 | Directory client secret | password input. The placeholder says "set — leave blank to keep" or "not set". A "Clear" checkbox is next to it. |
 | Client JWKS | A read-only list of the stored keys' `kid`/`kty`/`alg`. "Replace JWKS" reveals an empty `<cts-json-editor>`. The stored JWKS is never shown. |
@@ -180,7 +184,7 @@ Test modules retrieve the whole section in one call,
 - certificate chains as `java.security.cert.X509Certificate`, leaf first;
 - private keys as `java.security.PrivateKey`;
 - the client JWKS as a Nimbus `JWKSet`;
-- the endpoint, client ID and client secret as strings.
+- the two endpoints, the client ID and the client secret as strings.
 
 The accessor returns `Optional.empty()` when the section has never been saved. Fields that are
 unset in a saved section are `null` (strings, JWKS) or empty lists (certificates).

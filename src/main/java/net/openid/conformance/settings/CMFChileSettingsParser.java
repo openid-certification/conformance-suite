@@ -22,6 +22,7 @@ public final class CMFChileSettingsParser {
 	public static CMFChileDirectorySettings parse(CMFChileSettings settings) {
 		return new CMFChileDirectorySettings(
 			settings.directoryTokenEndpoint(),
+			settings.softwareStatementEndpoint(),
 			settings.clientId(),
 			settings.clientSecret(),
 			parseJwks(settings.clientJwks()),

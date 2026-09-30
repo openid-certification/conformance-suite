@@ -33,6 +33,9 @@ export const Configured = {
       expect(canvas.getByLabelText("Directory token endpoint URL")).toHaveValue(
         "https://directory.sandbox.example.cl/token",
       );
+      expect(canvas.getByLabelText("Software statement endpoint URL")).toHaveValue(
+        "https://directory.sandbox.example.cl/software-statement",
+      );
       expect(canvas.getByLabelText("Directory client ID")).toHaveValue("oidf-conformance");
     });
 

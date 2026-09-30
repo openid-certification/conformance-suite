@@ -130,6 +130,7 @@ final class TestPki {
 		KeyPair negativeKeys = ecKeyPair();
 		return new CMFChileSettings(
 			"https://directory.example.cl/token",
+			"https://directory.example.cl/software-statement",
 			"oidf-conformance",
 			"the-client-secret",
 			privateJwks(rsaJwk("sig-1")),

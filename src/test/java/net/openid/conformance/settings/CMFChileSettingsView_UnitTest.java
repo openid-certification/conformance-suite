@@ -61,6 +61,8 @@ public class CMFChileSettingsView_UnitTest {
 		JsonObject view = CMFChileSettingsView.toJson(settings);
 
 		assertThat(OIDFJSON.getString(view.get("directoryTokenEndpoint"))).isEqualTo("https://directory.example.cl/token");
+		assertThat(OIDFJSON.getString(view.get("softwareStatementEndpoint")))
+			.isEqualTo("https://directory.example.cl/software-statement");
 		assertThat(OIDFJSON.getString(view.get("clientId"))).isEqualTo("oidf-conformance");
 		assertThat(OIDFJSON.getString(view.get("updatedAt"))).isEqualTo("2026-09-30T12:00:00Z");
 		assertThat(OIDFJSON.getString(view.get("updatedBy"))).isEqualTo("Admin User");
@@ -86,7 +88,7 @@ public class CMFChileSettingsView_UnitTest {
 
 	@Test
 	public void aCertificateWithInvalidBase64IsFlaggedRatherThanFailingTheView() {
-		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null, List.of(new CertificateEntry("x", "broken",
+		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null, null, List.of(new CertificateEntry("x", "broken",
 			"-----BEGIN CERTIFICATE-----\nnot*base64!!\n-----END CERTIFICATE-----\n", "KEY")), List.of(), null, null);
 
 		JsonObject entry = CMFChileSettingsView.toJson(corrupt).getAsJsonArray("positiveCertificates").get(0).getAsJsonObject();
@@ -96,7 +98,7 @@ public class CMFChileSettingsView_UnitTest {
 
 	@Test
 	public void anUnreadableCertificateIsFlaggedWithoutMetadata() {
-		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null,
+		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null, null,
 			List.of(new CertificateEntry("x", "broken", "garbage", "KEY")), List.of(), null, null);
 
 		JsonObject entry = CMFChileSettingsView.toJson(corrupt).getAsJsonArray("positiveCertificates").get(0).getAsJsonObject();

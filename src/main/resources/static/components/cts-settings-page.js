@@ -421,6 +421,7 @@ class CtsSettingsPage extends LitElement {
               : "Not configured yet."}
           </p>
           ${this._textField("directoryTokenEndpoint", "Directory token endpoint URL", "url")}
+          ${this._textField("softwareStatementEndpoint", "Software statement endpoint URL", "url")}
           ${this._textField("clientId", "Directory client ID", "text")} ${this._secretField()}
           ${this._jwksField()} ${CERTIFICATE_LISTS.map((list) => this._certificateList(list))}
         </section>
@@ -473,7 +474,7 @@ class CtsSettingsPage extends LitElement {
   }
 
   /**
-   * @param {"directoryTokenEndpoint"|"clientId"} name - Draft field.
+   * @param {"directoryTokenEndpoint"|"softwareStatementEndpoint"|"clientId"} name - Draft field.
    * @param {string} label - Visible label.
    * @param {"url"|"text"} type - Input type.
    * @returns {unknown} The field.

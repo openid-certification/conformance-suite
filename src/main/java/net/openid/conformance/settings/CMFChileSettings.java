@@ -18,6 +18,7 @@ import java.util.Objects;
  */
 public record CMFChileSettings(
 	String directoryTokenEndpoint,
+	String softwareStatementEndpoint,
 	String clientId,
 	String clientSecret,
 	String clientJwks,
@@ -29,6 +30,7 @@ public record CMFChileSettings(
 	public static final String SECTION_ID = "cmf-chile";
 
 	public static final String DIRECTORY_TOKEN_ENDPOINT = "directoryTokenEndpoint";
+	public static final String SOFTWARE_STATEMENT_ENDPOINT = "softwareStatementEndpoint";
 	public static final String CLIENT_ID = "clientId";
 	public static final String CLIENT_SECRET = "clientSecret";
 	public static final String CLIENT_JWKS = "clientJwks";
@@ -48,11 +50,11 @@ public record CMFChileSettings(
 	}
 
 	public static CMFChileSettings empty() {
-		return new CMFChileSettings(null, null, null, null, List.of(), List.of(), null, null);
+		return new CMFChileSettings(null, null, null, null, null, List.of(), List.of(), null, null);
 	}
 
 	public CMFChileSettings withAudit(Instant when, String who) {
-		return new CMFChileSettings(directoryTokenEndpoint, clientId, clientSecret, clientJwks,
+		return new CMFChileSettings(directoryTokenEndpoint, softwareStatementEndpoint, clientId, clientSecret, clientJwks,
 			positiveCertificates, negativeCertificates, when, who);
 	}
 
@@ -62,6 +64,7 @@ public record CMFChileSettings(
 	public List<String> changedFields(CMFChileSettings previous) {
 		List<String> changed = new ArrayList<>();
 		addIfChanged(changed, DIRECTORY_TOKEN_ENDPOINT, directoryTokenEndpoint, previous.directoryTokenEndpoint);
+		addIfChanged(changed, SOFTWARE_STATEMENT_ENDPOINT, softwareStatementEndpoint, previous.softwareStatementEndpoint);
 		addIfChanged(changed, CLIENT_ID, clientId, previous.clientId);
 		addIfChanged(changed, CLIENT_SECRET, clientSecret, previous.clientSecret);
 		addIfChanged(changed, CLIENT_JWKS, clientJwks, previous.clientJwks);
@@ -79,6 +82,7 @@ public record CMFChileSettings(
 	public Document toDocument() {
 		return new Document("_id", SECTION_ID)
 			.append(DIRECTORY_TOKEN_ENDPOINT, directoryTokenEndpoint)
+			.append(SOFTWARE_STATEMENT_ENDPOINT, softwareStatementEndpoint)
 			.append(CLIENT_ID, clientId)
 			.append(CLIENT_SECRET, clientSecret)
 			.append(CLIENT_JWKS, clientJwks)
@@ -92,6 +96,7 @@ public record CMFChileSettings(
 		Date updatedAt = document.getDate(UPDATED_AT);
 		return new CMFChileSettings(
 			document.getString(DIRECTORY_TOKEN_ENDPOINT),
+			document.getString(SOFTWARE_STATEMENT_ENDPOINT),
 			document.getString(CLIENT_ID),
 			document.getString(CLIENT_SECRET),
 			document.getString(CLIENT_JWKS),
@@ -127,6 +132,7 @@ public record CMFChileSettings(
 	public String toString() {
 		// the generated toString would print the client secret and private keys
 		return "CMFChileSettings[directoryTokenEndpoint=" + directoryTokenEndpoint
+			+ ", softwareStatementEndpoint=" + softwareStatementEndpoint
 			+ ", clientId=" + clientId
 			+ ", positiveCertificates=" + positiveCertificates
 			+ ", negativeCertificates=" + negativeCertificates

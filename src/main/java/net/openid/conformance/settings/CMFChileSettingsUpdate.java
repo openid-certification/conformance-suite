@@ -18,6 +18,7 @@ import java.util.List;
  */
 public record CMFChileSettingsUpdate(
 	String directoryTokenEndpoint,
+	String softwareStatementEndpoint,
 	String clientId,
 	String clientSecret,
 	boolean clearClientSecret,
@@ -38,6 +39,7 @@ public record CMFChileSettingsUpdate(
 	public static CMFChileSettingsUpdate fromJson(JsonObject body) {
 		return new CMFChileSettingsUpdate(
 			optionalString(body, CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT, CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT),
+			optionalString(body, CMFChileSettings.SOFTWARE_STATEMENT_ENDPOINT, CMFChileSettings.SOFTWARE_STATEMENT_ENDPOINT),
 			optionalString(body, CMFChileSettings.CLIENT_ID, CMFChileSettings.CLIENT_ID),
 			optionalString(body, CMFChileSettings.CLIENT_SECRET, CMFChileSettings.CLIENT_SECRET),
 			optionalBoolean(body, CLEAR_CLIENT_SECRET),
@@ -112,6 +114,7 @@ public record CMFChileSettingsUpdate(
 	public String toString() {
 		// the generated toString would print the client secret, the JWKS and private keys
 		return "CMFChileSettingsUpdate[directoryTokenEndpoint=" + directoryTokenEndpoint
+			+ ", softwareStatementEndpoint=" + softwareStatementEndpoint
 			+ ", clientId=" + clientId
 			+ ", clearClientSecret=" + clearClientSecret
 			+ ", positiveCertificates=" + positiveCertificates

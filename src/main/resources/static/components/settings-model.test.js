@@ -9,6 +9,7 @@ import {
 
 const VIEW = {
   directoryTokenEndpoint: "https://directory.example.cl/token",
+  softwareStatementEndpoint: "https://directory.example.cl/software-statement",
   clientId: "oidf-conformance",
   clientSecretSet: true,
   clientJwks: { set: true, keys: [{ kid: "sig-1", kty: "RSA", alg: "PS256", use: "sig" }] },
@@ -31,6 +32,7 @@ describe("draftFromView", () => {
     const draft = draftFromView(VIEW);
 
     expect(draft.directoryTokenEndpoint).toBe("https://directory.example.cl/token");
+    expect(draft.softwareStatementEndpoint).toBe("https://directory.example.cl/software-statement");
     expect(draft.clientId).toBe("oidf-conformance");
     expect(draft.clientSecret).toBe("");
     expect(draft.clearClientSecret).toBe(false);
@@ -55,6 +57,7 @@ describe("draftFromView", () => {
     const draft = draftFromView({ clientSecretSet: false });
 
     expect(draft.directoryTokenEndpoint).toBe("");
+    expect(draft.softwareStatementEndpoint).toBe("");
     expect(draft.clientId).toBe("");
     expect(draft.positiveCertificates).toEqual([]);
     expect(draft.negativeCertificates).toEqual([]);
@@ -68,6 +71,7 @@ describe("requestFromDraft", () => {
     expect(errors).toEqual([]);
     expect(body).toEqual({
       directoryTokenEndpoint: "https://directory.example.cl/token",
+      softwareStatementEndpoint: "https://directory.example.cl/software-statement",
       clientId: "oidf-conformance",
       positiveCertificates: [{ id: "pos-1", label: "primary", certificateChainPem: "CERT-P" }],
       negativeCertificates: [],
