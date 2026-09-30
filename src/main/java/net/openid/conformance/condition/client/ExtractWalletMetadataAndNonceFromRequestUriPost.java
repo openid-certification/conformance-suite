@@ -4,18 +4,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ExtractWalletMetadataAndNonceFromRequestUriPost extends AbstractCondition {
+public class ExtractWalletMetadataAndNonceFromRequestUriPost extends AbstractRequestUriPostCondition {
 
 	@Override
 	@PreEnvironment(required = "incoming_request")
 	public Environment evaluate(Environment env) {
 
-		JsonObject formParams = env.getElementFromObject("incoming_request", "body_form_params").getAsJsonObject();
+		JsonObject formParams = getRequestUriPostFormParams(env);
 
 		String walletNonce = null;
 		if (formParams.has("wallet_nonce")) {

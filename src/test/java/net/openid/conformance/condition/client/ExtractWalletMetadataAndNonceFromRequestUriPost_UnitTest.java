@@ -13,21 +13,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class CheckForUnexpectedParametersInRequestUriPost_UnitTest {
+public class ExtractWalletMetadataAndNonceFromRequestUriPost_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private CheckForUnexpectedParametersInRequestUriPost cond;
+	private ExtractWalletMetadataAndNonceFromRequestUriPost cond;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new CheckForUnexpectedParametersInRequestUriPost();
+		cond = new ExtractWalletMetadataAndNonceFromRequestUriPost();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
@@ -41,12 +43,16 @@ public class CheckForUnexpectedParametersInRequestUriPost_UnitTest {
 	public void testEvaluate_emptyFormParams() {
 		putFormParams("{}");
 		cond.execute(env);
+		assertNull(env.getString("received_wallet_nonce"));
+		assertNull(env.getObject("received_wallet_metadata"));
 	}
 
 	@Test
 	public void testEvaluate_noBody() {
 		env.putObject("incoming_request", new JsonObject());
 		cond.execute(env);
+		assertNull(env.getString("received_wallet_nonce"));
+		assertNull(env.getObject("received_wallet_metadata"));
 	}
 
 	@Test
@@ -58,26 +64,30 @@ public class CheckForUnexpectedParametersInRequestUriPost_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_walletNonceOnly() {
+	public void testEvaluate_walletNonce() {
 		putFormParams("{\"wallet_nonce\": \"abc\"}");
 		cond.execute(env);
+		assertEquals("abc", env.getString("received_wallet_nonce"));
+		assertNull(env.getObject("received_wallet_metadata"));
 	}
 
 	@Test
-	public void testEvaluate_walletMetadataOnly() {
-		putFormParams("{\"wallet_metadata\": \"{}\"}");
+	public void testEvaluate_walletMetadata() {
+		putFormParams("{\"wallet_metadata\": \"{\\\"vp_formats_supported\\\": {}}\"}");
 		cond.execute(env);
+		assertEquals(JsonParser.parseString("{\"vp_formats_supported\": {}}"), env.getObject("received_wallet_metadata"));
+		assertNull(env.getString("received_wallet_nonce"));
 	}
 
 	@Test
-	public void testEvaluate_bothExpectedParameters() {
-		putFormParams("{\"wallet_nonce\": \"abc\", \"wallet_metadata\": \"{}\"}");
-		cond.execute(env);
+	public void testEvaluate_walletMetadataNotJson() {
+		putFormParams("{\"wallet_metadata\": \"{not json\"}");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
-	public void testEvaluate_unknownParameter() {
-		putFormParams("{\"wallet_nonce\": \"abc\", \"surprise\": \"value\"}");
+	public void testEvaluate_walletMetadataNotJsonObject() {
+		putFormParams("{\"wallet_metadata\": \"[]\"}");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }
