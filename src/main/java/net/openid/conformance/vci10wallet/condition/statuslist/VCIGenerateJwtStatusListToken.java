@@ -10,7 +10,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.fapi2spfinal.VCIClientProfileBehavior;
 import net.openid.conformance.oauth.statuslists.EvenOddStatusListContents;
-import net.openid.conformance.oauth.statuslists.TokenStatusList;
+import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
 import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
@@ -24,35 +24,19 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 	public Environment evaluate(Environment env) {
 
 		String currentStatusListId = env.getString("current_status_list_id");
-		int bits = EvenOddStatusListContents.BITS;
-
-		TokenStatusList statusList = EvenOddStatusListContents.create();
-		String encodedStatusList = statusList.encodeStatusList();
-
 		String currentStatusListUri =
 			VCIClientProfileBehavior.getStatusListUrl(env, currentStatusListId);
 
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(10 * 60);
 
-		// Example taken from https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-4.2
-
-		JsonObject claims = new JsonObject();
-		claims.addProperty("sub", currentStatusListUri);
-		claims.addProperty("iat", iat.getEpochSecond());
-		claims.addProperty("exp", exp.getEpochSecond());
-		claims.addProperty("ttl", TimeUnit.MINUTES.toSeconds(12));
-
-		JsonObject statusListObject = new JsonObject();
-		statusListObject.addProperty("bits", bits);
-		statusListObject.addProperty("lst", encodedStatusList);
 		// draft-ietf-oauth-status-list section 4.2: optional pointer to the Status List
 		// Aggregation this issuer serves (section 9.3)
 		String aggregationUri = env.getString("server", "status_list_aggregation_endpoint");
-		if (aggregationUri != null) {
-			statusListObject.addProperty("aggregation_uri", aggregationUri);
-		}
-		claims.add("status_list", statusListObject);
+
+		JsonObject claims = JwtStatusListTokenClaimsBuilder.build(currentStatusListUri, iat, exp,
+			TimeUnit.MINUTES.toSeconds(12), EvenOddStatusListContents.BITS,
+			EvenOddStatusListContents.create().encodeStatusList(), aggregationUri);
 
 		// TODO clarify, which keys shall we use here?
 		// see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-11.3
@@ -65,7 +49,7 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 
 	@Override
 	protected JOSEObjectType getMediaType() {
-		return new JOSEObjectType("statuslist+jwt");
+		return new JOSEObjectType(JwtStatusListTokenClaimsBuilder.TYP);
 	}
 
 	@Override
