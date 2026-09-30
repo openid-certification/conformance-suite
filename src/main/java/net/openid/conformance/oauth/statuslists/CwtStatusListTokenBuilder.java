@@ -51,14 +51,45 @@ public final class CwtStatusListTokenBuilder {
 			byte[] compressedStatusList, AsymmetricKey.X509CertifiedExplicit signingKey, Algorithm algorithm,
 			String aggregationUri) throws Exception {
 
-		byte[] payload = buildClaimsSet(uri, iat, exp, ttlSeconds, bits, compressedStatusList,
-			aggregationUri);
+		Map<DataItem, DataItem> statusListClaim = new LinkedHashMap<>();
+		statusListClaim.put(new Tstr("bits"), DataItemExtensionsKt.toDataItem(bits));
+		statusListClaim.put(new Tstr("lst"), new Bstr(compressedStatusList));
+		if (aggregationUri != null) {
+			statusListClaim.put(new Tstr("aggregation_uri"), new Tstr(aggregationUri));
+		}
+
+		return buildRevocationListCwt(StatusListCwt.CONTENT_TYPE, uri, iat, exp, ttlSeconds,
+			StatusListCwt.CLAIM_STATUS_LIST, new CborMap(statusListClaim, false), signingKey, algorithm);
+	}
+
+	/**
+	 * Builds and signs the CWT ISO/IEC 18013-5 12.3.6.3 defines for an MSO revocation list of
+	 * either mechanism: the claims set common to both, plus the one claim that carries the list
+	 * itself.
+	 *
+	 * @param type the value of the type header, which is also the list's media type
+	 * @param listClaimKey the CWT claim key the list is carried under
+	 * @param listClaim the list
+	 */
+	static byte[] buildRevocationListCwt(String type, String uri, Instant iat, Instant exp,
+			long ttlSeconds, long listClaimKey, DataItem listClaim,
+			AsymmetricKey.X509CertifiedExplicit signingKey, Algorithm algorithm) throws Exception {
+
+		Map<DataItem, DataItem> claims = new LinkedHashMap<>();
+		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_SUB), new Tstr(uri));
+		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_EXP),
+			DataItemExtensionsKt.toDataItem(exp.getEpochSecond()));
+		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_IAT),
+			DataItemExtensionsKt.toDataItem(iat.getEpochSecond()));
+		claims.put(DataItemExtensionsKt.toDataItem(listClaimKey), listClaim);
+		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_TTL),
+			DataItemExtensionsKt.toDataItem(ttlSeconds));
+		byte[] payload = Cbor.INSTANCE.encode(new CborMap(claims, false));
 
 		Map<CoseLabel, DataItem> protectedHeaders = new LinkedHashMap<>();
 		protectedHeaders.put(new CoseNumberLabel(Cose.COSE_LABEL_ALG),
 			DataItemExtensionsKt.toDataItem(algorithm.getCoseAlgorithmIdentifier().intValue()));
-		protectedHeaders.put(new CoseNumberLabel(Cose.COSE_LABEL_TYP),
-			new Tstr(StatusListCwt.CONTENT_TYPE));
+		protectedHeaders.put(new CoseNumberLabel(Cose.COSE_LABEL_TYP), new Tstr(type));
 		// ISO/IEC 18013-5 12.3.6.3: the x5chain goes in the protected header
 		protectedHeaders.put(new CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN), signingKey.getCertChain().toDataItem());
 
@@ -69,28 +100,5 @@ public final class CwtStatusListTokenBuilder {
 
 		// draft-ietf-oauth-status-list section 5.2: the COSE message is the tagged COSE_Sign1
 		return Cbor.INSTANCE.encode(new Tagged(Tagged.COSE_SIGN1, coseSign1.toDataItem()));
-	}
-
-	private static byte[] buildClaimsSet(String uri, Instant iat, Instant exp, long ttlSeconds,
-			int bits, byte[] compressedStatusList, String aggregationUri) {
-		Map<DataItem, DataItem> statusListClaim = new LinkedHashMap<>();
-		statusListClaim.put(new Tstr("bits"), DataItemExtensionsKt.toDataItem(bits));
-		statusListClaim.put(new Tstr("lst"), new Bstr(compressedStatusList));
-		if (aggregationUri != null) {
-			statusListClaim.put(new Tstr("aggregation_uri"), new Tstr(aggregationUri));
-		}
-
-		Map<DataItem, DataItem> claims = new LinkedHashMap<>();
-		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_SUB), new Tstr(uri));
-		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_EXP),
-			DataItemExtensionsKt.toDataItem(exp.getEpochSecond()));
-		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_IAT),
-			DataItemExtensionsKt.toDataItem(iat.getEpochSecond()));
-		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_STATUS_LIST),
-			new CborMap(statusListClaim, false));
-		claims.put(DataItemExtensionsKt.toDataItem(StatusListCwt.CLAIM_TTL),
-			DataItemExtensionsKt.toDataItem(ttlSeconds));
-
-		return Cbor.INSTANCE.encode(new CborMap(claims, false));
 	}
 }
