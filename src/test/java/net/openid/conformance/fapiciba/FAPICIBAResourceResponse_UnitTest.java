@@ -183,6 +183,29 @@ public class FAPICIBAResourceResponse_UnitTest {
 
 	@ParameterizedTest
 	@ValueSource(ints = {200, 201})
+	public void brazilDoesNotRequirePollingTimerForFinalResponse(int status) {
+		responseStatus = status;
+		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
+		module.getEnv().removeNativeValue("brazil_resources_polling_started");
+		module.requestProtectedResource();
+		assertThat(module.getResult()).isEqualTo(TestModule.Result.UNKNOWN);
+		assertThat(resourceCalls).isEqualTo(1);
+		assertThat(module.waits).isEmpty();
+	}
+
+	@Test
+	public void brazilReportsMissingPollingTimerFor202() {
+		pendingResponses = 1;
+		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
+		module.getEnv().removeNativeValue("brazil_resources_polling_started");
+		var failure = assertThrows(TestFailureException.class, () -> module.requestProtectedResource());
+		assertThat(failure).hasMessageContaining("polling timer").hasMessageContaining("access token");
+		assertThat(resourceCalls).isEqualTo(1);
+		assertThat(module.waits).isEmpty();
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {200, 201})
 	public void brazilStillRequiresJsonForNormalResponses(int status) {
 		contentType = null;
 		responseStatus = status;
@@ -217,11 +240,13 @@ public class FAPICIBAResourceResponse_UnitTest {
 	@Test
 	public void brazilRejects202AfterCompletedResponse() {
 		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
+		module.getEnv().removeNativeValue("brazil_resources_polling_started");
 		module.requestProtectedResource();
-		responseStatus = 202;
-		responseBody = "";
+		module.accessTokenReceived();
+		pendingResponses = 1;
 		assertThrows(TestFailureException.class, () -> module.requestProtectedResource());
 		assertThat(resourceCalls).isEqualTo(2);
+		assertThat(module.waits).isEmpty();
 	}
 
 	@ParameterizedTest

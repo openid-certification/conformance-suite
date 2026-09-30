@@ -1174,7 +1174,15 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		if (consentId == null || !resourceEndpointRequestedConsents.add(consentId)) {
 			return;
 		}
-		long deadline = env.getLong("brazil_resources_polling_started") + TimeUnit.MINUTES.toNanos(5);
+		if (env.getInteger("endpoint_response", "status") != 202) {
+			return;
+		}
+		Long pollingStarted = env.getLong("brazil_resources_polling_started");
+		if (pollingStarted == null) {
+			throw new TestFailureException(getId(), "Test setup error: the Resources API polling timer was not started " +
+				"when the CIBA access token was received.");
+		}
+		long deadline = pollingStarted + TimeUnit.MINUTES.toNanos(5);
 		int attempt = 0;
 		while (env.getInteger("endpoint_response", "status") == 202) {
 			callAndStopOnFailure(EnsureHttpResponseBodyIsEmpty.class);
