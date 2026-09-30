@@ -41,8 +41,6 @@ import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUne
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.EnsureHttpResponseBodyIsEmpty;
-import net.openid.conformance.condition.client.WaitForBrazilResourcesResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
 import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
@@ -77,6 +75,7 @@ import net.openid.conformance.condition.client.CreateRandomClientNotificationTok
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
+import net.openid.conformance.condition.client.EnsureHttpResponseBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -139,6 +138,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.RejectNonMTLSCIBANotificationEndpoint;
+import net.openid.conformance.condition.client.WaitForBrazilResourcesResponse;
 import net.openid.conformance.condition.common.CheckCIBAServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
@@ -173,8 +173,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
