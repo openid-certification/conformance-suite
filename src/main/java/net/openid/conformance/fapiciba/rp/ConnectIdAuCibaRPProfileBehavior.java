@@ -70,11 +70,6 @@ public class ConnectIdAuCibaRPProfileBehavior extends FAPICIBARPProfileBehavior 
 	}
 
 	@Override
-	public boolean userInfoEndpointRequiresMTLS() {
-		return true;
-	}
-
-	@Override
 	public ConditionSequence prepareNonResourceEndpointFapiInteractionId() {
 		return new AbstractConditionSequence() {
 			@Override

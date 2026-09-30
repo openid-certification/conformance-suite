@@ -420,6 +420,59 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	}
 
 	/**
+	 * Whether the client is expected to call the token endpoint over an mTLS secured
+	 * connection for the current variant selection; mirrors the dispatch checks in
+	 * {@link #handleClientRequestForPath} / {@link #handleClientRequestForMtlsPath}.
+	 */
+	protected boolean tokenEndpointRequiresMtls() {
+		return clientAuthType == ClientAuthType.MTLS || isMTLSConstrain() || profileRequiresMtlsEverywhere;
+	}
+
+	/**
+	 * Whether the client is expected to call the userinfo endpoint over an mTLS secured
+	 * connection for the current variant selection; mirrors the dispatch checks in
+	 * {@link #handleClientRequestForPath} / {@link #handleClientRequestForMtlsPath}. Unlike
+	 * {@link #tokenEndpointRequiresMtls()} / {@link #parEndpointRequiresMtls()}, this is not
+	 * gated by profileRequiresMtlsEverywhere: userinfo is a resource endpoint, not a
+	 * client-authenticated one, so whether it needs mTLS depends only on whether the access
+	 * token it accepts is certificate-bound (isMTLSConstrain()) - a DPoP-bound token is
+	 * accessed at the plain root even in an "everywhere" ecosystem, since presenting a client
+	 * certificate there proves nothing about the DPoP-bound token being presented.
+	 */
+	protected boolean userinfoEndpointRequiresMtls() {
+		return isMTLSConstrain();
+	}
+
+	/**
+	 * Whether the client is expected to call the accounts endpoint over an mTLS secured
+	 * connection for the current variant selection; mirrors the dispatch checks in
+	 * {@link #handleClientRequestForPath} / {@link #handleClientRequestForMtlsPath}. See
+	 * {@link #userinfoEndpointRequiresMtls()} for why this is not gated by
+	 * profileRequiresMtlsEverywhere.
+	 */
+	protected boolean accountsEndpointRequiresMtls() {
+		return isMTLSConstrain();
+	}
+
+	/**
+	 * Whether the client is expected to call the PAR endpoint over an mTLS secured
+	 * connection for the current variant selection; mirrors the dispatch checks in
+	 * {@link #handleClientRequestForPath} / {@link #handleClientRequestForMtlsPath}.
+	 */
+	protected boolean parEndpointRequiresMtls() {
+		return clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+	}
+
+	/**
+	 * Hook for the "no mtls_endpoint_aliases" test flavor (issue #1048). Default: no-op — the
+	 * default happy path always advertises mtls_endpoint_aliases per RFC8705 section 5, and
+	 * correct alias usage is enforced by the use_mtls_endpoint_aliases-driven checks in
+	 * handleClientRequestForPath/handleClientRequestForMtlsPath.
+	 */
+	protected void adjustServerConfigurationForMtlsEndpointAliasesVariant() {
+	}
+
+	/**
 	 * Per FAPI2-SP-FINAL-5.2.2.1 ("MTLS ecosystems"), "client implementations shall use client
 	 * metadata use_mtls_endpoint_aliases. Check if this metadata parameter is present and set.
 	 */
@@ -433,6 +486,17 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				"'use_mtls_endpoint_aliases' in the client configuration must be a boolean");
 		}
 		return OIDFJSON.getBoolean(el);
+	}
+
+	/**
+	 * Whether use_mtls_endpoint_aliases obliges the client to call the given endpoint at its
+	 * mTLS alias. The flag only covers aliases the server declares (FAPI2-SP-FINAL-5.2.2.1.1);
+	 * for an endpoint with no alias in mtls_endpoint_aliases, RFC8705 section 5 has the client
+	 * use the conventional endpoint.
+	 */
+	private boolean clientMustUseMtlsAlias(String endpointName) {
+		return clientRequestsMtlsEndpointAliases()
+			&& env.getElementFromObject("server", "mtls_endpoint_aliases." + endpointName) != null;
 	}
 
 	@Override
@@ -523,6 +587,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			// without this a spec-following client has no reason to use grant management at all
 			callAndStopOnFailure(GrantManagementSupport.AddGrantManagementToServerConfiguration.class, "GM-7.1");
 		}
+
+		adjustServerConfigurationForMtlsEndpointAliasesVariant();
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		if (fapiClientType == FAPIClientType.OIDC && !profileBehavior.isClientCredentialsGrantOnly()) {
@@ -724,11 +790,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
 			refuseIfStartingShutdown(path);
-			if (profileRequiresMtlsEverywhere) {
-				throw new TestFailureException(getId(), "This ecosystems requires that the token endpoint is called over an mTLS secured connection " +
+			if (tokenEndpointRequiresMtls()) {
+				throw new TestFailureException(getId(), "The token endpoint must be called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
 			}
-			if (clientRequestsMtlsEndpointAliases()) {
+			if (clientMustUseMtlsAlias("token_endpoint")) {
 				throw new TestFailureException(getId(), "invalid_client",
 					"The token endpoint must be called over an mTLS secured connection because use_mtls_endpoint_aliases is set in the client configuration.");
 			}
@@ -737,7 +803,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
 			refuseIfStartingShutdown(path);
-			if (isMTLSConstrain()) {
+			if (userinfoEndpointRequiresMtls()) {
 				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
 			}
 			return userinfoEndpoint(requestId);
@@ -745,14 +811,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			return discoveryEndpoint();
 		} else if (path.equals("par")) {
 			refuseIfStartingShutdown(path);
-			if(profileRequiresMtlsEverywhere) {
-				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
-					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
+			if (parEndpointRequiresMtls()) {
+				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection " +
+					"using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
-			if (clientAuthType == ClientAuthType.MTLS) {
-				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
-			}
-			if (clientRequestsMtlsEndpointAliases()) {
+			if (clientMustUseMtlsAlias("pushed_authorization_request_endpoint")) {
 				throw new TestFailureException(getId(), "invalid_client",
 					"The PAR endpoint must be called over an mTLS secured connection because use_mtls_endpoint_aliases is set in the client configuration.");
 			}
@@ -760,7 +823,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		} else if (path.equals(ACCOUNTS_PATH)) {
 			refuseIfStartingShutdown(path);
 
-			if (isMTLSConstrain()) {
+			if (accountsEndpointRequiresMtls()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
 			}
 
@@ -841,7 +904,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			}
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
-			if (!isMTLSConstrain()) {
+			if (!accountsEndpointRequiresMtls()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must not be called over an mTLS secured connection.");
 			}
 
@@ -852,8 +915,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if (clientAuthType != ClientAuthType.MTLS && !profileRequiresMtlsEverywhere
-					&& !clientRequestsMtlsEndpointAliases()) {
+			if (!parEndpointRequiresMtls() && !clientRequestsMtlsEndpointAliases()) {
 				throw new TestFailureException(getId(), "invalid_client",
 					"The PAR endpoint was called over an mTLS secured connection, but this is not " +
 					"expected when using " + clientAuthType + " client authentication without " +
@@ -1119,7 +1181,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
 			checkMtlsCertificate();
-		} else if (clientRequestsMtlsEndpointAliases()) {
+		} else if (clientMustUseMtlsAlias("pushed_authorization_request_endpoint")) {
 			checkMtlsCertificateForAliasUse();
 		}
 
@@ -1288,7 +1350,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
-		} else if (clientRequestsMtlsEndpointAliases()) {
+		} else if (clientMustUseMtlsAlias("token_endpoint")) {
 			checkMtlsCertificateForAliasUse();
 		}
 
