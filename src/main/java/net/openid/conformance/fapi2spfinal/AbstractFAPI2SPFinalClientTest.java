@@ -61,6 +61,7 @@ import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContai
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.EnsureUnsignedPAREndpointRequestDoesNotContainRequestParameter;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractParAuthorizationCodeDpopBindingKey;
@@ -1199,6 +1200,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	}
 
 	protected void extractParEndpointRequest() {
+		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.UNSIGNED) {
+			callAndStopOnFailure(EnsureUnsignedPAREndpointRequestDoesNotContainRequestParameter.class);
+		}
 		skipIfElementMissing("par_endpoint_http_request", "body_form_params.request", ConditionResult.INFO, ExtractRequestObjectFromPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
 		call(profileBehavior.additionalParRequestChecks());
