@@ -30,6 +30,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -121,5 +122,22 @@ final class TestPki {
 	/** A JWKS string including the private members. */
 	static String privateJwks(RSAKey key) {
 		return new JWKSet(key).toString(false);
+	}
+
+	/** A fully populated, valid section: one positive and one expired negative certificate. */
+	static CMFChileSettings validSettings() throws Exception {
+		KeyPair positiveKeys = rsaKeyPair();
+		KeyPair negativeKeys = ecKeyPair();
+		return new CMFChileSettings(
+			"https://directory.example.cl/token",
+			"oidf-conformance",
+			"the-client-secret",
+			privateJwks(rsaJwk("sig-1")),
+			List.of(new CertificateEntry("pos-1", "primary",
+				pem(selfSigned(positiveKeys, "positive")), pkcs8Pem(positiveKeys.getPrivate()))),
+			List.of(new CertificateEntry("neg-1", "expired",
+				pem(expiredSelfSigned(negativeKeys, "negative")), sec1Pem(negativeKeys.getPrivate()))),
+			null,
+			null);
 	}
 }
