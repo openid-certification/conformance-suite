@@ -28,7 +28,10 @@ public final class CMFChileSettingsValidator {
 
 	public static List<SettingsError> validate(CMFChileSettings settings) {
 		List<SettingsError> errors = new ArrayList<>();
-		validateTokenEndpoint(settings.directoryTokenEndpoint(), errors);
+		validateHttpsUrl(CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT, "Directory token endpoint URL",
+			settings.directoryTokenEndpoint(), errors);
+		validateHttpsUrl(CMFChileSettings.SOFTWARE_STATEMENT_ENDPOINT, "Software statement endpoint URL",
+			settings.softwareStatementEndpoint(), errors);
 		validateJwks(settings.clientJwks(), errors);
 		validateCertificates(CMFChileSettings.POSITIVE_CERTIFICATES, POSITIVE_CERTIFICATES_LABEL,
 			settings.positiveCertificates(), errors);
@@ -37,20 +40,19 @@ public final class CMFChileSettingsValidator {
 		return List.copyOf(errors);
 	}
 
-	private static void validateTokenEndpoint(String endpoint, List<SettingsError> errors) {
-		if (endpoint == null) {
+	private static void validateHttpsUrl(String field, String label, String url, List<SettingsError> errors) {
+		if (url == null) {
 			return;
 		}
 		boolean valid;
 		try {
-			URI uri = new URI(endpoint);
+			URI uri = new URI(url);
 			valid = "https".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null;
 		} catch (URISyntaxException e) {
 			valid = false;
 		}
 		if (!valid) {
-			errors.add(new SettingsError(CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT,
-				"'Directory token endpoint URL' must be an absolute https:// URL"));
+			errors.add(new SettingsError(field, "'" + label + "' must be an absolute https:// URL"));
 		}
 	}
 

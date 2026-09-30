@@ -59,7 +59,7 @@ public class CMFChileSettings_UnitTest {
 
 	@Test
 	public void changedFieldsListsOnlyWhatDiffers() {
-		CMFChileSettings changed = new CMFChileSettings(settings.directoryTokenEndpoint(), "other-client",
+		CMFChileSettings changed = new CMFChileSettings(settings.directoryTokenEndpoint(), settings.softwareStatementEndpoint(), "other-client",
 			"other-secret", settings.clientJwks(), settings.positiveCertificates(), List.of(),
 			Instant.now(), "Someone Else");
 
@@ -70,7 +70,8 @@ public class CMFChileSettings_UnitTest {
 	@Test
 	public void changedFieldsAgainstEmptyListsEverythingSet() {
 		assertThat(settings.changedFields(CMFChileSettings.empty())).containsExactly(
-			CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT, CMFChileSettings.CLIENT_ID, CMFChileSettings.CLIENT_SECRET,
+			CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT, CMFChileSettings.SOFTWARE_STATEMENT_ENDPOINT, CMFChileSettings.CLIENT_ID,
+			CMFChileSettings.CLIENT_SECRET,
 			CMFChileSettings.CLIENT_JWKS, CMFChileSettings.POSITIVE_CERTIFICATES, CMFChileSettings.NEGATIVE_CERTIFICATES);
 	}
 

@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.eq;
 
 public class ServerSettingsApi_UnitTest {
 
-	private static final CMFChileSettings STORED = new CMFChileSettings("https://directory.example.cl/token", "abc",
+	private static final CMFChileSettings STORED = new CMFChileSettings("https://directory.example.cl/token", null, "abc",
 		"the-client-secret", null, List.of(), List.of(), null, null);
 
 	private ServerSettingsService service;

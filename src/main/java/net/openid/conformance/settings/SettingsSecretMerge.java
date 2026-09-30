@@ -29,6 +29,7 @@ public final class SettingsSecretMerge {
 
 		return new CMFChileSettings(
 			blankToNull(update.directoryTokenEndpoint()),
+			blankToNull(update.softwareStatementEndpoint()),
 			blankToNull(update.clientId()),
 			clientSecret,
 			update.clientJwks() == null ? stored.clientJwks() : update.clientJwks(),

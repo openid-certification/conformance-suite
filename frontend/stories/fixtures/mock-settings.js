@@ -6,6 +6,7 @@ const CERTIFICATE_PEM =
 /** A fully configured section, as the redacted view reports it. */
 export const MOCK_SETTINGS_CONFIGURED = {
   directoryTokenEndpoint: "https://directory.sandbox.example.cl/token",
+  softwareStatementEndpoint: "https://directory.sandbox.example.cl/software-statement",
   clientId: "oidf-conformance",
   clientSecretSet: true,
   clientJwks: { set: true, keys: [{ kid: "sig-1", kty: "RSA", alg: "PS256", use: "sig" }] },

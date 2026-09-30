@@ -51,7 +51,7 @@ public class ServerSettingsService_UnitTest {
 	}
 
 	private static CMFChileSettingsUpdate keepAllWithClientId(CMFChileSettings stored, String clientId) {
-		return new CMFChileSettingsUpdate(stored.directoryTokenEndpoint(), clientId, null, false, null,
+		return new CMFChileSettingsUpdate(stored.directoryTokenEndpoint(), stored.softwareStatementEndpoint(), clientId, null, false, null,
 			stored.positiveCertificates().stream()
 				.map(e -> new CertificateEntryUpdate(e.id(), e.label(), e.certificateChainPem(), null)).toList(),
 			stored.negativeCertificates().stream()
@@ -109,7 +109,7 @@ public class ServerSettingsService_UnitTest {
 	public void aRefusedSaveLeavesStorageAndCacheAlone() {
 		repository.save(CMFChileSettings.SECTION_ID, valid.toDocument());
 		CMFChileDirectorySettings cached = service.getCMFChileDirectorySettings().orElseThrow();
-		CMFChileSettingsUpdate bad = new CMFChileSettingsUpdate("http://insecure.example.cl", "x", null, false, null,
+		CMFChileSettingsUpdate bad = new CMFChileSettingsUpdate("http://insecure.example.cl", null, "x", null, false, null,
 			List.of(), List.of());
 
 		ServerSettingsService.SaveResult result = service.saveCMFChileSettings(bad, "Admin User");
@@ -121,7 +121,7 @@ public class ServerSettingsService_UnitTest {
 
 	@Test
 	public void aNewEntryWithoutAKeyIsRefused() {
-		CMFChileSettingsUpdate update = new CMFChileSettingsUpdate(null, null, null, false, null,
+		CMFChileSettingsUpdate update = new CMFChileSettingsUpdate(null, null, null, null, false, null,
 			List.of(new CertificateEntryUpdate(null, "primary", valid.positiveCertificates().get(0).certificateChainPem(), null)),
 			List.of());
 
@@ -140,6 +140,7 @@ public class ServerSettingsService_UnitTest {
 
 		CMFChileSettings stored = service.getCMFChileSettings();
 		assertThat(result.settings()).isEqualTo(stored);
+		assertThat(stored.softwareStatementEndpoint()).isEqualTo("https://directory.example.cl/software-statement");
 		assertThat(stored.clientSecret()).isEqualTo("the-client-secret");
 		assertThat(stored.clientJwks()).isEqualTo(valid.clientJwks());
 		assertThat(stored.positiveCertificates()).isEqualTo(valid.positiveCertificates());
@@ -149,7 +150,7 @@ public class ServerSettingsService_UnitTest {
 
 	@Test
 	public void aCorruptDocumentThrowsAndIsNotCached() {
-		repository.save(CMFChileSettings.SECTION_ID, new CMFChileSettings(null, null, null, "not json",
+		repository.save(CMFChileSettings.SECTION_ID, new CMFChileSettings(null, null, null, null, "not json",
 			List.of(), List.of(), null, null).toDocument());
 
 		assertThatThrownBy(() -> service.getCMFChileDirectorySettings()).isInstanceOf(IllegalStateException.class);

@@ -24,6 +24,7 @@ export const CMF_CHILE_ENDPOINT = "/api/admin/settings/cmf-chile";
 /**
  * @typedef {object} SettingsView
  * @property {string} [directoryTokenEndpoint] - Directorio token endpoint.
+ * @property {string} [softwareStatementEndpoint] - Directorio software statement endpoint.
  * @property {string} [clientId] - Directorio client id.
  * @property {boolean} clientSecretSet - Whether a client secret is stored.
  * @property {{set: boolean, keys: Array<{kid?: string, kty: string, alg?: string, use?: string}>}} [clientJwks] - Stored JWKS summary.
@@ -46,6 +47,7 @@ export const CMF_CHILE_ENDPOINT = "/api/admin/settings/cmf-chile";
 /**
  * @typedef {object} SettingsDraft
  * @property {string} directoryTokenEndpoint - Token endpoint input.
+ * @property {string} softwareStatementEndpoint - Software statement endpoint input.
  * @property {string} clientId - Client id input.
  * @property {string} clientSecret - Secret input; empty keeps the stored secret.
  * @property {boolean} clearClientSecret - Remove the stored secret.
@@ -68,6 +70,7 @@ export const CMF_CHILE_ENDPOINT = "/api/admin/settings/cmf-chile";
 /**
  * @typedef {object} SettingsRequest
  * @property {string} directoryTokenEndpoint - Token endpoint.
+ * @property {string} softwareStatementEndpoint - Software statement endpoint.
  * @property {string} clientId - Client id.
  * @property {string} [clientSecret] - Omitted to keep the stored secret.
  * @property {boolean} [clearClientSecret] - Remove the stored secret.
@@ -103,6 +106,7 @@ function entryDraftFromView(entry) {
 export function draftFromView(view) {
   return {
     directoryTokenEndpoint: view.directoryTokenEndpoint ?? "",
+    softwareStatementEndpoint: view.softwareStatementEndpoint ?? "",
     clientId: view.clientId ?? "",
     clientSecret: "",
     clearClientSecret: false,
@@ -148,6 +152,7 @@ export function requestFromDraft(draft) {
   /** @type {SettingsRequest} */
   const body = {
     directoryTokenEndpoint: draft.directoryTokenEndpoint.trim(),
+    softwareStatementEndpoint: draft.softwareStatementEndpoint.trim(),
     clientId: draft.clientId.trim(),
     positiveCertificates: draft.positiveCertificates.map(entryRequest),
     negativeCertificates: draft.negativeCertificates.map(entryRequest),

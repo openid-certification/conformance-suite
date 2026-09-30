@@ -22,6 +22,7 @@ public final class CMFChileSettingsView {
 	public static JsonObject toJson(CMFChileSettings settings) {
 		JsonObject view = new JsonObject();
 		view.addProperty(CMFChileSettings.DIRECTORY_TOKEN_ENDPOINT, settings.directoryTokenEndpoint());
+		view.addProperty(CMFChileSettings.SOFTWARE_STATEMENT_ENDPOINT, settings.softwareStatementEndpoint());
 		view.addProperty(CMFChileSettings.CLIENT_ID, settings.clientId());
 		view.addProperty("clientSecretSet", settings.clientSecret() != null);
 		view.add(CMFChileSettings.CLIENT_JWKS, jwksSummary(settings.clientJwks()));

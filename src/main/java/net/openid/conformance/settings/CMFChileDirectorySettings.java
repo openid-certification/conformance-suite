@@ -13,12 +13,14 @@ import java.util.List;
  * {@code log(...)}/{@code args(...)}, or otherwise let them reach the test log.
  *
  * @param directoryTokenEndpoint null when not configured
+ * @param softwareStatementEndpoint where the Directorio issues software statements (SSAs); null when not configured
  * @param clientId null when not configured
  * @param clientSecret null when not configured
  * @param clientJwks with private keys; null when not configured
  */
 public record CMFChileDirectorySettings(
 	String directoryTokenEndpoint,
+	String softwareStatementEndpoint,
 	String clientId,
 	String clientSecret,
 	JWKSet clientJwks,
@@ -34,6 +36,7 @@ public record CMFChileDirectorySettings(
 	public String toString() {
 		// the generated toString would print the client secret and the private JWKS
 		return "CMFChileDirectorySettings[directoryTokenEndpoint=" + directoryTokenEndpoint
+			+ ", softwareStatementEndpoint=" + softwareStatementEndpoint
 			+ ", clientId=" + clientId
 			+ ", positiveCertificates=" + positiveCertificates
 			+ ", negativeCertificates=" + negativeCertificates + "]";

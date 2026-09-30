@@ -28,18 +28,24 @@ public class CMFChileSettingsValidator_UnitTest {
 	}
 
 	private static CMFChileSettings withEndpoint(String endpoint) {
-		return new CMFChileSettings(endpoint, valid.clientId(), valid.clientSecret(), valid.clientJwks(),
+		return new CMFChileSettings(endpoint, valid.softwareStatementEndpoint(), valid.clientId(), valid.clientSecret(), valid.clientJwks(),
 			valid.positiveCertificates(), valid.negativeCertificates(), null, null);
 	}
 
+	private static CMFChileSettings withSoftwareStatementEndpoint(String endpoint) {
+		return new CMFChileSettings(valid.directoryTokenEndpoint(), endpoint, valid.clientId(), valid.clientSecret(),
+			valid.clientJwks(), valid.positiveCertificates(), valid.negativeCertificates(), null, null);
+	}
+
 	private static CMFChileSettings withJwks(String jwks) {
-		return new CMFChileSettings(valid.directoryTokenEndpoint(), valid.clientId(), valid.clientSecret(), jwks,
+		return new CMFChileSettings(valid.directoryTokenEndpoint(), valid.softwareStatementEndpoint(), valid.clientId(),
+			valid.clientSecret(), jwks,
 			valid.positiveCertificates(), valid.negativeCertificates(), null, null);
 	}
 
 	private static CMFChileSettings withPositive(CertificateEntry... entries) {
-		return new CMFChileSettings(valid.directoryTokenEndpoint(), valid.clientId(), valid.clientSecret(),
-			valid.clientJwks(), List.of(entries), valid.negativeCertificates(), null, null);
+		return new CMFChileSettings(valid.directoryTokenEndpoint(), valid.softwareStatementEndpoint(), valid.clientId(),
+			valid.clientSecret(), valid.clientJwks(), List.of(entries), valid.negativeCertificates(), null, null);
 	}
 
 	private static List<String> fields(List<SettingsError> errors) {
@@ -62,6 +68,21 @@ public class CMFChileSettingsValidator_UnitTest {
 
 		assertThat(errors).containsExactly(new SettingsError("directoryTokenEndpoint",
 			"'Directory token endpoint URL' must be an absolute https:// URL"));
+	}
+
+	@Test
+	public void rejectsAnHttpSoftwareStatementEndpoint() {
+		List<SettingsError> errors = CMFChileSettingsValidator.validate(
+			withSoftwareStatementEndpoint("http://directory.example.cl/software-statement"));
+
+		assertThat(errors).containsExactly(new SettingsError("softwareStatementEndpoint",
+			"'Software statement endpoint URL' must be an absolute https:// URL"));
+	}
+
+	@Test
+	public void rejectsARelativeSoftwareStatementEndpoint() {
+		assertThat(fields(CMFChileSettingsValidator.validate(withSoftwareStatementEndpoint("/ssa"))))
+			.containsExactly("softwareStatementEndpoint");
 	}
 
 	@Test
@@ -180,7 +201,7 @@ public class CMFChileSettingsValidator_UnitTest {
 
 	@Test
 	public void reportsNegativeListErrorsUnderTheirOwnField() {
-		CMFChileSettings settings = new CMFChileSettings(null, null, null, null, List.of(),
+		CMFChileSettings settings = new CMFChileSettings(null, null, null, null, null, List.of(),
 			List.of(new CertificateEntry("n", "expired", rsaCertificatePem, null)), null, null);
 
 		List<SettingsError> errors = CMFChileSettingsValidator.validate(settings);

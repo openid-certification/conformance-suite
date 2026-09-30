@@ -22,6 +22,7 @@ public class CMFChileSettingsParser_UnitTest {
 		CMFChileDirectorySettings parsed = CMFChileSettingsParser.parse(stored);
 
 		assertThat(parsed.directoryTokenEndpoint()).isEqualTo("https://directory.example.cl/token");
+		assertThat(parsed.softwareStatementEndpoint()).isEqualTo("https://directory.example.cl/software-statement");
 		assertThat(parsed.clientId()).isEqualTo("oidf-conformance");
 		assertThat(parsed.clientSecret()).isEqualTo("the-client-secret");
 		assertThat(parsed.clientJwks().getKeyByKeyId("sig-1").isPrivate()).isTrue();
@@ -50,7 +51,7 @@ public class CMFChileSettingsParser_UnitTest {
 		var issuer = TestPki.selfSigned(issuerKeys, "issuer");
 		var leaf = TestPki.certificate(leafKeys, "leaf", issuerKeys, "issuer",
 			java.time.Instant.now().minusSeconds(60), java.time.Instant.now().plusSeconds(3600));
-		CMFChileSettings settings = new CMFChileSettings(null, null, null, null,
+		CMFChileSettings settings = new CMFChileSettings(null, null, null, null, null,
 			List.of(new CertificateEntry("a", "chain", TestPki.pem(leaf, issuer), TestPki.pkcs8Pem(leafKeys.getPrivate()))),
 			List.of(), null, null);
 
@@ -65,6 +66,7 @@ public class CMFChileSettingsParser_UnitTest {
 		CMFChileDirectorySettings parsed = CMFChileSettingsParser.parse(CMFChileSettings.empty());
 
 		assertThat(parsed.directoryTokenEndpoint()).isNull();
+		assertThat(parsed.softwareStatementEndpoint()).isNull();
 		assertThat(parsed.clientSecret()).isNull();
 		assertThat(parsed.clientJwks()).isNull();
 		assertThat(parsed.positiveCertificates()).isEmpty();
@@ -73,7 +75,7 @@ public class CMFChileSettingsParser_UnitTest {
 
 	@Test
 	public void aCorruptCertificateThrowsNamingTheField() {
-		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null, List.of(),
+		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null, null, List.of(),
 			List.of(stored.negativeCertificates().get(0), new CertificateEntry("x", "broken", "garbage", "garbage")),
 			null, null);
 
@@ -85,7 +87,7 @@ public class CMFChileSettingsParser_UnitTest {
 
 	@Test
 	public void aCorruptJwksThrowsNamingTheField() {
-		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, "not json", List.of(), List.of(), null, null);
+		CMFChileSettings corrupt = new CMFChileSettings(null, null, null, null, "not json", List.of(), List.of(), null, null);
 
 		assertThatThrownBy(() -> CMFChileSettingsParser.parse(corrupt))
 			.isInstanceOf(IllegalStateException.class)
