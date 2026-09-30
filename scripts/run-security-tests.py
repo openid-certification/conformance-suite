@@ -55,6 +55,10 @@ import httpx
 # Add parent dir to path so we can import conformance.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Alphanumeric so it matches the private-link allowlist patterns and reaches the
+# controller.
+UNKNOWN_TEST_ID = "doesNotExist0"
+
 
 def get_config():
     """Get server URL and token from environment."""
@@ -360,6 +364,13 @@ def run_tests():
     plan_id, first_module = create_test_plan(owner_client, base_url, plan_name, config)
     print(f"  Created plan: {plan_id} (module: {first_module})")
 
+    # A second test in the same plan: test-level shares grant access to every
+    # test in the containing plan, not just the shared one. Created first so
+    # test_id stays the module's latest instance, which plan publish and
+    # plan export operate on.
+    sibling_test_id = create_test_from_plan(owner_client, base_url, plan_id, first_module)
+    print(f"  Created sibling test: {sibling_test_id}")
+
     test_id = create_test_from_plan(owner_client, base_url, plan_id, first_module)
     print(f"  Created test: {test_id}")
 
@@ -433,19 +444,17 @@ def run_tests():
     resp = pl_client.get(f"{base_url}log-detail.html?log={test_id}")
     runner.check_status("Plan share: can view log-detail page", resp, 200)
 
-    # The export endpoints are NOT in the private-link allowlist
-    # (the private-link rule in WebSecurityResourceServerConfig only allows /api/plan/{id},
-    # /api/info/{id}, /api/log/{id} as single-segment URIs). Private-link
-    # users therefore get 403 from the security layer regardless of which plan
-    # they target — even the one their share covers.
-    resp = pl_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
-    runner.check_status("Plan share: cannot export shared plan (not in allowlist)", resp, 403)
-
+    # Per-test export is in the private-link allowlist (the "Download Logs"
+    # buttons on plan-detail and log-detail); plan-wide export is not, so it
+    # gets 403 from the security layer even for the shared plan.
     resp = pl_client.get(f"{base_url}api/log/exporthtml/{test_id}")
-    runner.check_status("Plan share: cannot export shared test html (not in allowlist)", resp, 403)
+    assert_valid_export_zip(runner, "Plan share: can export shared test html", resp, [test_id])
 
     resp = pl_client.get(f"{base_url}api/log/export/{test_id}")
-    runner.check_status("Plan share: cannot export shared test zip (not in allowlist)", resp, 403)
+    assert_valid_export_zip(runner, "Plan share: can export shared test zip", resp, [test_id])
+
+    resp = pl_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
+    runner.check_status("Plan share: cannot export shared plan (not in allowlist)", resp, 403)
 
     # Denied access
     print("\n--- 1. Plan sharing: denied access ---")
@@ -465,11 +474,20 @@ def run_tests():
     resp = pl_client.get(f"{base_url}api/plan/exporthtml/{other_plan_id}")
     runner.check_status("Plan share: cannot export other plan", resp, 403)
 
+    # Per-test export passes the security layer, so the controller must scope it
+    # to the shared plan. A test outside it returns the same 404 as an unknown
+    # id, so existence does not leak.
     resp = pl_client.get(f"{base_url}api/log/exporthtml/{other_test_id}")
-    runner.check_status("Plan share: cannot export other test html", resp, 403)
+    runner.check_status("Plan share: cannot export other test html", resp, 404)
 
     resp = pl_client.get(f"{base_url}api/log/export/{other_test_id}")
-    runner.check_status("Plan share: cannot export other test zip", resp, 403)
+    runner.check_status("Plan share: cannot export other test zip", resp, 404)
+
+    resp = pl_client.get(f"{base_url}api/log/export/{UNKNOWN_TEST_ID}")
+    runner.check_status("Plan share: export of unknown test zip", resp, 404)
+
+    resp = pl_client.get(f"{base_url}api/log/exporthtml/{UNKNOWN_TEST_ID}")
+    runner.check_status("Plan share: export of unknown test html", resp, 404)
 
     resp = pl_client.post(f"{base_url}api/info/{test_id}/publish",
                           content=json.dumps({"publish": "summary"}),
@@ -586,18 +604,26 @@ def run_tests():
                  resp.status_code == 200 and resp.json() == [],
                  f"HTTP {resp.status_code} body={resp.text[:200]}")
 
-    # Same allowlist applies to test-level shares: export endpoints not allowed.
+    # Same allowlist applies to test-level shares: per-test export is allowed
+    # for the shared plan's tests, plan-wide export is not.
     resp = tl_client.get(f"{base_url}api/log/exporthtml/{test_id}")
-    runner.check_status("Test share: cannot export shared test html (not in allowlist)", resp, 403)
+    assert_valid_export_zip(runner, "Test share: can export shared test html", resp, [test_id])
 
     resp = tl_client.get(f"{base_url}api/log/export/{test_id}")
-    runner.check_status("Test share: cannot export shared test zip (not in allowlist)", resp, 403)
+    assert_valid_export_zip(runner, "Test share: can export shared test zip", resp, [test_id])
+
+    resp = tl_client.get(f"{base_url}api/log/export/{sibling_test_id}")
+    assert_valid_export_zip(runner, "Test share: can export other test in shared plan",
+                            resp, [sibling_test_id])
+
+    resp = tl_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
+    runner.check_status("Test share: cannot export plan (not in allowlist)", resp, 403)
 
     resp = tl_client.get(f"{base_url}api/log/exporthtml/{other_test_id}")
-    runner.check_status("Test share: cannot export other test html", resp, 403)
+    runner.check_status("Test share: cannot export other test html", resp, 404)
 
     resp = tl_client.get(f"{base_url}api/log/export/{other_test_id}")
-    runner.check_status("Test share: cannot export other test zip", resp, 403)
+    runner.check_status("Test share: cannot export other test zip", resp, 404)
 
     resp = tl_client.post(f"{base_url}api/info/{test_id}/publish",
                           content=json.dumps({"publish": "summary"}),
@@ -636,6 +662,12 @@ def run_tests():
     resp = plan_bearer.get(f"{base_url}api/log/{test_id}")
     runner.check_status("Plan JWT Bearer: can view test log", resp, 200)
 
+    resp = plan_bearer.get(f"{base_url}api/log/export/{test_id}")
+    assert_valid_export_zip(runner, "Plan JWT Bearer: can export shared test zip", resp, [test_id])
+
+    resp = plan_bearer.get(f"{base_url}api/log/exporthtml/{test_id}")
+    assert_valid_export_zip(runner, "Plan JWT Bearer: can export shared test html", resp, [test_id])
+
     print("\n--- 2b. Plan JWT as Bearer: denied access ---")
     resp = plan_bearer.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan JWT Bearer: cannot view other plan", resp, 404)
@@ -644,6 +676,21 @@ def run_tests():
     runner.check("Plan JWT Bearer: log of test in other plan returns no entries",
                  resp.status_code == 200 and resp.json() == [],
                  f"HTTP {resp.status_code} body={resp.text[:200]}")
+
+    resp = plan_bearer.get(f"{base_url}api/log/export/{other_test_id}")
+    runner.check_status("Plan JWT Bearer: cannot export other test zip", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/log/exporthtml/{other_test_id}")
+    runner.check_status("Plan JWT Bearer: cannot export other test html", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/log/export/{UNKNOWN_TEST_ID}")
+    runner.check_status("Plan JWT Bearer: export of unknown test zip", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/log/exporthtml/{UNKNOWN_TEST_ID}")
+    runner.check_status("Plan JWT Bearer: export of unknown test html", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/plan/exporthtml/{plan_id}")
+    runner.check_status("Plan JWT Bearer: cannot export shared plan (not in allowlist)", resp, 403)
 
     resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
     runner.check_status("Plan JWT Bearer: cannot create share link", resp, 403)
@@ -728,6 +775,21 @@ def run_tests():
     runner.check("Test JWT Bearer: log of test in other plan returns no entries",
                  resp.status_code == 200 and resp.json() == [],
                  f"HTTP {resp.status_code} body={resp.text[:200]}")
+
+    resp = test_bearer.get(f"{base_url}api/log/export/{test_id}")
+    assert_valid_export_zip(runner, "Test JWT Bearer: can export shared test zip", resp, [test_id])
+
+    resp = test_bearer.get(f"{base_url}api/log/exporthtml/{test_id}")
+    assert_valid_export_zip(runner, "Test JWT Bearer: can export shared test html", resp, [test_id])
+
+    resp = test_bearer.get(f"{base_url}api/log/export/{other_test_id}")
+    runner.check_status("Test JWT Bearer: cannot export other test zip", resp, 404)
+
+    resp = test_bearer.get(f"{base_url}api/log/exporthtml/{other_test_id}")
+    runner.check_status("Test JWT Bearer: cannot export other test html", resp, 404)
+
+    resp = test_bearer.get(f"{base_url}api/log/export/{UNKNOWN_TEST_ID}")
+    runner.check_status("Test JWT Bearer: export of unknown test zip", resp, 404)
 
     test_bearer.close()
 

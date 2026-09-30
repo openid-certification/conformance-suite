@@ -1067,10 +1067,10 @@ public class LogApi {
 	}
 
 	// This URL is not in the public matcher (only /api/log/export/?* is), so
-	// unauthenticated callers get 401 and private-link share users get 403 before
-	// reaching the controller. The publicOnly=true branch is therefore only
-	// reachable for non-private-link authenticated callers (API token or OIDC
-	// session cookie). In rendered UI flows that happens when an owner views
+	// unauthenticated callers get 401 before reaching the controller. Private-link
+	// share users reach it and are limited to tests in their shared plan by
+	// getTestResults/getTestInfo. The publicOnly=true branch is only reached with
+	// an explicit ?public=true. In rendered UI flows that happens when an owner views
 	// log-detail with public=true on the URL (the "Public link" preview of an
 	// everything-published test) and clicks "Download Logs" — the JS appends
 	// ?public=true in that mode.
