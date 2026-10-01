@@ -51,6 +51,40 @@ describe("resolveSpecLink", () => {
     );
   });
 
+  const SECTIONS = {
+    "BrazilOBDCR-7.1.1": "https://example.com/dcr#7.1.1.-Applying-Server-Defaults",
+    "BrazilOBDCR-7.1": "https://example.com/dcr#7.1.-Authorization-server",
+  };
+  const BRAZIL_MAP = { ...MAP, "BrazilOBDCR-": "https://example.com/dcr#" };
+
+  it("links a section requirement to its section URL", () => {
+    expect(resolveSpecLink("BrazilOBDCR-7.1", BRAZIL_MAP, SECTIONS)).toBe(
+      "https://example.com/dcr#7.1.-Authorization-server",
+    );
+    expect(resolveSpecLink("BrazilOBDCR-7.1-10", BRAZIL_MAP, SECTIONS)).toBe(
+      "https://example.com/dcr#7.1.-Authorization-server",
+    );
+    expect(resolveSpecLink("BrazilOBDCR-7.1.1-2", BRAZIL_MAP, SECTIONS)).toBe(
+      "https://example.com/dcr#7.1.1.-Applying-Server-Defaults",
+    );
+  });
+
+  it("does not match a section link against a longer section number", () => {
+    expect(resolveSpecLink("BrazilOBDCR-7.10", BRAZIL_MAP, SECTIONS)).toBe(
+      "https://example.com/dcr#7.10",
+    );
+    expect(resolveSpecLink("BrazilOBDCR-7.1.2-1", BRAZIL_MAP, SECTIONS)).toBe(
+      "https://example.com/dcr#7.1.2",
+    );
+  });
+
+  it("falls back to the prefix map without section links", () => {
+    expect(resolveSpecLink("BrazilOBDCR-7.1-10", BRAZIL_MAP)).toBe("https://example.com/dcr#7.1");
+    expect(resolveSpecLink("BrazilOBDCR-7.1", null, SECTIONS)).toBe(
+      "https://example.com/dcr#7.1.-Authorization-server",
+    );
+  });
+
   it("returns null when nothing matches", () => {
     expect(resolveSpecLink("TYPO9999-1.2.3", MAP)).toBeNull();
     expect(resolveSpecLink("", MAP)).toBeNull();

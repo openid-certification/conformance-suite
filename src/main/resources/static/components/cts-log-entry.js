@@ -6,7 +6,7 @@ import "./cts-link-button.js";
 import "./cts-tooltip.js";
 import "./cts-time.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
-import { loadSpecLinks, resolveSpecLink } from "../lib/spec-links.js";
+import { loadSpecLinks, loadSpecSectionLinks, resolveSpecLink } from "../lib/spec-links.js";
 
 /**
  * Maps a log entry's `result` value (case-insensitive) to a `cts-badge`
@@ -1002,6 +1002,7 @@ class CtsLogEntry extends LitElement {
     imageViewable: { type: Boolean, attribute: "image-viewable" },
     _expanded: { state: true },
     _specLinks: { state: true },
+    _specSectionLinks: { state: true },
   };
 
   createRenderRoot() {
@@ -1018,6 +1019,7 @@ class CtsLogEntry extends LitElement {
     this.imageViewable = false;
     this._expanded = false;
     this._specLinks = null;
+    this._specSectionLinks = null;
   }
 
   connectedCallback() {
@@ -1027,9 +1029,10 @@ class CtsLogEntry extends LitElement {
     // Promise rather than hitting the network again. The first render shows
     // requirements as static chips; once the map resolves, the state update
     // re-renders them as anchors when a prefix matches.
-    loadSpecLinks().then((map) => {
+    Promise.all([loadSpecLinks(), loadSpecSectionLinks()]).then(([map, sections]) => {
       if (!this.isConnected) return;
       this._specLinks = map;
+      this._specSectionLinks = sections;
     });
   }
 
@@ -1211,7 +1214,7 @@ class CtsLogEntry extends LitElement {
     return html`
       <div class="logRequirements">
         ${requirements.map((req) => {
-          const url = map ? resolveSpecLink(req, map) : null;
+          const url = map ? resolveSpecLink(req, map, this._specSectionLinks) : null;
           if (url) {
             return html`<a
               class="logRequirement"

@@ -19,6 +19,9 @@
 /** @type {Promise<Record<string, string>> | null} */
 let pending = null;
 
+/** @type {Promise<Record<string, string>> | null} */
+let pendingSections = null;
+
 /**
  * Fetch the spec-link prefix map, memoising the in-flight Promise so a
  * second caller reuses the first call.
@@ -37,6 +40,25 @@ export function loadSpecLinks() {
 }
 
 /**
+ * Fetch the section-link map from `GET /api/ui/spec_section_links?public=true`,
+ * memoised like {@link loadSpecLinks}. Keys are section requirements such as
+ * `BrazilOBDCR-7.1` whose published fragment includes the heading text, so it
+ * cannot be built from the section number; values are the full section URL.
+ *
+ * @returns {Promise<Record<string, string>>} Map of section requirement → URL. Empty on error.
+ */
+export function loadSpecSectionLinks() {
+  if (!pendingSections) {
+    pendingSections = fetch("api/ui/spec_section_links?public=true", {
+      credentials: "same-origin",
+    })
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}));
+  }
+  return pendingSections;
+}
+
+/**
  * Resolve a requirement string (e.g. `OIDCC-3.1.3.7-6`) to a full URL
  * via longest-prefix match against the spec-link map. Longest-prefix is
  * required because the map contains overlapping prefixes like `OIDCC-`
@@ -50,12 +72,21 @@ export function loadSpecLinks() {
  * full requirement. Suffixes that are not `<section>-<numeric item>`
  * (named fragments such as `request-object`) are appended unchanged.
  *
+ * A requirement that equals a key of `sections`, or starts with that key
+ * followed by `-`, links to that section's URL in preference to the
+ * prefix map.
+ *
  * @param {string} ref Requirement string from `entry.requirements[i]`.
  * @param {Record<string, string> | null | undefined} map Spec-link map.
+ * @param {Record<string, string> | null | undefined} [sections] Section-link map.
  * @returns {string | null} Full URL, or `null` when no prefix matches.
  */
-export function resolveSpecLink(ref, map) {
-  if (!ref || !map) return null;
+export function resolveSpecLink(ref, map, sections) {
+  if (!ref) return null;
+  for (const [section, url] of Object.entries(sections ?? {})) {
+    if (ref === section || ref.startsWith(section + "-")) return url;
+  }
+  if (!map) return null;
   let bestPrefix = "";
   for (const prefix of Object.keys(map)) {
     if (ref.startsWith(prefix) && prefix.length > bestPrefix.length) {
@@ -80,6 +111,17 @@ export function __seedSpecLinks(map) {
 }
 
 /**
+ * Test-only helper: seed the section-link cache so stories and unit tests
+ * can bypass the real fetch.
+ *
+ * @param {Record<string, string>} sections Map to seed.
+ * @returns {void}
+ */
+export function __seedSpecSectionLinks(sections) {
+  pendingSections = Promise.resolve(sections);
+}
+
+/**
  * Test-only helper: clear the cache so the next `loadSpecLinks()` call
  * re-fetches. Call from a `beforeEach` to prevent cross-test leakage.
  *
@@ -87,4 +129,5 @@ export function __seedSpecLinks(map) {
  */
 export function __resetSpecLinks() {
   pending = null;
+  pendingSections = null;
 }
