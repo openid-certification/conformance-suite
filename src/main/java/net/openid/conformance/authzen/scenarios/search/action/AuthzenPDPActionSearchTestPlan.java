@@ -2,6 +2,10 @@ package net.openid.conformance.authzen.scenarios.search.action;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-action-search-test-plan",
@@ -43,4 +47,19 @@ import net.openid.conformance.plan.TestPlan;
 	}
 )
 public class AuthzenPDPActionSearchTestPlan implements TestPlan {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+
+		String certProfile = "AuthZEN Action Search";
+		String suffix = "";
+
+		Map<String, String> v = variant.getVariant();
+		String authzenSupport = v.get("authzen_support");
+
+		if("properties".equalsIgnoreCase(authzenSupport)) {
+			suffix = " w/properties";
+		}
+
+		return List.of(certProfile + suffix);
+	}
 }
