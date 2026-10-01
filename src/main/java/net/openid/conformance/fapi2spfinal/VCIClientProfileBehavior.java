@@ -234,7 +234,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
+				callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3");
 				callAndStopOnFailure(new VCIInjectCredentialConfigurationIdHint(fallbackCredentialConfigurationId));
 			}
 		};

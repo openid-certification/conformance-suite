@@ -398,7 +398,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
+			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3");
 		}
 
 		vciAuthorizationCodeFlowVariant = getVariant(VCIWalletAuthorizationCodeFlowVariant.class);
@@ -487,7 +487,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		addTokenStatusListAggregationEndpointToOauthServerMetadata();
 
-		callAndContinueOnFailure(VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
+		callAndContinueOnFailure(VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 
 		if (isChallengeEndpointSupported()) {
 			String baseUrl = env.getString("base_url");
@@ -1292,7 +1292,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			+ "second client and presented to the wallet in " + SECOND_CLIENT_OFFER_DELAY_SECONDS + " seconds; the offer "
 			+ "of the first client is not valid for it.");
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
+			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3");
 		}
 		call(VCIClientProfileBehavior.credentialOfferSteps(vciGrantType, vciCredentialOfferParameterVariantType));
 		getBrowser().goToUrl(env.getString("vci", "credential_offer_redirect_url"), null, "GET", SECOND_CLIENT_OFFER_DELAY_SECONDS);
