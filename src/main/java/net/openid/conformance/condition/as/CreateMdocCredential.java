@@ -104,23 +104,21 @@ public class CreateMdocCredential extends AbstractCondition {
 		return result;
 	}
 
-	// TODO: does not honour DCQL claim_sets semantics; flattens all listed claims.
+	// Where the query has claim_sets, the first option is presented without checking that the
+	// document can satisfy it.
 	private Map<String, Set<String>> extractMdocRequestedClaims(JsonObject credential) {
 		Map<String, Set<String>> result = new LinkedHashMap<>();
-		JsonArray claims = credential.getAsJsonArray("claims");
-		if (claims == null) {
+		List<Set<List<String>>> options = DcqlQueryUtils.extractClaimSetOptions(credential);
+		if (options.isEmpty()) {
 			return result;
 		}
-		for (JsonElement claimEl : claims) {
-			JsonArray path = claimEl.getAsJsonObject().getAsJsonArray("path");
-			if (path == null || path.size() != 2) {
+		for (List<String> path : options.get(0)) {
+			if (path.size() != 2) {
 				log("Ignoring DCQL claim with non-2-element path (mdoc requires [namespace, elementIdentifier])",
 					args("path", path));
 				continue;
 			}
-			String namespace = OIDFJSON.getString(path.get(0));
-			String elementName = OIDFJSON.getString(path.get(1));
-			result.computeIfAbsent(namespace, k -> new LinkedHashSet<>()).add(elementName);
+			result.computeIfAbsent(path.get(0), k -> new LinkedHashSet<>()).add(path.get(1));
 		}
 		return result;
 	}

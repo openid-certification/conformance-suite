@@ -208,4 +208,32 @@ public class CreateMdocCredential_UnitTest {
 		}
 		return list;
 	}
+
+	@Test
+	public void testEvaluate_claimSetsPresentsOnlyFirstOption() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.18013.5.1.mDL"},
+			      "claims": [
+			        {"id": "a", "path": ["org.iso.18013.5.1", "age_over_18"]},
+			        {"id": "b", "path": ["org.iso.18013.5.1", "birth_date"]}
+			      ],
+			      "claim_sets": [["a"], ["b"]]
+			    }
+			  ]
+			}
+			"""));
+
+		cond.execute(env);
+		parseCredential();
+
+		assertThat(collectStrings(disclosedElementsFor("org.iso.18013.5.1")))
+			.containsExactly("age_over_18");
+		assertThat(countDisclosedElements()).isEqualTo(1);
+	}
 }
