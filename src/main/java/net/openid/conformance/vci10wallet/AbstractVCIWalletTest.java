@@ -1746,7 +1746,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
-				callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-2.5.2.1");
+				callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-4");
 				callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 			}
 		};
