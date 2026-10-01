@@ -97,6 +97,37 @@ public class LogEntryHelper_UnitTest {
 			.isEqualTo(spec + "5.12");
 	}
 
+	@Test
+	public void sectionOnlyRequirementLinksToThatSection() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+
+		assertThat(helper.getRequirementLink("RFC7517-1.1"))
+			.isEqualTo(LogEntryHelper.specLinks.get("RFC7517-") + "1.1");
+	}
+
+	@Test
+	public void trailingItemNumberIsDroppedSoTheLinkTargetsTheSection() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		String fapi2 = "https://openid.net/specs/fapi-security-profile-2_0-final.html#section-";
+
+		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.2-5"))
+			.isEqualTo(fapi2 + "5.3.2.2");
+		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.1-2.5.2.1"))
+			.isEqualTo(fapi2 + "5.3.2.1");
+		assertThat(helper.getRequirementLink("HAIP-5-5"))
+			.isEqualTo(LogEntryHelper.specLinks.get("HAIP-") + "5");
+	}
+
+	@Test
+	public void namedFragmentsContainingHyphensAreKept() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+
+		assertThat(helper.getRequirementLink("CDR-request-object"))
+			.isEqualTo(LogEntryHelper.specLinks.get("CDR-") + "request-object");
+		assertThat(helper.getRequirementLink("CDR-levels-of-assurance-loas"))
+			.isEqualTo(LogEntryHelper.specLinks.get("CDR-") + "levels-of-assurance-loas");
+	}
+
 	private static final Path SPEC_LIBRARY = Path.of("library", "specs");
 
 	private static JsonObject specLibraryManifest() throws Exception {
