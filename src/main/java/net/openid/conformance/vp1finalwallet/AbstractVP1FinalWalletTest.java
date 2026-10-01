@@ -239,12 +239,6 @@ import java.util.concurrent.TimeUnit;
 	hasValues = "sd_jwt_vc"
 )
 @VariantNotApplicableWhen(
-	parameter = VP1FinalWalletCredentialType.class,
-	values = {"eudi_pid"},  // the built-in PID query is an SD-JWT VC query
-	whenParameter = VP1FinalWalletCredentialFormat.class,
-	hasValues = "iso_mdl"
-)
-@VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
 	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
 	whenParameter = VPProfile.class,
@@ -482,7 +476,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	 * query, e.g. the one requesting every mandatory data element.
 	 */
 	protected String builtInDcqlResource() {
-		return credentialType.getDcqlResource();
+		return credentialType.getDcqlResource(credentialFormat);
 	}
 
 	/**

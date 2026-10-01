@@ -11,11 +11,14 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.MdlDataElements;
 import net.openid.conformance.util.PhotoIdDataElements;
+import net.openid.conformance.util.PidDataElements;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialFormat;
 import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,23 +49,33 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 		env = new Environment();
 	}
 
-	/** The credential types with a built-in query, so a newly added type is covered automatically. */
-	private static Stream<VP1FinalWalletCredentialType> builtInTypes() {
+	/**
+	 * Every credential type and format combination with a built-in query, so a newly added type
+	 * or format is covered automatically.
+	 */
+	private static Stream<Arguments> builtInTypes() {
 		return Arrays.stream(VP1FinalWalletCredentialType.values())
-			.filter(type -> type.getDcqlResource() != null);
+			.flatMap(type -> Arrays.stream(VP1FinalWalletCredentialFormat.values())
+				.filter(format -> type.getDcqlResource(format) != null)
+				.map(format -> Arguments.of(type, format)));
 	}
 
-	/**
-	 * The credential format each built-in query must request — the same fact the
-	 * {@code @VariantNotApplicableWhen} rules on AbstractVP1FinalWalletTest encode. The exhaustive
-	 * switch means adding a credential type without declaring its format here fails to compile.
-	 */
-	private static String expectedFormat(VP1FinalWalletCredentialType type) {
-		return switch (type) {
-			case EUDI_PID -> "dc+sd-jwt";
-			case MDL, PHOTO_ID -> "mso_mdoc";
-			case CUSTOM -> throw new IllegalArgumentException("custom has no built-in query");
+	/** The DCQL format identifier the built-in query for a credential format must request. */
+	private static String expectedFormat(VP1FinalWalletCredentialFormat format) {
+		return switch (format) {
+			case SD_JWT_VC -> "dc+sd-jwt";
+			case ISO_MDL -> "mso_mdoc";
 		};
+	}
+
+	/** The PID has a built-in query in both formats; mDL and Photo ID only exist as mdocs. */
+	@Test
+	public void testBuiltInTypes_coverExpectedCombinations() {
+		Set<String> combinations = new HashSet<>();
+		builtInTypes().forEach(arguments -> combinations.add(arguments.get()[0] + "/" + arguments.get()[1]));
+
+		assertEquals(Set.of("eudi_pid/sd_jwt_vc", "eudi_pid/iso_mdl", "mdl/iso_mdl", "photoid/iso_mdl"),
+			combinations);
 	}
 
 	@Test
@@ -82,8 +95,9 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	 */
 	@ParameterizedTest
 	@MethodSource("builtInTypes")
-	public void testEvaluate_builtInQueryIsUsableByEveryModule(VP1FinalWalletCredentialType type) {
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource());
+	public void testEvaluate_builtInQueryIsUsableByEveryModule(VP1FinalWalletCredentialType type,
+			VP1FinalWalletCredentialFormat format) {
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format));
 
 		cond.evaluate(env);
 
@@ -94,7 +108,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 		assertEquals(1, credentials.size(), "built-in queries request exactly one credential");
 
 		JsonObject credential = credentials.get(0).getAsJsonObject();
-		assertEquals(expectedFormat(type), OIDFJSON.getString(credential.get("format")));
+		assertEquals(expectedFormat(format), OIDFJSON.getString(credential.get("format")));
 		assertTrue(credential.getAsJsonArray("claims").size() >= 2,
 			"built-in queries must request at least 2 claims");
 	}
@@ -102,8 +116,9 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	/** The built-in queries must pass the same schema validation as a configured query. */
 	@ParameterizedTest
 	@MethodSource("builtInTypes")
-	public void testEvaluate_builtInQueryIsSchemaValid(VP1FinalWalletCredentialType type) {
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource());
+	public void testEvaluate_builtInQueryIsSchemaValid(VP1FinalWalletCredentialType type,
+			VP1FinalWalletCredentialFormat format) {
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format));
 		cond.evaluate(env);
 
 		ValidateDCQLQuery validate = new ValidateDCQLQuery();
@@ -113,17 +128,19 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 
 	/**
 	 * The mandatory data element set each mdoc all-mandatory query must match exactly — the same
-	 * ISO tables {@link MdlDataElements}/{@link PhotoIdDataElements} encode. Null for types whose
-	 * mandatory set is not codified in the suite: the PID set comes from the EUDI PID Rulebook,
-	 * and its query also uses claim_sets to make the portrait (picture claim) a preferred rather
+	 * tables {@link MdlDataElements}, {@link PhotoIdDataElements} and {@link PidDataElements}
+	 * encode. Null for the SD-JWT VC PID, whose mandatory set is not codified in the suite and
+	 * whose query also uses claim_sets to make the portrait (picture claim) a preferred rather
 	 * than required claim, as documented in the summary of
 	 * {@link net.openid.conformance.vp1finalwallet.VP1FinalWalletAllMandatoryClaims}.
 	 */
-	private static Set<String> codifiedMandatoryElements(VP1FinalWalletCredentialType type) {
+	private static Set<String> codifiedMandatoryElements(VP1FinalWalletCredentialType type,
+			VP1FinalWalletCredentialFormat format) {
 		return switch (type) {
 			case MDL -> MdlDataElements.MANDATORY_ELEMENTS;
 			case PHOTO_ID -> PhotoIdDataElements.MANDATORY_ELEMENTS;
-			case EUDI_PID -> null;
+			case EUDI_PID -> format == VP1FinalWalletCredentialFormat.ISO_MDL
+				? PidDataElements.MANDATORY_ELEMENTS : null;
 			case CUSTOM -> throw new IllegalArgumentException("custom has no built-in query");
 		};
 	}
@@ -136,13 +153,14 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	 */
 	@ParameterizedTest
 	@MethodSource("builtInTypes")
-	public void testEvaluate_allMandatoryClaimsQueryIsValidSupersetOfMinimalQuery(VP1FinalWalletCredentialType type) {
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource());
+	public void testEvaluate_allMandatoryClaimsQueryIsValidSupersetOfMinimalQuery(VP1FinalWalletCredentialType type,
+			VP1FinalWalletCredentialFormat format) {
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format));
 		cond.evaluate(env);
 		JsonArray minimalClaims = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY)
 			.getAsJsonArray("credentials").get(0).getAsJsonObject().getAsJsonArray("claims");
 
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getAllMandatoryClaimsDcqlResource());
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getAllMandatoryClaimsDcqlResource(format));
 		cond.evaluate(env);
 
 		ValidateDCQLQuery validate = new ValidateDCQLQuery();
@@ -160,7 +178,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 
 		JsonObject credential = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY)
 			.getAsJsonArray("credentials").get(0).getAsJsonObject();
-		assertEquals(expectedFormat(type), OIDFJSON.getString(credential.get("format")));
+		assertEquals(expectedFormat(format), OIDFJSON.getString(credential.get("format")));
 
 		JsonArray allClaims = credential.getAsJsonArray("claims");
 		assertTrue(allClaims.size() > minimalClaims.size(),
@@ -175,7 +193,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 				"the all-mandatory query must include the minimal query's claim path " + path);
 		}
 
-		Set<String> codified = codifiedMandatoryElements(type);
+		Set<String> codified = codifiedMandatoryElements(type, format);
 		if (codified != null) {
 			Set<String> requested = new HashSet<>();
 			for (var claim : allClaims) {
