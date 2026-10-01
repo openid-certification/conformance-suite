@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsRequestedScopes;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.GenerateDpopKey;
@@ -40,6 +41,9 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		super.onConfigure(config, baseUrl);
 		call(profileBehavior.onConfigure());
 		call(profileBehavior.validateDiscoveryEndpointScopes());
+		skipIfElementMissing("server", "scopes_supported", Condition.ConditionResult.INFO,
+			CheckDiscEndpointScopesSupportedContainsRequestedScopes.class, Condition.ConditionResult.WARNING,
+			"OIDCD-3", "RFC8414-2");
 	}
 
 	@Override

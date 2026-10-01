@@ -17,7 +17,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class GenerateServerConfiguration_UnitTest {
@@ -53,8 +52,7 @@ public class GenerateServerConfiguration_UnitTest {
 		JsonObject server = env.getObject("server");
 		JsonArray scopes = server.getAsJsonArray("scopes_supported");
 		assertNotNull(scopes, "scopes_supported is not published");
-		List<String> scopeList = OIDFJSON.convertJsonArrayToList(scopes);
-		assertTrue(scopeList.contains("openid"), "scopes_supported must contain openid");
-		assertTrue(scopeList.contains("accounts"), "scopes_supported must contain accounts, requested by the CI self-test clients");
+		// the configured scopes are added later by AddConfiguredScopesToServerConfiguration
+		assertEquals(List.of("openid"), OIDFJSON.convertJsonArrayToList(scopes));
 	}
 }

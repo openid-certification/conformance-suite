@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsRequestedScopes;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
@@ -70,6 +71,9 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
 			}
 		}
+		skipIfElementMissing("server", "scopes_supported", Condition.ConditionResult.INFO,
+			CheckDiscEndpointScopesSupportedContainsRequestedScopes.class, Condition.ConditionResult.WARNING,
+			"OIDCD-3", "RFC8414-2");
 	}
 
 	@Override

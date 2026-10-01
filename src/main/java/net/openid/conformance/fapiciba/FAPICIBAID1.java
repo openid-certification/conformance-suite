@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddClientNotificationTokenToAutho
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestedExp300SToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsRequestedScopes;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
@@ -51,6 +52,14 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		setAddBackchannelClientAuthentication(() -> new AddPrivateKeyJWTClientAuthenticationToBackchannelRequest(isSecondClient(), false));
+	}
+
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+		skipIfElementMissing("server", "scopes_supported", Condition.ConditionResult.INFO,
+			CheckDiscEndpointScopesSupportedContainsRequestedScopes.class, Condition.ConditionResult.WARNING,
+			"OIDCD-3", "RFC8414-2");
 	}
 
 	@Override
