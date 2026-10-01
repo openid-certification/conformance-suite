@@ -286,6 +286,10 @@ When interpreting RFCs or technical specifications, present multiple defensible 
 
 The text of the IETF and OIDF specifications referenced by `LogEntryHelper.specLinks` is checked in under `library/specs/` as numbered plain text; `library/specs/manifest.json` maps each requirement-tag prefix to its file (see `library/README.md`). Read the clause there before citing it. When you add a `specLinks` entry, run `scripts/spec_library.py seed` (adds the manifest entry), check the entry, run `scripts/spec_library.py sync --only <doc-id>`, and commit the manifest and text with the Java change — `LogEntryHelper_UnitTest` fails otherwise; see "Adding a specification" in `library/README.md`, which also covers a changed URL. ISO texts live in `../conformance-suite-private/library/iso/`.
 
+### Requirement references
+
+Cite a requirement as `<PREFIX><section>`, or `<PREFIX><section>-<item>` for one item of a list in that section, where `<item>` is the list item as a reader counts it in the spec text (`FAPI1-ADV-5.2.2-14`, `FAPI2-SP-FINAL-5.3.3.1-5`); write a sub-item as `-<item>.<sub-item>`. This holds for every spec, old or new. Don't copy the fragment of an xml2rfc v3 HTML spec (`#section-5.3.3.1-2.5`): its first number is the paragraph holding the list, which the reader cannot see and which older specs such as FAPI1 do not have. Links in the log viewer and the HTML export go to the section; the item is shown to the tester in the requirement label. Cite a field defined in a bulleted definition list (OID4VCI metadata, SD-JWT VC claims) by its section. Pass each requirement as its own argument: a comma-joined string such as `"FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3"` is shown as one requirement and links nowhere. `LogEntryHelper_UnitTest` rejects comma-joined requirements and item parts with three or more components, which can only be a fragment.
+
 Key specifications for VP/VCI work:
 - **OID4VP 1.0 Final**: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html
 - **OID4VCI 1.0 Final**: https://openid.net/specs/openid-4-verifiable-credentials-issuance-1_0.html
