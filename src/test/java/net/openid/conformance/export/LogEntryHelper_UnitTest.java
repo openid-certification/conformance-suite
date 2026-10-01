@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -146,6 +149,39 @@ public class LogEntryHelper_UnitTest {
 			assertThat(helper.getRequirementLink(section)).isEqualTo(url);
 			assertThat(helper.getRequirementLink(section + "-3")).isEqualTo(url);
 		});
+	}
+
+	private static final Pattern STRING_LITERAL = Pattern.compile("\"([A-Za-z][^\"\\s]*-[^\"\\s]*)\"");
+
+	// <section>-<item>.<sub-item>.<further> does not occur in the specs' text, but the xml2rfc v3
+	// fragment of a nested list item does: #section-5.4.1-2.2.1 is paragraph 1 of item 2 of the
+	// list in paragraph 2. Two components (e.g. 2.5) are ambiguous with a sub-item and not checked.
+	private static final Pattern HTML_FRAGMENT_ITEM = Pattern.compile("^[^-]+-[0-9]+(\\.[0-9]+){2,}$");
+
+	@Test
+	public void requirementsCiteListItemsNotHtmlFragments() throws Exception {
+		List<String> offenders = new ArrayList<>();
+		try (Stream<Path> sources = Files.walk(Path.of("src", "main", "java"))) {
+			for (Path source : sources.filter(p -> p.toString().endsWith(".java")).toList()) {
+				Matcher literal = STRING_LITERAL.matcher(Files.readString(source));
+				while (literal.find()) {
+					String requirement = literal.group(1);
+					String prefix = LogEntryHelper.specLinks.keySet().stream()
+						.filter(requirement::startsWith)
+						.reduce("", (a, b) -> b.length() > a.length() ? b : a);
+					if (!prefix.isEmpty() && (requirement.contains(",")
+						|| HTML_FRAGMENT_ITEM.matcher(requirement.substring(prefix.length())).matches())) {
+						offenders.add(source + ": " + requirement);
+					}
+				}
+			}
+		}
+
+		assertThat(offenders)
+			.as("Cite requirements as <section>-<list item> as counted in the spec text, not as the "
+				+ "spec's HTML fragment, and pass each as its own argument rather than joined with commas "
+				+ "(see 'Requirement references' in AGENTS.md)")
+			.isEmpty();
 	}
 
 	private static final Path SPEC_LIBRARY = Path.of("library", "specs");
