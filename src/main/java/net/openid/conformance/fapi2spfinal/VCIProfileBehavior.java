@@ -13,10 +13,13 @@ import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreVali
 import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureIssuedMdocMdlElementsAreDefined;
 import net.openid.conformance.condition.client.EnsureIssuedMdocPhotoIdElementsAreDefined;
+import net.openid.conformance.condition.client.EnsureIssuedMdocPidElementsAreDefined;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdConditionalDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdMandatoryDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdRecommendedDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureMdocPidElementValuesAreValid;
+import net.openid.conformance.condition.client.EnsureMdocPidMandatoryDataElementsPresent;
 import net.openid.conformance.condition.client.EnsureSdJwtVcVctMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
@@ -427,9 +430,9 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 				String format = module.getEnv().getString("vci_credential_configuration", "format");
 				if ("mso_mdoc".equals(format)) {
-					// The check only applies to mDL credentials (it no-ops for other docTypes), and
-					// ISO/IEC 18013-5 defines those mandatory data elements regardless of profile,
-					// so missing elements are always a failure.
+					// Each docType specific check no-ops for other docTypes. The defining
+					// specification makes its mandatory data elements mandatory regardless of
+					// profile, so missing elements are always a failure.
 					callAndContinueOnFailure(ValidateMdocMsoValidityInfoTimestamps.class,
 						ConditionResult.FAILURE, "ISO18013-5-12.3.4", "ISO23220-4-A.1.2.4.2");
 					callAndContinueOnFailure(EnsureMdocMdlMandatoryDataElementsPresent.class,
@@ -448,6 +451,12 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 						ConditionResult.WARNING, "ISO23220-4-C");
 					callAndContinueOnFailure(EnsureMdocPhotoIdElementValuesAreValid.class,
 						ConditionResult.FAILURE, "ISO23220-4-C");
+					callAndContinueOnFailure(EnsureMdocPidMandatoryDataElementsPresent.class,
+						ConditionResult.FAILURE, "PIDRULEBOOK-2.2", "PIDRULEBOOK-2.4");
+					callAndContinueOnFailure(EnsureIssuedMdocPidElementsAreDefined.class,
+						ConditionResult.WARNING, "PIDRULEBOOK-3.1.2");
+					callAndContinueOnFailure(EnsureMdocPidElementValuesAreValid.class,
+						ConditionResult.FAILURE, "PIDRULEBOOK-3.1.2");
 					callAndContinueOnFailure(EnsureMdocAgeOverElementsConsistentWithBirthDate.class,
 						ConditionResult.FAILURE, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
 					callAndContinueOnFailure(EnsureMdocAgeInYearsConsistentWithBirthDate.class,

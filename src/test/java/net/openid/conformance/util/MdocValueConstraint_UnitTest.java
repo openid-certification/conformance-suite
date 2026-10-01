@@ -1,6 +1,8 @@
 package net.openid.conformance.util;
 
 import org.junit.jupiter.api.Test;
+import org.multipaz.cbor.ArrayBuilder;
+import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.CborBuilder;
 import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
@@ -10,6 +12,7 @@ import org.multipaz.cbor.Tagged;
 import org.multipaz.cbor.Tstr;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -179,5 +182,67 @@ public class MdocValueConstraint_UnitTest {
 		assertNull(MdocValueConstraint.mdlTdateOrFullDate().check(fullDate("2030-01-01")));
 		assertNull(MdocValueConstraint.mdlTdateOrFullDate().check(tdate("2030-01-01T00:00:00Z")));
 		assertNotNull(MdocValueConstraint.mdlTdateOrFullDate().check(tdate("2030-01-01T00:00:00+05:30")));
+	}
+
+	/** PID Rulebook 3.1.2 has the same two tdate rules for PID attributes. */
+	@Test
+	public void testPidTdateOrFullDate_rejectsFractionsAndLocalOffsets() {
+		assertNull(MdocValueConstraint.pidTdateOrFullDate().check(fullDate("2030-01-01")));
+		assertNull(MdocValueConstraint.pidTdateOrFullDate().check(tdate("2030-01-01T00:00:00Z")));
+		assertNotNull(MdocValueConstraint.pidTdateOrFullDate().check(tdate("2030-01-01T00:00:00.123Z")));
+		assertNotNull(MdocValueConstraint.pidTdateOrFullDate().check(tdate("2030-01-01T00:00:00+05:30")));
+		assertNotNull(MdocValueConstraint.pidTdateOrFullDate().check(new Tstr("2030-01-01")));
+	}
+
+	private static DataItem array(DataItem... items) {
+		ArrayBuilder<CborBuilder> array = CborArray.Companion.builder();
+		for (DataItem item : items) {
+			array.add(item);
+		}
+		return array.end().build();
+	}
+
+	private static DataItem map(String... keysAndValues) {
+		MapBuilder<CborBuilder> map = CborMap.Companion.builder();
+		for (int i = 0; i < keysAndValues.length; i += 2) {
+			map.put(keysAndValues[i], new Tstr(keysAndValues[i + 1]));
+		}
+		return map.end().build();
+	}
+
+	/** PID Rulebook 3.1.3: nationalities = [+ CountryCode], an alpha-2 country code. */
+	@Test
+	public void testAlpha2CountryCodeArray() {
+		assertNull(MdocValueConstraint.alpha2CountryCodeArray().check(array(new Tstr("NL"))));
+		assertNull(MdocValueConstraint.alpha2CountryCodeArray().check(array(new Tstr("NL"), new Tstr("QS"))));
+		// at least one entry
+		assertNotNull(MdocValueConstraint.alpha2CountryCodeArray().check(array()));
+		// a single code outside an array, as ARF 1.4 had it
+		assertNotNull(MdocValueConstraint.alpha2CountryCodeArray().check(new Tstr("NL")));
+		assertNotNull(MdocValueConstraint.alpha2CountryCodeArray().check(array(new Tstr("NLD"))));
+		assertNotNull(MdocValueConstraint.alpha2CountryCodeArray().check(
+			array(new Tstr("NL"), DataItemExtensionsKt.toDataItem(1))));
+	}
+
+	/** PID Rulebook 3.1.4: at least one of "country", "region" and "locality". */
+	@Test
+	public void testPlaceOfBirth() {
+		assertNull(MdocValueConstraint.placeOfBirth().check(map("country", "NL")));
+		assertNull(MdocValueConstraint.placeOfBirth().check(map("locality", "Amsterdam")));
+		assertNull(MdocValueConstraint.placeOfBirth().check(
+			map("country", "NL", "region", "Noord-Holland", "locality", "Amsterdam")));
+		assertNotNull(MdocValueConstraint.placeOfBirth().check(map()));
+		// a plain text string, as ARF 1.4's birth_place had it
+		assertNotNull(MdocValueConstraint.placeOfBirth().check(new Tstr("Amsterdam")));
+		assertNotNull(MdocValueConstraint.placeOfBirth().check(map("country", "Netherlands")));
+		assertNotNull(MdocValueConstraint.placeOfBirth().check(map("locality", "Amsterdam", "city", "Amsterdam")));
+	}
+
+	@Test
+	public void testTstrMatching() {
+		MdocValueConstraint digits = MdocValueConstraint.tstrMatching(Pattern.compile("\\d+"), "digits");
+		assertNull(digits.check(new Tstr("123")));
+		assertNotNull(digits.check(new Tstr("12a")));
+		assertNotNull(digits.check(DataItemExtensionsKt.toDataItem(123)));
 	}
 }
