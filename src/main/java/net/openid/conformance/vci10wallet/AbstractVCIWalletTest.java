@@ -52,8 +52,7 @@ import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
+import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAttestationChallenge;
 import net.openid.conformance.condition.as.GenerateAttestationChallengeResponse;
@@ -79,9 +78,7 @@ import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
-import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
@@ -462,7 +459,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI2-SP-FINAL-5.4.1-2.2.1", "FAPI2-SP-FINAL-5.4.1-2.3.1");
+		callAndStopOnFailure(FAPI2FinalEnsureMinimumServerKeyLength.class, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
@@ -646,16 +643,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		if (requestClientId.equals(client2Id)) {
 			switchToSecondClient();
 		}
-	}
-
-	@Override
-	protected void validateClientJwks(boolean isSecondClient) {
-		call(new ValidateJwksSequence("client", "jwks", "client configuration", "RFC7517-1.1"));
-
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-
-		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class, "FAPI2-SP-FINAL-5.4.1-2.2.1", "FAPI2-SP-FINAL-5.4.1-2.3.1");
 	}
 
 	@Override
