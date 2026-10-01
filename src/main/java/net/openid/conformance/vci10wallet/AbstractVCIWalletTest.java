@@ -78,7 +78,6 @@ import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
@@ -575,30 +574,16 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		return supportedCredentials;
 	}
 
-	/**
-	 * will be called at the end of configure
-	 */
 	@Override
 	protected void onConfigurationCompleted() {
-		if (requireAuthorizationServerEndpointDpopNonce()) {
-			callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.INFO);
-		}
-		if (requireResourceServerEndpointDpopNonce()) {
-			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
-		}
+		super.onConfigurationCompleted();
 
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-FINAL-5.4.2");
 	}
 
 	@Override
 	protected void configureClients() {
-		eventLog.startBlock("Verify configuration of first client");
-		callAndStopOnFailure(GetStaticClientConfiguration.class);
-
-		if (usesClientJwks()) {
-			validateClientJwks(false);
-		}
-		validateClientConfiguration();
+		super.configureClients();
 
 		eventLog.endBlock();
 
