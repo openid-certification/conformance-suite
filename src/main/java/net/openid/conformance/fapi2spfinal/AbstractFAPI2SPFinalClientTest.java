@@ -1061,7 +1061,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-4");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-4", "FAPI2-SP-FINAL-5.3.2.1-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 
