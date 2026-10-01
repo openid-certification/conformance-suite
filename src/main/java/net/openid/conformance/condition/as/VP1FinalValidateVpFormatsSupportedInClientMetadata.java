@@ -10,7 +10,33 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.CoseAlgorithmUtil;
 import net.openid.conformance.util.JWSUtil;
 
+import java.util.Set;
+import java.util.function.IntPredicate;
+
 public class VP1FinalValidateVpFormatsSupportedInClientMetadata extends AbstractCondition {
+
+	/**
+	 * The alg of a DeviceMac COSE header, which ISO/IEC 18013-5 9.1.3.5 fixes at HMAC 256/256.
+	 */
+	private static final int COSE_ALG_HMAC_256_256 = 5;
+
+	/**
+	 * OID4VP 1.0 Final Appendix B.2.2 Table 2: identifiers for a DeviceMac using HMAC 256/256
+	 * with a MAC key established via ECDH, one per curve of the device key. They sit in the
+	 * private use range of the IANA COSE Algorithms registry and are defined only for
+	 * deviceauth_alg_values.
+	 */
+	private static final Set<Integer> DEVICE_MAC_CURVE_ALGORITHMS = Set.of(
+		-65537, // P-256
+		-65538, // P-384
+		-65539, // P-521
+		-65540, // X25519
+		-65541, // X448
+		-65542, // brainpoolP256r1
+		-65543, // brainpoolP320r1
+		-65544, // brainpoolP384r1
+		-65545 // brainpoolP512r1
+	);
 
 	@Override
 	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY }, strings = "credential_format")
@@ -56,8 +82,10 @@ public class VP1FinalValidateVpFormatsSupportedInClientMetadata extends Abstract
 		}
 		JsonObject msoMdocObj = msoMdoc.getAsJsonObject();
 
-		validateOptionalCoseAlgArray(msoMdocObj, "issuerauth_alg_values", "mso_mdoc");
-		validateOptionalCoseAlgArray(msoMdocObj, "deviceauth_alg_values", "mso_mdoc");
+		validateOptionalCoseAlgArray(msoMdocObj, "issuerauth_alg_values", "mso_mdoc",
+			CoseAlgorithmUtil::isValidCoseSignatureAlgorithm);
+		validateOptionalCoseAlgArray(msoMdocObj, "deviceauth_alg_values", "mso_mdoc",
+			VP1FinalValidateVpFormatsSupportedInClientMetadata::isValidDeviceAuthAlgorithm);
 
 		logSuccess("vp_formats_supported contains valid mso_mdoc format",
 			args("mso_mdoc", msoMdoc));
@@ -101,7 +129,17 @@ public class VP1FinalValidateVpFormatsSupportedInClientMetadata extends Abstract
 		}
 	}
 
-	private void validateOptionalCoseAlgArray(JsonObject parent, String paramName, String formatName) {
+	/**
+	 * Device authentication is either a DeviceSignature or a DeviceMac, so as well as the
+	 * signature algorithms the array may name the DeviceMac alg or a Table 2 identifier.
+	 */
+	private static boolean isValidDeviceAuthAlgorithm(int coseAlgId) {
+		return CoseAlgorithmUtil.isValidCoseSignatureAlgorithm(coseAlgId)
+			|| coseAlgId == COSE_ALG_HMAC_256_256
+			|| DEVICE_MAC_CURVE_ALGORITHMS.contains(coseAlgId);
+	}
+
+	private void validateOptionalCoseAlgArray(JsonObject parent, String paramName, String formatName, IntPredicate isValidAlgorithm) {
 		JsonArray array = validateOptionalNonEmptyArray(parent, paramName, formatName);
 		if (array == null) {
 			return;
@@ -112,7 +150,7 @@ public class VP1FinalValidateVpFormatsSupportedInClientMetadata extends Abstract
 					args(formatName, parent, "invalid_value", element));
 			}
 			int coseAlgId = OIDFJSON.getInt(element);
-			if (!CoseAlgorithmUtil.isValidCoseSignatureAlgorithm(coseAlgId)) {
+			if (!isValidAlgorithm.test(coseAlgId)) {
 				throw error(String.format("vp_formats_supported.%s.%s contains unrecognized COSE algorithm identifier %d", formatName, paramName, coseAlgId),
 					args(formatName, parent, "unrecognized_cose_alg", coseAlgId));
 			}

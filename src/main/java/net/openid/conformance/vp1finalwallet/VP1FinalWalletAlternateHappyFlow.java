@@ -9,6 +9,8 @@ import net.openid.conformance.condition.client.AddWrongExpectedOriginsToAuthoriz
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc;
+import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest;
+import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataWithAllSupportedAlgsToAuthorizationRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicatesReorderedParams;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateRedirectUri;
@@ -26,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 		- Includes a random authorization endpoint parameter (which must be ignored)
 		- Includes an 'iss' claim in the request object that does not match 'client_id' (which must be ignored as per VP spec section 5)
 		- Encryption key without 'use: enc' (for encrypted response modes)
+		- For ISO mdoc, 'vp_formats_supported' lists the algorithms the conformance suite supports in both 'issuerauth_alg_values' and 'deviceauth_alg_values' (the default flow only sends 'issuerauth_alg_values'); for encrypted response modes that includes device authentication with a MAC over P-256
 		- Reordered query parameters in the redirect URL (no-op for DC API response modes, which don't use a redirect URL)
 		- response_uri response returns a redirect_uri which the wallet must open (no-op for DC API response modes; for ISO mdoc the default flow already returns a redirect_uri)
 		- response_uri request parameter is omitted when client_id_prefix=redirect_uri and response_mode is direct_post or direct_post.jwt (per OID4VP §5.9.3, the wallet must derive it from client_id)
@@ -59,6 +62,12 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 			// only the encrypted response modes advertise an encryption key
 			createAuthorizationRequestSteps.replace(AddVP1FinalEncryptionParametersToClientMetadata.class,
 				condition(AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc.class));
+		}
+
+		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
+			createAuthorizationRequestSteps.replace(AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest.class,
+				condition(AddVP1FinalIsoMdocClientMetadataWithAllSupportedAlgsToAuthorizationRequest.class)
+					.requirements("OID4VP-1FINALA-B.2.2"));
 		}
 
 		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.REDIRECT_URI

@@ -10,6 +10,8 @@ import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -365,6 +367,64 @@ public class VP1FinalValidateVpFormatsSupportedInClientMetadata_UnitTest {
 			""");
 		env.putString("credential_format", "iso_mdl");
 		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	private void setMsoMdocAlgValues(String parameter, String values) {
+		setClientMetadata("""
+			{
+				"vp_formats_supported": {
+					"mso_mdoc": {
+						"%s": %s
+					}
+				}
+			}
+			""".formatted(parameter, values));
+		env.putString("credential_format", "iso_mdl");
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {-65537, -65538, -65539, -65540, -65541, -65542, -65543, -65544, -65545})
+	public void testMsoMdoc_deviceAuthAcceptsDeviceMacCurveIdentifiers(int alg) {
+		// B.2.2 Table 2: HMAC 256/256 using ECDH, one identifier per device key curve
+		setMsoMdocAlgValues("deviceauth_alg_values", "[" + alg + "]");
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testMsoMdoc_deviceAuthAcceptsDeviceMacAlongsideSignature() {
+		// B.2.2 example: DeviceMac over P-256 and DeviceSignature with ESP256
+		setMsoMdocAlgValues("deviceauth_alg_values", "[-65537, -9]");
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testMsoMdoc_deviceAuthAcceptsHmac256() {
+		// B.2.2 case 1: the value matches the alg of the DeviceMac COSE header, which
+		// ISO/IEC 18013-5 9.1.3.5 fixes at HMAC 256/256 (COSE alg 5)
+		setMsoMdocAlgValues("deviceauth_alg_values", "[5]");
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {-65536, -65546})
+	public void testMsoMdoc_deviceAuthRejectsIdentifiersOutsideDeviceMacTable(int alg) {
+		setMsoMdocAlgValues("deviceauth_alg_values", "[" + alg + "]");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testMsoMdoc_deviceAuthRejectsOtherMacAlgorithms() {
+		// COSE alg 6 = HMAC 384/384, which a DeviceMac can never use
+		setMsoMdocAlgValues("deviceauth_alg_values", "[6]");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {-65537, 5})
+	public void testMsoMdoc_issuerAuthRejectsDeviceMacIdentifiers(int alg) {
+		// IssuerAuth is a COSE_Sign1, so only signature algorithms apply
+		setMsoMdocAlgValues("issuerauth_alg_values", "[" + alg + "]");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	// === Common tests ===

@@ -14,22 +14,23 @@ public class AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest extends Abst
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		var clientMetaData = (JsonObject) JsonParser.parseString("""
-{
-	"vp_formats_supported": {
-	  "mso_mdoc": {
-		"issuerauth_alg_values": [
-		  -7
-		]
-	  }
-	}
-}
-""");
+		JsonObject vpFormatsSupported = new JsonObject();
+		vpFormatsSupported.add("mso_mdoc", createMsoMdocFormatParameters(env));
+		JsonObject clientMetaData = new JsonObject();
+		clientMetaData.add("vp_formats_supported", vpFormatsSupported);
 
 		authorizationEndpointRequest.add("client_metadata", clientMetaData);
 
 		log("Added client_metadata to authorization endpoint request", args("client_metadata", clientMetaData));
 
 		return env;
+	}
+
+	protected JsonObject createMsoMdocFormatParameters(Environment env) {
+		return (JsonObject) JsonParser.parseString("""
+			{
+				"issuerauth_alg_values": [ -7 ]
+			}
+			""");
 	}
 }

@@ -61,7 +61,14 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 
 		DeviceResponseParser parser = new DeviceResponseParser(bytes, sessionTranscript);
 
-		// this is only required for MACed mdocs
+		// A DeviceMac is verified using the response encryption key as the mdoc reader key. That
+		// is the use the 'jwks' client metadata definition in OID4VP 1.0 Final section 5.1 alludes
+		// to with keys the Wallet requires "to generate a Verifiable Presentation".
+		// FIXME: DeviceMac verification is incomplete:
+		// - OID4VP sets EReaderKeyBytes to null and never states that the encryption key is the
+		//   reader key, nor which key to use when 'jwks' holds several
+		// - an unencrypted response mode has no such key, so a DeviceMac always fails to verify
+		// - convertToEcPrivateKey only handles P-256 keys
 		JsonObject jwkJson = env.getObject("decryption_jwk");
 		JWK jwk = null;
 		if (jwkJson != null) {
