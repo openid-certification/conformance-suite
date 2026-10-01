@@ -751,7 +751,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1", "FAPI2-SP-FINAL-5.2.1-2", "FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(EnsureIncomingTls13.class, ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		call(exec().unmapKey("client_request"));
@@ -877,7 +877,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1", "FAPI2-SP-FINAL-5.2.1-2", "FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(EnsureIncomingTls13.class, ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		call(exec().unmapKey("client_request"));
@@ -1061,7 +1061,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-4");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-4", "FAPI2-SP-FINAL-5.3.2.1-5");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 
