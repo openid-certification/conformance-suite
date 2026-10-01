@@ -58,6 +58,16 @@ public enum VP1FinalWalletCredentialType {
 		return stem == null ? null : stem + "-all-mandatory.json";
 	}
 
+	/**
+	 * The suite's built-in DCQL query asking whether the holder is aged 18 or over, in the given
+	 * format, or null when the tester supplies the query. Only the credential types with age data
+	 * elements have such a query; the module that uses it excludes the others.
+	 */
+	public String getAgeOver18DcqlResource(VP1FinalWalletCredentialFormat format) {
+		String stem = dcqlResourceStem(format);
+		return stem == null ? null : stem + "-age-over-18.json";
+	}
+
 	@Override
 	public String toString() {
 		return variantValue;

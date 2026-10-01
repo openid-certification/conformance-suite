@@ -1,0 +1,55 @@
+{
+	"credentials": [
+		{
+			"id": "my_credential",
+			"format": "mso_mdoc",
+			"meta": {
+				"doctype_value": "org.iso.18013.5.1.mDL"
+			},
+			"claims": [
+				{
+					"id": "age_over_18",
+					"path": [
+						"org.iso.18013.5.1",
+						"age_over_18"
+					]
+				},
+				{
+					"id": "age_in_years",
+					"path": [
+						"org.iso.18013.5.1",
+						"age_in_years"
+					]
+				},
+				{
+					"id": "age_birth_year",
+					"path": [
+						"org.iso.18013.5.1",
+						"age_birth_year"
+					]
+				},
+				{
+					"id": "birth_date",
+					"path": [
+						"org.iso.18013.5.1",
+						"birth_date"
+					]
+				}
+			],
+			"claim_sets": [
+				[
+					"age_over_18"
+				],
+				[
+					"age_in_years"
+				],
+				[
+					"age_birth_year"
+				],
+				[
+					"birth_date"
+				]
+			]
+		}
+	]
+}
