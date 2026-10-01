@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -31,6 +32,11 @@ public class LogEntryHelper {
 
 	public static final Map<String, String> specLinks;
 	private static final Map<String, String> specSectionLinks;
+
+	// A requirement suffix of the form <section>-<numeric item>, e.g. "5.3.2.2-5". The item part
+	// names a list item or paragraph for the reader; the published specs do not use it as that
+	// item's fragment, so links target the section. Keep in step with static/lib/spec-links.js.
+	private static final Pattern SECTION_WITH_ITEM = Pattern.compile("^([^-]+)-[0-9][0-9.-]*$");
 	static{
 		specLinks = new HashMap<>();
 		specLinks.put("BrazilOB-", "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/245760001/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+1.0+Implementers+Draft+3#section-");
@@ -318,7 +324,9 @@ public class LogEntryHelper {
 		}
 		for(String key : specLinks.keySet()) {
 			if(requirement.startsWith(key)) {
-				return specLinks.get(key) + requirement.substring(key.length());
+				String suffix = requirement.substring(key.length());
+				Matcher itemised = SECTION_WITH_ITEM.matcher(suffix);
+				return specLinks.get(key) + (itemised.matches() ? itemised.group(1) : suffix);
 			}
 		}
 		return "";
