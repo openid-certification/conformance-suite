@@ -529,17 +529,19 @@ def run_tests():
 
     # ?public=true endpoints (the public matcher) must stay reachable for
     # private-link users: the shared log-detail page fetches
-    # /api/ui/spec_links?public=true to render spec-reference links, and the
-    # endpoint is world-readable anonymously anyway. Guards the rule ordering in
-    # WebSecurityResourceServerConfig (public permit BEFORE the private-link deny).
-    resp = pl_client.get(f"{base_url}api/ui/spec_links", params={"public": "true"})
-    body = resp.json() if resp.status_code == 200 else None
-    runner.check("Plan share: spec_links?public reachable (log-detail needs it)",
-                 isinstance(body, dict) and len(body) > 0,
-                 f"HTTP {resp.status_code}")
+    # /api/ui/spec_links?public=true and /api/ui/spec_section_links?public=true to
+    # render spec-reference links, and the endpoints are world-readable anonymously
+    # anyway. Guards the rule ordering in WebSecurityResourceServerConfig (public
+    # permit BEFORE the private-link deny).
+    for endpoint in ("spec_links", "spec_section_links"):
+        resp = pl_client.get(f"{base_url}api/ui/{endpoint}", params={"public": "true"})
+        body = resp.json() if resp.status_code == 200 else None
+        runner.check(f"Plan share: {endpoint}?public reachable (log-detail needs it)",
+                     isinstance(body, dict) and len(body) > 0,
+                     f"HTTP {resp.status_code}")
 
-    resp = pl_client.get(f"{base_url}api/ui/spec_links")
-    runner.check_status("Plan share: spec_links without ?public still denied", resp, 403)
+        resp = pl_client.get(f"{base_url}api/ui/{endpoint}")
+        runner.check_status(f"Plan share: {endpoint} without ?public still denied", resp, 403)
 
     # ...but ?public=true must not open endpoints outside the public matcher
     resp = pl_client.get(f"{base_url}api/token", params={"public": "true"})
@@ -1496,15 +1498,16 @@ def run_tests():
     resp = owner_client.get(f"{base_url}api/plan/info/this-plan-does-not-exist")
     runner.check_status("Metadata: unknown plan name returns 404", resp, 404)
 
-    # spec_links is public only with ?public — probe it unauthenticated to prove that
-    resp = unauthenticated_get(base_url, "api/ui/spec_links", verify_ssl, params={"public": "true"})
-    body = resp.json() if resp.status_code == 200 else None
-    runner.check("Metadata: spec_links?public is publicly reachable and returns a mapping",
-                 isinstance(body, dict) and len(body) > 0,
-                 f"HTTP {resp.status_code}")
+    # the spec-link maps are public only with ?public — probe them unauthenticated to prove that
+    for endpoint in ("spec_links", "spec_section_links"):
+        resp = unauthenticated_get(base_url, f"api/ui/{endpoint}", verify_ssl, params={"public": "true"})
+        body = resp.json() if resp.status_code == 200 else None
+        runner.check(f"Metadata: {endpoint}?public is publicly reachable and returns a mapping",
+                     isinstance(body, dict) and len(body) > 0,
+                     f"HTTP {resp.status_code}")
 
-    resp = unauthenticated_get(base_url, "api/ui/spec_links", verify_ssl)
-    runner.check_status("Metadata: spec_links without ?public is denied", resp, 401)
+        resp = unauthenticated_get(base_url, f"api/ui/{endpoint}", verify_ssl)
+        runner.check_status(f"Metadata: {endpoint} without ?public is denied", resp, 401)
 
     # the mdoc IACA root is deliberately public: testers configure it as a trust anchor
     resp = unauthenticated_get(base_url, "mdoc-iaca-root.pem", verify_ssl)

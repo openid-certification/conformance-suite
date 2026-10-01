@@ -981,6 +981,28 @@
         "security": [{ "bearerAuth": [] }, {}]
       }
     },
+    "/api/ui/spec_section_links": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Get specification section links",
+        "description": "Map of section requirement (e.g. 'BrazilOBDCR-7.1') to the full URL of that section, for specifications whose section fragments are not derivable from the section number. A requirement equal to a key, or starting with the key followed by '-', links to that URL in preference to the prefix map from /api/ui/spec_links.",
+        "operationId": "getSpecSectionLinks",
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "Section-requirement-to-URL map" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
+          }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
+      }
+    },
     "/api/statistics/overview": {
       "get": {
         "tags": ["statistics-api"],

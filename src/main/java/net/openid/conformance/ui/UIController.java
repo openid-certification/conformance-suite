@@ -35,4 +35,15 @@ class UIController {
 	public Map<String, String> getSpecLinks() {
 		return LogEntryHelper.specLinks;
 	}
+
+	@GetMapping(value = "/spec_section_links", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(operationId = "getSpecSectionLinks", summary = "Get specification section links",
+		description = "Map of section requirement (e.g. 'BrazilOBDCR-7.1') to the full URL of that section, for specifications whose section fragments are not derivable from the section number. A requirement equal to a key, or starting with the key followed by '-', links to that URL in preference to the prefix map from /api/ui/spec_links.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "Section-requirement-to-URL map")))
+	})
+	public Map<String, String> getSpecSectionLinks() {
+		return LogEntryHelper.getSpecSectionLinks();
+	}
 }
