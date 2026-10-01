@@ -81,7 +81,7 @@ import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorCo
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
 import net.openid.conformance.condition.common.EnsureIncomingTls13;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
@@ -684,29 +684,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		VCIClientProfileBehavior.prepareCredentialOffer(this, vciGrantType, vciAuthorizationCodeFlowVariant,
 			vciCredentialOfferParameterVariantType);
 	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		setStatus(Status.RUNNING);
-
-		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
-
-		env.putObject(requestId, requestParts);
-
-		call(exec().mapKey("client_request", requestId));
-
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1", "FAPI2-SP-FINAL-5.2.1-2");
-		callAndContinueOnFailure(EnsureIncomingTls13.class, ConditionResult.WARNING, "RFC9325-3.1.1");
-
-		call(exec().unmapKey("client_request"));
-
-		setStatus(Status.WAITING);
-
-		return handleClientRequestForPath(requestId, path);
-
-	}
-
 
 	@Override
 	protected Object handleClientRequestForPath(String requestId, String path) {
@@ -1490,7 +1467,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1", "FAPI2-SP-FINAL-5.2.1-2");
+		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1", "FAPI2-SP-FINAL-5.2.1-2", "FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(EnsureIncomingTls13.class, ConditionResult.WARNING, "RFC9325-3.1.1");
 
 		call(exec().unmapKey("client_request"));
