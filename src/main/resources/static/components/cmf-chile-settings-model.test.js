@@ -5,7 +5,7 @@ import {
   isExpired,
   newEntryDraft,
   requestFromDraft,
-} from "./settings-model.js";
+} from "./cmf-chile-settings-model.js";
 
 const VIEW = {
   directoryTokenEndpoint: "https://directory.example.cl/token",

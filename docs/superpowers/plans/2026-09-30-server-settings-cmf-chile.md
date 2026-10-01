@@ -11,8 +11,8 @@ parsing, merging write-only secrets, validation, redacted views and parsing for 
 unit-tested directly. `ServerSettingsService` composes them over a `ServerSettingsRepository`
 (MongoDB collection `SERVER_SETTINGS`) and caches the parsed settings in an `AtomicReference`.
 `ServerSettingsApi` exposes GET/PUT `/api/admin/settings/cmf-chile` to admins only. The page is a
-Lit light-DOM component, `cts-settings-page`, whose request/draft logic lives in the pure
-`settings-model.js`.
+Lit light-DOM section component, `cts-settings-cmf-chile`, listed by the `cts-settings-page`
+shell, whose request/draft logic lives in the pure `cmf-chile-settings-model.js`.
 
 **Tech Stack:** Java 21, Spring Boot, MongoDB (`MongoTemplate`), BouncyCastle (`PEMParser`),
 Nimbus JOSE (`JWKSet`), Gson, JUnit 5 + AssertJ + Mockito; Lit, Vitest, Storybook, Playwright.
@@ -124,15 +124,16 @@ Nimbus JOSE (`JWKSet`), Gson, JUnit 5 + AssertJ + Mockito; Lit, Vitest, Storyboo
 
 ### Task 6: Page, component, model, stories
 
-**Files:** Create `static/settings.html`, `components/settings-model.js` (+ `.test.js`),
-`components/cts-settings-page.js` (+ `.stories.js`), `frontend/e2e/fixtures/mock-settings.js`;
+**Files:** Create `static/settings.html`, `components/cmf-chile-settings-model.js` (+ `.test.js`),
+`components/cts-settings-page.js`, `components/cts-settings-cmf-chile.js` (+ `.stories.js`),
+`components/settings-styles.js`, `frontend/e2e/fixtures/mock-cmf-chile-settings.js`;
 modify the `cts-navbar.js` links.
 
 - [ ] Model tests: draft from the view; the request omits a blank secret, an unreplaced JWKS and
   unreplaced keys; the clear flag; a JWKS that is not a JSON object is a client-side error;
   `isExpired`.
 - [ ] Component and stories: Configured, Empty, Forbidden, ValidationError.
-- [ ] Run `npm run test:ci` and `npm run test-storybook -- cts-settings-page`, commit.
+- [ ] Run `npm run test:ci` and `npm run test-storybook -- cts-settings-cmf-chile`, commit.
 
 ### Task 7: Playwright e2e
 

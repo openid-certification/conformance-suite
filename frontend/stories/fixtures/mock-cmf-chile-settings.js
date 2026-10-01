@@ -4,7 +4,7 @@ const CERTIFICATE_PEM =
   "-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUQ29uZm9ybWFuY2U=\n-----END CERTIFICATE-----\n";
 
 /** A fully configured section, as the redacted view reports it. */
-export const MOCK_SETTINGS_CONFIGURED = {
+export const MOCK_CMF_CHILE_SETTINGS_CONFIGURED = {
   directoryTokenEndpoint: "https://directory.sandbox.example.cl/token",
   softwareStatementEndpoint: "https://directory.sandbox.example.cl/software-statement",
   clientId: "oidf-conformance",
@@ -37,7 +37,7 @@ export const MOCK_SETTINGS_CONFIGURED = {
 };
 
 /** A section an admin has never saved. */
-export const MOCK_SETTINGS_EMPTY = {
+export const MOCK_CMF_CHILE_SETTINGS_EMPTY = {
   clientSecretSet: false,
   clientJwks: { set: false, keys: [] },
   positiveCertificates: [],
@@ -45,7 +45,7 @@ export const MOCK_SETTINGS_EMPTY = {
 };
 
 /** A 400 body refusing a key that does not match its certificate. */
-export const MOCK_SETTINGS_KEY_MISMATCH = {
+export const MOCK_CMF_CHILE_SETTINGS_KEY_MISMATCH = {
   errors: [
     {
       field: "positiveCertificates[0].privateKeyPem",

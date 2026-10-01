@@ -3,10 +3,10 @@ import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpe
 import { watchPageErrors, expectNoPageErrors } from "./helpers/page-errors.js";
 import { MOCK_ADMIN_USER, MOCK_USER } from "./fixtures/mock-users.js";
 import {
-  MOCK_SETTINGS_CONFIGURED,
-  MOCK_SETTINGS_EMPTY,
-  MOCK_SETTINGS_KEY_MISMATCH,
-} from "./fixtures/mock-settings.js";
+  MOCK_CMF_CHILE_SETTINGS_CONFIGURED,
+  MOCK_CMF_CHILE_SETTINGS_EMPTY,
+  MOCK_CMF_CHILE_SETTINGS_KEY_MISMATCH,
+} from "./fixtures/mock-cmf-chile-settings.js";
 
 /**
  * settings.html — the admin-only server settings page.
@@ -47,8 +47,8 @@ function fulfil(route, reply) {
  * @returns {Promise<Array<Record<string, any>>>} PUT bodies, in order.
  */
 async function setupSettingsRoute(page, replies = {}) {
-  const get = replies.get ?? { status: 200, body: MOCK_SETTINGS_CONFIGURED };
-  const put = replies.put ?? { status: 200, body: MOCK_SETTINGS_CONFIGURED };
+  const get = replies.get ?? { status: 200, body: MOCK_CMF_CHILE_SETTINGS_CONFIGURED };
+  const put = replies.put ?? { status: 200, body: MOCK_CMF_CHILE_SETTINGS_CONFIGURED };
   /** @type {Array<Record<string, any>>} */
   const puts = [];
   await page.route(ENDPOINT, (route) => {
@@ -97,7 +97,7 @@ test.describe("settings.html — admin server settings", () => {
     await expect(secret).toHaveAttribute("placeholder", "set — leave blank to keep");
     await expect(page.getByText("CN=oidf-conformance,O=OpenID Foundation")).toBeVisible();
     await expect(
-      page.locator('[data-testid="settings-negativeCertificates"] cts-badge'),
+      page.locator('[data-testid="cmf-chile-negativeCertificates"] cts-badge'),
     ).toHaveAttribute("label", "Expired");
   });
 
@@ -110,7 +110,7 @@ test.describe("settings.html — admin server settings", () => {
 
     await page.goto("/settings.html");
 
-    const forbidden = page.locator('[data-testid="settings-forbidden"]');
+    const forbidden = page.locator('[data-testid="cmf-chile-forbidden"]');
     await expect(forbidden).toBeVisible();
     await expect(forbidden).toContainText("Server settings are only available to administrators.");
     await expect(page.locator("cts-settings-page form")).toHaveCount(0);
@@ -127,7 +127,7 @@ test.describe("settings.html — admin server settings", () => {
 
     await page.goto("/settings.html");
 
-    const forbidden = page.locator('[data-testid="settings-forbidden"]');
+    const forbidden = page.locator('[data-testid="cmf-chile-forbidden"]');
     await expect(forbidden).toContainText("Your session has expired. Sign in again");
     await expect(forbidden).not.toContainText("only available to administrators");
   });
@@ -158,7 +158,8 @@ test.describe("settings.html — admin server settings", () => {
       {
         id: "pos-1",
         label: "primary",
-        certificateChainPem: MOCK_SETTINGS_CONFIGURED.positiveCertificates[0].certificateChainPem,
+        certificateChainPem:
+          MOCK_CMF_CHILE_SETTINGS_CONFIGURED.positiveCertificates[0].certificateChainPem,
       },
     ]);
     expect(body.negativeCertificates[0]).not.toHaveProperty("privateKeyPem");
@@ -189,7 +190,9 @@ test.describe("settings.html — admin server settings", () => {
 
   test("a refused save puts the server's message on the field it concerns", async ({ page }) => {
     await setupFailFast(page);
-    await setupSettingsRoute(page, { put: { status: 400, body: MOCK_SETTINGS_KEY_MISMATCH } });
+    await setupSettingsRoute(page, {
+      put: { status: 400, body: MOCK_CMF_CHILE_SETTINGS_KEY_MISMATCH },
+    });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/settings.html");
@@ -203,7 +206,7 @@ test.describe("settings.html — admin server settings", () => {
     await expect(keyInput).toHaveAccessibleDescription(
       /does not match the first certificate in its chain/,
     );
-    await expect(page.locator('[data-testid="settings-errors"]')).toContainText(
+    await expect(page.locator('[data-testid="cmf-chile-errors"]')).toContainText(
       "The settings were not saved",
     );
   });
@@ -226,7 +229,7 @@ test.describe("settings.html — admin server settings", () => {
   test("a JWKS that is not a JSON object is refused before anything is sent", async ({ page }) => {
     await setupFailFast(page);
     const puts = await setupSettingsRoute(page, {
-      get: { status: 200, body: MOCK_SETTINGS_EMPTY },
+      get: { status: 200, body: MOCK_CMF_CHILE_SETTINGS_EMPTY },
     });
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
@@ -253,7 +256,7 @@ test.describe("settings.html — admin server settings", () => {
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/settings.html");
-    const negative = page.locator('[data-testid="settings-negativeCertificates"]');
+    const negative = page.locator('[data-testid="cmf-chile-negativeCertificates"]');
     await page
       .getByRole("button", { name: "Add a certificate to Negative DCR client certificates" })
       .click();
@@ -265,7 +268,7 @@ test.describe("settings.html — admin server settings", () => {
     await page
       .getByRole("button", { name: "Remove primary from Positive DCR client certificates" })
       .click();
-    await expect(page.locator('[data-testid="settings-positiveCertificates"]')).toContainText(
+    await expect(page.locator('[data-testid="cmf-chile-positiveCertificates"]')).toContainText(
       "No certificates.",
     );
 
