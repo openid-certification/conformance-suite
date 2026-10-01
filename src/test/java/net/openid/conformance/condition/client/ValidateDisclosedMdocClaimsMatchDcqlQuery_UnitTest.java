@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateDisclosedMdocClaimsMatchDcqlQuery_UnitTest {
@@ -186,5 +187,57 @@ public class ValidateDisclosedMdocClaimsMatchDcqlQuery_UnitTest {
 		setupEnvironment(dcql, "my_credential", "org.iso.18013.5.1.mDL", disclosed);
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	private void setupAgeEnvironment(String... disclosedElements) {
+		Map<String, String[]> disclosed = new LinkedHashMap<>();
+		disclosed.put("org.iso.18013.5.1", disclosedElements);
+		setupEnvironment(DcqlTestFixtures.AGE_OVER_18_MDOC_DCQL, "my_credential", "org.iso.18013.5.1.mDL", disclosed);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsFirstOptionDisclosedPasses() {
+		setupAgeEnvironment("age_over_18");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsLastOptionDisclosedPasses() {
+		setupAgeEnvironment("birth_date");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNoOptionDisclosedThrowsError() {
+		setupAgeEnvironment("age_over_21");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsWithNoResolvableOptionThrowsError() {
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.18013.5.1.mDL"},
+			      "claims": [
+			        {"id": "a", "path": ["org.iso.18013.5.1", "given_name"]}
+			      ],
+			      "claim_sets": [["zz"]]
+			    }
+			  ]
+			}
+			""";
+		Map<String, String[]> disclosed = new LinkedHashMap<>();
+		disclosed.put("org.iso.18013.5.1", new String[]{"given_name"});
+		setupEnvironment(dcql, "my_credential", "org.iso.18013.5.1.mDL", disclosed);
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("No claim_sets option"), e.getMessage());
 	}
 }
