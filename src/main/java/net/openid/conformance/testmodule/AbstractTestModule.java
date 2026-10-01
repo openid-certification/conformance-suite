@@ -766,13 +766,14 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			// whilst or after we tidy up.
 			getTestExecutionManager().cancelAllBackgroundTasksExceptFinalisation();
 
-			if (getResult() == Result.UNKNOWN) {
-				List<?> filledPlaceholders = imageService.getFilledPlaceholders(getId(), true);
-				if (filledPlaceholders.size() > 0) {
-					// This is only necessary for placeholders filled by browsercontrol; for images uploaded by the
-					// user we set the status to review when the image is uploaded
+			Result resultSoFar = getResult();
+			if (resultSoFar == Result.UNKNOWN || resultSoFar == Result.WARNING) {
+				// This is only necessary for placeholders filled by browsercontrol; for images uploaded by the
+				// user we set the status to review when the image is uploaded. Warnings do not change that an
+				// image needs looking at, so REVIEW replaces WARNING as it does when the user uploads one.
+				if (!imageService.getFilledPlaceholders(getId(), true).isEmpty()) {
 					fireTestReviewNeeded();
-				} else {
+				} else if (resultSoFar == Result.UNKNOWN) {
 					fireTestSuccess();
 				}
 			}
@@ -880,7 +881,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				setResult(Result.FAILED);
 				break;
 			case WARNING:
-				if (getResult() != Result.FAILED) {
+				// REVIEW outranks WARNING whichever is written first: an image that has not been looked
+				// at still needs looking at, however many warnings the test also logs
+				if (getResult() != Result.FAILED && getResult() != Result.REVIEW) {
 					setResult(Result.WARNING);
 				}
 				break;
