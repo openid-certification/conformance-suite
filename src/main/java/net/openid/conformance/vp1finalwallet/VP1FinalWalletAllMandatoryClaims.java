@@ -16,12 +16,13 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		wallet should disclose all of the requested claims, which a conformant credential is \
 		guaranteed to contain.
 
-		For the PID, the portrait (picture claim) is requested via a preferred claim set, with a \
-		fallback claim set omitting it, so a wallet whose credential has no portrait can still \
-		satisfy the query. Its absence from the presented credential is reported as a warning: \
-		mandatory inclusion of the portrait only applies 24 months after entry into force of the \
-		regulation amending CIR 2024/2977, and users may opt out of it, so a conformant \
-		credential is not guaranteed to contain it.
+		For the PID in SD-JWT VC format, the portrait (picture claim) is requested via a preferred \
+		claim set, with a fallback claim set omitting it, so a wallet whose credential has no \
+		portrait can still satisfy the query. Its absence from the presented credential is reported \
+		as a warning: mandatory inclusion of the portrait only applies 24 months after entry into \
+		force of the regulation amending CIR 2024/2977, and users may opt out of it, so a \
+		conformant credential is not guaranteed to contain it. For the PID in mdoc format the \
+		portrait is not requested.
 
 		Not applicable to the 'custom' credential type, as the mandatory data element set of a \
 		custom credential is not known to the suite.""",
@@ -32,12 +33,13 @@ public class VP1FinalWalletAllMandatoryClaims extends AbstractVP1FinalWalletTest
 
 	@Override
 	protected String builtInDcqlResource() {
-		return credentialType.getAllMandatoryClaimsDcqlResource();
+		return credentialType.getAllMandatoryClaimsDcqlResource(credentialFormat);
 	}
 
 	@Override
 	protected void validateDisclosedClaimsMatchDcqlQuery() {
-		if (credentialType == VP1FinalWalletCredentialType.EUDI_PID) {
+		if (credentialType == VP1FinalWalletCredentialType.EUDI_PID
+				&& credentialFormat == VP1FinalWalletCredentialFormat.SD_JWT_VC) {
 			callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQueryExceptPicture.class,
 				ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 			callAndContinueOnFailure(EnsurePidPictureClaimDisclosed.class,

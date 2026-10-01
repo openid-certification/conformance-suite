@@ -1,14 +1,18 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.MdlDataElements;
 import net.openid.conformance.util.PidDataElements;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialFormat;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +23,11 @@ import org.multipaz.cbor.DataItemExtensionsKt;
 import org.multipaz.cbor.Tagged;
 import org.multipaz.cbor.Tstr;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -154,6 +162,29 @@ public class PidMdocDataElements_UnitTest {
 		putPresentedMdoc(MdlDataElements.MDL_DOCTYPE, MdlDataElements.MDL_NAMESPACE, "age_over_18");
 
 		assertDoesNotThrow(() -> presentedDefined.execute(env));
+	}
+
+	/**
+	 * The emulated wallet's PID must be able to answer the built-in query for every mandatory
+	 * attribute with values these checks accept.
+	 */
+	@Test
+	public void testPresented_emulatedWalletAnswersAllMandatoryQuery() {
+		LoadBuiltInDcqlQuery load = new LoadBuiltInDcqlQuery();
+		load.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, VP1FinalWalletCredentialType.EUDI_PID
+			.getAllMandatoryClaimsDcqlResource(VP1FinalWalletCredentialFormat.ISO_MDL));
+		load.execute(env);
+		MdocCredentialTestUtil.putPresentedCredential(env, eventLog);
+
+		Set<String> disclosed = new TreeSet<>();
+		for (JsonElement element : env.getElementFromObject("mdoc", "disclosed_elements")
+				.getAsJsonObject().getAsJsonArray(PidDataElements.PID_NAMESPACE)) {
+			disclosed.add(OIDFJSON.getString(element));
+		}
+		assertEquals(new TreeSet<>(PidDataElements.MANDATORY_ELEMENTS), disclosed);
+		assertDoesNotThrow(() -> presentedDefined.execute(env));
+		assertDoesNotThrow(() -> values.execute(env));
 	}
 
 	private void assertValueRejected(String element, DataItem value) throws Exception {
