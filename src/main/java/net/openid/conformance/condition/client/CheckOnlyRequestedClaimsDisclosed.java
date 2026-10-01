@@ -42,13 +42,9 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 			return env;
 		}
 
-		// TODO: This treats every claim path declared under "claims" as requested, so it does not
-		// yet implement DCQL claim_sets semantics. When claim_sets are present a wallet returning
-		// claims from any one of the options will pass here even though only one option should be
-		// honored. Matching TODOs in DcqlQueryUtils and AbstractCreateSdJwtCredential.
-		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
+		Set<List<String>> allClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
 
-		if (requestedClaimPaths.isEmpty()) {
+		if (allClaimPaths.isEmpty()) {
 			if (!disclosures.isEmpty()) {
 				throw error("Wallet disclosed selectively-disclosable claims even though the DCQL query did not request any claims. "
 						+ "OID4VP §6.4.1: when claims are omitted the wallet MUST return only mandatory claims.",
@@ -77,34 +73,29 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 		// Parse each disclosure once, splitting by shape:
 		//   object property disclosures: [salt, claimName, value]
 		//   array element disclosures:   [salt, value]
-		record ObjectProperty(String name, JsonElement value) {}
-		List<ObjectProperty> objectProperties = new ArrayList<>();
+		List<DcqlQueryUtils.DisclosedClaim> disclosedClaims = new ArrayList<>();
 		List<String> arrayElementRaws = new ArrayList<>();
 		for (JsonElement disclosureEl : disclosures) {
 			String disclosureStr = OIDFJSON.getString(disclosureEl);
 			JsonArray disclosure = JsonParser.parseString(disclosureStr).getAsJsonArray();
 			if (disclosure.size() >= 3) {
-				objectProperties.add(new ObjectProperty(
-					OIDFJSON.getString(disclosure.get(1)),
-					disclosure.get(2)));
+				String name = OIDFJSON.getString(disclosure.get(1));
+				JsonElement value = disclosure.get(2);
+				DcqlQueryUtils.collectReferencedDigests(value, referencedDigests);
+				disclosedClaims.add(new DcqlQueryUtils.DisclosedClaim(name, DcqlQueryUtils.findMatchingClaimPaths(decoded, name, value)));
 			} else if (disclosure.size() == 2) {
 				arrayElementRaws.add(disclosureStr);
 			}
 		}
 
-		// Process all object-property disclosures first so referencedDigests contains every
-		// digest reachable via an object property before array-element orphan checks run.
-		List<String> unrequestedDisclosures = new ArrayList<>();
-		for (ObjectProperty op : objectProperties) {
-			DcqlQueryUtils.collectReferencedDigests(op.value(), referencedDigests);
-			Set<List<String>> matchingPaths = DcqlQueryUtils.findMatchingClaimPaths(decoded, op.name(), op.value());
-			boolean requested = matchingPaths.stream()
-				.anyMatch(path -> DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requestedClaimPaths, path));
-			if (!requested) {
-				unrequestedDisclosures.add(op.name());
-			}
-		}
+		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.selectRequestedClaimPaths(
+			DcqlQueryUtils.extractClaimSetOptions(matchingCredential), allClaimPaths,
+			option -> DcqlQueryUtils.isClaimSetOptionPresent(decoded, option),
+			option -> DcqlQueryUtils.findUnrequestedDisclosures(disclosedClaims, option).isEmpty());
+		List<String> unrequestedDisclosures = DcqlQueryUtils.findUnrequestedDisclosures(disclosedClaims, requestedClaimPaths);
 
+		// Every object-property disclosure has been scanned above, so referencedDigests now holds
+		// every digest reachable via an object property and the orphan check can run.
 		// the digests in the credential were made with its _sd_alg, so the comparison must use it too
 		String sdAlg = ValidateSdJwtKbSdHash.getSdAlg(env);
 		List<String> orphanArrayElementDisclosures = new ArrayList<>();
@@ -130,7 +121,9 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 
 		if (!unrequestedDisclosures.isEmpty() || !orphanArrayElementDisclosures.isEmpty()) {
 			throw error("Wallet disclosed claims that were not requested in the DCQL query. "
-					+ "OID4VP §6.4.1: wallets MUST NOT send selectively disclosable claims that have not been selected.",
+					+ "OID4VP §6.4.1: wallets MUST NOT send selectively disclosable claims that have not been selected. "
+					+ "Where the query contains claim_sets, the verifier requests one of the listed combinations of "
+					+ "claims, so claims outside the returned combination must not be disclosed.",
 				args("unrequested_disclosures", unrequestedDisclosures,
 					"orphan_array_element_disclosures", orphanArrayElementDisclosures,
 					"requested_claim_paths", requestedClaimPaths,

@@ -5,7 +5,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -33,9 +32,9 @@ public class CheckOnlyRequestedMdocElementsDisclosed extends AbstractCondition {
 		}
 
 		Set<List<String>> disclosedPaths = DcqlQueryUtils.extractDisclosedMdocPaths(env);
-		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
+		Set<List<String>> allClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
 
-		if (requestedClaimPaths.isEmpty()) {
+		if (allClaimPaths.isEmpty()) {
 			if (!disclosedPaths.isEmpty()) {
 				throw error("Wallet disclosed selectively-disclosable mdoc elements even though the DCQL query did not request any claims. "
 						+ "OID4VP §6.4.1: when claims are omitted the wallet MUST NOT return selectively-disclosable elements.",
@@ -47,16 +46,18 @@ public class CheckOnlyRequestedMdocElementsDisclosed extends AbstractCondition {
 			return env;
 		}
 
-		List<List<String>> unrequestedDisclosures = new ArrayList<>();
-		for (List<String> path : disclosedPaths) {
-			if (!requestedClaimPaths.contains(path)) {
-				unrequestedDisclosures.add(path);
-			}
-		}
+		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.selectRequestedClaimPaths(
+			DcqlQueryUtils.extractClaimSetOptions(matchingCredential), allClaimPaths,
+			disclosedPaths::containsAll, option -> option.containsAll(disclosedPaths));
+		List<List<String>> unrequestedDisclosures = disclosedPaths.stream()
+			.filter(path -> !requestedClaimPaths.contains(path))
+			.toList();
 
 		if (!unrequestedDisclosures.isEmpty()) {
 			throw error("Wallet disclosed mdoc elements that were not requested in the DCQL query. "
-					+ "OID4VP §6.4.1: wallets MUST NOT send selectively disclosable claims that have not been selected.",
+					+ "OID4VP §6.4.1: wallets MUST NOT send selectively disclosable claims that have not been selected. "
+					+ "Where the query contains claim_sets, the verifier requests one of the listed combinations of "
+					+ "claims, so elements outside the returned combination must not be disclosed.",
 				args("unrequested_disclosures", unrequestedDisclosures,
 					"requested_claim_paths", requestedClaimPaths,
 					"credential_id", credentialId));

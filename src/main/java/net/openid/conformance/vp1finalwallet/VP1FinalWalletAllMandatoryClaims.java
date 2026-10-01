@@ -2,7 +2,7 @@ package net.openid.conformance.vp1finalwallet;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsurePidPictureClaimDisclosed;
-import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQueryExceptPicture;
+import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQuery;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -40,7 +40,7 @@ public class VP1FinalWalletAllMandatoryClaims extends AbstractVP1FinalWalletTest
 	protected void validateDisclosedClaimsMatchDcqlQuery() {
 		if (credentialType == VP1FinalWalletCredentialType.EUDI_PID
 				&& credentialFormat == VP1FinalWalletCredentialFormat.SD_JWT_VC) {
-			callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQueryExceptPicture.class,
+			callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class,
 				ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 			callAndContinueOnFailure(EnsurePidPictureClaimDisclosed.class,
 				ConditionResult.WARNING, "PIDRULEBOOK-2.2");

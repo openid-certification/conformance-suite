@@ -64,6 +64,38 @@ class DcqlQueryUtils_UnitTest {
 	}
 
 	@Test
+	void selectRequestedClaimPaths_prefersSatisfiedOptionTheDisclosuresFitWithin() {
+		Set<List<String>> a = Set.of(List.of("a"));
+		Set<List<String>> ab = Set.of(List.of("a"), List.of("b"));
+		Set<List<String>> disclosed = ab;
+
+		assertEquals(ab, DcqlQueryUtils.selectRequestedClaimPaths(List.of(a, ab), ab,
+			disclosed::containsAll, option -> option.containsAll(disclosed)));
+	}
+
+	@Test
+	void selectRequestedClaimPaths_fallsBackToFirstSatisfiedOption() {
+		Set<List<String>> a = Set.of(List.of("a"));
+		Set<List<String>> b = Set.of(List.of("b"));
+		Set<List<String>> all = Set.of(List.of("a"), List.of("b"));
+		Set<List<String>> disclosed = all;
+
+		assertEquals(a, DcqlQueryUtils.selectRequestedClaimPaths(List.of(a, b), all,
+			disclosed::containsAll, option -> option.containsAll(disclosed)));
+	}
+
+	@Test
+	void selectRequestedClaimPaths_fallsBackToAllClaimPathsWhenNoOptionSatisfied() {
+		Set<List<String>> a = Set.of(List.of("a"));
+		Set<List<String>> b = Set.of(List.of("b"));
+		Set<List<String>> all = Set.of(List.of("a"), List.of("b"));
+		Set<List<String>> disclosed = Set.of(List.of("c"));
+
+		assertEquals(all, DcqlQueryUtils.selectRequestedClaimPaths(List.of(a, b), all,
+			disclosed::containsAll, option -> option.containsAll(disclosed)));
+	}
+
+	@Test
 	void extractRequestedClaimNames_extractsDisclosureNamesForFlatClaims() {
 		JsonObject dcql = createDcqlWithClaims("given_name", "family_name");
 		Set<String> claims = DcqlQueryUtils.extractRequestedClaimNames(dcql);
@@ -229,5 +261,42 @@ class DcqlQueryUtils_UnitTest {
 		}
 		claim.add("path", path);
 		return claim;
+	}
+
+	@Test
+	void extractClaimSetOptions_returnsEmptyForNoClaims() {
+		assertTrue(DcqlQueryUtils.extractClaimSetOptions(createCredentialEntry("cred1")).isEmpty());
+	}
+
+	@Test
+	void extractClaimSetOptions_singleOptionOfAllClaimsWithoutClaimSets() {
+		JsonObject cred = createCredentialEntry("cred1");
+		JsonArray claims = new JsonArray();
+		claims.add(createClaim("given_name"));
+		claims.add(createClaim("address", "locality"));
+		cred.add("claims", claims);
+
+		assertEquals(List.of(Set.of(List.of("given_name"), List.of("address", "locality"))),
+			DcqlQueryUtils.extractClaimSetOptions(cred));
+	}
+
+	@Test
+	void extractClaimSetOptions_resolvesClaimSetsInPreferenceOrder() {
+		JsonObject cred = JsonParser.parseString("""
+				{
+				  "id": "cred1",
+				  "claims": [
+				    {"id": "over18", "path": ["age_equal_or_over", "18"]},
+				    {"id": "dob", "path": ["birthdate"]},
+				    {"id": "name", "path": ["given_name"]}
+				  ],
+				  "claim_sets": [["over18", "name"], ["dob", "name"], ["unknown"]]
+				}
+				""").getAsJsonObject();
+
+		assertEquals(List.of(
+				Set.of(List.of("age_equal_or_over", "18"), List.of("given_name")),
+				Set.of(List.of("birthdate"), List.of("given_name"))),
+			DcqlQueryUtils.extractClaimSetOptions(cred));
 	}
 }
