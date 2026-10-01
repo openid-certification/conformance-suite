@@ -50,7 +50,7 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		// Note: 'iss' validation is not included here. SD-JWT VC 3.2.2.2 says 'iss' is OPTIONAL and
 		// HAIP dropped the 'iss' MUST requirement: https://github.com/openid/OpenID4VC-HAIP/pull/277
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class,
-			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
+			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 		callAndContinueOnFailure(ValidateCredentialJWTNbf.class,
 			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 		callAndContinueOnFailure(ValidateCredentialJWTExp.class,
@@ -83,7 +83,7 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateStatusListTokenX5cCertificateChain.class,
 				ConditionResult.FAILURE, "OTSL-6.2", "HAIP-6.1");
 			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
-				ConditionResult.WARNING, "HAIP-6.1-2.2");
+				ConditionResult.WARNING, "HAIP-6.1-2");
 		} else {
 			callAndContinueOnFailure(VerifyStatusListTokenSignatureUsingEmbeddedJwk.class,
 				ConditionResult.FAILURE, "OTSL-6.2");

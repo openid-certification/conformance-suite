@@ -63,12 +63,12 @@ public class ValidateClientAuthenticationWithClientAttestationJWT extends Abstra
 			.dontStopOnFailure());
 		call(condition(ValidateClientAttestationProofJwtAudience.class)
 			.onFail(Condition.ConditionResult.FAILURE)
-			.requirements("OAuth2-ATCA07-5.2-5.2.1")
+			.requirements("OAuth2-ATCA07-5.2")
 			.skipIfObjectsMissing(CLIENT_ATTESTATION_OBJECTS)
 			.dontStopOnFailure());
 		call(condition(ValidateClientAttestationX5cClaimInProofJwt.class)
 			.onFail(Condition.ConditionResult.FAILURE)
-			.requirements("OAuth2-ATCA07-5.2-5.2.1")
+			.requirements("OAuth2-ATCA07-5.2")
 			.skipIfObjectsMissing(CLIENT_ATTESTATION_OBJECTS)
 			.dontStopOnFailure());
 		// Validates challenge if attestation_challenge is present in the environment (i.e., challenge endpoint was used)
