@@ -181,4 +181,63 @@ public class CheckOnlyRequestedMdocElementsDisclosed_UnitTest {
 
 		cond.execute(env);
 	}
+
+	private void setupAgeEnvironment(String... disclosedElements) {
+		Map<String, String[]> disclosed = new LinkedHashMap<>();
+		disclosed.put("org.iso.18013.5.1", disclosedElements);
+		setupEnvironment(DcqlTestFixtures.AGE_OVER_18_MDOC_DCQL, "my_credential", disclosed);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSingleOptionDisclosedPasses() {
+		setupAgeEnvironment("age_over_18");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsLastOptionDisclosedPasses() {
+		setupAgeEnvironment("birth_date");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsTwoOptionsDisclosedThrowsError() {
+		setupAgeEnvironment("age_over_18", "birth_date");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsOtherThresholdDisclosedThrowsError() {
+		setupAgeEnvironment("age_over_18", "age_over_21");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSupersetOptionDisclosedPasses() {
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.18013.5.1.mDL"},
+			      "claims": [
+			        {"id": "a", "path": ["org.iso.18013.5.1", "given_name"]},
+			        {"id": "b", "path": ["org.iso.18013.5.1", "family_name"]}
+			      ],
+			      "claim_sets": [["a", "b"], ["a"]]
+			    }
+			  ]
+			}
+			""";
+		Map<String, String[]> disclosed = new LinkedHashMap<>();
+		disclosed.put("org.iso.18013.5.1", new String[]{"given_name", "family_name"});
+		setupEnvironment(dcql, "my_credential", disclosed);
+
+		cond.execute(env);
+	}
 }

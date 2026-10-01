@@ -9,6 +9,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -608,5 +610,69 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 		setupNationalitiesCredential("\"_sd_alg\":\"not-a-hash\",", "sha-256");
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	private void setupAgeEnvironment(String decodedJson, String... disclosureJsons) {
+		setupEnvironment(DcqlTestFixtures.AGE_OVER_18_SD_JWT_DCQL, "my_credential", decodedJson,
+			OIDFJSON.convertListToJsonArray(List.of(disclosureJsons)));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSingleOptionDisclosedPasses() {
+		setupAgeEnvironment("{\"age_equal_or_over\": {\"18\": true}}",
+			"[\"salt1\", \"age_equal_or_over\", {\"_sd\": [\"digest1\", \"digest2\"]}]",
+			"[\"salt2\", \"18\", true]");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsLastOptionDisclosedPasses() {
+		setupAgeEnvironment("{\"birthdate\": \"1980-05-23\"}",
+			"[\"salt1\", \"birthdate\", \"1980-05-23\"]");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsTwoOptionsDisclosedThrowsError() {
+		setupAgeEnvironment("{\"age_equal_or_over\": {\"18\": true}, \"birthdate\": \"1980-05-23\"}",
+			"[\"salt1\", \"age_equal_or_over\", {\"_sd\": [\"digest1\", \"digest2\"]}]",
+			"[\"salt2\", \"18\", true]",
+			"[\"salt3\", \"birthdate\", \"1980-05-23\"]");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsOtherThresholdDisclosedThrowsError() {
+		setupAgeEnvironment("{\"age_equal_or_over\": {\"18\": true, \"21\": true}}",
+			"[\"salt1\", \"age_equal_or_over\", {\"_sd\": [\"digest1\", \"digest2\"]}]",
+			"[\"salt2\", \"18\", true]",
+			"[\"salt3\", \"21\", true]");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSupersetOptionDisclosedPasses() {
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "dc+sd-jwt",
+			      "claims": [
+			        {"id": "a", "path": ["given_name"]},
+			        {"id": "b", "path": ["picture"]}
+			      ],
+			      "claim_sets": [["a", "b"], ["a"]]
+			    }
+			  ]
+			}
+			""";
+		setupEnvironment(dcql, "my_credential", "given_name", "picture");
+
+		cond.execute(env);
 	}
 }
