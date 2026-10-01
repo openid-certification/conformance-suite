@@ -27,6 +27,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		// DCQL variation tests
 		VP1FinalWalletAllMandatoryClaims.class,
+		VP1FinalWalletAgeOver18.class,
 		VP1FinalWalletFewerClaimsThanAvailable.class,
 		VP1FinalWalletOptionalCredentialSet.class,
 		VP1FinalWalletNoClaimsInDcqlQuery.class,
