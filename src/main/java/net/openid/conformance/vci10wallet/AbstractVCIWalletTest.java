@@ -27,8 +27,6 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObje
 import net.openid.conformance.condition.as.CheckNonceMaximumLength;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CheckStateLength;
-import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
-import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateAuthorizationServerDpopNonce;
@@ -76,14 +74,12 @@ import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
-import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
@@ -598,16 +594,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected boolean requireAuthorizationServerEndpointDpopNonce() {
-		return isDpopConstrain();
-	}
-
-	@Override
-	protected boolean requireResourceServerEndpointDpopNonce() {
-		return isDpopConstrain();
-	}
-
-	@Override
 	protected void configureClients() {
 		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
@@ -624,26 +610,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		if (env.getElementFromObject("config", "client2.client_id") != null) {
 			configureSecondClient();
 		}
-	}
-
-	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
-	// used the second client. We may want to delete it and all the associated references
-	// to the second client if we find no use.
-	@Override
-	protected void configureSecondClient() {
-		eventLog.startBlock("Verify configuration of second client");
-		// extract second client
-		switchToSecondClient();
-		callAndStopOnFailure(GetStaticClient2Configuration.class);
-
-		if (usesClientJwks()) {
-			validateClientJwks(true);
-		}
-		validateClientConfiguration();
-
-		//switch back to the first client
-		unmapClient();
-		eventLog.endBlock();
 	}
 
 	/**
@@ -1996,8 +1962,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			case "authorization_code":
 				// we're doing the authorization code grant for user access
 				return authorizationCodeGrantType(requestId);
-			case "client_credentials":
-				break;
 			case "refresh_token":
 				return refreshTokenGrantType(requestId);
 			case "urn:ietf:params:oauth:grant-type:pre-authorized_code":
@@ -2072,40 +2036,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			callAndStopOnFailure(CreateTokenEndpointResponse.class);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
-			// Create a new DPoP nonce
-			if (requireAuthorizationServerEndpointDpopNonce()) {
-				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
-			}
-		}
-
-		call(exec().unmapKey("token_endpoint_request").endBlock());
-
-		setStatus(Status.WAITING);
-
-		return responseObject;
-	}
-
-	@Override
-	protected Object clientCredentialsGrantType(String requestId) {
-
-		senderConstrainTokenRequestHelper.checkTokenRequest();
-		ResponseEntity<Object> responseObject = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
-		} else {
-
-			callAndStopOnFailure(generateSenderConstrainedAccessToken);
-
-			callAndStopOnFailure(CreateTokenEndpointResponse.class);
-
-			// this puts the client credentials specific token into its own box for later
-			if (isMTLSConstrain()) {
-				callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
-			} else {
-				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
-			}
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 			// Create a new DPoP nonce
 			if (requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
@@ -2394,12 +2324,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			builder.queryParam("state", state);
 		}
 		return new RedirectView(builder.toUriString(), false, false, false);
-	}
-
-	@Override
-	protected void validateRequestObjectForPAREndpointRequest() {
-		validateRequestObjectCommonChecks();
-		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI2-SP-FINAL-5.3.2.2-2.5");
 	}
 
 	protected void validateParRedirectUri() {
