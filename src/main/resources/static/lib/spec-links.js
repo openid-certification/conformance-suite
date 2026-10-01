@@ -2,8 +2,8 @@
  * Memoised loader for the OIDF spec-link prefix map served by
  * `GET /api/ui/spec_links?public=true`. The map is a flat object of
  * `"<PREFIX>-"` → URL-prefix entries — a requirement string like
- * `OIDCC-3.1.3.7-6` resolves to `https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7-6`
- * by appending the suffix after the matched prefix.
+ * `OIDCC-3.1.3.7-6` resolves to `https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7`
+ * by appending the section part of the suffix after the matched prefix.
  *
  * One fetch per page (KTD4 in
  * `docs/plans/2026-05-22-002-fix-mr1998-maintainer-feedback-plan.md`):
@@ -42,6 +42,14 @@ export function loadSpecLinks() {
  * required because the map contains overlapping prefixes like `OIDCC-`
  * and (hypothetically) `OIDCC-A-` — the longer one wins.
  *
+ * A trailing numeric item part (`-6`, `-2.5`) identifies a list item or
+ * paragraph within the section for the reader. The published specs do not
+ * use that number as the item's fragment (xml2rfc fragments count
+ * paragraphs, so `#section-5.3.2.2-5` is the fifth paragraph, not list
+ * item 5), so the link targets the section and the chip text keeps the
+ * full requirement. Suffixes that are not `<section>-<numeric item>`
+ * (named fragments such as `request-object`) are appended unchanged.
+ *
  * @param {string} ref Requirement string from `entry.requirements[i]`.
  * @param {Record<string, string> | null | undefined} map Spec-link map.
  * @returns {string | null} Full URL, or `null` when no prefix matches.
@@ -55,7 +63,9 @@ export function resolveSpecLink(ref, map) {
     }
   }
   if (!bestPrefix) return null;
-  return map[bestPrefix] + ref.slice(bestPrefix.length);
+  const suffix = ref.slice(bestPrefix.length);
+  const itemised = /^([^-]+)-[0-9][0-9.-]*$/.exec(suffix);
+  return map[bestPrefix] + (itemised ? itemised[1] : suffix);
 }
 
 /**
