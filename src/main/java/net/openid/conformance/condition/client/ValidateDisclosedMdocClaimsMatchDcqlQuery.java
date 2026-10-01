@@ -11,7 +11,8 @@ import java.util.Set;
 
 /**
  * Validates that the mdoc credential's disclosed [namespace, elementIdentifier] pairs cover
- * every claim the DCQL query requested.
+ * every claim the DCQL query requested: every claim listed in claims, or, when claim_sets is
+ * present, every claim of at least one of its options (OID4VP 1.0 section 6.4.1).
  */
 public class ValidateDisclosedMdocClaimsMatchDcqlQuery extends AbstractCondition {
 
@@ -28,34 +29,33 @@ public class ValidateDisclosedMdocClaimsMatchDcqlQuery extends AbstractCondition
 				args("credential_id", credentialId, "dcql_query", dcqlQuery));
 		}
 
-		// TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
-		// does not yet honor DCQL claim_sets semantics when deciding which claims are required.
-		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
-		if (requestedClaimPaths.isEmpty()) {
+		if (DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential).isEmpty()) {
 			log("DCQL credential entry has no claims, skipping claims validation");
 			return env;
 		}
+		List<Set<List<String>>> options = DcqlQueryUtils.extractClaimSetOptions(matchingCredential);
 
 		Set<List<String>> disclosedPaths = DcqlQueryUtils.extractDisclosedMdocPaths(env);
 
-		List<List<String>> missingClaimPaths = new ArrayList<>();
-		for (List<String> claimPath : requestedClaimPaths) {
-			if (!disclosedPaths.contains(claimPath)) {
-				missingClaimPaths.add(claimPath);
+		List<List<List<String>>> missingClaimPathsByOption = new ArrayList<>();
+		for (Set<List<String>> option : options) {
+			List<List<String>> missingClaimPaths = option.stream()
+				.filter(claimPath -> !disclosedPaths.contains(claimPath))
+				.toList();
+			if (missingClaimPaths.isEmpty()) {
+				logSuccess("All DCQL-requested claims are present in the disclosed mdoc credential",
+					args("requested_claim_paths", option,
+						"disclosed_paths", disclosedPaths));
+				return env;
 			}
+			missingClaimPathsByOption.add(missingClaimPaths);
 		}
 
-		if (!missingClaimPaths.isEmpty()) {
-			throw error("mdoc credential is missing claims that were requested in the DCQL query",
-				args("missing_claim_paths", missingClaimPaths,
-					"requested_claim_paths", requestedClaimPaths,
-					"disclosed_paths", disclosedPaths,
-					"credential_id", credentialId));
-		}
-
-		logSuccess("All DCQL-requested claims are present in the disclosed mdoc credential",
-			args("requested_claim_paths", requestedClaimPaths,
-				"disclosed_paths", disclosedPaths));
-		return env;
+		throw error("mdoc credential is missing claims that were requested in the DCQL query. Where the query "
+				+ "contains claim_sets, the credential must contain every claim of at least one of the options.",
+			args("missing_claim_paths_by_option", missingClaimPathsByOption,
+				"claim_sets_options", options,
+				"disclosed_paths", disclosedPaths,
+				"credential_id", credentialId));
 	}
 }

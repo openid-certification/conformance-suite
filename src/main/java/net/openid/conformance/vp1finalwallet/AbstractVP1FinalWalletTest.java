@@ -81,6 +81,8 @@ import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreVali
 import net.openid.conformance.condition.client.ValidateMdocMsoValidityInfoTimestamps;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsureMdocPidElementValuesAreValid;
+import net.openid.conformance.condition.client.EnsureMostPreferredDcqlClaimSetReturned;
+import net.openid.conformance.condition.client.EnsureMostPreferredMdocDcqlClaimSetReturned;
 import net.openid.conformance.condition.client.EnsurePresentedMdocMdlElementsAreDefined;
 import net.openid.conformance.condition.client.EnsurePresentedMdocPhotoIdElementsAreDefined;
 import net.openid.conformance.condition.client.EnsurePresentedMdocPidElementsAreDefined;
@@ -480,12 +482,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	/**
-	 * Checks that the disclosed claims satisfy the DCQL query. Overridden by modules that need to
-	 * check some claims at a different severity, e.g. the PID picture (portrait) claim in the
-	 * all-mandatory-claims module.
+	 * Checks that the disclosed claims satisfy the DCQL query. Overridden by modules that report
+	 * a less preferred claim_sets option in their own terms, e.g. the PID picture (portrait) claim
+	 * in the all-mandatory-claims module.
 	 */
 	protected void validateDisclosedClaimsMatchDcqlQuery() {
 		callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+		callAndContinueOnFailure(EnsureMostPreferredDcqlClaimSetReturned.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.4.1");
 	}
 
 	protected void completeClientConfiguration() {
@@ -813,6 +816,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateMdocDocTypeMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 				callAndContinueOnFailure(ValidateDisclosedMdocClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+				callAndContinueOnFailure(EnsureMostPreferredMdocDcqlClaimSetReturned.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.4.1");
 				callAndContinueOnFailure(CheckOnlyRequestedMdocElementsDisclosed.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 				break;
 

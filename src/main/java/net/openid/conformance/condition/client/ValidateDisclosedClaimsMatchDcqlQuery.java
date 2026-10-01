@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Validates that the credential's disclosed claims satisfy the DCQL query's claim requests.
+ * Validates that the credential's disclosed claims satisfy the DCQL query's claim requests: every
+ * claim listed in claims, or, when claim_sets is present, every claim of at least one of its
+ * options (OID4VP 1.0 section 6.4.1).
  */
 public class ValidateDisclosedClaimsMatchDcqlQuery extends AbstractCondition {
 
@@ -27,46 +29,36 @@ public class ValidateDisclosedClaimsMatchDcqlQuery extends AbstractCondition {
 				args("credential_id", credentialId, "dcql_query", dcqlQuery));
 		}
 
-		Set<List<String>> requestedClaimPaths = requiredClaimPaths(matchingCredential);
-		if (requestedClaimPaths.isEmpty()) {
+		if (DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential).isEmpty()) {
 			log("DCQL credential entry has no claims, skipping claims validation");
 			return env;
 		}
+		List<Set<List<String>>> options = DcqlQueryUtils.extractClaimSetOptions(matchingCredential);
 
 		JsonObject decoded = DcqlQueryUtils.getDecodedSdJwtClaims(env);
 		if (decoded == null) {
 			throw error("No decoded SD-JWT claims found in environment");
 		}
 
-		List<List<String>> missingClaimPaths = new ArrayList<>();
-		for (List<String> claimPath : requestedClaimPaths) {
-			if (!DcqlQueryUtils.isClaimPathPresent(decoded, claimPath)) {
-				missingClaimPaths.add(claimPath);
+		List<List<List<String>>> missingClaimPathsByOption = new ArrayList<>();
+		for (Set<List<String>> option : options) {
+			List<List<String>> missingClaimPaths = option.stream()
+				.filter(claimPath -> !DcqlQueryUtils.isClaimPathPresent(decoded, claimPath))
+				.toList();
+			if (missingClaimPaths.isEmpty()) {
+				logSuccess("All DCQL-requested claims are present in the disclosed credential",
+					args("requested_claim_paths", option,
+						"decoded_credential", decoded));
+				return env;
 			}
+			missingClaimPathsByOption.add(missingClaimPaths);
 		}
 
-		if (!missingClaimPaths.isEmpty()) {
-			throw error("Credential is missing claims that were requested in the DCQL query",
-				args("missing_claim_paths", missingClaimPaths,
-					"requested_claim_paths", requestedClaimPaths,
-					"decoded_credential", decoded,
-					"credential_id", credentialId));
-		}
-
-		logSuccess("All DCQL-requested claims are present in the disclosed credential",
-			args("requested_claim_paths", requestedClaimPaths,
-				"decoded_credential", decoded));
-		return env;
-	}
-
-	/**
-	 * The claim paths whose absence causes this condition to fail. Subclasses may exempt specific
-	 * claims so the caller can check them separately at a different severity.
-	 *
-	 * TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
-	 * does not yet honor DCQL claim_sets semantics when deciding which claims are required.
-	 */
-	protected Set<List<String>> requiredClaimPaths(JsonObject matchingCredential) {
-		return DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
+		throw error("Credential is missing claims that were requested in the DCQL query. Where the query "
+				+ "contains claim_sets, the credential must contain every claim of at least one of the options.",
+			args("missing_claim_paths_by_option", missingClaimPathsByOption,
+				"claim_sets_options", options,
+				"decoded_credential", decoded,
+				"credential_id", credentialId));
 	}
 }

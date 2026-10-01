@@ -352,4 +352,48 @@ public class ValidateDisclosedClaimsMatchDcqlQuery_UnitTest {
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
+
+	@Test
+	public void testEvaluate_claimSetsFirstOptionPresentPasses() {
+		setupEnvironment("{\"age_equal_or_over\": {\"18\": true}}", "my_credential", DcqlTestFixtures.AGE_OVER_18_SD_JWT_DCQL);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsLastOptionPresentPasses() {
+		setupEnvironment("{\"birthdate\": \"1980-05-23\"}", "my_credential", DcqlTestFixtures.AGE_OVER_18_SD_JWT_DCQL);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNoOptionPresentFails() {
+		setupEnvironment("{\"age_equal_or_over\": {\"21\": true}, \"given_name\": \"John\"}", "my_credential", DcqlTestFixtures.AGE_OVER_18_SD_JWT_DCQL);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsOptionPartiallyPresentFails() {
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "dc+sd-jwt",
+			      "claims": [
+			        {"id": "a", "path": ["given_name"]},
+			        {"id": "b", "path": ["family_name"]},
+			        {"id": "c", "path": ["picture"]}
+			      ],
+			      "claim_sets": [["a", "b", "c"], ["a", "b"]]
+			    }
+			  ]
+			}
+			""";
+		setupEnvironment("{\"given_name\": \"John\", \"picture\": \"data:image/jpeg;base64,abc123\"}", "my_credential", dcql);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
 }

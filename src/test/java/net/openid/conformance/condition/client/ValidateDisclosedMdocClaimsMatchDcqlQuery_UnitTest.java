@@ -187,4 +187,31 @@ public class ValidateDisclosedMdocClaimsMatchDcqlQuery_UnitTest {
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
+
+	private void setupAgeEnvironment(String... disclosedElements) {
+		Map<String, String[]> disclosed = new LinkedHashMap<>();
+		disclosed.put("org.iso.18013.5.1", disclosedElements);
+		setupEnvironment(DcqlTestFixtures.AGE_OVER_18_MDOC_DCQL, "my_credential", "org.iso.18013.5.1.mDL", disclosed);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsFirstOptionDisclosedPasses() {
+		setupAgeEnvironment("age_over_18");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsLastOptionDisclosedPasses() {
+		setupAgeEnvironment("birth_date");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNoOptionDisclosedThrowsError() {
+		setupAgeEnvironment("age_over_21");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
 }

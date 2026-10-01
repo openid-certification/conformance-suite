@@ -7,8 +7,11 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -92,15 +95,76 @@ public class DcqlQueryUtils {
 	}
 
 	/**
-	 * Extract the set of full claim paths requested for a specific credential entry.
-	 *
-	 * TODO: This currently models "all claims listed under claims". It does not yet account for
-	 * claim_sets, which can make only a subset of those claim ids effectively required.
+	 * Extract the set of full claim paths listed under claims for a specific credential entry,
+	 * regardless of claim_sets. Use {@link #extractClaimSetOptions} for the combinations the
+	 * Verifier actually requests.
 	 */
 	public static Set<List<String>> extractClaimPathsFromCredential(JsonObject credential) {
 		Set<List<String>> claimPaths = new HashSet<>();
 		extractClaimPathsFromCredential(credential, claimPaths);
 		return claimPaths;
+	}
+
+	/**
+	 * The combinations of claim paths that satisfy a credential entry, in the Verifier's order of
+	 * preference (OID4VP 1.0 section 6.4.1). With claim_sets, each option holds the paths of the
+	 * claims that option references; without, the single option is every path listed in claims.
+	 * Empty when the entry requests no claims.
+	 *
+	 * A claim_sets option referencing an unknown claim id is omitted, as it cannot be satisfied;
+	 * ValidateDCQLQuery reports such queries.
+	 */
+	public static List<Set<List<String>>> extractClaimSetOptions(JsonObject credential) {
+		Set<List<String>> allPaths = extractClaimPathsFromCredential(credential);
+		if (allPaths.isEmpty()) {
+			return List.of();
+		}
+		JsonElement claimSetsEl = credential.get("claim_sets");
+		if (claimSetsEl == null || !claimSetsEl.isJsonArray()) {
+			return List.of(allPaths);
+		}
+
+		Map<String, List<String>> pathsById = new HashMap<>();
+		for (JsonElement claimEl : credential.getAsJsonArray("claims")) {
+			JsonObject claim = claimEl.getAsJsonObject();
+			List<String> pathSegments = extractPathSegments(claim.getAsJsonArray("path"));
+			if (OIDFJSON.isString(claim.get("id")) && !pathSegments.isEmpty()) {
+				pathsById.put(OIDFJSON.getString(claim.get("id")), List.copyOf(pathSegments));
+			}
+		}
+
+		List<Set<List<String>>> options = new ArrayList<>();
+		for (JsonElement optionEl : claimSetsEl.getAsJsonArray()) {
+			if (!optionEl.isJsonArray()) {
+				continue;
+			}
+			Set<List<String>> option = new LinkedHashSet<>();
+			boolean resolvable = true;
+			for (JsonElement idEl : optionEl.getAsJsonArray()) {
+				List<String> path = OIDFJSON.isString(idEl) ? pathsById.get(OIDFJSON.getString(idEl)) : null;
+				if (path == null) {
+					resolvable = false;
+					break;
+				}
+				option.add(path);
+			}
+			if (resolvable && !option.isEmpty()) {
+				options.add(option);
+			}
+		}
+		return options;
+	}
+
+	/**
+	 * Whether every claim path of a claim set option is present in the decoded credential payload.
+	 */
+	public static boolean isClaimSetOptionPresent(JsonObject decoded, Set<List<String>> option) {
+		for (List<String> claimPath : option) {
+			if (!isClaimPathPresent(decoded, claimPath)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
