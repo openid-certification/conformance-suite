@@ -277,4 +277,88 @@ public class CreateMdocCredential_UnitTest {
 		}
 		return list;
 	}
+
+	@Test
+	public void testEvaluate_claimSetsPresentsFirstSatisfiableOption() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.18013.5.1.mDL"},
+			      "claims": [
+			        {"id": "a", "path": ["org.iso.18013.5.1", "age_over_18"]},
+			        {"id": "b", "path": ["org.iso.18013.5.1", "birth_date"]}
+			      ],
+			      "claim_sets": [["a"], ["b"]]
+			    }
+			  ]
+			}
+			"""));
+
+		cond.execute(env);
+		parseCredential();
+
+		assertThat(collectStrings(disclosedElementsFor("org.iso.18013.5.1")))
+			.containsExactly("age_over_18");
+		assertThat(countDisclosedElements()).isEqualTo(1);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsSkipsOptionTheDocumentCannotSatisfy() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.18013.5.1.mDL"},
+			      "claims": [
+			        {"id": "a", "path": ["org.iso.18013.5.1", "not_a_provisioned_element"]},
+			        {"id": "b", "path": ["org.iso.18013.5.1", "birth_date"]}
+			      ],
+			      "claim_sets": [["a"], ["b"]]
+			    }
+			  ]
+			}
+			"""));
+
+		cond.execute(env);
+		parseCredential();
+
+		assertThat(collectStrings(disclosedElementsFor("org.iso.18013.5.1")))
+			.containsExactly("birth_date");
+		assertThat(countDisclosedElements()).isEqualTo(1);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNoSatisfiableOptionPresentsWhatItHasFromFirstOption() {
+		env.putString("session_transcript", SESSION_TRANSCRIPT);
+		env.putObject("dcql_query", dcql("""
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "mso_mdoc",
+			      "meta": {"doctype_value": "org.iso.18013.5.1.mDL"},
+			      "claims": [
+			        {"id": "a", "path": ["org.iso.18013.5.1", "not_a_provisioned_element"]},
+			        {"id": "b", "path": ["org.iso.18013.5.1", "family_name"]}
+			      ],
+			      "claim_sets": [["a", "b"], ["a"]]
+			    }
+			  ]
+			}
+			"""));
+
+		cond.execute(env);
+		parseCredential();
+
+		assertThat(collectStrings(disclosedElementsFor("org.iso.18013.5.1")))
+			.containsExactly("family_name");
+		assertThat(countDisclosedElements()).isEqualTo(1);
+	}
 }

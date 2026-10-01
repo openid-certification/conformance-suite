@@ -81,7 +81,30 @@ object TestAppUtils {
 	// documentStore and docTypeToDocumentId are process-wide singleton state that
 	// documentStoreInit() replaces wholesale, so provisioning and the lookups that
 	// follow it must run as one critical section across concurrently executing modules.
-	//
+	/**
+	 * The [namespace -> element identifiers] the mock wallet's document of the given docType
+	 * carries, so a caller can choose a DCQL claim_sets option the document can satisfy.
+	 */
+	@Synchronized
+	fun provisionedDataElements(docType: String): Map<String, Set<String>> {
+		return runBlocking {
+			if (documentStore == null) {
+				documentStoreInit(null)
+			}
+			val issuerSigned = Cbor.decode(mdocCredential(docType).issuerProvidedData.toByteArray())
+			IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"]).data.mapValues { it.value.keys }
+		}
+	}
+
+	private suspend fun mdocCredential(docType: String): MdocCredential {
+		val docId = docTypeToDocumentId[docType]
+			?: throw IllegalStateException("mock wallet has no document provisioned for docType $docType")
+		val document = documentStore!!.lookupDocument(docId)
+		return document!!.findCredential(
+			CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now()
+		) as MdocCredential
+	}
+
 	// revocationStatus, when set, is referenced from the MSO of every provisioned mdoc so the
 	// verifier looks the presented credential up in that revocation list; when null the MSO
 	// carries no status element, as ISO/IEC 18013-5 12.3.6.2 permits.
@@ -105,12 +128,7 @@ object TestAppUtils {
 		requestedClaims: Map<String, Set<String>>? = null
 	): ByteArray {
 		val effectiveDocType = requestedDocType ?: DrivingLicense.getDocumentType().mdocDocumentType!!.docType
-		val docId = docTypeToDocumentId[effectiveDocType]
-			?: throw IllegalStateException("mock wallet has no document provisioned for docType $effectiveDocType")
-		val document = documentStore!!.lookupDocument(docId)
-		val credential = document!!.findCredential(
-			CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now()
-		) as MdocCredential
+		val credential = mdocCredential(effectiveDocType)
 
 		val issuerSigned = Cbor.decode(credential.issuerProvidedData.toByteArray())
 		var issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])

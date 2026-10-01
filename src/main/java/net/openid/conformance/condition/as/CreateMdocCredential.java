@@ -78,7 +78,8 @@ public class CreateMdocCredential extends AbstractCondition {
 			// Always pass a (possibly empty) map when DCQL is present so the wallet
 			// only discloses requested elements. If claims are omitted, nothing is
 			// disclosed, matching the SD-JWT data minimization behaviour.
-			requestedClaims = extractMdocRequestedClaims(matchingCredential);
+			requestedClaims = extractMdocRequestedClaims(matchingCredential,
+				testAppUtils.provisionedDataElements(requestedDocType));
 		}
 
 		byte[] mdoc = testAppUtils.generateDeviceResponse(sessionTranscript, requestedDocType, requestedClaims,
@@ -127,23 +128,34 @@ public class CreateMdocCredential extends AbstractCondition {
 		return result;
 	}
 
-	// TODO: does not honour DCQL claim_sets semantics; flattens all listed claims.
-	private Map<String, Set<String>> extractMdocRequestedClaims(JsonObject credential) {
+	// Where the query has claim_sets, the first option the document can satisfy is presented, as
+	// OID4VP 1.0 section 6.4.1 asks of a wallet. If it can satisfy none, the elements it has from
+	// the first option are presented.
+	private Map<String, Set<String>> extractMdocRequestedClaims(JsonObject credential,
+			Map<String, Set<String>> provisionedElements) {
 		Map<String, Set<String>> result = new LinkedHashMap<>();
-		JsonArray claims = credential.getAsJsonArray("claims");
-		if (claims == null) {
+		List<Set<List<String>>> options = DcqlQueryUtils.extractClaimSetOptions(credential);
+		if (options.isEmpty()) {
 			return result;
 		}
-		for (JsonElement claimEl : claims) {
-			JsonArray path = claimEl.getAsJsonObject().getAsJsonArray("path");
-			if (path == null || path.size() != 2) {
+		Set<List<String>> presented = options.stream()
+			.filter(option -> option.stream().allMatch(path -> path.size() == 2
+				&& provisionedElements.getOrDefault(path.get(0), Set.of()).contains(path.get(1))))
+			.findFirst()
+			.orElseGet(() -> {
+				log("The mock wallet's document does not contain every element of any requested option, "
+						+ "so the elements it has from the first option are presented",
+					args("claim_sets_options", options,
+						"provisioned_elements", flattenRequestedClaims(provisionedElements)));
+				return options.get(0);
+			});
+		for (List<String> path : presented) {
+			if (path.size() != 2) {
 				log("Ignoring DCQL claim with non-2-element path (mdoc requires [namespace, elementIdentifier])",
 					args("path", path));
 				continue;
 			}
-			String namespace = OIDFJSON.getString(path.get(0));
-			String elementName = OIDFJSON.getString(path.get(1));
-			result.computeIfAbsent(namespace, k -> new LinkedHashSet<>()).add(elementName);
+			result.computeIfAbsent(path.get(0), k -> new LinkedHashSet<>()).add(path.get(1));
 		}
 		return result;
 	}
