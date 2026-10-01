@@ -453,9 +453,10 @@ export const SpecLinkResolvesMappedRefsToAnchors = {
       const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
       // Anchor preserves the original requirement text verbatim — no rewrite.
       expect(oidcc.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
-      // URL is longest-prefix-match: prefix URL + suffix.
+      // URL is longest-prefix-match: prefix URL + the section part of the
+      // suffix; the trailing item number is display-only.
       expect(oidcc.getAttribute("href")).toBe(
-        "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7-6",
+        "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7",
       );
       // Always open in a new tab; the suite stays focused on the failing log.
       expect(oidcc.getAttribute("target")).toBe("_blank");
