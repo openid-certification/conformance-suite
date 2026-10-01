@@ -67,8 +67,8 @@ object RicalTestFixtures {
 				ASN1Integer(1L),
 				name,
 				name,
-				validFrom,
-				validUntil
+				validFrom.wholeSeconds(),
+				validUntil.wholeSeconds()
 			).includeSubjectKeyIdentifier(true).build()
 		}
 		return RicalSigner(key, cert)
@@ -90,8 +90,8 @@ object RicalTestFixtures {
 				ASN1Integer(1L),
 				caName,
 				caName,
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 365.days
+				(Clock.System.now() - 1.days).wholeSeconds(),
+				(Clock.System.now() + 365.days).wholeSeconds()
 			).includeSubjectKeyIdentifier(true)
 				.setBasicConstraints(true, 0)
 				.setKeyUsage(setOf(X509KeyUsage.KEY_CERT_SIGN, X509KeyUsage.CRL_SIGN))
@@ -123,8 +123,8 @@ object RicalTestFixtures {
 				ASN1Integer(2L),
 				X500Name.fromName("CN=OIDF Test Reader,O=OpenID Foundation,C=UT"),
 				caCert.subject,
-				notBefore,
-				notAfter
+				notBefore.wholeSeconds(),
+				notAfter.wholeSeconds()
 			).includeSubjectKeyIdentifier(true)
 				.setAuthorityKeyIdentifierToCertificate(caCert)
 				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
@@ -158,8 +158,8 @@ object RicalTestFixtures {
 				ASN1Integer(3L),
 				X500Name.fromName("CN=OIDF Test Impostor Reader,O=OpenID Foundation,C=UT"),
 				claimedIssuer.subject,
-				Clock.System.now() - 1.days,
-				Clock.System.now() + 90.days
+				(Clock.System.now() - 1.days).wholeSeconds(),
+				(Clock.System.now() + 90.days).wholeSeconds()
 			).includeSubjectKeyIdentifier(true)
 				.setAuthorityKeyIdentifierToCertificate(claimedIssuer)
 				.setKeyUsage(setOf(X509KeyUsage.DIGITAL_SIGNATURE))
@@ -366,4 +366,7 @@ object RicalTestFixtures {
 		}
 		return bytes
 	}
+
+	/** X.509 validity has one-second resolution; the builder truncates and warns otherwise. */
+	private fun Instant.wholeSeconds(): Instant = Instant.fromEpochSeconds(epochSeconds)
 }
