@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * Applies an update from the settings page to the stored section. The page never receives the
  * stored secrets, so it cannot send them back: an absent client secret, JWKS or private key means
- * "keep what is stored". The result is not validated here; an entry that is new and has no key
+ * "keep what is stored", and only the explicit clear flags remove the stored client secret or JWKS. The result is not validated here; an entry that is new and has no key
  * comes out with a null key, which {@link CMFChileSettingsValidator} reports.
  */
 public final class SettingsSecretMerge {
@@ -27,12 +27,21 @@ public final class SettingsSecretMerge {
 			clientSecret = update.clientSecret();
 		}
 
+		String clientJwks;
+		if (update.clearClientJwks()) {
+			clientJwks = null;
+		} else if (update.clientJwks() == null) {
+			clientJwks = stored.clientJwks();
+		} else {
+			clientJwks = update.clientJwks();
+		}
+
 		return new CMFChileSettings(
 			blankToNull(update.directoryTokenEndpoint()),
 			blankToNull(update.softwareStatementEndpoint()),
 			blankToNull(update.clientId()),
 			clientSecret,
-			update.clientJwks() == null ? stored.clientJwks() : update.clientJwks(),
+			clientJwks,
 			mergeEntries(stored.positiveCertificates(), update.positiveCertificates()),
 			mergeEntries(stored.negativeCertificates(), update.negativeCertificates()),
 			stored.updatedAt(),

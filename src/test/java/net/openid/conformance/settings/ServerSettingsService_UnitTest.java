@@ -51,7 +51,7 @@ public class ServerSettingsService_UnitTest {
 	}
 
 	private static CMFChileSettingsUpdate keepAllWithClientId(CMFChileSettings stored, String clientId) {
-		return new CMFChileSettingsUpdate(stored.directoryTokenEndpoint(), stored.softwareStatementEndpoint(), clientId, null, false, null,
+		return new CMFChileSettingsUpdate(stored.directoryTokenEndpoint(), stored.softwareStatementEndpoint(), clientId, null, false, null, false,
 			stored.positiveCertificates().stream()
 				.map(e -> new CertificateEntryUpdate(e.id(), e.label(), e.certificateChainPem(), null)).toList(),
 			stored.negativeCertificates().stream()
@@ -109,7 +109,7 @@ public class ServerSettingsService_UnitTest {
 	public void aRefusedSaveLeavesStorageAndCacheAlone() {
 		repository.save(CMFChileSettings.SECTION_ID, valid.toDocument());
 		CMFChileDirectorySettings cached = service.getCMFChileDirectorySettings().orElseThrow();
-		CMFChileSettingsUpdate bad = new CMFChileSettingsUpdate("http://insecure.example.cl", null, "x", null, false, null,
+		CMFChileSettingsUpdate bad = new CMFChileSettingsUpdate("http://insecure.example.cl", null, "x", null, false, null, false,
 			List.of(), List.of());
 
 		ServerSettingsService.SaveResult result = service.saveCMFChileSettings(bad, "Admin User");
@@ -121,7 +121,7 @@ public class ServerSettingsService_UnitTest {
 
 	@Test
 	public void aNewEntryWithoutAKeyIsRefused() {
-		CMFChileSettingsUpdate update = new CMFChileSettingsUpdate(null, null, null, null, false, null,
+		CMFChileSettingsUpdate update = new CMFChileSettingsUpdate(null, null, null, null, false, null, false,
 			List.of(new CertificateEntryUpdate(null, "primary", valid.positiveCertificates().get(0).certificateChainPem(), null)),
 			List.of());
 

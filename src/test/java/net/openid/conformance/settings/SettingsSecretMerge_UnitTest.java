@@ -18,7 +18,7 @@ public class SettingsSecretMerge_UnitTest {
 
 	private static CMFChileSettingsUpdate update(String secret, boolean clear, String jwks,
 			List<CertificateEntryUpdate> positive, List<CertificateEntryUpdate> negative) {
-		return new CMFChileSettingsUpdate("https://new.example.cl/token", "https://new.example.cl/ssa", "new-client", secret, clear, jwks, positive, negative);
+		return new CMFChileSettingsUpdate("https://new.example.cl/token", "https://new.example.cl/ssa", "new-client", secret, clear, jwks, false, positive, negative);
 	}
 
 	private static CMFChileSettingsUpdate keepEverything() {
@@ -38,7 +38,7 @@ public class SettingsSecretMerge_UnitTest {
 
 	@Test
 	public void blankPlainFieldsBecomeUnset() {
-		CMFChileSettingsUpdate blank = new CMFChileSettingsUpdate("  ", " ", "", null, false, null, List.of(), List.of());
+		CMFChileSettingsUpdate blank = new CMFChileSettingsUpdate("  ", " ", "", null, false, null, false, List.of(), List.of());
 
 		CMFChileSettings merged = SettingsSecretMerge.merge(STORED, blank);
 
@@ -91,6 +91,14 @@ public class SettingsSecretMerge_UnitTest {
 		CMFChileSettingsUpdate update = update(null, false, "{\"keys\":[{\"kty\":\"oct\"}]}", List.of(), List.of());
 
 		assertThat(SettingsSecretMerge.merge(STORED, update).clientJwks()).isEqualTo("{\"keys\":[{\"kty\":\"oct\"}]}");
+	}
+
+	@Test
+	public void theClearFlagRemovesTheJwksEvenWhenOneIsSent() {
+		CMFChileSettingsUpdate update = new CMFChileSettingsUpdate(null, null, null, null, false,
+			"{\"keys\":[{\"kty\":\"oct\"}]}", true, List.of(), List.of());
+
+		assertThat(SettingsSecretMerge.merge(STORED, update).clientJwks()).isNull();
 	}
 
 	@Test

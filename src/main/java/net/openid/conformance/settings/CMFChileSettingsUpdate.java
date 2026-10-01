@@ -15,6 +15,7 @@ import java.util.List;
  * @param clientSecret null or empty to keep the stored secret
  * @param clearClientSecret removes the stored secret, and wins over {@code clientSecret}
  * @param clientJwks the JWKS as a JSON string; null to keep the stored JWKS
+ * @param clearClientJwks removes the stored JWKS, and wins over {@code clientJwks}
  */
 public record CMFChileSettingsUpdate(
 	String directoryTokenEndpoint,
@@ -23,10 +24,12 @@ public record CMFChileSettingsUpdate(
 	String clientSecret,
 	boolean clearClientSecret,
 	String clientJwks,
+	boolean clearClientJwks,
 	List<CertificateEntryUpdate> positiveCertificates,
 	List<CertificateEntryUpdate> negativeCertificates) {
 
 	public static final String CLEAR_CLIENT_SECRET = "clearClientSecret";
+	public static final String CLEAR_CLIENT_JWKS = "clearClientJwks";
 
 	public CMFChileSettingsUpdate {
 		positiveCertificates = positiveCertificates == null ? List.of() : List.copyOf(positiveCertificates);
@@ -44,6 +47,7 @@ public record CMFChileSettingsUpdate(
 			optionalString(body, CMFChileSettings.CLIENT_SECRET, CMFChileSettings.CLIENT_SECRET),
 			optionalBoolean(body, CLEAR_CLIENT_SECRET),
 			optionalJwks(body),
+			optionalBoolean(body, CLEAR_CLIENT_JWKS),
 			entries(body, CMFChileSettings.POSITIVE_CERTIFICATES),
 			entries(body, CMFChileSettings.NEGATIVE_CERTIFICATES));
 	}
@@ -117,6 +121,7 @@ public record CMFChileSettingsUpdate(
 			+ ", softwareStatementEndpoint=" + softwareStatementEndpoint
 			+ ", clientId=" + clientId
 			+ ", clearClientSecret=" + clearClientSecret
+			+ ", clearClientJwks=" + clearClientJwks
 			+ ", positiveCertificates=" + positiveCertificates
 			+ ", negativeCertificates=" + negativeCertificates + "]";
 	}
