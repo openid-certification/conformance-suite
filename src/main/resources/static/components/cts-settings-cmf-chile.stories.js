@@ -2,17 +2,17 @@ import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
 import { http, HttpResponse } from "msw";
 import {
-  MOCK_SETTINGS_CONFIGURED,
-  MOCK_SETTINGS_EMPTY,
-  MOCK_SETTINGS_KEY_MISMATCH,
-} from "@fixtures/mock-settings.js";
-import "./cts-settings-page.js";
+  MOCK_CMF_CHILE_SETTINGS_CONFIGURED,
+  MOCK_CMF_CHILE_SETTINGS_EMPTY,
+  MOCK_CMF_CHILE_SETTINGS_KEY_MISMATCH,
+} from "@fixtures/mock-cmf-chile-settings.js";
+import "./cts-settings-cmf-chile.js";
 
 const ENDPOINT = "/api/admin/settings/cmf-chile";
 
 export default {
-  title: "Pages/cts-settings-page",
-  component: "cts-settings-page",
+  title: "Pages/cts-settings-cmf-chile",
+  component: "cts-settings-cmf-chile",
   parameters: {
     // Page-level story: opt in to Chromatic snapshots. Component stories are
     // excluded by default in frontend/.storybook/preview.js.
@@ -22,9 +22,11 @@ export default {
 
 export const Configured = {
   parameters: {
-    msw: { handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_SETTINGS_CONFIGURED))] },
+    msw: {
+      handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_CMF_CHILE_SETTINGS_CONFIGURED))],
+    },
   },
-  render: () => html`<cts-settings-page></cts-settings-page>`,
+  render: () => html`<cts-settings-cmf-chile></cts-settings-cmf-chile>`,
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => expect(canvas.getByLabelText("Directory client ID")).toBeInTheDocument());
@@ -60,9 +62,9 @@ export const Configured = {
 
 export const Empty = {
   parameters: {
-    msw: { handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_SETTINGS_EMPTY))] },
+    msw: { handlers: [http.get(ENDPOINT, () => HttpResponse.json(MOCK_CMF_CHILE_SETTINGS_EMPTY))] },
   },
-  render: () => html`<cts-settings-page></cts-settings-page>`,
+  render: () => html`<cts-settings-cmf-chile></cts-settings-cmf-chile>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => expect(canvas.getByText("Not configured yet.")).toBeInTheDocument());
@@ -79,7 +81,7 @@ export const Forbidden = {
   parameters: {
     msw: { handlers: [http.get(ENDPOINT, () => new HttpResponse(null, { status: 403 }))] },
   },
-  render: () => html`<cts-settings-page></cts-settings-page>`,
+  render: () => html`<cts-settings-cmf-chile></cts-settings-cmf-chile>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() =>
@@ -95,12 +97,14 @@ export const KeyMismatchOnSave = {
   parameters: {
     msw: {
       handlers: [
-        http.get(ENDPOINT, () => HttpResponse.json(MOCK_SETTINGS_CONFIGURED)),
-        http.put(ENDPOINT, () => HttpResponse.json(MOCK_SETTINGS_KEY_MISMATCH, { status: 400 })),
+        http.get(ENDPOINT, () => HttpResponse.json(MOCK_CMF_CHILE_SETTINGS_CONFIGURED)),
+        http.put(ENDPOINT, () =>
+          HttpResponse.json(MOCK_CMF_CHILE_SETTINGS_KEY_MISMATCH, { status: 400 }),
+        ),
       ],
     },
   },
-  render: () => html`<cts-settings-page></cts-settings-page>`,
+  render: () => html`<cts-settings-cmf-chile></cts-settings-cmf-chile>`,
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => expect(canvas.getByLabelText("Directory client ID")).toBeInTheDocument());

@@ -140,12 +140,13 @@ section and the names of the changed fields. Values are never logged.
 
 - `cts-navbar current-page="settings"`;
 - `cts-page-head` with title "Server settings" and sub "Suite-wide configuration. Admin only.";
-- one new component, `cts-settings-page`.
+- `cts-settings-page`, which lists one component per settings section; the only section is
+  `cts-settings-cmf-chile`.
 
-The page makes no `/api/currentuser` check: the API's 403 is authoritative, and the component
+The page makes no `/api/currentuser` check: the API's 403 is authoritative, and each section component
 renders an "admin only" `cts-alert` from it.
 
-`cts-settings-page` shows one card-styled `<section>`, "Chile (CMF) — Directorio". It is not a
+`cts-settings-cmf-chile` shows one card-styled `<section>`, "Chile (CMF) — Directorio". It is not a
 `cts-card`, which captures its children once and so cannot host a re-rendering form. Fields are
 native labelled inputs with an inline error line below each, rather than `cts-form-field`, which
 is schema-driven for the test configuration form.
@@ -175,6 +176,15 @@ An action row below the section holds "Save" and "Discard changes".
   all.
 - On success, a toast is shown and the component reloads the redacted view, so typed secrets do
   not stay in the DOM.
+
+### Adding a settings section
+
+A section is a component, `cts-settings-<section>`, with its own load, Save, Discard, error
+summary and admin-only alert, because the API saves one section per request. Its element ids and
+`data-testid`s are prefixed with the section id so that sections can share the page, and the
+field, list and summary styles they share are in `settings-styles.js`. A new section adds its
+component and pure model module, and is listed in `cts-settings-page`; the backend side is its
+own `/api/admin/settings/<section>` handlers and `SERVER_SETTINGS` document.
 
 ## Module-facing model
 
@@ -262,8 +272,8 @@ Every module that consumes the settings must follow these rules:
   As with statistics, the script cannot exercise the admin 200 path, because API tokens are never
   admin.
 - Frontend:
-  - `cts-settings-page.stories.js`: empty, fully set, validation errors, forbidden.
-  - `frontend/e2e/settings.spec.js`, with `fixtures/mock-settings.js`; the GET/PUT routes are
+  - `cts-settings-cmf-chile.stories.js`: empty, fully set, validation errors, forbidden.
+  - `frontend/e2e/settings.spec.js`, with `fixtures/mock-cmf-chile-settings.js`; the GET/PUT routes are
     registered in the spec, as `statistics.spec.js` does. It checks that:
     - the Settings link shows for an admin but not for a non-admin;
     - a 403 renders the admin-only alert;
