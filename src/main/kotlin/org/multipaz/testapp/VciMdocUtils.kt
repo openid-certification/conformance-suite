@@ -207,13 +207,13 @@ object VciMdocUtils {
 			java.time.LocalDate.ofInstant(java.time.Instant.ofEpochSecond(instant.epochSeconds), java.time.ZoneOffset.UTC)
 		).years
 
-	private fun subjectCountry(cert: X509Cert): String? {
+	internal fun subjectCountry(cert: X509Cert): String? {
 		val holder = org.bouncycastle.cert.X509CertificateHolder(cert.encoded.toByteArray())
 		val rdns = holder.subject.getRDNs(org.bouncycastle.asn1.x500.style.BCStyle.C)
 		return if (rdns.isEmpty()) null else org.bouncycastle.asn1.x500.style.IETFUtils.valueToString(rdns[0].first.value)
 	}
 
-	private fun buildIssuerNamespacesForDocType(
+	internal fun buildIssuerNamespacesForDocType(
 		docType: String,
 		now: Instant,
 		validUntil: Instant,
@@ -248,13 +248,20 @@ object VciMdocUtils {
 				}
 			}
 			"eu.europa.ec.eudi.pid.1" -> {
-				// EU Personal ID
-				val birthDate = java.time.LocalDate.of(1980, 5, 23)
+				// EU PID. The attributes are those of the PID Rulebook section 3.1.2: the mandatory
+				// ones of sections 2.2 and 2.4, plus the optional administrative validity dates.
 				addNamespace("eu.europa.ec.eudi.pid.1") {
 					addDataElement("family_name", Tstr("Dupont"))
 					addDataElement("given_name", Tstr("Jean"))
-					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(birthDate.toString())))
-					addDataElement("age_in_years", Uint(ageAt(birthDate, now).toULong()))
+					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1980-05-23")))
+					addDataElement("place_of_birth", buildCborMap {
+						put("country", Tstr("FR"))
+						put("locality", Tstr("Paris"))
+					})
+					addDataElement("nationality", buildCborArray {
+						add(Tstr("FR"))
+					})
+					addDataElement("portrait", Bstr(portraitJpeg))
 					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
 					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))

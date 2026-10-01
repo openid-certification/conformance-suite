@@ -19,37 +19,43 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VP1FinalWalletCredentialType {
 
-	EUDI_PID("eudi_pid", "/json/dcql/vp1final-wallet-eudi-pid.json",
-		"/json/dcql/vp1final-wallet-eudi-pid-all-mandatory.json"),
-	MDL("mdl", "/json/dcql/vp1final-wallet-mdl.json",
-		"/json/dcql/vp1final-wallet-mdl-all-mandatory.json"),
-	PHOTO_ID("photoid", "/json/dcql/vp1final-wallet-photoid.json",
-		"/json/dcql/vp1final-wallet-photoid-all-mandatory.json"),
+	EUDI_PID("eudi_pid", "/json/dcql/vp1final-wallet-eudi-pid", "/json/dcql/vp1final-wallet-eudi-pid-mdoc"),
+	MDL("mdl", null, "/json/dcql/vp1final-wallet-mdl"),
+	PHOTO_ID("photoid", null, "/json/dcql/vp1final-wallet-photoid"),
 	CUSTOM("custom", null, null);
 
 	private final String variantValue;
-	private final String dcqlResource;
-	private final String allMandatoryClaimsDcqlResource;
+	private final String sdJwtDcqlResourceStem;
+	private final String mdocDcqlResourceStem;
 
-	private VP1FinalWalletCredentialType(String variantValue, String dcqlResource,
-			String allMandatoryClaimsDcqlResource) {
+	private VP1FinalWalletCredentialType(String variantValue, String sdJwtDcqlResourceStem,
+			String mdocDcqlResourceStem) {
 		this.variantValue = variantValue;
-		this.dcqlResource = dcqlResource;
-		this.allMandatoryClaimsDcqlResource = allMandatoryClaimsDcqlResource;
+		this.sdJwtDcqlResourceStem = sdJwtDcqlResourceStem;
+		this.mdocDcqlResourceStem = mdocDcqlResourceStem;
 	}
 
-	/** The suite's built-in DCQL query for this credential type, or null when the tester supplies one. */
-	public String getDcqlResource() {
-		return dcqlResource;
+	private String dcqlResourceStem(VP1FinalWalletCredentialFormat format) {
+		return format == VP1FinalWalletCredentialFormat.ISO_MDL ? mdocDcqlResourceStem : sdJwtDcqlResourceStem;
+	}
+
+	/**
+	 * The suite's built-in DCQL query for this credential type in the given format, or null when
+	 * the tester supplies one.
+	 */
+	public String getDcqlResource(VP1FinalWalletCredentialFormat format) {
+		String stem = dcqlResourceStem(format);
+		return stem == null ? null : stem + ".json";
 	}
 
 	/**
 	 * The suite's built-in DCQL query requesting every mandatory data element of this credential
-	 * type, or null when the tester supplies the query (there is no known mandatory set for a
-	 * custom credential).
+	 * type in the given format, or null when the tester supplies the query (there is no known
+	 * mandatory set for a custom credential).
 	 */
-	public String getAllMandatoryClaimsDcqlResource() {
-		return allMandatoryClaimsDcqlResource;
+	public String getAllMandatoryClaimsDcqlResource(VP1FinalWalletCredentialFormat format) {
+		String stem = dcqlResourceStem(format);
+		return stem == null ? null : stem + "-all-mandatory.json";
 	}
 
 	@Override

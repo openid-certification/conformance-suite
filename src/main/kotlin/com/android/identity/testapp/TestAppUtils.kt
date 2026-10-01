@@ -422,7 +422,13 @@ object TestAppUtils {
         numCredentialsPerDomain: Int,
         givenNameOverride: String
     ) {
-        val issuerNamespaces = buildIssuerNamespaces {
+        // multipaz's EUPersonalID sample data uses attribute identifiers the PID Rulebook no longer
+        // defines, so the PID gets the same attributes the emulated issuer mints.
+        val issuerNamespaces = if (documentType.mdocDocumentType?.docType == EUPersonalID.EUPID_DOCTYPE) {
+            VciMdocUtils.buildIssuerNamespacesForDocType(
+                EUPersonalID.EUPID_DOCTYPE, signedAt, validUntil,
+                VciMdocUtils.subjectCountry(dsKey.certChain.certificates.first()) ?: "US")
+        } else buildIssuerNamespaces {
             for ((nsName, ns) in documentType.mdocDocumentType?.namespaces!!) {
                 addNamespace(nsName) {
                     for ((deName, de) in ns.dataElements) {

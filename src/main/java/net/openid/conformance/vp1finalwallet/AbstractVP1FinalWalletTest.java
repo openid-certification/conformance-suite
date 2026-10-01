@@ -80,8 +80,10 @@ import net.openid.conformance.condition.client.EnsureMdocAgeOverElementsConsiste
 import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreValid;
 import net.openid.conformance.condition.client.ValidateMdocMsoValidityInfoTimestamps;
 import net.openid.conformance.condition.client.EnsureMdocPhotoIdElementValuesAreValid;
+import net.openid.conformance.condition.client.EnsureMdocPidElementValuesAreValid;
 import net.openid.conformance.condition.client.EnsurePresentedMdocMdlElementsAreDefined;
 import net.openid.conformance.condition.client.EnsurePresentedMdocPhotoIdElementsAreDefined;
+import net.openid.conformance.condition.client.EnsurePresentedMdocPidElementsAreDefined;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
@@ -235,12 +237,6 @@ import java.util.concurrent.TimeUnit;
 	values = {"mdl", "photoid"},  // the built-in mDL and Photo ID queries are mdoc queries
 	whenParameter = VP1FinalWalletCredentialFormat.class,
 	hasValues = "sd_jwt_vc"
-)
-@VariantNotApplicableWhen(
-	parameter = VP1FinalWalletCredentialType.class,
-	values = {"eudi_pid"},  // the built-in PID query is an SD-JWT VC query
-	whenParameter = VP1FinalWalletCredentialFormat.class,
-	hasValues = "iso_mdl"
 )
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
@@ -480,7 +476,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	 * query, e.g. the one requesting every mandatory data element.
 	 */
 	protected String builtInDcqlResource() {
-		return credentialType.getDcqlResource();
+		return credentialType.getDcqlResource(credentialFormat);
 	}
 
 	/**
@@ -803,6 +799,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					ConditionResult.FAILURE, "ISO18013-5-13.4.2");
 				callAndContinueOnFailure(EnsureMdocPhotoIdElementValuesAreValid.class,
 					ConditionResult.FAILURE, "ISO23220-4-C");
+				callAndContinueOnFailure(EnsurePresentedMdocPidElementsAreDefined.class,
+					ConditionResult.WARNING, "PIDRULEBOOK-3.1.2");
+				callAndContinueOnFailure(EnsureMdocPidElementValuesAreValid.class,
+					ConditionResult.FAILURE, "PIDRULEBOOK-3.1.2");
 				callAndContinueOnFailure(EnsureMdocAgeOverElementsConsistentWithBirthDate.class,
 					ConditionResult.FAILURE, "ISO18013-5-13.4.6", "ISO23220-2-6.3.2.2");
 				callAndContinueOnFailure(EnsureMdocAgeInYearsConsistentWithBirthDate.class,

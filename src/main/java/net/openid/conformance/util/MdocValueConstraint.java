@@ -1,6 +1,7 @@
 package net.openid.conformance.util;
 
 import org.multipaz.cbor.Bstr;
+import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.CborInt;
 import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
@@ -11,6 +12,7 @@ import org.multipaz.cbor.Tstr;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -18,14 +20,14 @@ import java.util.regex.Pattern;
 
 /**
  * A constraint on the value of an mdoc data element, as given by the "Encoding format" column and
- * the definitions of ISO/IEC 18013-5 Table 20 and ISO/IEC TS 23220-2.
+ * the definitions of ISO/IEC 18013-5 Table 20, ISO/IEC TS 23220-2 and the EUDI PID Rulebook.
  *
  * Each constraint returns null when the value is acceptable, or a description of what is wrong.
  */
 @FunctionalInterface
 public interface MdocValueConstraint {
 
-	/** Maximum length both specifications give for data elements encoded as tstr. */
+	/** Maximum length all three specifications give for data elements encoded as tstr. */
 	int MAX_TSTR_LENGTH = 150;
 
 	/** ISO 3166-1 alpha-2 country codes are two upper case letters. */
@@ -55,13 +57,25 @@ public interface MdocValueConstraint {
 	 */
 	Pattern APPROXIMATE_MASK = Pattern.compile("[01]{8}");
 
+	/** The keys the PID Rulebook 3.1.4 defines for the place_of_birth map. */
+	Set<String> PLACE_OF_BIRTH_KEYS = Set.of("country", "region", "locality");
+
+	/**
+	 * A specification that forbids fractions of seconds and local UTC offsets in the tdate values
+	 * of its data elements.
+	 */
+	record TdateRestriction(String specification, String subject) {
+		static final TdateRestriction MDL = new TdateRestriction("ISO/IEC 18013-5", "mDL data elements");
+		static final TdateRestriction PID = new TdateRestriction("the PID Rulebook", "PID attributes");
+	}
+
 	String check(DataItem value);
 
 	static String describe(DataItem value) {
 		return value == null ? "absent" : value.getClass().getSimpleName();
 	}
 
-	/** A text string, which both specifications limit to 150 characters. */
+	/** A text string, which all three specifications limit to 150 characters. */
 	static MdocValueConstraint tstr() {
 		return value -> {
 			if (!(value instanceof Tstr)) {
@@ -122,18 +136,19 @@ public interface MdocValueConstraint {
 		return "the full-date's text '" + text + "' is not an RFC 3339 full-date";
 	}
 
-	private static String checkDateTimeText(String text, boolean mdlRestrictions) {
+	private static String checkDateTimeText(String text, TdateRestriction restriction) {
 		Matcher matcher = RFC3339_DATE_TIME.matcher(text);
 		if (matcher.matches()) {
 			// ISO/IEC 18013-5: for tdate in mDL data elements "fraction of seconds shall not be
 			// used" and "no local offset from UTC shall be used, as indicated by ... \u201cZ\u201d".
-			if (mdlRestrictions && matcher.group(4) != null) {
-				return "the tdate's text '" + text + "' uses fractions of seconds, which ISO/IEC 18013-5 "
-					+ "does not permit in mDL data elements";
+			// The PID Rulebook 3.1.2 has the same two rules for PID attributes.
+			if (restriction != null && matcher.group(4) != null) {
+				return "the tdate's text '" + text + "' uses fractions of seconds, which "
+					+ restriction.specification() + " does not permit in " + restriction.subject();
 			}
-			if (mdlRestrictions && !"Z".equalsIgnoreCase(matcher.group(5))) {
-				return "the tdate's text '" + text + "' uses a local UTC offset, but ISO/IEC 18013-5 "
-					+ "requires mDL data elements to use 'Z'";
+			if (restriction != null && !"Z".equalsIgnoreCase(matcher.group(5))) {
+				return "the tdate's text '" + text + "' uses a local UTC offset, but "
+					+ restriction.specification() + " requires " + restriction.subject() + " to use 'Z'";
 			}
 			// Rebuild the shape-checked fields for java.time's range checking: a leap second
 			// becomes :59, since java.time rejects :60 (whether a leap second really occurred at
@@ -159,7 +174,7 @@ public interface MdocValueConstraint {
 
 	/** A tdate (CBOR tag 0) or a full-date (CBOR tag 1004). */
 	static MdocValueConstraint tdateOrFullDate() {
-		return tdateOrFullDateConstraint(false);
+		return tdateOrFullDateConstraint(null);
 	}
 
 	/**
@@ -167,10 +182,18 @@ public interface MdocValueConstraint {
 	 * of seconds and a UTC offset of "Z".
 	 */
 	static MdocValueConstraint mdlTdateOrFullDate() {
-		return tdateOrFullDateConstraint(true);
+		return tdateOrFullDateConstraint(TdateRestriction.MDL);
 	}
 
-	private static MdocValueConstraint tdateOrFullDateConstraint(boolean mdlRestrictions) {
+	/**
+	 * A full-date, or a tdate as the PID Rulebook 3.1.2 restricts it for PID attributes: no
+	 * fractions of seconds and a UTC offset of "Z".
+	 */
+	static MdocValueConstraint pidTdateOrFullDate() {
+		return tdateOrFullDateConstraint(TdateRestriction.PID);
+	}
+
+	private static MdocValueConstraint tdateOrFullDateConstraint(TdateRestriction restriction) {
 		return value -> {
 			if (value instanceof Tagged tagged
 					&& (tagged.getTagNumber() == Tagged.FULL_DATE_STRING
@@ -181,7 +204,7 @@ public interface MdocValueConstraint {
 				String text = tagged.getTaggedItem().getAsTstr();
 				return tagged.getTagNumber() == Tagged.FULL_DATE_STRING
 					? checkFullDateText(text)
-					: checkDateTimeText(text, mdlRestrictions);
+					: checkDateTimeText(text, restriction);
 			}
 			return "expected a tdate (CBOR tag " + Tagged.DATE_TIME_STRING + ") or a full-date (CBOR tag "
 				+ Tagged.FULL_DATE_STRING + ") but found " + describe(value);
@@ -190,7 +213,7 @@ public interface MdocValueConstraint {
 
 	/** A tdate, defined as #6.0(tstr) holding an RFC 3339 date-time. */
 	static MdocValueConstraint tdate() {
-		return tdateConstraint(false);
+		return tdateConstraint(null);
 	}
 
 	/**
@@ -198,10 +221,10 @@ public interface MdocValueConstraint {
 	 * a UTC offset of "Z".
 	 */
 	static MdocValueConstraint mdlTdate() {
-		return tdateConstraint(true);
+		return tdateConstraint(TdateRestriction.MDL);
 	}
 
-	private static MdocValueConstraint tdateConstraint(boolean mdlRestrictions) {
+	private static MdocValueConstraint tdateConstraint(TdateRestriction restriction) {
 		return value -> {
 			if (!(value instanceof Tagged tagged) || tagged.getTagNumber() != Tagged.DATE_TIME_STRING) {
 				return "expected a tdate, which is CBOR tag " + Tagged.DATE_TIME_STRING
@@ -210,7 +233,7 @@ public interface MdocValueConstraint {
 			if (!(tagged.getTaggedItem() instanceof Tstr)) {
 				return "the tdate's tagged item is not a text string";
 			}
-			return checkDateTimeText(tagged.getTaggedItem().getAsTstr(), mdlRestrictions);
+			return checkDateTimeText(tagged.getTaggedItem().getAsTstr(), restriction);
 		};
 	}
 
@@ -257,6 +280,70 @@ public interface MdocValueConstraint {
 				? null
 				: "expected an ISO 3166-1 alpha-2 or alpha-3 country code, which is two or three upper "
 					+ "case letters, but found '" + text + "'";
+		};
+	}
+
+	/** A text string matching a pattern; the description completes "expected ...". */
+	static MdocValueConstraint tstrMatching(Pattern pattern, String description) {
+		return value -> {
+			String problem = tstr().check(value);
+			if (problem != null) {
+				return problem;
+			}
+			String text = value.getAsTstr();
+			return pattern.matcher(text).matches()
+				? null
+				: "expected " + description + " but found '" + text + "'";
+		};
+	}
+
+	/**
+	 * The nationalities type of the PID Rulebook 3.1.3: a non-empty array of ISO 3166-1 alpha-2
+	 * country codes.
+	 */
+	static MdocValueConstraint alpha2CountryCodeArray() {
+		return value -> {
+			if (!(value instanceof CborArray array)) {
+				return "expected an array of country codes but found " + describe(value);
+			}
+			if (array.getItems().isEmpty()) {
+				return "the array of country codes is empty, but it must contain at least one";
+			}
+			for (DataItem item : array.getItems()) {
+				String problem = alpha2CountryCode().check(item);
+				if (problem != null) {
+					return "an entry in the array of country codes is invalid: " + problem;
+				}
+			}
+			return null;
+		};
+	}
+
+	/**
+	 * The place_of_birth type of the PID Rulebook 3.1.4: a map with at least one of "country" (an
+	 * ISO 3166-1 alpha-2 country code), "region" and "locality" (text strings), and no other key.
+	 */
+	static MdocValueConstraint placeOfBirth() {
+		return value -> {
+			if (!(value instanceof CborMap map)) {
+				return "expected the place_of_birth map but found " + describe(value);
+			}
+			if (map.getItems().isEmpty()) {
+				return "the place_of_birth map is empty, but it must contain at least one of "
+					+ new TreeSet<>(PLACE_OF_BIRTH_KEYS);
+			}
+			for (Map.Entry<DataItem, DataItem> entry : map.getItems().entrySet()) {
+				if (!(entry.getKey() instanceof Tstr) || !PLACE_OF_BIRTH_KEYS.contains(entry.getKey().getAsTstr())) {
+					return "the place_of_birth map has a key other than " + new TreeSet<>(PLACE_OF_BIRTH_KEYS);
+				}
+				String key = entry.getKey().getAsTstr();
+				MdocValueConstraint constraint = "country".equals(key) ? alpha2CountryCode() : tstr();
+				String problem = constraint.check(entry.getValue());
+				if (problem != null) {
+					return "the place_of_birth map's '" + key + "' entry is invalid: " + problem;
+				}
+			}
+			return null;
 		};
 	}
 
