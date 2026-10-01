@@ -557,7 +557,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(FAPI2GenerateServerJWKs.class);
 		}
-		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-ID2-5.6.4-2.3.1");
+		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-ID2-5.6.4-3");
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 	}
 

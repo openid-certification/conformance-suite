@@ -489,7 +489,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				// "allows the Verifier to pass ephemeral keys specific to this Authorization Request").
 				ConditionResult reuseSeverity = (getVariant(VPProfile.class) == VPProfile.HAIP)
 					? ConditionResult.FAILURE : ConditionResult.WARNING;
-				callAndContinueOnFailure(VP1FinalCheckEncryptionKeyNotReused.class, reuseSeverity, "HAIP-5-2.6", "OID4VP-1FINAL-5.1");
+				callAndContinueOnFailure(VP1FinalCheckEncryptionKeyNotReused.class, reuseSeverity, "HAIP-5-6", "OID4VP-1FINAL-5.1");
 				break;
 			case DIRECT_POST:
 				break;

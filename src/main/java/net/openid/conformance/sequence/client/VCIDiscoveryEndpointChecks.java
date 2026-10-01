@@ -28,7 +28,7 @@ public class VCIDiscoveryEndpointChecks extends AbstractConditionSequence {
 			ConditionResult.FAILURE, "RFC8414-2");
 
 		callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
+			ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 
 		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class,
 			ConditionResult.FAILURE, "RFC6749-3.3");
