@@ -136,6 +136,18 @@ public class LogEntryHelper_UnitTest {
 			.isEqualTo(LogEntryHelper.specLinks.get("CDR-") + "levels-of-assurance-loas");
 	}
 
+	@Test
+	public void sectionLinksTakePrecedenceAndCoverItemisedRequirements() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		Map<String, String> sections = LogEntryHelper.getSpecSectionLinks();
+
+		assertThat(sections).isNotEmpty();
+		sections.forEach((section, url) -> {
+			assertThat(helper.getRequirementLink(section)).isEqualTo(url);
+			assertThat(helper.getRequirementLink(section + "-3")).isEqualTo(url);
+		});
+	}
+
 	private static final Path SPEC_LIBRARY = Path.of("library", "specs");
 
 	private static JsonObject specLibraryManifest() throws Exception {

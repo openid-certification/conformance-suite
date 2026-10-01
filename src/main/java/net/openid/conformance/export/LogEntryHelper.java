@@ -5,6 +5,7 @@ import org.bson.Document;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -184,6 +185,17 @@ public class LogEntryHelper {
 			brazilFapi22 + "6.2.-Signing-algorithm-considerations");
 		specSectionLinks.put("BrazilOB22-6.3",
 			brazilFapi22 + "6.3.-Encryption-algorithm-considerations");
+	}
+
+	/**
+	 * Section requirements whose published fragment is not derivable from the section number,
+	 * mapped to the full URL of that section. A requirement links here when it equals a key or
+	 * starts with the key followed by a hyphen; these take precedence over {@link #specLinks}.
+	 *
+	 * @return read-only map of section requirement to section URL
+	 */
+	public static Map<String, String> getSpecSectionLinks() {
+		return Collections.unmodifiableMap(specSectionLinks);
 	}
 
 	private Document logEntry;
