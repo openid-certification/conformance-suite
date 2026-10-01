@@ -37,6 +37,7 @@ describe("draftFromView", () => {
     expect(draft.clientSecret).toBe("");
     expect(draft.clearClientSecret).toBe(false);
     expect(draft.replaceJwks).toBe(false);
+    expect(draft.clearClientJwks).toBe(false);
     expect(draft.clientJwksText).toBe("");
     expect(draft.positiveCertificates[0]).toEqual({
       id: "pos-1",
@@ -109,6 +110,19 @@ describe("requestFromDraft", () => {
     expect(body).not.toHaveProperty("clientSecret");
   });
 
+  it("sends the clear flag instead of any replacement JWKS", () => {
+    const draft = draftFromView(VIEW);
+    draft.replaceJwks = true;
+    draft.clientJwksText = '{"keys": [{"kty": "RSA", "kid": "k2"}]}';
+    draft.clearClientJwks = true;
+
+    const { body, errors } = requestFromDraft(draft);
+
+    expect(errors).toEqual([]);
+    expect(body.clearClientJwks).toBe(true);
+    expect(body).not.toHaveProperty("clientJwks");
+  });
+
   it("sends a replacement JWKS as an object", () => {
     const draft = draftFromView(VIEW);
     draft.replaceJwks = true;
@@ -136,7 +150,10 @@ describe("requestFromDraft", () => {
       draft.clientJwksText = text;
 
       expect(requestFromDraft(draft).errors).toEqual([
-        { field: "clientJwks", message: "'Client JWKS' must be a JSON object" },
+        {
+          field: "clientJwks",
+          message: "'Client JWKS' must be a JSON object",
+        },
       ]);
     },
   );

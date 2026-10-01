@@ -153,6 +153,7 @@ test.describe("settings.html — admin server settings", () => {
     expect(body).not.toHaveProperty("clientSecret");
     expect(body).not.toHaveProperty("clearClientSecret");
     expect(body).not.toHaveProperty("clientJwks");
+    expect(body).not.toHaveProperty("clearClientJwks");
     expect(body.positiveCertificates).toEqual([
       {
         id: "pos-1",
@@ -205,6 +206,21 @@ test.describe("settings.html — admin server settings", () => {
     await expect(page.locator('[data-testid="settings-errors"]')).toContainText(
       "The settings were not saved",
     );
+  });
+
+  test("clearing the stored JWKS sends the clear flag and no JWKS", async ({ page }) => {
+    await setupFailFast(page);
+    const puts = await setupSettingsRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/settings.html");
+    await page.getByLabel("Clear the stored JWKS").check();
+    await expect(page.getByRole("button", { name: "Replace JWKS" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Save" }).click();
+
+    await expect.poll(() => puts.length).toBe(1);
+    expect(puts[0].clearClientJwks).toBe(true);
+    expect(puts[0]).not.toHaveProperty("clientJwks");
   });
 
   test("a JWKS that is not a JSON object is refused before anything is sent", async ({ page }) => {

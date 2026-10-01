@@ -52,6 +52,7 @@ export const CMF_CHILE_ENDPOINT = "/api/admin/settings/cmf-chile";
  * @property {string} clientSecret - Secret input; empty keeps the stored secret.
  * @property {boolean} clearClientSecret - Remove the stored secret.
  * @property {boolean} replaceJwks - Whether the JWKS editor is shown.
+ * @property {boolean} clearClientJwks - Remove the stored JWKS.
  * @property {string} clientJwksText - JWKS editor text.
  * @property {Array<EntryDraft>} positiveCertificates - Positive entries.
  * @property {Array<EntryDraft>} negativeCertificates - Negative entries.
@@ -75,6 +76,7 @@ export const CMF_CHILE_ENDPOINT = "/api/admin/settings/cmf-chile";
  * @property {string} [clientSecret] - Omitted to keep the stored secret.
  * @property {boolean} [clearClientSecret] - Remove the stored secret.
  * @property {object} [clientJwks] - Omitted to keep the stored JWKS.
+ * @property {boolean} [clearClientJwks] - Remove the stored JWKS.
  * @property {Array<EntryRequest>} positiveCertificates - Positive entries.
  * @property {Array<EntryRequest>} negativeCertificates - Negative entries.
  */
@@ -111,6 +113,7 @@ export function draftFromView(view) {
     clientSecret: "",
     clearClientSecret: false,
     replaceJwks: false,
+    clearClientJwks: false,
     clientJwksText: "",
     positiveCertificates: (view.positiveCertificates ?? []).map(entryDraftFromView),
     negativeCertificates: (view.negativeCertificates ?? []).map(entryDraftFromView),
@@ -162,7 +165,9 @@ export function requestFromDraft(draft) {
   } else if (draft.clientSecret !== "") {
     body.clientSecret = draft.clientSecret;
   }
-  if (draft.replaceJwks && draft.clientJwksText.trim() !== "") {
+  if (draft.clearClientJwks) {
+    body.clearClientJwks = true;
+  } else if (draft.replaceJwks && draft.clientJwksText.trim() !== "") {
     let parsed;
     try {
       parsed = JSON.parse(draft.clientJwksText);

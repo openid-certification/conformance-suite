@@ -316,6 +316,17 @@ class CtsSettingsPage extends LitElement {
     });
   }
 
+  /** @param {Event} event - `change` from the clear-JWKS checkbox. */
+  _onClearJwksChange(event) {
+    const checked = /** @type {HTMLInputElement} */ (event.currentTarget).checked;
+    this._draft = /** @type {SettingsDraft} */ ({
+      ...this._draft,
+      clearClientJwks: checked,
+      replaceJwks: false,
+      clientJwksText: "",
+    });
+  }
+
   _onReplaceJwks() {
     this._setField("replaceJwks", true);
   }
@@ -530,6 +541,7 @@ class CtsSettingsPage extends LitElement {
 
   _jwksField() {
     const jwks = this._view?.clientJwks ?? { set: false, keys: [] };
+    const clearing = this._draft?.clearClientJwks === true;
     return html`<div class="cts-settings-field">
       <span class="cts-settings-label" id="settings-clientJwks-label">Client JWKS</span>
       ${jwks.set
@@ -544,24 +556,33 @@ class CtsSettingsPage extends LitElement {
             )}
           </ul>`
         : html`<p class="cts-settings-meta">Not set.</p>`}
-      ${this._draft?.replaceJwks
-        ? html`<p class="cts-settings-meta">
-              Paste the full JWKS, private keys included. It replaces the stored one when you save.
-            </p>
-            <cts-json-editor
-              placeholder='{"keys": [ ... ]}'
-              data-field="clientJwksText"
-              .value=${this._draft.clientJwksText}
-              @input=${this._onFieldInput}
-            ></cts-json-editor>`
-        : html`<div>
-            <cts-button
-              variant="secondary"
-              size="xs"
-              label=${jwks.set ? "Replace JWKS" : "Set JWKS"}
-              @cts-click=${this._onReplaceJwks}
-            ></cts-button>
-          </div>`}
+      ${jwks.set
+        ? html`<label class="cts-settings-check">
+            <input type="checkbox" .checked=${clearing} @change=${this._onClearJwksChange} />
+            Clear the stored JWKS
+          </label>`
+        : nothing}
+      ${clearing
+        ? nothing
+        : this._draft?.replaceJwks
+          ? html`<p class="cts-settings-meta">
+                Paste the full JWKS, private keys included. It replaces the stored one when you
+                save.
+              </p>
+              <cts-json-editor
+                placeholder='{"keys": [ ... ]}'
+                data-field="clientJwksText"
+                .value=${this._draft.clientJwksText}
+                @input=${this._onFieldInput}
+              ></cts-json-editor>`
+          : html`<div>
+              <cts-button
+                variant="secondary"
+                size="xs"
+                label=${jwks.set ? "Replace JWKS" : "Set JWKS"}
+                @cts-click=${this._onReplaceJwks}
+              ></cts-button>
+            </div>`}
       ${this._error("settings-clientJwks", "clientJwks")}
     </div>`;
   }

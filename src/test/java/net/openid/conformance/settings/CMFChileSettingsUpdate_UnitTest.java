@@ -23,6 +23,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 			  "clientSecret": "s3cret",
 			  "clearClientSecret": true,
 			  "clientJwks": {"keys": []},
+			  "clearClientJwks": true,
 			  "positiveCertificates": [
 			    {"id": "pos-1", "label": "primary", "certificateChainPem": "CERT", "privateKeyPem": "KEY"}
 			  ],
@@ -37,6 +38,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 		assertThat(update.clientSecret()).isEqualTo("s3cret");
 		assertThat(update.clearClientSecret()).isTrue();
 		assertThat(JsonParser.parseString(update.clientJwks())).isEqualTo(json("{\"keys\": []}"));
+		assertThat(update.clearClientJwks()).isTrue();
 		assertThat(update.positiveCertificates())
 			.containsExactly(new CertificateEntryUpdate("pos-1", "primary", "CERT", "KEY"));
 		assertThat(update.negativeCertificates())
@@ -52,6 +54,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 		assertThat(update.clientSecret()).isNull();
 		assertThat(update.clearClientSecret()).isFalse();
 		assertThat(update.clientJwks()).isNull();
+		assertThat(update.clearClientJwks()).isFalse();
 		assertThat(update.positiveCertificates()).isEmpty();
 		assertThat(update.negativeCertificates()).isEmpty();
 	}
@@ -63,6 +66,7 @@ public class CMFChileSettingsUpdate_UnitTest {
 
 		assertThat(update.clientId()).isNull();
 		assertThat(update.clientJwks()).isNull();
+		assertThat(update.clearClientJwks()).isFalse();
 		assertThat(update.positiveCertificates()).isEmpty();
 	}
 

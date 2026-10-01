@@ -102,7 +102,7 @@ Replaces the whole section. The body has the view's shape, with these write-only
 
 - `clientSecret`: absent or empty keeps the stored value; `"clearClientSecret": true` removes it.
 - `clientJwks`: when present, a full JWKS with private members that replaces the stored one. When
-  absent, the stored JWKS is kept.
+  absent, the stored JWKS is kept; `"clearClientJwks": true` removes it.
 - Certificate entries: `privateKeyPem` may be omitted only when the entry's `id` matches a stored
   entry in the same list, in which case the stored key is kept. An entry without an `id` is new:
   the server assigns an `id`, and `privateKeyPem` is required. A stored entry whose `id` is not in
@@ -156,7 +156,7 @@ is schema-driven for the test configuration form.
 | Software statement endpoint URL | text input |
 | Directory client ID | text input |
 | Directory client secret | password input. The placeholder says "set — leave blank to keep" or "not set". A "Clear" checkbox is next to it. |
-| Client JWKS | A read-only list of the stored keys' `kid`/`kty`/`alg`. "Replace JWKS" reveals an empty `<cts-json-editor>`. The stored JWKS is never shown. |
+| Client JWKS | A read-only list of the stored keys' `kid`/`kty`/`alg`. "Replace JWKS" reveals an empty `<cts-json-editor>`. A "Clear" checkbox removes it. The stored JWKS is never shown. |
 | Positive DCR client certificates | A list of entries (see below), with "Add certificate". |
 | Negative DCR client certificates | The same list. The label hint suggests naming the defect, e.g. "expired", "untrusted CA". |
 
@@ -234,7 +234,7 @@ Every module that consumes the settings must follow these rules:
   - `SettingsSecretMerge_UnitTest`:
     - blank secret keeps the stored one;
     - the clear flag removes it;
-    - omitted `clientJwks` keeps the stored JWKS;
+    - omitted `clientJwks` keeps the stored JWKS, and `clearClientJwks` removes it;
     - an entry with a known `id` and no key keeps the stored key;
     - a new entry without a key is rejected;
     - a stored entry missing from the request is deleted;
