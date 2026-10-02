@@ -1,5 +1,5 @@
 {
-    "description": "Authzen Cerbos Server",
+    "description": "Authzen Cerbos public demo PDP (authzen-proxy-demo.cerbos.dev). Not wired into .gitlab-ci/run-tests.sh - run it by hand. CI runs against the pinned local Cerbos image instead, with authzen-cerbos-local-test-config.json.",
     "publish": "everything",
     "pdp": {
         "policy_decision_point": "https://authzen-proxy-demo.cerbos.dev",
