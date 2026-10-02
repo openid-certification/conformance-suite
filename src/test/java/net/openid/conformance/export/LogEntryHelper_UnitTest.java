@@ -112,10 +112,18 @@ public class LogEntryHelper_UnitTest {
 
 		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.2-5"))
 			.isEqualTo(fapi2 + "5.3.2.2");
-		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.1-2.5.2.1"))
+		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.1-5.1"))
 			.isEqualTo(fapi2 + "5.3.2.1");
 		assertThat(helper.getRequirementLink("HAIP-5-5"))
 			.isEqualTo(LogEntryHelper.specLinks.get("HAIP-") + "5");
+	}
+
+	@Test
+	public void longestMatchingPrefixWins() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+
+		assertThat(helper.getRequirementLink("KSA-OF-1"))
+			.isEqualTo(LogEntryHelper.specLinks.get("KSA-OF-1"));
 	}
 
 	@Test
