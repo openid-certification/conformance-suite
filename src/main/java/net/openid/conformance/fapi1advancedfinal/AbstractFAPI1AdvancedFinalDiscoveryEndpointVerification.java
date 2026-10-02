@@ -46,7 +46,7 @@ public abstract class AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification ex
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-6");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-14");
 
 		}
 	}
