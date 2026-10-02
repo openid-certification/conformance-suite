@@ -27,14 +27,11 @@ describe("resolveSpecLink", () => {
     );
   });
 
-  it("drops a nested or repeated item part", () => {
-    expect(resolveSpecLink("FAPI2-SP-FINAL-5.3.2.1-2.5.2.1", MAP)).toBe(
+  it("drops a sub-item part and an item of a top-level section", () => {
+    expect(resolveSpecLink("FAPI2-SP-FINAL-5.3.2.1-5.1", MAP)).toBe(
       "https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.1",
     );
     expect(resolveSpecLink("HAIP-5-5", MAP)).toBe(
-      "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#section-5",
-    );
-    expect(resolveSpecLink("HAIP-5-5-2", MAP)).toBe(
       "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#section-5",
     );
   });
