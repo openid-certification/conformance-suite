@@ -322,14 +322,19 @@ public class LogEntryHelper {
 				return sectionLink.getValue();
 			}
 		}
-		for(String key : specLinks.keySet()) {
-			if(requirement.startsWith(key)) {
-				String suffix = requirement.substring(key.length());
-				Matcher itemised = SECTION_WITH_ITEM.matcher(suffix);
-				return specLinks.get(key) + (itemised.matches() ? itemised.group(1) : suffix);
+		// Longest prefix wins: KSA-OF-1 must not resolve through KSA.
+		String prefix = "";
+		for (String key : specLinks.keySet()) {
+			if (requirement.startsWith(key) && key.length() > prefix.length()) {
+				prefix = key;
 			}
 		}
-		return "";
+		if (prefix.isEmpty()) {
+			return "";
+		}
+		String suffix = requirement.substring(prefix.length());
+		Matcher itemised = SECTION_WITH_ITEM.matcher(suffix);
+		return specLinks.get(prefix) + (itemised.matches() ? itemised.group(1) : suffix);
 	}
 
 	public boolean isBeginNewBlock() {
