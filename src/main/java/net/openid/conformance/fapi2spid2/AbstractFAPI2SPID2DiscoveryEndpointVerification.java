@@ -55,7 +55,7 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-5");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-6");
 
 		}
 	}
