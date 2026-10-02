@@ -271,7 +271,7 @@ class WebSecurityOidcLoginConfig {
 				.permitAll();
 
 			// Admin-only surface: anonymous users are sent through the normal login redirect, authenticated non-admins get a 403 error page.
-			httpRequests.requestMatchers("/statistics.html")
+			httpRequests.requestMatchers("/statistics.html", "/settings.html")
 				.hasAuthority(OIDCAuthenticationFacade.ROLE_ADMIN.getAuthority());
 
 			// for other requests we require authentication
