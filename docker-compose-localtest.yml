@@ -17,6 +17,10 @@ services:
       - "/bin/sh"
       - "-c"
       - "( [ -f /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ] || docker-entrypoint.sh plan > /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ) && exec docker-entrypoint.sh server"
+  cerbos-authzen-pdp:
+    image: alexolivieruk/cerbos-authzen-certification-pdp:latest
+    environment:
+      TLS_HOSTNAME: cerbos-authzen-pdp
   mongodb:
     image: mongo:6.0.13
     volumes:
