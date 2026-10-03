@@ -2,6 +2,7 @@ package org.multipaz.testapp
 
 import kotlinx.io.bytestring.ByteString
 import com.nimbusds.jose.jwk.ECKey
+import net.openid.conformance.util.EmulatedCredentialValidity
 import net.openid.conformance.util.TestKeysAndCerts
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
@@ -17,6 +18,7 @@ import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
 import org.multipaz.mdoc.mso.MobileSecurityObject
 import org.multipaz.util.truncateToWholeSeconds
 import kotlin.time.Duration.Companion.days
+import kotlin.time.toKotlinDuration
 
 /**
  * Utility object for creating mdoc credentials in the VCI (Verifiable Credentials Issuance) context.
@@ -90,16 +92,31 @@ object VciMdocUtils {
 			Instant.fromEpochSeconds(now.epochSeconds - (now.epochSeconds % 3600))
 		}
 		val validFrom = signedAt
-		// Derive validUntil from the (rounded) signedAt, not the precise now, so that two same-dataset
-		// credentials issued seconds apart share an identical, coarse validUntil rather than one that
-		// differs by the inter-issuance gap (RFC 9901 §10.1) — matching the SD-JWT exp = iat + ttl fix.
-		val validUntil = signedAt + 365.days
+		// ISO/IEC 18013-5 12.3.6.2: the MSO's status element carries either the identifier_list or
+		// the status_list reference to the MSO revocation list.
+		val revocationStatus = if (identifierListUri != null && identifierListId != null) {
+			org.multipaz.revocation.RevocationStatus.IdentifierList(
+				ByteString(identifierListId), identifierListUri, null)
+		} else if (statusListUri != null && statusListIndex != null) {
+			org.multipaz.revocation.RevocationStatus.StatusList(statusListIndex.toInt(), statusListUri, null)
+		} else {
+			null
+		}
+		// The document's administrative validity (its expiry_date element) is a year; the MSO's
+		// own validity may be shorter, as ISO/IEC 18013-5 9.1.2.4 NOTE 2 spells out, and is when the
+		// MSO cannot be revoked - see EmulatedCredentialValidity. Both derive from the (rounded)
+		// signedAt, not the precise now, so that two same-dataset credentials issued seconds apart
+		// share identical, coarse timestamps rather than ones that differ by the inter-issuance gap
+		// (RFC 9901 §10.1).
+		val expiryDate = signedAt + 365.days
+		val validUntil = if (revocationStatus != null) expiryDate
+			else validFrom + EmulatedCredentialValidity.WITHOUT_REVOCATION_INFORMATION.toKotlinDuration()
 
 		// Build IssuerNamespaces based on docType
 		// Keep the credential's issuing_country consistent with the signing certificate's
 		// countryName (ISO 18013-5 Table B.3 binds the two), whichever key is in use.
 		val issuingCountry = subjectCountry(dsKey.certChain.certificates.first()) ?: "US"
-		val issuerNamespaces = buildIssuerNamespacesForDocType(docType, now, validUntil, issuingCountry)
+		val issuerNamespaces = buildIssuerNamespacesForDocType(docType, now, expiryDate, issuingCountry)
 
 		// Generate MSO (Mobile Security Object)
 		// Note: For credentials without holder binding, devicePublicKey can be null
@@ -111,16 +128,6 @@ object VciMdocUtils {
 			)
 		}
 		val valueDigests = runBlocking { issuerNamespaces.getValueDigests(Algorithm.SHA256) }
-		// ISO/IEC 18013-5 12.3.6.2: the MSO's status element carries either the identifier_list or
-		// the status_list reference to the MSO revocation list.
-		val revocationStatus = if (identifierListUri != null && identifierListId != null) {
-			org.multipaz.revocation.RevocationStatus.IdentifierList(
-				ByteString(identifierListId), identifierListUri, null)
-		} else if (statusListUri != null && statusListIndex != null) {
-			org.multipaz.revocation.RevocationStatus.StatusList(statusListIndex.toInt(), statusListUri, null)
-		} else {
-			null
-		}
 		val mso = MobileSecurityObject(
 			version = "1.0",
 			docType = docType,
@@ -216,7 +223,7 @@ object VciMdocUtils {
 	internal fun buildIssuerNamespacesForDocType(
 		docType: String,
 		now: Instant,
-		validUntil: Instant,
+		expiryDate: Instant,
 		issuingCountry: String
 	) = buildIssuerNamespaces {
 		when (docType) {
@@ -227,7 +234,7 @@ object VciMdocUtils {
 					addDataElement("given_name", Tstr("Erika"))
 					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1985-03-15")))
 					addDataElement("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
-					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(expiryDate.toString().substring(0, 10))))
 					addDataElement("issuing_country", Tstr(issuingCountry))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
 					addDataElement("document_number", Tstr("DL-123456789"))
@@ -236,12 +243,12 @@ object VciMdocUtils {
 						add(buildCborMap {
 							put("vehicle_category_code", Tstr("B"))
 							put("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("2010-01-01")))
-							put("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
+							put("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(expiryDate.toString().substring(0, 10))))
 						})
 						add(buildCborMap {
 							put("vehicle_category_code", Tstr("A"))
 							put("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("2015-06-01")))
-							put("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
+							put("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(expiryDate.toString().substring(0, 10))))
 						})
 					})
 					addDataElement("un_distinguishing_sign", Tstr("UT"))
@@ -263,7 +270,7 @@ object VciMdocUtils {
 					})
 					addDataElement("portrait", Bstr(portraitJpeg))
 					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
-					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(expiryDate.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))
 					addDataElement("issuing_country", Tstr(issuingCountry))
 				}
@@ -280,7 +287,7 @@ object VciMdocUtils {
 					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(birthDate.toString())))
 					addDataElement("portrait", Bstr(portraitJpeg))
 					addDataElement("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
-					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(expiryDate.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
 					addDataElement("issuing_country", Tstr(issuingCountry))
 					addDataElement("age_over_18", Simple.TRUE)
@@ -302,7 +309,7 @@ object VciMdocUtils {
 					addDataElement("family_name", Tstr("Doe"))
 					addDataElement("given_name", Tstr("John"))
 					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
-					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(expiryDate.toString().substring(0, 10))))
 				}
 			}
 		}

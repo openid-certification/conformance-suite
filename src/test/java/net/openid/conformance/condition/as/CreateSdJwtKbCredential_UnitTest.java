@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -179,7 +180,11 @@ public class CreateSdJwtKbCredential_UnitTest {
 
 		cond.execute(env);
 
-		assertNull(issuerJwtClaims(env.getString("credential")).getClaim("status"));
+		JWTClaimsSet claims = issuerJwtClaims(env.getString("credential"));
+		assertNull(claims.getClaim("status"));
+		// with no way to revoke it the credential is short-lived: CIR (EU) 2024/2979 only exempts
+		// attestations valid for 24 hours or less from the revocation requirement
+		assertEquals(Duration.ofHours(23), validityPeriod(claims));
 	}
 
 	@Test
@@ -192,16 +197,22 @@ public class CreateSdJwtKbCredential_UnitTest {
 		cond.execute(env);
 
 		// draft-ietf-oauth-status-list section 6.2
-		Map<String, Object> status = issuerJwtClaims(env.getString("credential"))
-			.getJSONObjectClaim("status");
+		JWTClaimsSet claims = issuerJwtClaims(env.getString("credential"));
+		Map<String, Object> status = claims.getJSONObjectClaim("status");
 		@SuppressWarnings("unchecked")
 		Map<String, Object> statusList = (Map<String, Object>) status.get("status_list");
 		assertEquals(41, ((Number) statusList.get("idx")).intValue());
 		assertEquals("https://example.com/test/a/alias/statuslists/1", statusList.get("uri"));
+		// the status list is what allows the credential to outlive the 24 hour exemption
+		assertEquals(Duration.ofDays(14), validityPeriod(claims));
 	}
 
 	private JWTClaimsSet issuerJwtClaims(String credential) throws Exception {
 		return SignedJWT.parse(SDJWT.parse(credential).getCredentialJwt()).getJWTClaimsSet();
+	}
+
+	private Duration validityPeriod(JWTClaimsSet claims) {
+		return Duration.between(claims.getIssueTime().toInstant(), claims.getExpirationTime().toInstant());
 	}
 
 	@Test

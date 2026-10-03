@@ -11,10 +11,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		Mobile Security Object has no status element. Both are optional (draft-ietf-oauth-status-list \
 		section 6.2; ISO/IEC 18013-5 12.3.6.2 "An MSO may contain the Status structure"), so the \
 		verifier must accept the presentation: a verifier that rejects an otherwise valid \
-		credential because it carries no revocation information fails this test.
+		credential because it carries no revocation information fails this test. The credential \
+		is valid for less than 24 hours, so a verifier applying CIR (EU) 2024/2979's revocation \
+		requirement must accept it too, as that regulation exempts such short-lived attestations.
 
-		Other than the missing status reference the credential and flow are identical to the happy \
-		flow. The conformance suite acts as a mock web wallet. You must configure your verifier to \
+		Other than the missing status reference and the shorter validity period the credential and \
+		flow are identical to the happy flow. The conformance suite acts as a mock web wallet. You \
+		must configure your verifier to \
 		use the authorization endpoint url below instead of 'openid4vp://' and then start the flow \
 		in your verifier as normal.
 
