@@ -1,5 +1,6 @@
 package org.multipaz.testapp
 
+import net.openid.conformance.util.EmulatedCredentialValidity
 import net.openid.conformance.util.TestKeysAndCerts
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
@@ -51,6 +52,7 @@ import org.multipaz.util.Logger
 import org.multipaz.util.truncateToWholeSeconds
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.toKotlinDuration
 
 object TestAppUtils {
     private const val TAG = "TestAppUtils"
@@ -395,7 +397,12 @@ object TestAppUtils {
         // unlikely to present a credential its issuer minted only seconds earlier.
         val signedAt = now - 1.hours
         val validFrom =  now - 1.hours
-        val validUntil = now + 365.days
+        // The document's administrative validity (its expiry_date element) is a year; the MSO's own
+        // validity may be shorter, as ISO/IEC 18013-5 9.1.2.4 NOTE 2 spells out, and is when the
+        // MSO cannot be revoked - see EmulatedCredentialValidity.
+        val expiryDate = now + 365.days
+        val validUntil = if (revocationStatus != null) expiryDate
+            else validFrom + EmulatedCredentialValidity.WITHOUT_REVOCATION_INFORMATION.toKotlinDuration()
 
         if (documentType.mdocDocumentType != null) {
             addMdocCredentials(
@@ -408,6 +415,7 @@ object TestAppUtils {
                 signedAt = signedAt,
                 validFrom = validFrom,
                 validUntil = validUntil,
+                expiryDate = expiryDate,
                 dsKey = dsKey,
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride,
@@ -452,6 +460,7 @@ object TestAppUtils {
         signedAt: Instant,
         validFrom: Instant,
         validUntil: Instant,
+        expiryDate: Instant,
         dsKey: AsymmetricKey.X509Certified,
         numCredentialsPerDomain: Int,
         givenNameOverride: String,
@@ -461,7 +470,7 @@ object TestAppUtils {
         // defines, so the PID gets the same attributes the emulated issuer mints.
         val issuerNamespaces = if (documentType.mdocDocumentType?.docType == EUPersonalID.EUPID_DOCTYPE) {
             VciMdocUtils.buildIssuerNamespacesForDocType(
-                EUPersonalID.EUPID_DOCTYPE, signedAt, validUntil,
+                EUPersonalID.EUPID_DOCTYPE, signedAt, expiryDate,
                 VciMdocUtils.subjectCountry(dsKey.certChain.certificates.first()) ?: "US")
         } else buildIssuerNamespaces {
             for ((nsName, ns) in documentType.mdocDocumentType?.namespaces!!) {

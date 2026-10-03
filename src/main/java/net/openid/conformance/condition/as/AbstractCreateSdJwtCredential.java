@@ -20,13 +20,14 @@ import net.openid.conformance.condition.client.DcqlQueryUtils;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.EmulatedCredentialValidity;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -110,6 +111,16 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCredentialSi
 		return Instant.now().getEpochSecond();
 	}
 
+	/**
+	 * How long after {@code iat} the credential's {@code exp} falls, which depends on whether the
+	 * credential references a status list - see {@link EmulatedCredentialValidity}. The verifier
+	 * must accept both.
+	 */
+	static Duration validityPeriod(Map<String, Object> credentialClaims) {
+		boolean revocable = credentialClaims != null && credentialClaims.containsKey("status");
+		return revocable ? Duration.ofDays(14) : EmulatedCredentialValidity.WITHOUT_REVOCATION_INFORMATION;
+	}
+
 	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType,
 								 Map<String, Object> credentialClaims) {
 		JWK credentialSigningJwk = credentialSigningJwk(env);
@@ -171,7 +182,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCredentialSi
 
 		long iat = issuanceTimeSeconds();
 		builder.putClaim("iat", iat);
-		builder.putClaim("exp", Instant.ofEpochSecond(iat).plus(23, ChronoUnit.HOURS).getEpochSecond());
+		builder.putClaim("exp", Instant.ofEpochSecond(iat).plus(validityPeriod(credentialClaims)).getEpochSecond());
 		String baseUrl = env.getString("base_url");
 		builder.putClaim("iss", baseUrl);
 

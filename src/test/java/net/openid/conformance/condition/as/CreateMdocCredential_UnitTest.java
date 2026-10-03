@@ -22,6 +22,9 @@ import org.multipaz.cbor.DataItem;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 import org.multipaz.revocation.RevocationStatus;
 
+import java.time.Duration;
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -189,7 +192,12 @@ public class CreateMdocCredential_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(msoOfPresentedMdoc().getRevocationStatus()).isNull();
+		MobileSecurityObject mso = msoOfPresentedMdoc();
+		assertThat(mso.getRevocationStatus()).isNull();
+		// with no way to revoke it the mdoc is short-lived: CIR (EU) 2024/2979 only exempts
+		// attestations valid for 24 hours or less from the revocation requirement. The 23 hours
+		// run from the MSO's validFrom, which is backdated an hour
+		assertThat(validUntilFromNow(mso)).isBetween(Duration.ofHours(21), Duration.ofHours(22));
 	}
 
 	@Test
@@ -201,7 +209,8 @@ public class CreateMdocCredential_UnitTest {
 		cond.execute(env);
 
 		// ISO/IEC 18013-5 12.3.6.2: the MSO's status element references the revocation list
-		RevocationStatus status = msoOfPresentedMdoc().getRevocationStatus();
+		MobileSecurityObject mso = msoOfPresentedMdoc();
+		RevocationStatus status = mso.getRevocationStatus();
 		assertThat(status).isInstanceOf(RevocationStatus.StatusList.class);
 		RevocationStatus.StatusList statusList = (RevocationStatus.StatusList) status;
 		assertThat(statusList.getUri()).isEqualTo("https://example.com/test/a/alias/statuslists/1");
@@ -209,6 +218,14 @@ public class CreateMdocCredential_UnitTest {
 		// no Certificate element, so the revocation list's signer certificate must chain to the
 		// CA that certified the document signer
 		assertThat(statusList.getCertificate()).isNull();
+		// the revocation list is what allows the mdoc to outlive the 24 hour exemption
+		assertThat(validUntilFromNow(mso)).isGreaterThan(Duration.ofDays(300));
+	}
+
+	private Duration validUntilFromNow(MobileSecurityObject mso) {
+		kotlin.time.Instant validUntil = mso.getValidUntil();
+		return Duration.between(Instant.now(),
+			Instant.ofEpochSecond(validUntil.getEpochSeconds(), validUntil.getNanosecondsOfSecond()));
 	}
 
 	@Test
