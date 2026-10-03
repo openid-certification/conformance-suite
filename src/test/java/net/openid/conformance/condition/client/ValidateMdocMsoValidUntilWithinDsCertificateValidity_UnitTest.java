@@ -52,19 +52,20 @@ public class ValidateMdocMsoValidUntilWithinDsCertificateValidity_UnitTest {
 
 	@Test
 	public void testEvaluate_passesWhenCertificateOutlivesTheMso() throws Exception {
-		// the suite's credentials are valid for a year
+		// the fixture's MSO carries no revocation reference, so it is valid for 23 hours
 		Instant now = Instant.now();
 		MdocCredentialTestUtil.putCredential(env, MdocDsCertificateTestFixtures.credentialWithDsCertValidity(
-			Date.from(now.minus(Duration.ofDays(1))), Date.from(now.plus(Duration.ofDays(400)))));
+			Date.from(now.minus(Duration.ofDays(1))), Date.from(now.plus(Duration.ofDays(2)))));
 
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test
 	public void testEvaluate_failsWhenMsoOutlivesTheCertificate() throws Exception {
+		// the fixture's MSO carries no revocation reference, so it is valid for 23 hours
 		Instant now = Instant.now();
 		MdocCredentialTestUtil.putCredential(env, MdocDsCertificateTestFixtures.credentialWithDsCertValidity(
-			Date.from(now.minus(Duration.ofDays(1))), Date.from(now.plus(Duration.ofDays(30)))));
+			Date.from(now.minus(Duration.ofDays(1))), Date.from(now.plus(Duration.ofHours(1)))));
 
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("later than the notAfter"), e.getMessage());
