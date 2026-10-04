@@ -19,6 +19,7 @@ import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.as.ValidateStatusListRequest;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -508,6 +509,9 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				response = ResponseEntity.notFound().build();
 			} else {
 				env.putString("current_status_list_id", statusListId);
+				module.doCall(module.doExec().mapKey("incoming_request", requestId));
+				module.doCall(new ValidateStatusListRequest());
+				module.doCall(module.doExec().unmapKey("incoming_request"));
 				// TODO add cors headers
 				if (env.getString("status_list_endpoint_request", "query_string_params.time") != null) {
 					// draft-ietf-oauth-status-list section 8.4: historical resolution is not

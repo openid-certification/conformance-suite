@@ -38,7 +38,6 @@ import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureRevocationListRequestAcceptedServedMediaType;
-import net.openid.conformance.condition.as.EnsureRevocationListRequestHasOnlyDefinedQueryParameters;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.EnsureVerifierFetchedRevocationList;
 import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
@@ -88,14 +87,13 @@ import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedi
 import net.openid.conformance.condition.client.EnsureClientRequestObjectTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
-import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateOwnMdocSigningChainAgainstVical;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
-import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.sequence.ValidateJwksSequence;
+import net.openid.conformance.sequence.as.ValidateStatusListRequest;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -376,9 +374,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		call(exec().mapKey("incoming_request", requestId));
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.WARNING, "OTSL-8.1");
-		callAndContinueOnFailure(EnsureRevocationListRequestHasOnlyDefinedQueryParameters.class, ConditionResult.WARNING, "OTSL-8.4");
-		callAndContinueOnFailure(EnsureIncomingRequestBodyIsEmpty.class, ConditionResult.WARNING, "OTSL-8.1");
+		call(sequence(ValidateStatusListRequest.class));
 		callAndContinueOnFailure(EnsureRevocationListRequestAcceptedServedMediaType.class, ConditionResult.WARNING, "OTSL-8.1");
 		call(exec().unmapKey("incoming_request"));
 
