@@ -57,6 +57,7 @@ import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCer
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
+import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
 import net.openid.conformance.oauth.statuslists.StatusListCwt;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateCwtStatusListToken;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
@@ -528,7 +529,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 						ConditionResult.INFO, "OTSL-5.1");
 					String currentStatusListJwt = env.getString("current_status_list_jwt");
 					response = ResponseEntity.ok()
-						.header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt")
+						.header(HttpHeaders.CONTENT_TYPE, JwtStatusListTokenClaimsBuilder.CONTENT_TYPE)
 						.body(currentStatusListJwt);
 				}
 			}
