@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
 import net.openid.conformance.testmodule.Environment;
 
 /**
@@ -17,6 +18,6 @@ public class EnsureContentTypeStatusListJwt extends AbstractCheckEndpointContent
 			log("No status list token endpoint response recorded, skipping content-type check");
 			return env;
 		}
-		return checkContentType(env, "status_list_token_endpoint_response", "headers.", "application/statuslist+jwt");
+		return checkContentType(env, "status_list_token_endpoint_response", "headers.", JwtStatusListTokenClaimsBuilder.CONTENT_TYPE);
 	}
 }
