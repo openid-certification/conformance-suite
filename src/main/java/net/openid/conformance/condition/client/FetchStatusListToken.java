@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.oauth.statuslists.JwtStatusListTokenClaimsBuilder;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpEntity;
@@ -86,7 +87,7 @@ public class FetchStatusListToken extends AbstractCondition {
 	protected ResponseEntity<String> fetchStatusListToken(Environment env, String uri) throws Exception {
 		RestTemplate restTemplate = createRestTemplate(env);
 		HttpHeaders headers = new HttpHeaders();
-		headers.set(HttpHeaders.ACCEPT, "application/statuslist+jwt");
+		headers.set(HttpHeaders.ACCEPT, JwtStatusListTokenClaimsBuilder.CONTENT_TYPE);
 		return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 	}
 }
