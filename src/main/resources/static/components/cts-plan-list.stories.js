@@ -43,12 +43,22 @@ function innerButton(host) {
   return /** @type {HTMLButtonElement} */ (btn);
 }
 
-// An /api/info handler that never resolves, so module status boxes stay in
-// their initial `pending` state for deterministic assertions. Used by the
-// pending-box story; the resolution stories use instance-keyed handlers.
-const neverResolvingInfo = http.get(
-  "/api/info/:testId",
-  () => new Promise(() => {}), // intentionally never settles
+// `/api/plan/:planId` also matches the listing's sibling endpoints; a resolver
+// that returns nothing for those lets the handler registered for them answer.
+const NOT_A_PLAN_ID = new Set([
+  "filter-options",
+  "delete-preview",
+  "delete-status",
+  "delete-cancel",
+]);
+
+// A per-plan status handler that never resolves, so module status boxes stay
+// in their initial `pending` state for deterministic assertions. Used by the
+// pending-box story; the resolution stories use `planStatusHandler`.
+const neverResolvingStatus = http.get(
+  "/api/plan/:planId",
+  ({ params }) =>
+    NOT_A_PLAN_ID.has(/** @type {string} */ (params.planId)) ? undefined : new Promise(() => {}), // intentionally never settles
 );
 
 /**
@@ -72,22 +82,28 @@ function boxVariant(root, moduleId) {
 }
 
 /**
- * Build an instance-keyed `/api/info/:testId` handler. Returns the per-instance
- * `{ status, result }` from `infoMap` so module dots resolve to distinct
- * colors; an unknown id 404s (exercising the fail-soft → skip path). Pass a
- * `requested` array to record which instance ids were fetched (used to assert
- * the visible-card fetch gate and that no-instance modules trigger no fetch).
+ * Build the `/api/plan/:planId` handler behind the per-card status fetch.
+ * Answers the plan from `plans` with each module's latest `{ status, result }`
+ * taken from `infoMap` (keyed by the module's last instance id), as the server
+ * attaches them; an unknown plan id 404s (exercising the fail-soft → neutral
+ * path). Pass a `requested` array to record which plan ids were fetched.
  *
+ * @param {Array<{_id: string, modules?: Array<any>}>} [plans]
  * @param {Record<string, {status: string, result: string}>} [infoMap]
  * @param {string[]} [requested]
  */
-function infoHandler(infoMap = MOCK_PLAN_INFO, requested) {
-  return http.get("/api/info/:testId", ({ params }) => {
-    const id = /** @type {string} */ (params.testId);
+function planStatusHandler(plans = MOCK_PLAN_LIST, infoMap = MOCK_PLAN_INFO, requested) {
+  return http.get("/api/plan/:planId", ({ params }) => {
+    const id = /** @type {string} */ (params.planId);
+    if (NOT_A_PLAN_ID.has(id)) return undefined;
     if (requested) requested.push(id);
-    const info = infoMap[id];
-    if (!info) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json(info);
+    const plan = plans.find((p) => p._id === id);
+    if (!plan) return new HttpResponse(null, { status: 404 });
+    const modules = (plan.modules || []).map((mod) => {
+      const run = infoMap[(mod.instances || [])[mod.instances.length - 1]];
+      return run ? { ...mod, ...run } : mod;
+    });
+    return HttpResponse.json({ ...plan, modules });
   });
 }
 
@@ -140,7 +156,7 @@ export const Default = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -212,7 +228,7 @@ export const SearchAndSort = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -261,7 +277,7 @@ export const ClickPlanName = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -294,7 +310,7 @@ export const ModifierKeyClickDoesNotDispatch = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -334,7 +350,7 @@ export const ViewConfig = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -433,7 +449,7 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
             },
           ]),
         ),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -450,7 +466,7 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
 
 /**
  * Module status segments: a module that has run shows a pulsing `pending`
- * segment (the /api/info fetch is mocked to never resolve here, pinning the
+ * segment (the per-plan status fetch is mocked to never resolve here, pinning the
  * initial state); a never-run module (empty `instances`) shows a static `skip`
  * segment. Each segment is wrapped in a tooltip naming the module + status.
  */
@@ -477,7 +493,7 @@ export const ModuleStatusBoxes = {
             },
           ]),
         ),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -503,8 +519,8 @@ export const ModuleStatusBoxes = {
 };
 
 /**
- * Module status boxes resolve to their concrete color once `/api/info`
- * returns, driven by the instance-keyed handler. Each module's last instance
+ * Module status boxes resolve to their concrete color once the card's
+ * `/api/plan/<id>` returns. Each module's last instance
  * maps to a distinct result in MOCK_PLAN_INFO (pass / warn / fail), so the
  * full mapping is exercised — not just the happy path. A never-run module
  * (empty instances) stays a static skip box and is never fetched.
@@ -512,7 +528,10 @@ export const ModuleStatusBoxes = {
 export const BoxesResolveToStatus = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)), infoHandler()],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        planStatusHandler(),
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -532,49 +551,50 @@ export const BoxesResolveToStatus = {
 };
 
 /**
- * A no-instance module renders a static skip box and triggers no `/api/info`
- * fetch — only modules that have actually run are resolved. The recording
- * handler proves the fetched ids are exactly the modules that have instances.
+ * Status costs one request per visible card, whatever the number of modules:
+ * the recording handler proves each plan was fetched exactly once. A plan
+ * whose modules have all never run needs no status and is not fetched.
  */
-export const NoInstanceModuleNotFetched = {
-  /** @type {string[]} */
-  _requested: [],
+const NEVER_RUN_PLAN = {
+  ...MOCK_PLAN_LIST[0],
+  _id: "plan-never-run",
+  modules: [{ testModule: "module-never-run", instances: [] }],
+};
+
+/** @type {string[]} */
+const statusRequests = [];
+
+export const OneStatusRequestPerPlan = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        http.get("/api/info/:testId", ({ params }) => {
-          const id = /** @type {string} */ (params.testId);
-          NoInstanceModuleNotFetched._requested.push(id);
-          const info = MOCK_PLAN_INFO[id];
-          return info ? HttpResponse.json(info) : new HttpResponse(null, { status: 404 });
-        }),
+        http.get("/api/plan", () => HttpResponse.json([...MOCK_PLAN_LIST, NEVER_RUN_PLAN])),
+        planStatusHandler([...MOCK_PLAN_LIST, NEVER_RUN_PLAN], MOCK_PLAN_INFO, statusRequests),
       ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement }) {
-    NoInstanceModuleNotFetched._requested.length = 0;
+    statusRequests.length = 0;
     await waitForPlansToLoad(canvasElement);
 
-    // The never-run module (empty instances) renders a static neutral box.
+    // The never-run modules render a static neutral box.
     await waitFor(() => {
       expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("neutral");
     });
+    expect(boxVariant(canvasElement, "module-never-run")).toBe("neutral");
 
-    // Wait for the has-instance modules to resolve, then assert the fetched
-    // ids are exactly the five real instances — the no-instance module added
-    // none.
+    // Wait for the cards to resolve, then assert one fetch per plan that has
+    // a run module — and none for the plan that has never run.
     await waitFor(() => {
       expect(boxVariant(canvasElement, "oidcc-server")).toBe("pass");
     });
-    const unique = [...new Set(NoInstanceModuleNotFetched._requested)].sort();
-    expect(unique).toEqual(["inst-001", "inst-002", "inst-003", "inst-004", "inst-005"]);
+    expect([...statusRequests].sort()).toEqual(MOCK_PLAN_LIST.map((p) => p._id).sort());
   },
 };
 
 /**
- * A failed `/api/info` (404 / unpublished / deleted run) settles the box at
+ * A failed status fetch (the plan was deleted since it was listed) settles the box at
  * the neutral skip color rather than leaving it pulsing — and does not throw
  * or blank the card.
  */
@@ -583,8 +603,8 @@ export const InfoErrorSettlesToSkip = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        // Empty map → every /api/info is a 404.
-        infoHandler({}),
+        // No plans known → every /api/plan/<id> is a 404.
+        planStatusHandler([]),
       ],
     },
   },
@@ -592,7 +612,7 @@ export const InfoErrorSettlesToSkip = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // A module that has run but whose /api/info 404s settles at neutral.
+    // A module that has run but whose plan fetch 404s settles at neutral.
     await waitFor(() => {
       expect(boxVariant(canvasElement, "oidcc-server")).toBe("neutral");
     });
@@ -604,63 +624,60 @@ export const InfoErrorSettlesToSkip = {
 };
 
 /**
- * The `/api/info` fan-out is gated to visible cards: with more than PAGE_SIZE
- * (25) plans loaded, only the first page's module instances are fetched on
- * load. "Show more" reveals page two and lazily fetches its instances.
+ * The status fetch is gated to visible cards: with more than PAGE_SIZE (25)
+ * plans loaded, only the first page's plans are fetched on load. "Show more"
+ * reveals page two and lazily fetches its plans.
  */
-export const OffScreenModulesNotFetched = {
+const THIRTY_PLANS = Array.from({ length: 30 }, (_, i) => {
+  const id = `plan-${String(i).padStart(3, "0")}`;
+  return {
+    _id: id,
+    planName: `${id}-name`,
+    description: "",
+    variant: {},
+    // Descending started so DOM order matches index order.
+    started: new Date(Date.now() - i * 1000).toISOString(),
+    owner: { sub: "12345", iss: "https://accounts.google.com" },
+    modules: [{ testModule: "m", instances: [`inst-${String(i).padStart(3, "0")}`] }],
+    config: {},
+    publish: null,
+    immutable: false,
+  };
+});
+
+/** @type {string[]} */
+const offScreenRequests = [];
+
+export const OffScreenPlansNotFetched = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/plan", () =>
-          HttpResponse.json(
-            Array.from({ length: 30 }, (_, i) => {
-              const id = `plan-${String(i).padStart(3, "0")}`;
-              return {
-                _id: id,
-                planName: `${id}-name`,
-                description: "",
-                variant: {},
-                // Descending started so DOM order matches index order.
-                started: new Date(Date.now() - i * 1000).toISOString(),
-                owner: { sub: "12345", iss: "https://accounts.google.com" },
-                modules: [{ testModule: "m", instances: [`inst-${String(i).padStart(3, "0")}`] }],
-                config: {},
-                publish: null,
-                immutable: false,
-              };
-            }),
-          ),
-        ),
-        // Any instance resolves to PASSED; record which ids were fetched.
-        http.get("/api/info/:testId", ({ params }) => {
-          OffScreenModulesNotFetched._requested.push(/** @type {string} */ (params.testId));
-          return HttpResponse.json({ status: "FINISHED", result: "PASSED" });
-        }),
+        http.get("/api/plan", () => HttpResponse.json(THIRTY_PLANS)),
+        // No run is known, so every module settles neutral; what matters here
+        // is which plan ids were fetched.
+        planStatusHandler(THIRTY_PLANS, {}, offScreenRequests),
       ],
     },
   },
-  /** @type {string[]} */
-  _requested: [],
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement, step }) {
-    OffScreenModulesNotFetched._requested.length = 0;
+    offScreenRequests.length = 0;
     await waitForPlansToLoad(canvasElement);
 
-    await step("only the first page's instances are fetched on load", async () => {
-      // First page (25) instances fetched; page-two instances (inst-025..029)
-      // are NOT fetched until revealed.
+    await step("only the first page's plans are fetched on load", async () => {
+      // First page (25) plans fetched; page-two plans (plan-025..029) are NOT
+      // fetched until revealed.
       await waitFor(() => {
-        expect(OffScreenModulesNotFetched._requested.length).toBe(25);
+        expect(offScreenRequests.length).toBe(25);
       });
-      expect(OffScreenModulesNotFetched._requested).not.toContain("inst-029");
+      expect(offScreenRequests).not.toContain("plan-029");
     });
 
-    await step("revealing page two lazily fetches its instances", async () => {
+    await step("revealing page two lazily fetches its plans", async () => {
       const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
       await userEvent.click(innerButton(showMore));
       await waitFor(() => {
-        expect(OffScreenModulesNotFetched._requested).toContain("inst-029");
+        expect(offScreenRequests).toContain("plan-029");
       });
     });
   },
@@ -720,7 +737,7 @@ export const EmptySearch = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -834,7 +851,7 @@ export const AdminView = {
     msw: {
       handlers: [
         http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -866,7 +883,7 @@ export const PublicView = {
           const plans = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
           return HttpResponse.json(plans);
         }),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -929,7 +946,7 @@ export const ShowMorePagination = {
             })),
           ),
         ),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -1084,7 +1101,7 @@ export const FilteredByChips = {
           if (url.searchParams.get("family")) return HttpResponse.json([]);
           return HttpResponse.json(MOCK_PLAN_LIST.filter((plan) => plan.publish));
         }),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -1208,7 +1225,7 @@ export const StaleResponsesAreIgnored = {
           }
           return HttpResponse.json(MOCK_PLAN_LIST);
         }),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },
@@ -1291,7 +1308,7 @@ export const MobileNarrowestFits = {
             ],
           }),
         ),
-        neverResolvingInfo,
+        neverResolvingStatus,
       ],
     },
   },

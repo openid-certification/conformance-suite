@@ -154,7 +154,7 @@ const DAY_MS = 86400000;
 
 // The real `/api/plan` listing serializes `Plan.Module`, which carries only
 // `testModule` and `instances` — never `status`/`result`. Those are fetched
-// per-module from `/api/info/<instance>` (see MOCK_PLAN_INFO below and the
+// per card from `/api/plan/<id>` (see MOCK_PLAN_INFO below and the
 // cts-plan-list status-dot resolution). Keeping this fixture faithful to the
 // backend shape is what makes the dot-resolution stories test reality rather
 // than a shape the server never returns.
@@ -170,7 +170,7 @@ export const MOCK_PLAN_LIST = [
       { testModule: "oidcc-server", instances: ["inst-001"] },
       { testModule: "oidcc-server-rotate-keys", instances: ["inst-002"] },
       // Never run — empty instances. Renders a static (not pulsing) skip dot
-      // and triggers no /api/info fetch.
+      // and triggers no status fetch.
       { testModule: "oidcc-codereuse", instances: [] },
     ],
     config: { "server.issuer": "https://op.example.com" },
@@ -206,7 +206,8 @@ export const MOCK_PLAN_LIST = [
   },
 ];
 
-// Per-instance `/api/info/<instance>` payloads for the listing's modules.
+// Latest-run `{ status, result }` per instance for the listing's modules, as
+// `/api/plan/<id>` attaches them to that plan's modules.
 // Mirrors what the backend returns when the plans listing resolves each
 // module's latest run. Stories/specs register an instance-keyed `/api/info`
 // handler from this map so the status dots resolve to distinct colors
