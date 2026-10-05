@@ -53,7 +53,16 @@ public enum VP1FinalWalletCredentialType {
 		 * first. Only the credential types with age data elements have this query; the module that
 		 * uses it excludes the others.
 		 */
-		AGE_OVER_18("-age-over-18");
+		AGE_OVER_18("-age-over-18"),
+		/** The first element of the PID 'nationalities' array. Only the SD-JWT VC PID has this query. */
+		NATIONALITIES_FIRST("-nationalities-first"),
+		/** Every element of the PID 'nationalities' array. Only the SD-JWT VC PID has this query. */
+		NATIONALITIES_ALL("-nationalities-all"),
+		/**
+		 * One member of the PID 'place_of_birth' object, offering 'locality', 'region' and 'country'
+		 * in that order. Only the SD-JWT VC PID has this query.
+		 */
+		PLACE_OF_BIRTH_MEMBER("-place-of-birth-member");
 
 		private final String resourceSuffix;
 
