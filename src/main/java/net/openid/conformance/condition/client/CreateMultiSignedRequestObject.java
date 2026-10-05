@@ -61,15 +61,27 @@ public class CreateMultiSignedRequestObject extends AbstractGetSigningKey {
 		}
 	}
 
+	/**
+	 * The typ header parameter placed in the protected header of every signature, or null to
+	 * omit it. Negative tests override this.
+	 */
+	protected JOSEObjectType getMediaType() {
+		return new JOSEObjectType("oauth-authz-req+jwt");
+	}
+
 	private void addSignature(JWSObjectJSON jwsObjectJSON, JWSSignerFactory jwsSignerFactory,
 							  JsonObject jwks, String clientId) throws JOSEException, ParseException {
 		JWK signingJwk = getSigningKey("signing", jwks);
 		JWSAlgorithm alg = JWSAlgorithm.parse(signingJwk.getAlgorithm().getName());
 
 		JWSHeader.Builder builder = new JWSHeader.Builder(alg)
-			.type(new JOSEObjectType("oauth-authz-req+jwt"))
 			.keyID(signingJwk.getKeyID())
 			.customParam("client_id", clientId);
+
+		JOSEObjectType typ = getMediaType();
+		if (typ != null) {
+			builder.type(typ);
+		}
 
 		if (signingJwk.getX509CertChain() != null) {
 			builder.x509CertChain(signingJwk.getX509CertChain());
