@@ -34,6 +34,9 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		VP1FinalWalletFewerClaimsThanAvailable.class,
 		VP1FinalWalletOptionalCredentialSet.class,
 		VP1FinalWalletNoClaimsInDcqlQuery.class,
+		VP1FinalWalletPidArrayElementByIndex.class,
+		VP1FinalWalletPidAllArrayElements.class,
+		VP1FinalWalletPidObjectMember.class,
 
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,
