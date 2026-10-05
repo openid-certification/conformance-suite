@@ -604,3 +604,130 @@ export const MOCK_PLAN_FILTER_OPTIONS = {
     },
   },
 };
+
+/**
+ * Variant entry helper for the EU fixtures: every value carries no extra fields.
+ * @param {string} displayName
+ * @param {string} description
+ * @param {string[]} values
+ */
+const euVariant = (displayName, description, values) => ({
+  variantInfo: { displayName, description },
+  variantValues: Object.fromEntries(values.map((v) => [v, { configurationFields: [] }])),
+});
+
+const VP_CREDENTIAL_FORMAT = euVariant(
+  "Credential Format",
+  "The credential format that will be returned by the Wallet.",
+  ["sd_jwt_vc", "iso_mdl"],
+);
+const VCI_CREDENTIAL_FORMAT = euVariant(
+  "Credential Format",
+  "The credential format that will be returned to the Wallet.",
+  ["sd_jwt_vc", "mdoc"],
+);
+/**
+ * Mirrors @VariantHidesConfigurationFields on AbstractVCIWalletTest / AbstractVCIIssuerTestModule:
+ * the credential offer endpoint is only used by issuer-initiated flows.
+ */
+const VCI_FLOW_VARIANT = {
+  variantInfo: {
+    displayName: "Authorization Code Flow Variant",
+    description: "VCI Authorization Code Flow Variant to be used.",
+  },
+  variantValues: {
+    wallet_initiated: {
+      configurationFields: [],
+      hidesConfigurationFields: ["vci.credential_offer_endpoint"],
+    },
+    issuer_initiated: { configurationFields: [] },
+  },
+};
+
+/** The wallet plan's credential offer parameter, applicable to issuer-initiated flows. */
+const VCI_OFFER_VARIANT = euVariant(
+  "Credential Offer Variant",
+  "VCI Credential Offer Parameter Variant to be used.",
+  ["by_value", "by_reference"],
+);
+
+/**
+ * The four HAIP plans the guided wizard's EU journeys resolve to (#2005). Kept out of
+ * MOCK_GUIDED_PLANS so the advanced-mode specs' catalog stays unchanged; the EU journeys pass
+ * these to setupScheduleTestRoutes via `plans`.
+ */
+export const MOCK_EU_PLANS = [
+  {
+    planName: "oid4vp-1final-wallet-haip-test-plan",
+    displayName: "OpenID for Verifiable Presentations 1.0 Final/HAIP: Test a wallet",
+    profile: "Test a wallet",
+    specFamily: "OID4VP",
+    specVersion: "1.0 Final",
+    summary: "",
+    modules: [{ testModule: "oid4vp-1final-wallet-happy-flow", configurationFields: [] }],
+    variants: {
+      credential_format: VP_CREDENTIAL_FORMAT,
+      credential_type: euVariant(
+        "Credential Type",
+        "The credential the wallet will be asked to present.",
+        ["eudi_pid", "mdl", "photoid", "custom"],
+      ),
+      response_mode: euVariant("Response Mode", "The response_mode that will be used.", [
+        "direct_post.jwt",
+        "dc_api.jwt",
+      ]),
+    },
+  },
+  {
+    planName: "oid4vp-1final-verifier-haip-test-plan",
+    displayName: "OpenID for Verifiable Presentations 1.0 Final/HAIP: Test a verifier",
+    profile: "Test a verifier",
+    specFamily: "OID4VP",
+    specVersion: "1.0 Final",
+    summary: "",
+    modules: [{ testModule: "oid4vp-1final-verifier-happy-flow", configurationFields: [] }],
+    variants: {
+      credential_format: VP_CREDENTIAL_FORMAT,
+      response_mode: euVariant("Response Mode", "The response_mode that will be used.", [
+        "direct_post.jwt",
+      ]),
+    },
+  },
+  {
+    planName: "oid4vci-1_0-wallet-haip-test-plan",
+    displayName: "OpenID for Verifiable Credential Issuance 1.0 Final/HAIP: Test a wallet",
+    profile: "Test a wallet",
+    specFamily: "OID4VCI",
+    specVersion: "",
+    summary: "",
+    modules: [
+      {
+        testModule: "oid4vci-1_0-wallet-happy-path",
+        configurationFields: ["vci.credential_configuration_id", "vci.credential_offer_endpoint"],
+      },
+    ],
+    variants: {
+      credential_format: VCI_CREDENTIAL_FORMAT,
+      vci_authorization_code_flow_variant: VCI_FLOW_VARIANT,
+      vci_credential_offer_variant: VCI_OFFER_VARIANT,
+    },
+  },
+  {
+    planName: "oid4vci-1_0-issuer-haip-test-plan",
+    displayName: "OpenID for Verifiable Credential Issuance 1.0 Final/HAIP: Test an issuer",
+    profile: "Test a credential issuer",
+    specFamily: "OID4VCI",
+    specVersion: "",
+    summary: "",
+    modules: [
+      {
+        testModule: "oid4vci-1_0-issuer-happy-flow",
+        configurationFields: ["vci.credential_issuer_url", "vci.credential_configuration_id"],
+      },
+    ],
+    variants: {
+      credential_format: VCI_CREDENTIAL_FORMAT,
+      vci_authorization_code_flow_variant: VCI_FLOW_VARIANT,
+    },
+  },
+];

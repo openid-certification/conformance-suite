@@ -5,7 +5,12 @@ import {
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
 import { selectedPlanRow } from "./helpers/pick-plan.js";
-import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
+import {
+  MOCK_PLANS,
+  MOCK_PLAN_NO_VARIANTS,
+  MOCK_GUIDED_PLANS,
+  MOCK_EU_PLANS,
+} from "./fixtures/mock-plans.js";
 import { MOCK_USER } from "./fixtures/mock-users.js";
 import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
 
@@ -472,6 +477,129 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(table).toContainText("Poll");
     await expect(table).toContainText("Client Registration");
     await expect(table).toContainText("Static (pre-registered) client");
+  });
+
+  test("EU wallet presentation path resolves to the HAIP VP wallet plan with the EU PID (#2005)", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page, { plans: [...MOCK_GUIDED_PLANS, ...MOCK_EU_PLANS] });
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "eu");
+    await expect(page.locator("#guidedStage h1")).toHaveText("What are you testing?");
+    await pickChoice(page, "wallet");
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "Which wallet capability are you testing?",
+    );
+    await pickChoice(page, "presentation");
+    await expect(page.locator("#guidedStage h1")).toHaveText("Which PID credential format?");
+    await pickChoice(page, "mdoc");
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "How does a verifier reach your wallet?",
+    );
+    await pickChoice(page, "dc_api");
+
+    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "oid4vp-1final-wallet-haip-test-plan",
+    );
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table.locator("tbody tr")).toHaveCount(3);
+    await expect(table).toContainText("ISO mdoc");
+    await expect(table).toContainText("EU PID");
+    await expect(table).toContainText("W3C Digital Credentials API (encrypted)");
+    const chipKeys = page.locator("#guidedTrail .chip .chip-key");
+    await expect(chipKeys).toHaveText(["Ecosystem", "Role", "Capability", "Format", "Transport"]);
+  });
+
+  test("EU issuer path resolves to the HAIP VCI issuer plan (#2005)", async ({ page }) => {
+    await setupScheduleTestRoutes(page, { plans: [...MOCK_GUIDED_PLANS, ...MOCK_EU_PLANS] });
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "eu");
+    await pickChoice(page, "issuer");
+    await expect(page.locator("#guidedStage h1")).toHaveText("Which PID credential format?");
+    await pickChoice(page, "sd_jwt");
+    await expect(page.locator("#guidedStage h1")).toHaveText("How does issuance start?");
+    await pickChoice(page, "issuer_initiated");
+
+    await expect(page.locator("#guidedStage h1")).toHaveText("Here's the plan we resolved");
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "oid4vci-1_0-issuer-haip-test-plan",
+    );
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table.locator("tbody tr")).toHaveCount(2);
+    await expect(table).toContainText("SD-JWT VC");
+    await expect(table).toContainText("Issuer-initiated");
+    const chipKeys = page.locator("#guidedTrail .chip .chip-key");
+    await expect(chipKeys).toHaveText(["Ecosystem", "Role", "Format", "Flow"]);
+  });
+
+  test("EU wallet issuance config omits the credential offer endpoint, which wallet-initiated flows don't use (#2005)", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page, { plans: [...MOCK_GUIDED_PLANS, ...MOCK_EU_PLANS] });
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "eu");
+    await pickChoice(page, "wallet");
+    await pickChoice(page, "issuance");
+    await pickChoice(page, "mdoc");
+    await pickChoice(page, "wallet_initiated");
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "oid4vci-1_0-wallet-haip-test-plan",
+    );
+    await expect(page.locator("#guidedStage table.variant-table")).toContainText(
+      "Wallet-initiated",
+    );
+
+    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
+    await expect(page.locator("#guidedStage h1")).toHaveText("Configure your test");
+    const form = page.locator("#guidedConfigForm");
+    await expect(form.getByLabel("Credential Configuration ID", { exact: true })).toHaveCount(1);
+    await expect(form.getByLabel("Credential Offer Endpoint URL", { exact: true })).toHaveCount(0);
+  });
+
+  test("EU wallet issuance, issuer-initiated by reference, asks for the credential offer endpoint (#2005)", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page, { plans: [...MOCK_GUIDED_PLANS, ...MOCK_EU_PLANS] });
+    await page.goto("/schedule-test.html");
+
+    await pickChoice(page, "eu");
+    await pickChoice(page, "wallet");
+    await pickChoice(page, "issuance");
+    await pickChoice(page, "sd_jwt");
+    await expect(page.locator("#guidedStage h1")).toHaveText("How does issuance start?");
+    await pickChoice(page, "issuer_initiated");
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "How does your wallet receive the credential offer?",
+    );
+    await pickChoice(page, "by_reference");
+
+    await expect(page.locator("#guidedStage .plan-name-code").first()).toHaveText(
+      "oid4vci-1_0-wallet-haip-test-plan",
+    );
+    const table = page.locator("#guidedStage table.variant-table");
+    await expect(table.locator("tbody tr")).toHaveCount(3);
+    await expect(table).toContainText("Issuer-initiated");
+    await expect(table).toContainText("By reference (credential_offer_uri)");
+    await expect(page.locator("#guidedTrail .chip .chip-key")).toHaveText([
+      "Ecosystem",
+      "Role",
+      "Capability",
+      "Format",
+      "Flow",
+      "Offer",
+    ]);
+
+    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
+    await expect(page.locator("#guidedStage h1")).toHaveText("Configure your test");
+    await expect(
+      page
+        .locator("#guidedConfigForm")
+        .getByLabel("Credential Offer Endpoint URL", { exact: true }),
+    ).toHaveCount(1);
   });
 
   test("backtrack: the ecosystem chip resets the journey to the ecosystem screen", async ({

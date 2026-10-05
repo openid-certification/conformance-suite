@@ -268,6 +268,20 @@ const VALUE_LABELS = {
     "openid-accounts": "openid + accounts",
     "openid-payments": "openid + payments",
   },
+  credential_format: { sd_jwt_vc: "SD-JWT VC", mdoc: "ISO mdoc", iso_mdl: "ISO mdoc" },
+  credential_type: { eudi_pid: "EU PID" },
+  vci_authorization_code_flow_variant: {
+    wallet_initiated: "Wallet-initiated",
+    issuer_initiated: "Issuer-initiated",
+  },
+  vci_credential_offer_variant: {
+    by_value: "By value (credential_offer)",
+    by_reference: "By reference (credential_offer_uri)",
+  },
+  response_mode: {
+    "dc_api.jwt": "W3C Digital Credentials API (encrypted)",
+    "direct_post.jwt": "Direct post (encrypted)",
+  },
 };
 
 /**
@@ -293,6 +307,7 @@ const ECOSYSTEM_DESC = {
   ksa: "Saudi Central Bank (SAMA) — FAPI1 (v1) or FAPI2 (v2).",
   open_finance_chile:
     "Finanzas Abiertas Chile — CMF APIs (FAPI2 message signing with Grant Management).",
+  eu: "EUDI Wallet — HAIP profiles of OpenID4VCI and OpenID4VP, with the EU PID.",
 };
 
 // ════════════════════════════════════════════════════════════════════
@@ -378,6 +393,12 @@ function variantDisplayInfo(plan, param) {
  */
 function shortKey(q) {
   if (/role/i.test(q)) return "Role";
+  if (/what are you testing/i.test(q)) return "Role";
+  if (/wallet capability/i.test(q)) return "Capability";
+  if (/credential format/i.test(q)) return "Format";
+  if (/reach your wallet/i.test(q)) return "Transport";
+  if (/issuance start/i.test(q)) return "Flow";
+  if (/credential offer/i.test(q)) return "Offer";
   if (/version/i.test(q)) return "Spec version";
   if (/authentication/i.test(q)) return "Client auth";
   if (/type of client/i.test(q)) return "Client type";
@@ -398,6 +419,16 @@ function questionLede(stepId) {
     ksa_spec_version: "SAMA v1 maps to FAPI1 Advanced; SAMA v2 maps to FAPI2 Message Signing.",
     scope: "The kind of access this client requests determines the scope under test.",
     plan: "Pick the plan you want to set up now.",
+    eudi_role: "Which role does your software play in the EUDI Wallet ecosystem?",
+    wallet_flow: "Issuance and presentation are certified with separate test plans.",
+    credential_format:
+      "The EU PID is defined in both formats; pick the one your software supports.",
+    vp_transport:
+      "HAIP wallets are invoked either through the browser's Digital Credentials API or by a custom URL scheme redirect.",
+    vci_flow:
+      "Each flow is certified separately; pick one your software supports and run the plan again for the other.",
+    vci_offer:
+      "An issuer can send the offer either way, and each is certified separately; pick one your wallet supports.",
   });
   return m[stepId] || "Choose the option that matches your deployment.";
 }

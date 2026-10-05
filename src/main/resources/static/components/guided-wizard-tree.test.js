@@ -137,6 +137,156 @@ describe("Openbanking UK guided paths", () => {
   });
 });
 
+describe("EU guided paths", () => {
+  /**
+   * Follows a trail of choice ids from the EU entry step to its leaf.
+   *
+   * @param {string[]} choiceIds
+   * @returns {import("./guided-wizard-tree.js").WizardResult|undefined}
+   */
+  function resolveEu(choiceIds) {
+    const ecosystem = GUIDED_WIZARD_TREE.ecosystems.find((item) => item.id === "eu");
+    expect(ecosystem).toBeTruthy();
+    let step = /** @type {import("./guided-wizard-tree.js").WizardStep} */ (ecosystem?.steps[0]);
+    /** @type {import("./guided-wizard-tree.js").WizardChoice|undefined} */
+    let choice;
+    for (const id of choiceIds) {
+      expect(step, `step before ${id}`).toBeTruthy();
+      choice = choiceById(step, id);
+      step = /** @type {import("./guided-wizard-tree.js").WizardStep} */ (choice.next);
+    }
+    return choice?.result;
+  }
+
+  const vpWallet = "oid4vp-1final-wallet-haip-test-plan";
+  const vpVerifier = "oid4vp-1final-verifier-haip-test-plan";
+  const vciWallet = "oid4vci-1_0-wallet-haip-test-plan";
+  const vciIssuer = "oid4vci-1_0-issuer-haip-test-plan";
+
+  /**
+   * The VCI leaves always set the flow, even wallet_initiated (the default):
+   * the plans hide vci.credential_offer_endpoint only when that value is
+   * selected, and the config form only applies hide rules for the variants a
+   * leaf sets.
+   *
+   * @param {string} credentialFormat
+   * @param {string} flow
+   * @param {string} [offer] - vci_credential_offer_variant, for issuer-initiated wallet leaves.
+   * @returns {Record<string, string>}
+   */
+  const vci = (credentialFormat, flow, offer) => ({
+    credential_format: credentialFormat,
+    vci_authorization_code_flow_variant: flow,
+    ...(offer ? { vci_credential_offer_variant: offer } : {}),
+  });
+
+  /** @type {Array<[string[], import("./guided-wizard-tree.js").WizardResult]>} */
+  const leaves = [
+    ...[
+      ["sd_jwt", "sd_jwt_vc"],
+      ["mdoc", "mdoc"],
+    ].flatMap(([choice, format]) => {
+      /** @type {Array<[string[], import("./guided-wizard-tree.js").WizardResult]>} */
+      const formatLeaves = [
+        [
+          ["wallet", "issuance", choice, "wallet_initiated"],
+          { plan_name: vciWallet, variants: vci(format, "wallet_initiated") },
+        ],
+        [
+          ["wallet", "issuance", choice, "issuer_initiated", "by_value"],
+          { plan_name: vciWallet, variants: vci(format, "issuer_initiated", "by_value") },
+        ],
+        [
+          ["wallet", "issuance", choice, "issuer_initiated", "by_reference"],
+          { plan_name: vciWallet, variants: vci(format, "issuer_initiated", "by_reference") },
+        ],
+        [
+          ["issuer", choice, "wallet_initiated"],
+          { plan_name: vciIssuer, variants: vci(format, "wallet_initiated") },
+        ],
+        [
+          ["issuer", choice, "issuer_initiated"],
+          { plan_name: vciIssuer, variants: vci(format, "issuer_initiated") },
+        ],
+      ];
+      return formatLeaves;
+    }),
+    [
+      ["wallet", "presentation", "sd_jwt", "dc_api"],
+      {
+        plan_name: vpWallet,
+        variants: {
+          credential_format: "sd_jwt_vc",
+          credential_type: "eudi_pid",
+          response_mode: "dc_api.jwt",
+        },
+      },
+    ],
+    [
+      ["wallet", "presentation", "sd_jwt", "redirect"],
+      {
+        plan_name: vpWallet,
+        variants: {
+          credential_format: "sd_jwt_vc",
+          credential_type: "eudi_pid",
+          response_mode: "direct_post.jwt",
+        },
+      },
+    ],
+    [
+      ["wallet", "presentation", "mdoc", "dc_api"],
+      {
+        plan_name: vpWallet,
+        variants: {
+          credential_format: "iso_mdl",
+          credential_type: "eudi_pid",
+          response_mode: "dc_api.jwt",
+        },
+      },
+    ],
+    [
+      ["wallet", "presentation", "mdoc", "redirect"],
+      {
+        plan_name: vpWallet,
+        variants: {
+          credential_format: "iso_mdl",
+          credential_type: "eudi_pid",
+          response_mode: "direct_post.jwt",
+        },
+      },
+    ],
+    [
+      ["verifier", "sd_jwt"],
+      {
+        plan_name: vpVerifier,
+        variants: { credential_format: "sd_jwt_vc", response_mode: "direct_post.jwt" },
+      },
+    ],
+    [
+      ["verifier", "mdoc"],
+      {
+        plan_name: vpVerifier,
+        variants: { credential_format: "iso_mdl", response_mode: "direct_post.jwt" },
+      },
+    ],
+  ];
+
+  for (const [trail, expected] of leaves) {
+    it(`resolves ${trail.join(" → ")} to ${expected.plan_name}`, () => {
+      expect(resolveEu(trail)).toEqual(expected);
+    });
+  }
+
+  it("covers every EU leaf in the table above", () => {
+    const eu = collectSteps().filter(({ path }) => path.startsWith("eu/"));
+    const leafCount = eu.reduce(
+      (n, { step }) => n + step.choices.filter((choice) => choice.result).length,
+      0,
+    );
+    expect(leafCount).toBe(leaves.length);
+  });
+});
+
 describe("GUIDED_WIZARD_TREE integrity", () => {
   it("gives every choice exactly one of next/result", () => {
     for (const { path, step } of collectSteps()) {
