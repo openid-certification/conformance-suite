@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdWithUnknownPrefixToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddMismatchedIssToRequestObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRequestUriMethodGetToRedirectUrl;
 import net.openid.conformance.condition.client.AddWrongExpectedOriginsToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 		- Encryption key without 'use: enc' (for encrypted response modes)
 		- For ISO mdoc, 'vp_formats_supported' lists the algorithms the conformance suite supports in both 'issuerauth_alg_values' and 'deviceauth_alg_values' (the default flow only sends 'issuerauth_alg_values'); for encrypted response modes that includes device authentication with a MAC over P-256
 		- Reordered query parameters in the redirect URL (no-op for DC API response modes, which don't use a redirect URL)
+		- Includes 'request_uri_method=get' in the redirect URL, so the wallet MUST fetch the request object using HTTP GET as per OID4VP section 5.1 (no-op for DC API response modes and for request_method=url_query, which have no request_uri)
 		- response_uri response returns a redirect_uri which the wallet must open (no-op for DC API response modes; for ISO mdoc the default flow already returns a redirect_uri)
 		- response_uri request parameter is omitted when client_id_prefix=redirect_uri and response_mode is direct_post or direct_post.jwt (per OID4VP §5.9.3, the wallet must derive it from client_id)
 		- Unsigned DC API requests include a client_id with an unknown prefix and a non-matching expected_origins, both of which must be ignored as per OID4VP Appendix A.2 (no-op for signed requests and non-DC-API response modes)""",
@@ -102,17 +104,30 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 	protected ConditionSequence createAuthorizationRedirectStepsUnsignedRequestUri() {
 		// Including iss in an unsigned (alg: none) request object is unusual, but the spec says wallets
 		// must ignore it regardless, so it's valid to test.
-		return super.createAuthorizationRedirectStepsUnsignedRequestUri()
+		return addRequestUriMethodGet(super.createAuthorizationRedirectStepsUnsignedRequestUri()
 			.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
-				condition(AddMismatchedIssToRequestObject.class));
+				condition(AddMismatchedIssToRequestObject.class)));
 	}
 
 	@NotNull
 	@Override
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
-		return super.createAuthorizationRedirectStepsSignedRequestUri()
+		return addRequestUriMethodGet(super.createAuthorizationRedirectStepsSignedRequestUri()
 			.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
-				condition(AddMismatchedIssToRequestObject.class));
+				condition(AddMismatchedIssToRequestObject.class)));
+	}
+
+	/**
+	 * Explicitly send request_uri_method=get; the base class checks that the fetch then uses GET.
+	 * The Browser API passes the request directly and builds no redirect URL, so there is nothing
+	 * to add the parameter to.
+	 */
+	private ConditionSequence addRequestUriMethodGet(ConditionSequence steps) {
+		if (isBrowserApi()) {
+			return steps;
+		}
+		return steps.then(condition(AddRequestUriMethodGetToRedirectUrl.class)
+			.requirements("OID4VP-1FINAL-5.1"));
 	}
 
 	@Override

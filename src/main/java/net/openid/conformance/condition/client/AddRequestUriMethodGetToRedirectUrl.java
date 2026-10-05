@@ -7,13 +7,12 @@ import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Adds request_uri_method=post to the redirect URL as a query parameter.
+ * Adds request_uri_method=get to the redirect URL as a query parameter.
  *
  * Per OID4VP section 5.1, request_uri_method must be available as a URL query parameter
- * (not only inside the request object) because the wallet needs it to determine whether
- * to GET or POST when fetching the request_uri.
+ * so the wallet knows which HTTP method to use before fetching the request_uri.
  */
-public class AddRequestUriMethodPostToRedirectUrl extends AbstractCondition {
+public class AddRequestUriMethodGetToRedirectUrl extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "redirect_to_authorization_endpoint")
@@ -23,13 +22,13 @@ public class AddRequestUriMethodPostToRedirectUrl extends AbstractCondition {
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		String updatedRedirectTo = UriComponentsBuilder.fromUriString(redirectTo)
-			.queryParam("request_uri_method", "post")
+			.queryParam("request_uri_method", "get")
 			.build(true) // the redirect URL is already encoded; encoding it again would corrupt it
 			.toUriString();
 
 		env.putString("redirect_to_authorization_endpoint", updatedRedirectTo);
 
-		logSuccess("Added request_uri_method=post to redirect URL",
+		logSuccess("Added request_uri_method=get to redirect URL",
 			args("redirect_to_authorization_endpoint", updatedRedirectTo));
 
 		return env;
