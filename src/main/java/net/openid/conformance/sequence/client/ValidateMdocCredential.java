@@ -26,6 +26,7 @@ import net.openid.conformance.condition.client.ValidateMdocMsoValidFromNotBefore
 import net.openid.conformance.condition.client.ValidateMdocMsoValidUntilAfterValidFrom;
 import net.openid.conformance.condition.client.ValidateMdocMsoValidUntilWithinDsCertificateValidity;
 import net.openid.conformance.condition.client.ValidateMdocMsoValidityPeriodIsCurrent;
+import net.openid.conformance.condition.client.WarnIfMdocDigestAlgorithmNotSha256;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 
@@ -92,6 +93,9 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 		if (haip) {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
 				ConditionResult.FAILURE, "HAIP-5.3.1");
+			// valid, but a HAIP verifier need only support SHA-256, so it may reject the credential
+			callAndContinueOnFailure(WarnIfMdocDigestAlgorithmNotSha256.class,
+				ConditionResult.WARNING, "HAIP-8");
 		}
 		// Skipped unless a VICAL is configured. For issuance the issuer under test owns its IACA,
 		// so an unlisted IACA is a FAILURE; for presentation the wallet under test is not
