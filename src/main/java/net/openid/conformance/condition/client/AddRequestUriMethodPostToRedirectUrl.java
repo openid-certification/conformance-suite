@@ -24,6 +24,7 @@ public class AddRequestUriMethodPostToRedirectUrl extends AbstractCondition {
 
 		String updatedRedirectTo = UriComponentsBuilder.fromUriString(redirectTo)
 			.queryParam("request_uri_method", "post")
+			.build(true) // the redirect URL is already encoded; encoding it again would corrupt it
 			.toUriString();
 
 		env.putString("redirect_to_authorization_endpoint", updatedRedirectTo);
