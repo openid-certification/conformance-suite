@@ -32,6 +32,24 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 
 	private CheckOnlyRequestedClaimsDisclosed cond;
 
+	private static final String PLACE_OF_BIRTH_MEMBER_DCQL = """
+		{
+		  "credentials": [
+		    {
+		      "id": "my_credential",
+		      "format": "dc+sd-jwt",
+		      "meta": { "vct_values": [ "urn:eudi:pid:1" ] },
+		      "claims": [
+		        { "id": "pob_locality", "path": [ "place_of_birth", "locality" ] },
+		        { "id": "pob_region", "path": [ "place_of_birth", "region" ] },
+		        { "id": "pob_country", "path": [ "place_of_birth", "country" ] }
+		      ],
+		      "claim_sets": [ [ "pob_locality" ], [ "pob_region" ], [ "pob_country" ] ]
+		    }
+		  ]
+		}
+		""";
+
 	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckOnlyRequestedClaimsDisclosed();
@@ -672,6 +690,41 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 			}
 			""";
 		setupEnvironment(dcql, "my_credential", "given_name", "picture");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNestedMemberSingleOptionDisclosedPasses() {
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"s1\",\"place_of_birth\",{\"_sd\":[\"d1\"]}]");
+		disclosures.add("[\"s2\",\"country\",\"DE\"]");
+		// a PID whose place_of_birth has only a country: the last option is the only one satisfiable
+		setupEnvironment(PLACE_OF_BIRTH_MEMBER_DCQL, "my_credential",
+			"{\"place_of_birth\":{\"country\":\"DE\"}}", disclosures);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNestedMembersOfTwoOptionsDisclosedThrowsError() {
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"s1\",\"place_of_birth\",{\"_sd\":[\"d1\",\"d2\"]}]");
+		disclosures.add("[\"s2\",\"locality\",\"Berlin\"]");
+		disclosures.add("[\"s3\",\"country\",\"DE\"]");
+		setupEnvironment(PLACE_OF_BIRTH_MEMBER_DCQL, "my_credential",
+			"{\"place_of_birth\":{\"locality\":\"Berlin\",\"country\":\"DE\"}}", disclosures);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_claimSetsNestedObjectDisclosedAsAWholePasses() {
+		// the issuer made the object, not its members, selectively disclosable: the wallet cannot split it
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"s1\",\"place_of_birth\",{\"locality\":\"Berlin\",\"country\":\"DE\"}]");
+		setupEnvironment(PLACE_OF_BIRTH_MEMBER_DCQL, "my_credential",
+			"{\"place_of_birth\":{\"locality\":\"Berlin\",\"country\":\"DE\"}}", disclosures);
 
 		cond.execute(env);
 	}
