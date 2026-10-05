@@ -234,6 +234,20 @@ export function currentModuleIndex(modules, instanceId) {
 }
 
 /**
+ * A module's variant as `key=value, …`, the form every surface shows it in.
+ * @param {Object.<string, string>|string|null|undefined} variant - The module's
+ *   variant map, or one already formatted.
+ * @returns {string} The formatted variant, or "" when there is none.
+ */
+export function formatVariant(variant) {
+  if (!variant) return "";
+  if (typeof variant === "string") return variant;
+  return Object.entries(variant)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(", ");
+}
+
+/**
  * Stable, content-derived identity key for a plan module entry — unique across
  * lists so a keyed `repeat()` never reuses DOM across a full module-set swap,
  * and so an action handler resolves to the right module regardless of array
