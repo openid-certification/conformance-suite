@@ -237,6 +237,9 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		if (loadClientConfiguration != null) {
 			callAndStopOnFailure(loadClientConfiguration);
 		}
+		if(profileCompleteClientConfiguration != null) {
+			call(sequence(profileCompleteClientConfiguration));
+		}
 	}
 
 	@Override
