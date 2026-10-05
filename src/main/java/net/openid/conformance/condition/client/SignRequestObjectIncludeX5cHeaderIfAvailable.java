@@ -22,9 +22,11 @@ public class SignRequestObjectIncludeX5cHeaderIfAvailable extends AbstractSignJW
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("request_object_claims");
 		JsonObject jwks = env.getObject("client_jwks");
+		boolean includeTyp = true;
+		boolean includeX5tS256 = false;
 		boolean includeX5c = true;
 		boolean errorIfX5cMissing = false;
-		return signJWT(env, claims, jwks, false, false, includeX5c, errorIfX5cMissing);
+		return signJWT(env, claims, jwks, includeTyp, includeX5tS256, includeX5c, errorIfX5cMissing);
 	}
 
 	@Override
