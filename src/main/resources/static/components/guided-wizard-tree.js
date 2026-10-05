@@ -27,6 +27,11 @@
  *   testers actually certify, or that method should reject the combination.
  *   Nothing checks this automatically: when changing either side, update the
  *   other.
+ * - A variant that has a default must still be set when one of its values
+ *   adds or hides configuration fields (`@VariantConfigurationFields`,
+ *   `@VariantHidesConfigurationFields`): the config form applies those rules
+ *   only for the variants a leaf sets, as the plan catalog does not carry
+ *   defaults.
  */
 
 /**
@@ -802,6 +807,363 @@ export const GUIDED_WIZARD_TREE = {
                   openid: "openid_connect",
                   grant_management: "enabled",
                 },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "eu",
+      label: "🇪🇺 European Union (EUDI Wallet)",
+      steps: [
+        {
+          id: "eudi_role",
+          question: "What are you testing?",
+          choices: [
+            {
+              id: "wallet",
+              label: "Wallet",
+              description:
+                "A wallet that receives credentials from issuers and presents them to verifiers.",
+              next: {
+                id: "wallet_flow",
+                question: "Which wallet capability are you testing?",
+                choices: [
+                  {
+                    id: "issuance",
+                    label: "Credential issuance (OpenID4VCI)",
+                    description:
+                      "The suite acts as a HAIP credential issuer and issues an EU PID to your wallet.",
+                    next: {
+                      id: "credential_format",
+                      question: "Which PID credential format?",
+                      choices: [
+                        {
+                          id: "sd_jwt",
+                          label: "SD-JWT VC",
+                          next: {
+                            id: "vci_flow",
+                            question: "How does issuance start?",
+                            choices: [
+                              {
+                                id: "wallet_initiated",
+                                label: "Wallet-initiated",
+                                description:
+                                  "The user starts in your wallet, which sends an authorization request to the issuer.",
+                                result: {
+                                  plan_name: "oid4vci-1_0-wallet-haip-test-plan",
+                                  variants: {
+                                    credential_format: "sd_jwt_vc",
+                                    vci_authorization_code_flow_variant: "wallet_initiated",
+                                  },
+                                },
+                              },
+                              {
+                                id: "issuer_initiated",
+                                label: "Issuer-initiated",
+                                description:
+                                  "The issuer sends your wallet a credential offer, for example as a QR code or link.",
+                                next: {
+                                  id: "vci_offer",
+                                  question: "How does your wallet receive the credential offer?",
+                                  choices: [
+                                    {
+                                      id: "by_value",
+                                      label: "By value (credential_offer)",
+                                      description:
+                                        "The offer itself is carried in the link or QR code.",
+                                      result: {
+                                        plan_name: "oid4vci-1_0-wallet-haip-test-plan",
+                                        variants: {
+                                          credential_format: "sd_jwt_vc",
+                                          vci_authorization_code_flow_variant: "issuer_initiated",
+                                          vci_credential_offer_variant: "by_value",
+                                        },
+                                      },
+                                    },
+                                    {
+                                      id: "by_reference",
+                                      label: "By reference (credential_offer_uri)",
+                                      description:
+                                        "The link or QR code carries a URL from which your wallet fetches the offer.",
+                                      result: {
+                                        plan_name: "oid4vci-1_0-wallet-haip-test-plan",
+                                        variants: {
+                                          credential_format: "sd_jwt_vc",
+                                          vci_authorization_code_flow_variant: "issuer_initiated",
+                                          vci_credential_offer_variant: "by_reference",
+                                        },
+                                      },
+                                    },
+                                  ],
+                                },
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          id: "mdoc",
+                          label: "ISO mdoc",
+                          next: {
+                            id: "vci_flow",
+                            question: "How does issuance start?",
+                            choices: [
+                              {
+                                id: "wallet_initiated",
+                                label: "Wallet-initiated",
+                                description:
+                                  "The user starts in your wallet, which sends an authorization request to the issuer.",
+                                result: {
+                                  plan_name: "oid4vci-1_0-wallet-haip-test-plan",
+                                  variants: {
+                                    credential_format: "mdoc",
+                                    vci_authorization_code_flow_variant: "wallet_initiated",
+                                  },
+                                },
+                              },
+                              {
+                                id: "issuer_initiated",
+                                label: "Issuer-initiated",
+                                description:
+                                  "The issuer sends your wallet a credential offer, for example as a QR code or link.",
+                                next: {
+                                  id: "vci_offer",
+                                  question: "How does your wallet receive the credential offer?",
+                                  choices: [
+                                    {
+                                      id: "by_value",
+                                      label: "By value (credential_offer)",
+                                      description:
+                                        "The offer itself is carried in the link or QR code.",
+                                      result: {
+                                        plan_name: "oid4vci-1_0-wallet-haip-test-plan",
+                                        variants: {
+                                          credential_format: "mdoc",
+                                          vci_authorization_code_flow_variant: "issuer_initiated",
+                                          vci_credential_offer_variant: "by_value",
+                                        },
+                                      },
+                                    },
+                                    {
+                                      id: "by_reference",
+                                      label: "By reference (credential_offer_uri)",
+                                      description:
+                                        "The link or QR code carries a URL from which your wallet fetches the offer.",
+                                      result: {
+                                        plan_name: "oid4vci-1_0-wallet-haip-test-plan",
+                                        variants: {
+                                          credential_format: "mdoc",
+                                          vci_authorization_code_flow_variant: "issuer_initiated",
+                                          vci_credential_offer_variant: "by_reference",
+                                        },
+                                      },
+                                    },
+                                  ],
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    id: "presentation",
+                    label: "Credential presentation (OpenID4VP)",
+                    description:
+                      "The suite acts as a HAIP verifier and asks your wallet to present an EU PID.",
+                    next: {
+                      id: "credential_format",
+                      question: "Which PID credential format?",
+                      choices: [
+                        {
+                          id: "sd_jwt",
+                          label: "SD-JWT VC",
+                          next: {
+                            id: "vp_transport",
+                            question: "How does a verifier reach your wallet?",
+                            choices: [
+                              {
+                                id: "dc_api",
+                                label: "W3C Digital Credentials API",
+                                result: {
+                                  plan_name: "oid4vp-1final-wallet-haip-test-plan",
+                                  variants: {
+                                    credential_format: "sd_jwt_vc",
+                                    credential_type: "eudi_pid",
+                                    response_mode: "dc_api.jwt",
+                                  },
+                                },
+                              },
+                              {
+                                id: "redirect",
+                                label: "Custom URL scheme redirect",
+                                result: {
+                                  plan_name: "oid4vp-1final-wallet-haip-test-plan",
+                                  variants: {
+                                    credential_format: "sd_jwt_vc",
+                                    credential_type: "eudi_pid",
+                                    response_mode: "direct_post.jwt",
+                                  },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          id: "mdoc",
+                          label: "ISO mdoc",
+                          next: {
+                            id: "vp_transport",
+                            question: "How does a verifier reach your wallet?",
+                            choices: [
+                              {
+                                id: "dc_api",
+                                label: "W3C Digital Credentials API",
+                                result: {
+                                  plan_name: "oid4vp-1final-wallet-haip-test-plan",
+                                  variants: {
+                                    credential_format: "iso_mdl",
+                                    credential_type: "eudi_pid",
+                                    response_mode: "dc_api.jwt",
+                                  },
+                                },
+                              },
+                              {
+                                id: "redirect",
+                                label: "Custom URL scheme redirect",
+                                result: {
+                                  plan_name: "oid4vp-1final-wallet-haip-test-plan",
+                                  variants: {
+                                    credential_format: "iso_mdl",
+                                    credential_type: "eudi_pid",
+                                    response_mode: "direct_post.jwt",
+                                  },
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "verifier",
+              label: "Verifier",
+              description:
+                "A relying party that requests credential presentations. The suite acts as a HAIP wallet holding an EU PID.",
+              next: {
+                id: "credential_format",
+                question: "Which PID credential format?",
+                choices: [
+                  {
+                    id: "sd_jwt",
+                    label: "SD-JWT VC",
+                    result: {
+                      plan_name: "oid4vp-1final-verifier-haip-test-plan",
+                      variants: {
+                        credential_format: "sd_jwt_vc",
+                        response_mode: "direct_post.jwt",
+                      },
+                    },
+                  },
+                  {
+                    id: "mdoc",
+                    label: "ISO mdoc",
+                    result: {
+                      plan_name: "oid4vp-1final-verifier-haip-test-plan",
+                      variants: { credential_format: "iso_mdl", response_mode: "direct_post.jwt" },
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "issuer",
+              label: "Issuer",
+              description:
+                "A credential issuer. The suite acts as a HAIP wallet; enter your PID's credential configuration ID in the test configuration.",
+              next: {
+                id: "credential_format",
+                question: "Which PID credential format?",
+                choices: [
+                  {
+                    id: "sd_jwt",
+                    label: "SD-JWT VC",
+                    next: {
+                      id: "vci_flow",
+                      question: "How does issuance start?",
+                      choices: [
+                        {
+                          id: "wallet_initiated",
+                          label: "Wallet-initiated",
+                          description:
+                            "The wallet starts by sending an authorization request to your issuer.",
+                          result: {
+                            plan_name: "oid4vci-1_0-issuer-haip-test-plan",
+                            variants: {
+                              credential_format: "sd_jwt_vc",
+                              vci_authorization_code_flow_variant: "wallet_initiated",
+                            },
+                          },
+                        },
+                        {
+                          id: "issuer_initiated",
+                          label: "Issuer-initiated",
+                          description:
+                            "Your issuer starts by sending the wallet a credential offer.",
+                          result: {
+                            plan_name: "oid4vci-1_0-issuer-haip-test-plan",
+                            variants: {
+                              credential_format: "sd_jwt_vc",
+                              vci_authorization_code_flow_variant: "issuer_initiated",
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    id: "mdoc",
+                    label: "ISO mdoc",
+                    next: {
+                      id: "vci_flow",
+                      question: "How does issuance start?",
+                      choices: [
+                        {
+                          id: "wallet_initiated",
+                          label: "Wallet-initiated",
+                          description:
+                            "The wallet starts by sending an authorization request to your issuer.",
+                          result: {
+                            plan_name: "oid4vci-1_0-issuer-haip-test-plan",
+                            variants: {
+                              credential_format: "mdoc",
+                              vci_authorization_code_flow_variant: "wallet_initiated",
+                            },
+                          },
+                        },
+                        {
+                          id: "issuer_initiated",
+                          label: "Issuer-initiated",
+                          description:
+                            "Your issuer starts by sending the wallet a credential offer.",
+                          result: {
+                            plan_name: "oid4vci-1_0-issuer-haip-test-plan",
+                            variants: {
+                              credential_format: "mdoc",
+                              vci_authorization_code_flow_variant: "issuer_initiated",
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
               },
             },
           ],
