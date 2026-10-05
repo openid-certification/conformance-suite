@@ -62,7 +62,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.3.1-5");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 
 		}
 	}
@@ -130,7 +130,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		if (isDpop) {
 			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 		} else {
-			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.3.1-5", "RFC8705-3.3");
+			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-5", "RFC8705-3.3");
 		}
 
 		if (! clientCredentialsGrant && isOpenId) {
