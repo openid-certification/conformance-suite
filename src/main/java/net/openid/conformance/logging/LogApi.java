@@ -20,6 +20,7 @@ import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
 import net.openid.conformance.export.TestExportInfo;
 import net.openid.conformance.export.TestHelper;
+import net.openid.conformance.info.DBTestPlanService;
 import net.openid.conformance.info.Plan;
 import net.openid.conformance.info.PublicPlan;
 import net.openid.conformance.info.PublicTestInfo;
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -62,6 +64,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -75,6 +78,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -105,6 +110,13 @@ public class LogApi {
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
 	static final String APPLICATION_ZIP_VALUE = "application/zip";
+	/**
+	 * What the upload endpoints accept (see {@code ImageAPI#validateEncodedImageFile}), so what
+	 * is served back: one of the accepted image types right after {@code data:}, then the data
+	 * after the first {@code base64,}, whatever parameters sit between.
+	 */
+	private static final Pattern IMAGE_DATA_URI = Pattern.compile(
+		"^data:(" + String.join("|", ImageAPI.IMAGE_TYPES) + ");.*?base64,(.*)$", Pattern.DOTALL);
 
 	private static final MediaType APPLICATION_ZIP = MediaType.parseMediaType(APPLICATION_ZIP_VALUE);
 
@@ -222,6 +234,184 @@ public class LogApi {
 		};
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
+	}
+
+	@GetMapping(value = "/plan/{id}/findings", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
+	@Operation(operationId = "getPlanFindings", summary = "List the failures, warnings and items awaiting review of a plan",
+		description = "Covers the latest run of each module. A finding logged by several modules is listed once, with the runs it occurred in.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PlanFindings.class))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id", content = @Content)
+	})
+	public ResponseEntity<Object> getPlanFindings(@Parameter(description = "Id of plan") @PathVariable String id) {
+
+		Plan plan = planService.getTestPlan(id);
+		if (plan == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		List<PlanFindings.Run> runs = latestRuns(plan);
+		return ResponseEntity.ok(PlanFindings.of(runs, findingEntries(plan, runs)));
+	}
+
+	/**
+	 * @return the latest run of each module of the plan that has run, in plan order
+	 */
+	private static List<PlanFindings.Run> latestRuns(Plan plan) {
+		List<PlanFindings.Run> runs = new ArrayList<>();
+		List<Plan.Module> modules = plan.getModules() == null ? List.of() : plan.getModules();
+		for (int i = 0; i < modules.size(); i++) {
+			Plan.Module module = modules.get(i);
+			String latest = DBTestPlanService.latestInstance(module);
+			if (latest != null) {
+				runs.add(new PlanFindings.Run(i, module.getTestModule(), module.getVariant(), latest));
+			}
+		}
+		return runs;
+	}
+
+	/**
+	 * @return criteria matching the log entries of these runs of the plan that the caller may
+	 *         read. Having read the plan at all (see {@link TestPlanService#getTestPlan}), the
+	 *         caller is its owner, shares it, or is an admin: the first two read the owner's
+	 *         entries, an admin everyone's.
+	 */
+	private Criteria planRunEntries(Plan plan, List<PlanFindings.Run> runs) {
+		Criteria criteria = Criteria.where("testId").in(runs.stream().map(PlanFindings.Run::testId).toList());
+		if (!authenticationFacade.isAdmin()) {
+			criteria.and("testOwner").is(plan.getOwner());
+		}
+		return criteria;
+	}
+
+	/**
+	 * @return the failures, the warnings and the entries carrying an image for review or a
+	 *         response captured by the browser automation of these runs of the plan, without the
+	 *         image or the response body
+	 */
+	private List<Document> findingEntries(Plan plan, List<PlanFindings.Run> runs) {
+		if (runs.isEmpty()) {
+			return List.of();
+		}
+		Query query = new Query(new Criteria().andOperator(planRunEntries(plan, runs), new Criteria().orOperator(
+			Criteria.where("result").in(PlanFindings.FAILURE, PlanFindings.WARNING),
+			reviewImage(),
+			Criteria.where("page_source").exists(true))));
+		query.fields().include("testId", "src", "msg", "result", "requirements", "time",
+			PlanFindings.CAPTURED_RESPONSE_MARKER);
+
+		return mongoTemplate.getCollection(DBEventLog.COLLECTION)
+			.find(query.getQueryObject())
+			.projection(query.getFieldsObject())
+			.into(new ArrayList<>());
+	}
+
+	/**
+	 * @return criteria matching an entry that carries an image for a reviewer to look at: a
+	 *         filled upload placeholder, or an image added on the upload page. A condition that
+	 *         logs an image of its own (a credential's portrait, say) is not one.
+	 */
+	private static Criteria reviewImage() {
+		return new Criteria().andOperator(
+			Criteria.where("img").exists(true),
+			new Criteria().orOperator(
+				Criteria.where("result").is("REVIEW"),
+				Criteria.where("src").is(ImageAPI.UPLOAD_SOURCE)));
+	}
+
+	@GetMapping(value = "/plan/{id}/findings/{entryId}/image", produces = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
+	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
+	@Operation(operationId = "getPlanFindingImage", summary = "Get the image of one of a plan's findings",
+		description = "The image carried by a log entry that GET /api/plan/{id}/findings lists as an IMAGE finding, as the image itself rather than a data URI.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "The image",
+			content = {
+				@Content(mediaType = MediaType.IMAGE_PNG_VALUE, schema = @Schema(type = "string", format = "binary")),
+				@Content(mediaType = MediaType.IMAGE_JPEG_VALUE, schema = @Schema(type = "string", format = "binary"))}),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id, or it has no such image among the latest runs of its modules", content = @Content)
+	})
+	public ResponseEntity<byte[]> getPlanFindingImage(
+		@Parameter(description = "Id of plan") @PathVariable String id,
+		@Parameter(description = "Id of the log entry, one of an occurrence's entryIds") @PathVariable String entryId) {
+
+		Document entry = findingEntry(id, entryId, reviewImage(), "img");
+		if (entry == null || !(entry.get("img") instanceof String img)) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		Matcher image = IMAGE_DATA_URI.matcher(img);
+		if (!image.matches()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		byte[] bytes;
+		try {
+			bytes = Base64.getMimeDecoder().decode(image.group(2));
+		} catch (IllegalArgumentException e) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		// an entry's image is set once and never replaced, so the viewer's browser may keep it
+		return ResponseEntity.ok()
+			.contentType(MediaType.parseMediaType(image.group(1)))
+			.cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePrivate())
+			.body(bytes);
+	}
+
+	/**
+	 * The response the browser automation captured to satisfy a review placeholder, as the log
+	 * page's More panel shows it.
+	 */
+	@Schema(description = "The response the browser automation captured to satisfy a review placeholder")
+	public record CapturedResponse(
+		@Schema(description = "The Content-Type the server answered with") String contentType,
+		@Schema(description = "The regular expression the response matched, if the module gave one") String matchedRegexp,
+		@Schema(description = "The response body as the browser saw it") String body) {
+	}
+
+	@GetMapping(value = "/plan/{id}/findings/{entryId}/response", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Tag(name = SwaggerConfig.TAG_TEST_PLANS)
+	@Operation(operationId = "getPlanFindingResponse", summary = "Get the captured response of one of a plan's findings",
+		description = "The response carried by a log entry that GET /api/plan/{id}/findings lists as a RESPONSE finding.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "The captured response",
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CapturedResponse.class))),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id, or it has no such captured response among the latest runs of its modules", content = @Content)
+	})
+	public ResponseEntity<Object> getPlanFindingResponse(
+		@Parameter(description = "Id of plan") @PathVariable String id,
+		@Parameter(description = "Id of the log entry, one of an occurrence's entryIds") @PathVariable String entryId) {
+
+		Document entry = findingEntry(id, entryId, Criteria.where("page_source").exists(true),
+			"page_source", PlanFindings.CAPTURED_RESPONSE_MARKER, "matched_regexp");
+		if (entry == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return ResponseEntity.ok(new CapturedResponse(
+			entry.get(PlanFindings.CAPTURED_RESPONSE_MARKER) instanceof String type ? type : null,
+			entry.get("matched_regexp") instanceof String regexp ? regexp : null,
+			String.valueOf(entry.get("page_source"))));
+	}
+
+	/**
+	 * @param planId  the plan the entry must belong to, through one of its modules' latest runs
+	 * @param entryId the entry
+	 * @param carries what the entry must carry to count
+	 * @param fields  the fields to read
+	 * @return the entry, with those fields only, or null if the caller may not see such an entry
+	 */
+	private Document findingEntry(String planId, String entryId, Criteria carries, String... fields) {
+		Plan plan = planService.getTestPlan(planId);
+		if (plan == null) {
+			return null;
+		}
+		List<PlanFindings.Run> runs = latestRuns(plan);
+		if (runs.isEmpty()) {
+			return null;
+		}
+		Query query = new Query(new Criteria().andOperator(
+			Criteria.where("_id").is(entryId), planRunEntries(plan, runs), carries));
+		query.fields().include(fields);
+		return mongoTemplate.findOne(query, Document.class, DBEventLog.COLLECTION);
 	}
 
 	// This endpoint is allowed for unauthenticated callers via the public matcher
@@ -497,28 +687,9 @@ public class LogApi {
 
 	@SuppressWarnings("MixedMutabilityReturnType")
 	private Map<String, List<Document>> queryTestResultsByIds(List<String> testIds, boolean isPublic, boolean summaryOnly) {
-		Criteria criteria = new Criteria();
-		criteria.and("testId").in(testIds);
-
-		if (!isPublic && !authenticationFacade.isAdmin()) {
-			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
-
-			if (authenticationFacade.isPrivateLinkUser()) {
-				// Restrict to ids in the shared plan — see getTestResults for rationale.
-				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
-				SharedAsset sharedAsset = privateToken.getSharedAsset();
-				if (sharedAsset == null) {
-					return Collections.emptyMap();
-				}
-				List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
-				List<String> idsInShared = testIds.stream().filter(sharedPlanTestIds::contains).toList();
-				if (idsInShared.isEmpty()) {
-					return Collections.emptyMap();
-				}
-				criteria = Criteria.where("testId").in(idsInShared).and("testOwner").is(sharedAsset.getOwner());
-			} else {
-				criteria.and("testOwner").is(currentUser);
-			}
+		Criteria criteria = logEntriesCriteria(testIds, isPublic);
+		if (criteria == null) {
+			return Collections.emptyMap();
 		}
 
 		Query query = new Query(criteria);
@@ -545,6 +716,39 @@ public class LogApi {
 			group.sort(Comparator.comparingLong(d -> d.getLong("time")));
 		}
 		return grouped;
+	}
+
+	/**
+	 * @param testIds  the tests whose log entries are wanted
+	 * @param isPublic whether the caller reads them as published data, which is not scoped to
+	 *                 an owner
+	 * @return criteria matching the log entries of those tests the caller may read, or null if
+	 *         the caller may read none of them
+	 */
+	private Criteria logEntriesCriteria(List<String> testIds, boolean isPublic) {
+		Criteria criteria = Criteria.where("testId").in(testIds);
+
+		if (!isPublic && !authenticationFacade.isAdmin()) {
+			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict to ids in the shared plan — see getTestResults for rationale.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset == null) {
+					return null;
+				}
+				List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
+				List<String> idsInShared = testIds.stream().filter(sharedPlanTestIds::contains).toList();
+				if (idsInShared.isEmpty()) {
+					return null;
+				}
+				criteria = Criteria.where("testId").in(idsInShared).and("testOwner").is(sharedAsset.getOwner());
+			} else {
+				criteria.and("testOwner").is(currentUser);
+			}
+		}
+		return criteria;
 	}
 
 	@SuppressWarnings("MixedMutabilityReturnType")

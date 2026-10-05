@@ -48,6 +48,12 @@ public class ImageAPI {
 	static final int UPLOAD_SIZE_LIMIT = 500 * 1024;
 	static final int MAX_IMAGES_PER_TEST = 2;
 
+	/** The source recorded on the log entry of an image added on the upload page. */
+	public static final String UPLOAD_SOURCE = "_image-api";
+
+	/** The content types an uploaded image may have, as the data URI names them. */
+	static final List<String> IMAGE_TYPES = List.of("image/png", "image/jpeg");
+
 	private static final String IMAGE_BODY_DESCRIPTION = "The image as a data URI string"
 		+ " ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most "
 		+ (UPLOAD_SIZE_LIMIT / 1024) + "KB decoded and at most " + MAX_IMAGES_PER_TEST + " images per test";
@@ -102,7 +108,7 @@ public class ImageAPI {
 				.append("_id", entryId)
 				.append("testId", testId)
 				.append("testOwner", testOwner)
-				.append("src", "_image-api")
+				.append("src", UPLOAD_SOURCE)
 				.append("time", new Date().getTime())
 				.append("msg", Strings.emptyToNull(description))
 				.append("img", encoded);
@@ -219,10 +225,9 @@ public class ImageAPI {
 		}
 
 		// Limit the accepted file types.
-		final String[] imageTypes  = {"image/jpeg", "image/png"};
 		boolean typeMatched = false;
 
-		for (String type : imageTypes) {
+		for (String type : IMAGE_TYPES) {
 			/*
 			 * The encoded string is expected to start with the mime type.
 			 * eg. 'data:image/png;'.
