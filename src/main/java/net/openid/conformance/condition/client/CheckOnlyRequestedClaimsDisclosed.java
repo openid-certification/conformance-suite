@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.authlete.sd.Disclosure;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,6 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
@@ -105,15 +105,24 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 			}
 		}
 
+		// the digests in the credential were made with its _sd_alg, so the comparison must use it too
+		String sdAlg = ValidateSdJwtKbSdHash.getSdAlg(env);
 		List<String> orphanArrayElementDisclosures = new ArrayList<>();
 		for (String raw : arrayElementRaws) {
 			// The digest for a disclosure is computed over the base64url-encoded disclosure
 			// bytes (SD-JWT §4.2.3). Env storage holds the decoded JSON form, so re-encode it
-			// and parse via authlete so digest() hashes the original byte sequence — avoids
+			// and hash that, so the digest covers the original byte sequence — avoids
 			// lossy Gson round-trips (e.g. integer array elements coerced to Double).
 			String base64url = Base64.getUrlEncoder().withoutPadding()
 				.encodeToString(raw.getBytes(StandardCharsets.UTF_8));
-			String digest = Disclosure.parse(base64url).digest();
+			String digest;
+			try {
+				digest = ValidateSdJwtKbSdHash.calculateDigest(base64url, sdAlg);
+			} catch (NoSuchAlgorithmException e) {
+				throw error("The credential's _sd_alg claim is not a hash algorithm the conformance suite supports, "
+						+ "so array element disclosures cannot be checked",
+					e, args("_sd_alg", sdAlg, "supported", ValidateSdJwtKbSdHash.supportedSdAlgs()));
+			}
 			if (!referencedDigests.contains(digest)) {
 				orphanArrayElementDisclosures.add(raw);
 			}

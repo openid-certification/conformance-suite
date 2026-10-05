@@ -1,6 +1,8 @@
 package net.openid.conformance.condition.client;
 
+import com.authlete.sd.Disclosure;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -10,6 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
@@ -59,6 +66,63 @@ public class ParseCredentialAsSdJwt_Kb_UnitTest {
 		cond.execute(env);
 
 		verify(env, atLeastOnce()).getString("credential");
+	}
+
+	private static String b64(String json) {
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * An SD-JWT+KB with one disclosure for the 'email' claim. The signatures are not real; the
+	 * parser does not verify them.
+	 *
+	 * @param sdAlgJson the JSON value of the _sd_alg claim
+	 * @param digestAlg the algorithm the digest in _sd is made with
+	 */
+	private static String sdJwtWithSdAlg(String sdAlgJson, String digestAlg) {
+		Disclosure disclosure = new Disclosure("salt", "email", "user@example.com");
+		String payload = "{\"iss\":\"https://issuer.example.com\",\"_sd\":[\"" + disclosure.digest(digestAlg) + "\"],\"_sd_alg\":" + sdAlgJson + "}";
+		return b64("{\"alg\":\"ES256\",\"typ\":\"dc+sd-jwt\"}") + "." + b64(payload) + ".c2ln"
+			+ "~" + disclosure.getDisclosure()
+			+ "~" + b64("{\"alg\":\"ES256\",\"typ\":\"kb+jwt\"}") + "." + b64("{\"nonce\":\"n\"}") + ".c2ln";
+	}
+
+	@Test
+	public void testEvaluate_sha3SdAlg() {
+		env.putString("credential", sdJwtWithSdAlg("\"sha3-256\"", "sha3-256"));
+
+		cond.execute(env);
+
+		assertEquals("user@example.com", env.getString("sdjwt", "decoded.email"));
+	}
+
+	@Test
+	public void testEvaluate_sdAlgIsCaseSensitive() {
+		env.putString("credential", sdJwtWithSdAlg("\"SHA-256\"", "sha-256"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_unregisteredSdAlgThrows() {
+		// the JVM can compute md5, but it is not a registered hash name
+		env.putString("credential", sdJwtWithSdAlg("\"md5\"", "md5"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_unknownSdAlgThrows() {
+		env.putString("credential", sdJwtWithSdAlg("\"not-a-hash\"", "sha-256"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_nonStringSdAlgThrows() {
+		env.putString("credential", sdJwtWithSdAlg("256", "sha-256"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 }
