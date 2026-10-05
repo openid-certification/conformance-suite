@@ -15,6 +15,7 @@ import { MOCK_USER, MOCK_ADMIN_USER } from "./mock-users.js";
 import { MOCK_TOKENS, MOCK_CREATED_TOKEN } from "./mock-tokens.js";
 import { MOCK_PLANS, MOCK_PLAN_LIST } from "./mock-plans.js";
 import { MOCK_LOG_ENTRIES } from "./mock-log-entries.js";
+import { MOCK_PLAN_FINDINGS } from "./mock-plan-findings.js";
 import {
   MOCK_PLAN_DETAIL,
   MOCK_TEST_STATUS,
@@ -56,6 +57,9 @@ export const planHandlers = [
 
   // Plan detail
   http.get("/api/plan/:planId", () => HttpResponse.json(MOCK_PLAN_DETAIL)),
+
+  // Plan-wide findings summary
+  http.get("/api/plan/:planId/findings", () => HttpResponse.json(MOCK_PLAN_FINDINGS)),
 
   // Publish plan
   http.post("/api/plan/:planId/publish", () => new HttpResponse(null, { status: 200 })),

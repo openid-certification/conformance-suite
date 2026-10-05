@@ -6,6 +6,7 @@ import {
   withLatestRuns,
 } from "./fixtures/mock-test-data.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
+import { MOCK_PLAN_FINDINGS } from "./fixtures/mock-plan-findings.js";
 
 test.describe("plan-detail.html — Plan Detail", () => {
   test.afterEach(async ({ page }) => {
@@ -248,22 +249,14 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    // R28 deep-link follow-on: every FAILED row now triggers a
-    // /api/log/{id} fetch from plan-detail.html. The expectNoUnmockedCalls
-    // afterEach hook would trip every plan-detail test that uses a FAILED
-    // module, so register a permissive log mock here too.
-    await page.route("**/api/log/test-inst-003*", (route) =>
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify([
-          { _id: "entry-1", result: "INFO", time: 1 },
-          { _id: "entry-2", result: "FAILURE", time: 2 },
-        ]),
+        body: JSON.stringify(MOCK_PLAN_FINDINGS),
       }),
     );
-
-    await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
@@ -288,15 +281,16 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(nameLink).toHaveAttribute("href", "log-detail.html?log=test-inst-001");
     await expect(nameLink).toHaveText("oidcc-server");
 
-    // R28 deep-link follow-on: the FAILED row's lozenge resolves the
-    // first FAILURE entry's LOG-NNNN ordinal and appends it as a
-    // fragment, so a click lands on the failure entry rather than the
-    // top of the log. The mocked /api/log/test-inst-003 returns the
-    // FAILURE at index 1 (ordinal 2) → LOG-0002. The aria-label
+    // R28: the FAILED row's lozenge deep-links to the run's earliest
+    // failure, named by the findings response, so a click lands on the
+    // failure entry rather than the top of the log. The aria-label
     // switches to the "Jump to first failure" form (R7).
     const failedRow = page.locator("#planItems .module-row").nth(2);
     const failedLink = failedRow.locator('[data-testid="module-status-link"]');
-    await expect(failedLink).toHaveAttribute("href", "log-detail.html?log=test-inst-003#LOG-0002");
+    await expect(failedLink).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-inst-003#entry-test-inst-003-bbbb",
+    );
     await expect(failedLink).toHaveAttribute(
       "aria-label",
       "Jump to first failure in logs for oidcc-ensure-redirect-uri-in-authorization-request",
@@ -399,14 +393,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
             "test-inst-003": { status: "INTERRUPTED", result: "FAILED" },
           }),
         ),
-      }),
-    );
-    // The FAILED row triggers an R28 /api/log deep-link fetch.
-    await page.route("**/api/log/test-inst-003*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([{ _id: "e1", result: "FAILURE", time: 1 }]),
       }),
     );
 
@@ -689,21 +675,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    // Mix of PASSED and FAILED — Publish for certification must stay hidden.
-    // R28 deep-link follow-on: the FAILED row triggers a /api/log/{id}
-    // fetch from plan-detail.html. Mock it so the fail-fast catch-all
-    // doesn't trip this R26 certify-gate test.
-    await page.route("**/api/log/test-inst-003*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([
-          { _id: "entry-1", result: "INFO", time: 1 },
-          { _id: "entry-2", result: "FAILURE", time: 2 },
-        ]),
-      }),
-    );
-
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -756,12 +727,65 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator('[data-testid="certify-btn"]')).toHaveCount(0);
   });
 
-  test("R28 deep-link composes ?public=true with the #LOG fragment correctly", async ({ page }) => {
+  test("R28: a FAILED badge links to the run's earliest failure without downloading its log", async ({
+    page,
+  }) => {
     await setupFailFast(page);
 
-    // Public-mode plan (admin published "everything"). plan-detail
-    // builds the log link with `?log={id}&public=true#LOG-NNNN` —
-    // the fragment must come AFTER the query string.
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "FAILED" },
+            "test-inst-002": { result: "PASSED" },
+            "test-inst-003": { result: "FAILED" },
+          }),
+        ),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_PLAN_FINDINGS,
+          // test-inst-001's earliest failure, and one for a run that is no
+          // longer module 3's latest instance, which must be ignored.
+          firstFailures: [
+            { moduleIndex: 0, testId: "test-inst-001", entryId: "test-inst-001-aaaa" },
+            { moduleIndex: 2, testId: "test-inst-003-older", entryId: "stale-entry" },
+          ],
+        }),
+      }),
+    );
+    /** @type {string[]} */
+    const logRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/log/")) logRequests.push(req.url());
+    });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const links = page.locator('#planItems .module-row [data-testid="module-status-link"]');
+    await expect(links.nth(0)).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-inst-001#entry-test-inst-001-aaaa",
+    );
+    // A FAILED run the findings name no earliest failure for links to the top
+    // of its log.
+    await expect(links.nth(2)).toHaveAttribute("href", "log-detail.html?log=test-inst-003");
+    // No log was downloaded to build either link.
+    expect(logRequests).toEqual([]);
+  });
+
+  test("R28 public view: a FAILED badge links to the top of the log", async ({ page }) => {
+    await setupFailFast(page);
+
+    // Public viewers get no findings, so no first-failure fragment either;
+    // the public flag still composes into the query string.
     await page.route("**/api/plan/plan-abc-123*", (route) =>
       route.fulfill({
         status: 200,
@@ -778,210 +802,18 @@ test.describe("plan-detail.html — Plan Detail", () => {
         ),
       }),
     );
-
-    // FAILURE at index 4 (5th entry) → LOG-0005. Earlier entries cover
-    // the INFO + startBlock cases that consume an ordinal in the
-    // canonical site's iteration but never qualify as the "first
-    // failure" themselves.
-    await page.route("**/api/log/test-inst-003**", (route) => {
-      // Sanity-check the request: the public flag must propagate to
-      // the log fetch as well, otherwise the summary projection
-      // wouldn't apply on the live server.
-      expect(route.request().url()).toContain("public=true");
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([
-          { _id: "e1", startBlock: true, time: 1 },
-          { _id: "e2", result: "INFO", time: 2 },
-          { _id: "e3", result: "INFO", time: 3 },
-          { _id: "e4", result: "WARNING", time: 4 },
-          { _id: "e5", result: "FAILURE", time: 5 },
-        ]),
-      });
-    });
-
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123&public=true");
 
-    // FAILED row's lozenge gets the fragment after the public-mode
-    // query string. Composition order: ?log={id}&public=true#LOG-NNNN.
     const failedLink = page
       .locator("#planItems .module-row")
       .nth(2)
       .locator('[data-testid="module-status-link"]');
     await expect(failedLink).toHaveAttribute(
       "href",
-      "log-detail.html?log=test-inst-003&public=true#LOG-0005",
+      "log-detail.html?log=test-inst-003&public=true",
     );
-  });
-
-  test("R28 deep-link falls back to top-of-log when /api/log returns 404", async ({ page }) => {
-    await setupFailFast(page);
-
-    await page.route("**/api/plan/plan-abc-123", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(
-          withLatestRuns(MOCK_PLAN_DETAIL, {
-            "test-inst-001": { result: "PASSED" },
-            "test-inst-002": { result: "PASSED" },
-            "test-inst-003": { result: "FAILED" },
-          }),
-        ),
-      }),
-    );
-
-    // Capture console.warn calls so we can assert the fail-soft branch
-    // emitted its observability breadcrumb. Set this up BEFORE goto so
-    // no warn from the page is missed.
-    /** @type {string[]} */
-    const warnings = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "warning") {
-        warnings.push(msg.text());
-      }
-    });
-
-    await page.route("**/api/log/test-inst-003*", (route) =>
-      route.fulfill({ status: 404, contentType: "application/json", body: "{}" }),
-    );
-
-    await setupCommonRoutes(page);
-
-    await page.goto("/plan-detail.html?plan=plan-abc-123");
-
-    // Wait until the FAILED row's badge has settled. The deep-link
-    // resolution kicks off after this point, so we know any warn it
-    // emits has had time to fire by the time we assert below.
-    await expect(page.locator('#planItems .module-row cts-badge[label="FAILED"]')).toBeVisible();
-
-    // Lozenge keeps the R28 top-of-log href — no `#`, no broken
-    // fragment. Aria-label keeps the original "View logs ..." form so
-    // SR announcement matches the actual landing.
-    const failedLink = page
-      .locator("#planItems .module-row")
-      .nth(2)
-      .locator('[data-testid="module-status-link"]');
-    await expect(failedLink).toHaveAttribute("href", "log-detail.html?log=test-inst-003");
-    await expect(failedLink).toHaveAttribute("aria-label", /^View logs for /);
-
-    // No user-facing error modal — the failure is intentionally swallowed.
-    await expect(page.locator("#errorModal")).toBeHidden();
-
-    // The fail-soft branch emitted a single console.warn for
-    // observability. The exact wording is brittle to lock down; the
-    // test asserts it mentions the test ID so a maintainer reading
-    // dev tools knows which row failed.
-    await expect.poll(() => warnings.some((w) => w.includes("test-inst-003"))).toBe(true);
-  });
-
-  test("R28 deep-link falls back when no FAILURE entry exists in the log", async ({ page }) => {
-    await setupFailFast(page);
-
-    await page.route("**/api/plan/plan-abc-123", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(
-          withLatestRuns(MOCK_PLAN_DETAIL, {
-            "test-inst-001": { result: "PASSED" },
-            "test-inst-002": { result: "PASSED" },
-            "test-inst-003": { result: "FAILED" },
-          }),
-        ),
-      }),
-    );
-
-    // Pathological state: result-level says FAILED but the log itself
-    // contains no FAILURE entry. The shim treats this the same as a
-    // 404 — leave firstFailureRef undefined and warn for observability.
-    await page.route("**/api/log/test-inst-003*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([
-          { _id: "e1", result: "INFO", time: 1 },
-          { _id: "e2", result: "WARNING", time: 2 },
-        ]),
-      }),
-    );
-
-    await setupCommonRoutes(page);
-
-    await page.goto("/plan-detail.html?plan=plan-abc-123");
-
-    await expect(page.locator('#planItems .module-row cts-badge[label="FAILED"]')).toBeVisible();
-
-    const failedLink = page
-      .locator("#planItems .module-row")
-      .nth(2)
-      .locator('[data-testid="module-status-link"]');
-    await expect(failedLink).toHaveAttribute("href", "log-detail.html?log=test-inst-003");
-  });
-
-  test("R28 deep-link fetch fires exactly once per FAILED row", async ({ page }) => {
-    await setupFailFast(page);
-
-    await page.route("**/api/plan/plan-abc-123", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(
-          withLatestRuns(MOCK_PLAN_DETAIL, {
-            "test-inst-001": { result: "PASSED" },
-            "test-inst-002": { result: "PASSED" },
-            "test-inst-003": { result: "FAILED" },
-          }),
-        ),
-      }),
-    );
-
-    // Count fetches per test ID. R5 pins "fetch fires once per FAILED
-    // row, never on a polling cadence" — only test-inst-003 should be
-    // fetched, exactly once. The PASSED rows must not trigger a log
-    // fetch at all.
-    /** @type {Record<string, number>} */
-    const logFetchCounts = { "test-inst-001": 0, "test-inst-002": 0, "test-inst-003": 0 };
-    await page.route("**/api/log/**", (route) => {
-      const url = new URL(route.request().url());
-      const id = url.pathname.split("/api/log/")[1];
-      if (id in logFetchCounts) logFetchCounts[id] += 1;
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify([
-          { _id: "e1", result: "INFO", time: 1 },
-          { _id: "e2", result: "FAILURE", time: 2 },
-        ]),
-      });
-    });
-
-    await setupCommonRoutes(page);
-
-    await page.goto("/plan-detail.html?plan=plan-abc-123");
-
-    // Wait until the deep-link has resolved (href ends with the
-    // fragment) so we know the fetch lifecycle has fully settled
-    // before we count.
-    const failedLink = page
-      .locator("#planItems .module-row")
-      .nth(2)
-      .locator('[data-testid="module-status-link"]');
-    await expect(failedLink).toHaveAttribute("href", "log-detail.html?log=test-inst-003#LOG-0002");
-
-    // Give any rogue polling cadence ~one full tick to misbehave. The
-    // page does not currently implement status polling for
-    // plan-detail; this short wait is a defensive pin so a future
-    // regression that introduces polling without updating the deep-link
-    // logic surfaces here.
-    await page.waitForTimeout(250);
-
-    expect(logFetchCounts["test-inst-003"]).toBe(1);
-    expect(logFetchCounts["test-inst-001"]).toBe(0);
-    expect(logFetchCounts["test-inst-002"]).toBe(0);
   });
 
   test("page does not overflow and plan metadata stacks at 375px viewport", async ({ page }) => {
@@ -1026,6 +858,277 @@ test.describe("plan-detail.html — Plan Detail", () => {
       .locator("cts-plan-header .planMeta")
       .evaluate((el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/));
     expect(tracks).toHaveLength(1);
+  });
+
+  test("findings summary lists each distinct finding once with the modules it occurred in", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_FINDINGS),
+      }),
+    );
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const summary = page.locator('#planDetailFindings [data-testid="plan-findings"]');
+    await expect(summary.locator("summary").first()).toHaveText(
+      "Summary of results: 1 failure, 1 warning, 1 image to review, 1 module not run",
+    );
+
+    // Three findings for four module occurrences: the failure shared by two
+    // modules is one row. The plan's never-run module is a row of its own,
+    // last, linking to that module's row on this page.
+    const rows = summary.locator('[data-testid="plan-finding"]');
+    await expect(rows).toHaveCount(4);
+    await expect(rows.nth(3)).toHaveAttribute("data-kind", "NOT_RUN");
+    await expect(rows.nth(3).locator('[data-testid="plan-finding-link"]')).toHaveAttribute(
+      "href",
+      "#cts-module-3",
+    );
+    const shared = rows.nth(0);
+    await expect(shared).toContainText("CheckDiscEndpointIssuer");
+    await expect(shared).toContainText("in 2 modules");
+
+    // Its modules sit under a disclosure, each linking to the entry in that
+    // module's own log.
+    const links = shared.locator('[data-testid="plan-finding-link"]');
+    await expect(links.first()).toBeHidden();
+    await shared.locator("summary").click();
+    await expect(links).toHaveCount(2);
+    await expect(links.nth(0)).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-inst-001#entry-test-inst-001-aaaa",
+    );
+    await expect(links.nth(1)).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-inst-003#entry-test-inst-003-bbbb",
+    );
+
+    // The summary sits above the module rows.
+    const summaryBox = await summary.boundingBox();
+    const modulesBox = await page.locator("#planDetailModules").boundingBox();
+    if (!summaryBox || !modulesBox) throw new Error("summary and modules must both be laid out");
+    expect(summaryBox.y + summaryBox.height).toBeLessThanOrEqual(modulesBox.y);
+  });
+
+  test("an image finding shows a thumbnail that opens the image with what it should show", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_FINDINGS),
+      }),
+    );
+    /** @type {string[]} */
+    const imageRequests = [];
+    await page.route("**/api/plan/plan-abc-123/findings/*/image", (route) => {
+      imageRequests.push(new URL(route.request().url()).pathname);
+      return route.fulfill({
+        status: 200,
+        contentType: "image/svg+xml",
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>',
+      });
+    });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Only the IMAGE row has a thumbnail, pointing at that entry's image.
+    const thumbs = page.locator('#planDetailFindings [data-testid="plan-finding-thumb"]');
+    await expect(thumbs).toHaveCount(1);
+    await expect(thumbs.locator("img")).toHaveAttribute(
+      "src",
+      "/api/plan/plan-abc-123/findings/test-inst-003-dddd/image",
+    );
+    await expect(thumbs.locator("img")).toHaveJSProperty("complete", true);
+
+    await thumbs.click();
+
+    const modal = page.locator('[data-testid="plan-finding-image-modal"]');
+    await expect(modal.locator('[data-testid="plan-finding-expected"]')).toBeVisible();
+    await expect(modal.locator('[data-testid="plan-finding-expected"]')).toContainText(
+      "ExpectRedirectUriMissingErrorPage",
+    );
+    await expect(modal.locator('[data-testid="plan-finding-expected"]')).toContainText(
+      "Show an error page saying the redirect URI is missing",
+    );
+    await expect(modal.locator('[data-testid="plan-finding-viewed-link"]')).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-inst-003#entry-test-inst-003-dddd",
+    );
+    await expect(modal.locator("img.planFindingFullImage")).toBeVisible();
+    expect(new Set(imageRequests)).toEqual(
+      new Set(["/api/plan/plan-abc-123/findings/test-inst-003-dddd/image"]),
+    );
+  });
+
+  test("the summary can be copied as text and downloaded as CSV", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_FINDINGS),
+      }),
+    );
+    // Record clipboard writes: the harness grants no real clipboard access.
+    await page.addInitScript(() => {
+      /** @type {string[]} */
+      const written = [];
+      /** @type {any} */ (window).__copied = written;
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: (text) => (written.push(text), Promise.resolve()) },
+      });
+    });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    await page.locator('[data-testid="plan-findings-copy-text"] button').click();
+    await expect
+      .poll(() => page.evaluate(() => /** @type {any} */ (window).__copied.length))
+      .toBe(1);
+    const text = await page.evaluate(() => /** @type {any} */ (window).__copied[0]);
+    expect(text).toContain(
+      "Summary of results: 1 failure, 1 warning, 1 image to review, 1 module not run\n",
+    );
+    expect(text).toContain("/plan-detail.html?plan=plan-abc-123\n");
+    expect(text).toContain(
+      "  - oidcc-server (client_auth_type=client_secret_basic, response_type=code): http://localhost:9876/log-detail.html?log=test-inst-001#entry-test-inst-001-aaaa\n",
+    );
+    expect(text).toMatch(
+      /- oidcc-codereuse \(.*\): http:\/\/localhost:9876\/plan-detail\.html\?plan=plan-abc-123#cts-module-3\n/,
+    );
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.locator('[data-testid="plan-findings-download-csv"] button').click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("summary-of-results-plan-abc-123.csv");
+    const csv = (await (await download.createReadStream()).toArray()).join("");
+    const lines = csv.trimEnd().split("\r\n");
+    expect(lines[0]).toBe("kind,condition,message,requirements,module,variant,test_id,count,link");
+    expect(lines.length).toBe(1 + 4 + 1);
+    expect(lines[1]).toBe(
+      'FAILURE,CheckDiscEndpointIssuer,issuer in discovery document does not match the configured issuer,OIDCD-4.3,oidcc-server,"client_auth_type=client_secret_basic, response_type=code",test-inst-001,1,http://localhost:9876/log-detail.html?log=test-inst-001#entry-test-inst-001-aaaa',
+    );
+  });
+
+  test("findings are neither requested nor shown on the public view", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123?public=true", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+    let findingsRequests = 0;
+    await page.route("**/api/plan/*/findings*", (route) => {
+      findingsRequests++;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_FINDINGS),
+      });
+    });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123&public=true");
+
+    await expect(page.locator("#planItems .module-row").first()).toBeVisible();
+    // The public view still says which modules have not finished, which it
+    // knows from the plan itself, but asks for and shows no findings.
+    const rows = page.locator('[data-testid="plan-finding"]');
+    await expect(rows).toHaveCount(1);
+    await expect(rows).toHaveAttribute("data-kind", "NOT_RUN");
+    expect(findingsRequests).toBe(0);
+  });
+
+  test("a failed findings request leaves the rest of the page working", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
+      route.fulfill({ status: 500, contentType: "application/json", body: "{}" }),
+    );
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    await expect(page.locator("#planItems .module-row")).toHaveCount(4);
+    const rows = page.locator('[data-testid="plan-finding"]');
+    await expect(rows).toHaveCount(1);
+    await expect(rows).toHaveAttribute("data-kind", "NOT_RUN");
+    await expect(page.locator("#errorModal")).toBeHidden();
+  });
+
+  test("findings summary wraps inside a 375px viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupCommonRoutes(page);
+    await page.route("**/api/plan/plan-abc-123/findings", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_FINDINGS),
+      }),
+    );
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    await expect(page.locator('[data-testid="plan-finding"]')).toHaveCount(4);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 });
 

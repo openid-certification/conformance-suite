@@ -1182,16 +1182,36 @@ class CtsLogViewer extends LitElement {
    * `#LOG-9999` on a 50-entry test) — in which case it returns `false` so
    * the caller knows the target was not reached and can retry later.
    *
+   * `#entry-<_id>` names an entry by its server-side id, for links built
+   * without the log in hand (the plan page's findings summary); it resolves
+   * through the reference map to the same `LOG-NNNN` row.
+   *
    * Blocks are not collapsible (every entry is always rendered visible), so
    * there is no collapsed ancestor to reveal before scrolling — the target
    * is in the layout the moment it exists in `_entries`.
    * @returns {boolean} `true` when the target was found and scrolled; `false` otherwise.
    */
+  /**
+   * @param {string} hash - `window.location.hash`, including the `#`.
+   * @returns {string} The element id of the entry row the hash names, or `""`.
+   */
+  _hashTargetId(hash) {
+    if (/^#LOG-\d+$/.test(hash)) return hash.slice(1);
+    if (!hash.startsWith("#entry-")) return "";
+    let entryId;
+    try {
+      entryId = decodeURIComponent(hash.slice("#entry-".length));
+    } catch {
+      return "";
+    }
+    return this._references[entryId] || "";
+  }
+
   _scrollToHashIfPresent() {
     if (typeof window === "undefined") return false;
-    const hash = window.location.hash;
-    if (!/^#LOG-\d+$/.test(hash)) return false;
-    const target = document.getElementById(hash.slice(1));
+    const targetId = this._hashTargetId(window.location.hash);
+    if (!targetId) return false;
+    const target = document.getElementById(targetId);
     if (!target) return false;
     // Honour prefers-reduced-motion: an instant jump avoids both the
     // animation and the multi-frame window during which a concurrent

@@ -70,6 +70,26 @@ export async function setupCommonRoutes(page, options = {}) {
     }),
   );
 
+  // plan-detail.html asks for the plan-wide findings summary on every
+  // non-public load. Empty by default, which renders nothing; a spec about the
+  // summary overrides this route after calling setupCommonRoutes.
+  await page.route("**/api/plan/*/findings", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ findings: [] }),
+    }),
+  );
+
+  // An IMAGE finding shows a thumbnail of each uploaded image.
+  await page.route("**/api/plan/*/findings/*/image", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"/>',
+    }),
+  );
+
   await page.route("**/api/server", (route) =>
     route.fulfill({
       status: 200,

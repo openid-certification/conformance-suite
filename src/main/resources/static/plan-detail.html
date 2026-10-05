@@ -37,6 +37,7 @@
     <script type="module" src="/components/cts-plan-actions.js"></script>
     <script type="module" src="/components/cts-plan-modules.js"></script>
     <script type="module" src="/components/cts-plan-status.js"></script>
+    <script type="module" src="/components/cts-plan-findings.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
 
@@ -213,6 +214,12 @@
                      tech (the row narrowing + badge toggles are otherwise
                      silent). -->
                 <span id="resultFilterStatus" class="oidf-visually-hidden" aria-live="polite"></span>
+                <!-- Summary of results: plan-wide failures, warnings and items to
+                     review, one row per distinct finding (fetched by getPlan from
+                     /api/plan/{id}/findings, never on the public view), then the
+                     modules that have not finished. Renders nothing when there is
+                     nothing to report. -->
+                <cts-plan-findings id="planDetailFindings"></cts-plan-findings>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
             <cts-plan-actions id="planDetailActions"></cts-plan-actions>
@@ -681,6 +688,54 @@
 
                     var modulesData = mappedModules.slice();
 
+                    // The summary lists the modules that have not finished from
+                    // the same module data the rows use.
+                    document.getElementById('planDetailFindings').modules = modulesData;
+
+                    // Plan-wide findings summary. The endpoint is not
+                    // available to public viewers, so they get no summary,
+                    // and their FAILED badges link to the top of the log.
+                    // Fail-soft: the page is complete without it.
+                    if (!isPublic) {
+                        fetch('/api/plan/' + encodeURIComponent(planId) + '/findings')
+                            .then((response) => {
+                                if (!response.ok) {
+                                    return Promise.reject(new Error('HTTP ' + response.status));
+                                }
+                                return response.json();
+                            })
+                            .then((body) => {
+                                var findingsEl = document.getElementById('planDetailFindings');
+                                findingsEl.planId = planId;
+                                findingsEl.findings =
+                                    Array.isArray(body.findings) ? body.findings : [];
+
+                                // R28: a FAILED row's status badge deep-links to
+                                // the run's earliest failure. The findings name
+                                // that entry per run, and the log viewer resolves
+                                // an #entry-<id> fragment to its row.
+                                var byIndex = {};
+                                (body.firstFailures || []).forEach(function (first) {
+                                    byIndex[first.moduleIndex] = first;
+                                });
+                                modulesData = modulesData.map(function (mod, idx) {
+                                    var first = byIndex[idx];
+                                    if (!first || mod.instances[mod.instances.length - 1] !== first.testId) {
+                                        return mod;
+                                    }
+                                    return Object.assign({}, mod, {
+                                        firstFailureRef: 'entry-' + encodeURIComponent(first.entryId),
+                                    });
+                                });
+                                // Fresh array so cts-plan-modules re-renders the
+                                // rows whose link just gained its fragment.
+                                modulesEl.modules = modulesData;
+                            })
+                            .catch((error) => {
+                                console.warn('[plan-detail] findings summary unavailable:', error);
+                            });
+                    }
+
                     // R26: show "Publish for certification" only when at
                     // least one test has FINISHED and none of the
                     // FINISHED tests has a FAILED result. WARNING / REVIEW
@@ -706,80 +761,6 @@
                         : typeof certProfiles === 'string' && certProfiles.trim() !== '';
                     actionsEl.canCertify = finished.length > 0 && !hasFailed && hasCertProfile;
 
-                    // R28 deep-link follow-on: for each FAILED row,
-                    // fetch the test log once and resolve the first
-                    // failed entry's LOG-NNNN reference, so the
-                    // status lozenge href deep-links to that entry
-                    // instead of the top of the log.
-                    //
-                    // Iteration mirrors the canonical site at
-                    // src/main/resources/static/components/cts-log-viewer.js
-                    // (formatter at lines 18-20, _buildReferences()
-                    // around line 403). The rule: every entry in the
-                    // chronological stream consumes an ordinal,
-                    // including `startBlock` rows. The shim is
-                    // duplicated here because plan-detail.html opens
-                    // a classic <script type="text/javascript"> and
-                    // cannot ES-import the helper. If the rule
-                    // changes there, update the iteration here too.
-                    //
-                    // Fail-soft: any fetch / parse error or a missing
-                    // FAILURE entry leaves firstFailureRef undefined
-                    // and the lozenge keeps the R28 top-of-log
-                    // fallback href. A single console.warn surfaces
-                    // the swallowed failure to dev tools so a real
-                    // contract drift on /api/log is detectable.
-                    Promise.all(modulesData.map(function (mod, idx) {
-                        if (mod.result !== 'FAILED') return Promise.resolve();
-                        var lastInstance = mod.instances[mod.instances.length - 1];
-                        if (!lastInstance) return Promise.resolve();
-                        return fetch('/api/log/' + encodeURIComponent(lastInstance)
-                            + (isPublic ? '?public=true' : ''))
-                            .then((response) => {
-                                if (!response.ok) {
-                                    return Promise.reject(
-                                        new Error('HTTP ' + response.status));
-                                }
-                                return response.json();
-                            })
-                            .then((entries) => {
-                                if (!Array.isArray(entries)) {
-                                    return Promise.reject(
-                                        new Error('expected array, got ' + typeof entries));
-                                }
-                                for (var i = 0; i < entries.length; i++) {
-                                    if (entries[i] && entries[i].result === 'FAILURE') {
-                                        var ordinal = i + 1;
-                                        var ref = 'LOG-'
-                                            + String(ordinal).padStart(4, '0');
-                                        modulesData[idx] = Object.assign(
-                                            {}, modulesData[idx], { firstFailureRef: ref });
-                                        return;
-                                    }
-                                }
-                                return Promise.reject(
-                                    new Error('no FAILURE entry found'));
-                            })
-                            .catch((error) => {
-                                // Swallow by design (R1 fail-soft).
-                                // Log once for observability so a real
-                                // /api/log contract drift surfaces in
-                                // dev tools and bug reports.
-                                console.warn(
-                                    '[plan-detail] R28 deep-link resolution failed for '
-                                        + lastInstance + ':',
-                                    error);
-                            });
-                    })).then(() => {
-                        // Reassign with a fresh slice so Lit's default
-                        // hasChanged (reference equality) detects the
-                        // change and re-renders any FAILED rows whose
-                        // firstFailureRef just resolved. modulesData
-                        // here is the same array reference as the
-                        // first reassign above, so the slice is what
-                        // makes the property update fire.
-                        modulesEl.modules = modulesData.slice();
-                    });
                 })
                 .catch((error) => {
                     handleApiError(error);

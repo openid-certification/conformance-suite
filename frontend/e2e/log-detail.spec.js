@@ -3547,6 +3547,34 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       .toBeGreaterThanOrEqual(-1);
   });
 
+  test("an #entry-<id> hash scrolls to the entry with that server-side id", async ({ page }) => {
+    // Short viewport, so the last entry starts below the fold and reaching it
+    // takes a real scroll.
+    await page.setViewportSize({ width: 1280, height: 420 });
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // The plan page's findings summary links by entry id because it never
+    // loads the log, so it cannot know the LOG-NNNN ordinal.
+    const entryId = MOCK_LOG_ENTRIES[MOCK_LOG_ENTRIES.length - 1]._id;
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#entry-${encodeURIComponent(entryId)}`,
+    );
+
+    const target = page.locator(`cts-log-entry[data-entry-id="${entryId}"]`);
+    await expect(target).toHaveAttribute("id", /^LOG-\d{4}$/);
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), {
+        message: "the page should scroll down to the entry",
+      })
+      .toBeGreaterThan(0);
+    await expect(target.locator(".logItem")).toBeInViewport();
+  });
+
   test("U6: out-of-range hash loads the page without errors", async ({ page }) => {
     await setupFailFast(page);
     await setupV2Routes(page, {
