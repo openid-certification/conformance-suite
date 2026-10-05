@@ -142,6 +142,7 @@ import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.EnsureIncomingTls13;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -1056,7 +1057,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 	}
 
+	/**
+	 * Checks the HTTP method the wallet used to fetch the request_uri. Per OID4VP section 5.1 the
+	 * wallet MUST use GET when request_uri_method is absent or is 'get'. Overridden by the module
+	 * that sends request_uri_method=post.
+	 */
 	protected void validateRequestUriFetchMethod() {
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 	}
 
 	@NotNull
