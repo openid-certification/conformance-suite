@@ -365,6 +365,7 @@ sigil fails the lint step.
 | `cts-navbar`            | LitElement  | Yes       | Fetches user via `/api/currentuser` on connect                                                                                 |
 | `cts-plan-actions`      | LitElement  | Yes       | Plan-detail action bar; dispatches publish/delete/certify/etc. events                                                          |
 | `cts-plan-detail`       | LitElement  | Yes       | Composite: header + modules + actions. See `cts-plan-detail.stories.js` for the sub-component stories                          |
+| `cts-plan-findings`     | LitElement  | Yes       | Plan-wide failures/warnings/images from `/api/plan/{id}/findings`, one row per distinct finding                                |
 | `cts-plan-header`       | LitElement  | Yes       | Sub-component of cts-plan-detail                                                                                               |
 | `cts-plan-list`         | LitElement  | Yes       | Plans table; dispatches `cts-plan-navigate`                                                                                    |
 | `cts-plan-modules`      | LitElement  | Yes       | Sub-component of cts-plan-detail; dispatches run/download events                                                               |

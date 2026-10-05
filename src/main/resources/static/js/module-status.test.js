@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatVariant,
   segmentStatusWord,
   segmentVariant,
   statusBadgeVariant,
@@ -98,5 +99,20 @@ describe("segmentStatusWord", () => {
     // A 404'd fetch settles with no status at all: it reads as not run.
     expect(segmentStatusWord(resolved(undefined, undefined))).toBe("not run");
     expect(statusLabel(undefined, undefined)).toBe("PENDING");
+  });
+});
+
+describe("formatVariant", () => {
+  it("joins the variant's parameters as key=value", () => {
+    expect(formatVariant({ client_auth_type: "mtls", response_type: "code" })).toBe(
+      "client_auth_type=mtls, response_type=code",
+    );
+  });
+
+  it("is empty for a missing variant and passes a formatted one through", () => {
+    expect(formatVariant(null)).toBe("");
+    expect(formatVariant(undefined)).toBe("");
+    expect(formatVariant({})).toBe("");
+    expect(formatVariant("fapi_profile=plain_fapi")).toBe("fapi_profile=plain_fapi");
   });
 });

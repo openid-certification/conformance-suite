@@ -307,8 +307,9 @@ function ensureStylesInjected() {
  *
  * @property {Array<object>} modules - Modules rendered from the plan-detail
  *   API response; see cts-plan-detail.stories.js for shape. Each module
- *   may carry an optional `firstFailureRef` string (e.g. `"LOG-0042"`)
- *   resolved by the page-level shim from `/api/log/{lastInstance}`. When
+ *   may carry an optional `firstFailureRef` string: the log page fragment
+ *   (without the `#`) of the run's earliest failure, e.g. `"entry-<id>"`,
+ *   which the page takes from `/api/plan/{id}/findings`. When
  *   `mod.result === "FAILED"` AND `firstFailureRef` is a non-empty
  *   string, the lozenge href is appended with `#{firstFailureRef}` so a
  *   click lands on the failure entry rather than the top of the log.
