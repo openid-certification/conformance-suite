@@ -20,7 +20,9 @@ import net.openid.conformance.testmodule.TestFailureException;
  *
  * Subclasses implement validateErrorResponse() with the conditions (and severities) that validate
  * the error response, and retain the screenshot placeholder flow as the alternative pass for
- * wallets that abort without responding.
+ * wallets that abort without responding. A subclass whose request is only unauthentic in the
+ * redirect flow (e.g. a defective request object typ) overrides handleDirectPost() to keep failing
+ * on any call to the response_uri while still accepting a DC API error response.
  */
 public abstract class AbstractVP1FinalWalletNegativeTestExpectingError extends AbstractVP1FinalWalletTest {
 
