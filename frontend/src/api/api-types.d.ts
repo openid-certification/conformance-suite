@@ -524,6 +524,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/plan/{id}/findings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List the failures, warnings and items awaiting review of a plan
+     * @description Covers the latest run of each module. A finding logged by several modules is listed once, with the runs it occurred in.
+     */
+    get: operations["getPlanFindings"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/plan/{id}/findings/{entryId}/image": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the image of one of a plan's findings
+     * @description The image carried by a log entry that GET /api/plan/{id}/findings lists as an IMAGE finding, as the image itself rather than a data URI.
+     */
+    get: operations["getPlanFindingImage"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/plan/info/{planName}": {
     parameters: {
       query?: never;
@@ -1252,6 +1292,58 @@ export interface components {
       recordsFiltered?: number;
       /** @description The page of records; the item type depends on the endpoint */
       data?: unknown[];
+    };
+    /** @description One distinct finding and every module run it occurred in */
+    Finding: {
+      /** @description FAILURE, WARNING, IMAGE (an uploaded image awaiting review, served by GET /api/plan/{id}/findings/{entryId}/image) or PAGE (a page the browser automation captured in place of an image, awaiting review) */
+      kind?: string;
+      /** @description The condition or source that logged the entry */
+      src?: string;
+      /** @description The logged message; null if the entry has none */
+      msg?: string;
+      /** @description The specification requirements cited by any of the entries */
+      requirements?: string[];
+      occurrences?: components["schemas"]["Occurrence"][];
+    };
+    /** @description The earliest failure logged by a module run */
+    FirstFailure: {
+      /**
+       * Format: int32
+       * @description The module's position in the plan's modules
+       */
+      moduleIndex?: number;
+      /** @description The id of the module's latest run */
+      testId?: string;
+      /** @description The id of the run's earliest FAILURE log entry */
+      entryId?: string;
+    };
+    /** @description A module run in which a finding occurred */
+    Occurrence: {
+      /**
+       * Format: int32
+       * @description The module's position in the plan's modules
+       */
+      moduleIndex?: number;
+      testModule?: string;
+      variant?: {
+        [key: string]: string;
+      };
+      /** @description The id of the module's latest run */
+      testId?: string;
+      /** @description The id of the first matching log entry of that run */
+      entryId?: string;
+      /**
+       * Format: int32
+       * @description How many matching entries that run logged
+       */
+      count?: number;
+    };
+    /** @description Failures, warnings and items awaiting review across the latest runs of a plan's modules */
+    PlanFindings: {
+      /** @description Failures first, then warnings, then images, then captured pages; within each, the most widespread first */
+      findings?: components["schemas"]["Finding"][];
+      /** @description For each module run that logged a failure, its earliest failure entry, in plan order */
+      firstFailures?: components["schemas"]["FirstFailure"][];
     };
     /** @description Stored information about one test instance. When requested with public=true the same shape is returned minus the 'config' field. */
     TestInfoResponse: {
@@ -2835,6 +2927,83 @@ export interface operations {
       };
       /** @description The plan is immutable and cannot be deleted */
       405: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getPlanFindings: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Id of plan */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PlanFindings"];
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Couldn't find given plan Id */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  getPlanFindingImage: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Id of plan */
+        id: string;
+        /** @description Id of the log entry, as an occurrence's entryId */
+        entryId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The image */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "image/png": string;
+          "image/jpeg": string;
+        };
+      };
+      /** @description Missing or invalid bearer token / login session */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Couldn't find given plan Id, or it has no such image among the latest runs of its modules */
+      404: {
         headers: {
           [name: string]: unknown;
         };

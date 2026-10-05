@@ -95,6 +95,8 @@ public class WebSecurityResourceServerConfig {
 				String method = request.getMethod();
 				if ("GET".equals(method) && (
 					uri.matches("/api/plan/[A-Za-z0-9]+") ||
+					uri.matches("/api/plan/[A-Za-z0-9]+/findings") ||
+					uri.matches("/api/plan/[A-Za-z0-9]+/findings/[A-Za-z0-9-]+/image") ||
 					uri.matches("/api/info/[A-Za-z0-9]+") ||
 					uri.matches("/api/log/[A-Za-z0-9]+") ||
 					uri.matches("/api/log/export/[A-Za-z0-9]+") ||

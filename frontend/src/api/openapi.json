@@ -1287,6 +1287,70 @@
         }
       }
     },
+    "/api/plan/{id}/findings": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "List the failures, warnings and items awaiting review of a plan",
+        "description": "Covers the latest run of each module. A finding logged by several modules is listed once, with the runs it occurred in.",
+        "operationId": "getPlanFindings",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of plan",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlanFindings" } }
+            }
+          },
+          "404": { "description": "Couldn't find given plan Id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
+    "/api/plan/{id}/findings/{entryId}/image": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "Get the image of one of a plan's findings",
+        "description": "The image carried by a log entry that GET /api/plan/{id}/findings lists as an IMAGE finding, as the image itself rather than a data URI.",
+        "operationId": "getPlanFindingImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of plan",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "description": "Id of the log entry, as an occurrence's entryId",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The image",
+            "content": {
+              "image/png": { "schema": { "type": "string", "format": "binary" } },
+              "image/jpeg": { "schema": { "type": "string", "format": "binary" } }
+            }
+          },
+          "404": {
+            "description": "Couldn't find given plan Id, or it has no such image among the latest runs of its modules"
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
     "/api/plan/info/{planName}": {
       "get": {
         "tags": ["Test Plans"],
@@ -2387,6 +2451,85 @@
             "type": "array",
             "description": "The page of records; the item type depends on the endpoint",
             "items": {}
+          }
+        }
+      },
+      "Finding": {
+        "type": "object",
+        "description": "One distinct finding and every module run it occurred in",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "FAILURE, WARNING, IMAGE (an uploaded image awaiting review, served by GET /api/plan/{id}/findings/{entryId}/image) or PAGE (a page the browser automation captured in place of an image, awaiting review)"
+          },
+          "src": {
+            "type": "string",
+            "description": "The condition or source that logged the entry"
+          },
+          "msg": {
+            "type": "string",
+            "description": "The logged message; null if the entry has none"
+          },
+          "requirements": {
+            "type": "array",
+            "description": "The specification requirements cited by any of the entries",
+            "items": { "type": "string" }
+          },
+          "occurrences": { "type": "array", "items": { "$ref": "#/components/schemas/Occurrence" } }
+        }
+      },
+      "FirstFailure": {
+        "type": "object",
+        "description": "The earliest failure logged by a module run",
+        "properties": {
+          "moduleIndex": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The module's position in the plan's modules"
+          },
+          "testId": { "type": "string", "description": "The id of the module's latest run" },
+          "entryId": {
+            "type": "string",
+            "description": "The id of the run's earliest FAILURE log entry"
+          }
+        }
+      },
+      "Occurrence": {
+        "type": "object",
+        "description": "A module run in which a finding occurred",
+        "properties": {
+          "moduleIndex": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The module's position in the plan's modules"
+          },
+          "testModule": { "type": "string" },
+          "variant": { "type": "object", "additionalProperties": { "type": "string" } },
+          "testId": { "type": "string", "description": "The id of the module's latest run" },
+          "entryId": {
+            "type": "string",
+            "description": "The id of the first matching log entry of that run"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How many matching entries that run logged"
+          }
+        }
+      },
+      "PlanFindings": {
+        "type": "object",
+        "description": "Failures, warnings and items awaiting review across the latest runs of a plan's modules",
+        "properties": {
+          "findings": {
+            "type": "array",
+            "description": "Failures first, then warnings, then images, then captured pages; within each, the most widespread first",
+            "items": { "$ref": "#/components/schemas/Finding" }
+          },
+          "firstFailures": {
+            "type": "array",
+            "description": "For each module run that logged a failure, its earliest failure entry, in plan order",
+            "items": { "$ref": "#/components/schemas/FirstFailure" }
           }
         }
       },

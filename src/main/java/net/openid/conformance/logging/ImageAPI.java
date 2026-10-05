@@ -48,6 +48,9 @@ public class ImageAPI {
 	static final int UPLOAD_SIZE_LIMIT = 500 * 1024;
 	static final int MAX_IMAGES_PER_TEST = 2;
 
+	/** The source recorded on the log entry of an image added on the upload page. */
+	public static final String UPLOAD_SOURCE = "_image-api";
+
 	private static final String IMAGE_BODY_DESCRIPTION = "The image as a data URI string"
 		+ " ('data:image/png;base64,...' or 'data:image/jpeg;base64,...'); at most "
 		+ (UPLOAD_SIZE_LIMIT / 1024) + "KB decoded and at most " + MAX_IMAGES_PER_TEST + " images per test";
@@ -102,7 +105,7 @@ public class ImageAPI {
 				.append("_id", entryId)
 				.append("testId", testId)
 				.append("testOwner", testOwner)
-				.append("src", "_image-api")
+				.append("src", UPLOAD_SOURCE)
 				.append("time", new Date().getTime())
 				.append("msg", Strings.emptyToNull(description))
 				.append("img", encoded);

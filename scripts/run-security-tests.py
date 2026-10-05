@@ -41,6 +41,7 @@ Environment variables:
     CONFORMANCE_TOKEN_2 API token for a second, unrelated user (cross-user checks)
 """
 
+import base64
 import io
 import json
 import os
@@ -438,6 +439,11 @@ def run_tests():
     resp = pl_client.get(f"{base_url}api/log/{test_id}")
     runner.check_status("Plan share: can view test log", resp, 200)
 
+    resp = pl_client.get(f"{base_url}api/plan/{plan_id}/findings")
+    runner.check("Plan share: can view shared plan findings",
+                 resp.status_code == 200 and isinstance(resp.json().get("findings"), list),
+                 f"HTTP {resp.status_code}")
+
     resp = pl_client.get(f"{base_url}plan-detail.html?plan={plan_id}")
     runner.check_status("Plan share: can view plan-detail page", resp, 200)
 
@@ -460,6 +466,9 @@ def run_tests():
     print("\n--- 1. Plan sharing: denied access ---")
     resp = pl_client.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan share: cannot view other plan", resp, 404)
+
+    resp = pl_client.get(f"{base_url}api/plan/{other_plan_id}/findings")
+    runner.check_status("Plan share: cannot view other plan findings", resp, 404)
 
     # /api/log/{id} is in the private-link allowlist, so the security layer doesn't
     # reject the request; the controller must enforce that the test is in the
@@ -598,6 +607,13 @@ def run_tests():
     resp = tl_client.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Test share: cannot view other plan", resp, 404)
 
+    # A test-level share reaches the containing plan, and so its findings too.
+    resp = tl_client.get(f"{base_url}api/plan/{plan_id}/findings")
+    runner.check_status("Test share: can view findings of plan containing test", resp, 200)
+
+    resp = tl_client.get(f"{base_url}api/plan/{other_plan_id}/findings")
+    runner.check_status("Test share: cannot view other plan findings", resp, 404)
+
     resp = tl_client.get(f"{base_url}api/info/{other_test_id}")
     runner.check_status("Test share: cannot view other test", resp, 404)
 
@@ -673,6 +689,12 @@ def run_tests():
     print("\n--- 2b. Plan JWT as Bearer: denied access ---")
     resp = plan_bearer.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan JWT Bearer: cannot view other plan", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/plan/{plan_id}/findings")
+    runner.check_status("Plan JWT Bearer: can view shared plan findings", resp, 200)
+
+    resp = plan_bearer.get(f"{base_url}api/plan/{other_plan_id}/findings")
+    runner.check_status("Plan JWT Bearer: cannot view other plan findings", resp, 404)
 
     resp = plan_bearer.get(f"{base_url}api/log/{other_test_id}")
     runner.check("Plan JWT Bearer: log of test in other plan returns no entries",
@@ -877,6 +899,13 @@ def run_tests():
 
     resp = noauth_client.get(f"{base_url}api/plan/{plan_id}")
     runner.check_status("Unauth: plan detail rejected", resp, 401)
+
+    resp = noauth_client.get(f"{base_url}api/plan/{plan_id}/findings")
+    runner.check_status("Unauth: plan findings rejected", resp, 401)
+
+    # two path segments, so outside the public matcher even for a published plan
+    resp = noauth_client.get(f"{base_url}api/plan/{plan_id}/findings", params={"public": "true"})
+    runner.check_status("Unauth: plan findings rejected even with ?public", resp, 401)
 
     resp = noauth_client.get(f"{base_url}api/info/{test_id}")
     runner.check_status("Unauth: test info rejected", resp, 401)
@@ -1166,6 +1195,67 @@ def run_tests():
     check_client.close()
 
     # ===================================================================
+    # 4c3. FINDING IMAGES (/api/plan/{id}/findings/{entryId}/image)
+    # ===================================================================
+    # Serves the image of an IMAGE finding. Reachable by whoever may read the
+    # plan, and only for an entry of one of that plan's latest runs: asking
+    # through a plan the entry does not belong to must look like it does not
+    # exist.
+    print("\n--- 4c3. Finding images ---")
+    pixel = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGA"
+             "hKmMIQAAAABJRU5ErkJggg==")
+    img_plan_id, img_module = create_test_plan(owner_client, base_url, plan_name, config)
+    img_test_id = create_test_from_plan(owner_client, base_url, img_plan_id, img_module)
+    wait_for_test_finished(owner_client, base_url, img_test_id, label="image test")
+    resp = owner_client.post(f"{base_url}api/log/{img_test_id}/images",
+                             content=f"data:image/png;base64,{pixel}",
+                             headers={"Content-Type": "text/plain"})
+    runner.check_status("Finding image: owner can upload an image", resp, 200)
+    img_entry_id = resp.json().get("_id") if resp.status_code == 200 else UNKNOWN_TEST_ID
+    img_path = f"api/plan/{img_plan_id}/findings/{img_entry_id}/image"
+
+    resp = owner_client.get(f"{base_url}api/plan/{img_plan_id}/findings")
+    kinds = {o["entryId"]: f["kind"] for f in resp.json().get("findings", [])
+             for o in f["occurrences"]} if resp.status_code == 200 else {}
+    runner.check("Finding image: the upload is listed as an IMAGE finding",
+                 kinds.get(img_entry_id) == "IMAGE", f"HTTP {resp.status_code}, {kinds}")
+
+    resp = owner_client.get(f"{base_url}{img_path}")
+    runner.check("Finding image: owner gets the image itself",
+                 resp.status_code == 200 and resp.headers.get("content-type") == "image/png"
+                 and resp.content == base64.b64decode(pixel),
+                 f"HTTP {resp.status_code}, {resp.headers.get('content-type')}, {len(resp.content)} bytes")
+
+    resp = owner_client.get(f"{base_url}api/plan/{plan_id}/findings/{img_entry_id}/image")
+    runner.check_status("Finding image: not served through a plan it does not belong to", resp, 404)
+
+    resp = owner_client.get(f"{base_url}api/plan/{img_plan_id}/findings/{UNKNOWN_TEST_ID}/image")
+    runner.check_status("Finding image: unknown entry gives 404", resp, 404)
+
+    check_client = httpx.Client(verify=verify_ssl, timeout=20)
+    resp = check_client.get(f"{base_url}{img_path}")
+    runner.check_status("Finding image: unauthenticated rejected", resp, 401)
+    resp = check_client.get(f"{base_url}{img_path}", params={"public": "true"})
+    runner.check_status("Finding image: unauthenticated rejected even with ?public", resp, 401)
+    check_client.close()
+
+    img_share = authenticate_private_link(
+        base_url, generate_plan_share_link(owner_client, base_url, img_plan_id), verify_ssl)
+    resp = img_share.get(f"{base_url}{img_path}")
+    runner.check_status("Finding image: plan share can view an image of the shared plan", resp, 200)
+    # the shared plan is img_plan_id; reaching for the entry through another
+    # plan of the same owner, or for that plan at all, must find nothing
+    resp = img_share.get(f"{base_url}api/plan/{plan_id}/findings/{img_entry_id}/image")
+    runner.check_status("Finding image: plan share cannot reach through another plan", resp, 404)
+    img_share.close()
+
+    if token_2:
+        user_b = second_user_client()
+        resp = user_b.get(f"{base_url}{img_path}")
+        runner.check_status("Finding image: another user gets the same 404 as for no image", resp, 404)
+        user_b.close()
+
+    # ===================================================================
     # 4d. PLAN DELETION & EVENT_LOG CASCADE
     # ===================================================================
     # Deleting a plan must remove the plan, its tests AND their EVENT_LOG
@@ -1273,6 +1363,22 @@ def run_tests():
 
         resp = user_b.get(f"{base_url}api/plan/exporthtml/{iso_plan_id}")
         runner.check_status("Isolation: cannot export another user's plan html", resp, 404)
+
+        # The test plan fails against example.com, so the owner's findings are not
+        # empty; another user gets the same 404 as for a plan that does not exist.
+        resp = owner_client.get(f"{base_url}api/plan/{iso_plan_id}/findings")
+        findings = resp.json().get("findings", []) if resp.status_code == 200 else []
+        runner.check("Isolation: owner sees the findings of their own plan",
+                     len(findings) > 0
+                     and all(o.get("testId") == iso_test_id for f in findings for o in f["occurrences"])
+                     and all(f.get("kind") in ("FAILURE", "WARNING", "IMAGE", "PAGE") for f in findings),
+                     f"HTTP {resp.status_code}, {len(findings)} findings")
+
+        resp = user_b.get(f"{base_url}api/plan/{iso_plan_id}/findings")
+        runner.check_status("Isolation: cannot read another user's plan findings", resp, 404)
+
+        resp = user_b.get(f"{base_url}api/plan/{UNKNOWN_TEST_ID}/findings")
+        runner.check_status("Isolation: unknown plan findings give the same 404", resp, 404)
 
         resp = user_b.post(f"{base_url}api/plan/{iso_plan_id}/share", params={"exp": "1"})
         runner.check_status("Isolation: cannot share another user's plan", resp, 404)
