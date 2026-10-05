@@ -31,6 +31,8 @@ public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String sdJwtStr = env.getString("credential");
 
+		checkSdAlgIsSupported(sdJwtStr);
+
 		SDJWT sdJwt;
 		try {
 			sdJwt = SDJWT.parse(sdJwtStr);
@@ -91,5 +93,28 @@ public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 		logSuccess("Parsed SDJWT", jsonObject);
 
 		return env;
+	}
+
+	/**
+	 * The SD-JWT library hashes with whatever name _sd_alg holds that JCA recognises, which includes
+	 * names RFC 9901 section 4.1.1 does not allow (SHA-256, md5), so the claim is checked before the
+	 * library sees it.
+	 */
+	private void checkSdAlgIsSupported(String sdJwtStr) {
+		Object sdAlg;
+		try {
+			String credJwtStr = sdJwtStr.split("~", 2)[0];
+			sdAlg = JWTUtil.parseJWT(credJwtStr).getJWTClaimsSet().getClaim("_sd_alg");
+		} catch (ParseException e) {
+			throw error("Parsing SD-JWT credential jwt failed", e, args("sdjwt", sdJwtStr));
+		}
+		if (sdAlg == null) {
+			return;
+		}
+		if (!(sdAlg instanceof String sdAlgStr) || !ValidateSdJwtKbSdHash.isSupportedSdAlg(sdAlgStr)) {
+			throw error("The _sd_alg claim in the SD-JWT is not a hash algorithm the conformance suite supports. "
+					+ "It must be a 'Hash Name String' from the IANA Named Information Hash Algorithm Registry, which is case-sensitive.",
+				args("_sd_alg", sdAlg, "supported", ValidateSdJwtKbSdHash.supportedSdAlgs()));
+		}
 	}
 }

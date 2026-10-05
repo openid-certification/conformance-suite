@@ -5,11 +5,16 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.BrainpoolSignatureProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
@@ -98,4 +103,78 @@ public class ValidateSdJwtKbSdHash_UnitTest {
 		});
 	}
 
+	// everything up to and including the last '~' is what sd_hash covers; the JWTs need not be real
+	private static final String SD_JWT_PART = "aaaa.bbbb.cccc~WyJzYWx0IiwgIkRFIl0~";
+	private static final String SD_JWT_WITH_KB = SD_JWT_PART + "dddd.eeee.ffff";
+
+	private static String hashOf(String jcaAlgorithm) throws Exception {
+		byte[] digest = MessageDigest.getInstance(jcaAlgorithm).digest(SD_JWT_PART.getBytes(StandardCharsets.US_ASCII));
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+	}
+
+	@Test
+	public void testEvaluate_sha384SdAlgIsUsedForSdHash() throws Exception {
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "sha-384");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("SHA-384"));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_sha256SdHashForSha384CredentialThrows() throws Exception {
+		// the KB-JWT must use the credential's _sd_alg, so a SHA-256 sd_hash is wrong here
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "sha-384");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("SHA-256"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_explicitSha256SdAlg() throws Exception {
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "sha-256");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("SHA-256"));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_sha3SdAlgIsUsedForSdHash() throws Exception {
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "sha3-256");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("SHA3-256"));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_blake2SdAlgIsUsedForSdHash() throws Exception {
+		// blake2 comes from BouncyCastle, which the suite registers at startup
+		BrainpoolSignatureProvider.ensureInstalled();
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "blake2b-256");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("BLAKE2B-256"));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_sdAlgIsCaseSensitive() throws Exception {
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "SHA-256");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("SHA-256"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_unsupportedSdAlgThrows() throws Exception {
+		env.putString("credential", SD_JWT_WITH_KB);
+		env.putString("sdjwt", "credential.claims._sd_alg", "not-a-hash");
+		env.putString("sdjwt", "binding.claims.sd_hash", hashOf("SHA-256"));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
 }
