@@ -1,0 +1,47 @@
+{
+	"credentials": [
+		{
+			"id": "my_credential",
+			"format": "dc+sd-jwt",
+			"meta": {
+				"vct_values": [
+					"urn:eudi:pid:1"
+				]
+			},
+			"claims": [
+				{
+					"id": "pob_locality",
+					"path": [
+						"place_of_birth",
+						"locality"
+					]
+				},
+				{
+					"id": "pob_region",
+					"path": [
+						"place_of_birth",
+						"region"
+					]
+				},
+				{
+					"id": "pob_country",
+					"path": [
+						"place_of_birth",
+						"country"
+					]
+				}
+			],
+			"claim_sets": [
+				[
+					"pob_locality"
+				],
+				[
+					"pob_region"
+				],
+				[
+					"pob_country"
+				]
+			]
+		}
+	]
+}

@@ -58,6 +58,15 @@
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
     },
     {
+        "test-name": "oid4vp-1final-wallet-pid-claims-path-object-member",
+        "variant": "*",
+        "configuration-filename": "*vp-wallet-test-config-builtin-pid.json",
+        "current-block": "Verify credential matches DCQL query",
+        "condition": "EnsureMostPreferredDcqlClaimSetReturned",
+        "expected-result": "warning",
+        "comment": "The emulated wallet's PID has a place_of_birth containing only 'country', so it can only satisfy the least preferred claim_sets option"
+    },
+    {
         "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "iso_mdl"
