@@ -49,7 +49,8 @@ class WebSecurityConfig {
 		"/images/**",
 		"/fonts/**",
 		"/templates/**",
-		"/favicon.ico"
+		"/favicon.ico",
+		"/apple-touch-icon*.png"
 	};
 
 	/**

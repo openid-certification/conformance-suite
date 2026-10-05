@@ -44,6 +44,23 @@ public class StaticAssetExemption_UnitTest {
 	}
 
 	@Test
+	public void browser_icon_probes_are_exempt() {
+		// Safari fetches these on its own; if they entered the login flow they
+		// would replace the page saved for replay after login.
+		Assertions.assertTrue(isExempt("/favicon.ico"));
+		Assertions.assertTrue(isExempt("/apple-touch-icon.png"));
+		Assertions.assertTrue(isExempt("/apple-touch-icon-precomposed.png"));
+	}
+
+	@Test
+	public void browser_icon_probes_are_served() {
+		// Safari requests both names. A miss is dispatched to /error, which
+		// requires login and would be saved for replay in the icon's place.
+		Assertions.assertNotNull(getClass().getResource("/static/apple-touch-icon.png"));
+		Assertions.assertNotNull(getClass().getResource("/static/apple-touch-icon-precomposed.png"));
+	}
+
+	@Test
 	public void api_paths_are_not_exempt() {
 		// The exemption must never widen to data endpoints — those carry the
 		// authentication boundary (WebSecurityResourceServerConfig).
