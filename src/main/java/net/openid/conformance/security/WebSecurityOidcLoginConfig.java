@@ -167,6 +167,7 @@ class WebSecurityOidcLoginConfig {
 					"/images/**", //
 					"/templates/**", //
 					"/favicon.ico",  //
+					"/apple-touch-icon*.png", // fetched by Safari unprompted; must not enter the login flow
 					"/test-mtls/**",  //
 					"/test/**",  //
 					"/jwks**",  //

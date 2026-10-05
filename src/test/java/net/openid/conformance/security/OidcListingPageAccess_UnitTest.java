@@ -146,6 +146,35 @@ public class OidcListingPageAccess_UnitTest {
 		assertAnonymousBareListingRedirectsToLoginAndSavesRequest("/logs.html");
 	}
 
+	private void assertSavedPageIsStillPlans(MockHttpServletRequest request, MockHttpServletResponse response, String reason) {
+		SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
+		Assertions.assertNotNull(savedRequest, reason);
+		Assertions.assertEquals("https://localhost.emobix.co.uk:8443/plans.html?owner=ci&to=2025-01-01&continue",
+			savedRequest.getRedirectUrl(), reason);
+	}
+
+	private void assertAnonymousIconProbeKeepsSavedPage(String iconPath) throws Exception {
+		MockHttpServletRequest pageRequest = buildSecureGet("/plans.html");
+		pageRequest.setQueryString("owner=ci&to=2025-01-01");
+		filterChainProxy.doFilter(pageRequest, new MockHttpServletResponse(), new MockFilterChain());
+
+		MockHttpServletRequest iconRequest = buildSecureGet(iconPath);
+		iconRequest.setSession(pageRequest.getSession());
+		MockHttpServletResponse iconResponse = new MockHttpServletResponse();
+		filterChainProxy.doFilter(iconRequest, iconResponse, new MockFilterChain());
+
+		Assertions.assertNull(iconResponse.getRedirectedUrl(), iconPath + " must not enter the login flow");
+		assertSavedPageIsStillPlans(iconRequest, iconResponse,
+			iconPath + " must not replace the page saved for post-login replay");
+	}
+
+	@Test
+	public void anonymous_browser_icon_probes_do_not_replace_saved_page() throws Exception {
+		// Safari requests these on its own after loading login.html.
+		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon.png");
+		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon-precomposed.png");
+	}
+
 	@Test
 	public void anonymous_public_listing_pages_remain_permitted() throws Exception {
 		assertAnonymousPublicListingIsPermitted("/plans.html");
