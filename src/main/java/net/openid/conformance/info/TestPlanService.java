@@ -60,6 +60,16 @@ public interface TestPlanService {
 	PublicPlan getPublicPlan(String id);
 
 	/**
+	 * Attach to every module the status and result of its latest run, looked up for all of them
+	 * in one query. A module that has never run, or whose latest run cannot be found (deleted,
+	 * or not published when {@code publicOnly}), is left without.
+	 *
+	 * @param modules    the modules of a plan the caller has already been allowed to see
+	 * @param publicOnly whether to show only the runs a public reader could open
+	 */
+	void attachLatestRuns(List<Plan.Module> modules, boolean publicOnly);
+
+	/**
 	 * Sets published status of test plan and latest tests
 	 * @param id Plan ID
 	 * @param publish Publish status: null (unpublish), "summary" or "everything"

@@ -29,6 +29,8 @@ export const MOCK_PLAN_DETAIL = {
         response_type: "code",
       },
       instances: ["test-inst-001"],
+      status: "FINISHED",
+      result: "PASSED",
     },
     {
       testModule: "oidcc-server-rotate-keys",
@@ -38,6 +40,8 @@ export const MOCK_PLAN_DETAIL = {
         response_type: "code",
       },
       instances: ["test-inst-002"],
+      status: "FINISHED",
+      result: "PASSED",
     },
     {
       testModule: "oidcc-ensure-redirect-uri-in-authorization-request",
@@ -47,6 +51,8 @@ export const MOCK_PLAN_DETAIL = {
         response_type: "code",
       },
       instances: ["test-inst-003"],
+      status: "FINISHED",
+      result: "PASSED",
     },
     {
       testModule: "oidcc-codereuse",
@@ -91,6 +97,30 @@ export const MOCK_PLAN_DETAIL_LONG_VARIANT = {
   },
   certificationProfileName: ["FAPI2SP Final OP w/ MTLS", "FAPI2MS ID1 OP w/ Private Key"],
 };
+
+/**
+ * A plan whose modules carry the given latest-run `status` / `result`, the way
+ * GET /api/plan/:planId attaches them. `runs` maps a module's latest instance
+ * id to `{ status?, result? }` (status defaults to FINISHED); `null` models a
+ * latest run the viewer cannot see, which the server leaves without either.
+ * Modules not named keep the fixture's own values.
+ */
+export function withLatestRuns(plan, runs) {
+  return {
+    ...plan,
+    modules: plan.modules.map((mod) => {
+      const latest = mod.instances[mod.instances.length - 1];
+      if (!latest || !(latest in runs)) return mod;
+      const bare = { ...mod };
+      delete bare.status;
+      delete bare.result;
+      const run = runs[latest];
+      return run === null
+        ? bare
+        : { ...bare, status: run.status || "FINISHED", result: run.result };
+    }),
+  };
+}
 
 /** GET /api/info/:testId response shape — PASSED */
 export const MOCK_TEST_STATUS = {

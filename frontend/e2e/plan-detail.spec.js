@@ -1,14 +1,9 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  setupTestInfoRoute,
-  expectNoUnmockedCalls,
-} from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import {
   MOCK_PLAN_DETAIL,
   MOCK_PLAN_DETAIL_LONG_VARIANT,
-  MOCK_TEST_STATUS,
+  withLatestRuns,
 } from "./fixtures/mock-test-data.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
@@ -25,24 +20,19 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": {},
+            "test-inst-002": {
+              testName: "oidcc-server-rotate-keys",
+            },
+            "test-inst-003": {
+              testName: "oidcc-ensure-redirect-uri-in-authorization-request",
+            },
+          }),
+        ),
       }),
     );
-
-    // /api/info/:testId for each module with instances
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001" },
-      "test-inst-002": {
-        ...MOCK_TEST_STATUS,
-        testId: "test-inst-002",
-        testName: "oidcc-server-rotate-keys",
-      },
-      "test-inst-003": {
-        ...MOCK_TEST_STATUS,
-        testId: "test-inst-003",
-        testName: "oidcc-ensure-redirect-uri-in-authorization-request",
-      },
-    });
 
     await setupCommonRoutes(page);
 
@@ -87,7 +77,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -123,7 +112,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       });
     });
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -165,7 +153,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -187,7 +174,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -233,45 +219,39 @@ test.describe("plan-detail.html — Plan Detail", () => {
     expect(configValue).toContain("op.example.com");
   });
 
-  test("module status badges render after /api/info fetch", async ({ page }) => {
+  test("module status badges render from the plan response", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/plan-abc-123", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": {
+              status: "FINISHED",
+              result: "PASSED",
+            },
+            "test-inst-002": {
+              status: "FINISHED",
+              result: "WARNING",
+            },
+            "test-inst-003": {
+              // A failed test is reported as INTERRUPTED+FAILED, not FINISHED+FAILED
+              // (it never reaches FINISHED). The row badge and the status-bar segment
+              // must still render the FAILED verdict in red (GitLab #1858/#1859).
+              status: "INTERRUPTED",
+              result: "FAILED",
+            },
+          }),
+        ),
       }),
     );
-
-    await setupTestInfoRoute(page, {
-      "test-inst-001": {
-        ...MOCK_TEST_STATUS,
-        testId: "test-inst-001",
-        status: "FINISHED",
-        result: "PASSED",
-      },
-      "test-inst-002": {
-        ...MOCK_TEST_STATUS,
-        testId: "test-inst-002",
-        status: "FINISHED",
-        result: "WARNING",
-      },
-      "test-inst-003": {
-        ...MOCK_TEST_STATUS,
-        testId: "test-inst-003",
-        // A failed test is reported as INTERRUPTED+FAILED, not FINISHED+FAILED
-        // (it never reaches FINISHED). The row badge and the status-bar segment
-        // must still render the FAILED verdict in red (GitLab #1858/#1859).
-        status: "INTERRUPTED",
-        result: "FAILED",
-      },
-    });
 
     // R28 deep-link follow-on: every FAILED row now triggers a
     // /api/log/{id} fetch from plan-detail.html. The expectNoUnmockedCalls
     // afterEach hook would trip every plan-detail test that uses a FAILED
-    // /api/info fixture, so register a permissive log mock here too.
+    // module, so register a permissive log mock here too.
     await page.route("**/api/log/test-inst-003*", (route) =>
       route.fulfill({
         status: 200,
@@ -291,7 +271,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const firstRow = page.locator("#planItems .module-row").first();
     await expect(firstRow).toBeVisible();
 
-    // Wait for /api/info to merge status into the first row's badge.
     // cts-plan-modules renders a cts-badge per row whose label reflects
     // the result text (PASSED / WARNING / FAILED / PENDING) and whose
     // variant maps onto the canonical cts-badge status palette.
@@ -352,7 +331,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(popover).toContainText(/Verify basic OpenID Connect/);
   });
 
-  test("whole-plan status overview resolves, settles 404s, and segment click flashes the row (R8/R11/R18)", async ({
+  test("whole-plan status overview resolves, settles unseen runs, and segment click flashes the row (R8/R11/R18)", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -361,28 +340,16 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        // 001 → PASSED, 002 → WARNING, 003 → a latest run this viewer cannot
+        // see, which the server leaves without status. The 4th never ran.
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "WARNING" },
+            "test-inst-003": null,
+          }),
+        ),
       }),
-    );
-
-    // 001 → PASSED, 002 → WARNING, 003 → 404 (inaccessible run). The never-run
-    // 4th module has no instance, so no /api/info fetch fires for it.
-    await page.route("**/api/info/test-inst-001*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    await page.route("**/api/info/test-inst-002*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "WARNING" }),
-      }),
-    );
-    await page.route("**/api/info/test-inst-003*", (route) =>
-      route.fulfill({ status: 404, contentType: "application/json", body: "{}" }),
     );
 
     await setupCommonRoutes(page);
@@ -392,9 +359,8 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const segments = page.locator('#planDetailStatus [data-testid="plan-status-segment"]');
     await expect(segments).toHaveCount(4);
 
-    // Segments resolve to their colours. The 404 settles to a STATIC neutral
-    // (never --pending) — proving _statusResolved is set in the catch branch
-    // (R18), not just on success; the never-run module is neutral too.
+    // Segments resolve to their colours. The run without a status settles to
+    // a STATIC neutral (never --pending); the never-run module is neutral too.
     await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/);
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--warn/);
     await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--neutral/);
@@ -426,28 +392,13 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
-      }),
-    );
-    await page.route("**/api/info/test-inst-001*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    await page.route("**/api/info/test-inst-002*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "WARNING" }),
-      }),
-    );
-    await page.route("**/api/info/test-inst-003*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "INTERRUPTED", result: "FAILED" }),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "WARNING" },
+            "test-inst-003": { status: "INTERRUPTED", result: "FAILED" },
+          }),
+        ),
       }),
     );
     // The FAILED row triggers an R28 /api/log deep-link fetch.
@@ -504,7 +455,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -538,7 +488,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -589,7 +538,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -636,7 +584,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       });
     });
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -669,7 +616,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       });
     });
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -703,7 +649,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -713,9 +658,9 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(certModal).toBeHidden();
 
     // R26: the Certify button is hidden until the plan-detail page has
-    // resolved /api/info for each module and confirmed at least one
-    // FINISHED test with no FAILED result. The default test-info fixture
-    // returns PASSED for every instance, so it appears after polling.
+    // read the status of each module and confirmed at least one
+    // FINISHED test with no FAILED result. The default plan fixture
+    // carries PASSED for every instance, so it appears once the plan loads.
     const certifyBtn = page.locator('[data-testid="certify-btn"]');
     await expect(certifyBtn).toBeVisible();
 
@@ -734,17 +679,17 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "PASSED" },
+            "test-inst-003": { result: "FAILED" },
+          }),
+        ),
       }),
     );
 
     // Mix of PASSED and FAILED — Publish for certification must stay hidden.
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "FAILED" },
-    });
-
     // R28 deep-link follow-on: the FAILED row triggers a /api/log/{id}
     // fetch from plan-detail.html. Mock it so the fail-fast catch-all
     // doesn't trip this R26 certify-gate test.
@@ -768,7 +713,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // arrives first, so we use it as the readiness signal.
     await expect(page.locator('[data-testid="private-link-btn"]')).toBeVisible();
 
-    // Positive readiness signal that the FAILED /api/info has been
+    // Positive readiness signal that the FAILED status has been
     // processed: a row's badge attribute only resolves to "FAILED" after
     // that fetch settles. Asserting this *before* the negative certify-btn
     // check avoids the flaky `networkidle` waiter (which Playwright
@@ -797,7 +742,6 @@ test.describe("plan-detail.html — Plan Detail", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
@@ -822,15 +766,18 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+        body: JSON.stringify(
+          withLatestRuns(
+            { ...MOCK_PLAN_DETAIL, publish: "everything" },
+            {
+              "test-inst-001": { result: "PASSED" },
+              "test-inst-002": { result: "PASSED" },
+              "test-inst-003": { result: "FAILED" },
+            },
+          ),
+        ),
       }),
     );
-
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "FAILED" },
-    });
 
     // FAILURE at index 4 (5th entry) → LOG-0005. Earlier entries cover
     // the INFO + startBlock cases that consume an ordinal in the
@@ -877,15 +824,15 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "PASSED" },
+            "test-inst-003": { result: "FAILED" },
+          }),
+        ),
       }),
     );
-
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "FAILED" },
-    });
 
     // Capture console.warn calls so we can assert the fail-soft branch
     // emitted its observability breadcrumb. Set this up BEFORE goto so
@@ -938,15 +885,15 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "PASSED" },
+            "test-inst-003": { result: "FAILED" },
+          }),
+        ),
       }),
     );
-
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "FAILED" },
-    });
 
     // Pathological state: result-level says FAILED but the log itself
     // contains no FAILURE entry. The shim treats this the same as a
@@ -982,15 +929,15 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "PASSED" },
+            "test-inst-003": { result: "FAILED" },
+          }),
+        ),
       }),
     );
-
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "FAILED" },
-    });
 
     // Count fetches per test ID. R5 pins "fetch fires once per FAILED
     // row, never on a polling cadence" — only test-inst-003 should be
@@ -1026,7 +973,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(failedLink).toHaveAttribute("href", "log-detail.html?log=test-inst-003#LOG-0002");
 
     // Give any rogue polling cadence ~one full tick to misbehave. The
-    // page does not currently implement /api/info polling for
+    // page does not currently implement status polling for
     // plan-detail; this short wait is a defensive pin so a future
     // regression that introduces polling without updating the deep-link
     // logic surfaces here.
@@ -1053,14 +1000,15 @@ test.describe("plan-detail.html — Plan Detail", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL_LONG_VARIANT),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL_LONG_VARIANT, {
+            "test-inst-001": {},
+            "test-inst-002": {},
+            "test-inst-003": {},
+          }),
+        ),
       }),
     );
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003" },
-    });
     await setupCommonRoutes(page);
 
     await page.goto("/plan-detail.html?plan=plan-long-001");
@@ -1125,14 +1073,15 @@ test.describe("plan-detail.html — private link", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_DETAIL),
+        body: JSON.stringify(
+          withLatestRuns(MOCK_PLAN_DETAIL, {
+            "test-inst-001": { result: "PASSED" },
+            "test-inst-002": { result: "PASSED" },
+            "test-inst-003": { result: "PASSED" },
+          }),
+        ),
       }),
     );
-    await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "PASSED" },
-    });
     await page.route("**/api/plan/plan-abc-123/share*", (route) =>
       route.fulfill({
         status: 200,
