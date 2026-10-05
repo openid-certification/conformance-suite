@@ -1118,6 +1118,52 @@ def run_tests():
     runner.check_status("Publish: non-admin cannot lower publish level", resp, 403)
 
     # ===================================================================
+    # 4c2. LATEST-RUN STATUS ON /api/plan/{id}
+    # ===================================================================
+    # Each module of the plan response carries the status and result of its
+    # latest run. A run started after the plan was published is not itself
+    # published, so the public view must give that module neither (both null),
+    # exactly as /api/info/{id}?public=true would answer 404 for it.
+    print("\n--- 4c2. Latest-run status on the plan ---")
+    run_plan_id, run_module = create_test_plan(owner_client, base_url, plan_name, config)
+    run_first_id = create_test_from_plan(owner_client, base_url, run_plan_id, run_module)
+    wait_for_test_finished(owner_client, base_url, run_first_id, label="first run")
+    resp = owner_client.post(f"{base_url}api/plan/{run_plan_id}/publish",
+                             content=json.dumps({"publish": "everything"}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status("Latest run: owner can publish the plan", resp, 200)
+
+    def latest_run_module(resp):
+        if resp.status_code != 200:
+            return {}
+        return next((m for m in resp.json().get("modules", [])
+                     if m.get("testModule") == run_module), {})
+
+    check_client = httpx.Client(verify=verify_ssl, timeout=20)
+    resp = check_client.get(f"{base_url}api/plan/{run_plan_id}?public=true")
+    mod = latest_run_module(resp)
+    runner.check("Latest run: public view shows a published run's status",
+                 bool(mod.get("status")),
+                 f"HTTP {resp.status_code}, module {mod}")
+
+    run_second_id = create_test_from_plan(owner_client, base_url, run_plan_id, run_module)
+    wait_for_test_finished(owner_client, base_url, run_second_id, label="second run")
+
+    resp = owner_client.get(f"{base_url}api/plan/{run_plan_id}")
+    mod = latest_run_module(resp)
+    runner.check("Latest run: owner sees the status of the latest run",
+                 mod.get("instances", [None])[-1] == run_second_id and bool(mod.get("status")),
+                 f"HTTP {resp.status_code}, module {mod}")
+
+    resp = check_client.get(f"{base_url}api/plan/{run_plan_id}?public=true")
+    mod = latest_run_module(resp)
+    runner.check("Latest run: public view hides the status of an unpublished run",
+                 resp.status_code == 200 and mod.get("instances", [None])[-1] == run_second_id
+                 and mod.get("status") is None and mod.get("result") is None,
+                 f"HTTP {resp.status_code}, module {mod}")
+    check_client.close()
+
+    # ===================================================================
     # 4d. PLAN DELETION & EVENT_LOG CASCADE
     # ===================================================================
     # Deleting a plan must remove the plan, its tests AND their EVENT_LOG

@@ -196,4 +196,64 @@ class DBTestPlanService_UnitTest {
 				new Document("owner", new Document(OWNER)),
 				new Document("owner.sub", "somebody-else").append("owner.iss", "https://gitlab.com"))))));
 	}
+
+	@Test
+	void theLatestRunOfAModuleIsItsLastInstance() {
+		assertThat(DBTestPlanService.latestInstance(module("m", "first", "second", "latest"))).isEqualTo("latest");
+		assertThat(DBTestPlanService.latestInstance(module("m"))).isNull();
+		assertThat(DBTestPlanService.latestInstance(new Plan.Module("m", Map.of(), null))).isNull();
+	}
+
+	@Test
+	void eachModuleGetsTheStatusAndResultOfItsLatestRunWhenThatRunWasFound() {
+		Plan.Module finished = module("finished", "old-run", "run-1");
+		Plan.Module running = module("running", "run-2");
+		Plan.Module neverRun = module("never-run");
+		Plan.Module runGone = module("run-gone", "run-deleted");
+
+		DBTestPlanService.applyLatestRuns(List.of(finished, running, neverRun, runGone), Map.of(
+			"run-1", new Document("_id", "run-1").append("status", "FINISHED").append("result", "PASSED"),
+			// the earlier run of the same module is not what the plan shows
+			"old-run", new Document("_id", "old-run").append("status", "FINISHED").append("result", "FAILED"),
+			"run-2", new Document("_id", "run-2").append("status", "RUNNING")));
+
+		assertThat(finished.getStatus()).isEqualTo("FINISHED");
+		assertThat(finished.getResult()).isEqualTo("PASSED");
+		// a run that has no result yet is shown as such, not as an unknown run
+		assertThat(running.getStatus()).isEqualTo("RUNNING");
+		assertThat(running.getResult()).isNull();
+		assertThat(neverRun.getStatus()).isNull();
+		assertThat(neverRun.getResult()).isNull();
+		assertThat(runGone.getStatus()).isNull();
+		assertThat(runGone.getResult()).isNull();
+	}
+
+	@Test
+	void aUserIsShownOnlyTheLatestRunsTheyOwn() {
+		// an admin can start a run in someone else's plan, and that run is the admin's
+		Document criteria = DBTestPlanService.latestRunsCriteria(Set.of("run-1"), false, OWNER).getCriteriaObject();
+
+		assertThat(criteria).isEqualTo(new Document("_id", new Document("$in", Set.of("run-1")))
+			.append("owner", OWNER));
+	}
+
+	@Test
+	void anAdminOrPrivateLinkViewerIsShownEveryLatestRunOfThePlan() {
+		Document criteria = DBTestPlanService.latestRunsCriteria(Set.of("run-1"), false, null).getCriteriaObject();
+
+		assertThat(criteria).isEqualTo(new Document("_id", new Document("$in", Set.of("run-1"))));
+	}
+
+	@Test
+	void aPublicReaderIsShownOnlyPublishedLatestRunsWhoeverOwnsThem() {
+		Document criteria = DBTestPlanService.latestRunsCriteria(Set.of("run-1"), true, OWNER).getCriteriaObject();
+
+		assertThat(criteria).isEqualTo(new Document("$and", List.of(
+			new Document("_id", new Document("$in", Set.of("run-1"))),
+			new Document("publish", new Document("$in", List.of("summary", "everything"))))));
+	}
+
+	private static Plan.Module module(String name, String... instances) {
+		return new Plan.Module(name, Map.of(), List.of(instances));
+	}
 }

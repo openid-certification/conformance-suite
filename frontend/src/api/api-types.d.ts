@@ -492,7 +492,7 @@ export interface paths {
     };
     /**
      * Get test plan information by plan id
-     * @description Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module.
+     * @description Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module and, once it has run, the 'status' and 'result' of its latest run.
      */
     get: operations["getTestPlan"];
     put?: never;
@@ -928,6 +928,10 @@ export interface components {
       };
       /** @description Ids of test instances already run for this module (empty at creation) */
       instances?: string[];
+      /** @description On GET /api/plan/{id} only: the lifecycle status of the module's latest run, null when the module has not run or that run cannot be found */
+      status?: string;
+      /** @description On GET /api/plan/{id} only: the result of the module's latest run, null when the module has not run, has no result yet, or that run cannot be found */
+      result?: string;
     };
     /** @description Result of creating a test plan instance */
     PlanCreatedResponse: {

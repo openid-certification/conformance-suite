@@ -304,7 +304,7 @@ public class TestPlanApi implements DataUtils {
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(operationId = "getTestPlan", summary = "Get test plan information by plan id",
-		description = "Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module.")
+		description = "Returns the stored plan document (a reduced public projection when public=true): planName, variant, config, started, owner, description, certificationProfileName, modules, version, summary, publish, immutable. Each modules[] entry additionally carries a 'testSummary' of its test module and, once it has run, the 'status' and 'result' of its latest run.")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
 			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "The plan document"))),
@@ -314,11 +314,23 @@ public class TestPlanApi implements DataUtils {
 		@Parameter(description = "Id of test plan") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
-		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
+		Object testPlan;
+		List<Plan.Module> planModules;
+		if (publicOnly) {
+			PublicPlan publicPlan = planService.getPublicPlan(id);
+			testPlan = publicPlan;
+			planModules = publicPlan == null ? null : publicPlan.getModules();
+		} else {
+			Plan plan = planService.getTestPlan(id);
+			testPlan = plan;
+			planModules = plan == null ? null : plan.getModules();
+		}
 
 		if (testPlan == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
+
+		planService.attachLatestRuns(planModules, publicOnly);
 
 		Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 		JsonObject testPlanObj = JsonParser.parseString(gson.toJson(testPlan)).getAsJsonObject();
