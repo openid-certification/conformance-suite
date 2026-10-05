@@ -545,7 +545,7 @@ function formatVariant(variant) {
  * (the component never self-fetches, R5): a segment starts gray (pulsing for
  * modules that have run, static for never-run) and recolors once the
  * per-module `{status, result}` resolves via the lazy, visible-card-gated
- * `/api/info` fan-out below; the shared `segmentVariant` helper maps the
+ * `/api/plan/<id>` fetch below (one per card); the shared `segmentVariant` helper maps the
  * resolved data to a segment colour.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
@@ -651,11 +651,11 @@ class CtsPlanList extends LitElement {
     // Non-reactive: the handle of the status poll, cleared on disconnect
     /** @type {ReturnType<typeof setTimeout>|undefined} */
     this._bulkPollTimer = undefined;
-    // In-flight `/api/info/<instance>` set so repeated renders (search, sort,
-    // show-more, and the re-render the resolution itself triggers) don't fan
-    // out duplicate requests for the same instance. Non-reactive — never read
-    // from render.
-    this._infoFetchesInFlight = new Set();
+    // Ids of the plans whose `/api/plan/<id>` status fetch is in flight, so
+    // repeated renders (search, sort, show-more, and the re-render the
+    // resolution itself triggers) don't request the same plan twice.
+    // Non-reactive — never read from render.
+    this._planFetchesInFlight = new Set();
     // The {sorted, visible} view computed by the most recent render(), reused
     // by the status-resolution pass (which runs in updated(), after render)
     // so the search→sort→slice work happens once per render, not twice.
@@ -721,11 +721,11 @@ class CtsPlanList extends LitElement {
     // After a render that changed the visible set, fetch the latest result
     // for the modules of the currently-visible cards. Gating to visible cards
     // (rather than every loaded plan) bounds the fan-out: a listing can hold
-    // up to 1000 plans and a single FAPI/OIDCC plan has dozens of modules, so
-    // fetching all of them on load would fire thousands of parallel requests.
+    // up to 1000 plans, and one request per plan for all of them on load
+    // would be a thousand parallel requests.
     // Search, sort, and "Show more" all change one of these props and
     // re-enter here, so newly-visible modules get resolved lazily;
-    // resolved/in-flight instances are skipped, so this is idempotent across
+    // resolved/in-flight plans are skipped, so this is idempotent across
     // the re-render the resolution itself triggers. Renders driven only by
     // unrelated state (e.g. opening the config modal) do not re-run the
     // resolver.
@@ -1299,15 +1299,13 @@ class CtsPlanList extends LitElement {
   }
 
   /**
-   * Fetch `/api/info/<lastInstance>` for the modules of the currently-visible
-   * cards and merge the resolved `{ status, result }` back into the module
-   * entries so their dots recolor. Mirrors the merge shape of
-   * plan-detail.html, but takes its error/batching shape from
-   * cts-log-list._resolvePlanNames: a terminal per-fetch catch settles the
-   * dot at the grey `neutral` color, `Promise.allSettled` never rejects the
+   * Fetch `/api/plan/<id>` for each currently-visible card whose modules have
+   * run, and merge the `{ status, result }` its modules carry back into the
+   * listing's module entries so their dots recolor: one request per card,
+   * whatever the number of modules. A terminal per-fetch catch settles the
+   * dots at the grey `neutral` color, `Promise.allSettled` never rejects the
    * batch, and a single batched `_plans` reassign triggers one re-render for
-   * the whole batch. Unique by instance id, so a shared instance is fetched
-   * once and applied to every module that references it.
+   * the whole batch.
    */
   _resolveVisibleModuleStatuses() {
     if (this._loading || this._error) return;
@@ -1315,46 +1313,47 @@ class CtsPlanList extends LitElement {
     // always runs after render). Fall back to computing only if a render has
     // not populated it yet.
     const { visible } = this._currentView || this._computeView();
-    // Group unresolved, not-in-flight modules by their last instance id so
-    // each instance is fetched exactly once.
-    const byInstance = new Map();
-    for (const plan of visible) {
-      for (const mod of plan.modules || []) {
-        if (!Array.isArray(mod.instances) || mod.instances.length === 0) continue;
-        if (mod._statusResolved) continue;
-        const lastInstance = mod.instances[mod.instances.length - 1];
-        if (this._infoFetchesInFlight.has(lastInstance)) continue;
-        if (!byInstance.has(lastInstance)) byInstance.set(lastInstance, []);
-        byInstance.get(lastInstance).push(mod);
-      }
-    }
-    if (byInstance.size === 0) return;
+    const pending = visible.filter(
+      (plan) =>
+        !this._planFetchesInFlight.has(plan._id) &&
+        (plan.modules || []).some(
+          (mod) => Array.isArray(mod.instances) && mod.instances.length > 0 && !mod._statusResolved,
+        ),
+    );
+    if (pending.length === 0) return;
 
     const publicSuffix = this.isPublic ? "?public=true" : "";
-    for (const inst of byInstance.keys()) this._infoFetchesInFlight.add(inst);
+    for (const plan of pending) this._planFetchesInFlight.add(plan._id);
 
-    const fetches = Array.from(byInstance.entries()).map(([inst, mods]) =>
-      fetch(`/api/info/${encodeURIComponent(inst)}${publicSuffix}`)
+    const fetches = pending.map((plan) =>
+      fetch(`/api/plan/${encodeURIComponent(plan._id)}${publicSuffix}`)
         .then((response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.json();
         })
-        .then((info) => {
-          for (const mod of mods) {
-            mod.status = info.status;
-            mod.result = info.result;
+        .then((detail) => {
+          // Both responses list the plan's modules in the same order. A module
+          // the detail gives no status (its latest run is not visible to this
+          // viewer) settles at neutral.
+          const detailed = Array.isArray(detail.modules) ? detail.modules : [];
+          plan.modules.forEach((mod, i) => {
+            const latest = detailed[i];
+            if (latest && latest.testModule === mod.testModule) {
+              mod.status = latest.status;
+              mod.result = latest.result;
+            }
             mod._statusResolved = true;
-          }
+          });
         })
         .catch((err) => {
-          // Fail-soft: the run may be inaccessible (404 unpublished/deleted)
-          // or the endpoint may error. Settle the dot at the grey `neutral`
-          // color rather than leaving it pulsing forever, and warn once per
-          // instance so a real /api/info contract drift is visible.
-          for (const mod of mods) mod._statusResolved = true;
-          console.warn(`[cts-plan-list] /api/info/${inst} failed:`, err);
+          // Fail-soft: the plan may have been deleted since it was listed, or
+          // the endpoint may error. Settle the dots at the grey `neutral`
+          // color rather than leaving them pulsing forever, and warn once per
+          // plan so a real /api/plan contract drift is visible.
+          for (const mod of plan.modules) mod._statusResolved = true;
+          console.warn(`[cts-plan-list] /api/plan/${plan._id} failed:`, err);
         })
-        .finally(() => this._infoFetchesInFlight.delete(inst)),
+        .finally(() => this._planFetchesInFlight.delete(plan._id)),
     );
 
     Promise.allSettled(fetches).then(() => {

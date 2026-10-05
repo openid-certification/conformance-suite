@@ -158,6 +158,44 @@ export async function setupTestInfoRoute(page, testStatusMap = {}) {
 }
 
 /**
+ * Register a `GET /api/plan/:planId` route for the per-card status fetch of
+ * the plans list: answers the plan from `plans` with each module's latest
+ * `status` / `result` taken from `runs` (keyed by the module's last instance
+ * id), as the server attaches them. A plan id not in `plans` is a 404, which
+ * settles that card's segments at neutral. Requests that are not a GET of a
+ * single plan (the listing itself, `filter-options`, `delete-preview`, a
+ * DELETE, …) fall through to the routes registered for them.
+ * @param {import('@playwright/test').Page} page
+ * @param {Array<{_id: string, modules?: Array<object>}>} plans
+ * @param {Object.<string, {status?: string, result?: string}>} runs
+ */
+export async function setupPlanStatusRoute(page, plans, runs = {}) {
+  const reserved = new Set([
+    "filter-options",
+    "delete-preview",
+    "delete-status",
+    "delete-cancel",
+    "available",
+  ]);
+  await page.route(/\/api\/plan\/[^/?]+(\?.*)?$/, (route) => {
+    const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/api/plan/")[1]);
+    if (route.request().method() !== "GET" || reserved.has(id)) return route.fallback();
+    const plan = plans.find((p) => p._id === id);
+    if (!plan) return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+    const modules = (plan.modules || []).map((mod) => {
+      const instances = /** @type {{instances?: string[]}} */ (mod).instances || [];
+      const run = runs[instances[instances.length - 1]];
+      return run ? { ...mod, status: run.status, result: run.result } : mod;
+    });
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ...plan, modules }),
+    });
+  });
+}
+
+/**
  * Wrap a plain data array in the DataTables server-side response envelope.
  * Reads draw/start/length from the request URL query params.
  */

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   setupCommonRoutes,
   setupFailFast,
-  setupTestInfoRoute,
+  setupPlanStatusRoute,
   expectNoUnmockedCalls,
   wrapDataTablesResponse,
 } from "./helpers/routes.js";
@@ -16,10 +16,11 @@ import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
  * plan id slug, description, module status grid, metadata row), Show-more
  * pagination, and a config-viewer modal.
  *
- * Module status is NOT in the /api/plan payload (Plan.Module carries only
- * testModule + instances). Each module's latest result is fetched from
- * /api/info/<lastInstance> and drives a color-coded status box — so these
- * tests mock /api/info via setupTestInfoRoute(MOCK_PLAN_INFO).
+ * Module status is NOT in the /api/plan listing payload (its modules carry
+ * only testModule + instances). Each visible card fetches /api/plan/<id>
+ * once, whose modules carry their latest status and result, and that drives
+ * the color-coded status boxes — so these tests mock it via
+ * setupPlanStatusRoute(MOCK_PLAN_LIST, MOCK_PLAN_INFO).
  *
  * The host keeps id="plansListing"; cts-plan-list is Light DOM so descendant
  * queries resolve through to the cards. Plan-name clicks emit
@@ -52,7 +53,7 @@ test.describe("plans.html — Plans List", () => {
   test("loads and renders plans as cards", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -94,7 +95,7 @@ test.describe("plans.html — Plans List", () => {
     );
 
     // Module status segments (cts-plan-status overview bar) resolve from
-    // /api/info: a run module recolors to its status, a never-run module stays
+    // /api/plan/<id>: a run module recolors to its status, a never-run module stays
     // a static neutral segment. Each segment is keyed by its accessible name
     // ("<module>: <status>"); the trailing colon disambiguates id prefixes.
     await expect(
@@ -117,7 +118,7 @@ test.describe("plans.html — Plans List", () => {
   test("navbar brand points at the plans home for authenticated users", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -133,7 +134,7 @@ test.describe("plans.html — Plans List", () => {
   test("admin users see owner pills", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plans.html");
@@ -169,7 +170,7 @@ test.describe("plans.html — Plans List", () => {
         body: JSON.stringify(body),
       });
     });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -193,7 +194,7 @@ test.describe("plans.html — Plans List", () => {
   test("admin viewing ?public=true still hides owner and config", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plans.html?public=true");
@@ -209,7 +210,7 @@ test.describe("plans.html — Plans List", () => {
   test("clicking a plan name navigates to plan-detail.html", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
 
     // Stub plan-detail.html so the navigation target can be verified without
     // the real detail page loading.
@@ -242,7 +243,7 @@ test.describe("plans.html — Plans List", () => {
   test("config button opens modal and exposes copy affordance", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -287,7 +288,7 @@ test.describe("plans.html — Plans List", () => {
         body: JSON.stringify(MOCK_PLAN_LIST),
       });
     });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -360,7 +361,7 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -385,7 +386,7 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -409,7 +410,7 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -435,7 +436,7 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   test("R6/R23: anonymous → My tab not rendered, Published shown and active", async ({ page }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -465,7 +466,7 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -496,7 +497,7 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
   test("R2: search and sort still function after the tab wiring", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -536,7 +537,7 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -551,7 +552,7 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html?public=true");
@@ -563,7 +564,7 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test("U3: authenticated bare URL is NOT canonicalized (stays My)", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -577,7 +578,7 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test("U4: anonymous plan-detail link carries public=true (href + click)", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
     // Stub the destination so the navigation target can be verified.
     await page.route("**/plan-detail.html*", (route) =>
@@ -606,7 +607,7 @@ test.describe("plans.html — logged-out public browse (U3/U4)", () => {
   test("U4: authenticated plan-detail link has no public param", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -642,7 +643,7 @@ test.describe("plans.html — runs strip relocated to logs.html", () => {
       });
     });
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -692,7 +693,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -713,7 +714,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   test("R11: anonymous visitor still sees the Schedule-test CTA", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -734,7 +735,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -748,7 +749,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -768,7 +769,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   test("R18: My empty → empty state offers a Schedule-test action", async ({ page }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -791,7 +792,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -824,7 +825,7 @@ test.describe("plans.html — narrow-viewport stacked CTA", () => {
   }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -876,7 +877,7 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -903,7 +904,7 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -927,7 +928,7 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/plans.html");
@@ -939,7 +940,7 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
   test("R22: focusing the help icon reveals the descriptor tooltip", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -1003,7 +1004,7 @@ test.describe("plans.html — drill-down filters", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto(
@@ -1068,7 +1069,7 @@ test.describe("plans.html — drill-down filters", () => {
   }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?family=OID4VP&from=2026-05-01&to=2026-06-01");
@@ -1088,7 +1089,7 @@ test.describe("plans.html — drill-down filters", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordRefusedThenOkPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto(
@@ -1294,7 +1295,7 @@ test.describe("plans.html — truncated listing (1000-plan cap)", () => {
   test("a normal listing under the cap shows no truncation notice", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
