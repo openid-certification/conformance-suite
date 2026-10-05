@@ -1882,9 +1882,14 @@ export const TimestampWithoutReference = {
  * background so the assertion survives token-value changes.
  */
 export const DeepLinkHighlight = {
+  // pointer-events: none keeps the rows out of hit-testing, so the idle
+  // pointer resting over the canvas origin cannot add the .logItem:hover
+  // background to the colours compared below.
   render: () => html`
-    <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL01" test-id="hl"></cts-log-entry>
-    <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL02" test-id="hl"></cts-log-entry>
+    <div style="pointer-events: none">
+      <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL01" test-id="hl"></cts-log-entry>
+      <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL02" test-id="hl"></cts-log-entry>
+    </div>
   `,
   async play({ canvasElement, step }) {
     const prevHash = window.location.hash;
@@ -1949,7 +1954,12 @@ export const DeepLinkHighlight = {
  * itself afterward with no caller-side cleanup required.
  */
 export const ArrivalFlash = {
-  render: () => html`<cts-log-entry .entry=${SUCCESS_ENTRY} test-id="flash"></cts-log-entry>`,
+  // pointer-events: none for the same reason as DeepLinkHighlight: the idle
+  // pointer must not add the .logItem:hover background to the resting colour.
+  render: () =>
+    html`<div style="pointer-events: none">
+      <cts-log-entry .entry=${SUCCESS_ENTRY} test-id="flash"></cts-log-entry>
+    </div>`,
   async play({ canvasElement }) {
     const host = await waitFor(() => {
       const el = canvasElement.querySelector("cts-log-entry");

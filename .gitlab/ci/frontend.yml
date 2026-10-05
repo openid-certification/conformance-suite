@@ -2,7 +2,7 @@
 
 # Kept here, not in .gitlab-ci.yml, so a bump matches the change paths below.
 variables:
-  PLAYWRIGHT_IMAGE_TAG: "v1.60.0-noble"
+  PLAYWRIGHT_IMAGE_TAG: "v1.63.0-resolute"
 
 # Paths that make the frontend jobs (ensure-playwright-image, frontend_e2e_test,
 # frontend_lint, chromatic) worth running. Backend-only pushes skip all four.
