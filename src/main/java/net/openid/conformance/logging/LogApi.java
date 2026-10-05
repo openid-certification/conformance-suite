@@ -56,9 +56,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -337,12 +339,12 @@ public class LogApi {
 
 		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
 
-		String json = gson.toJson(export);
-
-		testLog.setSize(json.getBytes().length);
+		// no setSize: entries are DEFLATED, so the size is carried by the data descriptor
 		archiveOutputStream.putArchiveEntry(testLog);
 
-		signatureOutputStream.write(json.getBytes());
+		Writer jsonWriter = new BufferedWriter(new OutputStreamWriter(signatureOutputStream, StandardCharsets.UTF_8), 32768);
+		gson.toJson(export, jsonWriter);
+		jsonWriter.flush();
 
 		signatureOutputStream.flush();
 		signatureOutputStream.close();
@@ -1040,13 +1042,12 @@ public class LogApi {
 
 		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
 
-		String html = htmlExportRenderer.createHtmlForTestLogs(export);
-		byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
-
-		testLog.setSize(htmlBytes.length);
+		// no setSize: entries are DEFLATED, so the size is carried by the data descriptor
 		archiveOutputStream.putArchiveEntry(testLog);
 
-		signatureOutputStream.write(htmlBytes);
+		Writer htmlWriter = new BufferedWriter(new OutputStreamWriter(signatureOutputStream, StandardCharsets.UTF_8), 32768);
+		htmlExportRenderer.writeHtmlForTestLogs(export, htmlWriter);
+		htmlWriter.flush();
 
 		signatureOutputStream.flush();
 		signatureOutputStream.close();
