@@ -64,9 +64,9 @@ class ValidatePDPSignedMetadataNbf_UnitTest {
 	}
 
 	@Test
-	public void implausiblyOldNbf_fails() {
-		// Before JWTUtil's minimum reasonable timestamp (likely a non-seconds value).
+	public void oldNbf_succeeds() {
+		// A JWT valid since 2001 is still valid; CheckPDPSignedMetadataTimeClaimsArePlausible warns about it.
 		putNbf(1_000_000_000L);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
 	}
 }

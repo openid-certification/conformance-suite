@@ -65,9 +65,9 @@ class ValidatePDPSignedMetadataExp_UnitTest {
 	}
 
 	@Test
-	public void implausiblyFarFutureExp_fails() {
-		// More than ~50 years in the future (likely a non-seconds value).
+	public void farFutureExp_succeeds() {
+		// RFC 7519 sets no upper bound; CheckPDPSignedMetadataTimeClaimsArePlausible warns about it.
 		putExp(NOW + 51 * SECONDS_PER_YEAR);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
 	}
 }
