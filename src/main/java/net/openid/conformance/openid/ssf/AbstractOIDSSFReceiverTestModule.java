@@ -1687,6 +1687,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		public String call() throws Exception {
 
 			if (finishedCondition.get()) {
+				if (!pushDeliveryActive.isEmpty()) {
+					// This check runs while a push delivery task sleeps between two deliveries
+					// with the test lock released. Finishing now would interrupt that sleep;
+					// the task ends by itself once the stream is deleted or its queue drained.
+					reschedule();
+					return "done";
+				}
 				fireTestFinished();
 				return "done";
 			}
