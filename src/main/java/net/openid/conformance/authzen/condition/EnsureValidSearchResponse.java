@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class EnsureValidSearchResponse extends AbstractCondition {
 
@@ -41,6 +42,36 @@ public class EnsureValidSearchResponse extends AbstractCondition {
 	// Check individual results element if needed
 	protected void ensureValidResponseResultsObject(JsonObject resultsObj) {
 		// Nothing to do here
+	}
+
+	/**
+	 * Returns the value of a member that Section 5 defines as a REQUIRED string, failing
+	 * if it is absent, not a string or empty. {@code entity} names the result object in
+	 * messages, e.g. "A subject object".
+	 */
+	protected String getRequiredStringMember(JsonObject resultsObj, String member, String entity) {
+		JsonElement elem = resultsObj.get(member);
+		if (elem == null) {
+			throw error(entity + " in the results array does not contain `" + member + "`", args("element", resultsObj));
+		}
+		if (!elem.isJsonPrimitive() || !elem.getAsJsonPrimitive().isString()) {
+			throw error(entity + " in the results array has a `" + member + "` that is not a string", args("element", resultsObj));
+		}
+		String value = OIDFJSON.getString(elem);
+		if (value.isEmpty()) {
+			throw error(entity + " in the results array has an empty `" + member + "`", args("element", resultsObj));
+		}
+		return value;
+	}
+
+	/**
+	 * Fails if the OPTIONAL `properties` member (Section 5) is present but not an object.
+	 */
+	protected void ensurePropertiesIsObject(JsonObject resultsObj, String entity) {
+		JsonElement properties = resultsObj.get("properties");
+		if (properties != null && !properties.isJsonObject()) {
+			throw error(entity + " in the results array has `properties` that is not an object", args("element", resultsObj));
+		}
 	}
 
 }
