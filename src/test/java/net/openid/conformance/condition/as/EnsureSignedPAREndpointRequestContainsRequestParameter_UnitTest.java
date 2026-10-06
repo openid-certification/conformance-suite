@@ -16,30 +16,30 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest_UnitTest {
+public class EnsureSignedPAREndpointRequestContainsRequestParameter_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest cond;
+	private EnsureSignedPAREndpointRequestContainsRequestParameter cond;
+
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest();
+		cond = new EnsureSignedPAREndpointRequestContainsRequestParameter();
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_requestObject() {
 
-		JsonObject parRequest= JsonParser.parseString(
+		JsonObject parRequest = JsonParser.parseString(
 		"""
 		{
 			"body_form_params" : {
-				"request" : "abcd1234",
-				"client_assertion" : "abcd1234",
-				"client_assertion_type" : "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+				"client_id" : "client",
+				"request" : "abcd1234"
 			}
 		}
 		""").getAsJsonObject();
@@ -49,40 +49,29 @@ public class AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest_
 	}
 
 	@Test
-	public void testEvaluate_invalidParam() {
+	public void testEvaluate_plainParameters() {
 
-		JsonObject parRequest= JsonParser.parseString(
+		JsonObject parRequest = JsonParser.parseString(
 		"""
 		{
 			"body_form_params" : {
-				"request" : "abcd1234",
-				"client_assertion" : "abcd1234",
-				"client_assertion_type" : "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-				"invalid" : "invalid"
+				"client_id" : "client",
+				"response_type" : "code",
+				"redirect_uri" : "https://client.example.com/cb",
+				"code_challenge" : "abcd1234",
+				"code_challenge_method" : "S256"
 			}
 		}
 		""").getAsJsonObject();
 
-		assertThrows(ConditionError.class, () -> {
-			env.putObject("par_endpoint_http_request", parRequest);
-			cond.execute(env);
-		});
-
+		env.putObject("par_endpoint_http_request", parRequest);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
-	public void testEvaluate_noParams() {
+	public void testEvaluate_noParameters() {
 
-		JsonObject parRequest= JsonParser.parseString(
-		"""
-		{
-		}
-		""").getAsJsonObject();
-
-		assertThrows(ConditionError.class, () -> {
-			env.putObject("par_endpoint_http_request", parRequest);
-			cond.execute(env);
-		});
-
+		env.putObject("par_endpoint_http_request", new JsonObject());
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }

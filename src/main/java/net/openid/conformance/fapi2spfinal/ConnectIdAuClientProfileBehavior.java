@@ -8,7 +8,6 @@ import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedT
 import net.openid.conformance.condition.as.AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddVerifiedClaimsToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
-import net.openid.conformance.condition.as.AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaimsInRequestObject;
 import net.openid.conformance.condition.as.AustraliaConnectIdGenerateAccessTokenExpiration;
@@ -94,17 +93,6 @@ public class ConnectIdAuClientProfileBehavior extends FAPI2ClientProfileBehavior
 			public void evaluate() {
 				callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE,
 					"CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
-			}
-		};
-	}
-
-	@Override
-	public ConditionSequence additionalParRequestChecks() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndStopOnFailure(AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest.class,
-					"CID-SP-4.3-5", "PAR-3");
 			}
 		};
 	}

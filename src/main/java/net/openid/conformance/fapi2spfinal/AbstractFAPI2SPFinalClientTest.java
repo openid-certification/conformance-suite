@@ -32,6 +32,8 @@ import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfP
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
+import net.openid.conformance.condition.as.CheckForUnexpectedParametersInSignedPAREndpointRequest;
+import net.openid.conformance.condition.as.CheckForUnexpectedParametersInSignedPAREndpointRequestWithClientAssertion;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterValues;
@@ -61,6 +63,8 @@ import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContai
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
+import net.openid.conformance.condition.as.EnsureSignedPAREndpointRequestContainsRequestParameter;
+import net.openid.conformance.condition.as.EnsureUnsignedPAREndpointRequestDoesNotContainRequestParameter;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractParAuthorizationCodeDpopBindingKey;
@@ -1199,9 +1203,18 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	}
 
 	protected void extractParEndpointRequest() {
-		skipIfElementMissing("par_endpoint_http_request", "body_form_params.request", ConditionResult.INFO, ExtractRequestObjectFromPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
+		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+			callAndStopOnFailure(EnsureSignedPAREndpointRequestContainsRequestParameter.class, "FAPI2-MS-ID1-5.3.2-1");
+			callAndStopOnFailure(ExtractRequestObjectFromPAREndpointRequest.class, "PAR-3");
+			if (clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+				callAndContinueOnFailure(CheckForUnexpectedParametersInSignedPAREndpointRequestWithClientAssertion.class, ConditionResult.FAILURE, "PAR-3");
+			} else {
+				callAndContinueOnFailure(CheckForUnexpectedParametersInSignedPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
+			}
+		} else {
+			callAndStopOnFailure(EnsureUnsignedPAREndpointRequestDoesNotContainRequestParameter.class);
+		}
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
-		call(profileBehavior.additionalParRequestChecks());
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 	}
 

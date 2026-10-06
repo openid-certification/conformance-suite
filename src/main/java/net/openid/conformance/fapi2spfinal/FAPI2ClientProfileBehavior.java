@@ -301,11 +301,6 @@ public class FAPI2ClientProfileBehavior {
 
 	// --- PAR endpoint hooks ---
 
-	/** Additional checks on the PAR request (ConnectID checks for unexpected params). */
-	public ConditionSequence additionalParRequestChecks() {
-		return null;
-	}
-
 	/** Validate FAPI interaction id on the PAR request (ConnectID only). */
 	public ConditionSequence validateParRequestInteractionId() {
 		return null;
