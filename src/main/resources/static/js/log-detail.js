@@ -56,13 +56,13 @@ const LIVE_STATUSES = new Set(["CREATED", "CONFIGURED", "RUNNING", "WAITING"]);
  * verdict there would strand it neutral-grey for the session, which is the
  * #1858/#1859 complaint. So they keep their verdict colour.
  *
- * Used by both writers of the viewed segment — the page-load fan-out
- * (`resolveOneSegment`) and the 3s live sync (`syncCurrentSegmentStatus`) —
- * because the fan-out is awaited BEFORE polling starts, so without it a
- * WAITING+FAILED test painted its own segment red for one `/api/info`
- * round-trip before the first sync cleared it.
+ * Used by both writers of the viewed segment — the seeding of the bar from the
+ * plan response and the 3s live sync (`syncCurrentSegmentStatus`) — so a
+ * WAITING+FAILED test never paints its own segment red, not even for the one
+ * round-trip before the first sync.
  * @param {string} instanceId - The instance whose segment is being coloured.
- * @param {{status?: string, result?: string}} info - Its `/api/info` slice.
+ * @param {{status?: string, result?: string}} info - Its status and result, from
+ *   `/api/info` or from the plan's module.
  * @returns {string|null|undefined} The result to store, or null while live.
  */
 function liveSegmentResult(instanceId, info) {
@@ -437,7 +437,7 @@ function updateBreadcrumb(testInfo, planName) {
  *     cts-test-nav-controls → cts-plan-status progress bar) plus the
  *     nav-controls `nextEnabled` flag (Continue Plan visibility)
  *   - the page-level breadcrumb's middle label (planName)
- *   - the post-paint per-sibling /api/info fan-out that colours segments
+ *   - the segment colours, from the status each module carries
  * Returns the parsed plan JSON on success, or null on any failure / missing planId.
  *
  * @param {any} testInfo - /api/info payload.
@@ -474,25 +474,32 @@ async function fetchAndApplyPlanState(testInfo) {
     );
     const safeIndex = thisModuleIndex >= 0 ? thisModuleIndex : 0;
 
-    // Seed the nav row's progress bar from the cached plan modules. Copy
-    // each module's `instances` into a fresh array so the fan-out below can
-    // mutate the working set without aliasing the cached `/api/plan` data.
-    // Segments render instantly (topology + the "you are here" marker +
-    // sibling navigation, KTD5/R17); per-sibling status colours arrive from
-    // the post-paint /api/info fan-out (R5/R18).
+    // Seed the nav row's progress bar from the plan's modules. Each carries
+    // the `status` / `result` of its latest run, so the segments colour at
+    // first paint; a module without them (never run, or a latest run this
+    // viewer cannot see) settles on the neutral fill (R18/KTD3). The viewed
+    // test's own segment is then overwritten from its latest /api/info by
+    // syncCurrentSegmentStatus, which keeps it in step with the hero and
+    // drops a mid-run verdict (#1857, #1895). `instances` is copied so the
+    // working set never aliases the cached `/api/plan` data.
     //
     // `href` is the per-segment navigation target cts-plan-status renders as a
-    // real link. Off the public view every sibling with an instance is reachable
-    // immediately, so seed its href here for navigation at first paint. On the
-    // public view href is withheld until the fan-out confirms the target
-    // instance returns 200 (set in resolveOneSegment), so a published-plan viewer
-    // never dead-ends on an unpublished sibling.
+    // real link. Off the public view every sibling with an instance is
+    // reachable. On the public view only a sibling whose status the plan
+    // revealed is published, so only it gets an href and an unpublished
+    // sibling stays an inert anchor (no dead-end click); the viewed test is
+    // being read right now, so its own segment is always a link.
     const navModules = modules.map((mod) => {
       const instances = Array.isArray(mod.instances) ? mod.instances.slice() : [];
-      const entry = { ...mod, instances };
-      if (!isPublic) {
-        const last = instances.length ? instances[instances.length - 1] : null;
-        if (last) entry.href = buildSiblingHref(last);
+      const last = instances.length ? instances[instances.length - 1] : null;
+      const entry = {
+        ...mod,
+        instances,
+        result: last && mod.status ? liveSegmentResult(last, mod) : mod.result,
+        _statusResolved: true,
+      };
+      if (last && (!isPublic || mod.status || last === testId)) {
+        entry.href = buildSiblingHref(last);
       }
       return entry;
     });
@@ -502,6 +509,7 @@ async function fetchAndApplyPlanState(testInfo) {
     if (header) {
       header.planModules = navModules;
     }
+    syncCurrentSegmentStatus(latestTestInfo);
 
     // `nextEnabled` lives on the nav-controls element itself (the header
     // does not bind it as a Lit attribute, so an imperative assignment
@@ -512,11 +520,6 @@ async function fetchAndApplyPlanState(testInfo) {
       navControls.nextEnabled = safeIndex >= 0 && safeIndex + 1 < modules.length;
     }
 
-    // After first paint, colour each sibling segment by fetching its most-
-    // recent instance's status (KTD5). Frontend-only, public-flag-threaded,
-    // concurrency-capped, and memoized per instance.
-    resolveSegmentStatuses(navModules);
-
     return planData;
   } catch (err) {
     console.warn("[log-detail] /api/plan failed:", err);
@@ -524,144 +527,7 @@ async function fetchAndApplyPlanState(testInfo) {
   }
 }
 
-/** ──────────── plan-status segment colouring (KTD5) ──────────── */
-
-/**
- * Memo of resolved `/api/info/<instance>` payloads keyed by instance id, so
- * re-navigating between siblings never refetches a status already in hand.
- * Stores the `{ status, result }` slice (or `null` for a settled 404 / error,
- * which still counts as "resolved" so the segment stops pulsing — R18/KTD3).
- * @type {Map<string, { status?: string, result?: string } | null>}
- */
-const segmentStatusMemo = new Map();
-
-/** Max concurrent `/api/info` fan-out requests (KTD5 — bound the burst). */
-const SEGMENT_FANOUT_CONCURRENCY = 6;
-
-/**
- * Whether a memoized `/api/info` slice is a settled terminal verdict — the
- * runner has stopped the test (`FINISHED` for a completed run, `INTERRUPTED`
- * for a failed/aborted one). Used to stop a late page-load fan-out response from
- * downgrading a segment the live poll (`syncCurrentSegmentStatus`) already
- * settled to terminal while that fetch was in flight (#1857 race): once the poll
- * has stopped, nothing would re-correct the stale running fill.
- * @param {{status?: string} | null | undefined} slice
- * @returns {boolean}
- */
-function isTerminalSlice(slice) {
-  return !!slice && (slice.status === "FINISHED" || slice.status === "INTERRUPTED");
-}
-
-/**
- * Fetch one sibling module's most-recent-instance status and merge it into
- * the working module entry, setting `_statusResolved` in BOTH the success
- * and the error/404 branches so the segment settles (colours, or falls back
- * to the neutral skip) instead of pulsing pending forever (R18/KTD3). Threads
- * the public flag exactly like the page's other `/api/info` calls.
- *
- * @param {{instances?: string[], status?: string, result?: string,
- *   _statusResolved?: boolean, href?: string}} mod - The working module entry to
- *   mutate. On the public view a 200 means the target instance is publicly
- *   reachable, so its `href` is set and cts-plan-status renders the segment as a
- *   navigable link; a 404/error leaves `href` unset (inert). Off public, `href`
- *   was already seeded at map time, so this only resolves the status colour.
- * @returns {Promise<void>}
- */
-async function resolveOneSegment(mod) {
-  const instances = Array.isArray(mod.instances) ? mod.instances : [];
-  const lastInstance = instances.length ? instances[instances.length - 1] : null;
-  if (!lastInstance) return; // never-run module → static skip, no fetch
-  if (segmentStatusMemo.has(lastInstance)) {
-    const cached = segmentStatusMemo.get(lastInstance);
-    if (cached) {
-      mod.status = cached.status;
-      mod.result = cached.result;
-      // A cached 200 means the target instance is publicly reachable, so on the
-      // public view the segment becomes a navigable link (R1). A cached 404 is
-      // `null`, leaving `href` unset so the segment stays inert (R2). Only set on
-      // the public view — off public the href was seeded at map time.
-      if (isPublic) mod.href = buildSiblingHref(lastInstance);
-    }
-    mod._statusResolved = true;
-    return;
-  }
-  try {
-    const response = await fetch(
-      "/api/info/" + encodeURIComponent(lastInstance) + (isPublic ? "?public=true" : ""),
-    );
-    if (!response.ok) {
-      // Settle without colour (e.g. a 404 for an unpublished sibling). The
-      // segment lands on the neutral skip fill rather than pulsing forever.
-      segmentStatusMemo.set(lastInstance, null);
-      mod._statusResolved = true;
-      return;
-    }
-    const info = await response.json();
-    // While this fetch was in flight, the live poll (syncCurrentSegmentStatus)
-    // may have settled this instance to a terminal verdict — the viewed test is
-    // a module's last instance, so the fan-out and the poll race for the same
-    // memo key. Never let a now-stale fan-out response downgrade a settled
-    // terminal slice back to its running fill: the poll stops on the verdict, so
-    // nothing would re-correct it, re-creating the #1857 stuck-segment symptom.
-    const settled = segmentStatusMemo.get(lastInstance);
-    const slice = isTerminalSlice(settled)
-      ? settled
-      : { status: info.status, result: liveSegmentResult(lastInstance, info) };
-    segmentStatusMemo.set(lastInstance, slice);
-    mod.status = slice.status;
-    mod.result = slice.result;
-    // 200 → the target instance is publicly reachable, so on the public view
-    // the segment becomes a navigable link (R1). The 404 branch above leaves
-    // `href` unset, so unreachable siblings stay inert (R2). Only set on the
-    // public view — off public the href was seeded at map time.
-    if (isPublic) mod.href = buildSiblingHref(lastInstance);
-    mod._statusResolved = true;
-  } catch (err) {
-    // Network / parse failure: settle the segment too (R18). Do NOT memoize a
-    // transient failure — a later navigation may retry the fetch (and `href`
-    // stays unset, so on a public view the segment is inert until that retry
-    // succeeds).
-    console.warn("[log-detail] segment status fetch failed:", err);
-    mod._statusResolved = true;
-  }
-}
-
-/**
- * Fan out `/api/info/<lastInstance>` per sibling module to colour the
- * plan-status segments after first paint (KTD5). Concurrency is capped via a
- * fixed-size worker pool; each instance is memoized so re-navigating siblings
- * does not refetch. When the pool drains, re-assigns `header.planModules`
- * with a FRESH array so Lit's reference-equality `hasChanged` fires and the
- * pending segments settle to their colours.
- *
- * @param {Array<{instances?: string[], status?: string, result?: string,
- *   _statusResolved?: boolean}>} navModules - The working module set, mutated
- *   in place as each sibling resolves.
- * @returns {Promise<void>}
- */
-async function resolveSegmentStatuses(navModules) {
-  const queue = navModules.slice();
-  async function worker() {
-    for (;;) {
-      const mod = queue.shift();
-      if (!mod) return;
-      await resolveOneSegment(mod);
-    }
-  }
-  const poolSize = Math.min(SEGMENT_FANOUT_CONCURRENCY, queue.length);
-  await Promise.all(Array.from({ length: poolSize }, worker));
-
-  // Reassign with a fresh array so cts-plan-status observes the change (Lit's
-  // default hasChanged is reference equality). A slice suffices — the workers
-  // mutated the module objects in place, so the existing element references
-  // already carry the resolved status; no per-element copy is needed (mirrors
-  // plan-detail.html's fan-out reassign).
-  /** @type {any} */
-  const header = document.getElementById("logDetailHeader");
-  if (header) {
-    header.planModules = navModules.slice();
-  }
-}
+/** ──────────── plan-status segment colouring ──────────── */
 
 /**
  * Build the log-detail URL for a sibling instance, threading the public flag so
@@ -679,17 +545,12 @@ function buildSiblingHref(instanceId) {
 }
 
 /**
- * Live-sync the *current* module's plan-status segment from a fresh `/api/info`
- * payload. The post-paint fan-out (`resolveSegmentStatuses`) colours every
- * segment exactly once, at page load; while the user watches a running test the
- * poll loop (`startRunnerPolling`) keeps re-fetching the current test's
- * `/api/info` but only fed the header banner — never the bar. So a test that
- * finished live left its own segment frozen at the running/pending fill it had
- * at first paint, even as the banner flipped to "Test passed" (#1857). Pushing
- * the poll's payload into the segment here keeps the bar in lockstep with the
- * terminal banner. Reusing the payload the poll already holds also sidesteps the
- * `segmentStatusMemo`, which still caches the stale (e.g. RUNNING) slice from
- * page load and would short-circuit a naive fan-out re-run.
+ * Sync the *current* module's plan-status segment from the latest `/api/info`
+ * payload. The plan response colours every segment once, at page load; while
+ * the user watches a running test the poll loop (`startRunnerPolling`) keeps
+ * re-fetching the current test's `/api/info`, and without this the bar would
+ * keep the fill it had at first paint even as the banner flipped to "Test
+ * passed" (#1857). Called when the bar is seeded and on every poll.
  *
  * Matches on the module's MOST-RECENT instance (`instances[last] === testId`),
  * NOT `currentModuleIndex` (which matches the full instance list for the "you
@@ -700,8 +561,9 @@ function buildSiblingHref(instanceId) {
  * live case (watching the most recent run).
  *
  * No-ops safely before the bar is seeded (the first `applyTestInfo` at bootstrap
- * runs before `fetchAndApplyPlanState`), when the payload carries no status, or
- * when the viewed instance is not any module's most-recent instance.
+ * runs before `fetchAndApplyPlanState`, which calls this once it has seeded the
+ * bar), when the payload carries no status, or when the viewed instance is not
+ * any module's most-recent instance.
  *
  * @param {{status?: string, result?: string} | null | undefined} testInfo - The
  *   latest `/api/info` payload for the viewed test.
@@ -724,22 +586,19 @@ function syncCurrentSegmentStatus(testInfo) {
   // settled verdict win, which painted a red FAILED segment three rows above
   // this page's own "Test waiting" hero (#1895). Suppressing it here makes the
   // bar agree with the hero without touching module-status.js, whose
-  // verdict-wins rule is still right for the plan surfaces: they fan out
-  // /api/info once and never refresh, so there a settled verdict is the most
-  // useful thing to show (#1858/#1859). See liveSegmentResult for why this is
-  // scoped to the viewed instance; `resolveOneSegment` shares the helper so the
-  // page-load fan-out cannot paint the flash this then has to clear.
+  // verdict-wins rule is still right for the plan surfaces: they show each
+  // module's latest run once and never refresh, so there a settled verdict is
+  // the most useful thing to show (#1858/#1859). See liveSegmentResult for why
+  // this is scoped to the viewed instance; seeding the bar shares the helper so
+  // the page load cannot paint the flash this then has to clear.
   const status = testInfo.status;
   const result = liveSegmentResult(testId, testInfo);
   if (mod.status === status && mod.result === result) return; // unchanged
   mod.status = status;
   mod.result = result;
   mod._statusResolved = true;
-  // Keep the fan-out memo consistent so any later read of the current instance
-  // never reintroduces the stale slice it cached at page load (KTD1).
-  segmentStatusMemo.set(testId, { status, result });
   // Fresh array so cts-plan-status observes the change (Lit's default hasChanged
-  // is reference equality) and repaints the segment — mirrors resolveSegmentStatuses.
+  // is reference equality) and repaints the segment.
   header.planModules = modules.slice();
 }
 
@@ -2113,8 +1972,8 @@ async function bootstrap() {
     header.addEventListener("cts-continue", handleContinue);
     // R15: progress segments are real links now — each reachable sibling's
     // cts-plan-status segment carries the href built by buildSiblingHref (set in
-    // navModules off public, and after the fan-out confirms reachability on
-    // public), so clicking navigates natively. No cts-plan-status-activate
+    // navModules; on public only for a sibling whose status the plan revealed),
+    // so clicking navigates natively. No cts-plan-status-activate
     // listener: the component does not emit it in log mode.
   }
 
