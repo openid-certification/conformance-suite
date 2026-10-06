@@ -1,6 +1,7 @@
 {
     "alias": "SAMA-UAT-01-29e5-549b-RP",
     "description": "FAPI2 - SAMA UAT Sandbox",
+    "waitTimeoutSeconds": 30,
     "server": {
         "discoveryUrl": "https://auth1.uat.openbanking.sa/.well-known/openid-configuration",
         "jwks": {
