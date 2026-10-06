@@ -24,6 +24,10 @@ services:
     image: alexolivieruk/cerbos-authzen-certification-pdp@sha256:e61cccdb9c0061e3642daf7dcbfa6f8c9a32e274a5944616c0076b3cdfcbd8a8
     environment:
       TLS_HOSTNAME: cerbos-authzen-pdp
+      # Publish signed_metadata (HS256) in the discovery document. A throwaway test secret: the
+      # suite verifies the JWT with the same value as an "oct" JWK in pdp.jwks of its config.
+      JWT_SIGNING_SECRET: f587c85a39e3ece0eb8a3cfbfa371d24fa4675d9f50cd62f60d4c92ba381095b
+      AUTHZEN_ISSUER: https://cerbos-authzen-pdp:8443
   mongodb:
     image: mongo:6.0.13
     volumes:
