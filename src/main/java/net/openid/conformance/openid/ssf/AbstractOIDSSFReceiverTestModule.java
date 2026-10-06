@@ -1362,6 +1362,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				if (pushResponseStatus != null && pushResponseStatus >= 200 && pushResponseStatus < 300) {
 					callAndContinueOnFailure(OIDSSFEnsurePushDeliveryResponseBodyIsEmpty.class, Condition.ConditionResult.FAILURE, "RFC8935-2.2");
 				}
+				if (!eventStore.hasEventsForStream(streamId)) {
+					// Pacing is only needed between two deliveries. Events enqueued after the
+					// queue is drained start a fresh task, which schedulePushDelivery delays.
+					return;
+				}
 				// Pace the deliveries with the test lock released: this task holds the lock in
 				// RUNNING state, and a raw sleep here would stall every request the receiver
 				// makes in the meantime.
