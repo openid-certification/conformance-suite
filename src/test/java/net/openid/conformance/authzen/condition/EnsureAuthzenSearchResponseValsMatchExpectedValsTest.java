@@ -125,8 +125,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_empty_expected_response_extras_allowed_noError() {
-		// Per the certification spec, extras in the response are permitted.
+	public void testEvaluate_error_empty_expected_response_with_results() {
+		// An empty expectation means nothing matches, so extras are not permitted.
 		String expectedJson = """
 		[
 		]""";
@@ -138,7 +138,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-		performTest(expectedJson, actualJson);
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is not empty"));
 	}
 
 	@Test
