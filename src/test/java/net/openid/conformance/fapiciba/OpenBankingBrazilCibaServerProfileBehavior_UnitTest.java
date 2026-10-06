@@ -37,6 +37,7 @@ import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsen
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenEncryptedUsingRSAOAEPA256GCM;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
+import net.openid.conformance.condition.client.FAPIBrazilValidateLoggedUserNameConfiguration;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
@@ -265,11 +266,14 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 	public void citesCurrentBeta2SectionsForPingModeAndLoginHint() {
 		List<ConditionCallBuilder> conditionCalls = getConditionCalls(behavior.onConfigure());
 
-		assertThat(conditionCalls).hasSize(2);
+		assertThat(conditionCalls).hasSize(3);
 		assertThat(conditionCalls.get(0).getConditionClass()).isEqualTo(CheckCIBAModeIsPing.class);
 		assertThat(conditionCalls.get(0).getRequirements()).containsExactly("BrazilCIBA-6.2.2");
 		assertThat(conditionCalls.get(1).getConditionClass()).isEqualTo(SetHintTypeToLoginHint.class);
 		assertThat(conditionCalls.get(1).getRequirements()).containsExactly("BrazilCIBA-6.2.3");
+		assertThat(conditionCalls.get(2).getConditionClass()).isEqualTo(FAPIBrazilValidateLoggedUserNameConfiguration.class);
+		assertThat(conditionCalls.get(2).isStopOnFailure()).isTrue();
+		assertThat(conditionCalls.get(2).getRequirements()).isEmpty();
 	}
 
 	@Test

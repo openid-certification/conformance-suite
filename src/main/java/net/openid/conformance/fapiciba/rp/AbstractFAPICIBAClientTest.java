@@ -69,6 +69,7 @@ import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
+import net.openid.conformance.condition.rs.FAPIBrazilValidateCibaConsentLoggedUserName;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainResources;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
@@ -1051,7 +1052,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		} else {
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, ConditionResult.FAILURE);
+			env.removeObject("new_consent_request");
 			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+			skipIfMissing(new String[] { "new_consent_request" }, null, ConditionResult.INFO,
+				FAPIBrazilValidateCibaConsentLoggedUserName.class, ConditionResult.FAILURE);
 		}
 
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");

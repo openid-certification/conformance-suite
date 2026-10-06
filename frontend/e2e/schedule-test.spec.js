@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  expectNoUnmockedCalls,
+  setupScheduleTestRoutes,
+} from "./helpers/routes.js";
 import { selectPlanViaSearch, selectedPlanRow } from "./helpers/pick-plan.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
 
@@ -436,6 +441,20 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     // Variant selectors should be hidden (display: none)
     await expect(page.locator("#variantSelectors")).toBeHidden();
+  });
+
+  test("logged-in user name is only shown for Brazil CIBA", async ({ page }) => {
+    await setupScheduleTestRoutes(page, { plans: MOCK_GUIDED_PLANS });
+    await page.goto("/schedule-test.html");
+    await selectPlanViaSearch(page, "fapi-ciba-id1-test-plan");
+    await page.locator("#vp_client_registration").selectOption("static_client");
+    await page.locator("#vp_ciba_mode").selectOption("ping");
+    await page.locator("#vp_client_auth_type").selectOption("private_key_jwt");
+    await page.locator("#vp_fapi_ciba_profile").selectOption("openbanking_brazil");
+    const field = page.locator('#configForm cts-form-field[name="resource.brazilLoggedUserName"]');
+    await expect(field).toBeVisible();
+    await page.locator("#vp_fapi_ciba_profile").selectOption("connectid_au");
+    await expect(field).toBeHidden();
   });
 
   test("ConnectID shows profile-specific login hint fields", async ({ page }) => {
