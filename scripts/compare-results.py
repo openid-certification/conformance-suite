@@ -154,6 +154,10 @@ def extract_result(log):
         if src == 'WebRunner' or src == 'BROWSER' or src == module_name:
             # these are asyncronous and the order isn't predictable
             continue
+        if src == 'TEST-RUNNER' and d.get('msg') == 'Alias has now been claimed by another test':
+            # written when the next test claims the alias, which is not logged if the
+            # server restarted in between
+            continue
         str += src + "\n"
     return str
 
