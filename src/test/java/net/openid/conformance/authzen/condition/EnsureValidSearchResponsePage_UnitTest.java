@@ -215,4 +215,37 @@ class EnsureValidSearchResponsePage_UnitTest {
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("properties"));
 	}
+
+	@Test
+	public void fractionalCount_throws() {
+		putResponse("""
+			{
+				"results": [],
+				"page": { "next_token": "", "count": 2.5 }
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("not an integer"));
+	}
+
+	@Test
+	public void smallNegativeFractionalTotal_throws() {
+		// Truncating to int would turn -0.5 into 0 and accept it.
+		putResponse("""
+			{
+				"results": [],
+				"page": { "next_token": "", "total": -0.5 }
+			}""");
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("not a non-negative number"));
+	}
+
+	@Test
+	public void integralCountWrittenWithFraction_succeeds() {
+		putResponse("""
+			{
+				"results": [],
+				"page": { "next_token": "", "count": 0, "total": 3.0 }
+			}""");
+		cond.execute(env);
+	}
 }

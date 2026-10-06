@@ -8,6 +8,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.math.BigDecimal;
+
 public class EnsureValidSearchResponsePage extends AbstractCondition {
 
 	@Override
@@ -43,8 +45,12 @@ public class EnsureValidSearchResponsePage extends AbstractCondition {
 				if(!keyElem.isJsonPrimitive() || !keyElem.getAsJsonPrimitive().isNumber()) {
 					throw error("An element in the Search results page object is not a number", args("authzen_search_endpoint_response", searchResponse, "element name", key));
 				}
-				if(OIDFJSON.getInt(keyElem) < 0) {
+				BigDecimal value = new BigDecimal(OIDFJSON.getNumber(keyElem).toString());
+				if(value.signum() < 0) {
 					throw error("An element in the Search results page object is not a non-negative number", args("authzen_search_endpoint_response", searchResponse, "element name", key));
+				}
+				if(value.stripTrailingZeros().scale() > 0) {
+					throw error("An element in the Search results page object is not an integer", args("authzen_search_endpoint_response", searchResponse, "element name", key));
 				}
 			}
 		}
