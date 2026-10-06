@@ -1,6 +1,9 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -13,6 +16,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class ValidatePDPIdentifier_UnitTest {
@@ -68,5 +72,41 @@ class ValidatePDPIdentifier_UnitTest {
 	public void withFragment_fails() {
 		putIdentifier("https://pdp.example.com/path#frag");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	private void putIdentifierElement(JsonElement value) {
+		JsonObject pdp = new JsonObject();
+		pdp.add("policy_decision_point", value);
+		JsonObject config = new JsonObject();
+		config.add("pdp", pdp);
+		env.putObject("config", config);
+	}
+
+	@Test
+	public void objectIdentifier_failsAsNotAString() {
+		putIdentifierElement(JsonParser.parseString("{ \"url\": \"https://pdp.example.com\" }"));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("is not a string"));
+	}
+
+	@Test
+	public void arrayIdentifier_failsAsNotAString() {
+		putIdentifierElement(JsonParser.parseString("[ \"https://pdp.example.com\" ]"));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("is not a string"));
+	}
+
+	@Test
+	public void numericIdentifier_failsAsNotAString() {
+		putIdentifierElement(JsonParser.parseString("42"));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("is not a string"));
+	}
+
+	@Test
+	public void jsonNullIdentifier_failsAsMissing() {
+		putIdentifierElement(JsonNull.INSTANCE);
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("is missing or null"));
 	}
 }
