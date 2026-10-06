@@ -1,0 +1,22 @@
+{
+    "description": "Authzen Cerbos PDP behind the authenticating proxy: mtls (docker-compose-localtest.yml)",
+    "publish": "everything",
+    "pdp": {
+        "policy_decision_point": "https://authzen-auth-proxy:9445",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "oct",
+                    "alg": "HS256",
+                    "use": "sig",
+                    "k": "ZjU4N2M4NWEzOWUzZWNlMGViOGEzY2ZiZmEzNzFkMjRmYTQ2NzVkOWY1MGNkNjJmNjBkNGM5MmJhMzgxMDk1Yg"
+                }
+            ]
+        },
+        "metadata_issuer": "https://cerbos-authzen-pdp:8443"
+    },
+    "mtls": {
+        "cert": "-----BEGIN CERTIFICATE-----\nMIIDJTCCAg2gAwIBAgIUPUoKbrdKmRBOp3U5y000uvE2ntwwDQYJKoZIhvcNAQEL\nBQAwIjEgMB4GA1UEAwwXYXV0aHplbi1jb25mb3JtYW5jZS1wZXAwHhcNMjYxMDA2\nMjAxMzU0WhcNNDYxMDAxMjAxMzU0WjAiMSAwHgYDVQQDDBdhdXRoemVuLWNvbmZv\ncm1hbmNlLXBlcDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL81RYX4\nWIssIexVvPI6zlXKjSBI8G5pANKB2hkTmGGmiwvDszfd9EU5Ej4vppqvbK5teW1q\nns7PdRjfgbrFIehZ8dk/E9GITlKp0u1m1ZMEhRCZPqk7uQBOpbex+0l1El02SJgC\nmM4BRIc/tY9DovIOqthqpmTQtTlpeJn6J3slYs+ZCB6o3Kgmdpqaav22RSiS3h/N\nqlUNIhQSn/0jiXsVoms1+a4kipBKqMpmIe+TNQa/fKnP1u0PgLtjkGHIPilhrrT5\nP51i3tQKheMZQuYCbNSp1wRHlSTdrxLN/M7KaVl7lvmdtFvZx/7HNiyzqPRjv7gR\nMSmWrNZkOB9LV98CAwEAAaNTMFEwHQYDVR0OBBYEFE31AoXsHBd73y3bOR+ELILU\nlN1yMB8GA1UdIwQYMBaAFE31AoXsHBd73y3bOR+ELILUlN1yMA8GA1UdEwEB/wQF\nMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAFeopxs2zrXAPwGkyuB5g2DCFc3AObYI\nlKzIq7IueVaC8ev8sMnNV0aJ3d/iiu7HIj+1gEMiVswicJl33xAagzC4liQ2v24K\nxCrzaYxMZxIjmgkvg2RPP3lfJAI2xenYJn0TjGpKdoPZl77LD0/T6kT2S6XaEKWq\n8n/vfP9gpxTWbCD6Shm5r6cjBsyOw05eOq6Bi8ZwHsL+52s+8qciAH+QK/8k4NqW\nIGNUbtUk+IOuH7itPhcA51WUw7Va00BL9r/o9xAEqGsbw4vcpm4y1SJ6OT/ZlaT9\nyN6zqPFgZVPnPXxXZTllbEqu/umX7/Hvf19iSoXoJVXN4gOJKtPB1UY=\n-----END CERTIFICATE-----\n",
+        "key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC/NUWF+FiLLCHs\nVbzyOs5Vyo0gSPBuaQDSgdoZE5hhposLw7M33fRFORI+L6aar2yubXltap7Oz3UY\n34G6xSHoWfHZPxPRiE5SqdLtZtWTBIUQmT6pO7kATqW3sftJdRJdNkiYApjOAUSH\nP7WPQ6LyDqrYaqZk0LU5aXiZ+id7JWLPmQgeqNyoJnaammr9tkUokt4fzapVDSIU\nEp/9I4l7FaJrNfmuJIqQSqjKZiHvkzUGv3ypz9btD4C7Y5BhyD4pYa60+T+dYt7U\nCoXjGULmAmzUqdcER5Uk3a8SzfzOymlZe5b5nbRb2cf+xzYss6j0Y7+4ETEplqzW\nZDgfS1ffAgMBAAECggEACe/M9Pk4MhoGifTWChPtR38XFh+ZmHCjhs0RwQOILpb2\n8JMTMWrlorf5ueVEYr3ix4PP737pfDTtexqZGtQw1BWMiy411kn09rh1n48cYp9g\nV5b8hH335MtcMwTbBXEXQGSC9vIM795tVHFb+vMtuNJIpaY75Hmw2VLLs4YmXsYL\nyCDW95xXWLmnjyXIYKQZrCpb83iH+3QxD4K7M0hC94hjO01YONKpgR/iZGxHUj9z\npRxUTaINX39yRx0KMRLJB+lCid0TNtJ4s712DtTbL6kd3m7v57Iir8qvkTYyprwa\nw3EXgAlC41jpdlHoyVedDrqeWc2uxA8gbv+PnRHq5QKBgQDdrthB+4z0qg7KHtJP\nxUspGTd/SBDld/KCEWOF/pZlNMDcxSXxL7ceApjyP8fGLoTxXJg2S8+LVXIPsrMN\nxV2iTGl43iFuuAwPIGyfKWh3AYeR/OZi6FT+gJ0+AyCjj5RAQfjRJl/h8Z+pJsy4\nMO3SO9qaH3Z/676/UTOlMFuvkwKBgQDczrnm1nR3bX/rQuS+C99HYqAAAnUj36JP\nQV/2Oiw1xB5R8VW1n8wFFGLQPMWwY1q3IE1teyBApuZOVATI9QNJV5RlDwhxJ9vd\nRzD6IjBs8fMERIElHPWULd0Yr+80HtI6g58qHGUmys3iayLvfTCORgIk7OyuB2T2\nl+TMkAmuBQKBgAOEksn5Q/Nd/34VnyDE8LxmOgs7CYmara6CuCGYOKrCe40FU+TP\n7Qf84pB1kqYCdvmdjozOBy0e3gCBxXWifCnnLIVOgRlQsmBLE24zKgU5cP1QFhfb\nt/2R7Oze/9WYobGjWl93TG45d18nznfdzuhXKtDnTuoYw54lm7wzWEEhAoGBAIvw\nnJM28UNLa5nvoEbuAUkdsWewJwtgTV7LgQTtY12D+O9X80kTiFrjy6hMC8I5haGv\n4EJ1mUBARo/34bx2w+l0jwDpYSFN8KMx3lF435X8VVcsD2k1DFMoKgreXcx7iCM7\njeFDc7v9JjTMT6zWe7J/nhZG7c1xtEQwifo3g1r9AoGAF+KuWAIPgH2VGrVA0uch\nAf3jCmBR009xgiKPl6HuIpZLt3nPJzhT+VfXnMWgXOmz/UV1HNFTp14PEB+OABaV\nzUYGWy2yHil/lhNoUlIQIDs/4CelMcLSfo/CqTZTHit/j4x5tkIQD6gXBZCKFi8f\ng6DjFrGyQdUXZoZBQcW5vXU=\n-----END PRIVATE KEY-----\n"
+    }
+}
