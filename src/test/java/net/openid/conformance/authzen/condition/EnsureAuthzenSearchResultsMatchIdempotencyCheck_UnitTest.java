@@ -16,18 +16,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class EnsureAuthzenResponseBodyMatchesIdempotencyCheck_UnitTest {
+class EnsureAuthzenSearchResultsMatchIdempotencyCheck_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private EnsureAuthzenResponseBodyMatchesIdempotencyCheck cond;
+	private EnsureAuthzenSearchResultsMatchIdempotencyCheck cond;
 
 	@BeforeEach
 	public void setUp() {
-		cond = new EnsureAuthzenResponseBodyMatchesIdempotencyCheck();
+		cond = new EnsureAuthzenSearchResultsMatchIdempotencyCheck();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -36,24 +36,6 @@ class EnsureAuthzenResponseBodyMatchesIdempotencyCheck_UnitTest {
 		response.add("body_json", JsonParser.parseString(currentJson));
 		env.putObject("authzen_api_endpoint_response", response);
 		env.putString("authzen_idempotency_first_response_body", firstJson);
-	}
-
-	@Test
-	public void evaluationDecisionBodyMatches_succeeds() {
-		putFirstAndCurrent("""
-			{ "decision": true }""",
-			"""
-			{ "decision": true }""");
-		cond.execute(env);
-	}
-
-	@Test
-	public void evaluationDecisionBodyDiffers_fails() {
-		putFirstAndCurrent("""
-			{ "decision": true }""",
-			"""
-			{ "decision": false }""");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
@@ -138,28 +120,45 @@ class EnsureAuthzenResponseBodyMatchesIdempotencyCheck_UnitTest {
 	}
 
 	@Test
-	public void searchPageOtherFieldDiffers_fails() {
-		// Non-token page fields are still compared strictly.
+	public void searchPageTotalDiffers_succeeds() {
+		// Section 8.2.2: page.total may be an estimate, so it is not part of the answer.
 		putFirstAndCurrent("""
 			{ "results": [ { "type": "user", "id": "alice" } ], "page": { "next_token": "tok-1", "total": 10 } }""",
 			"""
 			{ "results": [ { "type": "user", "id": "alice" } ], "page": { "next_token": "tok-2", "total": 11 } }""");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
 	}
 
 	@Test
-	public void searchOtherTopLevelFieldDiffers_fails() {
+	public void searchContextDiffers_succeeds() {
 		putFirstAndCurrent("""
-			{ "results": [ { "type": "user", "id": "alice" } ], "context": { "v": 1 } }""",
+			{ "results": [ { "type": "user", "id": "alice" } ], "context": { "query_execution_time_ms": 42 } }""",
 			"""
-			{ "results": [ { "type": "user", "id": "alice" } ], "context": { "v": 2 } }""");
+			{ "results": [ { "type": "user", "id": "alice" } ], "context": { "query_execution_time_ms": 37 } }""");
+		cond.execute(env);
+	}
+
+	@Test
+	public void currentBodyWithoutResults_fails() {
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice" } ] }""",
+			"""
+			{ "decision": true }""");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
 	public void missingCurrentBody_fails() {
 		env.putObject("authzen_api_endpoint_response", new JsonObject());
-		env.putString("authzen_idempotency_first_response_body", "{ \"decision\": true }");
+		env.putString("authzen_idempotency_first_response_body", "{ \"results\": [] }");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+	@Test
+	public void sameResultsWithDifferentMemberOrder_succeeds() {
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "bob" }, { "id": "alice", "type": "user" } ] }""",
+			"""
+			{ "results": [ { "id": "bob", "type": "user" }, { "type": "user", "id": "alice" } ] }""");
+		cond.execute(env);
 	}
 }

@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-idempotency",
 	displayName = "AuthZEN Resource Search API - Idempotency",
-	summary = "Idempotency. The harness sends the same Resource Search fixture request multiple times consecutively; the PDP MUST return the same response body each time.\n" + AuthzenPDPResourceSearchIdempotencyTest.payload,
+	summary = "Idempotency. The harness sends the same Resource Search fixture request multiple times consecutively; the PDP MUST return the same results each time. Results are compared in any order; `context` and page fields other than the presence of a further page are not compared.\n" + AuthzenPDPResourceSearchIdempotencyTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPResourceSearchIdempotencyTest extends AbstractAuthzenPDPResourceSearchIdempotencyTest {
