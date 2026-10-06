@@ -196,7 +196,7 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		Date past = new Date(System.currentTimeMillis() - 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).expirationTime(past).build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("exp claim is invalid"));
+		assertTrue(e.getMessage().contains("exp claim is in the past"));
 	}
 
 	@Test
@@ -204,7 +204,7 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		Date future = new Date(System.currentTimeMillis() + 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).notBeforeTime(future).build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("nbf claim is invalid"));
+		assertTrue(e.getMessage().contains("nbf claim is in the future"));
 	}
 
 	@Test

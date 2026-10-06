@@ -37,15 +37,15 @@ public class ValidateDiscoverySignedMetadata extends AbstractConditionSequence {
 		callAndStopOnFailure(ValidatePDPSignedMetadataAlg.class, "AUTHZEN-9.1.3");
 		callAndStopOnFailure(VerifyAuthzenSignedMetadataSignature.class, "AUTHZEN-9.1.3", "AUTHZEN-9.2.3");
 		callAndStopOnFailure(ValidatePDPSignedMetadataIss.class, "AUTHZEN-9.1.3", "RFC7519-4.1.1");
-		// `iat` is continue-on-failure: RFC 7519 gives it no validity role — a JWT is not unusable
-		// because it was issued long ago, and the lower bound checked here is a sanity heuristic for
-		// values that are not unix seconds. Report it as a failure, but let the rest of the test run.
+		// `iat` is continue-on-failure: RFC 7519 gives it no validity role, so an iat in the future
+		// is reported without stopping the rest of the test.
 		callAndContinueOnFailure(ValidatePDPSignedMetadataIat.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.6");
 		// `exp` and `nbf` are stop-on-failure: a signed_metadata JWT that has expired or is not yet
 		// valid MUST NOT have its values applied over the plain discovery metadata, and the endpoints
 		// it names MUST NOT be used for the rest of the test.
 		callAndStopOnFailure(ValidatePDPSignedMetadataExp.class, "RFC7519-4.1.4");
 		callAndStopOnFailure(ValidatePDPSignedMetadataNbf.class, "RFC7519-4.1.5");
+		callAndContinueOnFailure(CheckPDPSignedMetadataTimeClaimsArePlausible.class, Condition.ConditionResult.WARNING, "RFC7519-2");
 		callAndContinueOnFailure(EnsurePDPSignedMetadataDoesNotContainSignedMetadata.class, Condition.ConditionResult.WARNING, "AUTHZEN-9.1.3");
 	}
 

@@ -64,9 +64,9 @@ class ValidatePDPSignedMetadataIat_UnitTest {
 	}
 
 	@Test
-	public void implausiblyOldIat_fails() {
-		// Before JWTUtil's minimum reasonable timestamp (likely a non-seconds value).
+	public void oldIat_succeeds() {
+		// RFC 7519 sets no lower bound; CheckPDPSignedMetadataTimeClaimsArePlausible warns about it.
 		putIat(1_000_000_000L);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
 	}
 }
