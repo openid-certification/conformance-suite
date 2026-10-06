@@ -303,7 +303,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	 * (Evaluation / Evaluations / Subject Search / Resource Search / Action Search).
 	 * Each idempotency abstract base delegates to this method, passing its own
 	 * API-family label and the capture/match condition classes appropriate for
-	 * that family (decision vs response body). The loop opens nested eventLog
+	 * that family (decision, batch decisions or search results). The loop opens nested eventLog
 	 * blocks (one outer + one per iteration), each wrapped in try/finally so
 	 * block scopes always close even when a condition throws.
 	 */
