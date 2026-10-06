@@ -12,8 +12,11 @@ import java.net.URL;
 public abstract class ValidateUrlRequirements extends AbstractCondition {
 
 	protected Environment validateUrlRequirements(JsonElement urlStringElement, String fieldName, String label, Environment env) {
-		if (urlStringElement == null || !urlStringElement.getAsJsonPrimitive().isString()) {
+		if (urlStringElement == null || urlStringElement.isJsonNull()) {
 			throw error("%s is missing or null".formatted(label), args(fieldName, urlStringElement));
+		}
+		if (!urlStringElement.isJsonPrimitive() || !urlStringElement.getAsJsonPrimitive().isString()) {
+			throw error("%s is not a string".formatted(label), args(fieldName, urlStringElement));
 		}
 
 		String urlString = OIDFJSON.getString(urlStringElement);
