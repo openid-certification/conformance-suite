@@ -240,6 +240,7 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
+	"resource.brazilLoggedUserName",
 	"directory.discoveryUrl",
 	"directory.client_id",
 	"directory.apibase",

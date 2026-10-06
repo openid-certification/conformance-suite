@@ -769,6 +769,12 @@
           "tooltip": "The 'CNPJ' value to be used in the consent creation request. At least one of CPF or CNPJ must be supplied."
         },
         {
+          "key": "resource.brazilLoggedUserName",
+          "label": "Logged-in user name",
+          "type": "string",
+          "tooltip": "Optional name to send as data.loggedUser.name in the consent creation request (maximum 50 characters). Required for corporate (PJ) customers using CIBA under Consent API v3.4.0. Supply brazilCpf when providing a name. Leave blank to omit the name."
+        },
+        {
           "key": "consent.productType",
           "label": "Business or Personal Products",
           "type": "string",

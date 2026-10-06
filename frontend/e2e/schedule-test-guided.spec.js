@@ -418,6 +418,46 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedStage")).toContainText("Open Insurance Brazil");
   });
 
+  for (const name of ["Joaquim Silva", ""]) {
+    test(`Brazil CIBA submits optional logged-in user name: ${name || "empty"}`, async ({
+      page,
+    }) => {
+      await setupScheduleTestRoutes(page, { plans: MOCK_GUIDED_PLANS });
+      await page.route("**/api/plan?*", (route) => {
+        if (route.request().method() !== "POST") return route.fallback();
+        return route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "Test submission captured" }),
+        });
+      });
+      await page.goto("/schedule-test.html");
+      await pickChoice(page, "open_finance_brazil");
+      await pickChoice(page, "op");
+      await pickChoice(page, "ciba");
+      await page.locator("#guidedStageActions").getByText("Configure this plan").click();
+
+      const form = page.locator("#guidedConfigForm");
+      const nameInput = form.getByLabel("Logged-in user name", { exact: true });
+      await expect(nameInput).toBeVisible();
+      await nameInput.fill(name);
+      await form.getByLabel("brazilCpf", { exact: true }).fill("11111111111");
+      const request = page.waitForRequest(
+        (req) => req.url().includes("/api/plan?") && req.method() === "POST",
+      );
+      await page.locator("#guidedCreateBtn").click();
+      const submitted = await request;
+      expect(submitted.postDataJSON().resource.brazilCpf).toBe("11111111111");
+      expect(submitted.postDataJSON().resource.brazilLoggedUserName || "").toBe(name);
+      expect(
+        JSON.parse(new URL(submitted.url()).searchParams.get("variant") || "{}"),
+      ).toMatchObject({
+        fapi_ciba_profile: "openbanking_brazil",
+        ciba_mode: "ping",
+      });
+    });
+  }
+
   test("ConnectID RP CIBA path resolves to the client CIBA plan", async ({ page }) => {
     await setupScheduleTestRoutes(page);
     await page.goto("/schedule-test.html");
