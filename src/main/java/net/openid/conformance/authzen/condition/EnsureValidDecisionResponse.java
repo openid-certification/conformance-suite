@@ -24,6 +24,10 @@ public class EnsureValidDecisionResponse extends AbstractCondition {
 		if(!jsonPrimitive.isBoolean()) {
 			throw error("Decision value is not a boolean value", args("decision", decisionObj));
 		}
+		JsonElement contextElement = decisionObj.get("context");
+		if (contextElement != null && !contextElement.isJsonObject()) {
+			throw error("Decision context is not an object", args("decision", decisionObj));
+		}
 		logSuccess("Decision response is valid");
 		return env;
 	}
