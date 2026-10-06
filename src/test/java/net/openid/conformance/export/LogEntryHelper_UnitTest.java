@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -95,6 +98,90 @@ public class LogEntryHelper_UnitTest {
 
 		assertThat(helper.getRequirementLink("BrazilOB22-5.12"))
 			.isEqualTo(spec + "5.12");
+	}
+
+	@Test
+	public void sectionOnlyRequirementLinksToThatSection() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+
+		assertThat(helper.getRequirementLink("RFC7517-1.1"))
+			.isEqualTo(LogEntryHelper.specLinks.get("RFC7517-") + "1.1");
+	}
+
+	@Test
+	public void trailingItemNumberIsDroppedSoTheLinkTargetsTheSection() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		String fapi2 = "https://openid.net/specs/fapi-security-profile-2_0-final.html#section-";
+
+		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.2-5"))
+			.isEqualTo(fapi2 + "5.3.2.2");
+		assertThat(helper.getRequirementLink("FAPI2-SP-FINAL-5.3.2.1-5.1"))
+			.isEqualTo(fapi2 + "5.3.2.1");
+		assertThat(helper.getRequirementLink("HAIP-5-5"))
+			.isEqualTo(LogEntryHelper.specLinks.get("HAIP-") + "5");
+	}
+
+	@Test
+	public void longestMatchingPrefixWins() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+
+		assertThat(helper.getRequirementLink("KSA-OF-1"))
+			.isEqualTo(LogEntryHelper.specLinks.get("KSA-OF-1"));
+	}
+
+	@Test
+	public void namedFragmentsContainingHyphensAreKept() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+
+		assertThat(helper.getRequirementLink("CDR-request-object"))
+			.isEqualTo(LogEntryHelper.specLinks.get("CDR-") + "request-object");
+		assertThat(helper.getRequirementLink("CDR-levels-of-assurance-loas"))
+			.isEqualTo(LogEntryHelper.specLinks.get("CDR-") + "levels-of-assurance-loas");
+	}
+
+	@Test
+	public void sectionLinksTakePrecedenceAndCoverItemisedRequirements() {
+		LogEntryHelper helper = new LogEntryHelper(new Document(), new Gson());
+		Map<String, String> sections = LogEntryHelper.getSpecSectionLinks();
+
+		assertThat(sections).isNotEmpty();
+		sections.forEach((section, url) -> {
+			assertThat(helper.getRequirementLink(section)).isEqualTo(url);
+			assertThat(helper.getRequirementLink(section + "-3")).isEqualTo(url);
+		});
+	}
+
+	private static final Pattern STRING_LITERAL = Pattern.compile("\"([A-Za-z][^\"\\s]*-[^\"\\s]*)\"");
+
+	// <section>-<item>.<sub-item>.<further> does not occur in the specs' text, but the xml2rfc v3
+	// fragment of a nested list item does: #section-5.4.1-2.2.1 is paragraph 1 of item 2 of the
+	// list in paragraph 2. Two components (e.g. 2.5) are ambiguous with a sub-item and not checked.
+	private static final Pattern HTML_FRAGMENT_ITEM = Pattern.compile("^[^-]+-[0-9]+(\\.[0-9]+){2,}$");
+
+	@Test
+	public void requirementsCiteListItemsNotHtmlFragments() throws Exception {
+		List<String> offenders = new ArrayList<>();
+		try (Stream<Path> sources = Files.walk(Path.of("src", "main", "java"))) {
+			for (Path source : sources.filter(p -> p.toString().endsWith(".java")).toList()) {
+				Matcher literal = STRING_LITERAL.matcher(Files.readString(source));
+				while (literal.find()) {
+					String requirement = literal.group(1);
+					String prefix = LogEntryHelper.specLinks.keySet().stream()
+						.filter(requirement::startsWith)
+						.reduce("", (a, b) -> b.length() > a.length() ? b : a);
+					if (!prefix.isEmpty() && (requirement.contains(",")
+						|| HTML_FRAGMENT_ITEM.matcher(requirement.substring(prefix.length())).matches())) {
+						offenders.add(source + ": " + requirement);
+					}
+				}
+			}
+		}
+
+		assertThat(offenders)
+			.as("Cite requirements as <section>-<list item> as counted in the spec text, not as the "
+				+ "spec's HTML fragment, and pass each as its own argument rather than joined with commas "
+				+ "(see 'Requirement references' in AGENTS.md)")
+			.isEmpty();
 	}
 
 	private static final Path SPEC_LIBRARY = Path.of("library", "specs");

@@ -1,7 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor, spyOn, userEvent } from "storybook/test";
 import { flashEntryArrival } from "./cts-log-entry.js";
-import { __seedSpecLinks, __resetSpecLinks } from "../lib/spec-links.js";
+import { __seedSpecLinks, __seedSpecSectionLinks, __resetSpecLinks } from "../lib/spec-links.js";
 
 export default {
   title: "Components/cts-log-entry",
@@ -410,10 +410,11 @@ export const WarningEntry = {
 // The component reads from the cache inside its connectedCallback (which
 // fires synchronously during storyFn render), so seeding has to happen
 // *before* storyFn() — a play function would be too late.
-function withSeededSpecLinks(map) {
+function withSeededSpecLinks(map, sections = {}) {
   return (storyFn) => {
     __resetSpecLinks();
     __seedSpecLinks(map);
+    __seedSpecSectionLinks(sections);
     return storyFn();
   };
 }
@@ -453,9 +454,10 @@ export const SpecLinkResolvesMappedRefsToAnchors = {
       const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
       // Anchor preserves the original requirement text verbatim — no rewrite.
       expect(oidcc.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
-      // URL is longest-prefix-match: prefix URL + suffix.
+      // URL is longest-prefix-match: prefix URL + the section part of the
+      // suffix; the trailing item number is display-only.
       expect(oidcc.getAttribute("href")).toBe(
-        "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7-6",
+        "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7",
       );
       // Always open in a new tab; the suite stays focused on the failing log.
       expect(oidcc.getAttribute("target")).toBe("_blank");
@@ -470,6 +472,35 @@ export const SpecLinkResolvesMappedRefsToAnchors = {
       expect(rfc).toBeTruthy();
       expect(rfc.getAttribute("href")).toBe("https://tools.ietf.org/html/rfc7517#section-1.1");
     });
+  },
+};
+
+export const SpecLinkSectionLinkWins = {
+  // Confluence-hosted specs put the heading text in the fragment, so the
+  // section-link map overrides the prefix map for those sections.
+  decorators: [
+    withSeededSpecLinks(
+      { "BrazilOBDCR-": "https://example.com/dcr#" },
+      { "BrazilOBDCR-7.1": "https://example.com/dcr#7.1.-Authorization-server" },
+    ),
+  ],
+  render: () => html`
+    <cts-log-entry
+      .entry=${{
+        ...SPEC_LINK_ENTRY,
+        _id: "entry-spec-section-link",
+        requirements: ["BrazilOBDCR-7.1-10", "BrazilOBDCR-7.2-1"],
+      }}
+    ></cts-log-entry>
+  `,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelectorAll("a.logRequirement").length).toBe(2);
+    });
+    const [section, prefix] = canvasElement.querySelectorAll("a.logRequirement");
+    expect(section.textContent.trim()).toBe("BrazilOBDCR-7.1-10");
+    expect(section.getAttribute("href")).toBe("https://example.com/dcr#7.1.-Authorization-server");
+    expect(prefix.getAttribute("href")).toBe("https://example.com/dcr#7.2");
   },
 };
 

@@ -25,7 +25,8 @@ import {
  * Register the three routes every page needs:
  * - /api/currentuser
  * - /api/server
- * - api/ui/spec_links (note: no leading slash — lib/spec-links.js uses a relative URL)
+ * - api/ui/spec_links and api/ui/spec_section_links (note: no leading slash —
+ *   lib/spec-links.js uses relative URLs)
  *
  * Also stubs Google Fonts so the JetBrains Mono <link> on
  * log-detail/schedule-test/tokens/upload never stalls page.goto() on a real
@@ -84,6 +85,14 @@ export async function setupCommonRoutes(page, options = {}) {
       body: JSON.stringify({
         "OIDCC-": "https://openid.net/specs/openid-connect-core-1_0.html#section-",
       }),
+    }),
+  );
+
+  await page.route("**/api/ui/spec_section_links*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({}),
     }),
   );
 
