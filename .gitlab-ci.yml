@@ -489,14 +489,15 @@ authzen_test:
   needs: ["build"]
   script:
     - apk add docker-compose
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull mongodb oidcc-provider cerbos-authzen-pdp
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull mongodb oidcc-provider cerbos-authzen-pdp authzen-auth-proxy
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull nginx server authzen-test
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx cerbos-authzen-pdp
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx cerbos-authzen-pdp authzen-auth-proxy
     - sleep 5
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" cerbos-authzen-pdp
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run authzen-test
   after_script:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" cerbos-authzen-pdp > $CI_PROJECT_DIR/cerbos-authzen-pdp-log.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" authzen-auth-proxy > $CI_PROJECT_DIR/authzen-auth-proxy-log.txt
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
@@ -505,6 +506,7 @@ authzen_test:
     when: always
     paths:
       - cerbos-authzen-pdp-log.txt
+      - authzen-auth-proxy-log.txt
       - server-log.txt
       - mongo/data/mongodb-dump.gz
       - "*.zip"
