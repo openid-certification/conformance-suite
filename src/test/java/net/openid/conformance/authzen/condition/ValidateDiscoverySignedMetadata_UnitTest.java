@@ -196,7 +196,7 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		Date past = new Date(System.currentTimeMillis() - 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).expirationTime(past).build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("exp claim is invalid"));
+		assertTrue(e.getMessage().contains("exp claim is in the past"));
 	}
 
 	@Test
@@ -204,17 +204,17 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 		Date future = new Date(System.currentTimeMillis() + 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).notBeforeTime(future).build()));
 		Throwable e = assertThrows(TestFailureException.class, () -> module.runSequence());
-		assertTrue(e.getMessage().contains("nbf claim is invalid"));
+		assertTrue(e.getMessage().contains("nbf claim is in the future"));
 	}
 
 	@Test
-	public void futureIat_failsResultWithoutAborting() throws Exception {
+	public void futureIat_warnsWithoutAborting() throws Exception {
 		// RFC 7519 attaches no validity requirement to `iat`, so unlike exp/nbf it does not make the
-		// metadata unusable: the failure is recorded but the sequence runs to completion.
+		// metadata unusable: it is flagged as implausible and the sequence runs to completion.
 		Date future = new Date(System.currentTimeMillis() + 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).issueTime(future).build()));
 		module.runSequence();
-		assertEquals(Result.FAILED, module.getResult());
+		assertEquals(Result.WARNING, module.getResult());
 	}
 
 	@Test
