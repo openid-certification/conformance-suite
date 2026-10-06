@@ -3,6 +3,7 @@ package net.openid.conformance.authzen;
 import com.google.common.base.Strings;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
+import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -26,7 +27,8 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	/**
 	 * Paginated search loop shared by every per-axis paginated base
 	 * ({@code AbstractAuthzenPDPPaginated{Subject,Resource,Action}SearchTest}).
-	 * Follows the {@code page.next_token} chain (capped at {@code MAX_PAGES}),
+	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
+	 * page's token and results, and capped at {@code MAX_PAGES},
 	 * aggregating results across pages, and matches the accumulated results
 	 * against the expected set. Nested {@code eventLog} blocks (one outer,
 	 * one per page) are wrapped in try/finally so block scopes always close
@@ -50,6 +52,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 					createAuthzenApiRequest();
 					performSingleApiRequest();
 					processAuthApiEndpointResponse();
+					callAndStopOnFailure(EnsureSearchPageTokenNotRepeated.class, "AUTHZEN-8.2");
 					callAndStopOnFailure(AggregateAuthzenSearchResults.class);
 				} finally {
 					eventLog.endBlock();
