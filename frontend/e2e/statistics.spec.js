@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   setupCommonRoutes,
   setupFailFast,
-  setupTestInfoRoute,
+  setupPlanStatusRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
 import { watchPageErrors, expectNoPageErrors } from "./helpers/page-errors.js";
@@ -921,7 +921,7 @@ test.describe("statistics.html — admin usage dashboard", () => {
         body: JSON.stringify(MOCK_PLAN_LIST),
       });
     });
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/statistics.html");

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   setupCommonRoutes,
   setupFailFast,
-  setupTestInfoRoute,
+  setupPlanStatusRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
 import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
@@ -93,7 +93,7 @@ test.describe("plans.html URL compat — GROUP A: legacy (active)", () => {
   }) => {
     await setupFailFast(page);
     const planRequests = await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
@@ -143,7 +143,7 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     // Authenticated (mocked user): / and /index.html land on the plans home.
@@ -165,7 +165,7 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
   }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
@@ -186,7 +186,7 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
   test("back/forward restores the prior tab and dataset (owning unit U5)", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");

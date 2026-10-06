@@ -508,7 +508,7 @@ const DAY_MS = 86400000;
 
 // The real `/api/plan` listing serializes `Plan.Module`, which carries only
 // `testModule` and `instances` — never `status`/`result`. Those are fetched
-// per-module from `/api/info/<instance>` (see MOCK_PLAN_INFO below). Keeping
+// per card from `/api/plan/<id>` (see MOCK_PLAN_INFO below). Keeping
 // this fixture faithful to the backend shape is what makes the status-dot
 // e2e assertions test reality, not a shape the server never returns.
 export const MOCK_PLAN_LIST = [
@@ -525,7 +525,7 @@ export const MOCK_PLAN_LIST = [
     modules: [
       { testModule: "oidcc-server", instances: ["inst-001"] },
       { testModule: "oidcc-server-rotate-keys", instances: ["inst-002"] },
-      // Never run — empty instances. Static skip dot, no /api/info fetch.
+      // Never run — empty instances. Static skip dot, no status fetch.
       { testModule: "oidcc-codereuse", instances: [] },
     ],
     config: { "server.issuer": "https://op.example.com" },
@@ -567,7 +567,8 @@ export const MOCK_PLAN_LIST = [
   },
 ];
 
-// Per-instance `/api/info/<instance>` payloads for the listing's modules.
+// Latest-run `{ status, result }` per instance for the listing's modules, as
+// `/api/plan/<id>` attaches them to that plan's modules.
 // Mirrors what the backend returns when the plans listing resolves each
 // module's latest run. The plans spec registers an instance-keyed
 // `/api/info` route from this map so the module status dots resolve to

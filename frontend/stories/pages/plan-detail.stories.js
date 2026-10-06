@@ -69,8 +69,8 @@ const PLAN_WITH_MODULE_STATUS = {
   modules: MOCK_MODULES_WITH_STATUS,
 };
 
-// The page's /api/info fan-out marks each module `_statusResolved` once its
-// status settles; the static story mirrors that resolved state so the segment
+// The page marks each module `_statusResolved` as it reads the plan response;
+// the static story mirrors that resolved state so the segment
 // bar colours rather than pulsing. Same order as MOCK_MODULES_WITH_STATUS, so a
 // segment index maps to the same module row.
 const MODULES_RESOLVED = MOCK_MODULES_WITH_STATUS.map((m) => ({ ...m, _statusResolved: true }));

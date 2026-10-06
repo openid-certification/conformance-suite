@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
+import net.openid.conformance.info.Plan.Module;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -29,8 +30,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -148,6 +151,77 @@ public class DBTestPlanService implements TestPlanService {
 	public PublicPlan getPublicPlan(String id) {
 
 		return plans.findByIdPublic(id).orElse(null);
+	}
+
+	@Override
+	public void attachLatestRuns(List<Module> modules, boolean publicOnly) {
+
+		if (modules == null) {
+			return;
+		}
+		Set<String> latest = modules.stream()
+				.map(DBTestPlanService::latestInstance)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+		if (latest.isEmpty()) {
+			return;
+		}
+
+		Map<String, String> owner = publicOnly || authenticationFacade.isAdmin() || authenticationFacade.isPrivateLinkUser()
+				? null : authenticationFacade.getPrincipal();
+		Query query = new Query(latestRunsCriteria(latest, publicOnly, owner));
+		query.fields().include("status", "result");
+
+		Map<String, Document> runs = new HashMap<>();
+		for (Document run : mongoTemplate.find(query, Document.class, DBTestInfoService.COLLECTION)) {
+			runs.put(String.valueOf(run.get("_id")), run);
+		}
+		applyLatestRuns(modules, runs);
+	}
+
+	/**
+	 * Which of these runs the caller may be shown, by the rules {@code GET /api/info/{id}}
+	 * applies to one run: a public reader only published runs, and a user only the runs they
+	 * own. A run an admin started in someone else's plan belongs to the admin, so the plan's
+	 * owner is shown no status for it, as they cannot open its log either.
+	 *
+	 * @param runs       the ids of the latest runs of a plan's modules
+	 * @param publicOnly whether the caller reads the plan as published data
+	 * @param owner      the user the runs must belong to, or null when that is not what limits
+	 *                   the caller: a public reader, an admin, or a private-link viewer, who may
+	 *                   see every run of the plan shared with them
+	 * @return criteria matching those of the runs the caller may be shown
+	 */
+	static Criteria latestRunsCriteria(Set<String> runs, boolean publicOnly, Map<String, String> owner) {
+		Criteria criteria = Criteria.where("_id").in(runs);
+		if (publicOnly) {
+			return new Criteria().andOperator(criteria, published());
+		}
+		return owner == null ? criteria : criteria.and("owner").is(owner);
+	}
+
+	/**
+	 * @param module a plan module
+	 * @return the id of its latest run, or null if it has never run
+	 */
+	public static String latestInstance(Module module) {
+		List<String> instances = module.getInstances();
+		return instances == null || instances.isEmpty() ? null : instances.get(instances.size() - 1);
+	}
+
+	/**
+	 * @param modules the modules of a plan
+	 * @param runs    test id to the test document's {@code status} and {@code result}, for the
+	 *                latest runs that could be found
+	 */
+	static void applyLatestRuns(List<Module> modules, Map<String, Document> runs) {
+		for (Module module : modules) {
+			String id = latestInstance(module);
+			Document run = id == null ? null : runs.get(id);
+			if (run != null) {
+				module.setLatestRun(run.getString("status"), run.getString("result"));
+			}
+		}
 	}
 
 	@Override
