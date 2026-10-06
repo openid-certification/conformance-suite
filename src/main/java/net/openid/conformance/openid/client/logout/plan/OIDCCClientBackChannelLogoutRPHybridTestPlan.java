@@ -18,6 +18,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-back-channel-logout-rp-hybrid",
+	shortName = "Back-channel logout (Hybrid)",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Back Channel Logout RP Certification Profile Relying Party Tests (Hybrid)",
 	profile = TestPlan.ProfileNames.rplogouttest,
 	specFamily = TestPlan.SpecFamilyNames.oidccLogout

@@ -11,6 +11,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-id1-test-plan",
+	shortName = "ID1",
+	certifiable = true,
 	displayName = "FAPI2-Message-Signing-ID1: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapi2MessageSigning,

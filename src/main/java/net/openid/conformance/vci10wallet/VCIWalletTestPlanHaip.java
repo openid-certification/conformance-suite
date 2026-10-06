@@ -49,6 +49,8 @@ import java.util.Set;
 
 @PublishTestPlan (
 	testPlanName = "oid4vci-1_0-wallet-haip-test-plan",
+	shortName = "1.0 Final + HAIP",
+	certifiable = true,
 	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final/HAIP: Test a wallet",
 	profile = TestPlan.ProfileNames.vciwallet,
 	specFamily = TestPlan.SpecFamilyNames.oid4vci

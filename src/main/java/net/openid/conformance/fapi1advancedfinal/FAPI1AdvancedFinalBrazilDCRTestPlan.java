@@ -10,6 +10,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-brazil-dcr-test-plan",
+	shortName = "Brazil Dynamic Client Registration",
+	certifiable = true,
 	displayName = "FAPI1-Advanced-Final: Brazil Dynamic Client Registration Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapi1Advanced

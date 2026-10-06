@@ -19,6 +19,8 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-logout-test-plan",
+	shortName = "Comprehensive",
+	certifiable = false,
 	displayName = "OpenID Connect Core Client Logout Tests: Comprehensive relying party logout test (not part of certification program)",
 	profile = TestPlan.ProfileNames.rplogouttest,
 	specFamily = TestPlan.SpecFamilyNames.oidccLogout,

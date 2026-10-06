@@ -9,6 +9,9 @@ import java.util.List;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-id2-brazil-dcr-test-plan",
+	shortName = "ID2 + Brazil Dynamic Client Registration",
+	certifiable = true,
+	alpha = true,
 	displayName = "FAPI2-Security-Profile-ID2: Brazil Dynamic Client Registration Authorization server test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapi2SecurityProfile,

@@ -8,6 +8,9 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "openid-ssf-receiver-test-plan",
+	shortName = "Receiver",
+	certifiable = false,
+	alpha = true,
 	displayName = "OpenID Shared Signals Framework 1.0 Final: Receiver test - alpha tests (not part of certification program - use the CAEP Interop receiver plan to certify)",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Receiver.",
 	profile = TestPlan.ProfileNames.ssftest,

@@ -12,6 +12,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-implicit-certification-test-plan",
+	shortName = "Implicit",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Implicit Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc

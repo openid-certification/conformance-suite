@@ -1308,7 +1308,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "Plan definition: planName, displayName, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"
+                  "description": "Plan definition: planName, displayName, shortName, certifiable, alpha, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"
                 }
               }
             }

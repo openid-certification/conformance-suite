@@ -17,6 +17,9 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi2-security-profile-id2-brazil-client-test-plan",
+	shortName = "ID2 + Open Banking Brazil",
+	certifiable = true,
+	alpha = true,
 	displayName = "FAPI2-Security-Profile-ID2: Open Banking Brazil Relying Party (Client) Test Plan (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	summary = "Open Banking Brazil specific tests. " +
 		"This plan requires the client to run the same set of tests twice, once passing the request object by value and once by using PAR. " +

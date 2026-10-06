@@ -13,6 +13,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-rp-initiated-logout-rp-implicit",
+	shortName = "RP-initiated logout (Implicit)",
+	certifiable = true,
 	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests (Implicit)",
 	profile = TestPlan.ProfileNames.rplogouttest,
 	specFamily = TestPlan.SpecFamilyNames.oidccLogout

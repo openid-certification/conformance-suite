@@ -14,6 +14,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-config-certification-test-plan",
+	shortName = "Config",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Configuration Certification Profile Relying Party Tests",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc

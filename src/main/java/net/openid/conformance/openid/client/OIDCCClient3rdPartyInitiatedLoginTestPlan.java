@@ -8,6 +8,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-test-3rd-party-init-login-test-plan",
+	shortName = "3rd party initiated login",
+	certifiable = true,
 	displayName = "OpenID Connect Core Client Login Tests: Relying party 3rd party initiated login tests",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc,

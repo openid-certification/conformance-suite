@@ -6,6 +6,9 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oid4vci-1_0-issuer-test-plan",
+	shortName = "1.0 Final",
+	certifiable = false,
+	alpha = true,
 	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final: Test an issuer - alpha tests (not part of certification program - use the HAIP issuer plan to certify)",
 	profile = TestPlan.ProfileNames.vciissuer,
 	specFamily = TestPlan.SpecFamilyNames.oid4vci

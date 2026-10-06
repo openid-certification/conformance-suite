@@ -13,6 +13,8 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-test-plan",
+	shortName = "Comprehensive",
+	certifiable = false,
 	displayName = "OpenID Connect Core Client Tests: Comprehensive client test (not part of certification program)",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc,

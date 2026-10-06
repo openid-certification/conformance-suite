@@ -11,6 +11,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-hybrid-certification-test-plan",
+	shortName = "Hybrid",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Hybrid Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc

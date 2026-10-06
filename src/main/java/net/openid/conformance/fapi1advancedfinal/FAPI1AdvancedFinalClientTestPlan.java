@@ -10,6 +10,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-client-test-plan",
+	shortName = "Standard",
+	certifiable = true,
 	displayName = "FAPI1-Advanced-Final: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.fapi1Advanced,

@@ -433,7 +433,7 @@ public class TestPlanApi implements DataUtils {
 	@Operation(operationId = "getTestPlanInfo", summary = "Get information for one test plan by name")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully",
-			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "Plan definition: planName, displayName, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"))),
+			content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(type = "object", description = "Plan definition: planName, displayName, shortName, certifiable, alpha, profile, specFamily, specVersion, modules, configurationFields, hidesConfigurationFields, summary, variants"))),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name", content = @Content)
 	})
 	public ResponseEntity<Object> getTestPlanInfo(
@@ -445,6 +445,9 @@ public class TestPlanApi implements DataUtils {
 			Map<String, ?> map = args(
 					"planName", holder.info.testPlanName(),
 					"displayName", holder.info.displayName(),
+					"shortName", holder.info.shortName(),
+					"certifiable", holder.info.certifiable(),
+					"alpha", holder.info.alpha(),
 					"profile", holder.info.profile(),
 					"specFamily", holder.info.specFamily(),
 					"specVersion", holder.info.specVersion(),
@@ -472,6 +475,9 @@ public class TestPlanApi implements DataUtils {
 			.<Map<String, ?>>map(e -> args(
 				"planName", e.info.testPlanName(),
 				"displayName", e.info.displayName(),
+				"shortName", e.info.shortName(),
+				"certifiable", e.info.certifiable(),
+				"alpha", e.info.alpha(),
 				"profile", e.info.profile(),
 				"specFamily", e.info.specFamily(),
 				"specVersion", e.info.specVersion(),

@@ -14,6 +14,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-id2-client-test-plan",
+	shortName = "ID2",
+	certifiable = true,
 	displayName = "FAPI2-Security-Profile-ID2: Relying Party (client) test",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.fapi2SecurityProfile,

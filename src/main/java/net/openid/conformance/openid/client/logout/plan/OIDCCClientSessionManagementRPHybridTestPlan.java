@@ -10,6 +10,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-rp-session-management-rp-hybrid",
+	shortName = "Session management (Hybrid)",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Session Management RP Certification Profile Relying Party Tests (Hybrid)",
 	profile = TestPlan.ProfileNames.rplogouttest,
 	specFamily = TestPlan.SpecFamilyNames.oidccSessionManagement

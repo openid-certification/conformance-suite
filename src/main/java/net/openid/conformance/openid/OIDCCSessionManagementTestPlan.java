@@ -11,6 +11,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-session-management-certification-test-plan",
+	shortName = "Session management",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Session Management Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.oidccSessionManagement

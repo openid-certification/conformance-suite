@@ -5,6 +5,8 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-refreshtoken-test-plan",
+	shortName = "Refresh token",
+	certifiable = false,
 	displayName = "OpenID Connect Core Client Refresh Token Profile Tests: Relying party refresh token tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc,

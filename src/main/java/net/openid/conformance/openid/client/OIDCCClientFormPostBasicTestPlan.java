@@ -9,6 +9,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-formpost-basic-certification-test-plan",
+	shortName = "Form Post Basic",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Form Post Basic Certification Profile Relying Party Tests",
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc
