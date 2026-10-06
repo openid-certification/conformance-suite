@@ -1,5 +1,18 @@
 [
     {
+        "test-name": "fapi-ciba-id1-client-test",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "ciba_mode": "ping",
+            "fapi_ciba_profile": "openbanking_brazil"
+        },
+        "configuration-filename": "*fapi-ciba-brazil-rp-test-config-pj-no-name.json",
+        "current-block": "New consent endpoint",
+        "condition": "FAPIBrazilValidateCibaConsentLoggedUserName",
+        "expected-result": "failure",
+        "comment": "The paired OP deliberately sends a corporate consent with businessEntity but without loggedUser.name; the RP validator must report the CIBA PJ requirement."
+    },
+    {
         "test-name": "fapi-ciba-id1-ensure-other-scope-order-succeeds",
         "variant": {
             "client_auth_type": "private_key_jwt",

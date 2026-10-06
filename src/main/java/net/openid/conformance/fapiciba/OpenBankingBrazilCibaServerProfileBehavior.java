@@ -16,11 +16,14 @@ import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDiffere
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.FAPIBrazilAddLoggedUserNameToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckTokenDeliveryModesSupportedOnlyPing;
 import net.openid.conformance.condition.client.FAPIBrazilCibaCheckUserCodeParameterNotSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
+import net.openid.conformance.condition.client.FAPIBrazilValidateLoggedUserNameConfiguration;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsCiba;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
@@ -37,6 +40,7 @@ import net.openid.conformance.sequence.client.OpenBankingBrazilDynamicClientRegi
 import net.openid.conformance.sequence.client.OpenBankingBrazilDynamicClientRegistrationKeyPublication;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.variant.ClientAuthType;
 
 import java.net.URI;
@@ -208,7 +212,8 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			boolean stopAfterConsentEndpoint = false;
 			return new OpenBankingBrazilPreAuthorizationSteps(
 				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, false, false, stopAfterConsentEndpoint, false
-			);
+			).insertAfter(FAPIBrazilOpenBankingCreateConsentRequest.class,
+				new ConditionCallBuilder(FAPIBrazilAddLoggedUserNameToConsentRequest.class));
 		};
 	}
 
@@ -239,6 +244,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			public void evaluate() {
 				callAndStopOnFailure(CheckCIBAModeIsPing.class, "BrazilCIBA-6.2.2");
 				callAndStopOnFailure(SetHintTypeToLoginHint.class, "BrazilCIBA-6.2.3");
+				callAndStopOnFailure(FAPIBrazilValidateLoggedUserNameConfiguration.class);
 			}
 		};
 	}

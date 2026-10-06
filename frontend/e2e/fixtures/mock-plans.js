@@ -365,7 +365,13 @@ export const MOCK_GUIDED_PLANS = [
           description: "The FAPI-CIBA ecosystem profile to test.",
         },
         variantValues: {
-          openbanking_brazil: { configurationFields: [] },
+          openbanking_brazil: {
+            configurationFields: [
+              "resource.brazilCpf",
+              "resource.brazilCnpj",
+              "resource.brazilLoggedUserName",
+            ],
+          },
           connectid_au: { configurationFields: [] },
         },
       },
