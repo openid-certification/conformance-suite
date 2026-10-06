@@ -875,16 +875,30 @@ makeSsfTests() {
 }
 
 makeAuthzenTests() {
+    AUTHZEN_CONFIGS="${SUITE_DIR}/scripts/test-configs-authzen"
     # Certification Profile payload tests, against the cerbos-authzen-pdp service in docker-compose-localtest.yml
-    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     # Discovery, with the PDP's HS256 signed_metadata verified against the JWK in the config
-    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
     # Discovery certification level: the metadata checks on their own, with the same signed_metadata
-    TESTS="${TESTS} authzen-pdp-discovery-test-plan ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
-    TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
-    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
-    TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
-    TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-discovery-test-plan ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    # Authentication variants, against the authenticating proxy (authzen-auth-proxy) in front of
+    # the same PDP; these also run the 401 modules for api_key and client_secret_basic
+    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=api_key][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
+    # api_key with discovery: the metadata is fetched without credentials, the API calls with them
+    TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=api_key][pdp_server_metadata=discovery][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
+    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=api_key][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-api-key-config.json"
+    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=client_secret_basic][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-client-secret-basic-config.json"
+    TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=client_secret_basic][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-client-secret-basic-config.json"
+    TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=client_secret_basic][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-client-secret-basic-config.json"
+    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=mtls][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-mtls-config.json"
+    TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=mtls][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-auth-proxy-mtls-config.json"
+    # authzen_support=core: the identifier-only fixture rules
+    TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=core] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
+    TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${AUTHZEN_CONFIGS}/authzen-cerbos-local-test-config.json"
 }
 
 makeLocalProviderTests() {
