@@ -953,7 +953,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   /**
    * Build N plan modules whose `markedIndex` module carries `markedInstances`
    * (so it owns the viewed instance) and every other module carries a single
-   * sibling instance `s-<i>` so the post-paint /api/info fan-out fires for it.
+   * sibling instance `s-<i>`, with the status of that run as the plan reports it.
    *
    * @param {number} count
    * @param {{ markedIndex: number, markedInstances: string[] }} opts
@@ -965,6 +965,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       variant:
         i === markedIndex ? { client_auth_type: "client_secret_basic", response_type: "code" } : {},
       instances: i === markedIndex ? markedInstances : [`s-${i}`],
+      // Each sibling's latest run passed; the marked module's status comes
+      // from the viewed test's own /api/info.
+      ...(i === markedIndex ? {} : { status: "FINISHED", result: "PASSED" }),
     }));
   }
 
@@ -983,16 +986,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    // Sibling fan-out: each non-marked module's last instance s-<i> resolves
-    // to a PASSED status. Registered AFTER setupV2Routes so it shadows the
-    // fail-fast catch-all but not the specific main-test /api/info route.
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -1019,27 +1012,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       markedIndex: 3,
       markedInstances: [MOCK_TEST_STATUS.testId, "newer-rerun"],
     });
+    // The module's newer run failed; that, not the older run being viewed, is
+    // what its segment shows.
+    Object.assign(planModules[3], { status: "INTERRUPTED", result: "FAILED" });
     await setupV2Routes(page, {
       testInfo: MOCK_TEST_STATUS,
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    // The marked module's LAST instance (newer-rerun) is what its segment's
-    // status fan-out fetches — give it a result too.
-    await page.route("**/api/info/newer-rerun*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
-      }),
-    );
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -1069,17 +1049,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
     // The click below navigates for real (full page load), landing on s-0's
     // OWN log-detail page — which fires its own /api/log and /api/runner
-    // bootstrap fetches for "s-0", distinct from the /api/info/s-* fan-out
-    // mock above (which only covers the ORIGIN page's sibling colouring).
+    // bootstrap fetches for "s-0", which nothing above mocks.
     // Without these, whether those fetches land before or after afterEach's
     // synchronous expectNoUnmockedCalls check is a timing race that flakes
     // under parallel-worker load (#1916), sharpened by #1915's extra
@@ -1096,9 +1068,8 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(bar).toBeVisible();
 
     // Off the public view every sibling with an instance is a navigable link
-    // from first paint — its href is seeded at map time, before the colour
-    // fan-out runs. The FIRST segment (index 0 → instance s-0) carries that href;
-    // clicking it navigates natively (no event round-trip).
+    // from first paint. The FIRST segment (index 0 → instance s-0) carries that
+    // href; clicking it navigates natively (no event round-trip).
     const firstSeg = bar.locator("a.cts-pst-seg").first();
     await expect(firstSeg).toHaveAttribute("href", "/log-detail.html?log=s-0");
     await firstSeg.click();
@@ -1143,20 +1114,34 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(inert).toHaveAttribute("role", "img");
   });
 
-  test("U6/R5/R18: siblings pending then colour after fan-out; a 404 sibling settles to skip", async ({
+  test("U6/R5/R18: siblings colour from the plan's statuses; one without a status settles to skip", async ({
     page,
   }) => {
     await setupFailFast(page);
-    // 4 modules: marked at index 0; sibling 1 resolves PASSED, sibling 2
-    // resolves FAILED, sibling 3 404s (its latest run is inaccessible).
+    // 4 modules: marked at index 0; the plan reports sibling 1 PASSED and
+    // sibling 2 FAILED, and no status for sibling 3 (its latest run is not
+    // visible to this viewer).
     const planModules = [
       {
         testModule: "oidcc-server",
         variant: { client_auth_type: "client_secret_basic", response_type: "code" },
         instances: [MOCK_TEST_STATUS.testId],
       },
-      { testModule: "sib-pass", variant: {}, instances: ["sib-pass-1"] },
-      { testModule: "sib-fail", variant: {}, instances: ["sib-fail-1"] },
+      {
+        testModule: "sib-pass",
+        variant: {},
+        instances: ["sib-pass-1"],
+        status: "FINISHED",
+        result: "PASSED",
+      },
+      {
+        testModule: "sib-fail",
+        variant: {},
+        instances: ["sib-fail-1"],
+        status: "INTERRUPTED",
+        result: "FAILED",
+      },
+      // Its latest run is not visible to this viewer: no status.
       { testModule: "sib-404", variant: {}, instances: ["sib-404-1"] },
     ];
     await setupV2Routes(page, {
@@ -1164,23 +1149,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    await page.route("**/api/info/sib-pass-1*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    await page.route("**/api/info/sib-fail-1*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
-      }),
-    );
-    // 404 sibling: its segment must settle to the static neutral fill, not pulse
-    // pending forever (R18/KTD3 — _statusResolved set in the error branch).
-    await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page);
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
@@ -1189,10 +1157,10 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const segments = bar.locator('[data-testid="plan-status-segment"]');
     await expect(segments).toHaveCount(4);
 
-    // After the fan-out resolves: sibling 1 = pass, sibling 2 = fail, sibling
-    // 3 settled to neutral (NOT pending). The marked module (the viewed test)
-    // has no fan-out status of its own (its only instance is the viewed one,
-    // which 200s through the main /api/info route) → resolves to PASSED.
+    // Sibling 1 = pass, sibling 2 = fail, sibling 3 settled to the static
+    // neutral fill (NOT pending — R18/KTD3). The marked module (the viewed
+    // test) carries no status in the plan; its segment is coloured from the
+    // viewed test's own /api/info → PASSED.
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
     await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
     await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--neutral/);
@@ -1200,13 +1168,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
   });
 
-  test("U6 public view: published-plan siblings navigate, fan-out carries ?public=true", async ({
+  test("U6 public view: published-plan siblings navigate, their status arrives with the public plan", async ({
     page,
   }) => {
     /** @type {string[]} */
     const apiRequests = [];
     page.on("request", (req) => {
-      if (req.url().includes("/api/info/")) apiRequests.push(req.url());
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
     });
 
     await setupFailFast(page);
@@ -1219,13 +1187,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
     // Mock the sibling's own post-navigation bootstrap fetches too — see the
     // identical block in the "U6/R15" test above for why (#1916, #1915).
     await page.route("**/api/log/s-*", (route) =>
@@ -1241,23 +1202,25 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
     await expect(bar).toBeVisible();
 
-    // Wait until the sibling fan-out has settled (the first sibling colours,
+    // Wait until the bar is seeded from the plan (the first sibling colours,
     // which is the same moment its segment becomes navigable).
     await expect(bar.locator('[data-testid="plan-status-segment"]').nth(0)).toHaveClass(
       /cts-pst-seg--pass/,
     );
 
-    // Every sibling fan-out request carried public=true.
-    const siblingCalls = apiRequests.filter((u) => u.includes("/api/info/s-"));
-    expect(siblingCalls.length).toBeGreaterThan(0);
-    for (const url of siblingCalls) {
+    // Sibling status comes with the plan, fetched as public data; no sibling
+    // is looked up on its own.
+    expect(apiRequests.filter((u) => u.includes("/api/info/s-"))).toEqual([]);
+    const planCalls = apiRequests.filter((u) => u.includes("/api/plan/"));
+    expect(planCalls.length).toBeGreaterThan(0);
+    for (const url of planCalls) {
       expect(new URL(url).searchParams.get("public")).toBe("true");
     }
 
-    // On a published-plan public view the reachable siblings become navigable
-    // links once the fan-out confirms each target instance returns 200 — the page
-    // sets each segment's href (threading &public=true). Clicking the first
-    // sibling navigates natively to that instance's public log.
+    // On a published-plan public view a sibling whose status the public plan
+    // revealed is navigable — the page sets its segment's href (threading
+    // &public=true). Clicking the first sibling navigates natively to that
+    // instance's public log.
     const firstLink = bar.locator("a.cts-pst-seg[href]").first();
     await expect(firstLink).toHaveAttribute("href", "/log-detail.html?log=s-0&public=true");
     await firstLink.click();
@@ -1274,16 +1237,30 @@ test.describe("log-detail.html — new Lit-triad page", () => {
   }) => {
     await setupFailFast(page);
     // Published-plan public view, 4 modules: marked at index 0 (the viewed test);
-    // siblings 1 and 2 are publicly reachable (200), sibling 3 is not (404 — e.g.
-    // a re-run created a newer, unpublished instance after the plan was published).
+    // the public plan reveals the status of siblings 1 and 2 but not of sibling 3
+    // (e.g. a re-run created a newer, unpublished instance after the plan was
+    // published).
     const planModules = [
       {
         testModule: "oidcc-server",
         variant: { client_auth_type: "client_secret_basic", response_type: "code" },
         instances: [MOCK_TEST_STATUS.testId],
       },
-      { testModule: "sib-pass", variant: {}, instances: ["sib-pass-1"] },
-      { testModule: "sib-fail", variant: {}, instances: ["sib-fail-1"] },
+      {
+        testModule: "sib-pass",
+        variant: {},
+        instances: ["sib-pass-1"],
+        status: "FINISHED",
+        result: "PASSED",
+      },
+      {
+        testModule: "sib-fail",
+        variant: {},
+        instances: ["sib-fail-1"],
+        status: "INTERRUPTED",
+        result: "FAILED",
+      },
+      // Its latest run is not visible to this viewer: no status.
       { testModule: "sib-404", variant: {}, instances: ["sib-404-1"] },
     ];
     await setupV2Routes(page, {
@@ -1291,21 +1268,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    await page.route("**/api/info/sib-pass-1*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    await page.route("**/api/info/sib-fail-1*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "INTERRUPTED", result: "FAILED" }),
-      }),
-    );
-    await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
     await setupCommonRoutes(page, { user: null }); // anonymous viewer
 
     await page.goto(
@@ -1317,14 +1279,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const segments = bar.locator('[data-testid="plan-status-segment"]');
     await expect(segments).toHaveCount(4);
 
-    // Wait until the fan-out settles: the reachable siblings colour, and the 404
-    // sibling settles to the neutral fill (not stuck pending — R18/KTD3).
+    // The reachable siblings colour from the plan, and the unpublished sibling
+    // settles to the neutral fill (not stuck pending — R18/KTD3).
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
     await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
     await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--neutral/);
     await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
 
-    // The unreachable 404 sibling stays an inert <a role="img"> with no href (R2);
+    // The unpublished sibling stays an inert <a role="img"> with no href (R2);
     // the reachable siblings (and the viewed module) are navigable links (R1).
     const inert = bar.locator("a.cts-pst-seg:not([href])");
     await expect(inert).toHaveCount(1);
@@ -1350,21 +1312,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       planModules,
     });
     // The sibling (index 1) is already passed — it must stay green throughout,
-    // proving the live sync touches only the watched segment. The `s-*` glob
-    // matches makePlanModules' sibling naming (s-<i>) and never the watched id
-    // (test-running-001), so the two /api/info routes partition cleanly.
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
+    // proving the live sync touches only the watched segment.
     // Override the main test's /api/info (registered AFTER setupV2Routes so it
     // wins on Playwright's reverse-order match) with a Node-side flag: RUNNING
-    // until the test flips `finished`, then the terminal verdict. Both the
-    // page-load colour fan-out AND every 3s poll cycle read this same handler,
-    // so the segment tracks the flag deterministically — no fake timers needed.
+    // until the test flips `finished`, then the terminal verdict. The page load
+    // AND every 3s poll cycle read this same handler, so the segment tracks the
+    // flag deterministically — no fake timers needed.
     let finished = false;
     await page.route(`**/api/info/${MOCK_TEST_RUNNING.testId}*`, (route) =>
       route.fulfill({
@@ -1426,14 +1379,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       logEntries: MOCK_LOG_ENTRIES,
       planModules,
     });
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    // Delay the viewed test's /api/info so the page-load fan-out's render
+    // Delay the viewed test's /api/info so the render seeded from the plan
     // flushes before the first poll can correct it. Without this the two land
     // in the same Lit update and the flash is coalesced away — invisible to the
     // test, but not to a user on a real server, where the round-trip is real.
@@ -1451,7 +1397,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // navigation. Asserting `not.toHaveClass` instead would be wait-until-true:
     // it resolves the instant the class is absent and never looks again, so
     // both a load-time flash and a later poll repainting --fail would pass.
-    // The page-load fan-out resolves segment colour before polling begins, so a
+    // The plan response colours the segments before polling begins, so a
     // recorder attached after load misses the flash entirely.
     await page.addInitScript(() => {
       const seen = new Set();
@@ -1479,12 +1425,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     // Watch across more than two 3s sync cycles so a verdict written by any
     // later poll lands inside the sampled window. The recorder was installed
-    // before navigation, so the window also covers page load — where the
-    // fan-out resolves segment colour before polling even starts.
+    // before navigation, so the window also covers page load — where the plan
+    // response colours the segments before polling even starts.
     //
     // Scope note: with routes mocked this cannot reproduce the load-time flash
-    // that a real server's round-trip produces (Lit coalesces the fan-out and
-    // first-poll renders into one update). `liveSegmentResult` closes that
+    // that a real server's round-trip produces (Lit coalesces the plan-seeded
+    // and first-poll renders into one update). `liveSegmentResult` closes that
     // window by construction — both writers suppress the verdict — rather than
     // by timing. What this asserts is the durable property: across load and
     // several sync cycles the segment never once claims a verdict.
@@ -1506,90 +1452,6 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // The untouched sibling still resolves normally — suppression is scoped to
     // the viewed instance, not applied to every segment.
     await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
-  });
-
-  test("U6/#1857 race: a late page-load fan-out response must not revert a poll-settled segment", async ({
-    page,
-  }) => {
-    await setupFailFast(page);
-    // The watched module (index 0) is RUNNING at page load. The page-load colour
-    // fan-out (resolveOneSegment) and the live poll (syncCurrentSegmentStatus)
-    // both fetch /api/info/<testId> and write the same segment. If the fan-out's
-    // RUNNING response resolves AFTER the poll has settled the segment to a
-    // terminal verdict (and stopped), it must NOT downgrade the segment back to
-    // the running fill — nothing would re-correct it, re-creating #1857.
-    const planModules = makePlanModules(2, {
-      markedIndex: 0,
-      markedInstances: [MOCK_TEST_RUNNING.testId],
-    });
-    await setupV2Routes(page, {
-      testInfo: MOCK_TEST_RUNNING,
-      logEntries: MOCK_LOG_ENTRIES,
-      planModules,
-    });
-    await page.route("**/api/info/s-*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
-      }),
-    );
-    // Sequence the watched test's /api/info by call order to force the clobber
-    // window deterministically: call 1 (bootstrap) RUNNING; call 2 (the page-load
-    // fan-out's current-segment fetch) is HELD until the test releases it, then
-    // returns a now-stale RUNNING; call 3+ (the poll) FINISHED+PASSED. The poll
-    // settles + stops while call 2 is still in flight; releasing call 2 lands the
-    // stale response — which the terminal-slice guard must ignore.
-    /** @type {() => void} */
-    let releaseFanout = () => {};
-    const fanoutGate = new Promise((resolve) => {
-      releaseFanout = () => resolve(undefined);
-    });
-    let infoCalls = 0;
-    await page.route(`**/api/info/${MOCK_TEST_RUNNING.testId}*`, async (route) => {
-      infoCalls += 1;
-      if (infoCalls === 2) {
-        await fanoutGate; // hold the fan-out's current-segment fetch
-        return route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify(MOCK_TEST_RUNNING), // stale RUNNING, lands after the poll
-        });
-      }
-      if (infoCalls >= 3) {
-        return route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({ ...MOCK_TEST_RUNNING, status: "FINISHED", result: "PASSED" }),
-        });
-      }
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_TEST_RUNNING), // call 1: bootstrap
-      });
-    });
-    await setupCommonRoutes(page);
-
-    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}`);
-
-    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
-    const segments = bar.locator('[data-testid="plan-status-segment"]');
-    await expect(segments).toHaveCount(2);
-
-    // The poll settles the watched segment green and stops.
-    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/, { timeout: 8000 });
-
-    // Release the held fan-out response (stale RUNNING) and wait until it lands.
-    const staleLanded = page.waitForResponse((r) =>
-      r.url().includes(`/api/info/${MOCK_TEST_RUNNING.testId}`),
-    );
-    releaseFanout();
-    await staleLanded;
-
-    // Guard: the late stale response must NOT downgrade the settled segment.
-    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/);
-    await expect(segments.nth(0)).not.toHaveClass(/cts-pst-seg--running/);
   });
 
   test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({
