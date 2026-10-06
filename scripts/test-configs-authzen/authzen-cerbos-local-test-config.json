@@ -7,6 +7,16 @@
         "access_evaluations_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/evaluations",
         "search_subject_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/subject",
         "search_action_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/action",
-        "search_resource_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/resource"
+        "search_resource_endpoint": "https://cerbos-authzen-pdp:8443/access/v1/search/resource",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "oct",
+                    "alg": "HS256",
+                    "use": "sig",
+                    "k": "ZjU4N2M4NWEzOWUzZWNlMGViOGEzY2ZiZmEzNzFkMjRmYTQ2NzVkOWY1MGNkNjJmNjBkNGM5MmJhMzgxMDk1Yg"
+                }
+            ]
+        }
     }
 }
