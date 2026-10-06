@@ -17,6 +17,15 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 		JsonArray expected = readResultsArray(env, "authzen_search_endpoint_expected_response", "expected");
 		JsonArray results = readResultsArray(env, "authzen_search_endpoint_response", "actual");
 
+		// An empty expected array means no entity matches the search, so any result is wrong.
+		if (expected.isEmpty()) {
+			if (!results.isEmpty()) {
+				throw error("Search result is not empty, but no entity matches this search", args("results", results));
+			}
+			logSuccess("The search response has an empty results array, as expected");
+			return env;
+		}
+
 		// Per the certification spec, the harness validates that the expected entities appear in the
 		// results but does not reject additional results. Use a subset check: expected MUST be a
 		// subset of actual.
