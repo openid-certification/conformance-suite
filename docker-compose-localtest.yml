@@ -28,6 +28,26 @@ services:
       # suite verifies the JWT with the same value as an "oct" JWK in pdp.jwks of its config.
       JWT_SIGNING_SECRET: f587c85a39e3ece0eb8a3cfbfa371d24fa4675d9f50cd62f60d4c92ba381095b
       AUTHZEN_ISSUER: https://cerbos-authzen-pdp:8443
+  authzen-auth-proxy:
+    # Authenticating proxy in front of cerbos-authzen-pdp, which does not authenticate callers:
+    # one port per authentication method (9443 api_key, 9444 client_secret_basic, 9445 mtls), so
+    # the AuthZEN plans' authentication variants and 401 modules run against a PDP that enforces
+    # them. See scripts/test-configs-authzen/authzen-auth-proxy/nginx.conf. Pinned by digest, as
+    # the PDP is: nginx:1.27.3.
+    image: nginx@sha256:bc2f6a7c8ddbccf55bdb19659ce3b0a92ca6559e86d42677a5a02ef6bda2fcef
+    volumes:
+      - "./scripts/test-configs-authzen/authzen-auth-proxy:/etc/nginx/authzen:ro"
+    entrypoint: ["/etc/nginx/authzen/entrypoint.sh"]
+    depends_on:
+      cerbos-authzen-pdp:
+        condition: service_healthy
+    healthcheck:
+      # Any HTTP answer, such as the 401 an unauthenticated request gets, shows nginx is serving
+      # TLS on that port.
+      test: ["CMD-SHELL", "for port in 9443 9444 9445; do curl -ks -o /dev/null https://localhost:$$port/ || exit 1; done"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
   mongodb:
     image: mongo:6.0.13
     volumes:
@@ -94,6 +114,8 @@ services:
       nginx:
         condition: service_started
       cerbos-authzen-pdp:
+        condition: service_healthy
+      authzen-auth-proxy:
         condition: service_healthy
     build:
       context: ./test
