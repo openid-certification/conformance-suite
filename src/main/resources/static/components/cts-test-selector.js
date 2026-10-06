@@ -1,6 +1,14 @@
 import { LitElement, html, nothing, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { formatSummaryPreview } from "./format-description.js";
+import {
+  groupPlans,
+  isListedByDefault,
+  rowName,
+  sortFlat,
+  statusBadges,
+} from "./test-selector-grouping.js";
+import "./cts-badge.js";
 import "./cts-icon.js";
 import "./cts-tooltip.js";
 import "./cts-loading-state.js";
@@ -39,8 +47,25 @@ import "./cts-loading-state.js";
  * persisted component-internally to `localStorage["cts:test-selector-filter"]`
  * and restored on connect — this is ephemeral UI preference, distinct from the
  * caller-owned favorites list, so it stays inside the component.
+ * Once a spec family is selected, rows are grouped under one heading per
+ * entity under test (from each plan's `profile`; omitted when the family has
+ * only one entity) and named by `shortName`, which leads with the version
+ * where the family has several; the selected row adds its full `displayName`
+ * as a line under the name, and the other rows carry it as their accessible
+ * description and a hover tooltip. The "All specifications" and ★ Favorites views
+ * stay flat and show the full `displayName`, since their rows span families.
+ * Rows carry a "Certification" badge when `certifiable` and an "Alpha" badge
+ * when `alpha`.
+ *
+ * Plans outside the certification program (`certifiable: false`) are hidden
+ * from the family list, the plan list and search until the user ticks "Show
+ * non-certifiable plans" under the family listbox. The ★ Favorites view
+ * lists every favorite regardless, and a `selected` plan that is hidden turns
+ * the checkbox on so the selection stays visible. The checkbox state is
+ * persisted to `localStorage["cts:test-selector-show-non-certifiable"]`, like the filter.
  * @property {Array} plans - Test plans to list; each has `planName`,
- *   `displayName`, `specFamily`, `modules`, `summary`.
+ *   `displayName`, `shortName`, `profile`, `specFamily`, `specVersion`,
+ *   `certifiable`, `alpha`, `modules`, `summary`.
  * @property {string} selected - Currently selected `planName`; the matching
  *   row is highlighted.
  * @property {boolean} loading - When set, the list area shows a shared
@@ -95,6 +120,13 @@ const FAVORITES_VIEW_VALUE = "__cts_favorites_view__";
 // a spec-family name, or `"favorites"` (the ★ Favorites view).
 const FILTER_STORAGE_KEY = "cts:test-selector-filter";
 const FAVORITES_FILTER_SENTINEL = "favorites";
+
+// localStorage key for the "Show non-certifiable plans" checkbox, another per-browser UI
+// preference. Value is the JSON boolean.
+const SHOW_NON_CERTIFIABLE_STORAGE_KEY = "cts:test-selector-show-non-certifiable";
+
+// Distinguishes group-heading ids between selector instances on one page.
+let instanceCounter = 0;
 
 /**
  * Probe localStorage, returning null when it is unavailable (private mode,
@@ -193,6 +225,22 @@ const STYLE_TEXT = css`
     margin: var(--space-1) var(--space-3);
     border: none;
     border-top: 1px solid var(--divider);
+  }
+  .oidf-test-selector__certification-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    cursor: pointer;
+  }
+  .oidf-test-selector__certification-toggle input {
+    margin: 0;
+    accent-color: var(--orange-500);
+    cursor: pointer;
   }
   .oidf-test-selector__family option:checked {
     /* Under appearance:none the OS still paints the selected row via
@@ -458,6 +506,17 @@ const STYLE_TEXT = css`
     font-weight: var(--fw-medium);
     font-family: var(--font-sans);
   }
+  .oidf-test-selector__row-full-name {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg);
+    font-weight: var(--fw-regular);
+  }
+  .oidf-test-selector__row-full-name[hidden] {
+    display: none;
+  }
   .oidf-test-selector__row-summary {
     display: block;
     margin-top: var(--space-1);
@@ -466,6 +525,36 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
     font-weight: var(--fw-regular);
   }
+  /* Entity groups inside a selected family. Each group carries its own
+     role="list", so the item :first-child rule above already drops the
+     divider under each heading. */
+  .oidf-test-selector__group-heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-4) var(--space-2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-sans);
+    line-height: var(--lh-snug);
+  }
+  .oidf-test-selector__group-label {
+    font-size: var(--fs-13);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+  .oidf-test-selector__group-count {
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+  }
+  .oidf-test-selector__row-title {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    min-width: 0;
+  }
   .oidf-test-selector__empty {
     padding: var(--space-4);
     text-align: center;
@@ -473,6 +562,12 @@ const STYLE_TEXT = css`
     font-family: var(--font-sans);
     font-size: var(--fs-13);
     line-height: var(--lh-base);
+  }
+  .oidf-test-selector__empty p {
+    margin: 0;
+  }
+  .oidf-test-selector__empty p + p {
+    margin-top: var(--space-2);
   }
   .oidf-test-selector__empty strong {
     color: var(--fg);
@@ -536,6 +631,9 @@ class CtsTestSelector extends LitElement {
     // two are mutually exclusive.
     _favoritesView: { state: true },
     _focusedRowIndex: { state: true },
+    // "Show non-certifiable plans" is ticked: plans outside the certification
+    // program are listed.
+    _showNonCertifiable: { state: true },
   };
 
   createRenderRoot() {
@@ -553,6 +651,7 @@ class CtsTestSelector extends LitElement {
     this._searchTerm = "";
     this._selectedFamily = "";
     this._favoritesView = false;
+    this._showNonCertifiable = false;
     // -1 means "no row focused — search input owns focus (or focus is
     // elsewhere on the page)". A non-negative value names the row that
     // should receive focus on the next render-completion tick.
@@ -571,6 +670,7 @@ class CtsTestSelector extends LitElement {
     // not reactive state — they describe the render that just happened.
     this._rowCountBeforeUpdate = 0;
     this._focusedRowIndexBeforeUpdate = -1;
+    this._idPrefix = `cts-test-selector-${++instanceCounter}`;
   }
 
   connectedCallback() {
@@ -581,36 +681,56 @@ class CtsTestSelector extends LitElement {
     // render. Restoring a filter is NOT a plan pick — `selected` is untouched
     // and no `cts-plan-select` fires.
     this._restoreFilter();
+    this._restoreShowNonCertifiable();
+  }
+
+  // Plans the family list, the plan list and search draw from: all of them
+  // with "Show non-certifiable plans" ticked, else only those listed by default.
+  get _listedPlans() {
+    return this._showNonCertifiable ? this.plans : this.plans.filter(isListedByDefault);
+  }
+
+  get _hiddenPlanCount() {
+    return this.plans.length - this.plans.filter(isListedByDefault).length;
   }
 
   get _families() {
-    const families = new Set(this.plans.map((p) => p.specFamily).filter(Boolean));
+    const families = new Set(this._listedPlans.map((p) => p.specFamily).filter(Boolean));
     return Array.from(families).sort();
   }
 
+  // The selected family's plans grouped by entity, or null outside a family
+  // (the "All specifications" and ★ Favorites views are flat).
+  get _grouping() {
+    if (this._favoritesView || !this._selectedFamily) return null;
+    const familyPlans = this._listedPlans.filter((p) => p.specFamily === this._selectedFamily);
+    return groupPlans(familyPlans, familyPlans.filter(this._matchesSearch, this));
+  }
+
+  // Rows in rendered order: the roving index, the "f" shortcut and the focus
+  // repair all index into this, so a grouped family is flattened group by
+  // group exactly as it renders.
   get _filteredPlans() {
-    let filtered;
+    const grouping = this._grouping;
+    if (grouping) return grouping.groups.flatMap((g) => g.plans);
     if (this._favoritesView) {
       // Live favorited plans in caller (favorites) order — most-recently-added
       // last (the store appends). Stale favorites (a starred name absent from
       // `plans`) are rendered separately as stale rows, not here.
-      filtered = this.favorites
+      return this.favorites
         .map((name) => this.plans.find((p) => p.planName === name))
-        .filter((p) => p !== undefined);
-    } else if (this._selectedFamily) {
-      filtered = this.plans.filter((p) => p.specFamily === this._selectedFamily);
-    } else {
-      filtered = this.plans;
+        .filter((p) => p !== undefined)
+        .filter(this._matchesSearch, this);
     }
-    if (this._searchTerm) {
-      const term = this._searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          (p.displayName || "").toLowerCase().includes(term) ||
-          (p.planName || "").toLowerCase().includes(term),
-      );
-    }
-    return filtered;
+    return sortFlat(this._listedPlans).filter(this._matchesSearch, this);
+  }
+
+  _matchesSearch(plan) {
+    if (!this._searchTerm) return true;
+    const term = this._searchTerm.toLowerCase();
+    return [plan.displayName, plan.shortName, plan.planName].some((text) =>
+      (text || "").toLowerCase().includes(term),
+    );
   }
 
   // The count shown in the "★ Favorites (n)" saved-view label: an ellipsis
@@ -688,6 +808,44 @@ class CtsTestSelector extends LitElement {
     }
     this._focusedRowIndex = -1;
     this._persistFilter();
+  }
+
+  _handleShowNonCertifiableChange(e) {
+    this._setShowNonCertifiable(/** @type {HTMLInputElement} */ (e.target).checked);
+  }
+
+  // The empty state's "Show non-certifiable plans" button: tick the checkbox
+  // so the matching plans appear. The button goes with the empty state, so
+  // focus moves to the search input, as the search-clear button does.
+  _handleShowNonCertifiableClick() {
+    this._setShowNonCertifiable(true);
+    const input = /** @type {HTMLInputElement | null} */ (
+      this.querySelector(".oidf-test-selector__search")
+    );
+    if (input) input.focus();
+  }
+
+  _setShowNonCertifiable(show) {
+    this._showNonCertifiable = show;
+    this._focusedRowIndex = -1;
+    const storage = safeLocalStorage();
+    if (!storage) return;
+    try {
+      storage.setItem(SHOW_NON_CERTIFIABLE_STORAGE_KEY, JSON.stringify(show));
+    } catch {
+      // Ignore: the preference simply isn't remembered this session.
+    }
+  }
+
+  _restoreShowNonCertifiable() {
+    const storage = safeLocalStorage();
+    if (!storage) return;
+    try {
+      this._showNonCertifiable =
+        JSON.parse(storage.getItem(SHOW_NON_CERTIFIABLE_STORAGE_KEY) || "false") === true;
+    } catch {
+      this._showNonCertifiable = false;
+    }
   }
 
   // Escape hatch: clear any non-"All" filter, persist the cleared state, and
@@ -855,6 +1013,13 @@ class CtsTestSelector extends LitElement {
   // comes to represent a *different* plan — or, if the last row went, focus
   // falls to <body> and Tab cannot get back in (rows are tabindex="-1").
   willUpdate(changed) {
+    // A selected plan that the list would hide (a preset, or "Change" back to
+    // the picker) turns "Show non-certifiable plans" on for this page, so the selection
+    // is never invisible. Not persisted: the user didn't tick it.
+    if ((changed.has("selected") || changed.has("plans")) && !this._showNonCertifiable) {
+      const plan = this.plans.find((p) => p.planName === this.selected);
+      if (plan && !isListedByDefault(plan)) this._showNonCertifiable = true;
+    }
     if (!changed.has("favorites")) return;
     const list = this.querySelector(".oidf-test-selector__list");
     const active = this.ownerDocument ? this.ownerDocument.activeElement : null;
@@ -930,12 +1095,13 @@ class CtsTestSelector extends LitElement {
       this._focusedRowIndexBeforeUpdate = -1;
       this._rowCountBeforeUpdate = 0;
     }
-    // A restored family filter that no longer matches the (now-loaded) plans
-    // falls back to "All specifications". Guarded on a non-empty `plans` so
-    // the connect-time seed survives the initial empty `plans = []` before the
-    // page feeds the real catalog.
+    // A restored family filter that no longer matches the (now-loaded) plans,
+    // or a family whose plans "Show non-certifiable plans" just hid, falls back to "All
+    // specifications". Guarded on a non-empty `plans` so the connect-time seed
+    // survives the initial empty `plans = []` before the page feeds the real
+    // catalog.
     if (
-      changed.has("plans") &&
+      (changed.has("plans") || changed.has("_showNonCertifiable")) &&
       this.plans.length > 0 &&
       this._selectedFamily !== "" &&
       !this._families.includes(this._selectedFamily)
@@ -949,7 +1115,12 @@ class CtsTestSelector extends LitElement {
     // filter, or restoring a persisted filter on mount), so set `value`
     // explicitly. Re-runs on `plans` too, so the selection re-syncs once a
     // restored family's <option> has rendered.
-    if (changed.has("_selectedFamily") || changed.has("_favoritesView") || changed.has("plans")) {
+    if (
+      changed.has("_selectedFamily") ||
+      changed.has("_favoritesView") ||
+      changed.has("plans") ||
+      changed.has("_showNonCertifiable")
+    ) {
       const select = /** @type {HTMLSelectElement | null} */ (
         this.querySelector(".oidf-test-selector__family")
       );
@@ -1011,18 +1182,19 @@ class CtsTestSelector extends LitElement {
             </option>
             ${this._renderFamilyOptions()}
           </select>
+          ${this._hiddenPlanCount > 0
+            ? html`<label class="oidf-test-selector__certification-toggle">
+                <input
+                  type="checkbox"
+                  .checked=${this._showNonCertifiable}
+                  @change=${this._handleShowNonCertifiableChange}
+                />
+                Show non-certifiable plans (${this._hiddenPlanCount})
+              </label>`
+            : nothing}
         </div>
         <div class="oidf-test-selector__main">
-          <div class="oidf-test-selector__list" role="list">
-            ${this._filteredPlans.length > 0 || this._staleFavorites.length > 0
-              ? html`
-                  ${this._filteredPlans.map((plan, index) => this._renderRow(plan, index))}
-                  ${this._staleFavorites.map((name) => this._renderStaleFavorite(name))}
-                `
-              : this.loading
-                ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
-                : this._renderListEmpty()}
-          </div>
+          ${this._renderList()}
           ${this._selectedFamily !== "" || this._favoritesView
             ? html`<p class="oidf-test-selector__escape">
                 Can't find a spec here?
@@ -1040,30 +1212,89 @@ class CtsTestSelector extends LitElement {
     `;
   }
 
+  // The plan list. A family spanning several entities renders one role="group"
+  // per entity, each labelled by its heading and holding its own role="list";
+  // every other view is a single flat list.
+  _renderList() {
+    const grouping = this._grouping;
+    const plans = this._filteredPlans;
+    if (plans.length === 0 && this._staleFavorites.length === 0) {
+      return html`<div class="oidf-test-selector__list" role="list">
+        ${this.loading
+          ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
+          : this._renderListEmpty()}
+      </div>`;
+    }
+    if (grouping && grouping.headed) {
+      let index = 0;
+      return html`<div class="oidf-test-selector__list">
+        ${grouping.groups.map((group, groupIndex) => {
+          const headingId = `${this._idPrefix}-group-${groupIndex}`;
+          return html`<div
+            class="oidf-test-selector__group"
+            role="group"
+            aria-labelledby="${headingId}"
+          >
+            <div class="oidf-test-selector__group-heading" id="${headingId}">
+              <span class="oidf-test-selector__group-label">${group.label}</span>
+              <span class="oidf-test-selector__group-count"
+                >${group.plans.length} ${group.plans.length === 1 ? "plan" : "plans"}</span
+              >
+            </div>
+            <div class="oidf-test-selector__group-list" role="list">
+              ${group.plans.map((plan) => this._renderRow(plan, index++, true))}
+            </div>
+          </div>`;
+        })}
+      </div>`;
+    }
+    return html`<div class="oidf-test-selector__list" role="list">
+      ${plans.map((plan, index) => this._renderRow(plan, index, grouping !== null))}
+      ${this._staleFavorites.map((name) => this._renderStaleFavorite(name))}
+    </div>`;
+  }
+
   // Render one plan row: a role="listitem" container holding the primary
-  // select <button> (roving tabindex) and a sibling favorite <button>.
-  _renderRow(plan, index) {
+  // select <button> (roving tabindex) and a sibling favorite <button>. Inside a
+  // selected family (`inFamily`) the row is named by its shortName, and the
+  // full displayName is a line shown on the selected row only. On the other
+  // rows that line is hidden but still the button's accessible description
+  // (a hidden element referenced by aria-describedby still provides it), and
+  // a tooltip on the name shows it on hover.
+  _renderRow(plan, index, inFamily) {
     const rowTabindex = this._focusedRowIndex === index ? 0 : -1;
+    const badges = statusBadges(plan);
+    const active = this.selected === plan.planName;
+    const fullName = inFamily && plan.shortName && plan.displayName ? plan.displayName : "";
+    const fullNameId = `${this._idPrefix}-full-name-${index}`;
+    const name = html`<strong class="oidf-test-selector__row-name"
+      >${inFamily ? rowName(plan) : plan.displayName || plan.planName}</strong
+    >`;
     return html`
       <div class="oidf-test-selector__item" role="listitem">
         <button
           type="button"
           class=${classMap({
             "oidf-test-selector__row": true,
-            "is-active": this.selected === plan.planName,
+            "is-active": active,
           })}
           data-plan-name="${plan.planName}"
           data-index="${index}"
           tabindex="${rowTabindex}"
+          aria-describedby=${fullName && !active ? fullNameId : nothing}
           @click=${this._handleRowClick}
           @keydown=${this._handleRowKeydown}
         >
           <span class="oidf-test-selector__row-head">
             <span class="oidf-test-selector__row-title">
-              <strong class="oidf-test-selector__row-name"
-                >${plan.displayName || plan.planName}</strong
-              >
-              ${plan.specFamily
+              ${fullName && !active
+                ? html`<cts-tooltip content=${fullName} placement="top">${name}</cts-tooltip>`
+                : name}
+              ${badges.map(
+                (badge) =>
+                  html`<cts-badge variant=${badge.variant} label=${badge.label}></cts-badge>`,
+              )}
+              ${!inFamily && plan.specFamily
                 ? html`<span class="oidf-test-selector__row-family">${plan.specFamily}</span>`
                 : nothing}
             </span>
@@ -1079,6 +1310,14 @@ class CtsTestSelector extends LitElement {
                 >`
               : nothing}
           </span>
+          ${fullName
+            ? html`<span
+                class="oidf-test-selector__row-full-name"
+                id=${fullNameId}
+                ?hidden=${!active}
+                >${fullName}</span
+              >`
+            : nothing}
           ${plan.summary
             ? html`<span class="oidf-test-selector__row-summary"
                 >${formatSummaryPreview(plan.summary)}</span
@@ -1195,7 +1434,30 @@ class CtsTestSelector extends LitElement {
       }
       return html`<div class="oidf-test-selector__empty"> ${message} </div>`;
     }
-    return html`<div class="oidf-test-selector__empty"> No plans match your search </div>`;
+    const hiddenMatches = this._showNonCertifiable
+      ? 0
+      : this.plans.filter(
+          (p) =>
+            !isListedByDefault(p) &&
+            (!this._selectedFamily || p.specFamily === this._selectedFamily) &&
+            this._matchesSearch(p),
+        ).length;
+    if (hiddenMatches === 0) {
+      return html`<div class="oidf-test-selector__empty"> No plans match your search </div>`;
+    }
+    return html`<div class="oidf-test-selector__empty">
+      <p>No plans match your search</p>
+      <p>
+        ${hiddenMatches} non-certifiable ${hiddenMatches === 1 ? "plan matches" : "plans match"}.
+        <button
+          type="button"
+          class="oidf-test-selector__escape-link"
+          @click=${this._handleShowNonCertifiableClick}
+        >
+          Show non-certifiable plans
+        </button>
+      </p>
+    </div>`;
   }
 }
 customElements.define("cts-test-selector", CtsTestSelector);

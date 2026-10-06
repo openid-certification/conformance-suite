@@ -6,7 +6,12 @@ import {
   setupScheduleTestRoutes,
 } from "./helpers/routes.js";
 import { selectPlanViaSearch, selectedPlanRow } from "./helpers/pick-plan.js";
-import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
+import {
+  MOCK_PLANS,
+  MOCK_PLAN_NO_VARIANTS,
+  MOCK_GUIDED_PLANS,
+  MOCK_GROUPED_PLANS,
+} from "./fixtures/mock-plans.js";
 
 /** All available plans including the no-variants plan */
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
@@ -1693,6 +1698,83 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(summary).toBeHidden();
     await expect(page.locator("#planSearch")).toBeVisible();
     await expect(page.locator("#planSearch .oidf-test-selector__search")).toBeFocused();
+  });
+
+  /**
+   * Route the plan catalog, including a multi-entity family, and open the page.
+   * @param {import('@playwright/test').Page} page - The page under test.
+   * @param {string} [query] - Query string to open the page with.
+   */
+  async function openWithGroupedPlans(page, query = "") {
+    await setupFailFast(page);
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([...ALL_PLANS, ...MOCK_GROUPED_PLANS]),
+      }),
+    );
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    );
+    await setupCommonRoutes(page);
+    await page.goto(`/schedule-test.html${query}`);
+  }
+
+  test("GL#2010: a selected family groups plans by entity with short names and status badges", async ({
+    page,
+  }) => {
+    await openWithGroupedPlans(page);
+    await page.locator("#planSearch .oidf-test-selector__family").selectOption("OID4VP");
+
+    // Plans outside the certification program stay hidden until asked for.
+    await expect(page.locator("#planSearch .oidf-test-selector__row-name")).toHaveText([
+      "1.0 Final + HAIP",
+      "1.0 Final + HAIP",
+    ]);
+    await page.getByRole("checkbox", { name: "Show non-certifiable plans (2)" }).check();
+
+    await expect(page.locator("#planSearch .oidf-test-selector__group-label")).toHaveText([
+      "OpenID4VP Verifier",
+      "OpenID4VP Wallet",
+    ]);
+    await expect(page.locator("#planSearch .oidf-test-selector__group-count")).toHaveText([
+      "3 plans",
+      "1 plan",
+    ]);
+    await expect(page.locator("#planSearch .oidf-test-selector__row-name")).toHaveText([
+      "1.0 Final + HAIP",
+      "1.0 Final",
+      "ID2",
+      "1.0 Final + HAIP",
+    ]);
+    const row = page.locator('#planSearch [data-plan-name="oid4vp-id2-verifier-test-plan"]');
+    await expect(row.locator("cts-badge")).toHaveText(["Alpha"]);
+    // The full name stays reachable on an unselected row as its description.
+    await expect(row).toHaveAccessibleDescription(MOCK_GROUPED_PLANS[2].displayName);
+    await expect(row.locator(".oidf-test-selector__row-full-name")).toBeHidden();
+
+    // Picking a grouped row selects that plan, exactly as in the flat list,
+    // and shows its full name on the row.
+    await selectPlanViaSearch(page, "oid4vp-id2-verifier-test-plan");
+    await expect(selectedPlanRow(page)).toHaveCount(1);
+    await expect(row.locator(".oidf-test-selector__row-full-name")).toHaveText(
+      MOCK_GROUPED_PLANS[2].displayName,
+    );
+  });
+
+  test("GL#2010: the selected-plan summary shows the full name and status badges", async ({
+    page,
+  }) => {
+    await openWithGroupedPlans(page, "?test_plan=oid4vp-1final-verifier-test-plan");
+
+    await expect(page.locator("#planSelectedSummary")).toBeVisible();
+    await expect(page.locator("#planSelectedName")).toHaveText(MOCK_GROUPED_PLANS[1].displayName);
+    await expect(page.locator("#planSelectedMeta cts-badge")).toHaveText([
+      "OID4VP",
+      "1.0 Final",
+      "Alpha",
+    ]);
   });
 
   test("GL#1897: unknown ?test_plan= value falls back to the expanded picker", async ({ page }) => {

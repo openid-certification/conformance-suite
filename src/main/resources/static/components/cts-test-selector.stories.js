@@ -1,18 +1,22 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
-import { MOCK_PLANS } from "@fixtures/mock-plans.js";
+import { MOCK_PLANS, MOCK_GROUPED_PLANS } from "@fixtures/mock-plans.js";
 import "./cts-test-selector.js";
 
 export default {
   title: "Components/cts-test-selector",
   component: "cts-test-selector",
   // Favorites is always-on, so selecting a family (FamilyFilter) now persists
-  // the choice to cts:test-selector-filter. Clear it before every story so a
-  // persisted filter never leaks into a sibling story that expects the default
-  // "All specifications" view. The favorites list itself needs no reset: it is
-  // server-side account data, passed in as a prop per story.
+  // the choice to cts:test-selector-filter, and the "Show
+  // non-certifiable plans" checkbox persists to
+  // cts:test-selector-show-non-certifiable. Clear both before every
+  // story so neither leaks into a sibling story that expects the default "All
+  // specifications" view with non-certifiable plans hidden. The favorites list itself
+  // needs no reset: it is server-side account data, passed in as a prop per
+  // story.
   beforeEach: () => {
     localStorage.removeItem("cts:test-selector-filter");
+    localStorage.removeItem("cts:test-selector-show-non-certifiable");
   },
 };
 
@@ -214,7 +218,7 @@ export const SelectPlan = {
     await step("clicking a row dispatches cts-plan-select tagged via:'click'", async () => {
       await userEvent.click(items[1]);
       expect(dispatched.length).toBe(1);
-      expect(dispatched[0].plan.planName).toBe("oidcc-implicit-certification-test-plan");
+      expect(dispatched[0].plan.planName).toBe(items[1].getAttribute("data-plan-name"));
       // The picker reports how the selection was made via the `via` channel
       // so a consumer can distinguish a mouse click from keyboard activation;
       // a mouse click carries 'click'.
@@ -347,7 +351,7 @@ export const EnterOnFocusedRowSelects = {
 
       await waitFor(() => {
         expect(dispatched.length).toBe(1);
-        expect(dispatched[0].plan.planName).toBe(MOCK_PLANS[0].planName);
+        expect(dispatched[0].plan.planName).toBe(firstRow.getAttribute("data-plan-name"));
         expect(dispatched[0].via).toBe("keyboard");
       });
     });
@@ -588,8 +592,10 @@ export const RowSummaryRendersInlineMarkdown = {
 export const ModuleCount = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
-    const badges = canvasElement.querySelectorAll(".oidf-test-selector__row-count");
-    expect(badges.length).toBeGreaterThan(0);
+    const badges = canvasElement.querySelectorAll(
+      '[data-plan-name="oidcc-basic-certification-test-plan"] .oidf-test-selector__row-count',
+    );
+    expect(badges.length).toBe(1);
     expect(badges[0].textContent).toBe("4");
     // The count carries an aria-label so screen readers announce its meaning
     // ("4 test modules") rather than a bare "4".
@@ -598,5 +604,378 @@ export const ModuleCount = {
     const tooltip = badges[0].closest("cts-tooltip");
     expect(tooltip).not.toBeNull();
     expect(tooltip.getAttribute("content")).toBe("Number of test modules in this plan");
+  },
+};
+
+/** The labels of the rendered entity group headings. */
+function groupHeadings(canvasElement) {
+  return Array.from(canvasElement.querySelectorAll(".oidf-test-selector__group-label")).map((h) =>
+    h.textContent.trim(),
+  );
+}
+
+/** The `[variant, label]` of every status badge in a row. */
+function rowBadges(row) {
+  return Array.from(row.querySelectorAll("cts-badge")).map((b) => [
+    b.getAttribute("variant"),
+    b.getAttribute("label"),
+  ]);
+}
+
+/** Tick "Show non-certifiable plans", which MOCK_GROUPED_PLANS' non-HAIP plans need. */
+async function showNonCertifiablePlans(canvasElement) {
+  await userEvent.click(
+    canvasElement.querySelector(".oidf-test-selector__certification-toggle input"),
+  );
+}
+
+/** The `data-plan-name` of every rendered row, in order. */
+function rowPlanNames(canvasElement) {
+  return Array.from(canvasElement.querySelectorAll(".oidf-test-selector__row")).map((r) =>
+    r.getAttribute("data-plan-name"),
+  );
+}
+
+/**
+ * Selecting a family whose plans test more than one entity groups the rows
+ * under an entity heading per `profile` with its plan count, names each row by
+ * its version-led `shortName` (the full `displayName` moves to the tooltip),
+ * and shows its status badges. Arrow keys rove straight across group
+ * boundaries.
+ */
+export const FamilyGroupedByEntity = {
+  render: () =>
+    html`<cts-test-selector .plans=${[...MOCK_PLANS, ...MOCK_GROUPED_PLANS]}></cts-test-selector>`,
+  async play({ canvasElement, step }) {
+    await showNonCertifiablePlans(canvasElement);
+    const select = canvasElement.querySelector(".oidf-test-selector__family");
+    await userEvent.selectOptions(select, "OID4VP");
+
+    await step("rows are grouped under entity headings, newest version first", async () => {
+      await waitFor(() =>
+        expect(groupHeadings(canvasElement)).toEqual(["OpenID4VP Verifier", "OpenID4VP Wallet"]),
+      );
+      const counts = Array.from(
+        canvasElement.querySelectorAll(".oidf-test-selector__group-count"),
+      ).map((c) => c.textContent.trim());
+      expect(counts).toEqual(["3 plans", "1 plan"]);
+      expect(rowPlanNames(canvasElement)).toEqual([
+        "oid4vp-1final-verifier-haip-test-plan",
+        "oid4vp-1final-verifier-test-plan",
+        "oid4vp-id2-verifier-test-plan",
+        "oid4vp-1final-wallet-haip-test-plan",
+      ]);
+      const group = canvasElement.querySelector(".oidf-test-selector__group");
+      const heading = group.querySelector(".oidf-test-selector__group-heading");
+      expect(group.getAttribute("role")).toBe("group");
+      expect(group.getAttribute("aria-labelledby")).toBe(heading.id);
+      expect(group.querySelector('[role="list"] [role="listitem"]')).toBeTruthy();
+    });
+
+    await step("rows show the short name and their status badges", async () => {
+      const row = canvasElement.querySelector(
+        '[data-plan-name="oid4vp-1final-verifier-test-plan"]',
+      );
+      const name = row.querySelector(".oidf-test-selector__row-name");
+      expect(name.textContent.trim()).toBe("1.0 Final");
+      expect(rowBadges(row)).toEqual([["warn", "Alpha"]]);
+      expect(row.querySelector(".oidf-test-selector__row-family")).toBeNull();
+      const haip = canvasElement.querySelector(
+        '[data-plan-name="oid4vp-1final-verifier-haip-test-plan"]',
+      );
+      expect(haip.querySelector(".oidf-test-selector__row-name").textContent.trim()).toBe(
+        "1.0 Final + HAIP",
+      );
+      expect(rowBadges(haip)).toEqual([["pass", "Certification"]]);
+    });
+
+    await step("an unselected row carries its full name as description and tooltip", async () => {
+      const row = canvasElement.querySelector(
+        '[data-plan-name="oid4vp-1final-verifier-test-plan"]',
+      );
+      const fullName = canvasElement.querySelector(`#${row.getAttribute("aria-describedby")}`);
+      expect(fullName.textContent.trim()).toBe(MOCK_GROUPED_PLANS[1].displayName);
+      expect(fullName.hidden).toBe(true);
+      expect(
+        row.querySelector(".oidf-test-selector__row-title cts-tooltip")?.getAttribute("content"),
+      ).toBe(MOCK_GROUPED_PLANS[1].displayName);
+    });
+
+    await step("the selected row shows its full name instead", async () => {
+      const host = /** @type {any} */ (canvasElement.querySelector("cts-test-selector"));
+      host.selected = "oid4vp-1final-verifier-test-plan";
+      await host.updateComplete;
+      const row = canvasElement.querySelector(
+        '[data-plan-name="oid4vp-1final-verifier-test-plan"]',
+      );
+      const fullName = row.querySelector(".oidf-test-selector__row-full-name");
+      expect(fullName.hidden).toBe(false);
+      expect(fullName.textContent.trim()).toBe(MOCK_GROUPED_PLANS[1].displayName);
+      expect(row.hasAttribute("aria-describedby")).toBe(false);
+      expect(row.querySelector(".oidf-test-selector__row-title cts-tooltip")).toBeNull();
+      host.selected = "";
+      await host.updateComplete;
+    });
+
+    await step("ArrowDown crosses from the last verifier to the wallet", async () => {
+      const rows = canvasElement.querySelectorAll(".oidf-test-selector__row");
+      const searchInput = canvasElement.querySelector(".oidf-test-selector__search");
+      searchInput.focus();
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{ArrowDown}");
+      await waitFor(() => expect(document.activeElement).toBe(rows[2]));
+      await userEvent.keyboard("{ArrowDown}");
+      await waitFor(() => expect(document.activeElement).toBe(rows[3]));
+      expect(document.activeElement?.getAttribute("data-plan-name")).toBe(
+        "oid4vp-1final-wallet-haip-test-plan",
+      );
+    });
+  },
+};
+
+/**
+ * Typing in a grouped family keeps the headings even when only one entity is
+ * left, so the layout doesn't jump between grouped and flat while typing. The
+ * search also matches the short name.
+ */
+export const SearchKeepsHeadingsStable = {
+  render: () => html`<cts-test-selector .plans=${MOCK_GROUPED_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    await showNonCertifiablePlans(canvasElement);
+    const select = canvasElement.querySelector(".oidf-test-selector__family");
+    await userEvent.selectOptions(select, "OID4VP");
+    await userEvent.type(canvasElement.querySelector(".oidf-test-selector__search"), "ID2");
+    await waitFor(() => expect(groupHeadings(canvasElement)).toEqual(["OpenID4VP Verifier"]));
+    expect(rowPlanNames(canvasElement)).toEqual(["oid4vp-id2-verifier-test-plan"]);
+    expect(canvasElement.querySelector(".oidf-test-selector__group-count").textContent.trim()).toBe(
+      "1 plan",
+    );
+  },
+};
+
+/**
+ * A family whose plans all test one entity has nothing to group by, so it
+ * renders a single flat list with no heading — but still uses short names.
+ */
+export const SingleEntityFamilyHasNoHeadings = {
+  render: () =>
+    html`<cts-test-selector
+      .plans=${MOCK_GROUPED_PLANS.filter((p) => p.profile === "Test a OpenID4VP Verifier")}
+    ></cts-test-selector>`,
+  async play({ canvasElement }) {
+    await showNonCertifiablePlans(canvasElement);
+    const select = canvasElement.querySelector(".oidf-test-selector__family");
+    await userEvent.selectOptions(select, "OID4VP");
+    await waitFor(() => expect(rowPlanNames(canvasElement)).toHaveLength(3));
+    expect(groupHeadings(canvasElement)).toEqual([]);
+    expect(canvasElement.querySelector(".oidf-test-selector__list").getAttribute("role")).toBe(
+      "list",
+    );
+    const names = Array.from(canvasElement.querySelectorAll(".oidf-test-selector__row-name")).map(
+      (n) => n.textContent.trim(),
+    );
+    expect(names).toEqual(["1.0 Final + HAIP", "1.0 Final", "ID2"]);
+  },
+};
+
+/**
+ * "All specifications" mixes families, so rows keep the full displayName and
+ * family label (no headings) and are sorted by family, then name. The status
+ * badge still shows.
+ */
+export const AllViewStaysFlat = {
+  render: () =>
+    html`<cts-test-selector .plans=${[...MOCK_GROUPED_PLANS, ...MOCK_PLANS]}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    await showNonCertifiablePlans(canvasElement);
+    await waitFor(() =>
+      expect(rowPlanNames(canvasElement)).toHaveLength(
+        MOCK_GROUPED_PLANS.length + MOCK_PLANS.length,
+      ),
+    );
+    expect(groupHeadings(canvasElement)).toEqual([]);
+    const families = Array.from(
+      canvasElement.querySelectorAll(".oidf-test-selector__row-family"),
+    ).map((f) => f.textContent.trim());
+    expect(families).toEqual([...families].sort((a, b) => a.localeCompare(b)));
+    const row = canvasElement.querySelector('[data-plan-name="oid4vp-1final-verifier-test-plan"]');
+    expect(row.querySelector(".oidf-test-selector__row-name").textContent.trim()).toBe(
+      MOCK_GROUPED_PLANS[1].displayName,
+    );
+    expect(rowBadges(row)).toEqual([["warn", "Alpha"]]);
+  },
+};
+
+const STATUS_PLANS = [
+  {
+    planName: "certified-plan",
+    displayName: "Spec A: Certified",
+    shortName: "Certified",
+    certifiable: true,
+    alpha: false,
+    profile: "Test a OpenID Provider / Authorization Server",
+    specFamily: "Spec A",
+  },
+  {
+    planName: "certified-alpha-plan",
+    displayName: "Spec A: Certified alpha (alpha version - may be incomplete or incorrect)",
+    shortName: "Certified alpha",
+    certifiable: true,
+    alpha: true,
+    profile: "Test a OpenID Provider / Authorization Server",
+    specFamily: "Spec A",
+  },
+  {
+    planName: "uncertified-plan",
+    displayName: "Spec A: Uncertified (alpha version - not part of certification program)",
+    shortName: "Uncertified",
+    certifiable: false,
+    alpha: true,
+    profile: "Test a OpenID Provider / Authorization Server",
+    specFamily: "Spec A",
+  },
+  {
+    planName: "uncertified-only-plan",
+    displayName: "Spec B: Uncertified (alpha version - not part of certification program)",
+    shortName: "Uncertified",
+    certifiable: false,
+    alpha: true,
+    profile: "Test a OpenID Provider / Authorization Server",
+    specFamily: "Spec B",
+  },
+];
+
+/** The values of the family listbox's spec-family options. */
+function familyOptions(canvasElement) {
+  return Array.from(canvasElement.querySelectorAll(".oidf-test-selector__family option"))
+    .map((o) => o.value)
+    .filter((v) => v && !v.startsWith("__"));
+}
+
+/**
+ * Plans outside the certification program are hidden until "Show
+ * non-certifiable plans" is ticked, along with any family that has no other plans. A certifiable
+ * alpha plan stays listed and carries both badges. A search that only matches
+ * hidden plans offers to show them, and the checkbox state is persisted.
+ */
+export const NonCertifiablePlansHiddenByDefault = {
+  render: () => html`<cts-test-selector .plans=${STATUS_PLANS}></cts-test-selector>`,
+  async play({ canvasElement, step }) {
+    const toggle = () =>
+      /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector(".oidf-test-selector__certification-toggle input")
+      );
+
+    await step("non-certifiable plans and their families are hidden", async () => {
+      await waitFor(() =>
+        expect(rowPlanNames(canvasElement)).toEqual(["certified-plan", "certified-alpha-plan"]),
+      );
+      expect(familyOptions(canvasElement)).toEqual(["Spec A"]);
+      expect(toggle().checked).toBe(false);
+      expect(
+        canvasElement.querySelector(".oidf-test-selector__certification-toggle").textContent.trim(),
+      ).toBe("Show non-certifiable plans (2)");
+    });
+
+    await step("a certifiable alpha plan carries both badges", async () => {
+      const row = canvasElement.querySelector('[data-plan-name="certified-alpha-plan"]');
+      expect(rowBadges(row)).toEqual([
+        ["pass", "Certification"],
+        ["warn", "Alpha"],
+      ]);
+    });
+
+    await step("a search matching only hidden plans offers to show them", async () => {
+      const search = canvasElement.querySelector(".oidf-test-selector__search");
+      await userEvent.type(search, "Uncertified");
+      const empty = canvasElement.querySelector(".oidf-test-selector__empty");
+      await waitFor(() => expect(empty.textContent).toContain("2 non-certifiable plans match."));
+      await userEvent.click(
+        within(empty).getByRole("button", { name: "Show non-certifiable plans" }),
+      );
+      await waitFor(() =>
+        expect(rowPlanNames(canvasElement)).toEqual(["uncertified-plan", "uncertified-only-plan"]),
+      );
+      expect(document.activeElement).toBe(search);
+      expect(toggle().checked).toBe(true);
+      expect(localStorage.getItem("cts:test-selector-show-non-certifiable")).toBe("true");
+      expect(familyOptions(canvasElement)).toEqual(["Spec A", "Spec B"]);
+      expect(rowBadges(canvasElement.querySelector('[data-plan-name="uncertified-plan"]'))).toEqual(
+        [["warn", "Alpha"]],
+      );
+    });
+
+    await step("unticking leaves a family that only had non-certifiable plans", async () => {
+      await userEvent.clear(canvasElement.querySelector(".oidf-test-selector__search"));
+      await userEvent.selectOptions(
+        canvasElement.querySelector(".oidf-test-selector__family"),
+        "Spec B",
+      );
+      await waitFor(() => expect(rowPlanNames(canvasElement)).toEqual(["uncertified-only-plan"]));
+      await userEvent.click(toggle());
+      await waitFor(() =>
+        expect(rowPlanNames(canvasElement)).toEqual(["certified-plan", "certified-alpha-plan"]),
+      );
+      expect(
+        /** @type {HTMLSelectElement} */ (
+          canvasElement.querySelector(".oidf-test-selector__family")
+        ).value,
+      ).toBe("");
+      expect(localStorage.getItem("cts:test-selector-show-non-certifiable")).toBe("false");
+    });
+  },
+};
+
+/**
+ * A selected plan that would be hidden turns "Show non-certifiable plans" on, so a
+ * preset or a return to the picker never selects an invisible row.
+ */
+export const SelectedNonCertifiablePlanIsShown = {
+  render: () =>
+    html`<cts-test-selector
+      .plans=${STATUS_PLANS}
+      selected="uncertified-plan"
+    ></cts-test-selector>`,
+  async play({ canvasElement }) {
+    await waitFor(() =>
+      expect(
+        canvasElement.querySelector('[data-plan-name="uncertified-plan"]').classList,
+      ).toContain("is-active"),
+    );
+    expect(
+      /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector(".oidf-test-selector__certification-toggle input")
+      ).checked,
+    ).toBe(true);
+    expect(localStorage.getItem("cts:test-selector-show-non-certifiable")).toBeNull();
+  },
+};
+
+/** The ★ Favorites view lists a favorite even while non-certifiable plans are hidden. */
+export const FavoritesListHiddenPlans = {
+  render: () =>
+    html`<cts-test-selector
+      .plans=${STATUS_PLANS}
+      .favorites=${["uncertified-plan"]}
+    ></cts-test-selector>`,
+  async play({ canvasElement }) {
+    await userEvent.selectOptions(
+      canvasElement.querySelector(".oidf-test-selector__family"),
+      "__cts_favorites_view__",
+    );
+    await waitFor(() => expect(rowPlanNames(canvasElement)).toEqual(["uncertified-plan"]));
+    expect(
+      /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector(".oidf-test-selector__certification-toggle input")
+      ).checked,
+    ).toBe(false);
+  },
+};
+
+/** With no plan outside the certification program there is nothing to hide. */
+export const NoCertificationToggleWithoutHiddenPlans = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    await waitFor(() => expect(rowPlanNames(canvasElement)).toHaveLength(MOCK_PLANS.length));
+    expect(canvasElement.querySelector(".oidf-test-selector__certification-toggle")).toBeNull();
   },
 };

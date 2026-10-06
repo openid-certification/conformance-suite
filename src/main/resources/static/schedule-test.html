@@ -68,15 +68,18 @@
     <!-- onerror rejects the readiness promise when the module fails to fetch
          or parse, so the init chain fails (and reports) instead of waiting on
          a promise that would never settle. -->
-    <script type="module" onerror="window.__rejectConfigFormAdapterReady(new Error('config-form-adapter.js failed to load'))">
+    <script type="module" onerror="window.__rejectConfigFormAdapterReady(new Error('config-form-adapter.js or test-selector-grouping.js failed to load'))">
         import {
             buildConfigFormSchema,
             computeHiddenFields,
             setAtPath,
         } from "/components/config-form-adapter.js";
+        import { statusBadges } from "/components/test-selector-grouping.js";
         // Re-expose on window so the inline <script> below (which cannot use
-        // ES module imports) can drive cts-config-form via the adapter.
+        // ES module imports) can drive cts-config-form via the adapter, and
+        // give the selected-plan summary the same status badges as the picker.
         window.__configFormAdapter = { buildConfigFormSchema, computeHiddenFields, setAtPath };
+        window.__planStatusBadges = statusBadges;
         window.__resolveConfigFormAdapterReady();
     </script>
 
@@ -1522,9 +1525,9 @@
         // shared HTML-escape helper, and plan.displayName/planName/etc. are
         // plain text content regardless, so textContent is both the
         // simplest and the safe-by-default choice here.
-        function appendMetaBadge(container, isBadge, text) {
+        function appendMetaBadge(container, isBadge, text, variant) {
             var el = document.createElement(isBadge ? 'cts-badge' : 'span');
-            if (isBadge) el.setAttribute('variant', 'secondary');
+            if (isBadge) el.setAttribute('variant', variant || 'secondary');
             else el.className = 'plan-name-code';
             el.textContent = text;
             container.appendChild(el);
@@ -1539,6 +1542,11 @@
             meta.textContent = '';
             if (plan.specFamily) appendMetaBadge(meta, true, plan.specFamily);
             if (plan.specVersion) appendMetaBadge(meta, true, plan.specVersion);
+            // Installed with the adapter, which the init chain awaits before
+            // any selectPlanByName() caller can run.
+            window.__planStatusBadges(plan).forEach(function (status) {
+                appendMetaBadge(meta, true, status.label, status.variant);
+            });
             appendMetaBadge(meta, false, plan.planName);
             if (Array.isArray(plan.modules) && plan.modules.length) {
                 appendMetaBadge(meta, false, plan.modules.length + ' test modules');

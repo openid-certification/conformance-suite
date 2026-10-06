@@ -202,7 +202,7 @@ export const KeyboardFTogglesFocusedRow = {
       await userEvent.keyboard("f");
       expect(events.length).toBe(1);
       expect(events[0]).toEqual({
-        plan: MOCK_PLANS[0].planName,
+        plan: firstRow.getAttribute("data-plan-name"),
         favorite: true,
         via: "keyboard",
       });
@@ -211,9 +211,10 @@ export const KeyboardFTogglesFocusedRow = {
     await step("the focused row's star is also a tab stop", async () => {
       // Roving tabindex: the focused row exposes both its select button and its
       // star as tab stops; every other row's controls stay at -1.
-      const star = starFor(host, MOCK_PLANS[0].planName);
+      const rows = host.querySelectorAll(".oidf-test-selector__row");
+      const star = starFor(host, rows[0].getAttribute("data-plan-name"));
       await waitFor(() => expect(star.getAttribute("tabindex")).toBe("0"));
-      const otherStar = starFor(host, MOCK_PLANS[2].planName);
+      const otherStar = starFor(host, rows[2].getAttribute("data-plan-name"));
       expect(otherStar.getAttribute("tabindex")).toBe("-1");
     });
   },

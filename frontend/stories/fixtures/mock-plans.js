@@ -147,6 +147,42 @@ export const MOCK_PLANS = [
   },
 ];
 
+/**
+ * One spec family spanning two entities and several versions, shaped like the
+ * real OID4VP plans, for the selector's in-family grouping: entity headings
+ * from `profile`, rows named by a `shortName` that leads with the version,
+ * and a status badge.
+ *
+ * TWIN: `frontend/e2e/fixtures/mock-plans.js` carries the same plans and is kept in sync BY HAND.
+ */
+export const MOCK_GROUPED_PLANS = /** @type {Array<[string, string, string, boolean]>} */ ([
+  ["oid4vp-1final-verifier-haip-test-plan", "Test a OpenID4VP Verifier", "1.0 Final", true],
+  ["oid4vp-1final-verifier-test-plan", "Test a OpenID4VP Verifier", "1.0 Final", false],
+  ["oid4vp-id2-verifier-test-plan", "Test a OpenID4VP Verifier", "ID2", false],
+  ["oid4vp-1final-wallet-haip-test-plan", "Test a OpenID4VP wallet", "1.0 Final", true],
+]).map(([planName, profile, specVersion, haip]) => {
+  const shortName = haip ? `${specVersion} + HAIP` : specVersion;
+  const entity = profile.endsWith("wallet") ? "wallet" : "verifier";
+  return {
+    planName,
+    displayName: haip
+      ? `OpenID for Verifiable Presentations ${specVersion}/HAIP: Test a ${entity}`
+      : `OpenID for Verifiable Presentations ${specVersion}: Test a ${entity} - alpha tests ` +
+        `(not part of certification program - use the HAIP ${entity} plan to certify)`,
+    shortName,
+    certifiable: haip,
+    alpha: !haip,
+    profile,
+    specFamily: "OID4VP",
+    specVersion,
+    summary: "",
+    modules: [{ testModule: `${planName.replace(/-test-plan$/, "")}-happy-flow` }],
+    configurationFields: [],
+    hidesConfigurationFields: [],
+    variants: {},
+  };
+});
+
 // --- Plan list (GET /api/plan) ---
 
 const NOW = Date.now();
