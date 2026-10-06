@@ -15,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -533,5 +536,77 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 		setupEnvironment(dcql, "my_credential", decoded, disclosures, credential);
 
 		cond.execute(env);
+	}
+
+	private static final String NATIONALITIES_DCQL = """
+		{
+		  "credentials": [
+		    {
+		      "id": "my_credential",
+		      "format": "dc+sd-jwt",
+		      "claims": [ { "path": [ "nationalities" ] } ]
+		    }
+		  ]
+		}
+		""";
+
+	private static String elementDigest(String disclosureJson, String sdAlg) {
+		String base64url = Base64.getUrlEncoder().withoutPadding()
+			.encodeToString(disclosureJson.getBytes(StandardCharsets.UTF_8));
+		return Disclosure.parse(base64url).digest(sdAlg);
+	}
+
+	private void setupNationalitiesCredential(String sdAlgClaim, String digestAlg) {
+		String element = "[\"salt-de\",\"DE\"]";
+		JsonArray disclosures = new JsonArray();
+		disclosures.add(element);
+		JsonObject credential = JsonParser.parseString(
+			"{\"claims\":{" + sdAlgClaim + "\"nationalities\":[{\"...\":\"" + elementDigest(element, digestAlg) + "\"}]}}")
+			.getAsJsonObject();
+		setupEnvironment(NATIONALITIES_DCQL, "my_credential", "{\"nationalities\":[\"DE\"]}", disclosures, credential);
+	}
+
+	@Test
+	public void testEvaluate_arrayElementDisclosureWithSha384SdAlgPasses() {
+		setupNationalitiesCredential("\"_sd_alg\":\"sha-384\",", "sha-384");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_arrayElementDisclosureNotMatchingSdAlgThrowsError() {
+		// the credential says sha-384 but the placeholder is a sha-256 digest: the disclosure is an orphan
+		setupNationalitiesCredential("\"_sd_alg\":\"sha-384\",", "sha-256");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_arrayElementDisclosureWithSha3SdAlgPasses() {
+		setupNationalitiesCredential("\"_sd_alg\":\"sha3-256\",", "sha3-256");
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_arrayElementDisclosureSdAlgIsCaseSensitive() {
+		setupNationalitiesCredential("\"_sd_alg\":\"SHA-256\",", "sha-256");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_arrayElementDisclosureWithUnregisteredSdAlgThrowsError() {
+		// the JVM can compute md5, but it is not a registered hash name
+		setupNationalitiesCredential("\"_sd_alg\":\"md5\",", "md5");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_arrayElementDisclosureWithUnsupportedSdAlgThrowsError() {
+		setupNationalitiesCredential("\"_sd_alg\":\"not-a-hash\",", "sha-256");
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }
