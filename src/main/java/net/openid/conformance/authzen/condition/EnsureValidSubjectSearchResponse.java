@@ -31,17 +31,11 @@ public class EnsureValidSubjectSearchResponse extends EnsureValidSearchResponse 
 
 	@Override
 	protected void ensureValidResponseResultsObject(JsonObject resultsObj) {
-		// check result contains id and type and type value matches requested type
-		if(!resultsObj.has("id")) {
-			throw error("A subject object in the results array does not contain an id");
+		getRequiredStringMember(resultsObj, "id", "A subject object");
+		String type = getRequiredStringMember(resultsObj, "type", "A subject object");
+		if (!type.equals(getRequestSubjectType())) {
+			throw error("A subject object in the results array does not contain the requested subject type", args("expected", getRequestSubjectType(), "actual", type));
 		}
-		if(!resultsObj.has("type")) {
-			throw error("A subject object in the results array does not contain a type");
-		}
-		if(!OIDFJSON.getString(resultsObj.get("type")).equals(getRequestSubjectType())) {
-			throw error("A subject object in the results array does not contain the requested subject type", args("expected", getRequestSubjectType(), "actual", OIDFJSON.getString(resultsObj.get("type"))));
-		}
+		ensurePropertiesIsObject(resultsObj, "A subject object");
 	}
-
-
 }
