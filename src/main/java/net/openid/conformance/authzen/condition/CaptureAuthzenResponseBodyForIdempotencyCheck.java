@@ -10,8 +10,8 @@ import net.openid.conformance.testmodule.Environment;
 /**
  * Captures the JSON body of the current AuthZEN API response under the env key
  * {@code authzen_idempotency_first_response_body} if not already set. Subsequent
- * iterations should call {@link EnsureAuthzenResponseBodyMatchesIdempotencyCheck}
- * to assert the body did not change.
+ * iterations call {@link EnsureAuthzenEvaluationsDecisionsMatchIdempotencyCheck} to assert
+ * the batch decisions did not change.
  */
 public class CaptureAuthzenResponseBodyForIdempotencyCheck extends AbstractCondition {
 
