@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ValidatePDPSignedMetadataExp_UnitTest {
 
 	private static final long NOW = System.currentTimeMillis() / 1000L;
+	private static final long FIXED_NOW = 1_800_000_000L;
 	private static final long SECONDS_PER_YEAR = 365L * 24 * 60 * 60;
 
 	@Spy
@@ -65,9 +66,34 @@ class ValidatePDPSignedMetadataExp_UnitTest {
 	}
 
 	@Test
-	public void implausiblyFarFutureExp_fails() {
-		// More than ~50 years in the future (likely a non-seconds value).
+	public void farFutureExp_succeeds() {
+		// RFC 7519 sets no upper bound; CheckPDPSignedMetadataTimeClaimsArePlausible warns about it.
 		putExp(NOW + 51 * SECONDS_PER_YEAR);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
+	}
+
+
+	/** The condition with its clock fixed at {@link #FIXED_NOW}. */
+	private ValidatePDPSignedMetadataExp fixedClockCondition() {
+		ValidatePDPSignedMetadataExp fixed = new ValidatePDPSignedMetadataExp() {
+			@Override
+			protected long nowSeconds() {
+				return FIXED_NOW;
+			}
+		};
+		fixed.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		return fixed;
+	}
+
+	@Test
+	public void expAtTheClockSkewLimit_succeeds() {
+		putExp(FIXED_NOW - AbstractValidatePDPSignedMetadataTimeClaim.CLOCK_SKEW_SECONDS);
+		fixedClockCondition().execute(env);
+	}
+
+	@Test
+	public void expOneSecondBeyondTheClockSkew_fails() {
+		putExp(FIXED_NOW - AbstractValidatePDPSignedMetadataTimeClaim.CLOCK_SKEW_SECONDS - 1);
+		assertThrows(ConditionError.class, () -> fixedClockCondition().execute(env));
 	}
 }
