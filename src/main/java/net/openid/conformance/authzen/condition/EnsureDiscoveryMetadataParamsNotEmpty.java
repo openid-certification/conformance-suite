@@ -32,10 +32,14 @@ public class EnsureDiscoveryMetadataParamsNotEmpty extends AbstractCondition {
 			if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()
 				&& OIDFJSON.getString(value).isEmpty()) {
 				offending.add(entry.getKey() + " (empty string)");
+			} else if (value.isJsonArray() && value.getAsJsonArray().isEmpty()) {
+				offending.add(entry.getKey() + " (empty array)");
+			} else if (value.isJsonObject() && value.getAsJsonObject().isEmpty()) {
+				offending.add(entry.getKey() + " (empty object)");
 			}
 		}
 		if (!offending.isEmpty()) {
-			throw error("Discovery metadata contains parameters with null or empty-string values; Section 9.2.2 requires absent parameters to be omitted",
+			throw error("Discovery metadata contains parameters with null or empty values; Section 9.2.2 requires parameters that have no values to be omitted",
 				args("offending_parameters", offending, "metadata", metadata));
 		}
 		logSuccess("All discovery metadata parameters have non-empty values");
