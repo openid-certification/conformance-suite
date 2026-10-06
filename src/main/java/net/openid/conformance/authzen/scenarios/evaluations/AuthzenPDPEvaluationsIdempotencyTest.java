@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-idempotency",
 	displayName = "AuthZEN Evaluations API - Idempotency",
-	summary = "Idempotency. The harness sends the same Evaluations fixture request multiple times consecutively; the PDP MUST return the same response body each time.\n" + AuthzenPDPEvaluationsIdempotencyTest.payload,
+	summary = "Idempotency. The harness sends the same Evaluations fixture request multiple times consecutively; the PDP MUST return the same decisions, in the same order, each time. Per-evaluation `context` is not compared.\n" + AuthzenPDPEvaluationsIdempotencyTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsIdempotencyTest extends AbstractAuthzenPDPEvaluationsIdempotencyTest {
