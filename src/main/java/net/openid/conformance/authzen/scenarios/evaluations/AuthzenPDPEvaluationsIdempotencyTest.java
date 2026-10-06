@@ -13,11 +13,11 @@ public class AuthzenPDPEvaluationsIdempotencyTest extends AbstractAuthzenPDPEval
 
 	public static final String payload = """
 		{
-			"subject": { "type": "user", "id": "alice" },
-			"action": { "name": "read" },
+			"action": { "name": "write" },
+			"resource": { "type": "record", "id": "record-1" },
 			"evaluations": [
-				{ "resource": { "type": "record", "id": "record-1" } },
-				{ "resource": { "type": "record", "id": "record-2" } }
+				{ "subject": { "type": "user", "id": "alice" } },
+				{ "subject": { "type": "user", "id": "bob" } }
 			]
 		}
 		""";
@@ -33,7 +33,7 @@ public class AuthzenPDPEvaluationsIdempotencyTest extends AbstractAuthzenPDPEval
 			{
 				"evaluations": [
 					{ "decision": true },
-					{ "decision": true }
+					{ "decision": false }
 				]
 			}
 			""";
