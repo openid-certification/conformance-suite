@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -13,10 +14,15 @@ public class ExtractAuthzenApiEndpointSearchResponse extends AbstractCondition {
 	@PostEnvironment(required = "authzen_search_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		JsonObject search = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
-		if (search == null) {
+		JsonElement bodyElem = env.getElementFromObject("authzen_api_endpoint_response", "body_json");
+		if (bodyElem == null) {
 			throw error("No json response from AuthZEN API endpoint");
 		}
+		if (!bodyElem.isJsonObject()) {
+			throw error("AuthZEN API search response is not a JSON object",
+				args("body_json", bodyElem));
+		}
+		JsonObject search = bodyElem.getAsJsonObject();
 
 		env.putObject("authzen_search_endpoint_response", search);
 
