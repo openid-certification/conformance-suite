@@ -43,8 +43,6 @@ import net.openid.conformance.condition.common.WarnOnUnusableJwksKeys;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
-import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.AuthzenSupport;
 import net.openid.conformance.variant.PDPAuthType;
@@ -86,7 +84,6 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected Class<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addPDPEndpointClientAuthentication;
 	protected Class<? extends Condition> loadClientConfiguration;
-	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 	private boolean endpointPathV1Checked;
 
 	public static class ConfigureClientForMtls extends AbstractConditionSequence {
@@ -135,8 +132,10 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	@VariantSetup(parameter = PDPAuthType.class, value = "mtls")
 	public void setupMtls() {
 		profileCompleteClientConfiguration = ConfigureClientForMtls.class;
-		addPDPEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
-		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		// The client certificate is presented in the TLS handshake of every API call, from the
+		// mutual_tls_authentication object ConfigureClientForMtls stores; the request itself
+		// carries no credentials.
+		addPDPEndpointClientAuthentication = null;
 	}
 
 	@Override
@@ -209,10 +208,6 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			case STATIC:
 				callAndStopOnFailure(GetPDPStaticServerConfiguration.class);
 				break;
-		}
-
-		if (supportMTLSEndpointAliases != null) {
-			call(sequence(supportMTLSEndpointAliases));
 		}
 
 		eventLog.startBlock("Check PDP Server Configuration");

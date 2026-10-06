@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "Per Section 11.3, when client authentication is required and credentials are missing, the PDP MUST return HTTP 401. The response SHOULD include a WWW-Authenticate header (surfaced as a warning).",
 	profile = "AuthZEN"
 )
-@VariantNotApplicable(parameter = PDPAuthType.class, values = {"none"})
+@VariantNotApplicable(parameter = PDPAuthType.class, values = {"none", "mtls"})
 public class AuthzenPDPEvaluationMissingCredentialsReturns401Test extends AbstractAuthzenPDPEvaluationTest {
 
 	public static final String payload = """
