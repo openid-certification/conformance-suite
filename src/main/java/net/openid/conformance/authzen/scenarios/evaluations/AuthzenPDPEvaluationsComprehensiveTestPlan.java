@@ -31,6 +31,8 @@ import net.openid.conformance.plan.TestPlan;
  */
 @PublishTestPlan(
 	testPlanName = "authzen-pdp-evaluations-comprehensive-test-plan",
+	shortName = "Comprehensive",
+	certifiable = false,
 	displayName = "Comprehensive AuthZEN PDP server test (Not part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,

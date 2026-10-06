@@ -5,6 +5,9 @@ import net.openid.conformance.plan.TestPlan;
 
 @PublishTestPlan(
 	testPlanName = "openid-federation-entity-joined-to-test-federation-rp-test-plan",
+	shortName = "Entity joined to test federation (RP)",
+	certifiable = false,
+	alpha = true,
 	displayName = "OpenID Federation: Entity joined to test federation RP test - alpha tests (not currently part of certification program - please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	specFamily = TestPlan.SpecFamilyNames.federation,

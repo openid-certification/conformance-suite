@@ -12,6 +12,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-3rdparty-init-login-certification-test-plan",
+	shortName = "3rd party initiated login",
+	certifiable = true,
 	displayName = "OpenID Connect Core: 3rd party initiated login Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc

@@ -12,6 +12,9 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-id2-verifier-test-plan",
+	shortName = "ID2",
+	certifiable = false,
+	alpha = true,
 	displayName = "OpenID for Verifiable Presentations ID2: Test a verifier - alpha tests (not part of certification program - use the OID4VP 1.0 Final HAIP verifier plan to certify)",
 	profile = TestPlan.ProfileNames.verifierTest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,

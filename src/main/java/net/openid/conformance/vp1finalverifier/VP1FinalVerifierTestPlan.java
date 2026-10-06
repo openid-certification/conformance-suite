@@ -8,6 +8,9 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-verifier-test-plan",
+	shortName = "1.0 Final",
+	certifiable = false,
+	alpha = true,
 	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a verifier - alpha tests (not part of certification program - use the HAIP verifier plan to certify)",
 	profile = TestPlan.ProfileNames.verifierTest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,

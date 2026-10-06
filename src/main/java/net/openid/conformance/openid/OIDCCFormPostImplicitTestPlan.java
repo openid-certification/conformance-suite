@@ -8,6 +8,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-formpost-implicit-certification-test-plan",
+	shortName = "Form Post Implicit",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Form Post Implicit Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc

@@ -11,6 +11,9 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-wallet-test-plan",
+	shortName = "1.0 Final",
+	certifiable = false,
+	alpha = true,
 	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a wallet - alpha tests (not part of certification program - use the HAIP wallet plan to certify)",
 	profile = TestPlan.ProfileNames.wallettest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,

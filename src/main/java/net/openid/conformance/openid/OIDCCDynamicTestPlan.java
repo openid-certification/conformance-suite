@@ -12,6 +12,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-dynamic-certification-test-plan",
+	shortName = "Dynamic",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Dynamic Certification Profile Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.oidcc

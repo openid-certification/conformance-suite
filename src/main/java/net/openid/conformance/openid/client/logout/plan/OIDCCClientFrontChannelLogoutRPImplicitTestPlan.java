@@ -10,6 +10,8 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-front-channel-logout-rp-implicit",
+	shortName = "Front-channel logout (Implicit)",
+	certifiable = true,
 	displayName = "OpenID Connect Core: Front Channel Logout RP Certification Profile Relying Party Tests (Implicit)",
 	profile = TestPlan.ProfileNames.rplogouttest,
 	specFamily = TestPlan.SpecFamilyNames.oidccLogout

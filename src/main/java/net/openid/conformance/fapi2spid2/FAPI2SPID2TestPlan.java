@@ -14,6 +14,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-id2-test-plan",
+	shortName = "ID2",
+	certifiable = true,
 	displayName = "FAPI2-Security-Profile-ID2: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	specFamily = TestPlan.SpecFamilyNames.fapi2SecurityProfile,
