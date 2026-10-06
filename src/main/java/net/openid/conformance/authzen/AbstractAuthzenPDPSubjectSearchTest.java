@@ -3,6 +3,8 @@ package net.openid.conformance.authzen;
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CreateAuthzenSubjectSearchApiRequestSteps;
 import net.openid.conformance.authzen.condition.EnsureSearchResponsePageIsFirstKey;
+import net.openid.conformance.authzen.condition.EnsureSearchResponsePageCountMatchesResults;
+import net.openid.conformance.authzen.condition.EnsureSearchResponseResultsWithinPageLimit;
 import net.openid.conformance.authzen.condition.EnsureValidSearchResponsePage;
 import net.openid.conformance.authzen.condition.EnsureValidSubjectSearchResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchResponse;
@@ -40,6 +42,8 @@ public abstract class AbstractAuthzenPDPSubjectSearchTest extends AbstractAuthze
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
 		callAndStopOnFailure(EnsureValidSubjectSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.4");
 		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
+		callAndContinueOnFailure(EnsureSearchResponsePageCountMatchesResults.class, ConditionResult.FAILURE, "AUTHZEN-8.2.2");
+		callAndContinueOnFailure(EnsureSearchResponseResultsWithinPageLimit.class, ConditionResult.WARNING, "AUTHZEN-8.2.1");
 		callAndContinueOnFailure(EnsureSearchResponsePageIsFirstKey.class, ConditionResult.WARNING, "AUTHZEN-8.3");
 	}
 }
