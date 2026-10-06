@@ -426,11 +426,23 @@ test.describe("schedule-test.html — guided journey", () => {
       await page.route("**/api/plan?*", (route) => {
         if (route.request().method() !== "POST") return route.fallback();
         return route.fulfill({
-          status: 500,
+          status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ message: "Test submission captured" }),
+          body: JSON.stringify({ id: "plan-brazil-ciba" }),
         });
       });
+      await page.route("**/api/plan/plan-brazil-ciba", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            ...MOCK_PLAN_DETAIL,
+            _id: "plan-brazil-ciba",
+            planName: "fapi-ciba-id1-test-plan",
+          }),
+        }),
+      );
+      await setupTestInfoRoute(page);
       await page.goto("/schedule-test.html");
       await pickChoice(page, "open_finance_brazil");
       await pickChoice(page, "op");
@@ -455,6 +467,7 @@ test.describe("schedule-test.html — guided journey", () => {
         fapi_ciba_profile: "openbanking_brazil",
         ciba_mode: "ping",
       });
+      await page.waitForURL("**/plan-detail.html?plan=plan-brazil-ciba");
     });
   }
 
