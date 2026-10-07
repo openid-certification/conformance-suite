@@ -684,13 +684,14 @@ const STYLE_TEXT = css`
   cts-log-entry .logUploadedImage {
     /* Sized to match cts-image-upload's __thumb so the same screenshot
        reads at a consistent size whether shown mid-upload or here, once
-       committed to the log entry. When the host sets imageViewable,
-       clicking it opens the full-size image via cts-log-viewer's shared
-       lightbox. */
+       committed to the log entry. contain rather than cover so a tall
+       phone screenshot is shown whole instead of cropped to its centre.
+       When the host sets imageViewable, clicking it opens the full-size
+       image via cts-log-viewer's shared lightbox. */
     display: block;
     width: 96px;
     height: 96px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: var(--radius-2);
     border: 1px solid var(--border);
     background: var(--bg-muted);
