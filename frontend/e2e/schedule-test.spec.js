@@ -1375,6 +1375,9 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await page.goto("/schedule-test.html");
 
     await selectPlanViaSearch(page, "fapi2-message-signing-final-test-plan");
+    // Picking the plan moves focus to the first variant select once the smooth scroll settles.
+    // Wait for that so it cannot land after, and take focus from, the control focused below.
+    await expect(page.locator("#variantSelectors select").first()).toBeFocused();
 
     const grantManagement = page.locator("#vp_grant_management");
 
