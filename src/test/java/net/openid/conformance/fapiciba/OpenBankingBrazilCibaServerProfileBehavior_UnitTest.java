@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
+import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegistrationRequest;
@@ -334,6 +335,15 @@ public class OpenBankingBrazilCibaServerProfileBehavior_UnitTest {
 			CreateRefreshTokenRequest.class,
 			CallTokenEndpointAndReturnFullResponse.class,
 			ExtractAccessTokenFromTokenResponse.class);
+	}
+
+	@Test
+	public void resourceInteractionIdCitesBrazilRequirementForBothClients() {
+		for (boolean second : new boolean[]{false, true}) {
+			List<ConditionCallBuilder> calls = getConditionCalls(behavior.addResourceEndpointProfileHeaders(second));
+			assertThat(getRequirements(calls, AddFAPIInteractionIdToResourceEndpointRequest.class))
+				.contains("BrazilOB22-5.2-9");
+		}
 	}
 
 	@Test

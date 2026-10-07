@@ -2,26 +2,27 @@ package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.logging.BsonEncoding;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 public class FAPICIBAResourceInteractionId_UnitTest {
 	private static final String EXPECTED_ID = "c770aef3-6784-41f7-8e0e-ff5f97bddb3a";
 	private static final String DIFFERENT_ID = "93bac548-d2de-4546-b106-880a5018460d";
 
 	@Test
-	public void testBrazilCreatesHeadersForBothClients() throws Exception {
+	public void testBrazilCreatesHeadersForBothClients() {
 		var behavior = new OpenBankingBrazilCibaServerProfileBehavior();
 		var env = new Environment();
 		String previous = null;
@@ -39,7 +40,7 @@ public class FAPICIBAResourceInteractionId_UnitTest {
 	}
 
 	@Test
-	public void testBrazilValidatesBothResponseIds() throws Exception {
+	public void testBrazilValidatesBothResponseIds() {
 		var behavior = new OpenBankingBrazilCibaServerProfileBehavior();
 		for (boolean second : new boolean[]{false, true}) {
 			var env = new Environment();
@@ -47,28 +48,24 @@ public class FAPICIBAResourceInteractionId_UnitTest {
 			var response = new JsonObject();
 			env.putObject("resource_endpoint_response_headers", response);
 			response.addProperty("x-fapi-interaction-id", EXPECTED_ID);
-			execute(behavior.validateResourceEndpointResponseHeaders(second), env);
+			assertThat(execute(behavior.validateResourceEndpointResponseHeaders(second), env))
+				.isEqualTo(TestModule.Result.UNKNOWN);
 			response.addProperty("x-fapi-interaction-id", "C770AEF3-6784-41F7-8E0E-FF5F97BDDB3A");
-			execute(behavior.validateResourceEndpointResponseHeaders(second), env);
+			assertThat(execute(behavior.validateResourceEndpointResponseHeaders(second), env))
+				.isEqualTo(TestModule.Result.UNKNOWN);
 			for (String invalid : List.of("not-a-uuid", DIFFERENT_ID)) {
 				response.addProperty("x-fapi-interaction-id", invalid);
-				assertThatThrownBy(() -> execute(behavior.validateResourceEndpointResponseHeaders(second), env))
-					.isInstanceOf(ConditionError.class);
+				assertThat(execute(behavior.validateResourceEndpointResponseHeaders(second), env))
+					.isEqualTo(TestModule.Result.FAILED);
 			}
 			response.remove("x-fapi-interaction-id");
-			assertThatThrownBy(() -> execute(behavior.validateResourceEndpointResponseHeaders(second), env))
-				.isInstanceOf(ConditionError.class);
-			ConditionSequence checks = behavior.validateResourceEndpointResponseHeaders(second);
-			checks.evaluate();
-			assertThat(checks.getTestExecutionUnits()).hasSize(2);
-			for (var unit : checks.getTestExecutionUnits()) {
-				assertThat(((ConditionCallBuilder) unit).getOnFail()).isEqualTo(Condition.ConditionResult.FAILURE);
-			}
+			assertThat(execute(behavior.validateResourceEndpointResponseHeaders(second), env))
+				.isEqualTo(TestModule.Result.FAILED);
 		}
 	}
 
 	@Test
-	public void testPlainAndUkKeepOptionalSecondClientHeader() throws Exception {
+	public void testPlainAndUkKeepOptionalSecondClientHeader() {
 		for (var behavior : List.of(new FAPICIBAServerProfileBehavior(), new OpenBankingUkCibaServerProfileBehavior())) {
 			var env = new Environment();
 			execute(new CreateEmptyResourceEndpointRequestHeaders(), env);
@@ -80,10 +77,11 @@ public class FAPICIBAResourceInteractionId_UnitTest {
 			var response = new JsonObject();
 			response.addProperty("x-fapi-interaction-id", DIFFERENT_ID);
 			env.putObject("resource_endpoint_response_headers", response);
-			execute(behavior.validateResourceEndpointResponseHeaders(true), env);
+			assertThat(execute(behavior.validateResourceEndpointResponseHeaders(true), env))
+				.isEqualTo(TestModule.Result.UNKNOWN);
 			response.remove("x-fapi-interaction-id");
-			assertThatThrownBy(() -> execute(behavior.validateResourceEndpointResponseHeaders(true), env))
-				.isInstanceOf(ConditionError.class);
+			assertThat(execute(behavior.validateResourceEndpointResponseHeaders(true), env))
+				.isEqualTo(TestModule.Result.FAILED);
 		}
 	}
 
@@ -92,14 +90,28 @@ public class FAPICIBAResourceInteractionId_UnitTest {
 		condition.execute(env);
 	}
 
-	private void execute(ConditionSequence sequence, Environment env) throws Exception {
-		if (sequence == null) {
-			return;
+	private TestModule.Result execute(ConditionSequence sequence, Environment env) {
+		return new SequenceModule().execute(sequence, env);
+	}
+
+	private static class SequenceModule extends AbstractFAPICIBAID1 {
+		@Override
+		public String getName() {
+			return "resource-interaction-id-test";
 		}
-		sequence.evaluate();
-		for (var unit : sequence.getTestExecutionUnits()) {
-			var call = (ConditionCallBuilder) unit;
-			execute(call.getConditionClass().getDeclaredConstructor().newInstance(), env);
+
+		Result execute(ConditionSequence sequence, Environment environment) {
+			env = environment;
+			setProperties("UNIT-TEST", Map.of(), BsonEncoding.testInstanceEventLog(), null,
+				mock(TestInfoService.class), null, null);
+			setStatus(Status.CONFIGURED);
+			setStatus(Status.RUNNING);
+			try {
+				call(sequence);
+				return getResult();
+			} finally {
+				clearLockIfHeld();
+			}
 		}
 	}
 }
