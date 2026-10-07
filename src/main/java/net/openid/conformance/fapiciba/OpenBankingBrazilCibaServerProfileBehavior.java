@@ -14,7 +14,6 @@ import net.openid.conformance.condition.client.CopyOrgJwksFromDynamicRegistratio
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
-import net.openid.conformance.condition.client.EnsureNotificationEndpointRequestHasClientCertificate;
 import net.openid.conformance.condition.client.FAPIBrazilAddRequiredIdTokenEncryptionToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilAddLoggedUserNameToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
@@ -150,17 +149,6 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	@Override
 	public boolean notificationEndpointRequiresMTLS() {
 		return true;
-	}
-
-	@Override
-	public ConditionSequence validateNotificationEndpointRequest() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndStopOnFailure(EnsureNotificationEndpointRequestHasClientCertificate.class,
-					Condition.ConditionResult.FAILURE, "BrazilCIBA-6.3.4");
-			}
-		};
 	}
 
 	@Override

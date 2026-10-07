@@ -160,13 +160,6 @@ public class FAPICIBAServerProfileBehavior {
 	}
 
 	/**
-	 * Validate a profile-specific client notification endpoint request.
-	 */
-	public ConditionSequence validateNotificationEndpointRequest() {
-		return null;
-	}
-
-	/**
 	 * Add profile-specific headers to resource endpoint request.
 	 * Default adds auth date and interaction ID for first client only.
 	 */
