@@ -398,7 +398,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		setStatus(Status.RUNNING);
+		return handleMtlsRequest(path, requestParts);
+	}
 
+	protected Object handleMtlsRequest(String path, JsonObject requestParts) {
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		call(exec().mapKey("client_request", requestId));
@@ -513,7 +516,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected Object tokenEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
+		return processTokenEndpointRequest(requestId);
+	}
 
+	protected Object processTokenEndpointRequest(String requestId) {
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId)
 			.mapKey("incoming_request", requestId));
