@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 )
 
 @VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values = {"dc_api", "dc_api.jwt"})
+// a request passed by value has no request_uri to fetch
+@VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values = {"url_query"})
 public class VP1FinalWalletRequestUriMethodPost extends AbstractVP1FinalWalletTest {
 
 	private boolean walletUsedGetInsteadOfPost = false;
