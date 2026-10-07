@@ -6,6 +6,8 @@ import net.openid.conformance.condition.as.SetTokenEndpointToMtlsTokenEndpoint;
 import net.openid.conformance.condition.as.SetUserinfoEndpointToMtlsUserinfoEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-test-happy-path-no-mtls-endpoint-aliases",
@@ -13,6 +15,7 @@ import net.openid.conformance.variant.ClientAuthType;
 	summary = "Tests a 'happy path' flow where the server does not publish mtls_endpoint_aliases; the client is expected to determine from its own configuration (client authentication type) which literal endpoint URL to call for each of token/backchannel/userinfo, since no alias is available to consult.",
 	profile = "FAPI-CIBA-ID1"
 )
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = { "connectid_au" })
 public class FAPICIBAClientTestHappyPathNoMtlsEndpointAliases extends FAPICIBAClientTest {
 
 	@Override
