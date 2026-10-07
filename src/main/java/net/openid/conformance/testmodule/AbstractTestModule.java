@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -68,6 +69,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	protected TestInfoService testInfo;
 	protected ImageService imageService;
+
+	// Released when an image placeholder is filled; wakes the waitForPlaceholders() watcher early.
+	private final Semaphore placeholderFilledSignal = new Semaphore(0);
 	private TestLockManager testLockManager;
 
 	// Plain field — NOT @Autowired. TestModule instances are reflectively constructed via
@@ -836,6 +840,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	@Override
+	public void placeholderFilled() {
+		placeholderFilledSignal.release();
+	}
+
 	private void fireTestSuccess() {
 		setResult(Result.PASSED);
 	}
@@ -1422,9 +1431,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		executionManager.runInBackground(() -> {
 			long delayMillis = 1000; // wait for a second before we check the first time
 
-			Thread.sleep(delayMillis);
+			placeholderFilledSignal.tryAcquire(delayMillis, TimeUnit.MILLISECONDS);
 
 			while (true) {
+				// any further fills are covered by the check below
+				placeholderFilledSignal.drainPermits();
 
 				// grab the lock before we check anything in case something is finishing up
 				acquireLock();
@@ -1450,7 +1461,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					// backoff checks to every 30 seconds so we don't overload db or jvm
 					delayMillis *= 2;
 				}
-				Thread.sleep(delayMillis);
+				placeholderFilledSignal.tryAcquire(delayMillis, TimeUnit.MILLISECONDS);
 
 			}
 
