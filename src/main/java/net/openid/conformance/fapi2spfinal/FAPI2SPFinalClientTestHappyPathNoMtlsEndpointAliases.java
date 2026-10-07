@@ -5,6 +5,8 @@ import net.openid.conformance.condition.as.SetParEndpointToMtlsParEndpoint;
 import net.openid.conformance.condition.as.SetTokenEndpointToMtlsTokenEndpoint;
 import net.openid.conformance.condition.as.SetUserinfoEndpointToMtlsUserinfoEndpoint;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-client-test-happy-path-no-mtls-endpoint-aliases",
@@ -20,6 +22,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"waitTimeoutSeconds"
 	}
 )
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
 public class FAPI2SPFinalClientTestHappyPathNoMtlsEndpointAliases extends FAPI2SPFinalClientTestHappyPath {
 
 	@Override
