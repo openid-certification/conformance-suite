@@ -8,13 +8,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.CacheControl;
 import org.springframework.http.converter.HttpMessageConverters;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HexFormat;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -23,15 +33,44 @@ public class ApplicationConfig implements WebMvcConfigurer {
 	/**
 	 * Asset directories that get bounded caching in production:
 	 * "max-age=300, stale-while-revalidate=86400". Browsers reuse the copy
-	 * for up to 5 minutes, then serve stale while revalidating in the
-	 * background for up to a day — removing the per-navigation conditional
-	 * 304 round-trips these directories used to cost, at a worst-case
-	 * staleness of 5 minutes after a deploy. /vendor/** is deliberately not
-	 * here yet: its URLs are not versioned, and vendored library bumps are
-	 * the change most likely to need an immediate, coordinated refresh with
-	 * the pages that load them.
+	 * for up to 5 minutes without asking; after that, for up to a day, a
+	 * load uses the cached copy and revalidates in the background, so the
+	 * first load after a deploy can still run the previous build's file
+	 * (possibly alongside a newer page or vendor library) and the next load
+	 * gets the new one. This removes the per-navigation conditional
+	 * round-trips these directories used to cost. /vendor/** is deliberately not
+	 * here: its URLs are not versioned, and vendored library bumps are the
+	 * change most likely to need an immediate, coordinated refresh with the
+	 * pages that load them, so it stays in {@link #REVALIDATE_ASSET_PATTERNS}.
 	 */
 	static final String[] SWR_ASSET_PATTERNS = {"/css/**", "/js/**", "/components/**"};
+
+	/**
+	 * Asset directories that, like the page shells, revalidate on every
+	 * navigation ("no-cache") so a change is picked up immediately. Without
+	 * an explicit policy these fell through to the auto-configured handler
+	 * with no Cache-Control at all, which browsers cache heuristically from
+	 * the (constant) Last-Modified for a very long time.
+	 */
+	static final String[] REVALIDATE_ASSET_PATTERNS = {"/vendor/**", "/lib/**", "/images/**", "/templates/**"};
+
+	/**
+	 * Content ETags keyed by resource identity. The production jar is built
+	 * reproducibly, so every entry reports the same fixed Last-Modified on
+	 * every build; a browser revalidating against that date would always be
+	 * told "not modified" and keep the previous build's file. The page,
+	 * hot-asset and revalidate handlers registered below therefore validate
+	 * on this content hash instead and do not emit Last-Modified at all
+	 * (/fonts/** is immutable by filename; /json-schemas/** and root files
+	 * such as /favicon.ico stay on the auto-configured handler).
+	 *
+	 * The tag is weak (W/"...") because Tomcat does not gzip a response
+	 * that carries a strong ETag; If-None-Match uses weak comparison, so
+	 * revalidation is unaffected. The key includes the file's own timestamp
+	 * and length so the dev profile's save-and-see source-tree location
+	 * rehashes an edited file; the packaged jar's entries never change.
+	 */
+	private static final ConcurrentMap<String, String> CONTENT_ETAGS = new ConcurrentHashMap<>();
 
 	private final Environment environment;
 	private final WebProperties webProperties;
@@ -71,6 +110,37 @@ public class ApplicationConfig implements WebMvcConfigurer {
 			: CacheControl.maxAge(5, TimeUnit.MINUTES).staleWhileRevalidate(1, TimeUnit.DAYS);
 	}
 
+	/**
+	 * Weak ETag of the resource content's SHA-256, or null (no ETag, hence
+	 * no conditional 304) if the resource cannot be read.
+	 */
+	static String contentEtag(Resource resource) {
+		try {
+			String key = resource.getURL() + "|" + resource.lastModified() + "|" + resource.contentLength();
+			return CONTENT_ETAGS.computeIfAbsent(key, k -> hashContent(resource));
+		} catch (IOException | IllegalStateException e) {
+			return null;
+		}
+	}
+
+	private static String hashContent(Resource resource) {
+		try (DigestInputStream in = new DigestInputStream(resource.getInputStream(), MessageDigest.getInstance("SHA-256"))) {
+			in.transferTo(OutputStream.nullOutputStream());
+			return "W/\"" + HexFormat.of().formatHex(in.getMessageDigest().digest()) + "\"";
+		} catch (IOException e) {
+			throw new IllegalStateException("Unable to hash static resource " + resource, e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	/** Content-ETag validation for a static handler; see {@link #CONTENT_ETAGS}. */
+	private static ResourceHandlerRegistration validateByContent(ResourceHandlerRegistration registration) {
+		return registration
+			.setUseLastModified(false)
+			.setEtagGenerator(ApplicationConfig::contentEtag);
+	}
+
 	// `/` and the legacy `/index.html` are owned by the auth-aware
 	// net.openid.conformance.ui.HomeController (anonymous -> /login.html,
 	// authenticated -> /plans.html). They used to be unconditional
@@ -107,22 +177,32 @@ public class ApplicationConfig implements WebMvcConfigurer {
 		boolean dev = environment.acceptsProfiles(Profiles.of("dev"));
 		String[] staticLocations = webProperties.getResources().getStaticLocations();
 
-		registry.addResourceHandler("/*.html")
-			.addResourceLocations(staticLocations)
+		validateByContent(registry.addResourceHandler("/*.html")
+			.addResourceLocations(staticLocations))
 			.setCacheControl(pageCacheControl(dev));
 
 		for (String pattern : SWR_ASSET_PATTERNS) {
-			// "/css/**" resolves relative to the css/ directory inside each
-			// static location, mirroring how the /fonts/** handler points at
-			// .../fonts/.
-			String subDir = pattern.substring(1, pattern.length() - "**".length());
-			String[] subLocations = Arrays.stream(staticLocations)
-				.map(location -> location.endsWith("/") ? location + subDir : location + "/" + subDir)
-				.toArray(String[]::new);
-			registry.addResourceHandler(pattern)
-				.addResourceLocations(subLocations)
+			validateByContent(registry.addResourceHandler(pattern)
+				.addResourceLocations(subLocations(staticLocations, pattern)))
 				.setCacheControl(assetCacheControl(dev));
 		}
+
+		for (String pattern : REVALIDATE_ASSET_PATTERNS) {
+			validateByContent(registry.addResourceHandler(pattern)
+				.addResourceLocations(subLocations(staticLocations, pattern)))
+				.setCacheControl(pageCacheControl(dev));
+		}
+	}
+
+	/**
+	 * "/css/**" resolves relative to the css/ directory inside each static
+	 * location, mirroring how the /fonts/** handler points at .../fonts/.
+	 */
+	private static String[] subLocations(String[] staticLocations, String pattern) {
+		String subDir = pattern.substring(1, pattern.length() - "**".length());
+		return Arrays.stream(staticLocations)
+			.map(location -> location.endsWith("/") ? location + subDir : location + "/" + subDir)
+			.toArray(String[]::new);
 	}
 
 	// The conformance suite serializes all JSON API responses with GSON: its domain objects are GSON/JsonObject
