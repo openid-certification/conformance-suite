@@ -1,4 +1,7 @@
 import { LitElement, html, nothing, css } from "lit";
+import { createRef, ref } from "lit/directives/ref.js";
+import { ifDefined } from "lit/directives/if-defined.js";
+import "./cts-modal.js";
 
 const UPLOAD_SIZE_LIMIT = 500 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
@@ -67,11 +70,41 @@ const STYLE_TEXT = css`
     background: var(--status-pass);
   }
   .oidf-image-upload__thumb {
+    /* contain, not cover: screenshots are mostly tall phone captures whose
+       content (e.g. an error message) sits at the top, so a centre crop
+       would show only blank wallpaper. */
+    display: block;
     width: 96px;
     height: 96px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: var(--radius-2);
     background: var(--bg-muted);
+  }
+  .oidf-image-upload__thumb-button {
+    /* Wraps an uploaded thumbnail so it can be opened full-size in the
+       lightbox; only adds hover and focus affordances. */
+    display: inline-block;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-2);
+    background: none;
+    cursor: pointer;
+    line-height: 0;
+    transition: border-color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-image-upload__thumb-button:hover {
+    border-color: var(--fg-link);
+  }
+  .oidf-image-upload__thumb-button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-image-upload__lightbox-image {
+    display: block;
+    max-width: 100%;
+    max-height: 70vh;
+    margin: 0 auto;
+    border-radius: var(--radius-2);
   }
   .oidf-image-upload__message {
     margin: 0;
@@ -393,6 +426,8 @@ class CtsImageUpload extends LitElement {
     _uploadedIds: { type: Object, state: true },
     _dragOver: { type: Object, state: true },
     _announce: { type: String, state: true },
+    _lightboxSrc: { state: true },
+    _lightboxAlt: { state: true },
   };
 
   constructor() {
@@ -408,6 +443,9 @@ class CtsImageUpload extends LitElement {
     this._uploadedIds = new Set();
     this._dragOver = new Set();
     this._announce = "";
+    this._imageLightboxRef = createRef();
+    this._lightboxSrc = "";
+    this._lightboxAlt = "";
     this._dragDepth = {};
     this._readerGeneration = {};
     _instanceSeq += 1;
@@ -855,9 +893,58 @@ class CtsImageUpload extends LitElement {
         >
           <cts-icon name="circle-check" size="16"></cts-icon>
         </span>
-        <img src="${image.url}" alt="${image.name}" class="oidf-image-upload__thumb imagePreview" />
+        <button
+          type="button"
+          class="oidf-image-upload__thumb-button"
+          aria-label="View full-size screenshot ${image.name}"
+          data-image-url="${image.url}"
+          data-image-name="${image.name}"
+          @click=${this._handleThumbClick}
+        >
+          <img
+            src="${image.url}"
+            alt="${image.name}"
+            class="oidf-image-upload__thumb imagePreview"
+          />
+        </button>
         <p class="oidf-image-upload__message">${image.name}</p>
       </div>
+    `;
+  }
+
+  /**
+   * Opens the shared lightbox showing the clicked uploaded screenshot
+   * scaled to fit.
+   * @param {MouseEvent} event - Click on an uploaded-image thumbnail button
+   * @returns {void}
+   */
+  _handleThumbClick(event) {
+    const { imageUrl, imageName } = /** @type {HTMLElement} */ (event.currentTarget).dataset;
+    if (!imageUrl) return;
+    this._lightboxSrc = imageUrl;
+    this._lightboxAlt = imageName || "Screenshot";
+    /** @type {any} */ (this._imageLightboxRef.value)?.show();
+  }
+
+  /**
+   * Renders the single shared screenshot lightbox for this uploader.
+   * @returns {unknown} A Lit template.
+   */
+  _renderImageLightbox() {
+    return html`
+      <cts-modal
+        ${ref(this._imageLightboxRef)}
+        id="${this._instanceId}-lightbox"
+        heading="Screenshot"
+        size="xl"
+        data-testid="image-lightbox"
+      >
+        <img
+          class="oidf-image-upload__lightbox-image"
+          src=${ifDefined(this._lightboxSrc || undefined)}
+          alt=${this._lightboxAlt || "Screenshot"}
+        />
+      </cts-modal>
     `;
   }
 
@@ -891,6 +978,7 @@ class CtsImageUpload extends LitElement {
         <div class="oidf-image-upload__sr-only" aria-live="polite" aria-atomic="true">
           ${this._announce}
         </div>
+        ${this._renderImageLightbox()}
       </div>
     `;
   }
