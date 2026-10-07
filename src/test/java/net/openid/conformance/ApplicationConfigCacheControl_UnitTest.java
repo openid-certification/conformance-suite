@@ -60,9 +60,12 @@ public class ApplicationConfigCacheControl_UnitTest {
 	@Test
 	public void vendor_is_deliberately_not_swr_cached() {
 		// Vendored library URLs are not versioned; bumps must take effect on
-		// the next navigation, so /vendor/** stays on Last-Modified
-		// revalidation. See the SWR_ASSET_PATTERNS comment before widening.
+		// the next navigation, so /vendor/** stays on per-navigation ETag
+		// revalidation (REVALIDATE_ASSET_PATTERNS). See the SWR_ASSET_PATTERNS
+		// comment before widening.
 		Assertions.assertFalse(hasSwrPattern("/vendor/lit/lit.js"));
 		Assertions.assertFalse(hasSwrPattern("/vendor/monaco-editor/vs/loader.js"));
+		Assertions.assertTrue(Arrays.stream(ApplicationConfig.REVALIDATE_ASSET_PATTERNS)
+			.anyMatch(pattern -> pathMatcher.match(pattern, "/vendor/lit/lit.js")));
 	}
 }
