@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -19,6 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.UnaryOperator;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +39,9 @@ public class FAPICIBAResourceResponse_UnitTest {
 	private String contentType = "application/json";
 	private int pendingResponses;
 	private int resourceCalls;
+	private final List<String> interactionIds = new ArrayList<>();
+	private final List<String> authDates = new ArrayList<>();
+	private UnaryOperator<String> interactionIdResponse = id -> id;
 
 	private static class ResourceModule extends FAPICIBAID1 {
 		private final List<Long> waits = new ArrayList<>();
@@ -101,8 +107,13 @@ public class FAPICIBAResourceResponse_UnitTest {
 					exchange.sendResponseHeaders(401, -1);
 					return;
 				}
-				exchange.getResponseHeaders().set("x-fapi-interaction-id",
-					exchange.getRequestHeaders().getFirst("x-fapi-interaction-id"));
+				String interactionId = exchange.getRequestHeaders().getFirst("x-fapi-interaction-id");
+				interactionIds.add(interactionId);
+				authDates.add(exchange.getRequestHeaders().getFirst("x-fapi-auth-date"));
+				String responseId = interactionIdResponse.apply(interactionId);
+				if (responseId != null) {
+					exchange.getResponseHeaders().set("x-fapi-interaction-id", responseId);
+				}
 				if (pendingResponses > 0) {
 					pendingResponses--;
 					exchange.sendResponseHeaders(202, -1);
@@ -132,6 +143,39 @@ public class FAPICIBAResourceResponse_UnitTest {
 	private void initialize(FAPICIBAServerProfileBehavior behavior) {
 		module = new ResourceModule();
 		module.initialize(behavior, "http://127.0.0.1:" + server.getAddress().getPort() + "/open-banking/resources/v3/resources");
+	}
+
+	@Test
+	public void brazilSendsDistinctInteractionIdsForBothClients() {
+		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
+		module.requestProtectedResource();
+		module.switchToSecondClient();
+		module.requestProtectedResource();
+
+		assertThat(resourceCalls).isEqualTo(2);
+		assertThat(interactionIds).hasSize(2).doesNotContainNull().doesNotHaveDuplicates();
+		for (String id : interactionIds) {
+			assertThat(UUID.fromString(id).version()).isEqualTo(4);
+		}
+		assertThat(authDates.getFirst()).isNotNull();
+		assertThat(authDates.getLast()).isNull();
+		assertThat(module.getResult()).isEqualTo(TestModule.Result.UNKNOWN);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@ValueSource(strings = {"not-a-uuid", "93bac548-d2de-4546-b106-880a5018460d"})
+	public void brazilRejectsInvalidSecondClientInteractionId(String responseId) {
+		initialize(new OpenBankingBrazilCibaServerProfileBehavior());
+		module.requestProtectedResource();
+		assertThat(module.getResult()).isEqualTo(TestModule.Result.UNKNOWN);
+
+		module.switchToSecondClient();
+		interactionIdResponse = id -> responseId;
+		module.requestProtectedResource();
+
+		assertThat(resourceCalls).isEqualTo(2);
+		assertThat(module.getResult()).isEqualTo(TestModule.Result.FAILED);
 	}
 
 	@ParameterizedTest
