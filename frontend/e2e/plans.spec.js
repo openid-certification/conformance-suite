@@ -1064,6 +1064,29 @@ test.describe("plans.html — drill-down filters", () => {
     expect(cleared.searchParams.get("variant.client_auth_type")).toBeNull();
   });
 
+  test("Sign in comes back to the filters as they are now, not as the page loaded", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupPlanStatusRoute(page, MOCK_PLAN_LIST, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html?public=true&family=OIDCC");
+    await expect(page.locator(CARD).first()).toBeVisible();
+
+    // Removing a chip rewrites the URL in place, with no navigation for the
+    // navbar to notice.
+    await page.locator("[data-testid='plan-filter-family'] span[role='button']").click();
+    await expect.poll(() => planRequests.length).toBe(2);
+    await expect(page).toHaveURL(/\/plans\.html\?public=true$/);
+
+    await page.locator("cts-navbar a.cts-nav-action", { hasText: "Sign in" }).click();
+    await expect(page).toHaveURL(
+      `/login.html?returnTo=${encodeURIComponent("/plans.html?public=true")}`,
+    );
+  });
+
   test("a filter that matches nothing says so and offers a way back to everything", async ({
     page,
   }) => {

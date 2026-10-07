@@ -37,6 +37,11 @@
                 loginPage.setAttribute("error", error);
             }
 
+            const returnTo = urlParams.get("returnTo");
+            if (returnTo) {
+                loginPage.setAttribute("return-to", returnTo);
+            }
+
             const logout = urlParams.get("logout");
             if (logout) {
                 loginPage.setAttribute("logout-message", "");

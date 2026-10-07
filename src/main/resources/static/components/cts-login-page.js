@@ -378,12 +378,15 @@ function injectStyles() {
  *   banner. Reflects the `logout-message` attribute.
  * @property {string} tokenAuthUrl - Optional URL loaded in a hidden iframe to
  *   exchange a token. Reflects the `token-auth-url` attribute.
+ * @property {string} returnTo - Page (path and query) to come back to after
+ *   signing in, passed on to the provider links; empty for the default.
  */
 class CtsLoginPage extends LitElement {
   static properties = {
     error: { type: String },
     logoutMessage: { type: Boolean, attribute: "logout-message" },
     tokenAuthUrl: { type: String, attribute: "token-auth-url" },
+    returnTo: { type: String, attribute: "return-to" },
   };
 
   constructor() {
@@ -391,6 +394,18 @@ class CtsLoginPage extends LitElement {
     this.error = "";
     this.logoutMessage = false;
     this.tokenAuthUrl = "";
+    this.returnTo = "";
+  }
+
+  /**
+   * @param {string} provider - The identity provider's registration id.
+   * @returns {string} The link that starts a login with it, carrying the page
+   *   to return to when there is one. The server accepts only one of the
+   *   suite's own pages and ignores anything else.
+   */
+  _providerHref(provider) {
+    const base = `/oauth2/authorization/${provider}`;
+    return this.returnTo ? `${base}?returnTo=${encodeURIComponent(this.returnTo)}` : base;
   }
 
   connectedCallback() {
@@ -481,13 +496,13 @@ class CtsLoginPage extends LitElement {
             <div class="oidf-login-providers">
               <a
                 class="oidf-btn oidf-btn-secondary oidf-btn-lg"
-                href="/oauth2/authorization/google"
+                href=${this._providerHref("google")}
                 role="button"
                 >${GOOGLE_BRAND_SVG} Proceed with Google</a
               >
               <a
                 class="oidf-btn oidf-btn-secondary oidf-btn-lg"
-                href="/oauth2/authorization/gitlab"
+                href=${this._providerHref("gitlab")}
                 role="button"
                 >${GITLAB_BRAND_SVG} Proceed with GitLab</a
               >

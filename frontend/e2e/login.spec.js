@@ -144,4 +144,50 @@ test.describe("login.html — Login page", () => {
     // resolves the anonymous state synchronously, so this is a self-link.
     await expect(navbar.locator("a.cts-brand")).toHaveAttribute("href", "login.html");
   });
+
+  test("the provider buttons carry the page to return to after signing in", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLoginRoutes(page);
+
+    const returnTo = "/plan-detail.html?public=true&plan=cGg1bfTQntq0x";
+    await page.goto(`/login.html?returnTo=${encodeURIComponent(returnTo)}`);
+
+    const loginPage = page.locator("cts-login-page");
+    await expect(loginPage.locator("a.oidf-btn").first()).toHaveAttribute(
+      "href",
+      `/oauth2/authorization/google?returnTo=${encodeURIComponent(returnTo)}`,
+    );
+    await expect(loginPage.locator("a.oidf-btn").nth(1)).toHaveAttribute(
+      "href",
+      `/oauth2/authorization/gitlab?returnTo=${encodeURIComponent(returnTo)}`,
+    );
+    // On the login page itself, Sign in needs no way back.
+    await expect(page.locator("cts-navbar a.cts-nav-action")).toHaveAttribute("href", "login.html");
+  });
+
+  test("Sign in on a public plan page comes back to that plan", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLoginRoutes(page);
+    await page.route("**/api/plan/plan-abc-123*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          _id: "plan-abc-123",
+          planName: "oidcc-basic-certification-test-plan",
+          publish: "everything",
+          modules: [],
+        }),
+      }),
+    );
+
+    await page.goto("/plan-detail.html?public=true&plan=plan-abc-123");
+
+    const signIn = page.locator("cts-navbar a.cts-nav-action");
+    await expect(signIn).toHaveText("Sign in");
+    await expect(signIn).toHaveAttribute(
+      "href",
+      `login.html?returnTo=${encodeURIComponent("/plan-detail.html?public=true&plan=plan-abc-123")}`,
+    );
+  });
 });

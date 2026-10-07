@@ -51,7 +51,6 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
@@ -67,7 +66,6 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -286,15 +284,7 @@ class WebSecurityOidcLoginConfig {
 				.authenticated();
 		}); //
 
-		AuthenticationFailureHandler loginFailureHandler = (request, response, exception) -> {
-			String newUrl = new DefaultUriBuilderFactory()
-				.uriString("/login.html")
-				.queryParam("error", exception.getMessage())
-				.build()
-				.toString();
-
-			response.sendRedirect(newUrl);
-		};
+		AuthenticationFailureHandler loginFailureHandler = new LoginReturnTo.FailureHandler();
 
 		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+$");
 		http.oneTimeTokenLogin(ott -> {
@@ -333,6 +323,9 @@ class WebSecurityOidcLoginConfig {
 				codeGrant.authorizationRequestResolver(oauth2AuthRequestResolver);
 			});
 		});
+
+		// Remember, as a login starts, which suite page to come back to once it completes.
+		http.addFilterBefore(new LoginReturnTo.RememberFilter(), OAuth2AuthorizationRequestRedirectFilter.class);
 
 		http.oauth2Login(oauth2Login -> {
 			oauth2Login.successHandler(oidcLoginSuccessHandler());
@@ -441,8 +434,9 @@ class WebSecurityOidcLoginConfig {
 	}
 
 	/**
-	 * Returns the user to the page they asked for before logging in (the
-	 * oauth2Login default) and evicts the browser's cache for this origin
+	 * Returns the user to the page the login was started from, or else the
+	 * page they asked for before logging in (see {@link LoginReturnTo}),
+	 * and evicts the browser's cache for this origin
 	 * with {@code Clear-Site-Data: "cache"}. Static assets under /vendor,
 	 * /lib, /images and /templates were once served without Cache-Control
 	 * and with a fixed 1980 Last-Modified, which browsers treat as fresh for
@@ -452,7 +446,7 @@ class WebSecurityOidcLoginConfig {
 	 * the chain enforces behind the TLS proxy.
 	 */
 	static AuthenticationSuccessHandler oidcLoginSuccessHandler() {
-		SavedRequestAwareAuthenticationSuccessHandler savedRequestRedirect = new SavedRequestAwareAuthenticationSuccessHandler();
+		LoginReturnTo.SuccessHandler savedRequestRedirect = new LoginReturnTo.SuccessHandler();
 		ClearSiteDataHeaderWriter clearCache = new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE);
 		return (request, response, authentication) -> {
 			clearCache.writeHeaders(request, response);
