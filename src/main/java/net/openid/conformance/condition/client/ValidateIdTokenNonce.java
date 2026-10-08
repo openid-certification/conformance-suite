@@ -14,7 +14,11 @@ public class ValidateIdTokenNonce extends AbstractCondition {
 
 		String expectedNonce = env.getString("nonce");
 
-		if (incomingNonce == null && expectedNonce == null) {
+		if (expectedNonce == null) {
+			if (incomingNonce != null) {
+				throw error("id_token contains a nonce claim, but no nonce was sent in the authorization request.",
+					args("actual", incomingNonce));
+			}
 			logSuccess("nonce is not in id_token, as expected.");
 			return env;
 		}
