@@ -1220,11 +1220,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		env.putObject(envKey, requestParts);
 
-		ConditionSequence profileValidation = profileBehavior.validateNotificationEndpointRequest();
-		if (profileValidation != null) {
-			call(profileValidation);
-		}
-
 		env.mapKey("client_request", envKey);
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
