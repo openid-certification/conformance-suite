@@ -123,6 +123,14 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	@Override
+	public String[] getParClientIdRequirements() {
+		if (module.clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+			return new String[] {"PAR-2", "OAuth2-ATCA07-6.4"};
+		}
+		return super.getParClientIdRequirements();
+	}
+
+	@Override
 	public ConditionSequence additionalServerConfiguration() {
 		Environment env = module.getEnv();
 		boolean clientAttestation = module.clientAuthType == ClientAuthType.CLIENT_ATTESTATION;

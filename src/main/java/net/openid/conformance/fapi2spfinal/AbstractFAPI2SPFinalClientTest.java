@@ -1183,6 +1183,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
+		// later client_id checks see the request object's value, not the PAR form's
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE,
+			profileBehavior.getParClientIdRequirements());
+
 		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
