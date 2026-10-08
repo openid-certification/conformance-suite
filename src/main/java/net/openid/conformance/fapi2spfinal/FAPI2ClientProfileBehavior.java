@@ -11,6 +11,7 @@ import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.TestFailureException;
 
 import java.util.function.Function;
 
@@ -300,6 +301,21 @@ public class FAPI2ClientProfileBehavior {
 	}
 
 	// --- PAR endpoint hooks ---
+
+	/**
+	 * Requirements for the check that a {@code client_id} in the PAR form matches the
+	 * authenticated client, per client authentication method. VCI overrides to add
+	 * {@code client_attestation}, which no other profile supports.
+	 */
+	public String[] getParClientIdRequirements() {
+		return switch (module.clientAuthType) {
+			case PRIVATE_KEY_JWT -> new String[] {"PAR-2", "RFC7521-4.2"};
+			case MTLS -> new String[] {"PAR-2", "PAR-3", "RFC8705-2"};
+			default -> throw new TestFailureException(module.getId(), "The '" + module.clientAuthType +
+				"' Client Authentication Type cannot be used with the '" + module.profile +
+				"' FAPI Profile; select a different Client Authentication Type or FAPI Profile.");
+		};
+	}
 
 	/** Validate FAPI interaction id on the PAR request (ConnectID only). */
 	public ConditionSequence validateParRequestInteractionId() {
