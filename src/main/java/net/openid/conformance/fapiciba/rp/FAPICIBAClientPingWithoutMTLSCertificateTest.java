@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 	displayName = "FAPI-CIBA-ID1: Client test - missing mutual TLS certificate in client notification request",
 	summary = "The client receives a ping notification without a mutual TLS client certificate. " +
 		"The client must reject the notification at the TLS or HTTP layer. An ambiguous connection closure produces a warning. " +
+		"After notification rejection is validated, further token polls receive invalid_grant and are not logged. " +
 		"Controlled poll fallback is tested separately by the ping-mode poll-fallback test.",
 	profile = "FAPI-CIBA-ID1"
 )
@@ -31,6 +32,10 @@ public class FAPICIBAClientPingWithoutMTLSCertificateTest extends AbstractFAPICI
 		JsonObject requestParts) {
 		if (path.equals("token")) {
 			if (setStatusRunningIfWaiting()) {
+				if (clientPingResponseValidated()) {
+					setStatus(Status.WAITING);
+					return completedTokenResponse();
+				}
 				return handleMtlsRequest(path, requestParts);
 			}
 			if (getStatus() == Status.FINISHED) {
@@ -44,6 +49,10 @@ public class FAPICIBAClientPingWithoutMTLSCertificateTest extends AbstractFAPICI
 	protected Object tokenEndpoint(String requestId) {
 		// Finalization can also run after the incoming TLS checks release the test lock.
 		if (setStatusRunningIfWaiting()) {
+			if (clientPingResponseValidated()) {
+				setStatus(Status.WAITING);
+				return completedTokenResponse();
+			}
 			return processTokenEndpointRequest(requestId);
 		}
 		if (getStatus() == Status.FINISHED) {
