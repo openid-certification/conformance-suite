@@ -205,8 +205,8 @@ const STYLE_TEXT = css`
   cts-log-viewer .logEntries:empty {
     display: none;
   }
-  /* Shared screenshot lightbox — scales large screenshots
-     down to fit rather than cropping them like the row thumbnail does. */
+  /* Shared screenshot lightbox — shows a screenshot larger than the
+     96px row thumbnail, scaled down to fit the viewport. */
   cts-log-viewer .lightboxImage {
     display: block;
     max-width: 100%;

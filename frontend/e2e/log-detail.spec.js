@@ -356,6 +356,8 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // the row is ever expanded.
     await expect(entry.locator("img.logUploadedImage")).toHaveCount(1);
     await expect(entry.locator("img.logUploadedImage")).toBeVisible();
+    // Letterboxed, not centre-cropped, so a tall screenshot stays readable.
+    await expect(entry.locator("img.logUploadedImage")).toHaveCSS("object-fit", "contain");
 
     // Expand the More panel.
     await entry.locator(".logDisclosure").click();

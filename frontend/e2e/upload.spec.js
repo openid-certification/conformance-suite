@@ -3,6 +3,7 @@ import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpe
 import {
   MOCK_IMAGES_PENDING,
   MOCK_IMAGES_EMPTY,
+  MOCK_IMAGES_EXISTING,
   MOCK_UPLOAD_TEST_INFO,
   MOCK_UPLOAD_TEST_INFO_LONG_TOKEN,
 } from "./fixtures/upload-data.js";
@@ -134,6 +135,38 @@ test.describe("upload.html — Image Uploader", () => {
 
     // Exactly one description-input on the page (only the editable slot has one).
     await expect(uploader.locator(".oidf-image-upload__description-input")).toHaveCount(1);
+  });
+
+  test("uploaded screenshot thumbnail is letterboxed and opens a full-size lightbox", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EXISTING,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const existing = page.locator('cts-image-upload [data-testid="existing-image"]');
+    await expect(existing).toHaveCount(1);
+
+    // contain, not cover: a tall phone screenshot must be shown whole,
+    // not cropped to its (usually blank) centre.
+    await expect(existing.locator("img.oidf-image-upload__thumb")).toHaveCSS(
+      "object-fit",
+      "contain",
+    );
+
+    await existing.locator("button.oidf-image-upload__thumb-button").click();
+    const lightbox = page.locator('cts-image-upload cts-modal[data-testid="image-lightbox"]');
+    await expect(lightbox).toHaveAttribute("open", "");
+    await expect(lightbox.getByRole("dialog", { name: "Screenshot" })).toBeVisible();
+    await expect(lightbox.locator("img.oidf-image-upload__lightbox-image")).toHaveAttribute(
+      "src",
+      MOCK_IMAGES_EXISTING[0].img,
+    );
   });
 
   test("page-head and test info render from /api/info", async ({ page }) => {

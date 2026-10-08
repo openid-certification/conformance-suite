@@ -16,6 +16,15 @@ export const MOCK_IMAGES_PENDING = [
 
 export const MOCK_IMAGES_EMPTY = [];
 
+/** One already-uploaded screenshot, as a 1×1 PNG data URL. */
+export const MOCK_IMAGES_EXISTING = [
+  {
+    _id: "img-existing-001",
+    src: "AddScreenshotPlaceholder",
+    img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  },
+];
+
 /** GET /api/info/:testId response for the upload page header. */
 export const MOCK_UPLOAD_TEST_INFO = {
   _id: "test-upload-001",

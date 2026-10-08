@@ -14,10 +14,23 @@ const MOCK_PENDING_IMAGES = [
   { name: "screenshot-consent", description: "Screenshot of the consent page" },
 ];
 
+// A tall phone-style screenshot whose only content is at the top, so the
+// story shows the thumbnail letterboxing the whole image rather than
+// cropping to its blank centre.
+const TALL_SCREENSHOT_URL =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="1040">' +
+      '<rect width="480" height="1040" fill="#2e7d32"/>' +
+      '<rect x="24" y="40" width="432" height="120" rx="12" fill="#fff"/>' +
+      '<text x="240" y="112" font-family="sans-serif" font-size="36" text-anchor="middle">' +
+      "Something went wrong</text></svg>",
+  );
+
 /** @type {{ name: string; url: string }[]} */
 const MOCK_EXISTING_IMAGES = [
   { name: "screenshot-result", url: "images/placeholder.jpg" },
-  { name: "screenshot-token", url: "images/placeholder.jpg" },
+  { name: "screenshot-token", url: TALL_SCREENSHOT_URL },
 ];
 
 // A valid 1x1 transparent PNG. Stories prepend these bytes so previews
@@ -356,9 +369,20 @@ export const ExistingImages = {
 
       const imgs = canvasElement.querySelectorAll('[data-testid="existing-image"] img');
       expect(imgs.length).toBe(2);
+      expect(imgs[0].getAttribute("src")).toBe("images/placeholder.jpg");
+      expect(imgs[1].getAttribute("src")).toBe(TALL_SCREENSHOT_URL);
       for (const img of imgs) {
-        expect(img.getAttribute("src")).toBe("images/placeholder.jpg");
+        expect(getComputedStyle(img).objectFit).toBe("contain");
       }
+    });
+
+    await step("clicking a thumbnail opens it full-size in the lightbox", async () => {
+      canvas.getByRole("button", { name: "View full-size screenshot screenshot-token" }).click();
+      const lightbox = canvasElement.querySelector('cts-modal[data-testid="image-lightbox"]');
+      await waitFor(() => expect(lightbox.hasAttribute("open")).toBe(true));
+      expect(lightbox.querySelector("img").getAttribute("src")).toBe(TALL_SCREENSHOT_URL);
+      /** @type {any} */ (lightbox).hide();
+      await waitFor(() => expect(lightbox.hasAttribute("open")).toBe(false));
     });
 
     await step('"All images uploaded" status message shown', async () => {
