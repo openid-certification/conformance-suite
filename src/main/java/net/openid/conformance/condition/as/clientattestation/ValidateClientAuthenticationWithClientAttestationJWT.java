@@ -14,6 +14,16 @@ public class ValidateClientAuthenticationWithClientAttestationJWT extends Abstra
 		// get all of the remaining problems reported in one run, rather than one per run. The conditions below
 		// skip themselves when there is no attestation at all to check.
 		callAndContinueOnFailure(ExtractClientAttestationFromRequest.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
+		call(condition(ValidateClientAttestationTyp.class)
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirements("OAuth2-ATCA07-5.1")
+			.skipIfObjectsMissing(CLIENT_ATTESTATION_OBJECTS)
+			.dontStopOnFailure());
+		call(condition(ValidateClientAttestationPopTyp.class)
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirements("OAuth2-ATCA07-5.2")
+			.skipIfObjectsMissing(CLIENT_ATTESTATION_OBJECTS)
+			.dontStopOnFailure());
 		// Validate the client attestation JWT signature using x5c public key
 		call(condition(ValidateClientAttestationSignature.class)
 			.onFail(Condition.ConditionResult.FAILURE)
