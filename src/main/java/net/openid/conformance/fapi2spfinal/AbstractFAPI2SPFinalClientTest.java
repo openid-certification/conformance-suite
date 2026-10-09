@@ -1366,7 +1366,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
-		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
+		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE,
+			profileBehavior.getTokenEndpointClientIdRequirements());
 
 		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
