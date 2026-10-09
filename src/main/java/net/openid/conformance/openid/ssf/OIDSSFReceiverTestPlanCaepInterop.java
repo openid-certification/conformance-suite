@@ -14,7 +14,7 @@ import java.util.List;
 	shortName = "Receiver (CAEP Interop Profile)",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID Shared Signals Framework 1.0 Final/CAEP Interop Profile: Receiver test - alpha tests (not currently part of certification program - please email certification@oidf.org)",
+	displayName = "OpenID Shared Signals Framework 1.0 Final/CAEP Interop Profile: Receiver test (alpha version - not currently part of certification program - please email certification@oidf.org)",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Receiver according to the CAEP Interop Profile.",
 	profile = TestPlan.ProfileNames.ssftest,
 	specFamily = TestPlan.SpecFamilyNames.ssf

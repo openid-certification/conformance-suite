@@ -8,7 +8,7 @@ import net.openid.conformance.plan.TestPlan;
 	shortName = "Batch evaluations",
 	certifiable = false,
 	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for batch evaluations - alpha tests (not currently part of certification program)",
+	displayName = "AuthZEN 1.0: PDP server test for batch evaluations (alpha version - not currently part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {

@@ -8,7 +8,7 @@ import net.openid.conformance.plan.TestPlan;
 	shortName = "Entity joined to test federation (RP)",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID Federation: Entity joined to test federation RP test - alpha tests (not currently part of certification program - please email certification@oidf.org)",
+	displayName = "OpenID Federation: Entity joined to test federation RP test (alpha version - not currently part of certification program - please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	specFamily = TestPlan.SpecFamilyNames.federation,
 	testModules = {

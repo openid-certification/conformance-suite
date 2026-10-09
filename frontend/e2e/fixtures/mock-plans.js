@@ -517,8 +517,8 @@ export const MOCK_GROUPED_PLANS = /** @type {Array<[string, string, string, bool
     planName,
     displayName: haip
       ? `OpenID for Verifiable Presentations ${specVersion}/HAIP: Test a ${entity}`
-      : `OpenID for Verifiable Presentations ${specVersion}: Test a ${entity} - alpha tests ` +
-        `(not part of certification program - use the HAIP ${entity} plan to certify)`,
+      : `OpenID for Verifiable Presentations ${specVersion}: Test a ${entity} ` +
+        `(alpha version - not part of certification program - use the HAIP ${entity} plan to certify)`,
     shortName,
     certifiable: haip,
     alpha: !haip,
