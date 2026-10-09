@@ -311,10 +311,14 @@ public class FAPI2ClientProfileBehavior {
 		return switch (module.clientAuthType) {
 			case PRIVATE_KEY_JWT -> new String[] {"PAR-2", "RFC7521-4.2"};
 			case MTLS -> new String[] {"PAR-2", "PAR-3", "RFC8705-2"};
-			default -> throw new TestFailureException(module.getId(), "The '" + module.clientAuthType +
-				"' Client Authentication Type cannot be used with the '" + module.profile +
-				"' FAPI Profile; select a different Client Authentication Type or FAPI Profile.");
+			default -> throw unsupportedClientAuthType();
 		};
+	}
+
+	protected TestFailureException unsupportedClientAuthType() {
+		return new TestFailureException(module.getId(), "The '" + module.clientAuthType +
+			"' Client Authentication Type cannot be used with the '" + module.profile +
+			"' FAPI Profile; select a different Client Authentication Type or FAPI Profile.");
 	}
 
 	/** Validate FAPI interaction id on the PAR request (ConnectID only). */
@@ -323,6 +327,19 @@ public class FAPI2ClientProfileBehavior {
 	}
 
 	// --- Token endpoint hooks ---
+
+	/**
+	 * Requirements for the check that a {@code client_id} in the token request matches the
+	 * authenticated client, per client authentication method. VCI overrides to add
+	 * {@code client_attestation}.
+	 */
+	public String[] getTokenEndpointClientIdRequirements() {
+		return switch (module.clientAuthType) {
+			case PRIVATE_KEY_JWT -> new String[] {"RFC7521-4.2"};
+			case MTLS -> new String[] {"RFC8705-2"};
+			default -> throw unsupportedClientAuthType();
+		};
+	}
 
 	/** Validate FAPI interaction id on the token request (ConnectID only). */
 	public ConditionSequence validateTokenRequestInteractionId() {
