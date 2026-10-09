@@ -9,7 +9,7 @@ import java.util.List;
 	shortName = "1.0 Final",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final: Test an issuer - alpha tests (not part of certification program - use the HAIP issuer plan to certify)",
+	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final: Test an issuer (alpha version - not part of certification program - use the HAIP issuer plan to certify)",
 	profile = TestPlan.ProfileNames.vciissuer,
 	specFamily = TestPlan.SpecFamilyNames.oid4vci
 )

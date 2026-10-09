@@ -13,7 +13,7 @@ import java.util.Map;
 	shortName = "ID3 (plus draft 24)",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a wallet - alpha tests (not part of certification program - use the OID4VP 1.0 Final HAIP wallet plan to certify)",
+	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a wallet (alpha version - not part of certification program - use the OID4VP 1.0 Final HAIP wallet plan to certify)",
 	profile = TestPlan.ProfileNames.wallettest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,
 	specVersion = TestPlan.SpecVersionNames.oid4vpId3

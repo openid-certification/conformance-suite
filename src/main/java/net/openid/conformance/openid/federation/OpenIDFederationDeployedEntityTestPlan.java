@@ -8,7 +8,7 @@ import net.openid.conformance.plan.TestPlan;
 	shortName = "Deployed federation entity",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID Federation: Deployed federation entity test - alpha tests (not currently part of certification program - please email certification@oidf.org)",
+	displayName = "OpenID Federation: Deployed federation entity test (alpha version - not currently part of certification program - please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	specFamily = TestPlan.SpecFamilyNames.federation,
 	testModules = {

@@ -11,7 +11,7 @@ import java.util.List;
 	shortName = "Transmitter",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter test - alpha tests (not part of certification program - use the CAEP Interop transmitter plan to certify)",
+	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter test (alpha version - not part of certification program - use the CAEP Interop transmitter plan to certify)",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Transmitter.",
 	profile = TestPlan.ProfileNames.ssftest,
 	specFamily = TestPlan.SpecFamilyNames.ssf

@@ -8,7 +8,7 @@ import net.openid.conformance.plan.TestPlan;
 	shortName = "Action search",
 	certifiable = false,
 	alpha = true,
-	displayName = "AuthZEN 1.0: PDP server test for Action Search - alpha tests (not currently part of certification program)",
+	displayName = "AuthZEN 1.0: PDP server test for Action Search (alpha version - not currently part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {

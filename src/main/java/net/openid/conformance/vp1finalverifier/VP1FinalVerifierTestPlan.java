@@ -11,7 +11,7 @@ import java.util.List;
 	shortName = "1.0 Final",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a verifier - alpha tests (not part of certification program - use the HAIP verifier plan to certify)",
+	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a verifier (alpha version - not part of certification program - use the HAIP verifier plan to certify)",
 	profile = TestPlan.ProfileNames.verifierTest,
 	specFamily = TestPlan.SpecFamilyNames.oid4vp,
 	specVersion = TestPlan.SpecVersionNames.oid4vp1Final

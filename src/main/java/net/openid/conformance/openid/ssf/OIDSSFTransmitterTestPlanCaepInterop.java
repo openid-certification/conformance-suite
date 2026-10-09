@@ -13,7 +13,7 @@ import java.util.List;
 	shortName = "Transmitter (CAEP Interop Profile)",
 	certifiable = false,
 	alpha = true,
-	displayName = "OpenID Shared Signals Framework 1.0 Final/CAEP Interop Profile: Transmitter - alpha tests (not currently part of certification program - please email certification@oidf.org)",
+	displayName = "OpenID Shared Signals Framework 1.0 Final/CAEP Interop Profile: Transmitter (alpha version - not currently part of certification program - please email certification@oidf.org)",
 	summary = """
 		Collection of tests to verify the behavior of an OpenID Shared Signals Framework Transmitter
 		against the CAEP Interop Profile 1.0.
