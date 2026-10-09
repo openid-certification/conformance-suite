@@ -117,8 +117,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	public ConditionSequence validateAuthorizationRequestScope() {
 		// VCI requested scopes correspond to credential_configuration_id values from the
 		// credential issuer metadata (e.g. org.iso.18013.5.1.mDL), not the test's
-		// client.scope. Skip the strict scope-equality check; AbstractVCIWalletTest
-		// does the same in its checkRequestedScopes() override.
+		// client.scope, so the strict scope-equality check does not apply. The VCI
+		// wallet modules validate the scope in AbstractVCIWalletTest.checkRequestedScopes().
 		return null;
 	}
 
