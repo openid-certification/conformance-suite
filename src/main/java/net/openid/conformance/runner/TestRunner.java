@@ -830,6 +830,8 @@ public class TestRunner implements DataUtils {
 		module.setTestStatusWaiterService(testStatusWaiterService);
 		module.setServerSettingsReader(serverSettingsReader);
 
+		browser.setPlaceholderFilledListener(module::placeholderFilled);
+
 		// pass in all the components for this test module to execute
 		module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);
 

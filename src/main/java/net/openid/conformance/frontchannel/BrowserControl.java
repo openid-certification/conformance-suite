@@ -123,6 +123,9 @@ public class BrowserControl implements DataUtils {
 
 	private ImageService imageService;
 
+	// Notifies the test module that a placeholder was filled, so it can finish without waiting for its next check.
+	private Runnable placeholderFilledListener = () -> {};
+
 	private TestInstanceEventLog eventLog;
 
 	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
@@ -977,6 +980,10 @@ public class BrowserControl implements DataUtils {
 		return visitedUrlsWithMethod;
 	}
 
+	public void setPlaceholderFilledListener(Runnable placeholderFilledListener) {
+		this.placeholderFilledListener = placeholderFilledListener;
+	}
+
 	public boolean showQrCodes() {
 		return this.showQrCodes;
 	}
@@ -1013,6 +1020,8 @@ public class BrowserControl implements DataUtils {
 			// no remaining placeholders
 			eventLog.log("BROWSER", args("msg", "All placeholders filled by scripted browser"));
 		}
+
+		placeholderFilledListener.run();
 	}
 
 	/**
