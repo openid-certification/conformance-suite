@@ -10,8 +10,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "OID4VP-1.0-FINAL: Request fewer claims than the wallet has available",
 	summary = """
 		Sends a DCQL query with one fewer claim than configured, testing that the wallet handles \
-		a subset of available claims. The test checks data minimization — wallets should ideally only \
-		disclose the claims that were requested, not additional ones. \
+		a subset of available claims. The wallet must disclose only the requested claims: disclosing \
+		any other selectively disclosable claim fails the test (OID4VP 1.0 section 6.4.1). \
 		The DCQL configuration must contain at least 2 claims.""",
 	profile = "OID4VP-1FINAL"
 )

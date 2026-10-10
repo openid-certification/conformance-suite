@@ -10,11 +10,11 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
  * proof-of-possession JWTs with invalid signatures.
  * <p>
  * This test invalidates the signature on the client attestation pop JWT and expects the
- * authorization server to respond with an invalid_client error — at the PAR endpoint for the
- * authorization code grant, or at the token endpoint for the pre-authorized code grant.
+ * authorization server to respond with an invalid_client, invalid_request or
+ * invalid_client_attestation error — at the PAR endpoint for the authorization code grant, or
+ * at the token endpoint for the pre-authorized code grant.
  * <p>
- * Note: This test only runs when client_auth_type=client_attestation is selected.
- * If a different client authentication method is used, the test skips.
+ * This test is only applicable when client_auth_type=client_attestation is selected.
  *
  * @see <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth">OAuth 2.0 Attestation-Based Client Authentication</a>
  */
@@ -27,9 +27,8 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 		client attestation pop JWT where the signature has been modified to be invalid — to \
 		the PAR endpoint for the authorization code grant, or to the token endpoint for the \
 		pre-authorized code grant (which does not use PAR). \
-		The authorization server must reject this request with an invalid_client error. \
-		Note: This test requires client_auth_type=client_attestation variant. \
-		If a different client authentication method is used, the test will be skipped.""",
+		The authorization server must reject this request with an invalid_client, \
+		invalid_request, or invalid_client_attestation error.""",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends AbstractVCIIssuerClientAttestationNegativeTest {

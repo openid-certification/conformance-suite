@@ -13,8 +13,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oid4vp-1final-wallet-negative-test-missing-nonce",
 	displayName = "OID4VP-1.0-FINAL: Authorization request without nonce",
 	summary = """
-		Sends an authorization request without a nonce parameter. The nonce is required for key binding JWT \
-		verification. The wallet should either return an error response (normally 'invalid_request', as defined \
+		Sends an authorization request without a nonce parameter. The nonce is required, as it binds the \
+		presentation to the request (in the Key Binding JWT for SD-JWT VC, in the session transcript for \
+		mdoc). The wallet should either return an error response (normally 'invalid_request', as defined \
 		by RFC6749 for a missing required parameter), or reject the request and display an error, a screenshot of \
 		which must be uploaded.""",
 	profile = "OID4VP-1FINAL"

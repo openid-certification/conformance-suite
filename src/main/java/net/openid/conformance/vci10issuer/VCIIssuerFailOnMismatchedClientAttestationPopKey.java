@@ -15,7 +15,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceCli
  * the attested key. The rejection is expected at the PAR endpoint for the authorization code
  * grant, or at the token endpoint for the pre-authorized code grant.
  * <p>
- * Note: This test only runs when client_auth_type=client_attestation is selected.
+ * This test is only applicable when client_auth_type=client_attestation is selected.
  *
  * @see <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-07#section-5.2">OAuth2-ATCA Section 5.2</a>
  */
@@ -29,9 +29,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceCli
 		from the attested key. The request is sent to the PAR endpoint for the authorization \
 		code grant, or to the token endpoint for the pre-authorized code grant (which does \
 		not use PAR). The authorization server must reject this request with an \
-		invalid_client error. \
-		Note: This test requires client_auth_type=client_attestation variant. \
-		If a different client authentication method is used, the test will be skipped.""",
+		invalid_client, invalid_request, or invalid_client_attestation error.""",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends AbstractVCIIssuerClientAttestationNegativeTest {

@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 		Depending on the test configuration the credential may be:
 		* SD-JWT VC credential with a vct of urn:eudi:pid:1 as defined in ARF 1.8 ( https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#5-sd-jwt-vc-based-encoding-of-pid ).
-		* An mdl as per ISO 18013-5
+		* An mdoc of the doctype the DCQL query requests: an mDL (ISO 18013-5), a Photo ID (ISO/IEC TS 23220-4) or an EU PID. No other document types are supported.
 
 		The DCQL query must request only a single credential.
 

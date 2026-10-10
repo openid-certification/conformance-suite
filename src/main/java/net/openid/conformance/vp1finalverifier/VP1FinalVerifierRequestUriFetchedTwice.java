@@ -11,8 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		Final does not require request_uri to be single-use, so a wallet may re-fetch the Request \
 		Object (for example after a retry, a UI reload, or background re-validation). After the normal \
 		first fetch, this test fetches and processes the request_uri a second time and expects the \
-		verifier to serve the Request Object again. The test is not applicable when the verifier sends \
-		the authorization request by value (request_method=url_query).""",
+		verifier to serve the Request Object again.""",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
 		"credential.signing_jwk"
