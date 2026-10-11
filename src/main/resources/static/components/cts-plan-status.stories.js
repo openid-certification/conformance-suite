@@ -534,12 +534,12 @@ export const LogReadonlyNonNavigating = {
 };
 
 // href-driven navigability models the published public log view: the page
-// supplied an `href` for the two reachable siblings (their /api/info fan-out
-// returned 200) and omitted it for the unreachable one (a 404 — an unpublished
-// re-run). Every segment is the SAME `<a>`; href presence alone toggles
-// navigation, so the reachable ones are real links and the unreachable one is an
-// inert `<a role="img">`. The "you are here" marker still renders, and only the
-// href-bearing anchors carry the pointer affordance.
+// supplied an `href` for the two siblings whose status the public plan revealed
+// and omitted it for the unreachable one (an unpublished re-run, which the
+// public plan says nothing about). Every segment is the SAME `<a>`; href
+// presence alone toggles navigation, so the reachable ones are real links and
+// the unreachable one is an inert `<a role="img">`. The "you are here" marker
+// still renders, and only the href-bearing anchors carry the pointer affordance.
 export const LogHrefDrivenNavigation = {
   render: () => html`
     <cts-plan-status
@@ -562,8 +562,8 @@ export const LogHrefDrivenNavigation = {
           _statusResolved: true,
           href: "/log-detail.html?log=lb2&public=true",
         },
-        // Unreachable sibling (its fan-out returned 404): no `href`, so it stays
-        // an inert anchor.
+        // Unreachable sibling (the public plan reveals no status for it): no
+        // `href`, so it stays an inert anchor.
         {
           testModule: "log-m3",
           instances: ["lc"],
@@ -685,8 +685,8 @@ export const LogSegmentsAreLinks = {
 };
 
 // R4 regression guard: the WHOLE point of the anchor migration is that a log
-// segment is ONE element for its life — when navigability flips (the public
-// fan-out resolves and the page sets href), the same DOM node gains an href
+// segment is ONE element for its life — when navigability flips (the page
+// learns the sibling is reachable and sets href), the same DOM node gains an href
 // rather than being replaced. A swap would orphan any cts-tooltip wrapping it.
 export const LogSegmentStableAcrossNavigabilityFlip = {
   render: () => html`
@@ -719,7 +719,8 @@ export const LogSegmentStableAcrossNavigabilityFlip = {
     });
 
     await step("after the page sets href, the SAME node becomes navigable", async () => {
-      // Mimic the fan-out resolving: reassign modules with the href set.
+      // Mimic the page learning the sibling is reachable: reassign modules with
+      // the href set.
       host.modules = [
         {
           testModule: "flip-m",
