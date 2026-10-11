@@ -5,8 +5,10 @@ import net.openid.conformance.testmodule.Environment;
 
 public class ValidateClientAttestationTyp extends AbstractValidateClientAttestationJwtTyp {
 
+	public static final String EXPECTED_TYP = "oauth-client-attestation+jwt";
+
 	public ValidateClientAttestationTyp() {
-		super("client_attestation_object", "oauth-client-attestation+jwt", "Client attestation JWT");
+		super("client_attestation_object", EXPECTED_TYP, "Client attestation JWT");
 	}
 
 	@Override
