@@ -2,11 +2,7 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
-
-import javax.net.ssl.SSLException;
-import java.net.SocketException;
 
 public class CallDynamicRegistrationEndpointAllowingTLSFailure extends CallDynamicRegistrationEndpoint {
 
@@ -27,10 +23,9 @@ public class CallDynamicRegistrationEndpointAllowingTLSFailure extends CallDynam
 
 	@Override
 	protected Environment handleClientException(Environment env, RestClientException e) {
-		if (e instanceof ResourceAccessException &&
-			(e.getCause() instanceof SSLException || e.getCause() instanceof SocketException)) {
+		if (TlsConnectionFailure.isTlsConnectionFailure(e)) {
 			env.putBoolean(RESPONSE_SSL_ERROR_KEY, true);
-			logSuccess("Call to dynamic registration endpoint failed due to a TLS issue", ex(e));
+			logSuccess("Call to dynamic registration endpoint was rejected at the TLS or connection level", ex(e));
 			return env;
 		}
 		return super.handleClientException(env, e);
