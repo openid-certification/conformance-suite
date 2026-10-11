@@ -243,8 +243,8 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 					callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, ConditionResult.FAILURE, "RFC6749-6");
 					callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 					if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
-						// OAuth2-ATCA §6.2 lets the AS use `invalid_client_attestation` /
-						// `use_fresh_attestation` for an attestation-validation failure.
+						// OAuth2-ATCA §6.2 lets the AS use `invalid_client_attestation` for an
+						// attestation-validation failure.
 						callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError.class, ConditionResult.FAILURE, "RFC6749-6", "OAuth2-ATCA07-6.2");
 					} else {
 						callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, ConditionResult.FAILURE, "RFC6749-6");

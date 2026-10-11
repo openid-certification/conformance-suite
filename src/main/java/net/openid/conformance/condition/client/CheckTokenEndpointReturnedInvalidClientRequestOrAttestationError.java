@@ -20,8 +20,7 @@ public class CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError ex
 		return ImmutableMap.of(
 			"invalid_request", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST),
 			"invalid_client", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED),
-			"invalid_client_attestation", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED),
-			"use_fresh_attestation", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED)
+			"invalid_client_attestation", ImmutableSet.of(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_UNAUTHORIZED)
 		);
 	}
 
