@@ -1,9 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
+import net.openid.conformance.condition.client.CreateClientAttestationProofJwt;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthWithInvalidPopSignature;
+import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalidateClientAttestationPopSignature;
 
 /**
  * Negative test that verifies the authorization server properly rejects client attestation
@@ -33,10 +33,10 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 )
 public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends AbstractVCIIssuerClientAttestationNegativeTest {
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
 	@Override
-	public void setupClientAttestation() {
-		// Use the modified sequence that invalidates the pop signature
-		addClientAuthentication = AddClientAttestationClientAuthWithInvalidPopSignature.class;
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return super.createClientAuthenticationSequence()
+			.insertAfter(CreateClientAttestationProofJwt.class,
+				condition(VCIInvalidateClientAttestationPopSignature.class).requirement("OAuth2-ATCA07-5.2"));
 	}
 }

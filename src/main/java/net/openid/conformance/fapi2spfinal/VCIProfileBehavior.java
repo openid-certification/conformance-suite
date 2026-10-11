@@ -84,7 +84,6 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivate
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CallClientAttestationChallengeEndpoint;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CheckClientAttestationChallengeResponseForUnknownFields;
-import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ValidateClientAttestationChallengeResponse;
 
@@ -214,8 +213,6 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 				callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE,
 					"OAuth2-ATCA07-1");
-				callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE,
-					"OAuth2-ATCA07-1", "HAIP-4.3.1-2");
 			}
 		};
 	}

@@ -1,7 +1,8 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwtWithExpInPast;
 
 /**
@@ -25,11 +26,9 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClie
 public class VCIIssuerFailOnClientAttestationExpInPast extends AbstractVCIIssuerClientAttestationNegativeTest {
 
 	@Override
-	protected void afterClientAttestationGenerated() {
-		super.afterClientAttestationGenerated();
-
-		// Re-create the client attestation with 'exp' in the past, overwriting the valid one.
-		callAndStopOnFailure(CreateClientAttestationJwtWithExpInPast.class, Condition.ConditionResult.FAILURE,
-			"OAuth2-ATCA07-5.1");
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return super.createClientAuthenticationSequence()
+			.replace(CreateClientAttestationJwt.class,
+				condition(CreateClientAttestationJwtWithExpInPast.class).requirement("OAuth2-ATCA07-5.1"));
 	}
 }

@@ -838,22 +838,32 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-		call(sequence(addClientAuthentication));
+		call(createClientAuthenticationSequence());
 		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
 		mapClientAuthKeys("pushed_authorization_request_form_parameters",
 			"pushed_authorization_request_endpoint_request_headers");
-		call(sequence(addClientAuthentication));
+		call(createClientAuthenticationSequence());
 		unmapClientAuthKeys();
 	}
 
+	/**
+	 * The client authentication steps used by {@link #addClientAuthenticationToPAREndpointRequest()}
+	 * and {@link #addClientAuthenticationToTokenEndpointRequest()}. A negative test overrides this
+	 * to alter one step, so the alteration reaches whichever of those requests is the first
+	 * authenticated one under the selected grant type. Refresh and other later token requests
+	 * build the sequence from {@link #addClientAuthentication} directly and are not affected.
+	 */
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return createSequence(addClientAuthentication);
+	}
 
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
 	 * Client authentication is added inside the loop so private_key_jwt's client_assertion and
-	 * client_attestation's PoP JWT are regenerated per attempt — the AS may reject reuse of either jti, and
+	 * client_attestation's attestation and PoP JWTs are regenerated per attempt — the AS may reject reuse of either jti, and
 	 * for client_attestation §8.1 mandates picking up the freshly returned challenge.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */

@@ -655,7 +655,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		return new ConditionSequenceCallBuilder(conditionSequenceConstructor);
 	}
 
-	private ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
+	/**
+	 * Instantiate a sequence class, so a module can alter it with replace/insertAfter before calling it.
+	 */
+	protected ConditionSequence createSequence(Class<? extends ConditionSequence> conditionSequenceClass) {
 		try {
 			ConditionSequence conditionSequence = conditionSequenceClass
 				.getDeclaredConstructor()

@@ -1,7 +1,8 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwtWithoutSub;
 
 /**
@@ -24,10 +25,9 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClie
 public class VCIIssuerFailOnClientAttestationNoSub extends AbstractVCIIssuerClientAttestationNegativeTest {
 
 	@Override
-	protected void afterClientAttestationGenerated() {
-		super.afterClientAttestationGenerated();
-
-		callAndStopOnFailure(CreateClientAttestationJwtWithoutSub.class, Condition.ConditionResult.FAILURE,
-			"OAuth2-ATCA07-5.1");
+	protected ConditionSequence createClientAuthenticationSequence() {
+		return super.createClientAuthenticationSequence()
+			.replace(CreateClientAttestationJwt.class,
+				condition(CreateClientAttestationJwtWithoutSub.class).requirement("OAuth2-ATCA07-5.1"));
 	}
 }
