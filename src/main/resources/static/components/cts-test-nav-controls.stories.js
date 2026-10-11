@@ -38,9 +38,9 @@ function makeModules(count, opts = {}) {
 const MODULES_30 = makeModules(30, { currentIndex: 5 });
 const CURRENT_INSTANCE_6 = "i-6";
 
-// A published-plan public view: two siblings the page confirmed publicly
-// reachable (its /api/info fan-out returned 200, so the page set an `href`
-// threading &public=true) and one it did not (a 404 — left without an href).
+// A published-plan public view: two siblings whose status the public plan
+// revealed (so the page set an `href` threading &public=true) and one it did
+// not reveal (left without an href).
 // Drives the decoupling assertion: progress navigates to the reachable siblings
 // (href-bearing links) while `readonly` hides Repeat/Continue.
 const PUBLIC_MIXED_MODULES = [

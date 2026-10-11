@@ -349,9 +349,9 @@ function formatVariant(variant) {
  *   the page builds (threading any `?public=true`): a segment with a non-empty
  *   `href` is a navigable link, one without is an inert read-only box. The page
  *   decides reachability — off public it sets `href` for every sibling with an
- *   instance; on a public view it sets `href` only for siblings its `/api/info`
- *   fan-out confirmed return 200, so a published-plan viewer never dead-ends on
- *   an unpublished sibling. `href` is ignored in `overview`/`detail`.
+ *   instance; on a public view only for siblings whose status the public plan
+ *   response revealed, so a published-plan viewer never dead-ends on an
+ *   unpublished sibling. `href` is ignored in `overview`/`detail`.
  * @property {string} mode - Surface mode: `overview` (default), `detail`, or
  *   `log`. Reflected to the `mode` attribute so the scoped CSS can branch on
  *   it; an unknown value falls back to `overview`.
@@ -640,8 +640,8 @@ class CtsPlanStatus extends LitElement {
       // Log mode renders ONE <a> for the segment's whole life. The page
       // supplies the sibling URL as `mod.href`, and href PRESENCE is the single
       // navigability signal: set when the sibling is reachable (off public,
-      // every sibling with an instance at seed time; on public, only those the
-      // /api/info fan-out confirmed return 200), omitted when not. Because the
+      // every sibling with an instance; on public, only those whose status the
+      // public plan response revealed), omitted when not. Because the
       // element type never changes between renders — only the href/role/
       // aria-current attributes toggle, all via ifDefined on ONE template — a
       // cts-tooltip wrapping the segment never orphans its listeners. A hard
