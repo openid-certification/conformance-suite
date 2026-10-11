@@ -7,9 +7,9 @@ import net.openid.conformance.condition.client.AbstractGenerateKey;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Replaces the client_instance_key with a freshly generated key so that the subsequent
- * client attestation PoP JWT will be signed with a key that does not match the cnf.jwk
- * already embedded in the attestation JWT.
+ * Replaces the private client_instance_key with a freshly generated key while leaving
+ * client_instance_key_public untouched, so the attestation JWT minted afterwards still carries
+ * the original key in cnf.jwk but the PoP JWT is signed with a key that does not match it.
  *
  * @see <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-07#section-5.2">OAuth2-ATCA Section 5.2</a>
  */

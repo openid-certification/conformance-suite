@@ -31,8 +31,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
  * (mirroring AbstractFAPI2SPFinalPerformTokenEndpoint) so the flow never continues to the
  * credential endpoint after the test has finished.
  *
- * Leaf modules only apply their specific attestation mutation, e.g. by overriding
- * {@link #afterClientAttestationGenerated()} or replacing the client authentication sequence.
+ * Leaf modules only apply their specific mutation to the attestation or its proof of possession,
+ * by overriding {@link #createClientAuthenticationSequence()}. That sequence runs immediately
+ * before each authenticated request, so the mutation reaches whichever request is rejected.
  */
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
 public abstract class AbstractVCIIssuerClientAttestationNegativeTest extends AbstractVCIIssuerTestModule {

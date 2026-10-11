@@ -52,7 +52,7 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 		switchToSecondClient();
 
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			generateClientAttestationKeys();
+			call(profileBehavior.configureClientAttestation());
 		}
 
 		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {

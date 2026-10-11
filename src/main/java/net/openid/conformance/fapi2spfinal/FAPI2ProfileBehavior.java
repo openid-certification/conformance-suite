@@ -460,7 +460,7 @@ public class FAPI2ProfileBehavior {
 
 	/**
 	 * Configure client attestation keys if needed.
-	 * VCI overrides to generate attestation keys and JWT.
+	 * VCI overrides to call the challenge endpoint and generate the client instance key.
 	 */
 	public ConditionSequence configureClientAttestation() {
 		// plain FAPI: no client attestation
