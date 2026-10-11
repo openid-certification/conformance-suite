@@ -3,11 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonParseException;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
-
-import javax.net.ssl.SSLException;
-import java.net.SocketException;
 
 /**
  * Token-endpoint call that tolerates both a TLS handshake failure (like {@link
@@ -30,10 +26,9 @@ public class CallTokenEndpointAllowingDpopNonceErrorOrTLSFailureAndReturnFullRes
 
 	@Override
 	protected Environment handleClientException(Environment env, RestClientException e) {
-		if (e instanceof ResourceAccessException &&
-			(e.getCause() instanceof SSLException || e.getCause() instanceof SocketException)) {
+		if (TlsConnectionFailure.isTlsConnectionFailure(e)) {
 			env.putBoolean("token_endpoint_response_ssl_error", true);
-			logSuccess("Call to token_endpoint failed due to a TLS issue", ex(e));
+			logSuccess("Call to token_endpoint was rejected at the TLS or connection level", ex(e));
 			return env;
 		}
 		return super.handleClientException(env, e);

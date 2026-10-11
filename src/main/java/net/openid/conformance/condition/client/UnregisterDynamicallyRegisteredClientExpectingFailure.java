@@ -12,14 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -71,9 +68,8 @@ public class UnregisterDynamicallyRegisteredClientExpectingFailure extends Abstr
 			} catch (RestClientResponseException e) {
 				throw error("Error when calling registration_client_uri", args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
-				if (e instanceof ResourceAccessException &&
-					(e.getCause() instanceof SSLException || e.getCause() instanceof SocketException)) {
-					logSuccess("Call to registration_client_uri failed due to a TLS issue as expected", ex(e));
+				if (TlsConnectionFailure.isTlsConnectionFailure(e)) {
+					logSuccess("Call to registration_client_uri was rejected at the TLS or connection level as expected", ex(e));
 					return env;
 				}
 				String msg = "Call to registration client uri " + registrationClientUri + " failed";
