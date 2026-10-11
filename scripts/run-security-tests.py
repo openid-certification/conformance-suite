@@ -1530,9 +1530,9 @@ def run_tests():
     # Owner success for the placeholder upload, on a test that is really waiting for one: a
     # server test against the helper OP with no browser automation leaves the authorization
     # URL to the user and waits for a screenshot of the error page. The upload must be
-    # accepted and must finish the test at once, with result REVIEW. The watcher's own checks
-    # run 1, 3, 7 and 15 seconds after the wait starts, so uploading at about 8 seconds and
-    # allowing 3 for the finish only passes if the upload woke the watcher.
+    # accepted and must finish the test at once, with result REVIEW. The watcher's own check
+    # runs 30 seconds after the wait starts, so allowing 3 seconds for the finish only passes
+    # if the upload woke the watcher.
     if op_ready:
         ph_config = json.dumps({
             "description": "security-test placeholder upload",
@@ -1558,7 +1558,6 @@ def run_tests():
                      len(placeholders) == 1, f"HTTP {resp.status_code}, placeholders {placeholders}")
 
         if ph_waiting and len(placeholders) == 1:
-            time.sleep(8)
             resp = owner_client.post(f"{base_url}api/log/{ph_test_id}/images/{placeholders[0]}",
                                      content=TINY_PNG_DATA_URI, headers={"Content-Type": "text/plain"})
             runner.check("Placeholder upload: owner can upload to their waiting test's placeholder",
