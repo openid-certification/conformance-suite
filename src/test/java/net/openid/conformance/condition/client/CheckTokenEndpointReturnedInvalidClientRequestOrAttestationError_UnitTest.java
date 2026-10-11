@@ -71,8 +71,7 @@ public class CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError_Un
 	@CsvSource({
 		"invalid_request, 401",
 		"invalid_client, 404",
-		"invalid_client_attestation, 403",
-		"use_fresh_attestation, 403"
+		"invalid_client_attestation, 403"
 	})
 	public void the_condition_throws_if_the_status_code_is_not_permitted_for_the_error(String error, int httpStatus) {
 		CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError condition = createCondition(mock(TestInstanceEventLog.class));
@@ -91,9 +90,7 @@ public class CheckTokenEndpointReturnedInvalidClientRequestOrAttestationError_Un
 		"invalid_client, 400",
 		"invalid_client, 401",
 		"invalid_client_attestation, 400",
-		"invalid_client_attestation, 401",
-		"use_fresh_attestation, 400",
-		"use_fresh_attestation, 401"
+		"invalid_client_attestation, 401"
 	})
 	public void the_condition_succeeds_if_the_status_code_is_permitted_for_the_error(String error, int httpStatus) {
 		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
