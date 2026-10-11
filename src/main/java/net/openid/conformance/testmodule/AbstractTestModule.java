@@ -1429,11 +1429,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected void waitForPlaceholders() {
 		// set up a listener to wait for either an error callback or an image upload
 		executionManager.runInBackground(() -> {
-			long delayMillis = 1000; // wait for a second before we check the first time
-
-			placeholderFilledSignal.tryAcquire(delayMillis, TimeUnit.MILLISECONDS);
+			// every fill signals placeholderFilledSignal, so the periodic check is only a safety net
+			long delayMillis = 30 * 1000;
 
 			while (true) {
+				placeholderFilledSignal.tryAcquire(delayMillis, TimeUnit.MILLISECONDS);
 				// any further fills are covered by the check below
 				placeholderFilledSignal.drainPermits();
 
@@ -1456,13 +1456,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				}
 				// otherwise (test is waiting but placeholders are still there, or test is running, etc), check again in the future
 				clearLock();
-
-				if (delayMillis < 30 * 1000) {
-					// backoff checks to every 30 seconds so we don't overload db or jvm
-					delayMillis *= 2;
-				}
-				placeholderFilledSignal.tryAcquire(delayMillis, TimeUnit.MILLISECONDS);
-
 			}
 
 			return "done";
