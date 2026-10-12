@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.EnsurePidPictureClaimDisclosed;
 import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQuery;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType.BuiltInDcqlQuery;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -32,8 +33,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class VP1FinalWalletAllMandatoryClaims extends AbstractVP1FinalWalletTest {
 
 	@Override
-	protected String builtInDcqlResource() {
-		return credentialType.getAllMandatoryClaimsDcqlResource(credentialFormat);
+	protected BuiltInDcqlQuery builtInDcqlQuery() {
+		return BuiltInDcqlQuery.ALL_MANDATORY;
 	}
 
 	@Override
