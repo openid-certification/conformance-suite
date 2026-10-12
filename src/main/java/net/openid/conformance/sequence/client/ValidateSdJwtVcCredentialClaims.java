@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeStatusListJwt;
 import net.openid.conformance.condition.client.ExtractStatusListTokenFromStatusListTokenEndpointResponse;
 import net.openid.conformance.condition.client.FetchStatusListToken;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
+import net.openid.conformance.condition.client.WarnIfSdJwtDigestAlgorithmNotSha256;
 import net.openid.conformance.condition.client.WarnIfUnexpectedFieldsInCredentialCnf;
 import net.openid.conformance.condition.client.WarnIfUnknownFieldsInCredentialCnfJwk;
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
@@ -84,6 +85,9 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 				ConditionResult.FAILURE, "OTSL-6.2", "HAIP-6.1");
 			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
 				ConditionResult.WARNING, "HAIP-6.1-2");
+			// valid, but a HAIP verifier need only support sha-256, so it may reject the credential
+			callAndContinueOnFailure(WarnIfSdJwtDigestAlgorithmNotSha256.class,
+				ConditionResult.WARNING, "HAIP-8");
 		} else {
 			callAndContinueOnFailure(VerifyStatusListTokenSignatureUsingEmbeddedJwk.class,
 				ConditionResult.FAILURE, "OTSL-6.2");
