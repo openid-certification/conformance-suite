@@ -1,0 +1,35 @@
+{
+    "alias": "oidf-oidcc-op-test",
+    "description": "OIDCC OP test config for running against the RP 3rd party initiated login test",
+    "server": {
+        "discoveryUrl": "{LOCALBASEURL}test/a/oidf-oidcc-rp-test/.well-known/openid-configuration"
+    },
+    "client": {
+        "client_id": "oidcc-3rd-party-init-login-client",
+        "client_secret": "oidcc-3rd-party-init-login-secret",
+        "scope": "openid"
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/oidf-oidcc-rp-test/authorize*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-oidcc-op-test/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        }
+    ],
+    "options": {
+        "browsercontrol_css_enable": false
+    }
+}

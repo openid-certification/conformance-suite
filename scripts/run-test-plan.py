@@ -1445,8 +1445,7 @@ async def main():
             continue
 
         #we don't have automated tests for OIDCC RP login/logout tests
-        if re.match(r'(oidcc-client-test-.*logout.*)',m) or m == 'oidcc-client-test-session-management'\
-            or m == 'oidcc-client-test-3rd-party-init-login':
+        if re.match(r'(oidcc-client-test-.*logout.*)',m) or m == 'oidcc-client-test-session-management':
             untested_test_modules.remove(m)
             continue
 
