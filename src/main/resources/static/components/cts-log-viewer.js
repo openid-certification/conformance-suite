@@ -1173,6 +1173,22 @@ class CtsLogViewer extends LitElement {
   }
 
   /**
+   * @param {string} hash - `window.location.hash`, including the `#`.
+   * @returns {string} The element id of the entry row the hash names, or `""`.
+   */
+  _hashTargetId(hash) {
+    if (/^#LOG-\d+$/.test(hash)) return hash.slice(1);
+    if (!hash.startsWith("#entry-")) return "";
+    let entryId;
+    try {
+      entryId = decodeURIComponent(hash.slice("#entry-".length));
+    } catch {
+      return "";
+    }
+    return this._references[entryId] || "";
+  }
+
+  /**
    * Scroll the entry named by `window.location.hash` into view. Used both
    * for initial-load navigation and for in-page fragment changes (the
    * `hashchange` listener fires when the user clicks an entry's timestamp
@@ -1182,6 +1198,10 @@ class CtsLogViewer extends LitElement {
    * `#LOG-9999` on a 50-entry test) — in which case it returns `false` so
    * the caller knows the target was not reached and can retry later.
    *
+   * `#entry-<_id>` names an entry by its server-side id, for links built
+   * without the log in hand (the plan page's findings summary); it resolves
+   * through the reference map to the same `LOG-NNNN` row.
+   *
    * Blocks are not collapsible (every entry is always rendered visible), so
    * there is no collapsed ancestor to reveal before scrolling — the target
    * is in the layout the moment it exists in `_entries`.
@@ -1190,9 +1210,20 @@ class CtsLogViewer extends LitElement {
   _scrollToHashIfPresent() {
     if (typeof window === "undefined") return false;
     const hash = window.location.hash;
-    if (!/^#LOG-\d+$/.test(hash)) return false;
-    const target = document.getElementById(hash.slice(1));
+    const targetId = this._hashTargetId(hash);
+    if (!targetId) return false;
+    const target = document.getElementById(targetId);
     if (!target) return false;
+    if (hash.startsWith("#entry-")) {
+      // Swap the id form for the row's own `LOG-NNNN` fragment: that is a
+      // same-document navigation, so the row gets the `:target` landing wash
+      // (cts-log-entry.js) and the hashchange handler brings it into view
+      // like any other deep link, and the address bar now holds the
+      // reference the log page itself links by. replace, not assign, so
+      // Back still leaves the page.
+      window.location.replace(`#${targetId}`);
+      return true;
+    }
     // Honour prefers-reduced-motion: an instant jump avoids both the
     // animation and the multi-frame window during which a concurrent
     // re-render could disturb the smooth scroll.

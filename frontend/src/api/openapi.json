@@ -1287,6 +1287,106 @@
         }
       }
     },
+    "/api/plan/{id}/findings": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "List the failures, warnings and items awaiting review of a plan",
+        "description": "Covers the latest run of each module. A finding logged by several modules is listed once, with the runs it occurred in.",
+        "operationId": "getPlanFindings",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of plan",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlanFindings" } }
+            }
+          },
+          "404": { "description": "Couldn't find given plan Id" },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
+    "/api/plan/{id}/findings/{entryId}/response": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "Get the captured response of one of a plan's findings",
+        "description": "The response carried by a log entry that GET /api/plan/{id}/findings lists as a RESPONSE finding.",
+        "operationId": "getPlanFindingResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of plan",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "description": "Id of the log entry, one of an occurrence's entryIds",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The captured response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CapturedResponse" } }
+            }
+          },
+          "404": {
+            "description": "Couldn't find given plan Id, or it has no such captured response among the latest runs of its modules"
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
+    "/api/plan/{id}/findings/{entryId}/image": {
+      "get": {
+        "tags": ["Test Plans"],
+        "summary": "Get the image of one of a plan's findings",
+        "description": "The image carried by a log entry that GET /api/plan/{id}/findings lists as an IMAGE finding, as the image itself rather than a data URI.",
+        "operationId": "getPlanFindingImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of plan",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "entryId",
+            "in": "path",
+            "description": "Id of the log entry, one of an occurrence's entryIds",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The image",
+            "content": {
+              "image/png": { "schema": { "type": "string", "format": "binary" } },
+              "image/jpeg": { "schema": { "type": "string", "format": "binary" } }
+            }
+          },
+          "404": {
+            "description": "Couldn't find given plan Id, or it has no such image among the latest runs of its modules"
+          },
+          "401": { "description": "Missing or invalid bearer token / login session" }
+        }
+      }
+    },
     "/api/plan/info/{planName}": {
       "get": {
         "tags": ["Test Plans"],
@@ -2388,6 +2488,100 @@
             "description": "The page of records; the item type depends on the endpoint",
             "items": {}
           }
+        }
+      },
+      "Finding": {
+        "type": "object",
+        "description": "One distinct finding and every module run it occurred in",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "FAILURE, WARNING, IMAGE (an uploaded image awaiting review, served by GET /api/plan/{id}/findings/{entryId}/image) or RESPONSE (the response the browser automation captured in place of an image, awaiting review; GET /api/plan/{id}/findings/{entryId}/response serves it)"
+          },
+          "src": {
+            "type": "string",
+            "description": "The condition or source that logged the entry"
+          },
+          "msg": {
+            "type": "string",
+            "description": "The logged message; null if the entry has none"
+          },
+          "requirements": {
+            "type": "array",
+            "description": "The specification requirements cited by any of the entries",
+            "items": { "type": "string" }
+          },
+          "occurrences": {
+            "type": "array",
+            "description": "The module runs it occurred in, in plan order",
+            "items": { "$ref": "#/components/schemas/Occurrence" }
+          }
+        }
+      },
+      "FirstFailure": {
+        "type": "object",
+        "description": "The earliest failure logged by a module run",
+        "properties": {
+          "moduleIndex": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The module's position in the plan's modules"
+          },
+          "testId": { "type": "string", "description": "The id of the module's latest run" },
+          "entryId": {
+            "type": "string",
+            "description": "The id of the run's earliest FAILURE log entry"
+          }
+        }
+      },
+      "Occurrence": {
+        "type": "object",
+        "description": "A module run a finding occurred in",
+        "properties": {
+          "moduleIndex": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The module's position in the plan's modules"
+          },
+          "testModule": { "type": "string" },
+          "variant": { "type": "object", "additionalProperties": { "type": "string" } },
+          "testId": { "type": "string", "description": "The id of the module's latest run" },
+          "entryIds": {
+            "type": "array",
+            "description": "The ids of the run's matching log entries, in the order they were logged: the first is where to land in the log, and each image or captured response can be viewed",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "PlanFindings": {
+        "type": "object",
+        "description": "Failures, warnings and items awaiting review across the latest runs of a plan's modules",
+        "properties": {
+          "findings": {
+            "type": "array",
+            "description": "Failures first, then warnings, then images, then captured responses; within each, the most widespread first",
+            "items": { "$ref": "#/components/schemas/Finding" }
+          },
+          "firstFailures": {
+            "type": "array",
+            "description": "For each module run that logged a failure, its earliest failure entry, in plan order",
+            "items": { "$ref": "#/components/schemas/FirstFailure" }
+          }
+        }
+      },
+      "CapturedResponse": {
+        "type": "object",
+        "description": "The response the browser automation captured to satisfy a review placeholder",
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "description": "The Content-Type the server answered with"
+          },
+          "matchedRegexp": {
+            "type": "string",
+            "description": "The regular expression the response matched, if the module gave one"
+          },
+          "body": { "type": "string", "description": "The response body as the browser saw it" }
         }
       },
       "TestInfoResponse": {
