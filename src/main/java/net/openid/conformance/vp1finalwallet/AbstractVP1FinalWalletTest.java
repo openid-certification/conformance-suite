@@ -132,6 +132,7 @@ import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
 import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderKidIsInClientMetadataJWKs;
 import net.openid.conformance.condition.client.ValidateMdocDocTypeMatchesDcqlQuery;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType.BuiltInDcqlQuery;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVerifierInfo;
@@ -309,7 +310,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
 		env.putString("credential_format", credentialFormat.toString());
 		credentialType = getVariant(VP1FinalWalletCredentialType.class);
-		String builtInDcqlResource = builtInDcqlResource();
+		String builtInDcqlResource = credentialType.getDcqlResource(credentialFormat, builtInDcqlQuery());
 		if (builtInDcqlResource != null) {
 			// the presence of this string is what makes the authorization request sequence use the
 			// suite's built-in query instead of the one from the test configuration
@@ -474,12 +475,12 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	/**
-	 * The built-in DCQL query resource for the selected credential type, or null to use the
-	 * query from the test configuration. Overridden by modules that use a different built-in
-	 * query, e.g. the one requesting every mandatory data element.
+	 * The built-in DCQL query to send for the selected credential type: the minimal query unless
+	 * a module overrides this, e.g. to request every mandatory data element. A custom credential
+	 * type has no built-in queries and sends the query from the test configuration instead.
 	 */
-	protected String builtInDcqlResource() {
-		return credentialType.getDcqlResource(credentialFormat);
+	protected BuiltInDcqlQuery builtInDcqlQuery() {
+		return BuiltInDcqlQuery.DEFAULT;
 	}
 
 	/**
