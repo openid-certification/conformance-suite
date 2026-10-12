@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import net.openid.conformance.condition.AbstractCondition;
@@ -10,12 +11,11 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Set an RSA key with no specified alg as the alt signing JWK.
- * The new public key is also added to the server's list of public keys in the jwks_uri
+ * The new public key is also appended to the server's list of public keys in the jwks_uri ({@code server_public_jwks},
+ * derived from {@code server_jwks} if not yet present); keys already published there are kept.
  */
 public class SetRsaAltServerJwks extends AbstractCondition {
 
@@ -52,10 +52,15 @@ public class SetRsaAltServerJwks extends AbstractCondition {
 			// Alt RSA signing key with alg NONE.
 			JWK altPrivateKey = JWK.parse(altRsaKey);
 
-			List<JWK> newJwksList = new ArrayList<>(jwks.getKeys());
-			newJwksList.add(altPrivateKey);
-			JWKSet newJwkSet = new JWKSet(newJwksList);
-			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(newJwkSet);
+			// edited as JSON rather than via JWKSet so already-published keys Nimbus cannot parse are kept
+			JsonObject existingPublicJwks = env.getObject("server_public_jwks");
+			JsonObject publicJwks = existingPublicJwks != null
+				? existingPublicJwks.deepCopy()
+				: JWKUtil.getPublicJwksAsJsonObject(jwks);
+			if (!JWKUtil.hasKeysArray(publicJwks)) {
+				throw error("server_public_jwks does not contain a 'keys' array", args("server_public_jwks", publicJwks));
+			}
+			publicJwks.getAsJsonArray("keys").add(JsonParser.parseString(altPrivateKey.toPublicJWK().toJSONString()));
 
 			env.putObject("server_public_jwks", publicJwks);
 			log("generated new alt RSA key configuration");
