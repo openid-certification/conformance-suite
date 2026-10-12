@@ -146,6 +146,7 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureLocationsMatchesCre
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJson;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJwt;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureSingleProofWhenBatchIssuanceNotAdvertised;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
@@ -955,6 +956,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			vci.remove("key_attestation_jwt");
 		}
 		env.removeNativeValue("has_nested_key_attestation");
+		env.removeObject("proof_jwts");
 
 		ResponseEntity<?> errorResponse = checkResourceEndpointRequestForVci(false);
 		if (errorResponse != null) {
@@ -1031,6 +1033,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			if (errorResponse != null) {
 				return errorResponse;
 			}
+			skipIfMissing(new String[]{"proof_jwts"}, null, ConditionResult.INFO,
+				VCIEnsureSingleProofWhenBatchIssuanceNotAdvertised.class, ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.4");
 
 			String proofType = env.getString("proof_type");
 			if ("jwt".equals(proofType)) {
