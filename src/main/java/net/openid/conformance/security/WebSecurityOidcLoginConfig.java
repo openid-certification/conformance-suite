@@ -50,6 +50,7 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
@@ -328,6 +329,7 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.oauth2Login(oauth2Login -> {
+			oauth2Login.successHandler(oidcLoginSuccessHandler());
 			oauth2Login.failureHandler(loginFailureHandler);
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
 				userInfoCustomization.userAuthoritiesMapper(authorities -> {
@@ -429,6 +431,26 @@ class WebSecurityOidcLoginConfig {
 				Filter filter = filters.get(i);
 				logger.debug("FilterChain entry [{}] {}", i, filter.getClass());
 			}
+		};
+	}
+
+	/**
+	 * Returns the user to the page they asked for before logging in (the
+	 * oauth2Login default) and evicts the browser's cache for this origin
+	 * with {@code Clear-Site-Data: "cache"}. Static assets under /vendor,
+	 * /lib, /images and /templates were once served without Cache-Control
+	 * and with a fixed 1980 Last-Modified, which browsers treat as fresh for
+	 * years without asking the server again; clearing the cache at login
+	 * makes them refetch under the current revalidating policy. Logout sends
+	 * the same header. The writer only emits it on secure requests, which
+	 * the chain enforces behind the TLS proxy.
+	 */
+	static AuthenticationSuccessHandler oidcLoginSuccessHandler() {
+		SavedRequestAwareAuthenticationSuccessHandler savedRequestRedirect = new SavedRequestAwareAuthenticationSuccessHandler();
+		ClearSiteDataHeaderWriter clearCache = new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.CACHE);
+		return (request, response, authentication) -> {
+			clearCache.writeHeaders(request, response);
+			savedRequestRedirect.onAuthenticationSuccess(request, response, authentication);
 		};
 	}
 
