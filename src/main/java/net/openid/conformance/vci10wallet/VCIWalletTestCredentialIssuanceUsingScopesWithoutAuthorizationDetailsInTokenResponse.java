@@ -7,19 +7,17 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oid4vci-1_0-wallet-happy-path-with-scopes-without-authorization-details-in-token-response",
 	displayName = "OID4VCI 1.0: Wallet happy path test with Scopes without Authorization Details in Token response",
 	summary = """
-		This test case validates the credential issuance flow for a wallet using an emulated issuer, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) 1.0 specification.\
-		It begins by emulating a Credential Issuer and an OAuth 2.0 Authorization Server. (See the 'issuer' in the exported variables).\
+		This test case validates the credential issuance flow for a wallet using an emulated issuer, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) 1.0 specification. \
+		It begins by emulating a Credential Issuer and an OAuth 2.0 Authorization Server. (See the 'issuer' in the exported variables).
 
 		It supports two flows: a) wallet-initiated flow and b) issuer-initiated flow.
 
-		Wallet-initiated Flow:
-		In the wallet-initiated flow, it expects an authorization request via Pushed Authorization Requests (PAR), followed by a token request, for which an access token is returned.\
+		Wallet-initiated flow (authorization code grant only): the test expects an authorization request via Pushed Authorization Requests (PAR), followed by a token request, for which an access token is returned.
 
-		Issuer-initiated flow:
-		In the issuer-initiated flow, the emulated issuer generates a URL (and a QR code) for a credential offer with an issuer state. That URL is expected to be visited by the wallet.\
-		It expects an authorization request containing the issuer state using Pushed Authorization Requests (PAR) and a token request for which an access token is returned.
+		Issuer-initiated flow: the emulated issuer generates a URL (and a QR code) for a credential offer, which the wallet is expected to visit. With the authorization code grant the offer carries an issuer state; with the pre-authorized code grant it carries a pre-authorized code, which the wallet exchanges directly at the token endpoint, with no authorization request. \
+		With the authorization code grant it expects an authorization request containing the issuer state using Pushed Authorization Requests (PAR), and a token request for which an access token is returned.
 
-		Once the access token has been obtained, the test expects a call to the nonce and credential endpoints. After successfully validating the credential request, a credential will be generated. \
+		Once the access token has been obtained, the test expects a call to the nonce and credential endpoints. After successfully validating the credential request, a credential will be generated.
 
 		Depending on the variant configuration, we support immediate or deferred credential issuance, and plain or encrypted credential responses.
 

@@ -24,11 +24,9 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 	summary = """
 		This test case validates the standard credential issuance flow using an emulated wallet, as defined in the OpenID
 		for Verifiable Credential Issuance (OpenID4VCI) specification. It begins by retrieving metadata from both the
-		Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using
-		Pushed Authorization Requests (PAR), and an access token is obtained.
+		Credential Issuer and the OAuth 2.0 Authorization Server. An access token is obtained: with the authorization code grant through a Pushed Authorization Request (PAR), or with the pre-authorized code grant directly from the token endpoint.
 
-		The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce,
-		and successfully requests a credential from the Credential Endpoint.
+		If the credential configuration requires key proofs, the test fetches a c_nonce from the Nonce Endpoint (if the issuer advertises one) and includes it in the proof. It then successfully requests a credential from the Credential Endpoint.
 
 		Once the initial credential has been obtained, additional requests with FAPI specific parameters are sent to the credential endpoint.
 		""",

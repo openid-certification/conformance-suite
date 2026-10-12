@@ -18,8 +18,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClie
 		Sends a client attestation JWT that omits the 'sub' claim — to the PAR endpoint for \
 		the authorization code grant, or to the token endpoint for the pre-authorized code \
 		grant (which does not use PAR). The authorization server must reject the request \
-		with an invalid_client, invalid_request, or invalid_client_attestation error. \
-		Only applicable when client_auth_type=client_attestation.""",
+		with an invalid_client, invalid_request, or invalid_client_attestation error.""",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnClientAttestationNoSub extends AbstractVCIIssuerClientAttestationNegativeTest {

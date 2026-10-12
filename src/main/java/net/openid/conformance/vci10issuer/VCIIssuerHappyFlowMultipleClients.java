@@ -12,11 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = """
 	This test case validates the standard credential issuance flow using an emulated wallet, as defined in the OpenID
 	for Verifiable Credential Issuance (OpenID4VCI) specification. It uses two different clients to obtain the credentials consecutively.
-	It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using
-	Pushed Authorization Requests (PAR), and an access token is obtained.
+	It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An access token is obtained: with the authorization code grant through a Pushed Authorization Request (PAR), or with the pre-authorized code grant directly from the token endpoint.
 
-	The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce,
-	and successfully requests a credential from the Credential Endpoint.
+	If the credential configuration requires key proofs, the test fetches a c_nonce from the Nonce Endpoint (if the issuer advertises one) and includes it in the proof. It then successfully requests a credential from the Credential Endpoint.
 
 	In the issuer-initiated variant, and with the pre-authorized code grant, the second client needs a Credential
 	Offer of its own: once the first client has obtained its credential the test returns to WAITING, and a second
