@@ -41,7 +41,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		VP1FinalWalletWrongExpectedOrigins.class,
 		VP1FinalWalletInvalidClientIdPrefix.class,
 		VP1FinalWalletUnknownTransactionDataType.class,
-		VP1FinalWalletRequiredNonMatchingCredential.class
+		VP1FinalWalletRequiredNonMatchingCredential.class,
+		VP1FinalWalletClaimNotInCredential.class
 	);
 
 	@Override
