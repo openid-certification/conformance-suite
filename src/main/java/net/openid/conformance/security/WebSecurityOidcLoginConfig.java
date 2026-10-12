@@ -52,6 +52,8 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
@@ -137,9 +139,27 @@ class WebSecurityOidcLoginConfig {
 		}
 	}
 
+	/**
+	 * Anonymous requests for a page the suite serves are sent to login and replayed afterwards.
+	 * Anything else that reaches the entry point is a path with nothing behind it, and a login
+	 * redirect would suggest the path exists but needs a session, so it is a plain 404.
+	 */
 	@Bean
-	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
-		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
+	public AuthenticationEntryPoint authenticationEntryPoint() {
+		RequestMatcher servedPage = servedPageRequestMatcher();
+		AuthenticationEntryPoint login = new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
+		return (request, response, exception) -> {
+			if (servedPage.matches(request)) {
+				login.commence(request, response, exception);
+			} else {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			}
+		};
+	}
+
+	private ServedPageRequestMatcher servedPageRequestMatcher() {
+		boolean legacyUi = environment.acceptsProfiles(Profiles.of("legacy-ui"));
+		return new ServedPageRequestMatcher(legacyUi ? "static-legacy" : "static");
 	}
 
 	@Bean
@@ -374,6 +394,11 @@ class WebSecurityOidcLoginConfig {
 		http.exceptionHandling(exceptions -> {
 			exceptions.authenticationEntryPoint(authenticationEntryPoint());
 		});
+
+		// Only a served page is worth replaying after login; a 404 must not overwrite it.
+		HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+		requestCache.setRequestMatcher(servedPageRequestMatcher());
+		http.requestCache(cache -> cache.requestCache(requestCache));
 
 		http.sessionManagement(sessions -> {
 			sessions.sessionCreationPolicy(SessionCreationPolicy.ALWAYS);

@@ -178,6 +178,48 @@ public class OidcListingPageAccess_UnitTest {
 		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon-120x120-precomposed.png");
 	}
 
+	private void assertAnonymousUnknownPathIs404(String path) throws Exception {
+		MockHttpServletRequest request = buildSecureGet(path);
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		filterChainProxy.doFilter(request, response, new MockFilterChain());
+
+		Assertions.assertNull(response.getRedirectedUrl(), path + " must not enter the login flow");
+		Assertions.assertEquals(HttpServletResponse.SC_NOT_FOUND, response.getStatus(),
+			path + " is not a page the suite serves, so anonymous users must get a 404");
+		Assertions.assertNull(new HttpSessionRequestCache().getRequest(request, response),
+			path + " must not create a saved request");
+	}
+
+	@Test
+	public void anonymous_unknown_path_gets_404_instead_of_login_redirect() throws Exception {
+		assertAnonymousUnknownPathIs404("/nonexistent.html");
+		assertAnonymousUnknownPathIs404("/some/random/path");
+		assertAnonymousUnknownPathIs404("/plans.html.bak");
+	}
+
+	@Test
+	public void anonymous_unknown_path_does_not_replace_saved_page() throws Exception {
+		MockHttpServletRequest pageRequest = buildSecureGet("/plans.html");
+		pageRequest.setQueryString("owner=ci&to=2025-01-01");
+		filterChainProxy.doFilter(pageRequest, new MockHttpServletResponse(), new MockFilterChain());
+
+		MockHttpServletRequest unknownRequest = buildSecureGet("/nonexistent.html");
+		unknownRequest.setSession(pageRequest.getSession());
+		MockHttpServletResponse unknownResponse = new MockHttpServletResponse();
+		filterChainProxy.doFilter(unknownRequest, unknownResponse, new MockFilterChain());
+
+		Assertions.assertEquals(HttpServletResponse.SC_NOT_FOUND, unknownResponse.getStatus());
+		assertSavedPageIsStillPlans(unknownRequest, unknownResponse,
+			"an unknown path must not replace the page saved for post-login replay");
+	}
+
+	@Test
+	public void anonymous_served_page_still_redirects_to_login_and_saves_original_url() throws Exception {
+		// a page that exists on the classpath but is not one of the listing pages
+		assertAnonymousBareListingRedirectsToLoginAndSavesRequest("/schedule-test.html");
+	}
+
 	@Test
 	public void anonymous_error_dispatch_does_not_replace_saved_page() throws Exception {
 		// A permitted path that has no file 404s, and the container re-dispatches

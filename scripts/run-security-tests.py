@@ -1766,6 +1766,14 @@ def run_tests():
                  and body.get("expected_url") == f"{base_url}.well-known/oauth-authorization-server/test/a/no-such-alias",
                  f"HTTP {resp.status_code} {resp.headers.get('location', '')}")
 
+    # a path with no page behind it is a 404 for anonymous users; only served pages redirect to login
+    resp = unauthenticated_get(base_url, "no-such-page.html", verify_ssl)
+    runner.check_status("Metadata: anonymous request for an unknown page is a 404, not a login redirect", resp, 404)
+    resp = unauthenticated_get(base_url, "schedule-test.html", verify_ssl)
+    runner.check("Metadata: anonymous request for a served page is still sent to login",
+                 resp.status_code == 302 and "login" in resp.headers.get("Location", ""),
+                 f"HTTP {resp.status_code}, Location: {resp.headers.get('Location', 'none')}")
+
     # ===================================================================
     # 4h. BULK PLAN DELETE (ADMIN ONLY)
     # ===================================================================
