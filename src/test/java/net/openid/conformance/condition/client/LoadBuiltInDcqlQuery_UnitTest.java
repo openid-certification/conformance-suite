@@ -14,6 +14,7 @@ import net.openid.conformance.util.PhotoIdDataElements;
 import net.openid.conformance.util.PidDataElements;
 import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialFormat;
 import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType.BuiltInDcqlQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +59,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	private static Stream<Arguments> builtInTypes() {
 		return Arrays.stream(VP1FinalWalletCredentialType.values())
 			.flatMap(type -> Arrays.stream(VP1FinalWalletCredentialFormat.values())
-				.filter(format -> type.getDcqlResource(format) != null)
+				.filter(format -> type.getDcqlResource(format, BuiltInDcqlQuery.DEFAULT) != null)
 				.map(format -> Arguments.of(type, format)));
 	}
 
@@ -99,7 +100,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	@MethodSource("builtInTypes")
 	public void testEvaluate_builtInQueryIsUsableByEveryModule(VP1FinalWalletCredentialType type,
 			VP1FinalWalletCredentialFormat format) {
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format));
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format, BuiltInDcqlQuery.DEFAULT));
 
 		cond.evaluate(env);
 
@@ -120,7 +121,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	@MethodSource("builtInTypes")
 	public void testEvaluate_builtInQueryIsSchemaValid(VP1FinalWalletCredentialType type,
 			VP1FinalWalletCredentialFormat format) {
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format));
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format, BuiltInDcqlQuery.DEFAULT));
 		cond.evaluate(env);
 
 		ValidateDCQLQuery validate = new ValidateDCQLQuery();
@@ -181,12 +182,12 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	@MethodSource("builtInTypes")
 	public void testEvaluate_allMandatoryClaimsQueryIsValidSupersetOfMinimalQuery(VP1FinalWalletCredentialType type,
 			VP1FinalWalletCredentialFormat format) {
-		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format));
+		env.putString(LoadBuiltInDcqlQuery.RESOURCE_ENV_KEY, type.getDcqlResource(format, BuiltInDcqlQuery.DEFAULT));
 		cond.evaluate(env);
 		JsonArray minimalClaims = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY)
 			.getAsJsonArray("credentials").get(0).getAsJsonObject().getAsJsonArray("claims");
 
-		JsonObject credential = loadValidBuiltInQuery(type.getAllMandatoryClaimsDcqlResource(format));
+		JsonObject credential = loadValidBuiltInQuery(type.getDcqlResource(format, BuiltInDcqlQuery.ALL_MANDATORY));
 		assertEquals(expectedFormat(format), OIDFJSON.getString(credential.get("format")));
 
 		JsonArray allClaims = credential.getAsJsonArray("claims");
@@ -222,7 +223,7 @@ public class LoadBuiltInDcqlQuery_UnitTest {
 	@ParameterizedTest
 	@EnumSource(value = VP1FinalWalletCredentialType.class, names = {"MDL", "PHOTO_ID"})
 	public void testEvaluate_ageOver18QueryPrefersLeastDisclosure(VP1FinalWalletCredentialType type) {
-		JsonObject credential = loadValidBuiltInQuery(type.getAgeOver18DcqlResource(VP1FinalWalletCredentialFormat.ISO_MDL));
+		JsonObject credential = loadValidBuiltInQuery(type.getDcqlResource(VP1FinalWalletCredentialFormat.ISO_MDL, BuiltInDcqlQuery.AGE_OVER_18));
 		assertEquals(expectedFormat(VP1FinalWalletCredentialFormat.ISO_MDL), OIDFJSON.getString(credential.get("format")));
 
 		List<String> preferenceOrder = new ArrayList<>();

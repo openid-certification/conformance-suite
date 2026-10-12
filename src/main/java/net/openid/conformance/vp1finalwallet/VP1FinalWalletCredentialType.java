@@ -40,32 +40,36 @@ public enum VP1FinalWalletCredentialType {
 	}
 
 	/**
-	 * The suite's built-in DCQL query for this credential type in the given format, or null when
-	 * the tester supplies one.
+	 * The suite's built-in DCQL queries. Each is a resource beside the credential type's minimal
+	 * query, named by appending its suffix to that query's stem.
 	 */
-	public String getDcqlResource(VP1FinalWalletCredentialFormat format) {
-		String stem = dcqlResourceStem(format);
-		return stem == null ? null : stem + ".json";
+	public enum BuiltInDcqlQuery {
+		/** The minimal query the happy flow sends. */
+		DEFAULT(""),
+		/** Every mandatory data element of the credential type. */
+		ALL_MANDATORY("-all-mandatory"),
+		/**
+		 * Whether the holder is aged 18 or over, offering the data elements that reveal the least
+		 * first. Only the credential types with age data elements have this query; the module that
+		 * uses it excludes the others.
+		 */
+		AGE_OVER_18("-age-over-18");
+
+		private final String resourceSuffix;
+
+		BuiltInDcqlQuery(String resourceSuffix) {
+			this.resourceSuffix = resourceSuffix;
+		}
 	}
 
 	/**
-	 * The suite's built-in DCQL query requesting every mandatory data element of this credential
-	 * type in the given format, or null when the tester supplies the query (there is no known
-	 * mandatory set for a custom credential).
+	 * The resource holding the given built-in DCQL query for this credential type in the given
+	 * format, or null when the tester supplies the query (a custom credential has no built-in
+	 * queries).
 	 */
-	public String getAllMandatoryClaimsDcqlResource(VP1FinalWalletCredentialFormat format) {
+	public String getDcqlResource(VP1FinalWalletCredentialFormat format, BuiltInDcqlQuery query) {
 		String stem = dcqlResourceStem(format);
-		return stem == null ? null : stem + "-all-mandatory.json";
-	}
-
-	/**
-	 * The suite's built-in DCQL query asking whether the holder is aged 18 or over, in the given
-	 * format, or null when the tester supplies the query. Only the credential types with age data
-	 * elements have such a query; the module that uses it excludes the others.
-	 */
-	public String getAgeOver18DcqlResource(VP1FinalWalletCredentialFormat format) {
-		String stem = dcqlResourceStem(format);
-		return stem == null ? null : stem + "-age-over-18.json";
+		return stem == null ? null : stem + query.resourceSuffix + ".json";
 	}
 
 	@Override

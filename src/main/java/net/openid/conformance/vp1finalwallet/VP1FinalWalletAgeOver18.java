@@ -1,6 +1,7 @@
 package net.openid.conformance.vp1finalwallet;
 
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vp1finalwallet.VP1FinalWalletCredentialType.BuiltInDcqlQuery;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -29,7 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class VP1FinalWalletAgeOver18 extends AbstractVP1FinalWalletTest {
 
 	@Override
-	protected String builtInDcqlResource() {
-		return credentialType.getAgeOver18DcqlResource(credentialFormat);
+	protected BuiltInDcqlQuery builtInDcqlQuery() {
+		return BuiltInDcqlQuery.AGE_OVER_18;
 	}
 }
