@@ -75,12 +75,14 @@ public class VCIGenerateJwtProof extends AbstractCondition {
 			JsonArray verifiableArray = new JsonArray();
 
 			for (JWK jwk : signingKeys) {
-				ECKey ecKey = ECKey.parse(jwk.toJSONString());
-
-				// Ensure the key uses the correct curve
-				if (!Curve.P_256.equals(ecKey.getCurve())) {
-					throw error("Private key does not use the required P-256 curve for ES256",
-						args("kid", jwk.getKeyID(), "curve", ecKey.getCurve()));
+				// the proof is signed with ES256, so only an EC P-256 key can sign it; the client's
+				// JWKS is also used for client authentication, where an RSA key is common
+				if (!(jwk instanceof ECKey ecKey) || !Curve.P_256.equals(ecKey.getCurve())) {
+					throw error("The jwt key proof is signed with ES256, so every signing key in the 'jwks' field of the "
+							+ "'client' section in the test configuration ('client2' for the second client) must be an "
+							+ "EC P-256 key",
+						args("kid", jwk.getKeyID(), "kty", jwk.getKeyType().getValue(),
+							"crv", jwk instanceof ECKey ec ? ec.getCurve().toString() : null));
 				}
 
 				JWSSigner signer = new ECDSASigner(ecKey);

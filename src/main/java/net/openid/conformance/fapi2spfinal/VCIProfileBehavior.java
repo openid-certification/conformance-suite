@@ -72,6 +72,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateOpenidCredentialA
 import net.openid.conformance.vci10issuer.condition.VCIWarnOnAuthorizationDetailsInTokenEndpointResponseConventions;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureClientSigningKeysUsableForJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateClientJwksIfMissing;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
@@ -274,6 +275,9 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 				callAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
 				// VCI-specific validation that allows multiple signing keys for attestation proof type
 				callAndStopOnFailure(VCIValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+				// the jwt key proof is signed with ES256 by every signing key, so an RSA key that is
+				// fine for client authentication still cannot be used here; reject it at configure time
+				callAndStopOnFailure(VCIEnsureClientSigningKeysUsableForJwtProof.class);
 			}
 		};
 	}
