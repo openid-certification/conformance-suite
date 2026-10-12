@@ -10,5 +10,11 @@
         "variant": "*",
         "configuration-filename": "authlete-*.json",
         "comment": "The credential we're testing against currently doesn't require key attestation"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-fail-unknown-credential-identifier",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json",
+        "comment": "Authlete does not return credential_identifiers for a scope request, so a credential request with credential_identifier is not permitted (OID4VCI 8.2) and the module skips"
     }
 ]
