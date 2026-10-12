@@ -348,8 +348,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
-		// published in all RP tests so the check does not depend on when the client last fetched/cached
-		// the JWKS; must stay after SetRsaAltServerJwks, which rebuilds server_public_jwks
+		// published in all RP tests so the check does not depend on when the client last fetched/cached the JWKS
 		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 
 		if(isBrazil()) {
