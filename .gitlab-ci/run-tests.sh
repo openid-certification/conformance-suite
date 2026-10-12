@@ -77,6 +77,9 @@ makeClientTest() {
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=self_signed_tls_client_auth][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs(CLIENT_CERT=${SUITE_DIR}/.gitlab-ci/rp_tests-tls_client_auth.crt)(CLIENT_CERT_KEY=${SUITE_DIR}/.gitlab-ci/rp_tests-tls_client_auth.key)}_ automated-oidcc-client-test.json"
 
 
+    # OIDC Core RP 3rd party initiated login, static client, run against the suite's own OP tests
+    TESTS="${TESTS} oidcc-client-test-3rd-party-init-login-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=static_client]:oidcc-client-test-3rd-party-init-login{oidcc-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][client_registration=static_client]:oidcc-server}${SUITE_DIR}/scripts/test-configs-rp-against-op/oidcc-3rd-party-init-login-op.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/oidcc-3rd-party-init-login-rp.json"
+
     # OIDC Core RP refresh token tests
     TESTS="${TESTS} oidcc-client-refreshtoken-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
 
