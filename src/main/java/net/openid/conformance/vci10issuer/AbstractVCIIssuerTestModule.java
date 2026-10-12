@@ -79,6 +79,7 @@ import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
+import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialIdentifiersFromTokenEndpointResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -687,6 +688,24 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void createCredentialRequest() {
 		call(makeCreateCredentialRequestSteps());
+	}
+
+	/**
+	 * Whether the token response returned {@code credential_identifiers} for the selected
+	 * credential configuration. OID4VCI 1.0 section 8.2 makes the two ways of naming the
+	 * credential in a credential request mutually exclusive on this: {@code credential_identifier}
+	 * is required when identifiers were returned and must not be used otherwise, and
+	 * {@code credential_configuration_id} the reverse.
+	 */
+	protected boolean tokenResponseReturnedCredentialIdentifiers() {
+		String credentialConfigurationId = env.getString("vci_credential_configuration_id");
+		JsonElement byConfigIdEl = env.getElementFromObject("client",
+			VCIExtractCredentialIdentifiersFromTokenEndpointResponse.CLIENT_ENV_KEY);
+		if (credentialConfigurationId == null || byConfigIdEl == null || !byConfigIdEl.isJsonObject()) {
+			return false;
+		}
+		JsonElement identifiersEl = byConfigIdEl.getAsJsonObject().get(credentialConfigurationId);
+		return identifiersEl != null && identifiersEl.isJsonArray() && !identifiersEl.getAsJsonArray().isEmpty();
 	}
 
 	protected ConditionSequence makeCreateCredentialRequestSteps() {
