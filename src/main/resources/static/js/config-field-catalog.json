@@ -357,6 +357,12 @@
           "tooltip": "URI the conformance suite should redirect back to with the result of the authorization endpoint call appended."
         },
         {
+          "key": "client.initiate_login_uri",
+          "label": "initiate_login_uri",
+          "type": "string",
+          "tooltip": "URI at the relying party that starts a 3rd party initiated login when the user is sent to it with an 'iss' query parameter."
+        },
+        {
           "key": "client.backchannel_client_notification_endpoint",
           "label": "backchannel_client_notification_endpoint",
           "type": "string",
