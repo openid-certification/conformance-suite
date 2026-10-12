@@ -1,5 +1,7 @@
 package net.openid.conformance.security;
 
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
@@ -144,6 +146,57 @@ public class OidcListingPageAccess_UnitTest {
 	@Test
 	public void anonymous_bare_logs_page_redirects_to_login_and_saves_original_url() throws Exception {
 		assertAnonymousBareListingRedirectsToLoginAndSavesRequest("/logs.html");
+	}
+
+	private void assertSavedPageIsStillPlans(MockHttpServletRequest request, MockHttpServletResponse response, String reason) {
+		SavedRequest savedRequest = new HttpSessionRequestCache().getRequest(request, response);
+		Assertions.assertNotNull(savedRequest, reason);
+		Assertions.assertEquals("https://localhost.emobix.co.uk:8443/plans.html?owner=ci&to=2025-01-01&continue",
+			savedRequest.getRedirectUrl(), reason);
+	}
+
+	private void assertAnonymousIconProbeKeepsSavedPage(String iconPath) throws Exception {
+		MockHttpServletRequest pageRequest = buildSecureGet("/plans.html");
+		pageRequest.setQueryString("owner=ci&to=2025-01-01");
+		filterChainProxy.doFilter(pageRequest, new MockHttpServletResponse(), new MockFilterChain());
+
+		MockHttpServletRequest iconRequest = buildSecureGet(iconPath);
+		iconRequest.setSession(pageRequest.getSession());
+		MockHttpServletResponse iconResponse = new MockHttpServletResponse();
+		filterChainProxy.doFilter(iconRequest, iconResponse, new MockFilterChain());
+
+		Assertions.assertNull(iconResponse.getRedirectedUrl(), iconPath + " must not enter the login flow");
+		assertSavedPageIsStillPlans(iconRequest, iconResponse,
+			iconPath + " must not replace the page saved for post-login replay");
+	}
+
+	@Test
+	public void anonymous_browser_icon_probes_do_not_replace_saved_page() throws Exception {
+		// Safari requests these on its own after loading login.html; iOS also tries size-specific names.
+		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon.png");
+		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon-precomposed.png");
+		assertAnonymousIconProbeKeepsSavedPage("/apple-touch-icon-120x120-precomposed.png");
+	}
+
+	@Test
+	public void anonymous_error_dispatch_does_not_replace_saved_page() throws Exception {
+		// A permitted path that has no file 404s, and the container re-dispatches
+		// the request to /error. That dispatch must not enter the login flow.
+		MockHttpServletRequest pageRequest = buildSecureGet("/plans.html");
+		pageRequest.setQueryString("owner=ci&to=2025-01-01");
+		filterChainProxy.doFilter(pageRequest, new MockHttpServletResponse(), new MockFilterChain());
+
+		MockHttpServletRequest errorRequest = buildSecureGet("/error");
+		errorRequest.setDispatcherType(DispatcherType.ERROR);
+		errorRequest.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, HttpServletResponse.SC_NOT_FOUND);
+		errorRequest.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, "/apple-touch-icon-120x120-precomposed.png");
+		errorRequest.setSession(pageRequest.getSession());
+		MockHttpServletResponse errorResponse = new MockHttpServletResponse();
+		filterChainProxy.doFilter(errorRequest, errorResponse, new MockFilterChain());
+
+		Assertions.assertNull(errorResponse.getRedirectedUrl(), "/error dispatch must not enter the login flow");
+		assertSavedPageIsStillPlans(errorRequest, errorResponse,
+			"/error dispatch must not replace the page saved for post-login replay");
 	}
 
 	@Test

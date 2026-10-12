@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
@@ -156,6 +157,10 @@ class WebSecurityOidcLoginConfig {
 		http.addFilterAfter(new RejectPlainHttpTrafficFilter(), WebAsyncManagerIntegrationFilter.class);
 
 		http.authorizeHttpRequests(httpRequests -> {
+			// A 404 or 403 from any chain is re-dispatched to /error; the error page must render
+			// without authentication or the dispatch replaces the page saved for post-login replay.
+			httpRequests.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
+
 			httpRequests //
 				.requestMatchers( //
 					"/login.html",  //
@@ -167,6 +172,7 @@ class WebSecurityOidcLoginConfig {
 					"/images/**", //
 					"/templates/**", //
 					"/favicon.ico",  //
+					"/apple-touch-icon*.png", // fetched by Safari unprompted; must not enter the login flow
 					"/test-mtls/**",  //
 					"/test/**",  //
 					"/jwks**",  //
