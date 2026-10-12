@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAut
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.EnsureMdocAgeInYearsConsistentWithBirthDate;
 import net.openid.conformance.condition.client.EnsureMdocAgeOverElementsConsistentWithBirthDate;
 import net.openid.conformance.condition.client.EnsureMdocMdlElementValuesAreValid;
@@ -154,6 +155,15 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					"OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
 				callAndStopOnFailure(VCISelectOAuthorizationServer.class, ConditionResult.FAILURE,
 					"OID4VCI-1FINAL-12.2.3");
+				// jwks_uri is OPTIONAL in RFC 8414 metadata; when the authorization server publishes
+				// one, its keys are the last source VerifyStatusListTokenSignature tries for a
+				// Status List Token the issuer signs with its authorization server key
+				call(condition(FetchServerKeys.class)
+					.skipIfElementMissing("server", "jwks_uri")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirement("RFC8414-2")
+					.dontStopOnFailure());
 				if (credentialFormat == VCI1FinalCredentialFormat.MDOC) {
 					// register and validate the optionally configured VICAL used by the mdoc
 					// issuer trust checks in ValidateMdocCredential; done once at configure
