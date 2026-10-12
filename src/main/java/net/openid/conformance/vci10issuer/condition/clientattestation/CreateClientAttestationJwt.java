@@ -8,6 +8,7 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.as.clientattestation.ValidateClientAttestationTyp;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
 
@@ -82,7 +83,7 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 
 	@Override
 	protected JOSEObjectType getMediaType() {
-		return new JOSEObjectType("oauth-client-attestation+jwt");
+		return new JOSEObjectType(ValidateClientAttestationTyp.EXPECTED_TYP);
 	}
 
 	@Override
