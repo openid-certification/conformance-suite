@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.CheckCredentialStatus;
 import net.openid.conformance.condition.client.ClearStatusListTokenEndpointResponse;
 import net.openid.conformance.condition.client.EnsureContentTypeStatusListJwt;
 import net.openid.conformance.condition.client.ExtractStatusListTokenFromStatusListTokenEndpointResponse;
+import net.openid.conformance.condition.client.FetchJwtVcIssuerMetadataForStatusListToken;
 import net.openid.conformance.condition.client.FetchStatusListToken;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.WarnIfSdJwtDigestAlgorithmNotSha256;
@@ -19,7 +20,7 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.condition.client.ValidateStatusListTokenX5cCertificateChain;
-import net.openid.conformance.condition.client.VerifyStatusListTokenSignatureUsingEmbeddedJwk;
+import net.openid.conformance.condition.client.VerifyStatusListTokenSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 /**
@@ -89,8 +90,12 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			callAndContinueOnFailure(WarnIfSdJwtDigestAlgorithmNotSha256.class,
 				ConditionResult.WARNING, "HAIP-8");
 		} else {
-			callAndContinueOnFailure(VerifyStatusListTokenSignatureUsingEmbeddedJwk.class,
-				ConditionResult.FAILURE, "OTSL-6.2");
+			// Outside HAIP no trust anchor is mandated: the key is resolved from the token itself,
+			// the credential, the issuer's JWT VC Issuer Metadata or the authorization server's JWKS
+			callAndContinueOnFailure(FetchJwtVcIssuerMetadataForStatusListToken.class,
+				ConditionResult.FAILURE, "OTSL-11.3", "SDJWTVC-5", "SDJWTVC-5.3");
+			callAndContinueOnFailure(VerifyStatusListTokenSignature.class,
+				ConditionResult.FAILURE, "OTSL-5.1-2", "OTSL-11.3");
 		}
 		callAndContinueOnFailure(CheckCredentialStatus.class,
 			ConditionResult.FAILURE, "OTSL-6.2");
