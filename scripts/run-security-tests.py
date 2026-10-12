@@ -1789,6 +1789,15 @@ def run_tests():
     else:
         print("  SKIP: CONFORMANCE_SERVER_HTTP not set; plain-http CRL route not checked")
 
+    # a well-known name appended to the host instead of inserted after /.well-known/ (issue #1817)
+    # must get a 404 naming the right URL, not a redirect to the login page
+    resp = unauthenticated_get(base_url, "oauth-authorization-server/test/a/no-such-alias/", verify_ssl)
+    body = resp.json() if resp.status_code == 404 else {}
+    runner.check("Metadata: misplaced well-known path returns 404 with the RFC 8414 URL",
+                 resp.status_code == 404
+                 and body.get("expected_url") == f"{base_url}.well-known/oauth-authorization-server/test/a/no-such-alias",
+                 f"HTTP {resp.status_code} {resp.headers.get('location', '')}")
+
     # ===================================================================
     # 4h. BULK PLAN DELETE (ADMIN ONLY)
     # ===================================================================

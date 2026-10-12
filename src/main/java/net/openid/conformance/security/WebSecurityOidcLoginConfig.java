@@ -7,6 +7,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.runner.MisplacedWellKnownPathController;
 import net.openid.conformance.sharing.AssetSharing;
 import net.openid.conformance.sharing.SharedAsset;
 import net.openid.conformance.sharing.privatelink.CustomOneTimeTokenService;
@@ -177,7 +178,8 @@ class WebSecurityOidcLoginConfig {
 					"/robots.txt",  //
 					"/.well-known/**", //
 					"/json-schemas/**", //
-					"/login/ott" // private link login
+					"/login/ott", // private link login
+					MisplacedWellKnownPathController.MISPLACED_PATH_PATTERN // 404 with the correct URL instead of a login redirect
 				) //
 				.permitAll();
 
