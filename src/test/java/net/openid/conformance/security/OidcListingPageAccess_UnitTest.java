@@ -211,6 +211,30 @@ public class OidcListingPageAccess_UnitTest {
 		assertAuthenticatedBareListingIsPermitted("/logs.html");
 	}
 
+	@Test
+	public void anonymous_misplaced_well_known_path_is_not_sent_to_login() throws Exception {
+		// A wallet that forgets the "/.well-known/" prefix (issue #1817) must get the hint
+		// controller's 404, not a redirect that looks like the metadata needs a login.
+		assertAnonymousMisplacedWellKnownPathIsPermitted("/oauth-authorization-server/test/a/my-wallet/");
+		assertAnonymousMisplacedWellKnownPathIsPermitted("/openid-credential-issuer/test/a/my-wallet");
+		assertAnonymousMisplacedWellKnownPathIsPermitted("/openid-configuration");
+	}
+
+	private void assertAnonymousMisplacedWellKnownPathIsPermitted(String path) throws Exception {
+		MockHttpServletRequest request = buildSecureGet(path);
+		request.addHeader("Accept", "application/json");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		filterChainProxy.doFilter(request, response, new MockFilterChain());
+
+		Assertions.assertNull(response.getRedirectedUrl(),
+			path + " must not enter the login flow");
+		Assertions.assertEquals(HttpServletResponse.SC_OK, response.getStatus(),
+			path + " must be allowed through to the hint controller");
+		Assertions.assertNull(new HttpSessionRequestCache().getRequest(request, response),
+			path + " must not create a saved request");
+	}
+
 	@Configuration
 	@EnableWebSecurity
 	@Import(WebSecurityOidcLoginConfig.class)
