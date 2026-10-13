@@ -21,8 +21,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * <p>Metadata carrying {@code signed_metadata} can only be checked against a key, so a
  * missing or empty PDP JWK Set fails rather than silently skipping verification — an
  * unverified signature is not evidence of a valid one. {@link EnsurePDPJwksConfigured}
- * fails first for the same reason in {@link net.openid.conformance.authzen.AbstractAuthzenPDPTest},
- * which is the only caller; the check here keeps the condition safe on its own.
+ * fails first for the same reason in
+ * {@link net.openid.conformance.authzen.AbstractAuthzenPDPMetadataTest}, which runs these checks
+ * for every module that reads PDP metadata; the check here keeps the condition safe on its own.
  *
  * <p>For the same reason the condition never reports success without having verified something:
  * it runs only inside {@link ValidateDiscoverySignedMetadata}, behind a gate that fires only when
