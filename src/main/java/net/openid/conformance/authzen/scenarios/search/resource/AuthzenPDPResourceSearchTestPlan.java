@@ -44,6 +44,9 @@ import java.util.Map;
 		AuthzenPDPResourceSearchUnknownTopLevelFieldsTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.class,
+		// Authentication (Section 11.3)
+		AuthzenPDPResourceSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPResourceSearchInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPResourceSearchTestPlan implements TestPlan {

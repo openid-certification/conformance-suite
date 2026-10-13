@@ -1554,9 +1554,9 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
             if (
-                # no implementations support authentication yet
-                re.match(r'authzen-pdp-evaluation-invalid-credentials-returns-401', m)
-                or re.match(r'authzen-pdp-evaluation-missing-credentials-returns-401', m)
+                # these need pdp_auth_type client_secret_basic or api_key, and the PDP in
+                # docker-compose-localtest.yml does not authenticate callers
+                re.match(r'authzen-pdp-.*-(invalid|missing)-credentials-returns-401', m)
                 # evaluations_semantic is an OPTIONAL request option, so these modules are only
                 # in authzen-pdp-evaluations-comprehensive-test-plan, which CI does not run
                 or re.match(r'authzen-pdp-evaluations-deny-on-first-deny', m)
