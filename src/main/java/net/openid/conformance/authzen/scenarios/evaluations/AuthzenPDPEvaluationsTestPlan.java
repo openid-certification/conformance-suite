@@ -54,6 +54,9 @@ import java.util.Map;
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest.class,
+		// Authentication (Section 11.3)
+		AuthzenPDPEvaluationsMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationsInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationsTestPlan implements TestPlan {

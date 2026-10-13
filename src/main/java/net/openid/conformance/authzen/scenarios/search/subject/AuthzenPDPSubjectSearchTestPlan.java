@@ -49,6 +49,9 @@ import java.util.Map;
 		AuthzenPDPSubjectSearchExtraSubjectIdIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPSubjectSearchSubjectSearchWithResourcePropertiesTest.class,
+		// Authentication (Section 11.3)
+		AuthzenPDPSubjectSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPSubjectSearchInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPSubjectSearchTestPlan implements TestPlan {
