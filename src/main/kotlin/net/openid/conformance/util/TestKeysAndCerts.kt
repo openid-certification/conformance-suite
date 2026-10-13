@@ -29,6 +29,7 @@ import org.multipaz.crypto.X509Cert
 import org.multipaz.crypto.X509CertChain
 import java.math.BigInteger
 import java.security.KeyFactory
+import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
@@ -96,6 +97,25 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	@JvmStatic
 	val iacaRootCert: X509Cert by lazy { X509Cert.fromPem(IACA_ROOT_CERT_PEM) }
 
+	/** The IACA root as BouncyCastle sees it: the issuer of the certificates and CRLs minted here. */
+	@JvmStatic
+	val iacaRootCertHolder: X509CertificateHolder by lazy { X509CertificateHolder(iacaRootCert.encoded.toByteArray()) }
+
+	/** The IACA root's subject key identifier: the authority key identifier of everything it issues. */
+	@JvmStatic
+	val iacaRootSubjectKeyIdentifier: ByteArray by lazy {
+		SubjectKeyIdentifier.fromExtensions(iacaRootCertHolder.extensions).keyIdentifier
+	}
+
+	/**
+	 * The IACA's signing key: it issues the leaf certificates minted here and signs the CRL the
+	 * suite serves for them (see MdocIacaCrl).
+	 */
+	@JvmStatic
+	val iacaRootPrivateKey: PrivateKey by lazy {
+		KeyFactory.getInstance("EC").generatePrivate(PKCS8EncodedKeySpec(decodePemBody(IACA_ROOT_KEY_PEM)))
+	}
+
 	@JvmStatic
 	val documentSignerKey: AsymmetricKey.X509CertifiedExplicit
 		get() = rotatingDocumentSignerKey.get()
@@ -162,11 +182,6 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		commonName: String,
 		addProfileExtensions: (X509v3CertificateBuilder) -> Unit
 	): AsymmetricKey.X509CertifiedExplicit {
-		val iacaHolder = X509CertificateHolder(iacaRootCert.encoded.toByteArray())
-		val iacaPrivateKey = KeyFactory.getInstance("EC").generatePrivate(
-			PKCS8EncodedKeySpec(decodePemBody(IACA_ROOT_KEY_PEM))
-		)
-
 		val leafEcKey = ECKeyGenerator(Curve.P_256).generate()
 
 		// uniform on [0, 2^159); max(ONE) only guards the astronomically improbable zero
@@ -190,7 +205,7 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		val notAfter = Date(now + 400L * 24 * 60 * 60 * 1000)
 
 		val builder = X509v3CertificateBuilder(
-			iacaHolder.subject,
+			iacaRootCertHolder.subject,
 			serial,
 			notBefore,
 			notAfter,
@@ -199,20 +214,19 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		)
 
 		val extensionUtils = JcaX509ExtensionUtils()
-		val iacaSki = SubjectKeyIdentifier.fromExtensions(iacaHolder.extensions)
 		builder.addExtension(
 			Extension.subjectKeyIdentifier, false,
 			extensionUtils.createSubjectKeyIdentifier(leafEcKey.toECPublicKey())
 		)
 		builder.addExtension(
 			Extension.authorityKeyIdentifier, false,
-			AuthorityKeyIdentifier(iacaSki.keyIdentifier)
+			AuthorityKeyIdentifier(iacaRootSubjectKeyIdentifier)
 		)
 		builder.addExtension(Extension.keyUsage, true, KeyUsage(KeyUsage.digitalSignature))
 
 		addProfileExtensions(builder)
 
-		val signer = JcaContentSignerBuilder("SHA256withECDSA").build(iacaPrivateKey)
+		val signer = JcaContentSignerBuilder("SHA256withECDSA").build(iacaRootPrivateKey)
 		val leafCert = X509Cert(ByteString(builder.build(signer).encoded))
 
 		val leafPrivateKey = EcPrivateKeyDoubleCoordinate(
