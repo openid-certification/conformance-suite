@@ -308,6 +308,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			for (int i = 1; i <= iterations; i++) {
 				eventLog.startBlock("Iteration " + i);
 				try {
+					resetStateBetweenIdenticalRequests();
 					createAuthzenApiRequest();
 					performSingleApiRequest();
 					processAuthApiEndpointResponse();
@@ -332,6 +333,13 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		} finally {
 			eventLog.endBlock();
 		}
+	}
+
+	/**
+	 * Clears state an earlier response left behind that would otherwise change the next request
+	 * built by {@link #runIdempotencyLoop}, so every iteration sends the same request.
+	 */
+	protected void resetStateBetweenIdenticalRequests() {
 	}
 
 	/**
