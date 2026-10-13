@@ -439,7 +439,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			}
 			wrapper.add("codes", codes);
 			env.putObject("authzen_expected_http_status_codes", wrapper);
-			call(sequence(CallAuthzenApiEndpointAndVerifyExpectedStatus.class));
+			call(new CallAuthzenApiEndpointAndVerifyExpectedStatus(getUnexpectedHttpStatusSeverity()));
 		}
 	}
 
@@ -463,6 +463,15 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	 */
 	protected Set<Integer> getAcceptableHttpStatusCodes() {
 		return Set.of(getExpectedHttpStatusCode());
+	}
+
+	/**
+	 * Severity of a response status outside {@link #getAcceptableHttpStatusCodes()} when that set
+	 * is not just 200. Override to WARNING where the specification expects the status but places
+	 * no MUST on the PDP.
+	 */
+	protected ConditionResult getUnexpectedHttpStatusSeverity() {
+		return ConditionResult.FAILURE;
 	}
 
 	/**
