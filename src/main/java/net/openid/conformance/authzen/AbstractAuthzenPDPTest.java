@@ -11,6 +11,7 @@ import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyE
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiEndpointPathContainsV1;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequestIdMatches;
+import net.openid.conformance.authzen.condition.EnsurePDPMetadataAdvertisesEndpoint;
 import net.openid.conformance.authzen.condition.CorruptAuthzenClientCredentials;
 import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
 import net.openid.conformance.authzen.condition.GetAuthzenClientConfiguration;
@@ -139,6 +140,9 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		}
 
 		checkPDPServerConfiguration(serverSupportsDiscovery);
+		if (serverSupportsDiscovery) {
+			callAndStopOnFailure(new EnsurePDPMetadataAdvertisesEndpoint(getEndpointMetadataParameter()), "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+		}
 
 		// Set up the client configuration
 		configureClient();
@@ -433,6 +437,12 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	}
 
 	protected abstract void setAuthzenApiEndpoint();
+
+	/**
+	 * The PDP metadata parameter (Section 9.1.1) that names the endpoint of the API this module
+	 * exercises.
+	 */
+	protected abstract String getEndpointMetadataParameter();
 
 	protected JsonObject parseRequest() {
 		return JsonParser.parseString(getPayload()).getAsJsonObject();
