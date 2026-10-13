@@ -164,12 +164,14 @@ if [ "$TEST_SUITE" = "--security-tests" ]; then
       )" || die "Failed to insert API tokens into MongoDB"
     export CONFORMANCE_TOKEN="$SECURITY_TOKEN"
     export CONFORMANCE_TOKEN_2="$SECURITY_TOKEN_2"
+    export CONFORMANCE_SERVER_HTTP="http://localhost.emobix.co.uk:${SERVER_PORT}/"
     echo "    API tokens inserted into MongoDB"
     java -cp "$APP_CP" "$MAIN_CLASS" \
       --fintechlabs.devmode=false \
       --spring.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443 \
       --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444 \
+      --fintechlabs.base_http_url=http://localhost.emobix.co.uk:8080 \
       --server.port="$SERVER_PORT" \
       > "$SERVER_LOG" 2>&1 &
 else
