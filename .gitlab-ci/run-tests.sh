@@ -879,6 +879,8 @@ makeAuthzenTests() {
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
     # Discovery, with the PDP's HS256 signed_metadata verified against the JWK in the config
     TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=discovery][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
+    # Discovery certification level: the metadata checks on their own, with the same signed_metadata
+    TESTS="${TESTS} authzen-pdp-discovery-test-plan ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
     TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
     TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
     TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-local-test-config.json"
