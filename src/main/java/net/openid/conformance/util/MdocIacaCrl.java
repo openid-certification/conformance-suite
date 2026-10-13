@@ -29,6 +29,9 @@ import java.util.Date;
  */
 public final class MdocIacaCrl {
 
+	/** The path the suite serves the CRL at, under its base URLs. */
+	public static final String PATH = "/mdoc-iaca.crl";
+
 	/** The media type of a DER encoded CRL, RFC 2585 section 4.2: served here, expected by the validator. */
 	public static final String CONTENT_TYPE = "application/pkix-crl";
 
