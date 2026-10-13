@@ -1,6 +1,7 @@
 package net.openid.conformance.authzen;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.ApplySignedMetadataPrecedence;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataParamsNotEmpty;
@@ -15,6 +16,7 @@ import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
 import net.openid.conformance.authzen.condition.WarnOnUnusableAuthzenPdpJwksKeys;
 import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateAsymmetricKeyMaterial;
 import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateOrSymmetricKeyMaterial;
 import net.openid.conformance.condition.common.ParseUsableJwksKeys;
@@ -28,6 +30,28 @@ import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
  * Declares no variant parameters, so the Discovery module has none.
  */
 public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectServerTestModule {
+
+	/**
+	 * Stores the configuration in the environment. Returns false, having finished the test, when
+	 * the configuration asks for the test to be skipped.
+	 */
+	protected boolean storeConfigurationUnlessSkipped(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
+		env.putString("external_url_override", externalUrlOverride);
+		env.putObject("config", config);
+
+		Boolean skip = env.getBoolean("config", "skip_test");
+		if (skip != null && skip) {
+			// This is intended for use in our CI where we insist all tests run to completion
+			// It would be used as a temporary measure in an 'override' where one of the environments we are testing
+			// against is not able to run the test to completion due to an issue in that environments.
+			callAndContinueOnFailure(ConfigurationRequestsTestIsSkipped.class, ConditionResult.FAILURE);
+			fireTestFinished();
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Fetches the metadata from the well-known URL derived from the configured PDP Identifier into

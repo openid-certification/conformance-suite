@@ -18,7 +18,6 @@ import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
@@ -120,18 +119,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
-		env.putString("base_url", baseUrl);
-		env.putString("base_mtls_url", baseMtlsUrl);
-		env.putString("external_url_override", externalUrlOverride);
-		env.putObject("config", config);
-
-		Boolean skip = env.getBoolean("config", "skip_test");
-		if (skip != null && skip) {
-			// This is intended for use in our CI where we insist all tests run to completion
-			// It would be used as a temporary measure in an 'override' where one of the environments we are testing
-			// against is not able to run the test to completion due to an issue in that environments.
-			callAndContinueOnFailure(ConfigurationRequestsTestIsSkipped.class, ConditionResult.FAILURE);
-			fireTestFinished();
+		if (!storeConfigurationUnlessSkipped(config, baseUrl, externalUrlOverride, baseMtlsUrl)) {
 			return;
 		}
 		serverSupportsDiscovery = getVariant(PDPServerMetadata.class) == PDPServerMetadata.DISCOVERY;
