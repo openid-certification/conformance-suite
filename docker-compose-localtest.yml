@@ -49,6 +49,7 @@ services:
        -Djdk.tls.maxHandshakeMessageSize=65536
        --fintechlabs.base_url=https://nginx:8443
        --fintechlabs.base_mtls_url=https://nginx:8444
+       --fintechlabs.base_http_url=http://server:8080
        --fintechlabs.devmode=$$DEVMODE
        --fintechlabs.startredir=true
     links:
