@@ -6,6 +6,7 @@ import net.openid.conformance.authzen.condition.EnsureSearchResponsePageIsFirstK
 import net.openid.conformance.authzen.condition.EnsureValidActionSearchResponse;
 import net.openid.conformance.authzen.condition.EnsureSearchResponsePageCountMatchesResults;
 import net.openid.conformance.authzen.condition.EnsureSearchResponseResultsWithinPageLimit;
+import net.openid.conformance.authzen.condition.EnsureSearchResponseHasPageAfterPageToken;
 import net.openid.conformance.authzen.condition.EnsureValidSearchResponsePage;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToActionSearchEndpoint;
@@ -46,6 +47,7 @@ public abstract class AbstractAuthzenPDPActionSearchTest extends AbstractAuthzen
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
 		callAndStopOnFailure(EnsureValidActionSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.6");
 		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
+		callAndContinueOnFailure(EnsureSearchResponseHasPageAfterPageToken.class, ConditionResult.FAILURE, "AUTHZEN-8.2");
 		callAndContinueOnFailure(EnsureSearchResponsePageCountMatchesResults.class, ConditionResult.FAILURE, "AUTHZEN-8.2.2");
 		callAndContinueOnFailure(EnsureSearchResponseResultsWithinPageLimit.class, ConditionResult.FAILURE, "AUTHZEN-8.2.1");
 		callAndContinueOnFailure(EnsureSearchResponsePageIsFirstKey.class, ConditionResult.WARNING, "AUTHZEN-8.3");
