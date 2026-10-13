@@ -7,8 +7,13 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.CRLDistPoint;
+import org.bouncycastle.asn1.x509.DistributionPoint;
+import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -54,6 +59,24 @@ final class MdocDsCertificateTestFixtures {
 			builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
 			builder.addExtension(Extension.extendedKeyUsage, true,
 				new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
+		});
+	}
+
+	/**
+	 * Creates an mDL IssuerSigned credential signed with a self-signed certificate whose single
+	 * CRL distribution point lists the given URIs in order, the RFC 5280 4.2.1.13 shape of
+	 * several ways to obtain the same CRL, for the CRL fetching checks.
+	 */
+	static byte[] credentialWithDsCertCrlDistributionPoint(String... uris) throws Exception {
+		return credentialSignedWith(DrivingLicense.MDL_DOCTYPE, builder -> {
+			builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
+			GeneralName[] names = new GeneralName[uris.length];
+			for (int i = 0; i < uris.length; i++) {
+				names[i] = new GeneralName(GeneralName.uniformResourceIdentifier, uris[i]);
+			}
+			builder.addExtension(Extension.cRLDistributionPoints, false, new CRLDistPoint(new DistributionPoint[] {
+				new DistributionPoint(new DistributionPointName(new GeneralNames(names)), null, null)
+			}));
 		});
 	}
 
