@@ -37,6 +37,11 @@ public abstract class AbstractAuthzenPDPActionSearchTest extends AbstractAuthzen
 	}
 
 	@Override
+	protected String getEndpointMetadataParameter() {
+		return "search_action_endpoint";
+	}
+
+	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
 		callAndStopOnFailure(EnsureValidActionSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.6");

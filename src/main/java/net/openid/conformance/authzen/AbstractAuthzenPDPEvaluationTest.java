@@ -46,6 +46,11 @@ public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPD
 	}
 
 	@Override
+	protected String getEndpointMetadataParameter() {
+		return "access_evaluation_endpoint";
+	}
+
+	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
 		callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2");
