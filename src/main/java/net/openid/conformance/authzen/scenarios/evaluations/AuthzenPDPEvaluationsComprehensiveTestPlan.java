@@ -54,8 +54,8 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
 		// Per-eval overrides top-level defaults (Section 7.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
-		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
-		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
+		// No subject at any level: 400, or a decision-false evaluation (Section 7.1, 7.1.2.1)
+		AuthzenPDPEvaluationsMissingSubjectTest.class,
 		// Backward compatibility (Section 7.1)
 		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
 		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
