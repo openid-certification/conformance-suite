@@ -1,5 +1,6 @@
 package net.openid.conformance.models.external;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -24,7 +25,7 @@ public class OpenBankingBrasilConsentRequest {
 			loggedUser.add("document", document);
 			data.add("loggedUser", loggedUser);
 		}
-		if (cnpj != null) {
+		if (!Strings.isNullOrEmpty(cnpj)) {
 			JsonObject businessEntity = new JsonObject();
 			JsonObject document = new JsonObject();
 			document.addProperty("identification", cnpj);
