@@ -271,12 +271,16 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	}
 
 	/**
-	 * Override to add an `X-Request-ID` header to the request. When true, the request
-	 * sequence appends the header and the response is asserted to echo the same value
-	 * (Section 10.1.3).
+	 * Whether to add an `X-Request-ID` header to the request; when true, the response is
+	 * asserted to echo the same value (Section 10.1.3). The echo is required on every response
+	 * to an Authorization API request, including errors, so by default a module that expects an
+	 * error status sends one. A module that expects success does not, so the plans also exercise
+	 * requests without the header (certification scenario 5.5.2); the X-Request-ID modules
+	 * override this for the success case. A GET or PUT is not a request in the POST binding of
+	 * Section 10.1, so the method-rejection modules send none.
 	 */
 	protected boolean includeXRequestIdHeader() {
-		return false;
+		return "POST".equals(getRequestHttpMethod()) && !getAcceptableHttpStatusCodes().contains(200);
 	}
 
 	/**
