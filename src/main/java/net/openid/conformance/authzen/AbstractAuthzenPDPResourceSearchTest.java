@@ -38,6 +38,11 @@ public abstract class AbstractAuthzenPDPResourceSearchTest extends AbstractAuthz
 	}
 
 	@Override
+	protected String getEndpointMetadataParameter() {
+		return "search_resource_endpoint";
+	}
+
+	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
 		callAndStopOnFailure(EnsureValidResourceSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.5");

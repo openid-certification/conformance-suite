@@ -37,6 +37,11 @@ public abstract class AbstractAuthzenPDPSubjectSearchTest extends AbstractAuthze
 		callAndStopOnFailure(SetAuthzenApiEndpointToSubjectSearchEndpoint.class);
 	}
 
+	@Override
+	protected String getEndpointMetadataParameter() {
+		return "search_subject_endpoint";
+	}
+
 
 	@Override
 	protected void processAuthApiEndpointResponse() {
