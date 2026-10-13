@@ -21,7 +21,7 @@ import net.openid.conformance.testmodule.Environment;
  * values. Registered JWT housekeeping claims ({@code iss}, {@code iat},
  * {@code exp}, {@code nbf}, {@code aud}, {@code jti}, {@code sub}) are not metadata
  * fields and are not copied. This condition only runs when {@code signed_metadata}
- * is present (see {@link net.openid.conformance.authzen.AbstractAuthzenPDPTest}).
+ * is present (see {@link net.openid.conformance.authzen.AbstractAuthzenPDPMetadataTest}).
  */
 public class ApplySignedMetadataPrecedence extends AbstractCondition {
 
