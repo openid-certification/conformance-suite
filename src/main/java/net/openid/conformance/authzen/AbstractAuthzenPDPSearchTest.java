@@ -1,12 +1,15 @@
 package net.openid.conformance.authzen;
 
 import com.google.common.base.Strings;
+import net.openid.conformance.authzen.condition.AddAuthzenSearchPageTokenToRequest;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.EnsureSearchPageTokenNotRepeated;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.testmodule.TestFailureException;
+
+import java.util.Set;
 
 public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTest {
 
@@ -20,12 +23,27 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
 	}
 
+	/**
+	 * A PDP may paginate a search response without being asked to (Section 8.2.2: "if a response
+	 * does not contain the entire result set, it MUST include this object"), so every module that
+	 * expects a successful search follows the {@code page.next_token} chain before matching the
+	 * results. Modules expecting an error status make a single request.
+	 */
+	@Override
+	protected void performAuthzenApiFlow() {
+		if (getAcceptableHttpStatusCodes().equals(Set.of(200))) {
+			runPaginatedSearchLoop();
+		} else {
+			super.performAuthzenApiFlow();
+		}
+	}
+
 	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
 	// the three per-axis subclasses (Subject/Resource/Action) each provide their
 	// own implementation citing the family-specific AUTHZEN-8.{4,5,6} tag.
 
 	/**
-	 * Paginated search loop used by {@link AbstractAuthzenPDPPaginatedSubjectSearchTest}.
+	 * Paginated search loop used by every search module that expects HTTP 200.
 	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
 	 * page's token and results, and capped at {@code MAX_PAGES},
 	 * aggregating results across pages, and matches the accumulated results
@@ -49,6 +67,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				eventLog.startBlock("Page " + pageNum);
 				try {
 					createAuthzenApiRequest();
+					if (pageNum > 1 && sendRawRequest()) {
+						callAndStopOnFailure(AddAuthzenSearchPageTokenToRequest.class, "AUTHZEN-8.2");
+					}
 					performSingleApiRequest();
 					processAuthApiEndpointResponse();
 					callAndStopOnFailure(EnsureSearchPageTokenNotRepeated.class, "AUTHZEN-8.2");
