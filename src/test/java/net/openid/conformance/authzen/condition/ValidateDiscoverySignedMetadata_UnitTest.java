@@ -208,13 +208,13 @@ class ValidateDiscoverySignedMetadata_UnitTest {
 	}
 
 	@Test
-	public void futureIat_failsResultWithoutAborting() throws Exception {
+	public void futureIat_warnsWithoutAborting() throws Exception {
 		// RFC 7519 attaches no validity requirement to `iat`, so unlike exp/nbf it does not make the
-		// metadata unusable: the failure is recorded but the sequence runs to completion.
+		// metadata unusable: it is flagged as implausible and the sequence runs to completion.
 		Date future = new Date(System.currentTimeMillis() + 3600_000L);
 		putSignedMetadata(hmacSigned(new JWTClaimsSet.Builder().issuer(PDP_ISSUER).issueTime(future).build()));
 		module.runSequence();
-		assertEquals(Result.FAILED, module.getResult());
+		assertEquals(Result.WARNING, module.getResult());
 	}
 
 	@Test

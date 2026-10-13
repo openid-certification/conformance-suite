@@ -58,9 +58,10 @@ class ValidatePDPSignedMetadataIat_UnitTest {
 	}
 
 	@Test
-	public void futureIat_fails() {
+	public void futureIat_succeeds() {
+		// RFC 7519 gives iat no validity rule; CheckPDPSignedMetadataTimeClaimsArePlausible warns about it.
 		putIat(NOW + 3600);
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
 	}
 
 	@Test

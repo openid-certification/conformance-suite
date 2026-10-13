@@ -3,6 +3,12 @@ package net.openid.conformance.authzen.condition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+/**
+ * RFC 7519 Section 4.1.6: the iat claim's "value MUST be a number containing a NumericDate
+ * value". {@link ExtractPDPSignedMetadata} has already rejected one that is not a number, so
+ * this records the claim. It has no validity rule, so an implausible value (such as one in the
+ * future) is left to {@link CheckPDPSignedMetadataTimeClaimsArePlausible}.
+ */
 public class ValidatePDPSignedMetadataIat extends AbstractValidatePDPSignedMetadataTimeClaim {
 
 	@Override
@@ -14,12 +20,7 @@ public class ValidatePDPSignedMetadataIat extends AbstractValidatePDPSignedMetad
 			return env;
 		}
 
-		long now = nowSeconds();
-		if (iat > now + CLOCK_SKEW_SECONDS) {
-			throw error("PDP signed_metadata iat claim is in the future", args("iat", iat, "now", now));
-		}
-
-		logSuccess("PDP signed_metadata iat claim is valid", args("iat", iat));
+		logSuccess("PDP signed_metadata iat claim is a NumericDate", args("iat", iat));
 		return env;
 	}
 }

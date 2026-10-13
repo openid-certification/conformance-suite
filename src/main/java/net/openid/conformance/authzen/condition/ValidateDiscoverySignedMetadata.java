@@ -15,8 +15,10 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
  * {@code iat} / {@code exp} / {@code nbf} claims are valid; it stores the decoded
  * claims in {@code pdp_signed_metadata.claims} for
  * {@link ApplySignedMetadataPrecedence}. An expired or not-yet-valid JWT aborts the
- * test — its values must never be applied — whereas an out-of-range {@code iat} is
- * reported as a failure without stopping the run.
+ * test — its values must never be applied — whereas an implausible {@code iat}, such as
+ * one in the future, is reported as a warning. A time claim that is not a number, or an
+ * {@code iss} that is not a string, fails {@link ExtractPDPSignedMetadata}, whose JWT
+ * parser rejects them.
  *
  * <p>{@code iss} identifies the party attesting to the metadata, which AuthZEN
  * (§11.8) allows to differ from the PDP itself, so the issuer it is checked against is
@@ -37,8 +39,8 @@ public class ValidateDiscoverySignedMetadata extends AbstractConditionSequence {
 		callAndStopOnFailure(ValidatePDPSignedMetadataAlg.class, "AUTHZEN-9.1.3");
 		callAndStopOnFailure(VerifyAuthzenSignedMetadataSignature.class, "AUTHZEN-9.1.3", "AUTHZEN-9.2.3");
 		callAndStopOnFailure(ValidatePDPSignedMetadataIss.class, "AUTHZEN-9.1.3", "RFC7519-4.1.1");
-		// `iat` is continue-on-failure: RFC 7519 gives it no validity role, so an iat in the future
-		// is reported without stopping the rest of the test.
+		// RFC 7519 requires iat to be a NumericDate but gives it no validity role, so an iat in the
+		// future is only flagged by CheckPDPSignedMetadataTimeClaimsArePlausible below.
 		callAndContinueOnFailure(ValidatePDPSignedMetadataIat.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.6");
 		// `exp` and `nbf` are stop-on-failure: a signed_metadata JWT that has expired or is not yet
 		// valid MUST NOT have its values applied over the plain discovery metadata, and the endpoints

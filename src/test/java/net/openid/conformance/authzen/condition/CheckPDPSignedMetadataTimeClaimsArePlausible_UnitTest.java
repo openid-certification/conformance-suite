@@ -61,6 +61,19 @@ class CheckPDPSignedMetadataTimeClaimsArePlausible_UnitTest {
 	}
 
 	@Test
+	public void iatInFuture_fails() {
+		putClaims(claims(NOW + 3600, NOW - 60, NOW + 7200));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("iat claim is in the future"));
+	}
+
+	@Test
+	public void iatWithinClockSkew_succeeds() {
+		putClaims(claims(NOW + 60, NOW - 60, NOW + 3600));
+		cond.execute(env);
+	}
+
+	@Test
 	public void iatBefore2012_fails() {
 		putClaims(claims(1_000_000_000L, NOW - 60, NOW + 3600));
 		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
@@ -91,6 +104,36 @@ class CheckPDPSignedMetadataTimeClaimsArePlausible_UnitTest {
 	@Test
 	public void expJustUnder50Years_succeeds() {
 		putClaims(claims(NOW - 60, NOW - 60, NOW + 49 * SECONDS_PER_YEAR));
+		cond.execute(env);
+	}
+
+	@Test
+	public void expBeforeIat_fails() {
+		putClaims(claims(NOW - 60, NOW - 120, NOW - 3600));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("exp claim is not after its iat claim"), e.getMessage());
+	}
+
+	@Test
+	public void expEqualToIat_fails() {
+		putClaims(claims(NOW - 60, NOW - 120, NOW - 60));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("exp claim is not after its iat claim"), e.getMessage());
+	}
+
+	@Test
+	public void expBeforeNbf_fails() {
+		// Within the clock skew the exp and nbf checks would each accept these values.
+		putClaims(claims(NOW - 60, NOW + 120, NOW + 60));
+		Throwable e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("exp claim is not after its nbf claim"), e.getMessage());
+	}
+
+	@Test
+	public void expWithoutIatOrNbf_succeeds() {
+		JsonObject claims = new JsonObject();
+		claims.addProperty("exp", NOW + 3600);
+		putClaims(claims);
 		cond.execute(env);
 	}
 }
