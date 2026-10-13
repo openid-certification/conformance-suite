@@ -11,6 +11,7 @@ import net.openid.conformance.authzen.condition.EnsureValidEvaluationsResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointEvaluationsResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenEvaluationsExpectedResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationsEndpoint;
+import net.openid.conformance.authzen.condition.WarnAuthzenEvaluationsResponseUnknownMembers;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -92,6 +93,7 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 			callAndContinueOnFailure(EnsureEvaluationsResponseLengthMatchesRequest.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
 		}
 		callAndContinueOnFailure(EnsureNoTopLevelDecisionWhenEvaluationsPresent.class, ConditionResult.WARNING, "AUTHZEN-7.2");
+		callAndContinueOnFailure(WarnAuthzenEvaluationsResponseUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-7.2", "AUTHZEN-5.5");
 	}
 
 }
