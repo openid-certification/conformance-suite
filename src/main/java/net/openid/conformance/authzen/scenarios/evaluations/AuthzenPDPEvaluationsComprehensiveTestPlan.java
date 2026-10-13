@@ -36,6 +36,7 @@ import net.openid.conformance.plan.TestPlan;
 	shortName = "Comprehensive",
 	certifiable = false,
 	displayName = "AuthZEN 1.0: PDP server test for batch evaluations, including optional evaluation semantics (not part of certification program - use the batch evaluations plan to certify)",
+	summary = "Runs every module of the batch evaluations plan, which follows the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html), and also tests the OPTIONAL deny_on_first_deny and permit_on_first_permit evaluation semantics and the rejection of an unknown semantic (Section 7.1.2.1). A PDP that does not implement those semantics should use the batch evaluations plan. The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {

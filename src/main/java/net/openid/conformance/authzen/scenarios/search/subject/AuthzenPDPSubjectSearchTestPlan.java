@@ -12,6 +12,7 @@ import java.util.Map;
 	shortName = "Subject search",
 	certifiable = true,
 	displayName = "AuthZEN 1.0: PDP server test for Subject Search",
+	summary = "Tests a PDP's Subject Search API (Section 8.4) against the fixture in the [certification scenario](https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html): search results and the decisions they evaluate to, pagination, unknown entities, an ignored subject.id, idempotency, request validation and error responses, unknown fields, the HTTP binding (Section 10.1) and authentication (Sections 11.2 and 11.3). The modules for property-based decisions run only when 'AuthZEN Specification Support' is 'properties'. Every POST module that accepts only an error status sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
