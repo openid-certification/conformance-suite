@@ -8,6 +8,7 @@ import net.openid.conformance.authzen.condition.EnsureValidDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenDecisionExpectedResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationEndpoint;
+import net.openid.conformance.authzen.condition.WarnAuthzenDecisionUnknownMembers;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -48,6 +49,7 @@ public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPD
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
 		callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2");
+		callAndContinueOnFailure(WarnAuthzenDecisionUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-5.5", "AUTHZEN-6.2");
 	}
 
 

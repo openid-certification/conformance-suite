@@ -13,6 +13,7 @@ import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration
 import net.openid.conformance.authzen.condition.ParseUsableAuthzenPdpJwksKeys;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
 import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
+import net.openid.conformance.authzen.condition.WarnAuthzenMetadataUnknownMembers;
 import net.openid.conformance.authzen.condition.WarnOnUnusableAuthzenPdpJwksKeys;
 import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -118,6 +119,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 			// signed_metadata JWT whose values must not be applied.
 			callAndStopOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, "AUTHZEN-9.2.3");
 			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
+			callAndContinueOnFailure(WarnAuthzenMetadataUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-9.2.2", "AUTHZEN-12.1.3");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
 		env.unmapKey("server");
