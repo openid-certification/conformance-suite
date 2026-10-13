@@ -38,6 +38,16 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		}
 	}
 
+	/**
+	 * A response with a non-empty {@code page.next_token} leaves the token in the environment,
+	 * and the request builder adds it to the next request as {@code page.token}. Each idempotency
+	 * iteration must ask for the first page again.
+	 */
+	@Override
+	protected void resetStateBetweenIdenticalRequests() {
+		env.removeNativeValue("authzen_search_endpoint_request_page_token");
+	}
+
 	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
 	// the three per-axis subclasses (Subject/Resource/Action) each provide their
 	// own implementation citing the family-specific AUTHZEN-8.{4,5,6} tag.
