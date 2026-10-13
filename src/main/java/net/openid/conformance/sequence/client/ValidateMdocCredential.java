@@ -6,13 +6,19 @@ import net.openid.conformance.condition.client.AbstractRevocationListCwtConditio
 import net.openid.conformance.condition.client.EnsureMdocNotRevoked;
 import net.openid.conformance.condition.client.ExtractMdocRevocationStatus;
 import net.openid.conformance.condition.client.EnsureContentTypeMdocRevocationListCwt;
+import net.openid.conformance.condition.client.AbstractMdocDsCertificateCrlCondition;
+import net.openid.conformance.condition.client.EnsureContentTypeMdocDsCertificateCrl;
 import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
+import net.openid.conformance.condition.client.EnsureMdocDsCertificateCrlNextUpdateWithin90Days;
+import net.openid.conformance.condition.client.EnsureMdocDsCertificateNotRevokedByCrl;
+import net.openid.conformance.condition.client.FetchMdocDsCertificateCrl;
 import net.openid.conformance.condition.client.FetchMdocRevocationList;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListSignerCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListCertificateChain;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListCwtFormat;
 import net.openid.conformance.condition.client.VerifyMdocRevocationListCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
+import net.openid.conformance.condition.client.ValidateMdocDsCertificateCrl;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateKeyUsage;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateMatchesIssuingCountry;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateProfile;
@@ -125,6 +131,45 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				.onSkip(ConditionResult.INFO);
 		}
 		call(chainValidation);
+		validateDsCertificateCrl();
+	}
+
+	/**
+	 * ISO/IEC 18013-5 12.8.3: a reader has access to certificate revocation information and
+	 * applies RFC 5280 path validation, so the CRL named by the document signer certificate's
+	 * distribution point (mandatory, Table B.3) is fetched and checked against the Table B.10
+	 * profile and the B.2 issuance rules. The CRL depends only on the document signer
+	 * certificate, so {@link FetchMdocDsCertificateCrl} handles each certificate once per test:
+	 * for a later credential signed by a certificate already seen it stores no CRL and the checks
+	 * below skip.
+	 *
+	 * <p>A certificate naming no distribution point, or a CRL that cannot be obtained or that
+	 * fails the profile, leaves a fail-closed reader
+	 * unable to accept the credential, so for issuance and under HAIP, where the issuer under
+	 * test owns its IACA and 18013-5 is mandatory, that is a failure, as for the chain
+	 * validation above; for presentation outside HAIP, where the wallet under test does not
+	 * control its credentials' issuer, it is a warning. A nextUpdate more than 90 days after
+	 * thisUpdate is only a warning: B.2 requires a new CRL at least every 90 days, but an IACA
+	 * may issue one before nextUpdate, so the field alone does not show B.2 was broken. A
+	 * document signer certificate listed on
+	 * the CRL is revoked, which no reader accepts, so that is always a failure; that is only
+	 * decided from a CRL that complies with the profile and whose signature verified with the
+	 * issuing IACA certificate, since the CRL is fetched over plain http and an unusable CRL
+	 * must not turn the severity chosen above into a failure.
+	 */
+	private void validateDsCertificateCrl() {
+		ConditionResult retrievalSeverity = haip || isIssuance ? ConditionResult.FAILURE : ConditionResult.WARNING;
+
+		callAndContinueOnFailure(FetchMdocDsCertificateCrl.class, retrievalSeverity, "ISO18013-5-12.8.3", "ISO18013-5-B.2");
+		// skipped when FetchMdocDsCertificateCrl stored no CRL
+		String crl = AbstractMdocDsCertificateCrlCondition.ENV_CRL;
+		callIfPresent(crl, EnsureContentTypeMdocDsCertificateCrl.class, ConditionResult.WARNING, "RFC2585-4.2");
+		callIfPresent(crl, ValidateMdocDsCertificateCrl.class, retrievalSeverity, "ISO18013-5-B.2");
+		// B.2 limits how often the IACA issues CRLs, which one CRL's nextUpdate cannot prove broken
+		callIfPresent(crl, EnsureMdocDsCertificateCrlNextUpdateWithin90Days.class, ConditionResult.WARNING, "ISO18013-5-B.2");
+		// skipped unless ValidateMdocDsCertificateCrl accepted the CRL and verified its signature
+		callIfPresent(AbstractMdocDsCertificateCrlCondition.ENV_AUTHENTICATED, EnsureMdocDsCertificateNotRevokedByCrl.class,
+			ConditionResult.FAILURE, "ISO18013-5-12.8.3");
 	}
 
 	/**
@@ -171,8 +216,14 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 	 */
 	private void checkRetrievedList(Class<? extends Condition> conditionClass, ConditionResult onFail,
 			String... requirements) {
+		callIfPresent(AbstractRevocationListCwtCondition.ENV_TOKEN, conditionClass, onFail, requirements);
+	}
+
+	/** Calls a check that needs {@code envKey}, skipping it with INFO when an earlier fetch stored nothing there. */
+	private void callIfPresent(String envKey, Class<? extends Condition> conditionClass, ConditionResult onFail,
+			String... requirements) {
 		call(condition(conditionClass)
-			.skipIfStringsMissing(AbstractRevocationListCwtCondition.ENV_TOKEN)
+			.skipIfStringsMissing(envKey)
 			.onSkip(ConditionResult.INFO)
 			.onFail(onFail)
 			.dontStopOnFailure()
