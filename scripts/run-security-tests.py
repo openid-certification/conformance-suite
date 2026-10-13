@@ -38,6 +38,10 @@ Usage:
 
 Environment variables:
     CONFORMANCE_SERVER  Base URL of the server (default: https://localhost.emobix.co.uk:8443/)
+    CONFORMANCE_SERVER_HTTP  Plain-http origin of the server, the one the mdoc document signer
+                        certificate's CRL distribution point names (optional; when set, the
+                        plain-http route to the CRL and the rejection of every other plain-http
+                        path are checked)
     CONFORMANCE_TOKEN   API token of the user owning the test data (required; API tokens are never admin)
     CONFORMANCE_TOKEN_2 API token for a second, unrelated user (cross-user checks)
 """
@@ -300,6 +304,13 @@ def dump_failing_conditions(client, base_url, test_id):
     for entry in (resp.json() if resp.status_code == 200 else []):
         if entry.get("result") in ("FAILURE", "WARNING"):
             print(f"    {entry.get('result')}: {entry.get('src')}: {entry.get('msg')}")
+
+
+def is_der_crl(resp):
+    """A 200 carrying a DER encoded CRL under its RFC 2585 media type."""
+    return (resp.status_code == 200
+            and resp.headers.get("content-type", "").startswith("application/pkix-crl")
+            and len(resp.content) > 0 and resp.content[0] == 0x30)
 
 
 def unauthenticated_get(base_url, path, verify_ssl, params=None):
@@ -1756,6 +1767,27 @@ def run_tests():
     runner.check("Metadata: mdoc IACA root cert is publicly reachable as PEM",
                  resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
                  f"HTTP {resp.status_code}")
+
+    # the IACA's CRL is public too: the suite's document signer certs name it as their
+    # distribution point, so verifiers/wallets under test fetch it unauthenticated
+    resp = unauthenticated_get(base_url, "mdoc-iaca.crl", verify_ssl)
+    runner.check("Metadata: mdoc IACA CRL is publicly reachable as a DER CRL", is_der_crl(resp),
+                 f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+
+    # CRL distribution points are plain-http URLs by PKI convention, so the CRL is the one
+    # resource RejectPlainHttpTrafficFilter lets through; everything else stays rejected
+    http_base_url = os.environ.get("CONFORMANCE_SERVER_HTTP")
+    if http_base_url:
+        if not http_base_url.endswith("/"):
+            http_base_url += "/"
+        resp = unauthenticated_get(http_base_url, "mdoc-iaca.crl", verify_ssl)
+        runner.check("Metadata: mdoc IACA CRL is reachable over plain http as a DER CRL", is_der_crl(resp),
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+        resp = unauthenticated_get(http_base_url, "mdoc-iaca-root.pem", verify_ssl)
+        runner.check("Metadata: other paths are still rejected over plain http",
+                     resp.status_code != 200, f"HTTP {resp.status_code}")
+    else:
+        print("  SKIP: CONFORMANCE_SERVER_HTTP not set; plain-http CRL route not checked")
 
     # ===================================================================
     # 4h. BULK PLAN DELETE (ADMIN ONLY)

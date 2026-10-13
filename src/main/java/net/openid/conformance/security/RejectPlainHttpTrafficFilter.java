@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import net.openid.conformance.util.MdocIacaCrl;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -12,6 +13,17 @@ import java.io.IOException;
  * Ensures that only https traffic is passed through the filter chain.
  */
 public class RejectPlainHttpTrafficFilter extends OncePerRequestFilter {
+
+	/**
+	 * The mdoc IACA CRL is the one resource served on plain http: CRL distribution points are
+	 * http URLs by PKI convention, and the CRL needs neither a session nor transport security
+	 * since the IACA's signature authenticates it. See {@link MdocIacaCrlEndpoint}.
+	 */
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		return MdocIacaCrl.PATH.equals(request.getRequestURI());
+	}
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		if (!"https".equals(request.getScheme())) {

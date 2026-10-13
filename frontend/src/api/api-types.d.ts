@@ -310,6 +310,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/mdoc-iaca.crl": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the CRL of the mdoc IACA root certificate
+     * @description Returns the DER encoded certificate revocation list issued by the mdoc IACA root certificate (served at /mdoc-iaca-root.pem) for the document signer certificates the suite embeds in the mdoc credentials it creates. The list is empty: the suite revokes nothing.
+     */
+    get: operations["mdocIacaCrl"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/mdoc-iaca-root.pem": {
     parameters: {
       query?: never;
@@ -2526,6 +2546,26 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  mdocIacaCrl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CRL, DER encoded */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pkix-crl": string;
+        };
       };
     };
   };
