@@ -25,6 +25,7 @@ import java.security.MessageDigest;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -317,14 +318,13 @@ public final class MdocCertificateProfileChecks {
 	 * with a URI, and no 'reasons' or 'cRLIssuer' fields ("shall not be used").
 	 */
 	public static void checkCrlDistributionPointsContent(X509Certificate cert, List<String> violations) {
-		byte[] extensionValue = cert.getExtensionValue("2.5.29.31");
+		byte[] extensionValue = cert.getExtensionValue(OID_CRL_DISTRIBUTION_POINTS);
 		if (extensionValue == null) {
 			return; // presence requirements differ per profile and are checked by the caller
 		}
 		try {
 			CRLDistPoint crlDistPoint = CRLDistPoint.getInstance(
 				JcaX509ExtensionUtils.parseExtensionValue(extensionValue));
-			boolean hasUri = false;
 			for (DistributionPoint distributionPoint : crlDistPoint.getDistributionPoints()) {
 				if (distributionPoint.getReasons() != null) {
 					violations.add("CRL distribution points extension uses the 'reasons' field, which shall not be used");
@@ -332,21 +332,50 @@ public final class MdocCertificateProfileChecks {
 				if (distributionPoint.getCRLIssuer() != null) {
 					violations.add("CRL distribution points extension uses the 'cRLIssuer' field, which shall not be used");
 				}
-				DistributionPointName name = distributionPoint.getDistributionPoint();
-				if (name != null && name.getType() == DistributionPointName.FULL_NAME) {
-					for (GeneralName generalName : GeneralNames.getInstance(name.getName()).getNames()) {
-						if (generalName.getTagNo() == GeneralName.uniformResourceIdentifier) {
-							hasUri = true;
-						}
-					}
-				}
 			}
-			if (!hasUri) {
+			if (uris(crlDistPoint).isEmpty()) {
 				violations.add("CRL distribution points extension does not contain a distribution point URI");
 			}
 		} catch (Exception e) {
 			violations.add("CRL distribution points extension could not be parsed: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * Every URI in the fullName of every distribution point of the certificate's CRL
+	 * distribution points extension, in order: RFC 5280 4.2.1.13, each a way to obtain the same
+	 * CRL. Empty when the extension is absent.
+	 *
+	 * @throws IllegalArgumentException when the extension cannot be parsed
+	 */
+	public static List<String> crlDistributionPointUris(X509Certificate cert) {
+		byte[] extensionValue = cert.getExtensionValue(OID_CRL_DISTRIBUTION_POINTS);
+		if (extensionValue == null) {
+			return List.of();
+		}
+		CRLDistPoint crlDistPoint;
+		try {
+			crlDistPoint = CRLDistPoint.getInstance(JcaX509ExtensionUtils.parseExtensionValue(extensionValue));
+		} catch (Exception e) {
+			throw new IllegalArgumentException("CRL distribution points extension could not be parsed: " + e.getMessage(), e);
+		}
+		return uris(crlDistPoint);
+	}
+
+	private static List<String> uris(CRLDistPoint crlDistPoint) {
+		List<String> uris = new ArrayList<>();
+		for (DistributionPoint distributionPoint : crlDistPoint.getDistributionPoints()) {
+			DistributionPointName name = distributionPoint.getDistributionPoint();
+			if (name == null || name.getType() != DistributionPointName.FULL_NAME) {
+				continue;
+			}
+			for (GeneralName generalName : GeneralNames.getInstance(name.getName()).getNames()) {
+				if (generalName.getTagNo() == GeneralName.uniformResourceIdentifier) {
+					uris.add(generalName.getName().toString());
+				}
+			}
+		}
+		return uris;
 	}
 
 	/** Checks that none of the extensions ISO 18013-5 B.1.1 forbids are present. */

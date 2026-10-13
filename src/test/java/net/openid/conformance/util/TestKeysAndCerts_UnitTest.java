@@ -1,5 +1,6 @@
 package net.openid.conformance.util;
 
+import org.multipaz.crypto.X509CertJvmKt;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -134,8 +135,25 @@ public class TestKeysAndCerts_UnitTest {
 	}
 
 	@Test
-	public void hasCrlDistributionPoints() {
-		assertThat(dsCert.getExtensionValue("2.5.29.31")).isNotNull();
+	public void crlDistributionPointNamesTheConfiguredUri() throws Exception {
+		assertThat(MdocCertificateProfileChecks.crlDistributionPointUris(dsCert))
+			.containsExactly(TestKeysAndCerts.getCrlDistributionPointUri());
+		List<String> violations = new java.util.ArrayList<>();
+		MdocCertificateProfileChecks.checkCrlDistributionPointsContent(dsCert, violations);
+		assertThat(violations).isEmpty();
+	}
+
+	@Test
+	public void changingTheCrlDistributionPointUriReMintsTheDocumentSigner() throws Exception {
+		String original = TestKeysAndCerts.getCrlDistributionPointUri();
+		try {
+			TestKeysAndCerts.setCrlDistributionPointUri("http://a.example/x.crl");
+			X509Certificate reMinted = X509CertJvmKt.getJavaX509Certificate(TestKeysAndCerts.getDocumentSignerCert());
+			assertThat(MdocCertificateProfileChecks.crlDistributionPointUris(reMinted)).containsExactly("http://a.example/x.crl");
+			assertThat(reMinted.getSerialNumber()).isNotEqualTo(dsCert.getSerialNumber());
+		} finally {
+			TestKeysAndCerts.setCrlDistributionPointUri(original);
+		}
 	}
 
 	@Test

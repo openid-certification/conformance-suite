@@ -25,6 +25,8 @@ services:
       context: ./server-dev
     ports:
      - "9999:9999"
+     # plain http, for the mdoc IACA CRL only
+     - "8080:8080"
     volumes:
      - ./target/:/server/:delegated
     command: >
@@ -34,6 +36,7 @@ services:
       -Djdk.tls.maxHandshakeMessageSize=65536
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443
       --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444
+      --fintechlabs.base_http_url=http://localhost.emobix.co.uk:8080
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
     links:

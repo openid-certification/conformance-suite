@@ -71,7 +71,7 @@
     {
       "key": "credential_issuer",
       "title": "Credential Issuer",
-      "intro": "For mdoc credentials — both in OpenID4VP verifier tests and in OpenID4VCI wallet tests — the test suite signs with a document signer certificate issued by its own [mdoc IACA root certificate](/mdoc-iaca-root.pem) — configure that certificate as a trust anchor in the verifier or wallet under test. The signing JWK configured below is used for SD-JWT VC credentials only.",
+      "intro": "For mdoc credentials — both in OpenID4VP verifier tests and in OpenID4VCI wallet tests — the test suite signs with a document signer certificate issued by its own [mdoc IACA root certificate](/mdoc-iaca-root.pem) — configure that certificate as a trust anchor in the verifier or wallet under test. The document signer certificate names the IACA's CRL at `/mdoc-iaca.crl` (served over plain http as well as https), so revocation checking can stay enabled. The signing JWK configured below is used for SD-JWT VC credentials only.",
       "fields": [
         {
           "key": "vci.credential_issuer_url",
