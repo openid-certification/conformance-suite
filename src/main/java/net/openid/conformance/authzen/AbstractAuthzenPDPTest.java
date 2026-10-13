@@ -256,17 +256,19 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		eventLog.startBlock("Make request to API endpoint");
 		createAuthzenApiRequest();
 		performSingleApiRequest();
-		// Body-extraction / response validation runs whenever 200 is in the
-		// acceptable set. For tests that allow a mix of 200 and non-200
-		// codes, this runs unconditionally — author must ensure
-		// processAuthApiEndpointResponse() / validateAuthApiEndpointResponse()
-		// tolerate a 4xx body shape if such a mixed set is ever used.
-		if (getAcceptableHttpStatusCodes().contains(200)) {
+		// The response body is validated whenever the PDP answered 200 and 200 is acceptable. A
+		// module that also accepts an error status validates no body when it gets one.
+		if (getAcceptableHttpStatusCodes().contains(200) && responseStatusIs200()) {
 			processAuthApiEndpointResponse();
 			validateAuthApiEndpointResponse();
 		}
 		performPostApiFlow();
 		eventLog.endBlock();
+	}
+
+	private boolean responseStatusIs200() {
+		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
+		return status != null && status == 200;
 	}
 
 	/**
