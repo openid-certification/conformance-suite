@@ -152,6 +152,13 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 		private var cached: AsymmetricKey.X509CertifiedExplicit? = null
 		private var mintedAt: kotlin.time.Instant? = null
 
+		/** Drops the cached key so the next [get] mints afresh. */
+		@Synchronized
+		fun reset() {
+			cached = null
+			mintedAt = null
+		}
+
 		@Synchronized
 		fun get(): AsymmetricKey.X509CertifiedExplicit {
 			val current = cached
@@ -168,6 +175,23 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 
 	private val rotatingDocumentSignerKey = DailyRotatedKey { mintDocumentSignerKey() }
 	private val rotatingStatusListSignerKey = DailyRotatedKey { mintStatusListSignerKey() }
+
+	/**
+	 * The URI the document signer certificate's CRL distribution point names: where the suite
+	 * serves [MdocIacaCrl]. It is a plain-http URL, as CRL distribution points are by PKI
+	 * convention, except behind a TLS-only tunnel.
+	 * [MdocIacaCrlEndpoint][net.openid.conformance.security.MdocIacaCrlEndpoint] sets it from the
+	 * deployment's URLs at startup; the default only serves code that mints before then, such as
+	 * unit tests. Setting it re-mints the document signer, so no certificate minted
+	 * under the previous value stays in use.
+	 */
+	@JvmStatic
+	var crlDistributionPointUri: String = "http://localhost:8080" + MdocIacaCrl.PATH
+		set(value) {
+			require(value.isNotBlank()) { "The document signer certificate needs a CRL distribution point URI" }
+			field = value
+			rotatingDocumentSignerKey.reset()
+		}
 
 	/**
 	 * Mints an EC leaf certificate under the IACA root, with the parts ISO/IEC 18013-5 Annex B
@@ -250,7 +274,7 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 	/**
 	 * Document signer certificate, ISO/IEC 18013-5 Table B.3. Beyond what every leaf gets: the
 	 * critical mdlDS extended key usage, the issuer alternative name and a CRL distribution
-	 * point (mandatory in Table B.3, though the suite does not operate a CRL).
+	 * point naming [crlDistributionPointUri], where the suite serves the IACA's CRL.
 	 */
 	private fun mintDocumentSignerKey(): AsymmetricKey.X509CertifiedExplicit =
 		mintLeafUnderIaca("certification.openid.net mdoc DS") { builder ->
@@ -262,17 +286,14 @@ eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
 				Extension.issuerAlternativeName, false,
 				GeneralNames(GeneralName(GeneralName.rfc822Name, "certification@oidf.org"))
 			)
-			// Placeholder URI carried over from the previous certificate; Table B.3 makes the
-			// extension mandatory but the suite does not operate a CRL.
+			// One distribution point with one URI; Table B.3 forbids the reasons and cRLIssuer fields.
 			builder.addExtension(
 				Extension.cRLDistributionPoints, false,
 				CRLDistPoint(
 					arrayOf(
 						DistributionPoint(
 							DistributionPointName(
-								GeneralNames(
-									GeneralName(GeneralName.uniformResourceIdentifier, "http://example.com/myca.crl")
-								)
+								GeneralNames(GeneralName(GeneralName.uniformResourceIdentifier, crlDistributionPointUri))
 							),
 							null,
 							null

@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.SwaggerConfig;
 import net.openid.conformance.util.MdocIacaCrl;
+import net.openid.conformance.util.TestKeysAndCerts;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,6 +30,34 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @Tag(name = SwaggerConfig.TAG_SERVER)
 public class MdocIacaCrlEndpoint {
+
+	/**
+	 * Points the document signer certificates at this endpoint, over plain http (see the class
+	 * comment): as the component that serves the CRL it is the one that knows where the CRL
+	 * lives. {@code fintechlabs.external_url_override}, when set, is the origin wallets and
+	 * verifiers reach the suite through (a tunnel in front of a developer's machine), so the
+	 * CRL is named there, as given: such a tunnel terminates TLS and redirects plain http to
+	 * https, which a CRL fetcher does not follow. Otherwise {@code fintechlabs.base_http_url}
+	 * names the plain-http origin where the https host does not answer http on the same port,
+	 * as in local deployments; when it too is empty the base URL with the scheme swapped is used.
+	 */
+	public MdocIacaCrlEndpoint(@Value("${fintechlabs.base_url}") String baseUrl,
+			@Value("${fintechlabs.base_http_url:}") String baseHttpUrl,
+			@Value("${fintechlabs.external_url_override:}") String externalUrlOverride) {
+		String crlOrigin;
+		if (!externalUrlOverride.isBlank()) {
+			crlOrigin = externalUrlOverride;
+		} else if (!baseHttpUrl.isBlank()) {
+			crlOrigin = baseHttpUrl;
+		} else {
+			crlOrigin = toPlainHttp(baseUrl);
+		}
+		TestKeysAndCerts.setCrlDistributionPointUri(crlOrigin.replaceFirst("/+$", "") + MdocIacaCrl.PATH);
+	}
+
+	private static String toPlainHttp(String url) {
+		return url.replaceFirst("^https://", "http://");
+	}
 
 	// no produces: a fetcher sending a narrow Accept header must still get the CRL, not a 406
 	@GetMapping(MdocIacaCrl.PATH)
