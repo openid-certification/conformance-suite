@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-evaluation-level-errors",
-	displayName = "AuthZEN Evaluations API - Section 7.1.1: Evaluation-level errors",
-	summary = "Section 7.1.1 evaluation-level errors. The second evaluation is empty and MUST be returned as a decision-false item in the response array (HTTP 200).\n" + AuthzenPDPEvaluationsEvaluationLevelErrorsTest.payload,
+	displayName = "AuthZEN Evaluations API - Section 7.1.2.1: Evaluation-level errors",
+	summary = "Section 7.1.2.1 evaluation-level errors under the execute_all semantic, which the request sets explicitly (certification scenario 6.4.1). The second evaluation is empty and MUST be returned as a decision-false item in the response array (HTTP 200).\n" + AuthzenPDPEvaluationsEvaluationLevelErrorsTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationsEvaluationLevelErrorsTest extends AbstractAuthzenPDPEvaluationsTest {
@@ -15,6 +15,7 @@ public class AuthzenPDPEvaluationsEvaluationLevelErrorsTest extends AbstractAuth
 		{
 			"subject": { "type": "user", "id": "alice" },
 			"action": { "name": "read" },
+			"options": { "evaluations_semantic": "execute_all" },
 			"evaluations": [
 				{ "resource": { "type": "record", "id": "record-1" } },
 				{}
