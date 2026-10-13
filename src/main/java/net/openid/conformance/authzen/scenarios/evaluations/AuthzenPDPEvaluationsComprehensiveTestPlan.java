@@ -36,6 +36,7 @@ import net.openid.conformance.plan.TestPlan;
 	shortName = "Comprehensive",
 	certifiable = false,
 	displayName = "AuthZEN 1.0: PDP server test for batch evaluations, including optional evaluation semantics (not part of certification program - use the batch evaluations plan to certify)",
+	summary = "Every module that expects the PDP to reject its POST request sends an X-Request-ID header, and fails if the error response does not echo it (Section 10.1.3), even when the status is right.",
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
