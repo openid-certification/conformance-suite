@@ -77,6 +77,9 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithTopLevelDefaultInheritanceTest.class,
+		// Authentication (Section 11.3)
+		AuthzenPDPEvaluationsMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationsInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationsComprehensiveTestPlan implements TestPlan {
