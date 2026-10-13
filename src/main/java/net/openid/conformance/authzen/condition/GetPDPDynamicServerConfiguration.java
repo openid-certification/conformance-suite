@@ -1,6 +1,7 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -58,23 +59,29 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 			throw error(msg, e);
 		}
 
-		if (!Strings.isNullOrEmpty(jsonString)) {
-			try {
-				JsonObject serverConfig = JsonParser.parseString(jsonString).getAsJsonObject();
+		JsonObject serverConfig = parseServerConfiguration(jsonString);
+		logSuccess("Successfully parsed server configuration", serverConfig);
+		env.putObject("pdp", serverConfig);
+		return env;
+	}
 
-				logSuccess("Successfully parsed server configuration", serverConfig);
-
-				env.putObject("pdp", serverConfig);
-
-				return env;
-			} catch (JsonSyntaxException e) {
-				throw error(e, args("json", jsonString));
-			}
-
-		} else {
+	/**
+	 * Section 9.2.2: the metadata response body "MUST be a JSON object".
+	 */
+	JsonObject parseServerConfiguration(String jsonString) {
+		if (Strings.isNullOrEmpty(jsonString)) {
 			throw error("empty server configuration");
 		}
-
+		JsonElement parsed;
+		try {
+			parsed = JsonParser.parseString(jsonString);
+		} catch (JsonSyntaxException e) {
+			throw error(e, args("json", jsonString));
+		}
+		if (!parsed.isJsonObject()) {
+			throw error("The PDP metadata response body is not a JSON object", args("json", jsonString));
+		}
+		return parsed.getAsJsonObject();
 	}
 
 	/**
