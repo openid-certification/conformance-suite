@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
+class EnsureAuthzenSearchResponseValsMatchExpectedVals_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
@@ -311,4 +311,131 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
 	}
 
+	@Test
+	public void testEvaluate_result_with_properties_matches_expected_entity_noError() {
+		String expectedJson = """
+		[
+			{ "type": "user", "id": "alice" },
+			{ "type": "user", "id": "bob" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "type": "user", "id": "alice", "properties": { "department": "sales" } },
+			{ "type": "user", "id": "bob", "properties": { "role": "admin" } }
+		]""";
+
+		performTest(expectedJson, actualJson);
+	}
+
+	@Test
+	public void testEvaluate_action_with_properties_matches_expected_action_noError() {
+		String expectedJson = """
+		[
+			{ "name": "delete" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "name": "delete", "properties": { "soft": true } }
+		]""";
+
+		performTest(expectedJson, actualJson);
+	}
+
+	@Test
+	public void testEvaluate_error_result_with_properties_but_different_id() {
+		String expectedJson = """
+		[
+			{ "type": "user", "id": "alice" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "type": "user", "id": "bob", "properties": { "role": "admin" } }
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
+	}
+
+	@Test
+	public void testEvaluate_result_with_unknown_member_matches_expected_entity_noError() {
+		String expectedJson = """
+		[
+			{ "type": "user", "id": "alice" },
+			{ "type": "user", "id": "bob" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "type": "user", "id": "alice", "display_name": "Alice" },
+			{ "type": "user", "id": "bob", "display_name": "Bob" }
+		]""";
+
+		performTest(expectedJson, actualJson);
+	}
+
+	@Test
+	public void testEvaluate_action_with_unknown_member_matches_expected_action_noError() {
+		String expectedJson = """
+		[
+			{ "name": "read" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "name": "read", "description": "Read a record" }
+		]""";
+
+		performTest(expectedJson, actualJson);
+	}
+
+	@Test
+	public void testEvaluate_error_result_with_unknown_member_but_different_id() {
+		String expectedJson = """
+		[
+			{ "type": "user", "id": "alice" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "type": "user", "id": "bob", "display_name": "Alice" }
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
+	}
+
+	@Test
+	public void testEvaluate_error_result_with_same_id_but_different_type() {
+		String expectedJson = """
+		[
+			{ "type": "user", "id": "alice" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "type": "service", "id": "alice" }
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
+	}
+
+	@Test
+	public void testEvaluate_error_result_without_type() {
+		String expectedJson = """
+		[
+			{ "type": "user", "id": "alice" }
+		]""";
+
+		String actualJson = """
+		[
+			{ "id": "alice" }
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
+	}
 }
