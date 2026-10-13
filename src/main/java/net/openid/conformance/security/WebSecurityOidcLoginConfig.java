@@ -13,6 +13,7 @@ import net.openid.conformance.sharing.privatelink.CustomOneTimeTokenService;
 import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
 import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeTokenAuthenticationProvider;
 import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
+import net.openid.conformance.util.MdocIacaCrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,6 +176,7 @@ class WebSecurityOidcLoginConfig {
 					"/test/**",  //
 					"/jwks**",  //
 					"/mdoc-iaca-root.pem", // mdoc IACA root trust anchor for verifiers/wallets under test
+					MdocIacaCrl.PATH, // the IACA's CRL, named by the suite's document signer certificates
 					"/logout.html", //
 					"/robots.txt",  //
 					"/.well-known/**", //
