@@ -46,6 +46,9 @@ import java.util.Map;
 		AuthzenPDPActionSearchExtraActionIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPActionSearchActionSearchWithPropertiesTest.class,
+		// Authentication (Section 11.3)
+		AuthzenPDPActionSearchMissingCredentialsReturns401Test.class,
+		AuthzenPDPActionSearchInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPActionSearchTestPlan implements TestPlan {
