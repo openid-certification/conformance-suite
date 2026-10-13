@@ -43,6 +43,11 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 		callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationsEndpoint.class);
 	}
 
+	@Override
+	protected String getEndpointMetadataParameter() {
+		return "access_evaluations_endpoint";
+	}
+
 	protected abstract String getExpectedEvaluationsResponseJson();
 
 	/**
