@@ -7,10 +7,15 @@ import java.util.Set;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
+import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAllowingJsonParseFailure;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyExpectedStatus;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiEndpointPathContainsV1;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequestIdMatches;
+import net.openid.conformance.authzen.condition.EnsureHttpStatusCodeMatchesExpected;
+import net.openid.conformance.authzen.condition.EnsureMethodNotAllowedResponseAllowsPost;
+import net.openid.conformance.authzen.condition.WarnMethodRejectedWithNotFound;
+import net.openid.conformance.authzen.condition.WarnUnsupportedMethodAccepted;
 import net.openid.conformance.authzen.condition.EnsurePDPMetadataAdvertisesEndpoint;
 import net.openid.conformance.authzen.condition.CorruptAuthzenClientCredentials;
 import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
@@ -191,6 +196,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		eventLog.endBlock();
 	}
 
+	private boolean responseStatusIsSuccess() {
+		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
+		return status != null && status >= 200 && status < 300;
+	}
+
 	protected boolean responseStatusIs200() {
 		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
 		return status != null && status == 200;
@@ -212,6 +222,13 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			callAndStopOnFailure(AddXRequestIdHeaderToAuthzenApiRequest.class, "AUTHZEN-10.1.3");
 		}
 		callAuthApiEndpointRequest();
+		if (!"POST".equals(getRequestHttpMethod())) {
+			// Working-group guidance for a request with a method other than POST: 405 (with Allow:
+			// POST) is preferred, or 400; 404 only when the framework routes on method and path.
+			callAndContinueOnFailure(WarnUnsupportedMethodAccepted.class, ConditionResult.WARNING, "AUTHZEN-10.1");
+			callAndContinueOnFailure(WarnMethodRejectedWithNotFound.class, ConditionResult.WARNING, "AUTHZEN-10.1");
+			callAndContinueOnFailure(EnsureMethodNotAllowedResponseAllowsPost.class, ConditionResult.WARNING, "AUTHZEN-10.1", "RFC7231-6.5.5");
+		}
 		if (includeXRequestIdHeader()) {
 			callAndContinueOnFailure(EnsureAuthzenApiResponseXRequestIdMatches.class, ConditionResult.FAILURE, "AUTHZEN-10.1.3");
 		}
@@ -372,6 +389,17 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			}
 			wrapper.add("codes", codes);
 			env.putObject("authzen_expected_http_status_codes", wrapper);
+			if (!"POST".equals(getRequestHttpMethod())) {
+				// Accepting the request is a warning (WarnUnsupportedMethodAccepted, run after the
+				// call); any other status outside the acceptable set, such as a 5xx, fails.
+				callAndStopOnFailure(CallAuthzenApiEndpointAllowingJsonParseFailure.class, "AUTHZEN-10");
+				if (!responseStatusIsSuccess()) {
+					env.mapKey("endpoint_response", "authzen_api_endpoint_response");
+					callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, ConditionResult.FAILURE, expectedStatusRequirements(acceptable));
+					env.unmapKey("endpoint_response");
+				}
+				return;
+			}
 			call(new CallAuthzenApiEndpointAndVerifyExpectedStatus(expectedStatusRequirements(acceptable)));
 		}
 	}

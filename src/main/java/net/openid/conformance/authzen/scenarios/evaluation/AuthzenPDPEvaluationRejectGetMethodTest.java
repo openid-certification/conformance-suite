@@ -6,12 +6,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-reject-get-method",
 	displayName = "AuthZEN Evaluation API - Section 10.1: Reject GET method",
-	summary = "Per Section 10.1, evaluation requests are made via HTTPS POST. The PDP MUST reject a GET request to the evaluation endpoint with an HTTP 4xx error (typically 405 Method Not Allowed).",
+	summary = "Per Section 10.1, evaluation requests are made via HTTPS POST. The PDP is expected to reject a GET request to the evaluation endpoint with 405 Method Not Allowed, preferably with an `Allow: POST` header (RFC 7231 Section 6.5.5), or 400. A 404 is reported as a warning, as it is only expected when the server framework routes on method and path. Section 10.1 places the POST requirement on the request rather than on the PDP, so a PDP that accepts the request is reported as a warning. Any other status, such as a 5xx, fails.",
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationRejectGetMethodTest extends AbstractAuthzenPDPEvaluationTest {
 
-	// Body is irrelevant for a GET — the PDP MUST refuse the verb before parsing.
+	// The body is irrelevant for a GET: the PDP is expected to refuse the verb before parsing.
 	public static final String payload = """
 		{
 			"subject": { "type": "user", "id": "alice" },
