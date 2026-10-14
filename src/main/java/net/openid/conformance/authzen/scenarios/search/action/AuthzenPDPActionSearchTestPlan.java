@@ -20,6 +20,7 @@ import java.util.Map;
 		// Search Core
 		AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPActionSearchActionSearchWithContextTest.class,
+		AuthzenPDPActionSearchRequestWithPageLimitTest.class,
 		AuthzenPDPActionSearchUnknownEntityIdentifierTest.class,
 		AuthzenPDPActionSearchUnknownEntityTypeTest.class,
 		// X-Request-ID handling (Section 10.1.3)
