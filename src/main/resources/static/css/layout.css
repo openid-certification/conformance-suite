@@ -288,24 +288,6 @@ body {
 	font-size: 16px;
 }
 
-.pageHeader {
-	margin-top: 0;
-	margin-bottom: 20px;
-	padding: 0 24px 10px;
-}
-
-.pageHeader img {
-	/*
-	 * Explicit dimensions reserve the logo's box at first layout so any
-	 * legacy `.pageHeader` block does not reflow when the image loads.
-	 * The cts-navbar uses openid-dark.svg with width/height attributes
-	 * on the <img> itself for CLS; this rule covers any non-component
-	 * page-header that still renders a raster logo.
-	 */
-	width: 100px;
-	height: 40px;
-}
-
 h1 {
 	font-size: 24px;
 	margin: 0 0 5px;
