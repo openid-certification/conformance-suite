@@ -3,6 +3,8 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -37,9 +39,10 @@ public class ValidateSdJwtCredentialX5cCertificateChain extends AbstractValidate
 
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
-		String trustAnchorPem = env.getString("credential_trust_anchor_pem");
-		X509Certificate trustAnchor = parseTrustAnchorPem(trustAnchorPem);
-		validateX5cCertificateChain(certs, trustAnchor);
+		// the configured 'Credential Trust Anchor' plus the PID and mDL providers listed in the configured LoTEs
+		LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("credential_trust_anchor_pem"),
+			"Credential Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+		X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
 		String credentialJwt = env.getString("sdjwt", "credential.value");
 		verifyJwtSignatureWithX5cLeafCert(credentialJwt, certs);
@@ -47,7 +50,9 @@ public class ValidateSdJwtCredentialX5cCertificateChain extends AbstractValidate
 		logSuccess("Validated x5c certificate chain and credential signature",
 			args("x5c", x5c,
 				"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
-				"chain_length", certs.size()));
+				"chain_length", certs.size(),
+				"trust_anchors", anchors.sourcesJson(),
+				"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
 
 		return env;
 	}

@@ -5,6 +5,9 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.PublicKey;
@@ -88,6 +91,37 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	protected void validateX5cCertificateChain(List<X509Certificate> certs, X509Certificate trustAnchor) {
 		try {
 			X509CertificateUtil.validateX5cCertificateChain(certs, trustAnchor);
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw error(e.getMessage());
+		}
+	}
+
+	/**
+	 * Validate an x5c certificate chain against a set of trust anchors (a configured PEM and the
+	 * anchors of the lists of trusted entities covering the purpose, see
+	 * {@link LoteTrustAnchors#resolve}). An empty set means the legacy walk.
+	 *
+	 * @return the anchor the path ended at, or null for the legacy walk
+	 */
+	protected X509Certificate validateX5cCertificateChainAgainst(List<X509Certificate> certs, LoteTrustAnchors.TrustAnchorSet anchors) {
+		try {
+			return X509CertificateUtil.validateX5cCertificateChain(certs, anchors.anchors());
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			if (anchors.isEmpty()) {
+				throw error(e.getMessage());
+			}
+			throw error(e.getMessage(), args("trust_anchors_tried", anchors.sourcesJson()));
+		}
+	}
+
+	/**
+	 * The trust anchors for a purpose: the configured PEM plus the anchors of the given lists of
+	 * trusted entities; a misconfigured PEM surfaces as a test failure.
+	 */
+	protected LoteTrustAnchors.TrustAnchorSet resolveTrustAnchors(Environment env, String configuredPem, String configuredLabel,
+			String serviceTypeSuffix, LoteSlot... slots) {
+		try {
+			return LoteTrustAnchors.resolve(env, configuredPem, configuredLabel, serviceTypeSuffix, slots);
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			throw error(e.getMessage());
 		}

@@ -246,6 +246,25 @@ object LoteTestFixtures {
 		env.putObject(AbstractLoteCondition.LOTE, "payload", JsonParser.parseString(parsed.payload.toString()).asJsonObject)
 	}
 
+	/** Puts extracted anchors into a slot's object, as ExtractLoteTrustAnchors leaves them, bypassing the list. */
+	fun putAnchors(env: Environment, slot: LoteSlot, serviceType: String, teName: String, vararg certs: X509Certificate) {
+		val existing = env.getElementFromObject(slot.envKey, "anchors.list")
+		val list = if (existing != null && existing.isJsonArray) existing.asJsonArray else JsonArray()
+		certs.forEach { c ->
+			val anchor = JsonObject()
+			anchor.addProperty("cert", java.util.Base64.getEncoder().encodeToString(c.encoded))
+			anchor.addProperty("subject", c.subjectX500Principal.name)
+			anchor.addProperty("service_type", serviceType)
+			anchor.addProperty("te_name", teName)
+			list.add(anchor)
+		}
+		val holder = JsonObject()
+		holder.add("list", list)
+		val lote = env.getObject(slot.envKey) ?: JsonObject().also { env.putObject(slot.envKey, it) }
+		lote.addProperty("slot", slot.name)
+		lote.add("anchors", holder)
+	}
+
 	private fun multilingual(value: String): JsonArray {
 		val arr = JsonArray()
 		val o = JsonObject()

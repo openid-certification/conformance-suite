@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.FetchMdocDsCertificateCrl;
 import net.openid.conformance.condition.client.FetchMdocRevocationList;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListSignerCertificateProfile;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListCertificateChain;
+import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.ValidateMdocRevocationListCwtFormat;
 import net.openid.conformance.condition.client.VerifyMdocRevocationListCwtSignature;
 import net.openid.conformance.condition.client.ValidateMdocDsCertificateChain;
@@ -127,7 +128,7 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				? new String[] { "HAIP-6.1.1", "ISO18013-5-9.3.1" }
 				: new String[] { "ISO18013-5-9.3.1" });
 		if (!haip) {
-			chainValidation.skipIfStringsMissing("credential_trust_anchor_pem")
+			chainValidation.skipIfStringsMissing(RegisterCredentialTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)
 				.onSkip(ConditionResult.INFO);
 		}
 		call(chainValidation);
