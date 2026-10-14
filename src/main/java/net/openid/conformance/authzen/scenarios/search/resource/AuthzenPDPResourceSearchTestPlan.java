@@ -19,6 +19,7 @@ import java.util.Map;
 		// Resource Search API tests from https://github.com/openid/authzen/issues/433
 		// Search Core
 		AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.class,
+		AuthzenPDPResourceSearchResourceSearchWithContextTest.class,
 		AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPResourceSearchXRequestIdEchoedTest.class,
