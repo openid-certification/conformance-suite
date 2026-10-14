@@ -3,7 +3,6 @@ package net.openid.conformance.authzen;
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CreateAuthzenEvaluationApiRequestSteps;
 import net.openid.conformance.authzen.condition.EnsureAuthzenDecisionResponseValMatchesExpected;
-import net.openid.conformance.authzen.condition.EnsureDecisionResponseTrue;
 import net.openid.conformance.authzen.condition.EnsureValidDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenDecisionExpectedResponse;
@@ -11,6 +10,7 @@ import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEva
 import net.openid.conformance.authzen.condition.WarnAuthzenDecisionUnknownMembers;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
@@ -26,9 +26,9 @@ public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPD
 	}
 
 	/**
-	 * Override to supply the expected decision response JSON (e.g. {"decision": true}).
-	 * When null, the test only checks that the decision is true. When non-null, the
-	 * actual decision value is compared against the expected value.
+	 * Override to supply the expected decision response JSON (e.g. {"decision": true}), which
+	 * the decision in a 200 response is compared against. Modules that expect only an error
+	 * status never validate a response body, so they need not override it.
 	 */
 	protected String getExpectedDecisionResponseJson() {
 		return null;
@@ -38,11 +38,10 @@ public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPD
 	protected void validateAuthApiEndpointResponse() {
 		String expectedJson = getExpectedDecisionResponseJson();
 		if (expectedJson == null) {
-			callAndContinueOnFailure(EnsureDecisionResponseTrue.class, ConditionResult.FAILURE);
-		} else {
-			callAndContinueOnFailure(new ExtractAuthzenDecisionExpectedResponse(expectedJson), ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureAuthzenDecisionResponseValMatchesExpected.class, ConditionResult.FAILURE);
+			throw new TestFailureException(getId(), getName() + " accepts HTTP 200 but defines no expected decision");
 		}
+		callAndContinueOnFailure(new ExtractAuthzenDecisionExpectedResponse(expectedJson), ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureAuthzenDecisionResponseValMatchesExpected.class, ConditionResult.FAILURE);
 	}
 
 	@Override
