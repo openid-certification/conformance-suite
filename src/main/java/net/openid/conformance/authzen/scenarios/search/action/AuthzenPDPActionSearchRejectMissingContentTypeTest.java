@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-missing-content-type",
 	displayName = "AuthZEN Action Search API - Section 10.1: Reject request without Content-Type",
-	summary = "Per Section 10.1, requests MUST include `Content-Type: application/json`. The PDP MUST reject a request that has no Content-Type header with HTTP 400 or 415 (certification scenario 5.4.3: the Content-Type is not application/json).",
+	summary = "Per Section 10.1, requests MUST include `Content-Type: application/json`. The PDP MUST reject a request that has no Content-Type header with HTTP 400 or 415 (certification scenario 5.4.3: the Content-Type is not application/json). Any other status fails, including 404.",
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchRejectMissingContentTypeTest extends AbstractAuthzenPDPActionSearchTest {
