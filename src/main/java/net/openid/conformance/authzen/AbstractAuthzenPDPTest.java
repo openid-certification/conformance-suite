@@ -27,6 +27,7 @@ import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
 import net.openid.conformance.authzen.condition.ValidatePDPIdentifier;
 import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
+import net.openid.conformance.authzen.condition.WarnOnUnusableAuthzenPdpJwksKeys;
 import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -36,6 +37,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateAsymmetricKeyMaterial;
 import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateOrSymmetricKeyMaterial;
+import net.openid.conformance.condition.common.WarnOnUnusableJwksKeys;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
@@ -177,9 +179,16 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 					// Check the expected issuer before it is compared against the JWT, so a malformed
 					// value is reported as the configuration error it is rather than as a PDP mismatch.
 					callAndStopOnFailure(ValidatePDPMetadataIssuer.class, "AUTHZEN-9.1.3", "AUTHZEN-11.8", "RFC7519-4.1.1");
-					// Validate PDP keys and disallow asymmetrical private key, symmetrical key signatures are allowed by spec but will get warning
+					// Validate the PDP keys. signed_metadata may be MACed (Section 9.1.3), so a symmetric "oct"
+					// key with an HMAC algorithm is allowed: only private asymmetric key material is rejected,
+					// and an HMAC algorithm is not reported as unusable.
 					call(new ValidateJwksSequence("config", "pdp.jwks", "PDP signing keys", "RFC7517-4")
-						.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2")));
+						.replace(EnsureJwksHasNoPrivateOrSymmetricKeyMaterial.class, condition(EnsureJwksHasNoPrivateAsymmetricKeyMaterial.class).requirement("RFC7517-9.2"))
+						.replace(WarnOnUnusableJwksKeys.class, condition(WarnOnUnusableAuthzenPdpJwksKeys.class)
+							.skipIfObjectMissing("jwks_to_validate")
+							.onFail(ConditionResult.WARNING)
+							.dontStopOnFailure()
+							.requirements("RFC7517-4", "AUTHZEN-9.1.3")));
 					call(sequence(ValidateDiscoverySignedMetadata.class));
 					callAndContinueOnFailure(ApplySignedMetadataPrecedence.class, ConditionResult.FAILURE, "AUTHZEN-9.1.3");
 					eventLog.endBlock();
