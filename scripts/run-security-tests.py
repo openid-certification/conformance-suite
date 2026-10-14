@@ -22,9 +22,10 @@ authentication. Tests cover:
 
 Not yet covered (the exposed API surface these do NOT touch):
 - POST /token (creating a new token; only listing/deleting is covered)
-- POST /log/{id}/images and /log/{id}/images/{placeholder} (image upload;
-  only GET /log/{id}/images cross-user denial is covered — not owner
-  success, private-link, or deleted-test behaviour)
+- POST /log/{id}/images (new log entry) owner success, and deleted-test
+  behaviour of both image uploads (owner success is covered for the
+  placeholder upload; denial for unauthenticated, test share link and another
+  user for both)
 - POST /runner with an inline config (standalone test creation; only
   plan-based creation is covered)
 - GET /runner/browser/{id} and POST /runner/browser/{id}/visit
@@ -55,6 +56,10 @@ import httpx
 
 # Add parent dir to path so we can import conformance.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Smallest valid PNG, for image-upload checks
+TINY_PNG_DATA_URI = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAA"
+                     "DUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==")
 
 # Alphanumeric so it matches the private-link allowlist patterns and reaches the
 # controller.
@@ -614,6 +619,10 @@ def run_tests():
     resp = tl_client.get(f"{base_url}api/plan/{other_plan_id}/findings")
     runner.check_status("Test share: cannot view other plan findings", resp, 404)
 
+    resp = tl_client.post(f"{base_url}api/log/{test_id}/images/placeholder1",
+                          content=TINY_PNG_DATA_URI, headers={"Content-Type": "text/plain"})
+    runner.check_status_in("Test share: cannot upload an image to a placeholder", resp, [401, 403])
+
     resp = tl_client.get(f"{base_url}api/info/{other_test_id}")
     runner.check_status("Test share: cannot view other test", resp, 404)
 
@@ -928,6 +937,10 @@ def run_tests():
 
     resp = noauth_client.get(f"{base_url}api/currentuser")
     runner.check_status("Unauth: currentuser rejected", resp, 401)
+
+    resp = noauth_client.post(f"{base_url}api/log/{test_id}/images/placeholder1",
+                              content=TINY_PNG_DATA_URI, headers={"Content-Type": "text/plain"})
+    runner.check_status("Unauth: image upload to placeholder rejected", resp, 401)
 
     resp = noauth_client.get(f"{base_url}api/token")
     runner.check_status("Unauth: token list rejected", resp, 401)
@@ -1437,6 +1450,10 @@ def run_tests():
         resp = user_b.get(f"{base_url}api/log/{iso_test_id}/images")
         runner.check_status("Isolation: cannot list another user's test images", resp, 403)
 
+        resp = user_b.post(f"{base_url}api/log/{iso_test_id}/images/placeholder1",
+                           content=TINY_PNG_DATA_URI, headers={"Content-Type": "text/plain"})
+        runner.check_status("Isolation: cannot upload an image to another user's test placeholder", resp, 403)
+
         user_b.close()
     else:
         print("  NOTE: CONFORMANCE_TOKEN_2 not set; skipping cross-user isolation checks")
@@ -1509,6 +1526,55 @@ def run_tests():
                          f"HTTP {resp.status_code}")
 
             user_b.close()
+
+    # Owner success for the placeholder upload, on a test that is really waiting for one: a
+    # server test against the helper OP with no browser automation leaves the authorization
+    # URL to the user and waits for a screenshot of the error page. The upload must be
+    # accepted and must finish the test at once, with result REVIEW. The watcher's own check
+    # runs 30 seconds after the wait starts, so allowing 3 seconds for the finish only passes
+    # if the upload woke the watcher.
+    if op_ready:
+        ph_config = json.dumps({
+            "description": "security-test placeholder upload",
+            "server": {"discoveryUrl": op_discovery_url},
+            "client": {"client_id": "cl1", "client_secret": "clsecret"},
+        })
+        ph_variant = {"server_metadata": "discovery", "client_registration": "static_client"}
+        ph_plan_id, _ = create_test_plan(owner_client, base_url, "oidcc-basic-certification-test-plan",
+                                         ph_config, variant=ph_variant)
+        ph_test_id = create_test_from_plan(owner_client, base_url, ph_plan_id, "oidcc-response-type-missing")
+        resp = owner_client.get(f"{base_url}api/runner/{ph_test_id}/wait-state",
+                                params={"states": "WAITING", "timeoutMs": 30000})
+        ph_waiting = resp.status_code == 200 and resp.json().get("state") == "WAITING"
+        runner.check("Placeholder upload: test is waiting for a screenshot",
+                     ph_waiting, f"HTTP {resp.status_code}, {resp.text[:120]}")
+        if not ph_waiting:
+            dump_failing_conditions(owner_client, base_url, ph_test_id)
+
+        resp = owner_client.get(f"{base_url}api/log/{ph_test_id}")
+        placeholders = [e["upload"] for e in (resp.json() if resp.status_code == 200 else [])
+                        if e.get("upload")]
+        runner.check("Placeholder upload: log has exactly one unfilled placeholder",
+                     len(placeholders) == 1, f"HTTP {resp.status_code}, placeholders {placeholders}")
+
+        if ph_waiting and len(placeholders) == 1:
+            resp = owner_client.post(f"{base_url}api/log/{ph_test_id}/images/{placeholders[0]}",
+                                     content=TINY_PNG_DATA_URI, headers={"Content-Type": "text/plain"})
+            runner.check("Placeholder upload: owner can upload to their waiting test's placeholder",
+                         resp.status_code == 200 and isinstance(resp.json(), dict)
+                         and resp.json().get("img") == TINY_PNG_DATA_URI,
+                         f"HTTP {resp.status_code}, {resp.text[:120]}")
+
+            resp = owner_client.get(f"{base_url}api/runner/{ph_test_id}/wait-state",
+                                    params={"states": "FINISHED", "timeoutMs": 3000})
+            runner.check("Placeholder upload: test finishes as soon as the placeholder is filled",
+                         resp.status_code == 200 and resp.json().get("state") == "FINISHED",
+                         f"HTTP {resp.status_code}, {resp.text[:120]}")
+
+            resp = owner_client.get(f"{base_url}api/info/{ph_test_id}")
+            runner.check("Placeholder upload: finished test has result REVIEW",
+                         resp.status_code == 200 and resp.json().get("result") == "REVIEW",
+                         f"HTTP {resp.status_code}, result={resp.json().get('result') if resp.status_code == 200 else None}")
 
     cert_config = json.dumps({
         "description": "security-test certification plan",

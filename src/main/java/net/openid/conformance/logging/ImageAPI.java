@@ -161,6 +161,14 @@ public class ImageAPI {
 			// an image was uploaded, the test needs to be reviewed
 			setTestReviewNeeded(testId);
 
+			if (result != null) {
+				// let a test waiting on its placeholders finish now rather than at its next check
+				TestModule test = testRunnerSupport.getRunningTestById(testId);
+				if (test != null) {
+					test.placeholderFilled();
+				}
+			}
+
 			return new ResponseEntity<>(result, HttpStatus.OK);
 
 		} else {

@@ -206,6 +206,12 @@ public interface TestModule {
 	void fireTestReviewNeeded();
 
 	/**
+	 * Notify the test that one of its image placeholders has just been filled, so a test waiting on
+	 * placeholders can finish without waiting for its next scheduled check.
+	 */
+	void placeholderFilled();
+
+	/**
 	 * Pass along the appropriate runtime services and properties to allow the test to run. It cannot be used until this is completed.
 	 */
 	void setProperties(String id, Map<String, String> owner, TestInstanceEventLog wrappedEventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService);
