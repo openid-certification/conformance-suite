@@ -27,5 +27,14 @@
   "condition": "WarnAuthzenCapabilitiesNotAuthzenUrns",
   "expected-result": "warning",
   "comment": "Cerbos PDP behavior: its metadata advertises urn:authzen:pdp:* capabilities; authzen is not a registered URN namespace, and Section 12.4 registers the urn:ietf:params:authzen sub-namespace for capabilities"
+ },
+ {
+  "test-name": "authzen-pdp-subject-search-changed-page-parameters",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnChangedPageRequestAccepted",
+  "expected-result": "warning",
+  "comment": "Cerbos PDP behavior: it returns the next page when a page token arrives with a changed page.limit, where Section 8.2 says the PDP SHOULD return an error"
  }
 ]
