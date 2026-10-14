@@ -14,24 +14,18 @@ public class GetPDPStaticServerConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "pdp")
 	public Environment evaluate(Environment env) {
 
-		String pdpDecisionPoint = env.getString("config", "pdp.policy_decision_point");
-		String accessEvaluationEndpoint = env.getString("config", "pdp.access_evaluation_endpoint");
-
-		if (Strings.isNullOrEmpty(pdpDecisionPoint) || Strings.isNullOrEmpty(accessEvaluationEndpoint))  {
-			throw error("Test set to use static server configuration but test configuration is missing policy_decision_point or access_evaluation_endpoint", args("policy_decision_point", pdpDecisionPoint, "access_evaluation_endpoint", accessEvaluationEndpoint));
-		}
-
 		// make sure we've got a server object
 		JsonElement pdp = env.getElementFromObject("config", "pdp");
 		if (pdp == null || !pdp.isJsonObject()) {
-			throw error("Couldn't find pdp object in configuration");
-		} else {
-			// we've got a server object, put it in the environment
-			env.putObject("pdp", pdp.getAsJsonObject());
-
-			logSuccess("Found a static pdp object", pdp.getAsJsonObject());
-			return env;
+			throw error("The 'AuthZEN' section is missing from the test configuration");
 		}
+		String pdpDecisionPoint = env.getString("config", "pdp.policy_decision_point");
+		if (Strings.isNullOrEmpty(pdpDecisionPoint)) {
+			throw error("'PDP Identifier' field is missing from the 'AuthZEN' section in the test configuration");
+		}
+		env.putObject("pdp", pdp.getAsJsonObject());
+		logSuccess("Found a static pdp object", pdp.getAsJsonObject());
+		return env;
 	}
 
 }
