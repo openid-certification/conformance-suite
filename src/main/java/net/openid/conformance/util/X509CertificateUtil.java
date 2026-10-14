@@ -13,10 +13,12 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.PKIXParameters;
+import java.security.cert.PKIXCertPathValidatorResult;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -242,6 +244,22 @@ public class X509CertificateUtil {
 	 */
 	public static void validateX5cCertificateChain(List<X509Certificate> certs,
 		X509Certificate trustAnchor) throws X5cCertificateChainException {
+		validateX5cCertificateChain(certs, trustAnchor == null ? List.of() : List.of(trustAnchor));
+	}
+
+	/**
+	 * Validate an x5c certificate chain against a set of trust anchors, any one of which may
+	 * terminate the path (a trusted list typically carries several CAs). The checks are those of
+	 * {@link #validateX5cCertificateChain(List, X509Certificate)}: an empty set means the legacy
+	 * walk, and no anchor of the set may appear in the chain.
+	 *
+	 * @param certs the parsed certificate chain, leaf first
+	 * @param trustAnchors the candidate trust anchors; empty triggers the legacy walk
+	 * @return the anchor the path was validated against, or null for the legacy walk
+	 * @throws X5cCertificateChainException with a descriptive message if validation fails
+	 */
+	public static X509Certificate validateX5cCertificateChain(List<X509Certificate> certs,
+		Collection<X509Certificate> trustAnchors) throws X5cCertificateChainException {
 		if (certs.isEmpty()) {
 			throw new X5cCertificateChainException("x5c certificate chain is empty");
 		}
@@ -260,15 +278,14 @@ public class X509CertificateUtil {
 			throw new X5cCertificateChainException("Leaf certificate in x5c chain must not be self-signed");
 		}
 
-		if (trustAnchor != null) {
+		if (!trustAnchors.isEmpty()) {
 			for (X509Certificate cert : certs) {
-				if (cert.equals(trustAnchor)) {
+				if (trustAnchors.contains(cert)) {
 					throw new X5cCertificateChainException(
 						"Trust anchor certificate must not be included in x5c chain");
 				}
 			}
-			validatePkixPath(certs, trustAnchor);
-			return;
+			return validatePkixPath(certs, trustAnchors);
 		}
 
 		// No trust anchor: legacy walk only.
@@ -290,16 +307,23 @@ public class X509CertificateUtil {
 					"Trust anchor (self-signed root CA) must not be included in x5c chain");
 			}
 		}
+		return null;
 	}
 
-	private static void validatePkixPath(List<X509Certificate> certs, X509Certificate trustAnchor)
+	private static X509Certificate validatePkixPath(List<X509Certificate> certs, Collection<X509Certificate> trustAnchors)
 		throws X5cCertificateChainException {
 		try {
 			CertPath certPath = CertificateFactory.getInstance("X.509").generateCertPath(certs);
-			PKIXParameters params = new PKIXParameters(Set.of(new TrustAnchor(trustAnchor, null)));
+			Set<TrustAnchor> anchors = new LinkedHashSet<>();
+			for (X509Certificate trustAnchor : trustAnchors) {
+				anchors.add(new TrustAnchor(trustAnchor, null));
+			}
+			PKIXParameters params = new PKIXParameters(anchors);
 			// Conformance suite tests cannot reach CRL/OCSP endpoints; revocation checking is out of scope.
 			params.setRevocationEnabled(false);
-			CertPathValidator.getInstance("PKIX").validate(certPath, params);
+			PKIXCertPathValidatorResult result =
+				(PKIXCertPathValidatorResult) CertPathValidator.getInstance("PKIX").validate(certPath, params);
+			return result.getTrustAnchor().getTrustedCert();
 		} catch (CertPathValidatorException e) {
 			String detail = e.getReason() != null ? e.getReason().toString() : e.getMessage();
 			int idx = e.getIndex();
