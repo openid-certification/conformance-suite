@@ -7,6 +7,7 @@ import fnmatch
 import json
 import os
 import re
+import ssl
 import subprocess
 import sys
 import time
@@ -31,6 +32,25 @@ max_consecutive_failures = int(os.getenv('CONFORMANCE_MAX_CONSECUTIVE_FAILURES',
 class ServerUnhealthyError(Exception):
     """Deliberate whole-run abort from the consecutive-failure circuit breaker."""
 
+
+
+_suite_lote_signer_pem = None
+
+
+def suite_lote_signer_pem():
+    """The certificate the server seals its own lists of trusted entities with, as a JSON string body.
+
+    Fetched from the server because it is ephemeral unless the deployment holds the published key.
+    """
+    global _suite_lote_signer_pem
+    if _suite_lote_signer_pem is None:
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        url = os.environ['CONFORMANCE_SERVER'] + 'trust-anchors/lote-signer.pem'
+        with urllib.request.urlopen(url, context=context, timeout=30) as response:
+            _suite_lote_signer_pem = json.dumps(response.read().decode().strip())[1:-1]
+    return _suite_lote_signer_pem
 
 def record_module_did_not_complete(module_with_variants):
     # Raising here propagates into queue_worker, which exits the process
@@ -163,6 +183,8 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
 
     for k,v in client_certs.items():
         json_config = json_config.replace('{'+ k + '}', v)
+    if '{SUITE_LOTE_SIGNER_PEM}' in json_config:
+        json_config = json_config.replace('{SUITE_LOTE_SIGNER_PEM}', suite_lote_signer_pem())
 
     test_plan_name = test_plan
     variant = test_plan_obj["test"]["variants"] if "variants" in test_plan_obj["test"] else {}
