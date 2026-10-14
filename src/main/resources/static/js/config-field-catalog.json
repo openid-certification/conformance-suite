@@ -359,6 +359,12 @@
           "tooltip": "verifier_info (an array of attestation objects, as per OpenID4VP) to include in the authorization request. Can be left empty if not needed."
         },
         {
+          "key": "client.request_object_trust_anchor_pem",
+          "label": "Request Object Trust Anchor",
+          "type": "string",
+          "tooltip": "The trust anchor certificate for verifying the verifier's request object signing certificate chain (the x5c header), as a PEM certificate. Required for HAIP unless a RICAL or a 'WRPAC providers LoTE URL' is configured; a RICAL replaces it."
+        },
+        {
           "key": "client.rical",
           "label": "RICAL",
           "type": "string",
