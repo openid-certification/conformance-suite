@@ -46,6 +46,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVer
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckIfSecondClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckNoPresentationSubmissionParameter;
@@ -404,6 +405,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void configureClient() {
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_SAN_DNS || clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_HASH) {
+			callAndStopOnFailure(AddBuiltInAccessCertificateToClientConfiguration.class);
+		}
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
 		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class);

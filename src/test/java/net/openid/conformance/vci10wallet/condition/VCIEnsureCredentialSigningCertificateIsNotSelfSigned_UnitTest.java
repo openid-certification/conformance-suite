@@ -65,12 +65,10 @@ public class VCIEnsureCredentialSigningCertificateIsNotSelfSigned_UnitTest {
 	}
 
 	@Test
-	public void failsWhenSigningJwkIsMissingFromConfig() {
+	public void passesWhenSigningJwkIsMissingFromConfigAsTheBuiltInCertificateIsCaIssued() {
 		env.putObject("config", new JsonObject());
 
-		ConditionError err = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(err.getMessage().contains("'Signing JWK' field is missing from the 'Credential Issuer' section in the test configuration"),
-			"expected message to reference the missing 'Signing JWK' config field but was: " + err.getMessage());
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test
