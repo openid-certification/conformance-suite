@@ -52,6 +52,10 @@ import java.util.Map;
 		AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationsRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationsRejectEmptyBodyTest.class,
+		// Invalid field type: certification scenario 5.4.6 requires HTTP 400 "when a field has an
+		// invalid type". options is OPTIONAL for a PDP to act on, but every Batch Core PDP accepts
+		// it (execute-all-explicit above), so it is checked like context and properties.
+		AuthzenPDPEvaluationsOptionsIsStringTest.class,
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
