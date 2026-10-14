@@ -37,6 +37,7 @@ import java.util.Map;
 		AuthzenPDPEvaluationResourceMissingIdTest.class,
 		AuthzenPDPEvaluationSubjectIsStringTest.class,
 		AuthzenPDPEvaluationActionNameIsNumberTest.class,
+		AuthzenPDPEvaluationContextIsStringTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
 		// Idempotency (certification scenario 5.6)
