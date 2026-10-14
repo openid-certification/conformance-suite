@@ -87,8 +87,7 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 	/**
 	 * Derive the AuthZEN metadata well-known URL from the PDP base URL.
 	 *
-	 * <p>Per the certification profile (https://github.com/openid/authzen/issues/433
-	 * §6.1, consistent with AuthZEN 1.0 and RFC 8414), the
+	 * <p>Per Section 9.2 and certification scenario 9.1 (consistent with RFC 8414), the
 	 * {@code /.well-known/authzen-configuration} segment is inserted <em>between
 	 * the host and any existing path</em>, not appended after the whole URL.
 	 * For example {@code https://pdp.example.com/tenant1} yields

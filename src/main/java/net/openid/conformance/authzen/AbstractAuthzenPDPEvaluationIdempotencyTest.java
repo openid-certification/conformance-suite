@@ -5,9 +5,9 @@ import net.openid.conformance.authzen.condition.EnsureDecisionMatchesIdempotency
 
 /**
  * Sends the same Evaluation request multiple times consecutively and asserts
- * the PDP returns the same `decision` value each time. The cert profile only defines idempotency for the single
- * Evaluation API (section 2.6); the same principle is exercised here for
- * single Evaluation API. The loop body is shared with the other idempotency families via
+ * the PDP returns the same `decision` value each time. Certification scenario 5.6 requires the
+ * same decision for repeated requests, and scenario 3.1 applies it to every certification level.
+ * The loop body is shared with the other idempotency families via
  * {@link AbstractAuthzenPDPTest#runIdempotencyLoop}.
  */
 public abstract class AbstractAuthzenPDPEvaluationIdempotencyTest extends AbstractAuthzenPDPEvaluationTest {

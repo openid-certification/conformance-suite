@@ -16,7 +16,7 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.authzenTest,
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
-		// Subject Search API tests from https://github.com/openid/authzen/issues/433
+		// Subject Search API tests, following the certification scenario (https://openid.github.io/authzen/authorization-api-1_0-certification-scenario.html)
 		// Search Core
 		AuthzenPDPSubjectSearchValidSubjectSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPSubjectSearchSubjectSearchWithContextTest.class,

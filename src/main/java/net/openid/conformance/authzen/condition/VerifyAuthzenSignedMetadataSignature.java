@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * against the PDP public key(s) supplied in the test configuration
  * ({@code pdp.jwks}, the "PDP JWK Set" field).
  *
- * <p>Certification profile (https://github.com/openid/authzen/issues/433 §6.5):
+ * <p>Certification scenario 9.5:
  * "If {@code signed_metadata} is present, it is a valid JWT string with a
  * verifiable signature ...". AuthZEN metadata defines no {@code jwks_uri}, so the
  * trusted verification key is provided out of band via the test configuration.
