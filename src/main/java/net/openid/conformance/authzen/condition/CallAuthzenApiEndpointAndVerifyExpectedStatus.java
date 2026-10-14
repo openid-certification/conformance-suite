@@ -23,8 +23,11 @@ public class CallAuthzenApiEndpointAndVerifyExpectedStatus extends AbstractCondi
 
 	private final Condition.ConditionResult unexpectedStatusSeverity;
 
-	public CallAuthzenApiEndpointAndVerifyExpectedStatus(Condition.ConditionResult unexpectedStatusSeverity) {
+	private final String[] requirements;
+
+	public CallAuthzenApiEndpointAndVerifyExpectedStatus(Condition.ConditionResult unexpectedStatusSeverity, String... requirements) {
 		this.unexpectedStatusSeverity = unexpectedStatusSeverity;
+		this.requirements = requirements;
 	}
 
 	@Override
@@ -34,7 +37,7 @@ public class CallAuthzenApiEndpointAndVerifyExpectedStatus extends AbstractCondi
 
 		call(exec().mapKey("endpoint_response", "authzen_api_endpoint_response"));
 
-		callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, unexpectedStatusSeverity, "AUTHZEN-10.1");
+		callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, unexpectedStatusSeverity, requirements);
 		call(exec().unmapKey("endpoint_response"));
 	}
 }

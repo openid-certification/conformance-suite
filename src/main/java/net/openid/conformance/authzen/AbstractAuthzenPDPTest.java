@@ -244,13 +244,10 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 					if (i == 1) {
 						callAndStopOnFailure(capture);
 					} else {
-						// Idempotency is mandated by the AuthZEN certification profile
-						// (https://github.com/openid/authzen/issues/433 §2.6: "The PDP MUST
-						// return the same decision value each time"), not by the base
-						// Authorization API specification — which does not address
-						// idempotency. There is therefore deliberately no AUTHZEN- spec
-						// section tag on this assertion; the FAILURE severity reflects the
-						// cert-profile MUST.
+						// Idempotency is required by certification scenario 5.6 ("The PDP MUST
+						// return the same decision value each time"), not by the Authorization
+						// API specification, which does not address it. The scenario has no
+						// requirement link prefix, so this assertion carries no tag.
 						callAndContinueOnFailure(match, ConditionResult.FAILURE);
 					}
 				} finally {
@@ -369,7 +366,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 			}
 			wrapper.add("codes", codes);
 			env.putObject("authzen_expected_http_status_codes", wrapper);
-			call(new CallAuthzenApiEndpointAndVerifyExpectedStatus(getUnexpectedHttpStatusSeverity()));
+			call(new CallAuthzenApiEndpointAndVerifyExpectedStatus(getUnexpectedHttpStatusSeverity(), expectedStatusRequirements(acceptable)));
 		}
 	}
 
@@ -393,6 +390,24 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	 */
 	protected Set<Integer> getAcceptableHttpStatusCodes() {
 		return Set.of(getExpectedHttpStatusCode());
+	}
+
+	/**
+	 * The section requiring the status a module expects: the HTTPS POST binding for a request with
+	 * another method, Section 11.3 for 401, Section 10.1.1 for the 400 a malformed request gets,
+	 * otherwise the HTTPS binding.
+	 */
+	private String[] expectedStatusRequirements(Set<Integer> acceptable) {
+		if (!"POST".equals(getRequestHttpMethod())) {
+			return new String[] {"AUTHZEN-10.1"};
+		}
+		if (acceptable.contains(401)) {
+			return new String[] {"AUTHZEN-11.3"};
+		}
+		if (acceptable.contains(400)) {
+			return new String[] {"AUTHZEN-10.1.1", "AUTHZEN-10.1.2"};
+		}
+		return new String[] {"AUTHZEN-10.1"};
 	}
 
 	/**

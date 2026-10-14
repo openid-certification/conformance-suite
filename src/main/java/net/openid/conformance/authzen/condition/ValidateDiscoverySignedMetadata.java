@@ -5,8 +5,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 
 /**
  * Structurally validate the optional {@code signed_metadata} JWT in the PDP
- * discovery metadata (certification profile
- * https://github.com/openid/authzen/issues/433 §6.4 / §6.5).
+ * discovery metadata (certification scenario 9.4 / 9.5).
  *
  * <p>When {@code signed_metadata} is present it MUST be a JWS-signed (or MACed)
  * JWT carrying an {@code iss} claim. This condition checks that it parses as a
