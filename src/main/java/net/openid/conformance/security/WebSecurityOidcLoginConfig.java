@@ -177,6 +177,8 @@ class WebSecurityOidcLoginConfig {
 					"/jwks**",  //
 					"/mdoc-iaca-root.pem", // mdoc IACA root trust anchor for verifiers/wallets under test
 					MdocIacaCrl.PATH, // the IACA's CRL, named by the suite's document signer certificates
+					"/trust-anchors", "/trust-anchors/*.pem", // the suite's CA certificates, pinned by implementations under test
+					"/crl/*.crl", // the CRLs of the suite's CAs, named by the leaf certificates it signs with
 					"/logout.html", //
 					"/robots.txt",  //
 					"/.well-known/**", //
