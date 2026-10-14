@@ -20,6 +20,7 @@ import java.util.Map;
 		AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPActionSearchActionSearchWithContextTest.class,
 		AuthzenPDPActionSearchUnknownEntityIdentifierTest.class,
+		AuthzenPDPActionSearchUnknownEntityTypeTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPActionSearchXRequestIdEchoedTest.class,
 		// Idempotency
