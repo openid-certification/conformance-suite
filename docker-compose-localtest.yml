@@ -18,7 +18,10 @@ services:
       - "-c"
       - "( [ -f /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ] || docker-entrypoint.sh plan > /conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json ) && exec docker-entrypoint.sh server"
   cerbos-authzen-pdp:
-    image: alexolivieruk/cerbos-authzen-certification-pdp:latest
+    # Pinned by digest: the "latest" tag is rebuilt often, which changed CI results without a
+    # commit here. This is the 2026-10-12 build of github.com/cerbos/cerbos-authzen-pdp at
+    # 34e2690ccd01d68595c74efcee8ed164c3ba52b7.
+    image: alexolivieruk/cerbos-authzen-certification-pdp@sha256:e61cccdb9c0061e3642daf7dcbfa6f8c9a32e274a5944616c0076b3cdfcbd8a8
     environment:
       TLS_HOSTNAME: cerbos-authzen-pdp
       # Publish signed_metadata (HS256) in the discovery document. A throwaway test secret: the
