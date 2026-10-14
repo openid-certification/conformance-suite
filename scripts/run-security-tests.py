@@ -1783,11 +1783,46 @@ def run_tests():
         resp = unauthenticated_get(http_base_url, "mdoc-iaca.crl", verify_ssl)
         runner.check("Metadata: mdoc IACA CRL is reachable over plain http as a DER CRL", is_der_crl(resp),
                      f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+        resp = unauthenticated_get(http_base_url, "crl/access-ca.crl", verify_ssl)
+        runner.check("Metadata: the suite CAs' CRLs are reachable over plain http as DER CRLs", is_der_crl(resp),
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
         resp = unauthenticated_get(http_base_url, "mdoc-iaca-root.pem", verify_ssl)
         runner.check("Metadata: other paths are still rejected over plain http",
                      resp.status_code != 200, f"HTTP {resp.status_code}")
     else:
         print("  SKIP: CONFORMANCE_SERVER_HTTP not set; plain-http CRL route not checked")
+
+    # the suite's CA certificates are public too: implementations under test pin them, and
+    # trusted-list operators fetch them to list the suite
+    resp = unauthenticated_get(base_url, "trust-anchors", verify_ssl)
+    anchors = resp.json().get("trust_anchors") if resp.status_code == 200 else None
+    runner.check("Metadata: /trust-anchors index is publicly reachable and lists the suite CAs",
+                 isinstance(anchors, list) and len(anchors) >= 4
+                 and all("name" in a and "url" in a and "crl_url" in a for a in anchors),
+                 f"HTTP {resp.status_code}")
+    for slug in ("mdoc-iaca-root", "pid-provider-ca", "wallet-provider-ca", "access-ca"):
+        resp = unauthenticated_get(base_url, f"trust-anchors/{slug}.pem", verify_ssl)
+        runner.check(f"Metadata: /trust-anchors/{slug}.pem is publicly reachable as PEM",
+                     resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
+                     f"HTTP {resp.status_code}")
+        # the DER form is what the leaf certificates' authority information access names
+        resp = unauthenticated_get(base_url, f"trust-anchors/{slug}.crt", verify_ssl)
+        runner.check(f"Metadata: /trust-anchors/{slug}.crt is publicly reachable as a DER certificate",
+                     resp.status_code == 200
+                     and resp.headers.get("content-type", "").startswith("application/pkix-cert")
+                     and len(resp.content) > 0 and resp.content[0] == 0x30,
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+        # each CA's CRL is named by the leaf certificates minted under it
+        resp = unauthenticated_get(base_url, f"crl/{slug}.crl", verify_ssl)
+        runner.check(f"Metadata: /crl/{slug}.crl is publicly reachable as a DER CRL",
+                     resp.status_code == 200
+                     and resp.headers.get("content-type", "").startswith("application/pkix-crl")
+                     and len(resp.content) > 0 and resp.content[0] == 0x30,
+                     f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
+    resp = unauthenticated_get(base_url, "trust-anchors/no-such-ca.pem", verify_ssl)
+    runner.check_status("Metadata: unknown trust anchor name returns 404", resp, 404)
+    resp = unauthenticated_get(base_url, "crl/no-such-ca.crl", verify_ssl)
+    runner.check_status("Metadata: unknown CRL name returns 404", resp, 404)
 
     # ===================================================================
     # 4h. BULK PLAN DELETE (ADMIN ONLY)

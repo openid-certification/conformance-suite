@@ -144,15 +144,16 @@ public class TestKeysAndCerts_UnitTest {
 	}
 
 	@Test
-	public void changingTheCrlDistributionPointUriReMintsTheDocumentSigner() throws Exception {
-		String original = TestKeysAndCerts.getCrlDistributionPointUri();
+	public void changingTheBaseUrlsReMintsTheDocumentSigner() throws Exception {
+		String originalHttps = TestKeysAndCerts.getHttpsBaseUrl();
+		String originalPlainHttp = TestKeysAndCerts.getPlainHttpBaseUrl();
 		try {
-			TestKeysAndCerts.setCrlDistributionPointUri("http://a.example/x.crl");
+			TestKeysAndCerts.configureBaseUrls("https://a.example", "http://a.example");
 			X509Certificate reMinted = X509CertJvmKt.getJavaX509Certificate(TestKeysAndCerts.getDocumentSignerCert());
-			assertThat(MdocCertificateProfileChecks.crlDistributionPointUris(reMinted)).containsExactly("http://a.example/x.crl");
+			assertThat(MdocCertificateProfileChecks.crlDistributionPointUris(reMinted)).containsExactly("http://a.example/mdoc-iaca.crl");
 			assertThat(reMinted.getSerialNumber()).isNotEqualTo(dsCert.getSerialNumber());
 		} finally {
-			TestKeysAndCerts.setCrlDistributionPointUri(original);
+			TestKeysAndCerts.configureBaseUrls(originalHttps, originalPlainHttp);
 		}
 	}
 

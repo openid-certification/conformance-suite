@@ -15,13 +15,18 @@ import java.io.IOException;
 public class RejectPlainHttpTrafficFilter extends OncePerRequestFilter {
 
 	/**
-	 * The mdoc IACA CRL is the one resource served on plain http: CRL distribution points are
-	 * http URLs by PKI convention, and the CRL needs neither a session nor transport security
-	 * since the IACA's signature authenticates it. See {@link MdocIacaCrlEndpoint}.
+	 * The CRLs of the suite's CAs are the one kind of resource served on plain http: CRL
+	 * distribution points are http URLs by PKI convention, and a CRL needs neither a session nor
+	 * transport security since the CA's signature authenticates it. See {@link SuiteCaCrlEndpoint}
+	 * and {@link SuiteCaCrlEndpoint}.
 	 */
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
-		return MdocIacaCrl.PATH.equals(request.getRequestURI());
+		String uri = request.getRequestURI();
+		// one path segment under the prefix, as the permitAll rule /crl/*.crl matches
+		return MdocIacaCrl.PATH.equals(uri)
+			|| (uri.startsWith(SuiteCaCrlEndpoint.PATH_PREFIX) && uri.endsWith(".crl")
+				&& uri.indexOf('/', SuiteCaCrlEndpoint.PATH_PREFIX.length()) < 0);
 	}
 
 	@Override

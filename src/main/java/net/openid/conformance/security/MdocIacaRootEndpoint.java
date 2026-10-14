@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * embeds in the mdoc credentials it creates (as the emulated wallet in OpenID4VP verifier
  * tests and as the emulated issuer in OpenID4VCI wallet tests). Implementations under test
  * should configure this certificate as a trust anchor. Its CRL is served by
- * {@link MdocIacaCrlEndpoint}.
+ * {@link SuiteCaCrlEndpoint}.
  *
  * Served as text/plain so the PEM displays in a browser for copy/paste.
  */

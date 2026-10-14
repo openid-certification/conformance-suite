@@ -10,9 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The filter rejects every plain-http request except the mdoc IACA CRL, which is served on
- * plain http because CRL distribution points are http URLs by PKI convention and the CRL
- * authenticates itself by the IACA's signature.
+ * The filter rejects every plain-http request except the suite's CA CRLs, which are served on
+ * plain http because CRL distribution points are http URLs by PKI convention and a CRL
+ * authenticates itself by the CA's signature.
  */
 public class RejectPlainHttpTrafficFilter_UnitTest {
 
@@ -23,6 +23,29 @@ public class RejectPlainHttpTrafficFilter_UnitTest {
 		MockFilterChain chain = new MockFilterChain();
 		filter.doFilter(request("http", MdocIacaCrl.PATH), new MockHttpServletResponse(), chain);
 		assertThat(chain.getRequest()).isNotNull();
+	}
+
+	@Test
+	public void plainHttpRequestForASuiteCaCrlPassesThrough() throws Exception {
+		MockFilterChain chain = new MockFilterChain();
+		filter.doFilter(request("http", "/crl/access-ca.crl"), new MockHttpServletResponse(), chain);
+		assertThat(chain.getRequest()).isNotNull();
+	}
+
+	@Test
+	public void plainHttpRequestForANonCrlUnderTheCrlPrefixIsRejected() {
+		assertThatThrownBy(() -> filter.doFilter(request("http", "/crl/access-ca.pem"),
+			new MockHttpServletResponse(), new MockFilterChain()))
+			.isInstanceOf(RuntimeException.class)
+			.hasMessageContaining("non-https");
+	}
+
+	@Test
+	public void plainHttpRequestForANestedPathUnderTheCrlPrefixIsRejected() {
+		assertThatThrownBy(() -> filter.doFilter(request("http", "/crl/nested/access-ca.crl"),
+			new MockHttpServletResponse(), new MockFilterChain()))
+			.isInstanceOf(RuntimeException.class)
+			.hasMessageContaining("non-https");
 	}
 
 	@Test
