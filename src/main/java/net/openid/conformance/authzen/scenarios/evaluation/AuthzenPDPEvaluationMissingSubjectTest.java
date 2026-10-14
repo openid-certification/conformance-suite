@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-missing-subject",
-	displayName = "AuthZEN Evaluation API - Section 10.1: Missing subject -- expect HTTP 400",
-	summary = "Section 10.1 missing required field. Request omits `subject`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationMissingSubjectTest.payload,
+	displayName = "AuthZEN Evaluation API - Section 10.1.1: Missing subject -- expect HTTP 400",
+	summary = "Section 10.1.1 missing required field. Request omits `subject`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationMissingSubjectTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPEvaluationMissingSubjectTest extends AbstractAuthzenPDPEvaluationTest {

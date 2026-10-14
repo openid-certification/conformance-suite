@@ -20,6 +20,12 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
  */
 public class CallAuthzenApiEndpointAndVerifyExpectedStatus extends AbstractConditionSequence {
 
+	private final String[] requirements;
+
+	public CallAuthzenApiEndpointAndVerifyExpectedStatus(String... requirements) {
+		this.requirements = requirements;
+	}
+
 	@Override
 	@PreEnvironment(required = {"authzen_api_endpoint_request"}, strings = "authzen_api_endpoint")
 	public void evaluate() {
@@ -27,7 +33,7 @@ public class CallAuthzenApiEndpointAndVerifyExpectedStatus extends AbstractCondi
 
 		call(exec().mapKey("endpoint_response", "authzen_api_endpoint_response"));
 
-		callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, Condition.ConditionResult.FAILURE, "AUTHZEN-10.1");
+		callAndContinueOnFailure(EnsureHttpStatusCodeMatchesExpected.class, Condition.ConditionResult.FAILURE, requirements);
 		call(exec().unmapKey("endpoint_response"));
 	}
 }
