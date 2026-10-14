@@ -3,7 +3,7 @@
   "info": {
     "title": "OpenID Conformance Suite REST APIs",
     "description": "The REST APIs for driving the OpenID Conformance Suite. <h3>Authentication</h3> To call the APIs supply a bearer token, which can be either: <ul>   <li>an API token obtained from the <a href='/tokens.html'>token management page</a> (full access, scoped to the token's owner), or</li>   <li>a share-link JWT issued by POST /api/info/{testId}/share or POST /api/plan/{id}/share (read-only access scoped to the shared plan and its tests).</li> </ul> <h3>Typical workflow</h3> Most users want to run a test plan and collect its results: <ol>   <li>Find the plan to run, its variants and its configuration fields: GET /api/plan/available. (Tip: after creating the plan once in the <a href='/schedule-test.html'>web UI</a>, GET /api/lastconfig returns the plan name, variant selection and configuration JSON needed for the next step.)</li>   <li>Create a plan instance: POST /api/plan?planName=...&amp;variant=... with the configuration JSON. The response contains the plan id and the list of modules to run.</li>   <li>For each module, create a test instance with POST /api/runner?test={testModule}&amp;plan={planId}, then wait for it to finish with GET /api/runner/{id}/wait-state (or by polling GET /api/info/{id}). A test in the WAITING state needs interaction: GET /api/runner/{id} lists any front-channel URLs to visit.</li>   <li>Read the outcome from GET /api/info/{id} (status and result) and the detailed log from GET /api/log/{id}.</li>   <li>Download the plan's results with GET /api/plan/exporthtml/{id}, or prepare a certification package with POST /api/plan/{id}/certificationpackage.</li> </ol> The <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>run-test-plan.py script</a> implements this whole flow (it is what our own CI uses) and adds functionality like suppressing known failures; the tutorial linked below shows how to use it. <p>The <a href='/v3/api-docs'>raw OpenAPI document</a> behind this page can be fed to an OpenAPI client generator.</p>",
-    "version": "5.3.0"
+    "version": "5.3.3"
   },
   "externalDocs": {
     "description": "Step-by-step tutorial: automated conformance testing and certification package creation",
@@ -921,6 +921,50 @@
         }
       }
     },
+    "/trust-anchors": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Lists the suite's CA certificates",
+        "description": "Lists the CA certificates that issue the certificates the suite signs with, with the URL each is served at, the URL of its CRL, what its leaf certificates sign and the ETSI TS 119 602 list of trusted entities it belongs in.",
+        "operationId": "trustAnchors",
+        "responses": {
+          "200": {
+            "description": "The CA certificates",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        },
+        "security": []
+      }
+    },
+    "/trust-anchors/{slug}.pem": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns one of the suite's CA certificates",
+        "description": "Returns the named CA certificate, PEM encoded; see /trust-anchors for the names.",
+        "operationId": "trustAnchorCert",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The CA's name, as listed at /trust-anchors",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The CA certificate",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "description": "A PEM encoded X.509 certificate" }
+              }
+            }
+          },
+          "404": { "description": "No CA with that name" }
+        },
+        "security": []
+      }
+    },
     "/mdoc-iaca.crl": {
       "get": {
         "tags": ["Server"],
@@ -957,6 +1001,60 @@
         "security": []
       }
     },
+    "/lote/{slug}.jwt": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns one of the suite's lists of trusted entities",
+        "description": "Returns the ETSI TS 119 602 list of trusted entities (a compact JWS) that lists the suite's CA for the named role: pid-providers, wallet-providers, wrpac-providers or wrprc-providers. The sealing certificate is served at /trust-anchors/lote-signer.pem.",
+        "operationId": "lote",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The list's name",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The signed list",
+            "content": {
+              "application/jwt": { "schema": { "type": "string", "description": "A compact JWS" } }
+            }
+          },
+          "404": { "description": "No list with that name" }
+        },
+        "security": []
+      }
+    },
+    "/lote/empty/{slug}.jwt": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns an empty variant of one of the suite's lists of trusted entities",
+        "description": "Returns a signed list of the named type that lists no trusted entity at all, for tests of what an implementation does when nothing is trusted.",
+        "operationId": "loteEmpty",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The list's name",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The signed empty list",
+            "content": {
+              "application/jwt": { "schema": { "type": "string", "description": "A compact JWS" } }
+            }
+          },
+          "404": { "description": "No list with that name" }
+        },
+        "security": []
+      }
+    },
     "/jwks": {
       "get": {
         "tags": ["Server"],
@@ -976,26 +1074,31 @@
         "security": []
       }
     },
-    "/api/ui/spec_links": {
+    "/crl/{slug}.crl": {
       "get": {
         "tags": ["Server"],
-        "summary": "Get specification links",
-        "description": "Map of specification-reference prefix (as used in log entry 'requirements', e.g. 'OIDCC-') to the base URL of that specification.",
-        "operationId": "getSpecLinks",
+        "summary": "Returns the CRL of one of the suite's CA certificates",
+        "description": "Returns the DER encoded certificate revocation list issued by the named CA (served at /trust-anchors/{slug}.pem) for the leaf certificates the suite signs with. The list is empty: the suite revokes nothing.",
+        "operationId": "suiteCaCrl",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The CA's name, as listed at /trust-anchors",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Retrieved successfully",
+            "description": "The CRL, DER encoded",
             "content": {
-              "application/json": {
-                "schema": { "type": "object", "description": "Prefix-to-URL map" }
-              }
+              "application/pkix-crl": { "schema": { "type": "string", "format": "binary" } }
             }
           },
-          "401": {
-            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
-          }
+          "404": { "description": "No CA with that name" }
         },
-        "security": [{ "bearerAuth": [] }, {}]
+        "security": []
       }
     },
     "/api/ui/spec_section_links": {
@@ -1010,6 +1113,28 @@
             "content": {
               "application/json": {
                 "schema": { "type": "object", "description": "Section-requirement-to-URL map" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token / login session; anonymous requests are accepted when public=true requests published data"
+          }
+        },
+        "security": [{ "bearerAuth": [] }, {}]
+      }
+    },
+    "/api/ui/spec_links": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Get specification links",
+        "description": "Map of specification-reference prefix (as used in log entry 'requirements', e.g. 'OIDCC-') to the base URL of that specification.",
+        "operationId": "getSpecLinks",
+        "responses": {
+          "200": {
+            "description": "Retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "Prefix-to-URL map" }
               }
             }
           },
