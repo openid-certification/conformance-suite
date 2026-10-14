@@ -1,6 +1,6 @@
 [
  {
-  "test-name": "authzen-pdp-subject-search-request-with-page-limit",
+  "test-name": "authzen-pdp-*-search-request-with-page-limit",
   "variant": "*",
   "configuration-filename": "*",
   "current-block": "*",
