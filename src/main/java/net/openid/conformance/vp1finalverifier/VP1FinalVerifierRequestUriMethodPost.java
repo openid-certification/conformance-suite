@@ -9,6 +9,7 @@ import net.openid.conformance.condition.as.PostToRequestUriAndExtractRequestObje
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationOauthAuthzReqJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oid4vp-1final-verifier-request-uri-method-post",
@@ -24,6 +25,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"credential.signing_jwk"
 	}
 )
+// a request passed by value has no request_uri to fetch
+@VariantNotApplicable(parameter = VP1FinalVerifierRequestMethod.class, values = {"url_query"})
 public class VP1FinalVerifierRequestUriMethodPost extends AbstractVP1FinalVerifierTest {
 
 	@Override

@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		The wallet should display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
-@VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values = {"direct_post", "direct_post.jwt", "dc_api"})
+@VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values = {"direct_post", "direct_post.jwt"})
 @VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values = {"request_uri_unsigned"})
 public class VP1FinalWalletWrongExpectedOrigins extends AbstractVP1FinalWalletTest {
 
