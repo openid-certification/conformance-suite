@@ -729,8 +729,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.4.3-3");
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
-		// published in all RP tests so the check does not depend on when the client last fetched/cached
-		// the JWKS; must stay after SetRsaAltServerJwks, which rebuilds server_public_jwks
+		// published in all RP tests so the check does not depend on when the client last fetched/cached the JWKS
 		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 	}
 

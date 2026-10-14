@@ -1,6 +1,9 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
@@ -12,6 +15,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
 import java.util.ArrayList;
@@ -25,6 +29,9 @@ import java.util.Set;
 /**
  * Adds additional "decoy" JWKs with the same kid but different algorithms to the {@code server_public_jwks} JWKSet to ensure that
  * clients perform proper JWK lookups by {@code kid} including {@code alg} and {@code kty}.
+ *
+ * <p>The signing key is selected from {@code server_jwks}. One decoy is inserted immediately before and one immediately after that
+ * key in {@code server_public_jwks} (derived from {@code server_jwks} if not yet present); all other published keys are kept.
  */
 public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
@@ -81,17 +88,78 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 			return env;
 		}
 
-		JsonObject publicJwksWithDecoys = generateDecoyPublicKeysAroundGivenPublicKey(env, publicKey);
+		// decoys exercise selection among keys sharing a kid; without a kid there is nothing to share
+		if (publicKey.getKeyID() == null) {
+			logSuccess("Skipping JWKS decoy generation for server_jwks signing key without a kid.");
+			return env;
+		}
 
-		// augment the current server_public_jwks with additional decoy keys
+		// edited as JSON rather than via JWKSet so already-published keys Nimbus cannot parse are kept
+		JsonObject existingPublicJwks = env.getObject("server_public_jwks");
+		if (existingPublicJwks == null) {
+			existingPublicJwks = JWKUtil.getPublicJwksAsJsonObject(publicJWKSet);
+		}
+		if (!JWKUtil.hasKeysArray(existingPublicJwks)) {
+			throw error("server_public_jwks does not contain a 'keys' array", args("server_public_jwks", existingPublicJwks));
+		}
+		JsonArray existingKeys = existingPublicJwks.getAsJsonArray("keys");
+
+		int realKeyIndex = indexOfKey(existingKeys, publicKey);
+		if (realKeyIndex < 0) {
+			throw error("server_public_jwks does not contain the server signing key from server_jwks",
+				args("server_public_jwks", existingPublicJwks, "kid", publicKey.getKeyID(), "alg", publicKey.getAlgorithm().getName()));
+		}
+
+		List<JWK> decoys = generateDecoyPublicKeys(env, publicKey);
+		JsonArray keysWithDecoys = new JsonArray();
+		for (int i = 0; i < existingKeys.size(); i++) {
+			if (i == realKeyIndex) {
+				keysWithDecoys.add(toJsonObject(decoys.get(0)));
+			}
+			keysWithDecoys.add(existingKeys.get(i).deepCopy());
+			if (i == realKeyIndex) {
+				keysWithDecoys.add(toJsonObject(decoys.get(1)));
+			}
+		}
+		JsonObject publicJwksWithDecoys = existingPublicJwks.deepCopy();
+		publicJwksWithDecoys.add("keys", keysWithDecoys);
+
 		env.putObject("server_public_jwks", publicJwksWithDecoys);
 
-		logSuccess("Augmented JWKS with decoy keys.", Map.of("existingJwks", publicJWKSet, "jwksWithDecoys", publicJwksWithDecoys));
+		logSuccess("Augmented JWKS with decoy keys.", Map.of("existingJwks", existingPublicJwks, "jwksWithDecoys", publicJwksWithDecoys));
 
 		return env;
 	}
 
-	JsonObject generateDecoyPublicKeysAroundGivenPublicKey(Environment env, JWK publicKey) {
+	private static int indexOfKey(JsonArray keys, JWK key) {
+		String kid = key.getKeyID();
+		String alg = key.getAlgorithm().getName();
+		for (int i = 0; i < keys.size(); i++) {
+			if (!keys.get(i).isJsonObject()) {
+				continue;
+			}
+			JsonObject candidate = keys.get(i).getAsJsonObject();
+			if (isStringEqual(candidate.get("kid"), kid) && isStringEqual(candidate.get("alg"), alg)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private static boolean isStringEqual(JsonElement element, String value) {
+		return element != null && element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()
+			&& OIDFJSON.getString(element).equals(value);
+	}
+
+	private static JsonObject toJsonObject(JWK jwk) {
+		return JsonParser.parseString(jwk.toJSONString()).getAsJsonObject();
+	}
+
+	/**
+	 * Generates two decoy public keys with the same kid as the given key but different algorithms. The first decoy is published
+	 * before the real key and the second after it.
+	 */
+	List<JWK> generateDecoyPublicKeys(Environment env, JWK publicKey) {
 
 		String keyID = publicKey.getKeyID();
 		Algorithm alg = publicKey.getAlgorithm();
@@ -120,33 +188,20 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 			}
 		};
 
-		List<JWK> keysWithDecoys = new ArrayList<>();
-		// generate decoy keys
-		switch (alg.getName()) {
-			case "ES256":
-				// generate decoys with same kid for the "other" algorithms
-				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "EdDSA")); // decoy jwk
-				keysWithDecoys.add(publicKey); // real jwk
-				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "PS256")); // decoy jwk
-				break;
-			case "EdDSA":
-			case "Ed25519":
-				// EdDSA and Ed25519 are the same curve/kty, so they're treated as the same "family" here
-				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "ES256"));
-				keysWithDecoys.add(publicKey); // real jwk
-				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "PS256"));
-				break;
-			case "PS256":
-				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "EdDSA"));
-				keysWithDecoys.add(publicKey); // real jwk
-				keysWithDecoys.add(keyGenerator.createJwkForAlg(env, "ES256"));
-				break;
-			default:
-				throw error("Invalid FAPI alg detected in JWK", Map.of("alg", alg.getName()));
-		}
+		// generate decoys with same kid for the "other" algorithms
+		List<String> decoyAlgs = switch (alg.getName()) {
+			case "ES256" -> List.of("EdDSA", "PS256");
+			// EdDSA and Ed25519 are the same curve/kty, so they're treated as the same "family" here
+			case "EdDSA", "Ed25519" -> List.of("ES256", "PS256");
+			case "PS256" -> List.of("EdDSA", "ES256");
+			default -> throw error("Invalid FAPI alg detected in JWK", Map.of("alg", alg.getName()));
+		};
 
-		// generate a new JWKS with the real key and the decoys
-		return JWKUtil.getPublicJwksAsJsonObject(new JWKSet(keysWithDecoys));
+		List<JWK> decoys = new ArrayList<>();
+		for (String decoyAlg : decoyAlgs) {
+			decoys.add(keyGenerator.createJwkForAlg(env, decoyAlg).toPublicJWK());
+		}
+		return decoys;
 	}
 
 	/**
