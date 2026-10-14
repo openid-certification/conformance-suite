@@ -58,6 +58,9 @@ public class TrustAnchorEndpoint {
 			List.of("WRPAC providers"))
 	);
 
+	/** The name the sealing certificate of the suite's lists of trusted entities is served under. */
+	public static final String LOTE_SIGNER_SLUG = "lote-signer";
+
 	/** The CA served under {@code slug}, or null when there is none. */
 	public static TestKeysAndCerts.SuiteCa caBySlug(String slug) {
 		for (TestKeysAndCerts.SuiteCa ca : TestKeysAndCerts.SuiteCa.values()) {
@@ -102,6 +105,13 @@ public class TrustAnchorEndpoint {
 		body.addProperty("organization", TestKeysAndCerts.ORGANIZATION_NAME);
 		body.addProperty("organization_identifier", TestKeysAndCerts.ORGANIZATION_IDENTIFIER);
 		body.add("trust_anchors", anchors);
+		JsonObject loteSigner = new JsonObject();
+		loteSigner.addProperty("name", LOTE_SIGNER_SLUG);
+		loteSigner.addProperty("subject", TestKeysAndCerts.getLoteSignerCert().getSubjectX500Principal().getName());
+		loteSigner.addProperty("url", TestKeysAndCerts.getHttpsBaseUrl() + PATH_PREFIX + LOTE_SIGNER_SLUG + ".pem");
+		loteSigner.addProperty("role", "Seals the suite's lists of trusted entities, served under /lote");
+		loteSigner.addProperty("ephemeral", TestKeysAndCerts.getLoteSigner().getEphemeral());
+		body.add("lote_signer", loteSigner);
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body.toString());
 	}
 
@@ -119,6 +129,9 @@ public class TrustAnchorEndpoint {
 	@SecurityRequirements
 	public ResponseEntity<String> getTrustAnchorCert(
 			@Parameter(description = "The CA's name, as listed at /trust-anchors") @PathVariable("slug") String slug) {
+		if (LOTE_SIGNER_SLUG.equals(slug)) {
+			return ResponseEntity.ok(TestKeysAndCerts.getLoteSignerCertPem() + "\n");
+		}
 		TestKeysAndCerts.SuiteCa ca = caBySlug(slug);
 		if (ca == null) {
 			return ResponseEntity.notFound().build();

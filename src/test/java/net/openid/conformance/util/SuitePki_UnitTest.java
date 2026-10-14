@@ -214,6 +214,29 @@ public class SuitePki_UnitTest {
 		assertThat(TestKeysAndCerts.ORGANIZATION_IDENTIFIER).matches("LEIXG-[0-9A-Z]{20}");
 	}
 
+	// --- the LoTE signer ---
+
+	@Test
+	public void loteSignerIsASelfSignedNonCaSigningCertificateOfTheOrganization() throws Exception {
+		X509Certificate signer = TestKeysAndCerts.getLoteSignerCert();
+		signer.verify(signer.getPublicKey());
+		assertThat(signer.getBasicConstraints()).isEqualTo(-1);
+		assertThat(signer.getKeyUsage()[0]).isTrue();
+		assertThat(signer.getKeyUsage()[5]).isFalse();
+		assertThat(rdnValue(subject(signer), BCStyle.O)).isEqualTo(TestKeysAndCerts.ORGANIZATION_NAME);
+		assertThat(rdnValue(subject(signer), BCStyle.C)).isEqualTo("US");
+		assertThat(TestKeysAndCerts.getLoteSignerJwk().toECPublicKey()).isEqualTo(signer.getPublicKey());
+		assertThat(TestKeysAndCerts.getLoteSignerJwk().isPrivate()).isTrue();
+	}
+
+	@Test
+	public void anEphemeralLoteSignerIsNotACa() {
+		TestKeysAndCerts.SigningIdentity identity = TestKeysAndCerts.resolveIdentity("lote-signer", TestKeysAndCerts.LOTE_SIGNER_CERT_PEM, null, false, null);
+		assertThat(identity.getEphemeral()).isTrue();
+		assertThat(identity.getJavaCert().getBasicConstraints()).isEqualTo(-1);
+		assertThat(identity.getJavaCert().getKeyUsage()[0]).isTrue();
+	}
+
 	// --- common leaf checks ---
 
 	@Test

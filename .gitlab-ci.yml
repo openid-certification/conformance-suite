@@ -802,7 +802,8 @@ security_test:
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=pid-provider-ca="$SUITE_CA_KEY_PID_PROVIDER_CA" \
       --from-literal=wallet-provider-ca="$SUITE_CA_KEY_WALLET_PROVIDER_CA" \
-      --from-literal=access-ca="$SUITE_CA_KEY_ACCESS_CA"
+      --from-literal=access-ca="$SUITE_CA_KEY_ACCESS_CA" \
+      --from-literal=lote-signer="$SUITE_CA_KEY_LOTE_SIGNER"
 
     helm upgrade --install \
       --wait \
