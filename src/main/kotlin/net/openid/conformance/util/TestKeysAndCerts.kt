@@ -194,6 +194,30 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 -----END CERTIFICATE-----"""
 
 
+	// The certificate the suite seals its own lists of trusted entities with (see LoteBuilder): a
+	// fixed self-signed P-256 signing certificate, valid 2026-10-14 to 2035-10-12, so that
+	// consumers of the suite's lists can pin it the way they pin a scheme operator's sealing
+	// certificate. Its countryName is EU, not US like the CAs': ETSI TS 119 602 clause 6.8.0 wants it
+	// to equal the lists' SchemeTerritory, which the EU profiles fix at "EU". Not a CA: it signs
+	// lists, not certificates. Its key, like the ETSI CAs', comes from the environment as
+	// SUITE_CA_KEY_LOTE_SIGNER (see [keyEnvironmentVariable]).
+	const val LOTE_SIGNER_CERT_PEM: String = """-----BEGIN CERTIFICATE-----
+MIICUzCCAfmgAwIBAgIUIN27ddFJSDwGMfK3HZ3qfDO4a6MwCgYIKoZIzj0EAwIw
+gYgxCzAJBgNVBAYTAkVVMRowGAYDVQQKDBFPcGVuSUQgRm91bmRhdGlvbjEjMCEG
+A1UEYQwaTEVJWEctOTg0NTAwNDUxQUM0MzczRDQ5OTgxODA2BgNVBAMML09wZW5J
+RCBGb3VuZGF0aW9uIGNvbmZvcm1hbmNlIHN1aXRlIExvVEUgc2lnbmVyMB4XDTI2
+MTAxNDAwMDAwMFoXDTM1MTAxMjAwMDAwMFowgYgxCzAJBgNVBAYTAkVVMRowGAYD
+VQQKDBFPcGVuSUQgRm91bmRhdGlvbjEjMCEGA1UEYQwaTEVJWEctOTg0NTAwNDUx
+QUM0MzczRDQ5OTgxODA2BgNVBAMML09wZW5JRCBGb3VuZGF0aW9uIGNvbmZvcm1h
+bmNlIHN1aXRlIExvVEUgc2lnbmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
+ax+GKJ77aNMufop+5IOO/BdUDClJlNAsMyMlpNYIDWUt1ApOPjzrGYWy+2PnLjZ0
+c9NutseGF+QLhvKtQj5+f6M/MD0wHQYDVR0OBBYEFJs/lflRe04kRWSWt7SK7J0L
+0kemMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgeAMAoGCCqGSM49BAMCA0gA
+MEUCIQDSqd1rf++s6eTJ+XL2BUviwUH66yNixTSpu3E+81sW0gIgQenBimeuREfz
+6J1SfCRi42qyCw9we67rk6+q2n7HdpA=
+-----END CERTIFICATE-----"""
+
+
 	// mDL document signer OID, ISO/IEC 18013-5 Annex B: id-mdl-kp-mdlDS
 	private const val MDL_DS_EKU_OID = "1.0.18013.5.1.2"
 
@@ -235,6 +259,9 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 
 		val cert: X509Cert
 			get() = identity.cert
+
+		val javaCert: X509Certificate
+			get() = identity.javaCert
 
 		val holder: X509CertificateHolder
 			get() = identity.holder
@@ -400,6 +427,30 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 	val iacaRootSubjectKeyIdentifier: ByteArray by lazy {
 		SubjectKeyIdentifier.fromExtensions(iacaRootCertHolder.extensions).keyIdentifier
 	}
+
+	/** The sealing certificate and key of the suite's lists of trusted entities: the published one, or an ephemeral stand-in. */
+	@JvmStatic
+	val loteSigner: SigningIdentity
+		get() = identityOf("lote-signer", LOTE_SIGNER_CERT_PEM, null, false)
+
+	/** The sealing certificate of the suite's lists of trusted entities, as a Java certificate. */
+	@JvmStatic
+	val loteSignerCert: X509Certificate
+		get() = loteSigner.javaCert
+
+	/** The sealing certificate in use, PEM encoded. */
+	@JvmStatic
+	val loteSignerCertPem: String
+		get() = loteSigner.certPem
+
+	/** The sealing key of the suite's lists of trusted entities, with [loteSignerCert] as its x5c. */
+	@JvmStatic
+	val loteSignerJwk: ECKey
+		get() = ECKey.Builder(Curve.P_256, loteSignerCert.publicKey as java.security.interfaces.ECPublicKey)
+			.privateKey(loteSigner.privateKey)
+			.algorithm(JWSAlgorithm.ES256)
+			.x509CertChain(listOf(com.nimbusds.jose.util.Base64.encode(loteSignerCert.encoded)))
+			.build()
 
 	/**
 	 * The IACA's signing key: it issues the leaf certificates minted here and signs the CRL the

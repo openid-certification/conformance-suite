@@ -6,6 +6,11 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.util.JSONObjectUtils;
@@ -117,6 +122,17 @@ public class JWTUtil {
 	 * @return
 	 * @throws ParseException
 	 */
+	/** {@code payload} as a compact JWS under {@code header}, signed with the EC {@code key} the header's algorithm names. */
+	public static String signCompact(JWSHeader header, JsonObject payload, ECKey key) {
+		try {
+			JWSObject jws = new JWSObject(header, new Payload(payload.toString()));
+			jws.sign(new ECDSASigner(key));
+			return jws.serialize();
+		} catch (JOSEException e) {
+			throw new IllegalStateException("Failed to sign a " + header.getType() + " JWS", e);
+		}
+	}
+
 	public static JWT parseJWT(String jwtAsString) throws ParseException {
 		validateJwtContainsOnlyAllowedCharacters(jwtAsString);
 		JWT jwt = JWTParser.parse(jwtAsString);
