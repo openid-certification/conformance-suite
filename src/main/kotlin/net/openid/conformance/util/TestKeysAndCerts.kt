@@ -194,6 +194,28 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 -----END CERTIFICATE-----"""
 
 
+	// The certificate the suite seals its own lists of trusted entities with (see LoteBuilder): a
+	// fixed self-signed P-256 signing certificate, minted 2026-10-14, expiring 2035-10-12, so that
+	// consumers of the suite's lists can pin it the way they pin a scheme operator's sealing
+	// certificate. Not a CA: it signs lists, not certificates. Its key, like the ETSI CAs', comes from
+	// the environment as SUITE_CA_KEY_LOTE_SIGNER (see [keyEnvironmentVariable]).
+	const val LOTE_SIGNER_CERT_PEM: String = """-----BEGIN CERTIFICATE-----
+MIICUjCCAfmgAwIBAgIUP1KDqGYuaygKm7SLEhQhMIlWJQ8wCgYIKoZIzj0EAwIw
+gYgxCzAJBgNVBAYTAlVTMRowGAYDVQQKDBFPcGVuSUQgRm91bmRhdGlvbjEjMCEG
+A1UEYQwaTEVJWEctOTg0NTAwNDUxQUM0MzczRDQ5OTgxODA2BgNVBAMML09wZW5J
+RCBGb3VuZGF0aW9uIGNvbmZvcm1hbmNlIHN1aXRlIExvVEUgc2lnbmVyMB4XDTI2
+MTAxNDAwMDAwMFoXDTM1MTAxMjAwMDAwMFowgYgxCzAJBgNVBAYTAlVTMRowGAYD
+VQQKDBFPcGVuSUQgRm91bmRhdGlvbjEjMCEGA1UEYQwaTEVJWEctOTg0NTAwNDUx
+QUM0MzczRDQ5OTgxODA2BgNVBAMML09wZW5JRCBGb3VuZGF0aW9uIGNvbmZvcm1h
+bmNlIHN1aXRlIExvVEUgc2lnbmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
+ax+GKJ77aNMufop+5IOO/BdUDClJlNAsMyMlpNYIDWUt1ApOPjzrGYWy+2PnLjZ0
+c9NutseGF+QLhvKtQj5+f6M/MD0wHQYDVR0OBBYEFJs/lflRe04kRWSWt7SK7J0L
+0kemMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgeAMAoGCCqGSM49BAMCA0cA
+MEQCIHtHC4tZ8sElkfTkNLUKkBDalVh/Kwt2ZWVHotpWMz+WAiBgv8lTYXDtJ2/7
+rJvACCLU26dsPXE/YLOS+sJBqeosYg==
+-----END CERTIFICATE-----"""
+
+
 	// mDL document signer OID, ISO/IEC 18013-5 Annex B: id-mdl-kp-mdlDS
 	private const val MDL_DS_EKU_OID = "1.0.18013.5.1.2"
 
@@ -389,6 +411,30 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 	val iacaRootSubjectKeyIdentifier: ByteArray by lazy {
 		SubjectKeyIdentifier.fromExtensions(iacaRootCertHolder.extensions).keyIdentifier
 	}
+
+	/** The sealing certificate and key of the suite's lists of trusted entities: the published one, or an ephemeral stand-in. */
+	@JvmStatic
+	val loteSigner: SigningIdentity
+		get() = identityOf("lote-signer", LOTE_SIGNER_CERT_PEM, null, false)
+
+	/** The sealing certificate of the suite's lists of trusted entities, as a Java certificate. */
+	@JvmStatic
+	val loteSignerCert: X509Certificate
+		get() = loteSigner.javaCert
+
+	/** The sealing certificate in use, PEM encoded. */
+	@JvmStatic
+	val loteSignerCertPem: String
+		get() = loteSigner.certPem
+
+	/** The sealing key of the suite's lists of trusted entities, with [loteSignerCert] as its x5c. */
+	@JvmStatic
+	val loteSignerJwk: ECKey
+		get() = ECKey.Builder(Curve.P_256, loteSignerCert.publicKey as java.security.interfaces.ECPublicKey)
+			.privateKey(loteSigner.privateKey)
+			.algorithm(JWSAlgorithm.ES256)
+			.x509CertChain(listOf(com.nimbusds.jose.util.Base64.encode(loteSignerCert.encoded)))
+			.build()
 
 	/**
 	 * The IACA's signing key: it issues the leaf certificates minted here and signs the CRL the
@@ -708,7 +754,15 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 	 * client identifier prefix matches, and the critical mdoc reader authentication extended key
 	 * usages.
 	 */
-	private fun mintWrpac(): MintedLeaf =
+	private fun mintWrpac(): MintedLeaf = mintWrpac(wrpacDnsName)
+
+	/**
+	 * A fresh WRPAC whose subject alternative name carries [dnsName] instead of the base URL's host:
+	 * for a test module that is reached under another host (an external URL override), where the
+	 * x509_san_dns client identifier must match that host. Not cached.
+	 */
+	@JvmStatic
+	fun mintWrpac(dnsName: String): MintedLeaf =
 		mintLeaf(SuiteCa.ACCESS, legalPersonSubject("certification.openid.net relying party")) { builder ->
 			builder.addExtension(
 				Extension.certificatePolicies, false,
@@ -720,7 +774,7 @@ JAIgWnI3xptHc6CENKJTTvGa23uRogXwpt5z7YZaXwwpO+4=
 				Extension.subjectAlternativeName, false,
 				GeneralNames(
 					arrayOf(
-						GeneralName(GeneralName.dNSName, wrpacDnsName),
+						GeneralName(GeneralName.dNSName, dnsName),
 						GeneralName(GeneralName.rfc822Name, CONTACT_EMAIL),
 						GeneralName(GeneralName.uniformResourceIdentifier, CONTACT_URL)
 					)

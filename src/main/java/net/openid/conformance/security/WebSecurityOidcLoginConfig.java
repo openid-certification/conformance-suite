@@ -179,6 +179,7 @@ class WebSecurityOidcLoginConfig {
 					MdocIacaCrl.PATH, // the IACA's CRL, named by the suite's document signer certificates
 					"/trust-anchors", "/trust-anchors/*.pem", // the suite's CA certificates, pinned by implementations under test
 					"/crl/*.crl", // the CRLs of the suite's CAs, named by the leaf certificates it signs with
+					"/lote/*.jwt", "/lote/empty/*.jwt", // the suite's lists of trusted entities, fetched by implementations under test
 					"/logout.html", //
 					"/robots.txt",  //
 					"/.well-known/**", //
