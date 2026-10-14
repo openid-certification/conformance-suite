@@ -2,9 +2,12 @@ package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.MdocCertificateProfileChecks;
 import net.openid.conformance.util.MdocUtil;
+import net.openid.conformance.util.X509CertificateUtil;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.multipaz.cbor.Cbor;
@@ -82,8 +85,9 @@ public abstract class AbstractValidateMdocDsCertificate extends AbstractConditio
 	 * assumed: the matching entry of a configured VICAL is authoritative, and the configured
 	 * trust anchor is only used when it actually is the DS certificate's issuer - a credential
 	 * from a different IACA (e.g. one trusted via the VICAL) must not have its issuer binding
-	 * compared against an unrelated anchor. Null when no issuer can be located, in which case
-	 * the binding checks are skipped.
+	 * compared against an unrelated anchor. Failing both, the PID and mDL providers' issuance
+	 * anchors in the configured lists of trusted entities are searched the same way as the
+	 * VICAL. Null when no issuer can be located, in which case the binding checks are skipped.
 	 */
 	protected X509Certificate issuingCertificate(List<X509Certificate> chain, Environment env) {
 		if (chain.size() > 1) {
@@ -99,6 +103,28 @@ public abstract class AbstractValidateMdocDsCertificate extends AbstractConditio
 			X509Certificate anchor = X509CertUtils.parse(trustAnchorPem);
 			if (anchor != null
 				&& dsCert.getIssuerX500Principal().equals(anchor.getSubjectX500Principal())) {
+				return anchor;
+			}
+		}
+		return issuingCertificateFromLotes(env, dsCert);
+	}
+
+	/**
+	 * Finds the issuance anchor of a PID or mDL provider in the configured lists of trusted
+	 * entities that issued the DS certificate: subject name match and a verifying signature.
+	 * Null when no list is configured or none of its anchors issued it.
+	 */
+	protected X509Certificate issuingCertificateFromLotes(Environment env, X509Certificate dsCert) {
+		LoteTrustAnchors.TrustAnchorSet anchors;
+		try {
+			anchors = LoteTrustAnchors.resolve(env, null, null, LoteSlot.ISSUANCE_SUFFIX, LoteSlot.PID, LoteSlot.MDL);
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			// only a configured PEM can fail to parse, and none is passed
+			return null;
+		}
+		for (X509Certificate anchor : anchors.anchors()) {
+			if (dsCert.getIssuerX500Principal().equals(anchor.getSubjectX500Principal())
+				&& signedThisCertificate(anchor, dsCert)) {
 				return anchor;
 			}
 		}

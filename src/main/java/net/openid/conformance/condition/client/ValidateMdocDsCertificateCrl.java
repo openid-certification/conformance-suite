@@ -80,8 +80,9 @@ public class ValidateMdocDsCertificateCrl extends AbstractMdocDsCertificateCrlCo
 		checkRevokedEntries(crl, tbsCertList, violations);
 		checkExtensions(crl, dsCert, issuingCert, violations);
 		if (issuingCert == null) {
-			log("The issuing IACA certificate could not be located (it is not in the x5chain, and neither a VICAL entry nor the"
-				+ " configured trust anchor issued the document signer certificate), so the CRL signature was not verified");
+			log("The issuing IACA certificate could not be located (it is not in the x5chain, and no VICAL entry, configured"
+				+ " trust anchor or PID or mDL provider in the configured lists of trusted entities issued the document signer"
+				+ " certificate), so the CRL signature was not verified");
 		} else {
 			try {
 				crl.verify(issuingCert.getPublicKey());

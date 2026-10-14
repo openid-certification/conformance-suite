@@ -1,9 +1,13 @@
 package net.openid.conformance.vci10wallet.condition.clientattestation;
 
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.lote.AbstractRegisterTrustSource;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 
-public class VCIRegisterKeyAttestationTrustAnchor extends AbstractCondition {
+import java.util.List;
+
+public class VCIRegisterKeyAttestationTrustAnchor extends AbstractRegisterTrustSource {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -14,6 +18,10 @@ public class VCIRegisterKeyAttestationTrustAnchor extends AbstractCondition {
 		if (keyAttestationTrustAnchorPem == null) {
 			keyAttestationTrustAnchorPem = env.getString("config", "vci.key_attestation_trust_anchor_pem");
 		}
+
+		List<String> sources = LoteTrustAnchors.configuredSources(env, keyAttestationTrustAnchorPem,
+			"'Key Attestation Trust Anchor' field in the 'Key Attestation' section of the test configuration", LoteSlot.WALLET);
+		requireAtMostOneTrustSource(sources, "key attestation signing certificate");
 
 		if (keyAttestationTrustAnchorPem == null) {
 			log("Skipping registration of empty trust anchor certificate for key attestation");

@@ -6,6 +6,8 @@ import net.openid.conformance.condition.client.ClearStatusListTokenEndpointRespo
 import net.openid.conformance.condition.client.EnsureContentTypeStatusListJwt;
 import net.openid.conformance.condition.client.ExtractStatusListTokenFromStatusListTokenEndpointResponse;
 import net.openid.conformance.condition.client.FetchStatusListToken;
+import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
+import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.WarnIfSdJwtDigestAlgorithmNotSha256;
 import net.openid.conformance.condition.client.WarnIfUnexpectedFieldsInCredentialCnf;
@@ -30,6 +32,8 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
  * or {@code false} when cryptographic binding is not required (some VCI issuance flows).
  *
  * Pass {@code haip=true} to include HAIP-specific checks (validity info presence, x5c header).
+ * Outside HAIP the x5c chain checks run, as warnings, when the tester configured a trust source
+ * for the credential or its status list.
  */
 public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 
@@ -89,6 +93,22 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			callAndContinueOnFailure(WarnIfSdJwtDigestAlgorithmNotSha256.class,
 				ConditionResult.WARNING, "HAIP-8");
 		} else {
+			// Outside HAIP the credential and its status list are trusted through whatever the tester
+			// configured: the x5c chains are validated when a trust anchor PEM or a list of trusted
+			// entities is set for them (SD-JWT VC 3.5, the X.509 issuer signature mechanism), and the
+			// status list signature is checked with the key its header names either way.
+			call(condition(ValidateSdJwtCredentialX5cCertificateChain.class)
+				.skipIfStringsMissing(RegisterCredentialTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("SDJWTVC-3.5"));
+			call(condition(ValidateStatusListTokenX5cCertificateChain.class)
+				.skipIfStringsMissing(RegisterStatusListTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("OTSL-6.2", "OTSL-11.3"));
 			callAndContinueOnFailure(VerifyStatusListTokenSignatureUsingEmbeddedJwk.class,
 				ConditionResult.FAILURE, "OTSL-6.2");
 		}

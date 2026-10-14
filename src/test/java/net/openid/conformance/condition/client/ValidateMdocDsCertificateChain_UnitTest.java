@@ -1,8 +1,11 @@
 package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.util.TestKeysAndCerts;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTestFixtures;
+import net.openid.conformance.util.TestKeysAndCerts;
+import net.openid.conformance.util.X509CertificateUtil;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -41,6 +44,26 @@ public class ValidateMdocDsCertificateChain_UnitTest {
 		env.putString("credential_trust_anchor_pem", TestKeysAndCerts.IACA_ROOT_CERT_PEM);
 
 		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_passesForBuiltInDsCertAgainstTheIacaListedInTheLote() throws Exception {
+		MdocCredentialTestUtil.putCredential(env,
+			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.PID, LoteTestFixtures.PID_ISSUANCE, "OpenID Foundation",
+			X509CertificateUtil.parseTrustAnchorPem(TestKeysAndCerts.IACA_ROOT_CERT_PEM));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_failsWhenTheLoteListsNoIssuanceService() throws Exception {
+		MdocCredentialTestUtil.putCredential(env,
+			MdocCredentialTestUtil.createCredentialBytes(DrivingLicense.MDL_DOCTYPE));
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.PID, LoteTestFixtures.PID_ISSUANCE, "OpenID Foundation");
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("trusts nobody"), e.getMessage());
 	}
 
 	@Test

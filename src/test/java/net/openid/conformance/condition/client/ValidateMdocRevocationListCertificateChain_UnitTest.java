@@ -3,9 +3,12 @@ package net.openid.conformance.condition.client;
 import kotlin.Pair;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTestFixtures;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.X509CertificateUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +89,27 @@ public class ValidateMdocRevocationListCertificateChain_UnitTest {
 
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("Credential Trust Anchor"), e.getMessage());
+	}
+
+	@Test
+	public void testEvaluate_passesAgainstTheIacaListedInTheLote() throws Exception {
+		putStatusListTokenSignedUnder(pki);
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.PID, LoteTestFixtures.PID_ISSUANCE, "PID entity",
+			X509CertificateUtil.parseTrustAnchorPem(VicalTestFixtures.toPem(pki.getIacaCert())));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_failsWhenTheLoteListsADifferentIaca() throws Exception {
+		putStatusListTokenSignedUnder(pki);
+		// same DN, different key: the same-issuer check passes and the PKIX validation against the listed IACA must catch it
+		VicalTestFixtures.IssuerPki otherPki = VicalTestFixtures.generateIssuerPki();
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.PID, LoteTestFixtures.PID_ISSUANCE, "PID entity",
+			X509CertificateUtil.parseTrustAnchorPem(VicalTestFixtures.toPem(otherPki.getIacaCert())));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("does not validate"), e.getMessage());
 	}
 
 	@Test
