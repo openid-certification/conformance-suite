@@ -5,6 +5,9 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jwt.SignedJWT;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.PublicKey;
@@ -53,41 +56,43 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	}
 
 	/**
-	 * Parse a PEM-encoded trust anchor certificate. Returns {@code null} when the input
-	 * is {@code null}; throws if the input is non-null but not a parseable X.509 certificate
-	 * (so a misconfigured trust anchor surfaces as a test failure rather than silently
-	 * downgrading to legacy chain validation).
+	 * Validate an x5c certificate chain against a set of trust anchors (a configured PEM, or the
+	 * anchors of the list of trusted entities covering the purpose, see
+	 * {@link LoteTrustAnchors#resolve}). With anchors this is full RFC 5280 PKIX path validation
+	 * (intermediate validity, BasicConstraints CA:true and KeyUsage keyCertSign on intermediates,
+	 * name chaining, critical extensions; CRL/OCSP revocation checking is disabled). An empty set
+	 * means the legacy walk (parent-signature walk only), unless a list of trusted entities was
+	 * configured for the purpose: one that lists no anchor for it trusts nothing, so the chain is
+	 * rejected. In both modes the chain must be non-empty, the leaf within its validity dates and
+	 * not self-signed, and no anchor may appear in the chain.
+	 *
+	 * @return the anchor the path ended at, or null for the legacy walk
 	 */
-	protected X509Certificate parseTrustAnchorPem(String trustAnchorPem) {
+	protected X509Certificate validateX5cCertificateChainAgainst(List<X509Certificate> certs, LoteTrustAnchors.TrustAnchorSet anchors) {
+		if (anchors.trustsNothing()) {
+			throw error("The configured list of trusted entities lists no trust anchor for this certificate chain, so the chain"
+					+ " is not trusted. An empty list, or one listing only services of other types, trusts nobody.",
+				args("lists_of_trusted_entities", anchors.configuredLists(),
+					"leaf_cert_subject", certs.isEmpty() ? null : certs.get(0).getSubjectX500Principal().getName()));
+		}
 		try {
-			return X509CertificateUtil.parseTrustAnchorPem(trustAnchorPem);
+			return X509CertificateUtil.validateX5cCertificateChain(certs, anchors.anchors());
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
-			throw error(e.getMessage());
+			if (anchors.isEmpty()) {
+				throw error(e.getMessage());
+			}
+			throw error(e.getMessage(), args("trust_anchors_tried", anchors.sourcesJson()));
 		}
 	}
 
 	/**
-	 * Validate an x5c certificate chain.
-	 *
-	 * When a trust anchor is supplied, performs full RFC 5280 PKIX path validation
-	 * (intermediate validity, BasicConstraints CA:true on intermediates, KeyUsage keyCertSign
-	 * on intermediates, name chaining, critical extensions; CRL/OCSP revocation checking is
-	 * disabled). When no trust anchor is supplied, performs only the legacy chain walk
-	 * (parent-signature walk + trust-anchor-exclusion check on the last cert).
-	 *
-	 * In both modes: chain must be non-empty, leaf must be within validity dates and not
-	 * self-signed, and the trust anchor (when supplied) must not appear in the chain.
-	 *
-	 * The fail-fast "configure a trust anchor" UX for HAIP plans lives in the
-	 * {@code Ensure*TrustAnchorConfigured} preconditions wired into the relevant test-module
-	 * HAIP branch at setup time, not in this helper.
-	 *
-	 * @param certs the parsed certificate chain, leaf first
-	 * @param trustAnchor trust anchor certificate; non-null triggers strict PKIX validation
+	 * The trust anchors for a purpose: the configured PEM when set, otherwise the anchors of the given
+	 * lists of trusted entities; a misconfigured PEM surfaces as a test failure.
 	 */
-	protected void validateX5cCertificateChain(List<X509Certificate> certs, X509Certificate trustAnchor) {
+	protected LoteTrustAnchors.TrustAnchorSet resolveTrustAnchors(Environment env, String configuredPem, String configuredLabel,
+			String serviceTypeSuffix, LoteSlot... slots) {
 		try {
-			X509CertificateUtil.validateX5cCertificateChain(certs, trustAnchor);
+			return LoteTrustAnchors.resolve(env, configuredPem, configuredLabel, serviceTypeSuffix, slots);
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			throw error(e.getMessage());
 		}

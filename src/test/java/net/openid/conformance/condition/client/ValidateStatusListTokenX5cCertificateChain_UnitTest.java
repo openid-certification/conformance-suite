@@ -10,6 +10,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTestFixtures;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
@@ -27,6 +29,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateStatusListTokenX5cCertificateChain_UnitTest {
@@ -116,6 +119,30 @@ public class ValidateStatusListTokenX5cCertificateChain_UnitTest {
 		putStatusListToken(createSignedStatusListToken(signingKey, x5cChain));
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_acceptsAChainToARevocationServiceOfAConfiguredListOfTrustedEntities() throws Exception {
+		LoteTestFixtures.ListedCa ca = LoteTestFixtures.INSTANCE.generateCa("Status list CA", "Example Provider");
+		var signer = LoteTestFixtures.INSTANCE.mintLeaf(ca, "status list signer");
+		env.putObject("config", new JsonObject());
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.PID, LoteTestFixtures.PID_REVOCATION, "Example Provider", ca.getCert());
+		putStatusListToken(createSignedStatusListToken(signer.getFirst(), signer.getFirst().getX509CertChain()));
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_rejectsAChainToAnIssuanceOnlyAnchorOfAConfiguredListOfTrustedEntities() throws Exception {
+		// the list's issuance services sign credentials; only its revocation services sign status lists
+		LoteTestFixtures.ListedCa ca = LoteTestFixtures.INSTANCE.generateCa("Issuance CA", "Example Provider");
+		var signer = LoteTestFixtures.INSTANCE.mintLeaf(ca, "status list signer");
+		env.putObject("config", new JsonObject());
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.PID, LoteTestFixtures.PID_ISSUANCE, "Example Provider", ca.getCert());
+		putStatusListToken(createSignedStatusListToken(signer.getFirst(), signer.getFirst().getX509CertChain()));
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("lists no trust anchor"), e.getMessage());
 	}
 
 	private void putStatusListToken(String jwt) throws Exception {

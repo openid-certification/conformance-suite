@@ -8,6 +8,7 @@ import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -208,51 +209,51 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 	@Test
 	public void validSingleCertNoTrustAnchor() {
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(leafFromRootCert), null));
+			validate(List.of(leafFromRootCert), null));
 	}
 
 	@Test
 	public void validTwoCertChainNoTrustAnchor() {
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(leafCert, intermediateCert), null));
+			validate(List.of(leafCert, intermediateCert), null));
 	}
 
 	@Test
 	public void emptyChainFails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(), null));
+			validate(List.of(), null));
 	}
 
 	@Test
 	public void selfSignedLeafFails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(selfSignedLeafCert), null));
+			validate(List.of(selfSignedLeafCert), null));
 	}
 
 	@Test
 	public void expiredLeafFails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(expiredLeafCert), rootCert));
+			validate(List.of(expiredLeafCert), rootCert));
 	}
 
 	@Test
 	public void trustAnchorInChainFails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafFromRootCert, rootCert), rootCert));
+			validate(List.of(leafFromRootCert, rootCert), rootCert));
 	}
 
 	@Test
 	public void lastCertSelfSignedWithoutTrustAnchorFails() {
 		// Root cert is self-signed and last in chain — trust anchor exclusion
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafFromRootCert, rootCert), null));
+			validate(List.of(leafFromRootCert, rootCert), null));
 	}
 
 	@Test
 	public void brokenChainSignatureFails() {
 		// leafFromRootCert is signed by root, not by intermediate — chain walk fails
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafFromRootCert, intermediateCert), rootCert));
+			validate(List.of(leafFromRootCert, intermediateCert), rootCert));
 	}
 
 	@Test
@@ -268,7 +269,7 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 			throw new RuntimeException(e);
 		}
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafCert, intermediateCert), unrelatedRoot));
+			validate(List.of(leafCert, intermediateCert), unrelatedRoot));
 	}
 
 	// -- Parsing tests --
@@ -334,13 +335,13 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 	@Test
 	public void pkixMode_validThreeCertChain_passes() {
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(pkixLeafCert, pkixIntermediateCert), pkixRootCert));
+			validate(List.of(pkixLeafCert, pkixIntermediateCert), pkixRootCert));
 	}
 
 	@Test
 	public void pkixMode_validSingleLeafChain_passesWhenLeafSignedByAnchor() {
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(pkixLeafFromRootCert), pkixRootCert));
+			validate(List.of(pkixLeafFromRootCert), pkixRootCert));
 	}
 
 	@Test
@@ -357,25 +358,25 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 			throw new RuntimeException(e);
 		}
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafSignedByExpiredIntermediate, intermediateExpired), pkixRootCert));
+			validate(List.of(leafSignedByExpiredIntermediate, intermediateExpired), pkixRootCert));
 	}
 
 	@Test
 	public void pkixMode_intermediateMissingBasicConstraints_fails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoExtensions), pkixRootCert));
+			validate(List.of(leafForFailingIntermediates, intermediateNoExtensions), pkixRootCert));
 	}
 
 	@Test
 	public void pkixMode_intermediateBasicConstraintsCaFalse_fails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateBasicConstraintsCaFalse), pkixRootCert));
+			validate(List.of(leafForFailingIntermediates, intermediateBasicConstraintsCaFalse), pkixRootCert));
 	}
 
 	@Test
 	public void pkixMode_intermediateMissingKeyCertSign_fails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoKeyCertSign), pkixRootCert));
+			validate(List.of(leafForFailingIntermediates, intermediateNoKeyCertSign), pkixRootCert));
 	}
 
 	@Test
@@ -385,7 +386,7 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 		// (which strict PKIX would reject) passes the legacy walk because the parent-signature
 		// walk and last-cert-not-self-signed checks are all that runs.
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoExtensions), null));
+			validate(List.of(leafForFailingIntermediates, intermediateNoExtensions), null));
 	}
 
 	/**
@@ -396,5 +397,12 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 		public Environment evaluate(Environment env) {
 			return env;
 		}
+	}
+
+	/** Runs the chain check against one anchor, or the legacy walk when {@code trustAnchor} is null. */
+	private void validate(List<X509Certificate> certs, X509Certificate trustAnchor) {
+		cond.validateX5cCertificateChainAgainst(certs, trustAnchor == null
+			? LoteTrustAnchors.TrustAnchorSet.none()
+			: LoteTrustAnchors.TrustAnchorSet.of(trustAnchor, "the test's trust anchor"));
 	}
 }

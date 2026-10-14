@@ -42,6 +42,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
@@ -142,6 +143,64 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(rootCert));
 
 		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void pkixMode_passesWhenLeafIsSignedByAWalletProviderListedInTheLote() throws Exception {
+		KeyPair leafKeyPair = generateEcKeyPair();
+		KeyPair rootKeyPair = generateEcKeyPair();
+		X509Certificate rootCert = signCert("CN=Listed Root", rootKeyPair, "CN=Listed Root", rootKeyPair);
+		X509Certificate leafCert = signCert("CN=Leaf", leafKeyPair, "CN=Listed Root", rootKeyPair);
+		String jwt = signJwtWithEcPrivateKey(leafKeyPair);
+
+		JsonArray x5c = new JsonArray();
+		x5c.add(toBase64(leafCert));
+		putKeyAttestationJwt(jwt, x5c);
+		net.openid.conformance.condition.client.lote.LoteTestFixtures.INSTANCE.putAnchors(env,
+			net.openid.conformance.condition.client.lote.LoteSlot.WALLET,
+			net.openid.conformance.condition.client.lote.LoteTestFixtures.WALLET_ISSUANCE, "Wallet entity", rootCert);
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void pkixMode_theConfiguredTrustAnchorIsTheOnlyAnchorWhenAListIsAlsoPresent() throws Exception {
+		KeyPair leafKeyPair = generateEcKeyPair();
+		KeyPair rootKeyPair = generateEcKeyPair();
+		KeyPair listedRootKeyPair = generateEcKeyPair();
+		X509Certificate rootCert = signCert("CN=Root", rootKeyPair, "CN=Root", rootKeyPair);
+		X509Certificate listedRootCert = signCert("CN=Listed Root", listedRootKeyPair, "CN=Listed Root", listedRootKeyPair);
+		X509Certificate leafCert = signCert("CN=Leaf", leafKeyPair, "CN=Root", rootKeyPair);
+		String jwt = signJwtWithEcPrivateKey(leafKeyPair);
+
+		JsonArray x5c = new JsonArray();
+		x5c.add(toBase64(leafCert));
+		putKeyAttestationJwt(jwt, x5c);
+		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(rootCert));
+		net.openid.conformance.condition.client.lote.LoteTestFixtures.INSTANCE.putAnchors(env,
+			net.openid.conformance.condition.client.lote.LoteSlot.WALLET,
+			net.openid.conformance.condition.client.lote.LoteTestFixtures.WALLET_ISSUANCE, "Wallet entity", listedRootCert);
+
+		// the PEM wins: a chain to the listed root would fail, this one passes
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void pkixMode_failsWhenTheListIsConfiguredButListsNoWalletProvider() throws Exception {
+		KeyPair leafKeyPair = generateEcKeyPair();
+		KeyPair rootKeyPair = generateEcKeyPair();
+		X509Certificate leafCert = signCert("CN=Leaf", leafKeyPair, "CN=Root", rootKeyPair);
+		String jwt = signJwtWithEcPrivateKey(leafKeyPair);
+
+		JsonArray x5c = new JsonArray();
+		x5c.add(toBase64(leafCert));
+		putKeyAttestationJwt(jwt, x5c);
+		net.openid.conformance.condition.client.lote.LoteTestFixtures.INSTANCE.putAnchors(env,
+			net.openid.conformance.condition.client.lote.LoteSlot.WALLET,
+			net.openid.conformance.condition.client.lote.LoteTestFixtures.WALLET_ISSUANCE, "Wallet entity");
+
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("trusts nobody"), e.getMessage());
 	}
 
 	@Test

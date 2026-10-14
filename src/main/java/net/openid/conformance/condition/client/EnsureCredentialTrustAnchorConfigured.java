@@ -2,6 +2,8 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 
 public class EnsureCredentialTrustAnchorConfigured extends AbstractCondition {
@@ -11,11 +13,15 @@ public class EnsureCredentialTrustAnchorConfigured extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String trustAnchorPem = env.getString("config", "credential.trust_anchor_pem");
-		if (trustAnchorPem == null || trustAnchorPem.isBlank()) {
-			throw error("'Credential Trust Anchor' field is missing from the 'Credential' section in the test configuration. It is required for HAIP.");
+		boolean pemConfigured = trustAnchorPem != null && !trustAnchorPem.isBlank();
+		boolean loteConfigured = LoteTrustAnchors.anySlotConfigured(env, LoteSlot.PID, LoteSlot.MDL);
+		if (!pemConfigured && !loteConfigured) {
+			throw error("None of the 'Credential Trust Anchor', '" + LoteSlot.PID.fieldLabel + "' and '" + LoteSlot.MDL.fieldLabel
+				+ "' fields is set in the 'Credential Issuer' section in the test configuration. HAIP requires a trust anchor for the credential signer, so one of them is required.");
 		}
 
-		logSuccess("Credential Trust Anchor is configured");
+		logSuccess("A trust anchor source for the credential signer is configured",
+			args("credential_trust_anchor", pemConfigured, "lote", loteConfigured));
 		return env;
 	}
 }

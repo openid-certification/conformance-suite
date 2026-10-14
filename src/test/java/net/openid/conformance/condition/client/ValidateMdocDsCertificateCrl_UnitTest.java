@@ -2,8 +2,11 @@ package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTestFixtures;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -80,6 +83,26 @@ public class ValidateMdocDsCertificateCrl_UnitTest {
 		MdocCrlTestFixtures.putCrl(env, MdocCrlTestFixtures.iacaCrl().build());
 		assertDoesNotThrow(() -> cond.execute(env));
 		// unauthenticated, so revocation status is not read from it
+		assertNull(env.getString(AbstractMdocDsCertificateCrlCondition.ENV_AUTHENTICATED));
+	}
+
+	@Test
+	public void authenticatesAgainstAnIacaListedInALoteWithNoTrustAnchorConfigured() throws Exception {
+		env.removeNativeValue("credential_trust_anchor_pem");
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.MDL, LoteTestFixtures.MDL_ISSUANCE, "mDL entity",
+			X509CertUtils.parse(TestKeysAndCerts.IACA_ROOT_CERT_PEM));
+		MdocCrlTestFixtures.putCrl(env, MdocIacaCrl.generate());
+		assertDoesNotThrow(() -> cond.execute(env));
+		assertEquals("true", env.getString(AbstractMdocDsCertificateCrlCondition.ENV_AUTHENTICATED));
+	}
+
+	@Test
+	public void ignoresAListedCaThatDidNotIssueTheDsCertificate() throws Exception {
+		env.removeNativeValue("credential_trust_anchor_pem");
+		LoteTestFixtures.INSTANCE.putAnchors(env, LoteSlot.MDL, LoteTestFixtures.MDL_ISSUANCE, "mDL entity",
+			LoteTestFixtures.INSTANCE.generateCa("Other IACA", "Other Org").getCert());
+		MdocCrlTestFixtures.putCrl(env, MdocIacaCrl.generate());
+		assertDoesNotThrow(() -> cond.execute(env));
 		assertNull(env.getString(AbstractMdocDsCertificateCrlCondition.ENV_AUTHENTICATED));
 	}
 
