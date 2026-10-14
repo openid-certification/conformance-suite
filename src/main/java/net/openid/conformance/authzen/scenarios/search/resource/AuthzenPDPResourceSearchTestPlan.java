@@ -20,6 +20,7 @@ import java.util.Map;
 		// Search Core
 		AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPResourceSearchResourceSearchWithContextTest.class,
+		AuthzenPDPResourceSearchResultsEvaluateToPermitTest.class,
 		AuthzenPDPResourceSearchUnknownEntityIdentifierTest.class,
 		AuthzenPDPResourceSearchUnknownEntityTypeTest.class,
 		AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.class,

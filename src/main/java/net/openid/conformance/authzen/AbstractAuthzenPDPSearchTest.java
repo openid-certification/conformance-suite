@@ -1,6 +1,15 @@
 package net.openid.conformance.authzen;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
+import net.openid.conformance.authzen.condition.CreateAuthzenEvaluationRequestForSearchResult;
+import net.openid.conformance.authzen.condition.EnsureSearchResultIsPermitted;
+import net.openid.conformance.authzen.condition.EnsureValidDecisionResponse;
+import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
+import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationEndpoint;
 import net.openid.conformance.authzen.condition.AddAuthzenSearchPageTokenToRequest;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
@@ -54,6 +63,48 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	@Override
 	protected ConditionResult getIdempotencySeverity() {
 		return ConditionResult.WARNING;
+	}
+
+	private static final int MAX_RESULTS_TO_EVALUATE = 10;
+
+	/**
+	 * Section 8.1: each search result "when subsequently used in an Access Evaluation API call,
+	 * SHOULD result in a "decision": true response". Sends the first results accumulated by
+	 * {@link #runPaginatedSearchLoop} to the Access Evaluation API, with the searched-for entity
+	 * replaced by the result, and warns about each one that is not permitted.
+	 *
+	 * @param searchedEntity the request member the search fills in: subject, resource or action
+	 */
+	protected void evaluateSearchResultsWithAccessEvaluationApi(String searchedEntity) {
+		JsonObject searchRequest = env.getObject("authzen_api_endpoint_request").deepCopy();
+		JsonElement resultsElement = env.getElementFromObject("authzen_search_endpoint_aggregated_results", "results");
+		if (resultsElement == null || !resultsElement.isJsonArray() || resultsElement.getAsJsonArray().isEmpty()) {
+			eventLog.log(getName(), "The search returned no results, so none were sent to the Access Evaluation API");
+			return;
+		}
+		JsonArray results = resultsElement.getAsJsonArray();
+		int count = Math.min(results.size(), MAX_RESULTS_TO_EVALUATE);
+		if (results.size() > count) {
+			eventLog.log(getName(), "The search returned " + results.size() + " results; the first " + count
+				+ " are sent to the Access Evaluation API");
+		}
+		for (int i = 0; i < count; i++) {
+			// Every page's results are checked to be objects, stopping the test otherwise, before
+			// they are aggregated.
+			JsonObject result = results.get(i).getAsJsonObject();
+			eventLog.startBlock("Evaluate search result " + (i + 1) + " of " + count);
+			try {
+				callAndStopOnFailure(new CreateAuthzenEvaluationRequestForSearchResult(searchRequest, searchedEntity, result), "AUTHZEN-8.1");
+				callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationEndpoint.class);
+				addAuthenticationToAuthzenApiEndpoint();
+				call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
+				callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-6.2");
+				callAndStopOnFailure(EnsureValidDecisionResponse.class, "AUTHZEN-6.2");
+				callAndContinueOnFailure(EnsureSearchResultIsPermitted.class, ConditionResult.WARNING, "AUTHZEN-8.1");
+			} finally {
+				eventLog.endBlock();
+			}
+		}
 	}
 
 	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
