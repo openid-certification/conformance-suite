@@ -46,6 +46,16 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		env.removeNativeValue("authzen_search_endpoint_request_page_token");
 	}
 
+	/**
+	 * Certification scenario 5.6 requires the same decision for repeated requests; it says
+	 * nothing about search results, and Section 8.1 says they "may depend on other variables
+	 * (such as time)". A search that returns different results is reported as a warning.
+	 */
+	@Override
+	protected ConditionResult getIdempotencySeverity() {
+		return ConditionResult.WARNING;
+	}
+
 	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
 	// the three per-axis subclasses (Subject/Resource/Action) each provide their
 	// own implementation citing the family-specific AUTHZEN-8.{4,5,6} tag.
