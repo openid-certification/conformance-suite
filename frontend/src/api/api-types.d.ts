@@ -310,6 +310,66 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/trust-anchors": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Lists the suite's CA certificates
+     * @description Lists the CA certificates that issue the certificates the suite signs with, with the URL each is served at, the URL of its CRL, what its leaf certificates sign and the ETSI TS 119 602 list of trusted entities it belongs in.
+     */
+    get: operations["trustAnchors"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/trust-anchors/{slug}.pem": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns one of the suite's CA certificates
+     * @description Returns the named CA certificate, PEM encoded; see /trust-anchors for the names.
+     */
+    get: operations["trustAnchorCert"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/trust-anchors/{slug}.crt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns one of the suite's CA certificates, DER encoded
+     * @description Returns the named CA certificate, DER encoded: the form the authority information access of the suite's leaf certificates points at. See /trust-anchors for the names.
+     */
+    get: operations["trustAnchorCertDer"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/mdoc-iaca.crl": {
     parameters: {
       query?: never;
@@ -350,6 +410,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/lote/{slug}.jwt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns one of the suite's lists of trusted entities
+     * @description Returns the ETSI TS 119 602 list of trusted entities (a compact JWS) that lists the suite's CA for the named role: pid-providers, wallet-providers, wrpac-providers or wrprc-providers. The sealing certificate is served at /trust-anchors/lote-signer.pem.
+     */
+    get: operations["lote"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/lote/empty/{slug}.jwt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns an empty variant of one of the suite's lists of trusted entities
+     * @description Returns a signed list of the named type that lists no trusted entity at all, for tests of what an implementation does when nothing is trusted.
+     */
+    get: operations["loteEmpty"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/jwks": {
     parameters: {
       query?: never;
@@ -362,6 +462,26 @@ export interface paths {
      * @description The JWKS published at this root /jwks endpoint contains only the keys the suite uses to sign downloaded/exported test logs and certification packages (the .sig files in the export zips) — it plays no part in any test protocol flow. Tests that need a protocol-level JWKS publish their own under the per-test /test/... URLs, and private-link share tokens are signed with a different, unpublished key. No authentication is required.
      */
     get: operations["getJwks"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/crl/{slug}.crl": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Returns the CRL of one of the suite's CA certificates
+     * @description Returns the DER encoded certificate revocation list issued by the named CA (served at /trust-anchors/{slug}.pem) for the leaf certificates the suite signs with. The list is empty: the suite revokes nothing.
+     */
+    get: operations["suiteCaCrl"];
     put?: never;
     post?: never;
     delete?: never;
@@ -2549,6 +2669,86 @@ export interface operations {
       };
     };
   };
+  trustAnchors: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CA certificates */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": Record<string, never>;
+        };
+      };
+    };
+  };
+  trustAnchorCert: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The CA's name, as listed at /trust-anchors */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CA certificate */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description No CA with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  trustAnchorCertDer: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The CA's name, as listed at /trust-anchors */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CA certificate */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pkix-cert": string;
+        };
+      };
+      /** @description No CA with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   mdocIacaCrl: {
     parameters: {
       query?: never;
@@ -2589,6 +2789,66 @@ export interface operations {
       };
     };
   };
+  lote: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The list's name */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/jwt": string;
+        };
+      };
+      /** @description No list with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  loteEmpty: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The list's name */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The signed empty list */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/jwt": string;
+        };
+      };
+      /** @description No list with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   getJwks: {
     parameters: {
       query?: never;
@@ -2606,6 +2866,36 @@ export interface operations {
         content: {
           "application/json": Record<string, never>;
         };
+      };
+    };
+  };
+  suiteCaCrl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description The CA's name, as listed at /trust-anchors */
+        slug: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The CRL, DER encoded */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pkix-crl": string;
+        };
+      };
+      /** @description No CA with that name */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

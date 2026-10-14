@@ -921,6 +921,79 @@
         }
       }
     },
+    "/trust-anchors": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Lists the suite's CA certificates",
+        "description": "Lists the CA certificates that issue the certificates the suite signs with, with the URL each is served at, the URL of its CRL, what its leaf certificates sign and the ETSI TS 119 602 list of trusted entities it belongs in.",
+        "operationId": "trustAnchors",
+        "responses": {
+          "200": {
+            "description": "The CA certificates",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        },
+        "security": []
+      }
+    },
+    "/trust-anchors/{slug}.pem": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns one of the suite's CA certificates",
+        "description": "Returns the named CA certificate, PEM encoded; see /trust-anchors for the names.",
+        "operationId": "trustAnchorCert",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The CA's name, as listed at /trust-anchors",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The CA certificate",
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "description": "A PEM encoded X.509 certificate" }
+              }
+            }
+          },
+          "404": { "description": "No CA with that name" }
+        },
+        "security": []
+      }
+    },
+    "/trust-anchors/{slug}.crt": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns one of the suite's CA certificates, DER encoded",
+        "description": "Returns the named CA certificate, DER encoded: the form the authority information access of the suite's leaf certificates points at. See /trust-anchors for the names.",
+        "operationId": "trustAnchorCertDer",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The CA's name, as listed at /trust-anchors",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The CA certificate",
+            "content": {
+              "application/pkix-cert": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            }
+          },
+          "404": { "description": "No CA with that name" }
+        },
+        "security": []
+      }
+    },
     "/mdoc-iaca.crl": {
       "get": {
         "tags": ["Server"],
@@ -957,6 +1030,60 @@
         "security": []
       }
     },
+    "/lote/{slug}.jwt": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns one of the suite's lists of trusted entities",
+        "description": "Returns the ETSI TS 119 602 list of trusted entities (a compact JWS) that lists the suite's CA for the named role: pid-providers, wallet-providers, wrpac-providers or wrprc-providers. The sealing certificate is served at /trust-anchors/lote-signer.pem.",
+        "operationId": "lote",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The list's name",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The signed list",
+            "content": {
+              "application/jwt": { "schema": { "type": "string", "description": "A compact JWS" } }
+            }
+          },
+          "404": { "description": "No list with that name" }
+        },
+        "security": []
+      }
+    },
+    "/lote/empty/{slug}.jwt": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns an empty variant of one of the suite's lists of trusted entities",
+        "description": "Returns a signed list of the named type that lists no trusted entity at all, for tests of what an implementation does when nothing is trusted.",
+        "operationId": "loteEmpty",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The list's name",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The signed empty list",
+            "content": {
+              "application/jwt": { "schema": { "type": "string", "description": "A compact JWS" } }
+            }
+          },
+          "404": { "description": "No list with that name" }
+        },
+        "security": []
+      }
+    },
     "/jwks": {
       "get": {
         "tags": ["Server"],
@@ -972,6 +1099,33 @@
               }
             }
           }
+        },
+        "security": []
+      }
+    },
+    "/crl/{slug}.crl": {
+      "get": {
+        "tags": ["Server"],
+        "summary": "Returns the CRL of one of the suite's CA certificates",
+        "description": "Returns the DER encoded certificate revocation list issued by the named CA (served at /trust-anchors/{slug}.pem) for the leaf certificates the suite signs with. The list is empty: the suite revokes nothing.",
+        "operationId": "suiteCaCrl",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "The CA's name, as listed at /trust-anchors",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The CRL, DER encoded",
+            "content": {
+              "application/pkix-crl": { "schema": { "type": "string", "format": "binary" } }
+            }
+          },
+          "404": { "description": "No CA with that name" }
         },
         "security": []
       }
