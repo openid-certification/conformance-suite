@@ -31,7 +31,14 @@
             <div class="oidf-callback-head">
                 <h1 class="t-title">Response received</h1>
             </div>
-            <p>The response has been sent to the server for processing. You may return to <a href="">the test results page.</a></p>
+            <p>The response has been sent to the server for processing. You may return to <a th:href="${returnUrl}">the test results page.</a></p>
+        </div>
+        <div id="rejected" hidden>
+            <div class="oidf-callback-head">
+                <h1 class="t-title">Response not accepted</h1>
+            </div>
+            <p>The test framework did not accept the response: HTTP <span id="rejected-reason"></span></p>
+            <p>The test may no longer be waiting for this callback. Check the test log on <a th:href="${returnUrl}">the test results page.</a></p>
         </div>
     </main>
 
@@ -53,8 +60,6 @@
 
             var hash = window.location.hash;
 
-            var returnUrl = [[${returnUrl}]];
-
             // workaround https://gitlab.com/openid/conformance-suite/-/issues/766 by assuming that the post completes
             // after 5 seconds
             var timeoutId = setTimeout(function(){ assumeComplete(); }, 5000);
@@ -65,9 +70,15 @@
                 xhr.setRequestHeader('Content-type', 'text/plain');
                 xhr.onload = function () {
                     submitComplete = true;
-                    document.querySelector('#complete a').setAttribute("href", returnUrl);
+                    var accepted = xhr.status >= 200 && xhr.status < 300;
+                    var outcome = document.getElementById(accepted ? 'complete' : 'rejected');
+                    if (!accepted) {
+                        var reason = xhr.status + " " + xhr.responseText;
+                        console.log("implicit submit rejected: " + reason);
+                        document.getElementById('rejected-reason').textContent = reason;
+                    }
                     document.getElementById('waiting').hidden = true;
-                    document.getElementById('complete').hidden = false;
+                    outcome.hidden = false;
                     // add a hidden tag so that Selenium can detect we're done processing
                     document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
                 };
