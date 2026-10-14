@@ -32,6 +32,7 @@ import java.util.Map;
 		AuthzenPDPActionSearchRejectPutMethodTest.class,
 		AuthzenPDPActionSearchRejectTopLevelArrayTest.class,
 		AuthzenPDPActionSearchRejectNonJsonContentTypeTest.class,
+		AuthzenPDPActionSearchRejectMissingContentTypeTest.class,
 		AuthzenPDPActionSearchAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPActionSearchRejectMalformedJsonTest.class,
 		AuthzenPDPActionSearchRejectEmptyBodyTest.class,

@@ -71,6 +71,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsRejectPutMethodTest.class,
 		AuthzenPDPEvaluationsRejectTopLevelArrayTest.class,
 		AuthzenPDPEvaluationsRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationsRejectMissingContentTypeTest.class,
 		AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationsRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationsRejectEmptyBodyTest.class,

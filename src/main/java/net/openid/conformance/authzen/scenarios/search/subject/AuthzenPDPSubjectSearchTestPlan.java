@@ -33,6 +33,7 @@ import java.util.Map;
 		AuthzenPDPSubjectSearchRejectPutMethodTest.class,
 		AuthzenPDPSubjectSearchRejectTopLevelArrayTest.class,
 		AuthzenPDPSubjectSearchRejectNonJsonContentTypeTest.class,
+		AuthzenPDPSubjectSearchRejectMissingContentTypeTest.class,
 		AuthzenPDPSubjectSearchAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPSubjectSearchRejectMalformedJsonTest.class,
 		AuthzenPDPSubjectSearchRejectEmptyBodyTest.class,
