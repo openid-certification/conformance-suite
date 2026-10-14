@@ -4,9 +4,9 @@ import net.openid.conformance.authzen.condition.CaptureAuthzenResponseBodyForIde
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResultsMatchIdempotencyCheck;
 
 /**
- * Sends the same Action Search request multiple times consecutively and asserts
- * the PDP returns the same results each time. Certification scenario 5.6 states this
- * for decision values; the same principle is applied here to Action Search results.
+ * Sends the same Action Search request multiple times consecutively and checks that
+ * the PDP returns the same results each time. Certification scenario 5.6 requires this of
+ * decision values only, so a difference in search results is reported as a warning.
  * The loop body is shared with the other idempotency families via
  * {@link AbstractAuthzenPDPTest#runIdempotencyLoop}.
  */
