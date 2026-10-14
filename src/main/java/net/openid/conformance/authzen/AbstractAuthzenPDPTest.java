@@ -403,7 +403,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	 * another method, Section 11.3 for 401, Section 10.1.1 for the 400 a malformed request gets,
 	 * otherwise the HTTPS binding.
 	 */
-	private String[] expectedStatusRequirements(Set<Integer> acceptable) {
+	protected String[] expectedStatusRequirements(Set<Integer> acceptable) {
 		if (!"POST".equals(getRequestHttpMethod())) {
 			return new String[] {"AUTHZEN-10.1"};
 		}
