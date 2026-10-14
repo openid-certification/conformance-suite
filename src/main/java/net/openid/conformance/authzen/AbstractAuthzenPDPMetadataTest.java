@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.ApplySignedMetadataPrecedence;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
+import net.openid.conformance.authzen.condition.CheckStaticPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataParamsNotEmpty;
 import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseValid;
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
@@ -103,7 +104,13 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		eventLog.startBlock("Check PDP Server Configuration");
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
-		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+		if (fromDiscovery) {
+			callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
+		} else {
+			// No metadata is fetched, so Section 9.1.1 does not apply; Section 10.1 requires the
+			// endpoints the test configuration names to be https.
+			callAndContinueOnFailure(CheckStaticPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-10.1");
+		}
 		if (fromDiscovery) {
 			// §9.2.3: "If these values are not identical, the data contained in the response MUST NOT
 			// be used." Everything after this point runs against the endpoints that response names, so

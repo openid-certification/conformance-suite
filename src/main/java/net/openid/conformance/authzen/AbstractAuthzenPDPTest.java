@@ -37,8 +37,7 @@ import net.openid.conformance.variant.VariantSetup;
 	AuthzenSupport.class
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
-	"pdp.policy_decision_point",
-	"pdp.access_evaluation_endpoint"
+	"pdp.policy_decision_point"
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "discovery", configurationFields = {
 	"pdp.policy_decision_point",
