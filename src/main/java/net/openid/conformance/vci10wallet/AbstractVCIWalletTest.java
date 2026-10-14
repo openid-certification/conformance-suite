@@ -148,6 +148,8 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUs
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureSingleProofWhenBatchIssuanceNotAdvertised;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureRequestedScopeIncludesCredentialConfigurationScope;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureRequestedScopeIncludesOfferedCredentialConfiguration;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
@@ -2209,8 +2211,17 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected void checkRequestedScopes() {
-		// TODO check for scopes?
-		// callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
+		if (authorizationRequestType != AuthorizationRequestType.SIMPLE) {
+			return; // with rich authorization requests the credential type travels in authorization_details
+		}
+		callAndContinueOnFailure(VCIEnsureRequestedScopeIncludesCredentialConfigurationScope.class, ConditionResult.FAILURE, "HAIP-4.3-2", "OID4VCI-1FINAL-5.1.2");
+		// HAIP 4.2 requires the wallet to use the offered configuration's scope; OID4VCI 5.1.2 only describes the lookup
+		ConditionResult offeredScopeSeverity = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP ? ConditionResult.FAILURE : ConditionResult.WARNING;
+		call(condition(VCIEnsureRequestedScopeIncludesOfferedCredentialConfiguration.class)
+			.onFail(offeredScopeSeverity)
+			.requirements("HAIP-4.2-2", "OID4VCI-1FINAL-5.1.2")
+			.skipIfElementMissing("vci", "credential_offer")
+			.dontStopOnFailure());
 	}
 
 	/**
