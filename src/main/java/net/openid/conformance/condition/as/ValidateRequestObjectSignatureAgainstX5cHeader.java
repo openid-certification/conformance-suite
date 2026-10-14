@@ -4,6 +4,8 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -32,9 +34,10 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractVali
 
 			List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5c);
 
-			String trustAnchorPem = env.getString("client_request_object_trust_anchor_pem");
-			X509Certificate trustAnchor = parseTrustAnchorPem(trustAnchorPem);
-			validateX5cCertificateChain(certs, trustAnchor);
+			// the configured 'Request Object Trust Anchor' plus the access certificate providers listed in the configured LoTE
+			LoteTrustAnchors.TrustAnchorSet anchors = resolveTrustAnchors(env, env.getString("client_request_object_trust_anchor_pem"),
+				"Request Object Trust Anchor", LoteSlot.ISSUANCE_SUFFIX, LoteSlot.WRPAC);
+			X509Certificate matched = validateX5cCertificateChainAgainst(certs, anchors);
 
 			// Check request_object_signing_alg if configured
 			var client = env.getObject("client");
@@ -54,7 +57,9 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractVali
 			logSuccess("Request object x5c chain validated and signature verified",
 				args("request_object_signing_alg", alg,
 					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
-					"chain_length", certs.size()));
+					"chain_length", certs.size(),
+					"trust_anchors", anchors.sourcesJson(),
+					"matched_trust_anchor", matched == null ? null : anchors.sourceOf(matched)));
 			return env;
 
 		} catch (ParseException e) {
