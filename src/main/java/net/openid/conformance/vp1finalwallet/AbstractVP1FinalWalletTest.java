@@ -49,6 +49,7 @@ import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError
 import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.ValidateOwnRequestSigningCertificateAgainstWrpacLote;
 import net.openid.conformance.condition.client.CheckIfSecondClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckNoPresentationSubmissionParameter;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
@@ -193,11 +194,15 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id",
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_hash", configurationFields = {
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post", configurationFields = {
 	"server.authorization_endpoint"
@@ -518,6 +523,14 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			// trusting the RICAL is expected to reject the request otherwise. A WARNING as
 			// this reports on the test configuration, not on the wallet under test.
 			call(sequence(SetupRicalFromConfiguration.class));
+			// likewise the optionally configured WRPAC providers list of trusted entities
+			call(new SetupLoteFromConfiguration(LoteSlot.WRPAC, ConditionResult.WARNING));
+			call(condition(ValidateOwnRequestSigningCertificateAgainstWrpacLote.class)
+				.skipIfObjectsMissing(LoteSlot.WRPAC_ENV_KEY)
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure()
+				.requirements("ETSI119602-6.6.3"));
 			call(condition(ValidateConfiguredClientCertificatesAgainstRical.class)
 				.skipIfObjectsMissing("rical")
 				.onSkip(ConditionResult.INFO)
