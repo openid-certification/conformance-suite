@@ -11,7 +11,12 @@ import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEva
 import net.openid.conformance.authzen.condition.WarnAuthzenDecisionUnknownMembers;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.variant.PDPServerMetadata;
+import net.openid.conformance.variant.VariantConfigurationFields;
 
+@VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
+	"pdp.access_evaluation_endpoint"
+})
 public abstract class AbstractAuthzenPDPEvaluationTest extends AbstractAuthzenPDPTest {
 
 	@Override
