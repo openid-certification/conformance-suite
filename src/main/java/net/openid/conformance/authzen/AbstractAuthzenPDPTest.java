@@ -191,7 +191,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 		eventLog.endBlock();
 	}
 
-	private boolean responseStatusIs200() {
+	protected boolean responseStatusIs200() {
 		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
 		return status != null && status == 200;
 	}

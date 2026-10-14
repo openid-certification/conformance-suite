@@ -3,10 +3,15 @@ package net.openid.conformance.authzen.scenarios.search.action;
 import net.openid.conformance.authzen.AbstractAuthzenPDPActionSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.Set;
+
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-extra-action-ignored",
-	displayName = "AuthZEN Action Search API - Section 10.1.1: Extra action parameter ignored",
-	summary = "Section 10.1.1 forward compatibility: receivers MUST ignore unknown fields in request bodies. Section 8.6.1 does not list `action` in the Action Search request schema, so an `action` field sent alongside the required `subject` and `resource` MUST be treated as an unknown field and ignored; the PDP MUST return the same list of actions it would return without it.\n" + AuthzenPDPActionSearchExtraActionIgnoredTest.payload,
+	displayName = "AuthZEN Action Search API - Section 8.6.1: Action in an Action Search request is ignored or rejected",
+	summary = "Section 8.6.1 omits `action` from the Action Search request, and this request carries one alongside the required `subject` and `resource`. "
+		+ "The specification does not say how a PDP treats it. It may ignore it as a field the request does not define (Section 10.1.1, \"receivers MUST ignore unknown fields\") and return HTTP 200 with results that MUST include read and write; "
+		+ "or it may reject the request with HTTP 400 as one that does not conform to Section 8.6.1. "
+		+ "It MUST NOT treat `action` as a filter, which nothing defines: a 200 response that leaves out write fails.\n" + AuthzenPDPActionSearchExtraActionIgnoredTest.payload,
 	profile = "AuthZEN"
 )
 public class AuthzenPDPActionSearchExtraActionIgnoredTest extends AbstractAuthzenPDPActionSearchTest {
@@ -27,6 +32,11 @@ public class AuthzenPDPActionSearchExtraActionIgnoredTest extends AbstractAuthze
 	@Override
 	protected boolean sendRawRequest() {
 		return true;
+	}
+
+	@Override
+	protected Set<Integer> getAcceptableHttpStatusCodes() {
+		return Set.of(200, 400);
 	}
 
 	@Override
