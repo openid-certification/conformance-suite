@@ -9,8 +9,6 @@ import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResp
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.testmodule.TestFailureException;
 
-import java.util.Set;
-
 public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTest {
 
 	private static final int MAX_PAGES = 100;
@@ -26,12 +24,12 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	/**
 	 * A PDP may paginate a search response without being asked to (Section 8.2.2: "if a response
 	 * does not contain the entire result set, it MUST include this object"), so every module that
-	 * expects a successful search follows the {@code page.next_token} chain before matching the
-	 * results. Modules expecting an error status make a single request.
+	 * accepts a successful search follows the {@code page.next_token} chain before matching the
+	 * results. Modules expecting only an error status make a single request.
 	 */
 	@Override
 	protected void performAuthzenApiFlow() {
-		if (getAcceptableHttpStatusCodes().equals(Set.of(200))) {
+		if (getAcceptableHttpStatusCodes().contains(200)) {
 			runPaginatedSearchLoop();
 		} else {
 			super.performAuthzenApiFlow();
@@ -53,7 +51,10 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 	// own implementation citing the family-specific AUTHZEN-8.{4,5,6} tag.
 
 	/**
-	 * Paginated search loop used by every search module that expects HTTP 200.
+	 * Paginated search loop used by every search module that accepts HTTP 200. When the first
+	 * response is not a 200 the loop stops there and no results are matched: for a module that
+	 * also accepts an error status the search was rejected, and for one that accepts only 200
+	 * the status check has already failed.
 	 * Follows the {@code page.next_token} chain, failing on a page that repeats an earlier
 	 * page's token and results, and capped at {@code MAX_PAGES},
 	 * aggregating results across pages, and matches the accumulated results
@@ -68,6 +69,7 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
 
 			int pageNum = 0;
+			boolean rejected = false;
 			do {
 				pageNum++;
 				if (pageNum > MAX_PAGES) {
@@ -81,6 +83,10 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 						callAndStopOnFailure(AddAuthzenSearchPageTokenToRequest.class, "AUTHZEN-8.2");
 					}
 					performSingleApiRequest();
+					if (pageNum == 1 && !responseStatusIs200()) {
+						rejected = true;
+						break;
+					}
 					processAuthApiEndpointResponse();
 					callAndStopOnFailure(EnsureSearchPageTokenNotRepeated.class, "AUTHZEN-8.2");
 					callAndStopOnFailure(AggregateAuthzenSearchResults.class);
@@ -89,10 +95,12 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 				}
 			} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
 
-			// Use accumulated results for matching
-			env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
-			callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
-			env.unmapKey("authzen_search_endpoint_response");
+			if (!rejected) {
+				// Use accumulated results for matching
+				env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
+				callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
+				env.unmapKey("authzen_search_endpoint_response");
+			}
 
 			performPostApiFlow();
 		} finally {
