@@ -39,6 +39,12 @@ public enum LoteSlot {
 		"http://uri.etsi.org/19602/LoTEType/EUWRPRCProvidersList",
 		Set.of("http://uri.etsi.org/19602/SvcType/WRPRC/Issuance", "http://uri.etsi.org/19602/SvcType/WRPRC/Revocation"));
 
+	/** The slots' environment keys as constants, for use in annotations; each equals the slot's envKey. */
+	public static final String PID_ENV_KEY = "lote_pid";
+	public static final String MDL_ENV_KEY = "lote_mdl";
+	public static final String WALLET_ENV_KEY = "lote_wallet";
+	public static final String WRPAC_ENV_KEY = "lote_wrpac";
+
 	/** The service type identifier suffix of the services whose certificates sign what the list is about. */
 	public static final String ISSUANCE_SUFFIX = "/Issuance";
 

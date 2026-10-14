@@ -72,6 +72,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
 import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.ValidateOwnCredentialSigningCertificatesAgainstLotes;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
@@ -140,11 +141,16 @@ import java.util.Base64;
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
 	"client.request_object_trust_anchor_pem",
 	"client.wrpac_lote_url",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
 	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierCredentialFormat.class, value = "iso_mdl", configurationFields = {
 	"credential.vical",
-	"credential.vical_url"
+	"credential.vical_url",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalVerifierResponseMode.class,
@@ -309,6 +315,13 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				.dontStopOnFailure()
 				.requirements("ISO18013-5-C.1.7.1"));
 		}
+		// the optionally configured PID and mDL providers lists of trusted entities, then pre-flight
+		// check that the suite's own credential signing chains are covered by them - a verifier
+		// trusting the lists is expected to reject the presented credentials otherwise. A WARNING
+		// as this reports on the suite's listing, not on the verifier under test.
+		call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.WARNING));
+		call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.WARNING));
+		callAndContinueOnFailure(ValidateOwnCredentialSigningCertificatesAgainstLotes.class, ConditionResult.WARNING, "ETSI119602-6.6.3");
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}
