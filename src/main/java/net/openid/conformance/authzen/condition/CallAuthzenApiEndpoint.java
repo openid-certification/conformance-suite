@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpEntity;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
@@ -26,6 +28,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
+import java.util.List;
 
 public class CallAuthzenApiEndpoint extends AbstractCondition {
 
@@ -67,10 +70,22 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 				headers.setContentType(MediaType.APPLICATION_JSON);
 			} else if (!contentTypeOverride.isEmpty()) {
 				headers.setContentType(MediaType.parseMediaType(contentTypeOverride));
+			} else {
+				// An empty override means "send no Content-Type header at all". The String body's
+				// message converter adds text/plain when the headers carry none, so an interceptor
+				// removes the header after the body is written. It runs before the logging
+				// interceptor, so the logged request is the one sent.
+				ClientHttpRequestInterceptor removeContentType = (outgoing, body, execution) -> {
+					outgoing.getHeaders().remove(HttpHeaders.CONTENT_TYPE);
+					return execution.execute(outgoing, body);
+				};
+				List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
+				int loggingIndex = 0;
+				while (loggingIndex < interceptors.size() && !(interceptors.get(loggingIndex) instanceof LoggingRequestInterceptor)) {
+					loggingIndex++;
+				}
+				interceptors.add(loggingIndex < interceptors.size() ? loggingIndex : 0, removeContentType);
 			}
-			// An empty override means "send no Content-Type header at all".
-			// HttpHeaders.setContentType won't accept null, so build the entity
-			// without ever setting it.
 
 			/*
 			 * Add/Override headers for request

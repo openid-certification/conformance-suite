@@ -52,6 +52,7 @@ import java.util.Map;
 		AuthzenPDPEvaluationRejectPutMethodTest.class,
 		AuthzenPDPEvaluationRejectTopLevelArrayTest.class,
 		AuthzenPDPEvaluationRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationRejectMissingContentTypeTest.class,
 		AuthzenPDPEvaluationAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationRejectEmptyBodyTest.class,
