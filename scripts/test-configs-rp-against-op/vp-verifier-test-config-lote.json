@@ -47,5 +47,8 @@
     ],
     "lote": {
         "signing_certificate_pem": "{SUITE_LOTE_SIGNER_PEM}"
+    },
+    "credential": {
+        "pid_lote_url": "{BASEURL}lote/pid-providers.jwt"
     }
 }

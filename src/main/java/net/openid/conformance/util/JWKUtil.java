@@ -18,6 +18,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.openqa.selenium.InvalidArgumentException;
 
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -465,6 +466,47 @@ public class JWKUtil {
 		}
 
 		return signingJwk;
+	}
+
+	/**
+	 * Why {@link #getSigningKeyCertificateChain} found no certificate chain. The message completes
+	 * "The 'jwks' field of the test configuration ...", so a condition can name the field it read.
+	 */
+	@SuppressWarnings("serial")
+	public static class SigningKeyChainException extends Exception {
+		public SigningKeyChainException(String message) {
+			super(message);
+		}
+
+		public SigningKeyChainException(String message, Throwable cause) {
+			super(message, cause);
+		}
+	}
+
+	/**
+	 * The x5c certificate chain, leaf first, of the single signing key of {@code jwks}: the key
+	 * {@link #getSigningKey} selects, so this is the chain the suite's signed messages carry.
+	 *
+	 * @throws SigningKeyChainException when the JWKS does not parse, does not hold exactly one
+	 *   signing key, or that key has no parseable x5c
+	 */
+	public static List<X509Certificate> getSigningKeyCertificateChain(JsonObject jwks) throws SigningKeyChainException {
+		JWK signingKey;
+		try {
+			signingKey = getSigningKey(jwks);
+		} catch (ParseException e) {
+			throw new SigningKeyChainException("could not be parsed as a JWKS", e);
+		} catch (InvalidArgumentException e) {
+			throw new SigningKeyChainException("does not contain exactly one signing key (" + e.getMessage() + ")", e);
+		}
+		if (signingKey.getX509CertChain() == null || signingKey.getX509CertChain().isEmpty()) {
+			throw new SigningKeyChainException("has a signing key with no 'x5c' certificate chain");
+		}
+		try {
+			return X509CertificateUtil.parseX5cCertificatesFromNimbusBase64(signingKey.getX509CertChain());
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw new SigningKeyChainException("has a signing key whose x5c does not parse: " + e.getMessage(), e);
+		}
 	}
 
 	/**
