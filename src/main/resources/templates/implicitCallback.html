@@ -87,12 +87,12 @@
                 clearTimeout(timeoutId);
                 timeoutId = setTimeout(function(){ assumeComplete(); }, 5000);
                 setTimeout(function() {
-                    newxhr = createxhr();
-                    newxhr.onerror = function () {
-                        console.log("second implicit submit error: " + xhr.status + " " + xhr.responseText);
-                    }
+                    var retry = createxhr();
+                    retry.onerror = function () {
+                        console.log("second implicit submit error: " + retry.status + " " + retry.responseText);
+                    };
+                    retry.send(hash);
                 }, 2000);
-                xhr.send(hash);
             };
             xhr.send(hash);
         });
