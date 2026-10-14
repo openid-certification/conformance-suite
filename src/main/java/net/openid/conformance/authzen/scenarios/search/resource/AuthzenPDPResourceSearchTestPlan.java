@@ -38,6 +38,7 @@ import java.util.Map;
 		// Error handling: HTTP 400 negative tests (Section 10.1)
 		AuthzenPDPResourceSearchMissingSubjectTest.class,
 		AuthzenPDPResourceSearchSubjectMissingIdTest.class,
+		AuthzenPDPResourceSearchSubjectMissingTypeTest.class,
 		AuthzenPDPResourceSearchMissingResourceTest.class,
 		AuthzenPDPResourceSearchResourceMissingTypeTest.class,
 		AuthzenPDPResourceSearchMissingActionTest.class,

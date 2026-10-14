@@ -43,6 +43,7 @@ import java.util.Map;
 		AuthzenPDPSubjectSearchResourceMissingIdTest.class,
 		AuthzenPDPSubjectSearchResourceMissingTypeTest.class,
 		AuthzenPDPSubjectSearchSubjectMissingTypeTest.class,
+		AuthzenPDPSubjectSearchMissingSubjectTest.class,
 		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPSubjectSearchUnknownTopLevelFieldsTest.class,
 		AuthzenPDPSubjectSearchUnknownPageFieldsTest.class,
