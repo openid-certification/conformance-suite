@@ -28,6 +28,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
+import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
@@ -46,6 +47,7 @@ import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.fapi2spfinal.VCIProfileBehavior;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
@@ -138,7 +140,8 @@ import java.util.List;
 // (not on the FAPI2SP base, which cannot scope by credential format) - the plans mixing
 // FAPI2SP modules with these modules aggregate this declaration for the whole plan.
 @VariantConfigurationFields(parameter = VCI1FinalCredentialFormat.class, value = "mdoc",
-	configurationFields = {"credential.vical", "credential.vical_url", "credential.trust_anchor_pem"})
+	configurationFields = {"credential.vical", "credential.vical_url", "credential.trust_anchor_pem",
+		"credential.pid_lote_url", "credential.mdl_lote_url", "lote.signing_certificate_pem"})
 // VCI grant type configuration
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code",
 	configurationFields = {"vci.static_tx_code"})
@@ -252,6 +255,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		// the PID and mDL providers LoTEs anchor the issued credentials' signers and status list signers
+		call(new SetupLoteFromConfiguration(LoteSlot.PID, Condition.ConditionResult.FAILURE));
+		call(new SetupLoteFromConfiguration(LoteSlot.MDL, Condition.ConditionResult.FAILURE));
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP) {
 			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
 			callAndContinueOnFailure(EnsureStatusListTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
