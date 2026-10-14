@@ -67,6 +67,24 @@ spec:
               name: fintechlabs-private-link-signing-key
               key: jwk
               optional: true
+        - name: SUITE_CA_KEY_PID_PROVIDER_CA
+          valueFrom:
+            secretKeyRef:
+              name: suite-ca-keys
+              key: pid-provider-ca
+              optional: true
+        - name: SUITE_CA_KEY_WALLET_PROVIDER_CA
+          valueFrom:
+            secretKeyRef:
+              name: suite-ca-keys
+              key: wallet-provider-ca
+              optional: true
+        - name: SUITE_CA_KEY_ACCESS_CA
+          valueFrom:
+            secretKeyRef:
+              name: suite-ca-keys
+              key: access-ca
+              optional: true
         - name: OIDC_GOOGLE_CLIENTID
           valueFrom:
             secretKeyRef:
