@@ -371,6 +371,12 @@
           "tooltip": "Optional HTTPS URL to fetch a signed RICAL (ISO/IEC 18013-5 Reader Identity Certificate Authority List) from. In the verifier tests the suite checks that the verifier's request object signing certificate chains to a reader CA listed in the RICAL; in the wallet tests the suite checks its own request signing certificate is covered by the RICAL. Only one of 'RICAL' and 'RICAL URL' may be supplied."
         },
         {
+          "key": "client.wrpac_lote_url",
+          "label": "WRPAC providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for wallet-relying party access certificate providers (such as the one published by the eIDAS Dashboard). In the verifier tests the suite checks that the verifier's request object signing certificate chains to a listed access certificate provider, in addition to the 'Request Object Trust Anchor'. Only one of a RICAL and this list may be configured."
+        },
+        {
           "key": "client.redirect_uri",
           "label": "redirect_uri",
           "type": "string",

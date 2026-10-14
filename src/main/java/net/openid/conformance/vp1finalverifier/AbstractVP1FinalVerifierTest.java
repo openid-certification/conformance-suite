@@ -63,6 +63,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectX5cChainAgainstRical;
+import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
@@ -86,6 +87,7 @@ import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.ExpectVerifierSuccessfulVerificationPage;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -112,14 +114,20 @@ import org.springframework.web.util.HtmlUtils;
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id",
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_hash", configurationFields = {
 	"client.rical",
-	"client.rical_url"
+	"client.rical_url",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
-	"client.request_object_trust_anchor_pem"
+	"client.request_object_trust_anchor_pem",
+	"client.wrpac_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierCredentialFormat.class, value = "iso_mdl", configurationFields = {
 	"credential.vical",
@@ -270,6 +278,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			// Only these prefixes reference a certificate in the request object's x5c header, so
 			// only they have a chain for the RICAL to govern.
 			call(sequence(SetupRicalFromConfiguration.class));
+			// likewise the optionally configured WRPAC providers LoTE, whose access certificate
+			// providers may anchor the verifier's request object signing chain
+			call(new SetupLoteFromConfiguration(LoteSlot.WRPAC, ConditionResult.FAILURE));
 		}
 		if (getVariant(VP1FinalVerifierCredentialFormat.class) == VP1FinalVerifierCredentialFormat.ISO_MDL) {
 			// register and validate the optionally configured VICAL, then pre-flight check
