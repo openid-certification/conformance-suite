@@ -794,6 +794,16 @@ security_test:
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=jwk="$PRIVATE_LINK_SIGNING_KEY"
 
+    # private keys of the suite's published CAs, base64-encoded; unset variables leave the suite on ephemeral CAs
+    kubectl delete secret suite-ca-keys \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+    kubectl create secret generic suite-ca-keys \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=pid-provider-ca="$SUITE_CA_KEY_PID_PROVIDER_CA" \
+      --from-literal=wallet-provider-ca="$SUITE_CA_KEY_WALLET_PROVIDER_CA" \
+      --from-literal=access-ca="$SUITE_CA_KEY_ACCESS_CA"
+
     helm upgrade --install \
       --wait \
       --set application.env_slug="$CI_ENVIRONMENT_SLUG" \
