@@ -48,6 +48,7 @@ import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.AddBuiltInAccessCertificateToClientConfiguration;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
+import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.CheckIfSecondClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckNoPresentationSubmissionParameter;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
@@ -105,6 +106,7 @@ import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.sequence.client.SetupRicalFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.ValidateConfiguredClientCertificatesAgainstRical;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
@@ -180,7 +182,10 @@ import java.util.concurrent.TimeUnit;
 })
 @ConfigurationFields({
 	"client.jwks",
-	"client.verifier_info"
+	"client.verifier_info",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletCredentialType.class, value = "custom", configurationFields = {
 	"client.dcql"
@@ -378,6 +383,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		// the PID and mDL providers LoTEs anchor the presented credentials' signers and status list signers
+		call(new SetupLoteFromConfiguration(LoteSlot.PID, Condition.ConditionResult.FAILURE));
+		call(new SetupLoteFromConfiguration(LoteSlot.MDL, Condition.ConditionResult.FAILURE));
 		if (getVariant(VP1FinalWalletCredentialFormat.class) == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// register and validate the optionally configured VICAL used by the mdoc issuer
 			// trust checks in ValidateMdocCredential

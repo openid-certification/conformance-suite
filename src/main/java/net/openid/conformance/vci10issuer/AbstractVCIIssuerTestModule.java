@@ -29,6 +29,7 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureClientAttestationIssuerConfigured;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
+import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
@@ -47,6 +48,7 @@ import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.fapi2spfinal.VCIProfileBehavior;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
@@ -116,6 +118,9 @@ import java.util.List;
 	"vci.credential_proof_type_hint",
 	"client_attestation.key_attestation_jwks",
 	"vci.authorization_server",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem",
 })
 // VCI uses vci.credential_issuer_url + vci.authorization_server instead of
 // server.discoveryUrl, does not call a resource endpoint, and does not consume

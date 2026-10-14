@@ -78,6 +78,8 @@ import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
+import net.openid.conformance.condition.client.EnsureClientAttestationTrustAnchorConfigured;
+import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
@@ -98,6 +100,7 @@ import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
@@ -200,6 +203,8 @@ import java.util.Map;
 	"vci.credential_offer_endpoint",
 	"client_attestation.key_attestation_jwks",
 	"client_attestation.key_attestation_trust_anchor_pem",
+	"client_attestation.wallet_lote_url",
+	"lote.signing_certificate_pem",
 	"vci.credential_configuration_id",
 })
 @VariantParameters({
@@ -432,14 +437,13 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			}
 			callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 
-			if (env.getString("config", "client_attestation.trust_anchor") == null
-				&& env.getString("config", "vci.client_attestation_trust_anchor") == null) {
-				throw new TestFailureException(getId(), "client_attestation.trust_anchor must be configured if client_attestation is used as client authentication method.");
-			}
+			callAndStopOnFailure(EnsureClientAttestationTrustAnchorConfigured.class);
 			callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class, ConditionResult.FAILURE);
 		}
 
 		callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
+		// the wallet providers LoTE anchors the wallet's client attestation and key attestation signers
+		call(new SetupLoteFromConfiguration(LoteSlot.WALLET, ConditionResult.FAILURE));
 		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 			callAndContinueOnFailure(EnsureKeyAttestationTrustAnchorConfigured.class, ConditionResult.FAILURE, "HAIP-4.5.1");
 		}

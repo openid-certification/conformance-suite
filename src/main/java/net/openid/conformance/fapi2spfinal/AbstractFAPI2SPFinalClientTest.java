@@ -270,6 +270,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	"client_attestation.issuer",
 	"client_attestation.trust_anchor",
 	"client_attestation.key_attestation_trust_anchor_pem",
+	"client_attestation.wallet_lote_url",
+	"lote.signing_certificate_pem",
 	"credential.signing_jwk"
 })
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {

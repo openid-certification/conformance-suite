@@ -343,6 +343,9 @@ import java.util.function.Supplier;
 	"vci.authorization_server",
 	"credential.trust_anchor_pem",
 	"credential.status_list_trust_anchor_pem",
+	"credential.pid_lote_url",
+	"credential.mdl_lote_url",
+	"lote.signing_certificate_pem",
 })
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip",
 	configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
