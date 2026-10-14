@@ -39,6 +39,9 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedi
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
+import net.openid.conformance.condition.client.EnsureClientAttestationTrustAnchorConfigured;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
@@ -140,11 +143,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				throw new TestFailureException(module.getId(),
 					"'Client Attestation Issuer' field is missing from the 'Client Attestation' section in the test configuration");
 			}
-			if (env.getString("config", "client_attestation.trust_anchor") == null
-				&& env.getString("config", "vci.client_attestation_trust_anchor") == null) {
-				throw new TestFailureException(module.getId(),
-					"'Client Attestation Trust Anchor' field is missing from the 'Client Attestation' section in the test configuration");
-			}
 		}
 
 		// Pre-populate credential_issuer_metadata + credential_configurations_supported
@@ -178,11 +176,14 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			public void evaluate() {
 				if (clientAttestation) {
 					callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
+					callAndStopOnFailure(EnsureClientAttestationTrustAnchorConfigured.class);
 					callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
 				}
-				// signing JWK required so we can issue real mdoc / SD-JWT credentials
+				// the credential signing certificate must not be self-signed (HAIP); the built-in one is CA-issued
 				callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-6.1.1");
 				callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
+				// the wallet providers LoTE anchors the wallet's client attestation and key attestation signers
+				call(sequence(() -> new SetupLoteFromConfiguration(LoteSlot.WALLET, ConditionResult.FAILURE)));
 				if (issuerInitiatedSetup != null) {
 					call(issuerInitiatedSetup);
 				}

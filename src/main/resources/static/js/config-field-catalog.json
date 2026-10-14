@@ -20,8 +20,16 @@
           "key": "publish",
           "label": "publish",
           "type": "string",
-          "enum": ["", "summary", "everything"],
-          "enumLabels": ["No", "Summary", "Everything"],
+          "enum": [
+            "",
+            "summary",
+            "everything"
+          ],
+          "enumLabels": [
+            "No",
+            "Summary",
+            "Everything"
+          ],
           "tooltip": "Whether test results should be made visible to other users. \"Everything\" will reveal configuration information, including secret keys. Use \"summary\" if these details should remain private while the overall results are public. If in doubt choose \"No\" - test results can be made public later."
         }
       ]
@@ -83,7 +91,7 @@
           "key": "credential.signing_jwk",
           "label": "Signing JWK",
           "type": "object",
-          "tooltip": "Optional. Signing key to be used for issuing SD-JWT VC credentials, in JWK format, which must also contain the signing certificate chain in the x5c claim. When omitted the suite signs SD-JWT VC credentials with its built-in PID provider certificate (issued under the PID provider CA served at /trust-anchors/pid-provider-ca.pem) and signed issuer metadata with its built-in wallet-relying-party access certificate (issued under the access CA served at /trust-anchors/access-ca.pem); see /trust-anchors for all of the suite's CA certificates. It is not used for mdoc credentials \u2014 the test suite always signs those with its own document signer certificate, issued under its mdoc IACA root certificate (served at /mdoc-iaca-root.pem)."
+          "tooltip": "Optional. Signing key to be used for issuing SD-JWT VC credentials, in JWK format, which must also contain the signing certificate chain in the x5c claim. When omitted the suite signs SD-JWT VC credentials with its built-in PID provider certificate (issued under the PID provider CA served at /trust-anchors/pid-provider-ca.pem) and signed issuer metadata with its built-in wallet-relying-party access certificate (issued under the access CA served at /trust-anchors/access-ca.pem); see /trust-anchors for all of the suite's CA certificates. It is not used for mdoc credentials — the test suite always signs those with its own document signer certificate, issued under its mdoc IACA root certificate (served at /mdoc-iaca-root.pem)."
         },
         {
           "key": "credential.trust_anchor_pem",
@@ -108,6 +116,18 @@
           "label": "VICAL URL",
           "type": "string",
           "tooltip": "Optional HTTPS URL to fetch a signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List) from. If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL; in the VP verifier tests the suite instead checks its own mdoc signing chain is covered by the VICAL. Only one of 'VICAL' and 'VICAL URL' may be supplied."
+        },
+        {
+          "key": "credential.pid_lote_url",
+          "label": "PID providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for PID providers (such as the one published by the eIDAS Dashboard). The certificates of its PID issuance services are trust anchors for the credential's certificate chain, and those of its revocation services for the status list token, in addition to the 'Credential Trust Anchor' and 'Status List Trust Anchor' fields. Configure the list's sealing certificate in the 'Lists of Trusted Entities' section so a substituted list is detected."
+        },
+        {
+          "key": "credential.mdl_lote_url",
+          "label": "mDL providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for mDL providers. Used like the 'PID providers LoTE URL'; the list type and service types are not checked, as the specification defines no profile for this list."
         },
         {
           "key": "vci.credential_configuration_id",
@@ -414,7 +434,12 @@
           "key": "client.hint_type",
           "label": "hint_type",
           "type": "string",
-          "enum": ["", "login_hint_token", "id_token_hint", "login_hint"],
+          "enum": [
+            "",
+            "login_hint_token",
+            "id_token_hint",
+            "login_hint"
+          ],
           "tooltip": "Type of hint to identify user. For Open Finance Brazil, only login_hint and id_token_hint are allowed."
         },
         {
@@ -487,7 +512,12 @@
           "key": "client.dpop_signing_alg",
           "label": "DPoP Signing Alg",
           "type": "string",
-          "enum": ["PS256", "ES256", "EdDSA", "Ed25519"],
+          "enum": [
+            "PS256",
+            "ES256",
+            "EdDSA",
+            "Ed25519"
+          ],
           "tooltip": "JWS algorithm for signing DPoP proofs"
         },
         {
@@ -662,7 +692,12 @@
           "key": "client2.dpop_signing_alg",
           "label": "DPoP Signing Alg",
           "type": "string",
-          "enum": ["PS256", "ES256", "EdDSA", "Ed25519"],
+          "enum": [
+            "PS256",
+            "ES256",
+            "EdDSA",
+            "Ed25519"
+          ],
           "tooltip": "JWS algorithm for signing DPoP proofs"
         }
       ]
@@ -723,7 +758,10 @@
           "key": "resource.resourceMethod",
           "label": "resourceMethod",
           "type": "string",
-          "enum": ["", "POST"],
+          "enum": [
+            "",
+            "POST"
+          ],
           "tooltip": "The HTTP method to be used at the resource endpoint."
         },
         {
@@ -784,7 +822,10 @@
           "key": "consent.productType",
           "label": "Business or Personal Products",
           "type": "string",
-          "enum": ["business", "personal"],
+          "enum": [
+            "business",
+            "personal"
+          ],
           "tooltip": "For accounts/resources tests, whether test should be run for Business or Personal Products."
         },
         {
@@ -1046,8 +1087,13 @@
           "key": "client_attestation.trust_anchor",
           "label": "Client Attestation Trust Anchor",
           "type": "string",
-          "placeholder": "REQUIRED",
-          "tooltip": "The trust anchor of the Client Attestation as PEM certificate"
+          "tooltip": "The trust anchor of the Client Attestation as PEM certificate. Required unless a 'Wallet providers LoTE URL' is configured."
+        },
+        {
+          "key": "client_attestation.wallet_lote_url",
+          "label": "Wallet providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for wallet providers (such as the one published by the eIDAS Dashboard). The certificates of its wallet solution services are trust anchors for the client attestation and key attestation certificate chains, in addition to the 'Client Attestation Trust Anchor' and 'Key Attestation Trust Anchor' fields."
         }
       ]
     },
@@ -1067,6 +1113,19 @@
           "type": "string",
           "placeholder": "REQUIRED if Key Attestation is used",
           "tooltip": "The trust anchor of the Key Attestation as PEM certificate. Leave empty if Key attestation is not used."
+        }
+      ]
+    },
+    {
+      "key": "lote",
+      "title": "Lists of Trusted Entities (ETSI TS 119 602)",
+      "intro": "The suite can take trust anchors from lists of trusted entities (LoTEs): signed lists of CA certificates per role, as the EUDI Wallet trust infrastructure publishes them. Configure a list's URL in the section of the role it covers; the fields here apply to all configured lists. The suite's own CA certificates, for listing the suite in such lists, are published at /trust-anchors.",
+      "fields": [
+        {
+          "key": "lote.signing_certificate_pem",
+          "label": "LoTE signing certificate",
+          "type": "string",
+          "tooltip": "The scheme operator's certificate that seals the lists, as a PEM certificate. Each list's signer must be this certificate or chain to it. When empty the signer of each list is only checked against the certificate the list itself carries, which a warning points out."
         }
       ]
     }
