@@ -7,5 +7,25 @@
   "condition": "EnsureSearchResponseHasPageAfterPageToken",
   "expected-result": "failure",
   "comment": "Cerbos PDP bug: the last page of a paginated search has no page object, where Section 8.2 ends pagination with a page object whose next_token is an empty string (certification scenario 7.5.2)"
+ },
+ {
+  "test-name": "authzen-pdp-*",
+  "variant": {
+   "pdp_server_metadata": "discovery"
+  },
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnAuthzenCapabilitiesNotAuthzenUrns",
+  "expected-result": "warning",
+  "comment": "Cerbos PDP behaviour: its metadata advertises urn:authzen:pdp:* capabilities; authzen is not a registered URN namespace, and Section 12.4 registers the urn:ietf:params:authzen sub-namespace for capabilities"
+ },
+ {
+  "test-name": "authzen-pdp-discovery",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnAuthzenCapabilitiesNotAuthzenUrns",
+  "expected-result": "warning",
+  "comment": "Cerbos PDP behaviour: its metadata advertises urn:authzen:pdp:* capabilities; authzen is not a registered URN namespace, and Section 12.4 registers the urn:ietf:params:authzen sub-namespace for capabilities"
  }
 ]
