@@ -3,6 +3,8 @@ package net.openid.conformance.condition.client;
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 
 public class EnsureClientRequestObjectTrustAnchorConfigured extends AbstractCondition {
@@ -20,9 +22,14 @@ public class EnsureClientRequestObjectTrustAnchorConfigured extends AbstractCond
 			logSuccess("A RICAL is configured as the request object trust source");
 			return env;
 		}
+		if (LoteTrustAnchors.anySlotConfigured(env, LoteSlot.WRPAC)) {
+			logSuccess("A '" + LoteSlot.WRPAC.fieldLabel + "' is configured as a request object trust source");
+			return env;
+		}
 
 		if (trustAnchorPem == null || trustAnchorPem.isBlank()) {
-			throw error("'Request Object Trust Anchor' field is missing from the 'Client' section in the test configuration (and no 'RICAL' or 'RICAL URL' is configured). A trust source for the request object signing certificate is required for HAIP.");
+			throw error("'Request Object Trust Anchor' field is missing from the 'Client' section in the test configuration (and no 'RICAL', 'RICAL URL' or '"
+				+ LoteSlot.WRPAC.fieldLabel + "' is configured). A trust source for the request object signing certificate is required for HAIP.");
 		}
 
 		logSuccess("Request Object Trust Anchor is configured");

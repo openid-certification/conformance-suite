@@ -384,8 +384,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 		// the PID and mDL providers LoTEs anchor the presented credentials' signers and status list signers
-		call(new SetupLoteFromConfiguration(LoteSlot.PID, Condition.ConditionResult.FAILURE));
-		call(new SetupLoteFromConfiguration(LoteSlot.MDL, Condition.ConditionResult.FAILURE));
+		call(SetupLoteFromConfiguration.forConfigured(env, Condition.ConditionResult.FAILURE, LoteSlot.PID, LoteSlot.MDL));
 		if (getVariant(VP1FinalWalletCredentialFormat.class) == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// register and validate the optionally configured VICAL used by the mdoc issuer
 			// trust checks in ValidateMdocCredential

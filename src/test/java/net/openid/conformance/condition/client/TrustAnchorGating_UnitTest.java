@@ -81,6 +81,15 @@ public class TrustAnchorGating_UnitTest {
 	}
 
 	@Test
+	public void requestObjectTrustAnchorAcceptsPemRicalOrTheWrpacList() {
+		assertThatThrownBy(() -> cond(new EnsureClientRequestObjectTrustAnchorConfigured()).execute(env))
+			.isInstanceOf(ConditionError.class).hasMessageContaining("'WRPAC providers LoTE URL'");
+
+		env.putString("config", LoteSlot.WRPAC.configKey, "https://lote.example.com/wrpac.jwt");
+		assertThatCode(() -> cond(new EnsureClientRequestObjectTrustAnchorConfigured()).execute(env)).doesNotThrowAnyException();
+	}
+
+	@Test
 	public void registerCredentialTrustAnchorRecordsThatATrustSourceIsConfigured() {
 		cond(new RegisterCredentialTrustAnchor()).execute(env);
 		assertThat(env.getString(RegisterCredentialTrustAnchor.ENV_TRUST_SOURCE_CONFIGURED)).isNull();

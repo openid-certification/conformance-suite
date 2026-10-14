@@ -16,14 +16,19 @@ import net.openid.conformance.condition.client.lote.ValidateLoteSignerCertificat
 import net.openid.conformance.condition.client.lote.ValidateLoteStructure;
 import net.openid.conformance.condition.client.lote.WarnIfLoteSigningCertificateNotConfigured;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
+import net.openid.conformance.testmodule.Environment;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Registers the list of trusted entities (ETSI TS 119 602 LoTE) configured for one {@link LoteSlot},
- * fetches it, checks it and extracts its trust anchors into the slot's environment object. Every
- * step after registration is skipped when the slot's URL is not configured, and each step is
- * skipped when the one it depends on did not deliver (no response, no fetched value, no parsed
- * payload), so an unusable list is reported once. Invoked once at configure time; the chain checks
+ * fetches it, checks it and extracts its trust anchors into the slot's environment object. Each
+ * step is skipped when the one it depends on did not deliver (no response, no fetched value, no
+ * parsed payload), so an unusable list is reported once; {@link #forConfigured} leaves out the slots
+ * whose URL is not configured altogether. Invoked once at configure time; the chain checks
  * against the extracted anchors happen later, in the conditions that validate the certificate
  * chains the slot is about.
  *
@@ -55,6 +60,24 @@ public class SetupLoteFromConfiguration extends AbstractConditionSequence {
 	public SetupLoteFromConfiguration(LoteSlot slot, ConditionResult unusableListSeverity) {
 		this.slot = slot;
 		this.unusableListSeverity = unusableListSeverity;
+	}
+
+	/**
+	 * Sets up those of {@code slots} whose URL the test configuration names, so a module whose
+	 * configuration names no list logs nothing about lists.
+	 *
+	 * @param env the environment holding the test configuration at the time of the call
+	 */
+	public static ConditionSequence forConfigured(Environment env, ConditionResult unusableListSeverity, LoteSlot... slots) {
+		List<LoteSlot> configured = Arrays.stream(slots).filter(slot -> slot.isConfigured(env)).toList();
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				for (LoteSlot slot : configured) {
+					call(new SetupLoteFromConfiguration(slot, unusableListSeverity));
+				}
+			}
+		};
 	}
 
 	@Override

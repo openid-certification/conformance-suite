@@ -351,6 +351,12 @@
           "tooltip": "verifier_info (an array of attestation objects, as per OpenID4VP) to include in the authorization request. Can be left empty if not needed."
         },
         {
+          "key": "client.request_object_trust_anchor_pem",
+          "label": "Request Object Trust Anchor",
+          "type": "string",
+          "tooltip": "The trust anchor certificate for verifying the verifier's request object signing certificate chain (the x5c header), as a PEM certificate. Required for HAIP unless a RICAL or a 'WRPAC providers LoTE URL' is configured; only one of the three may be configured."
+        },
+        {
           "key": "client.rical",
           "label": "RICAL",
           "type": "string",
@@ -361,6 +367,12 @@
           "label": "RICAL URL",
           "type": "string",
           "tooltip": "Optional HTTPS URL to fetch a signed RICAL (ISO/IEC 18013-5 Reader Identity Certificate Authority List) from. In the verifier tests the suite checks that the verifier's request object signing certificate chains to a reader CA listed in the RICAL; in the wallet tests the suite checks its own request signing certificate is covered by the RICAL. Only one of 'RICAL' and 'RICAL URL' may be supplied."
+        },
+        {
+          "key": "client.wrpac_lote_url",
+          "label": "WRPAC providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for wallet-relying party access certificate providers (such as the one published by the eIDAS Dashboard). In the verifier tests the suite checks that the verifier's request object signing certificate chains to a listed access certificate provider. Only one of the 'Request Object Trust Anchor', a RICAL and this list may be configured."
         },
         {
           "key": "client.redirect_uri",

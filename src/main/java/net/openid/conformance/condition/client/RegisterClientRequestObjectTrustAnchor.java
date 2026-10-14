@@ -1,10 +1,14 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.lote.AbstractRegisterTrustSource;
+import net.openid.conformance.condition.client.lote.LoteSlot;
+import net.openid.conformance.condition.client.lote.LoteTrustAnchors;
 import net.openid.conformance.testmodule.Environment;
 
-public class RegisterClientRequestObjectTrustAnchor extends AbstractCondition {
+import java.util.List;
+
+public class RegisterClientRequestObjectTrustAnchor extends AbstractRegisterTrustSource {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -14,12 +18,14 @@ public class RegisterClientRequestObjectTrustAnchor extends AbstractCondition {
 		boolean ricalConfigured = Strings.emptyToNull(env.getString("config", "client.rical")) != null
 			|| Strings.emptyToNull(env.getString("config", "client.rical_url")) != null;
 
-		if (ricalConfigured && trustAnchorPem != null) {
-			// Silently dropping either one loses a check the tester asked for: the RICAL may
-			// fail to fetch, leaving no trust source at all, while registering both would
-			// validate the same chain against two different trust sources.
-			throw error("Both a RICAL and the 'Request Object Trust Anchor' are configured in the 'Client' section of the test configuration; the RICAL is a list of reader CAs that replaces the single trust anchor, so please clear whichever of them does not apply");
-		} else if (trustAnchorPem == null) {
+		List<String> sources = LoteTrustAnchors.configuredSources(env, trustAnchorPem,
+			"'Request Object Trust Anchor' field in the 'Client' section of the test configuration", LoteSlot.WRPAC);
+		if (ricalConfigured) {
+			sources.add(0, "'RICAL' or 'RICAL URL' field in the 'Client' section of the test configuration");
+		}
+
+		requireAtMostOneTrustSource(sources, "request object signing certificate");
+		if (trustAnchorPem == null) {
 			log("No client request object trust anchor configured, skipping registration");
 		} else {
 			env.putString("client_request_object_trust_anchor_pem", trustAnchorPem);

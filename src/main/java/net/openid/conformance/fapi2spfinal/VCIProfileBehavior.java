@@ -164,8 +164,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 				}
 				// the PID and mDL providers LoTEs anchor the issued credentials' signers and status list
 				// signers, here for the same reason as the VICAL
-				call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.FAILURE));
-				call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.FAILURE));
+				call(SetupLoteFromConfiguration.forConfigured(module.getEnv(), ConditionResult.FAILURE, LoteSlot.PID, LoteSlot.MDL));
 			}
 		};
 	}
