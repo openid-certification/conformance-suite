@@ -43,6 +43,33 @@ public class AddBuiltInAccessCertificateToClientConfiguration_UnitTest {
 	}
 
 	@Test
+	public void mintsACertificateForTheModulesHostWhenItDiffersFromTheBaseUrl() throws Exception {
+		env.putObject("config", new JsonObject());
+		env.putString("base_url", "https://tunnel.example.net/test/a/alias");
+
+		cond.execute(env);
+
+		JsonObject jwks = env.getElementFromObject("config", "client.jwks").getAsJsonObject();
+		JWK jwk = JWK.parse(jwks.getAsJsonArray("keys").get(0).getAsJsonObject().toString());
+		assertThat(jwk.getParsedX509CertChain().get(0).getSubjectAlternativeNames())
+			.anyMatch(san -> "tunnel.example.net".equals(san.get(1)));
+		assertThat(jwk.getParsedX509CertChain().get(0).getIssuerX500Principal().getName()).contains("Access CA");
+	}
+
+	@Test
+	public void anExternalUrlOverrideWinsOverTheBaseUrl() throws Exception {
+		env.putObject("config", new JsonObject());
+		env.putString("base_url", "https://localhost.example:8443/test/a/alias");
+		env.putString("external_url_override", "https://tunnel.example.net");
+
+		cond.execute(env);
+
+		JWK jwk = JWK.parse(env.getElementFromObject("config", "client.jwks").getAsJsonObject().getAsJsonArray("keys").get(0).getAsJsonObject().toString());
+		assertThat(jwk.getParsedX509CertChain().get(0).getSubjectAlternativeNames())
+			.anyMatch(san -> "tunnel.example.net".equals(san.get(1)));
+	}
+
+	@Test
 	public void createsTheClientSectionWhenTheConfigurationHasNone() {
 		env.putObject("config", new JsonObject());
 
