@@ -5,10 +5,13 @@ import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.jwk.gen.OctetSequenceKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
@@ -120,6 +123,42 @@ class VerifyAuthzenSignedMetadataSignature_UnitTest {
 		putSignedMetadata(sign(key, "https://pdp.example.com"));
 		putConfigJwks(bareJwk(key));
 		cond.execute(env);
+	}
+
+	private static String signHs256(OctetSequenceKey key, String iss) throws Exception {
+		SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256),
+			new JWTClaimsSet.Builder().issuer(iss).build());
+		jwt.sign(new MACSigner(key));
+		return jwt.serialize();
+	}
+
+	private static JsonObject octJwkSet(OctetSequenceKey key) {
+		// A symmetric key has no public part, so the set carries the secret itself.
+		return JsonParser.parseString(new JWKSet(key).toString(false)).getAsJsonObject();
+	}
+
+	@Test
+	public void hs256AgainstConfiguredOctKey_succeeds() throws Exception {
+		// Section 9.1.3 lets signed_metadata be MACed, so a shared "oct" key verifies it.
+		OctetSequenceKey key = new OctetSequenceKeyGenerator(256).generate();
+		putSignedMetadata(signHs256(key, "https://pdp.example.com"));
+		putConfigJwks(octJwkSet(key));
+		cond.execute(env);
+	}
+
+	@Test
+	public void hs256AgainstWrongOctKey_fails() throws Exception {
+		putSignedMetadata(signHs256(new OctetSequenceKeyGenerator(256).generate(), "https://pdp.example.com"));
+		putConfigJwks(octJwkSet(new OctetSequenceKeyGenerator(256).generate()));
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void hs256AgainstConfiguredEcKey_fails() throws Exception {
+		// An HS256 header must not make an EC public key usable as an HMAC secret.
+		putSignedMetadata(signHs256(new OctetSequenceKeyGenerator(256).generate(), "https://pdp.example.com"));
+		putConfigJwks(jwkSet(genKey()));
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
