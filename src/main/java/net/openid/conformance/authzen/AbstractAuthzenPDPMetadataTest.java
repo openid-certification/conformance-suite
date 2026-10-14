@@ -13,6 +13,7 @@ import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatches
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.ValidateDiscoverySignedMetadata;
 import net.openid.conformance.authzen.condition.ValidatePDPMetadataIssuer;
+import net.openid.conformance.authzen.condition.WarnAuthzenCapabilitiesNotAuthzenUrns;
 import net.openid.conformance.authzen.condition.WarnAuthzenMetadataUnknownMembers;
 import net.openid.conformance.authzen.condition.WarnOnUnusableAuthzenPdpJwksKeys;
 import net.openid.conformance.authzen.condition.WarnUnusedSignedMetadataIssuer;
@@ -121,6 +122,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 			callAndContinueOnFailure(WarnAuthzenMetadataUnknownMembers.class, ConditionResult.WARNING, "AUTHZEN-9.2.2", "AUTHZEN-12.1.3");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.FAILURE, "AUTHZEN-9.1.2");
+		callAndContinueOnFailure(WarnAuthzenCapabilitiesNotAuthzenUrns.class, ConditionResult.WARNING, "AUTHZEN-9.1.2", "AUTHZEN-12.4");
 		env.unmapKey("server");
 		eventLog.endBlock();
 	}
