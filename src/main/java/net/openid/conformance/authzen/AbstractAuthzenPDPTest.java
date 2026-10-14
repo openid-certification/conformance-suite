@@ -247,7 +247,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 						// return the same decision value each time"), not by the Authorization
 						// API specification, which does not address it. The scenario has no
 						// requirement link prefix, so this assertion carries no tag.
-						callAndContinueOnFailure(match, ConditionResult.FAILURE);
+						callAndContinueOnFailure(match, getIdempotencySeverity());
 					}
 				} finally {
 					eventLog.endBlock();
@@ -264,6 +264,13 @@ public abstract class AbstractAuthzenPDPTest extends AbstractAuthzenPDPMetadataT
 	 * built by {@link #runIdempotencyLoop}, so every iteration sends the same request.
 	 */
 	protected void resetStateBetweenIdenticalRequests() {
+	}
+
+	/**
+	 * Severity of a response that differs from the first one in {@link #runIdempotencyLoop}.
+	 */
+	protected ConditionResult getIdempotencySeverity() {
+		return ConditionResult.FAILURE;
 	}
 
 	/**
