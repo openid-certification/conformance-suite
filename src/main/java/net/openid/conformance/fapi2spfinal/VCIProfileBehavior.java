@@ -26,11 +26,13 @@ import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuanc
 import net.openid.conformance.condition.client.ValidateMdocMsoValidityInfoTimestamps;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
+import net.openid.conformance.condition.client.lote.LoteSlot;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
+import net.openid.conformance.sequence.client.SetupLoteFromConfiguration;
 import net.openid.conformance.sequence.client.SetupVicalFromConfiguration;
 import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
@@ -160,6 +162,10 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					// covers every VCI issuer test family)
 					call(sequence(SetupVicalFromConfiguration.class));
 				}
+				// the PID and mDL providers LoTEs anchor the issued credentials' signers and status list
+				// signers, here for the same reason as the VICAL
+				call(new SetupLoteFromConfiguration(LoteSlot.PID, ConditionResult.FAILURE));
+				call(new SetupLoteFromConfiguration(LoteSlot.MDL, ConditionResult.FAILURE));
 			}
 		};
 	}

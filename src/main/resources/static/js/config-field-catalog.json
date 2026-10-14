@@ -89,13 +89,13 @@
           "key": "credential.trust_anchor_pem",
           "label": "Credential Trust Anchor",
           "type": "string",
-          "tooltip": "The trust anchor certificate for verifying the credential's certificate chain, as a PEM certificate: for SD-JWT credentials the x5c chain, for mdoc credentials the IACA root for the issuerAuth x5chain (used when no VICAL is supplied - a VICAL takes precedence)."
+          "tooltip": "The trust anchor certificate for verifying the credential's certificate chain, as a PEM certificate: for SD-JWT credentials the x5c chain, for mdoc credentials the IACA root for the issuerAuth x5chain (used when no VICAL is supplied - a VICAL takes precedence). Only one of this field, the 'PID providers LoTE URL' and the 'mDL providers LoTE URL' may be configured."
         },
         {
           "key": "credential.status_list_trust_anchor_pem",
           "label": "Status List Trust Anchor",
           "type": "string",
-          "tooltip": "The trust anchor certificate for verifying the status list token x5c chain, as a PEM certificate."
+          "tooltip": "The trust anchor certificate for verifying the status list token x5c chain, as a PEM certificate. When set it is used instead of the revocation services of a configured list of trusted entities."
         },
         {
           "key": "credential.vical",
@@ -108,6 +108,18 @@
           "label": "VICAL URL",
           "type": "string",
           "tooltip": "Optional HTTPS URL to fetch a signed VICAL (ISO/IEC 18013-5 Verified Issuer Certificate Authority List) from. If supplied, the suite checks that mdoc credentials chain to an IACA certificate listed in the VICAL; in the VP verifier tests the suite instead checks its own mdoc signing chain is covered by the VICAL. Only one of 'VICAL' and 'VICAL URL' may be supplied."
+        },
+        {
+          "key": "credential.pid_lote_url",
+          "label": "PID providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for PID providers (such as the one published by the eIDAS Dashboard). The certificates of its PID issuance services are the trust anchors for the credential's certificate chain, and those of its revocation services for the status list token unless a 'Status List Trust Anchor' is set. Only one of the 'Credential Trust Anchor', this list and the 'mDL providers LoTE URL' may be configured. Configure the list's sealing certificate in the 'Lists of Trusted Entities' section so a substituted list is detected."
+        },
+        {
+          "key": "credential.mdl_lote_url",
+          "label": "mDL providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of a list of trusted entities for mDL providers following the European Commission's mDL Providers List Specification (such as the one published by the eIDAS Dashboard). Used like the 'PID providers LoTE URL', and like it cannot be combined with the 'Credential Trust Anchor' or the other list."
         },
         {
           "key": "vci.credential_configuration_id",
@@ -1046,8 +1058,13 @@
           "key": "client_attestation.trust_anchor",
           "label": "Client Attestation Trust Anchor",
           "type": "string",
-          "placeholder": "REQUIRED",
-          "tooltip": "The trust anchor of the Client Attestation as PEM certificate"
+          "tooltip": "The trust anchor of the Client Attestation as PEM certificate. Required unless a 'Wallet providers LoTE URL' is configured, and cannot be combined with it."
+        },
+        {
+          "key": "client_attestation.wallet_lote_url",
+          "label": "Wallet providers LoTE URL",
+          "type": "string",
+          "tooltip": "Optional HTTPS URL of an ETSI TS 119 602 list of trusted entities for wallet providers (such as the one published by the eIDAS Dashboard). The certificates of its wallet solution services are the trust anchors for the client attestation and key attestation certificate chains; it cannot be combined with the 'Client Attestation Trust Anchor' or 'Key Attestation Trust Anchor' fields."
         }
       ]
     },
@@ -1067,6 +1084,19 @@
           "type": "string",
           "placeholder": "REQUIRED if Key Attestation is used",
           "tooltip": "The trust anchor of the Key Attestation as PEM certificate. Leave empty if Key attestation is not used."
+        }
+      ]
+    },
+    {
+      "key": "lote",
+      "title": "Lists of Trusted Entities (ETSI TS 119 602)",
+      "intro": "The suite can take trust anchors from lists of trusted entities (LoTEs): signed lists of CA certificates per role, as the EUDI Wallet trust infrastructure publishes them. Configure a list's URL in the section of the role it covers; the fields here apply to all configured lists. The suite's own CA certificates, for listing the suite in such lists, are published at /trust-anchors.",
+      "fields": [
+        {
+          "key": "lote.signing_certificate_pem",
+          "label": "LoTE signing certificate",
+          "type": "string",
+          "tooltip": "The scheme operator's certificate that seals the lists, as a PEM certificate. Each list's signer must be this certificate or chain to it. When empty the signer of each list is only checked against the certificate the list itself carries, which a warning points out."
         }
       ]
     }
