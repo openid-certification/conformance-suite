@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.security.cert.CertificateEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +61,9 @@ public class TrustAnchorEndpoint {
 				+ " requests and issuer metadata and authenticates the suite as an mdoc reader",
 			List.of("WRPAC providers"))
 	);
+
+	/** The name the sealing certificate of the suite's lists of trusted entities is served under. */
+	public static final String LOTE_SIGNER_SLUG = "lote-signer";
 
 	/** The CA served under {@code slug}, or null when there is none. */
 	public static TestKeysAndCerts.SuiteCa caBySlug(String slug) {
@@ -105,6 +109,14 @@ public class TrustAnchorEndpoint {
 		body.addProperty("organization", TestKeysAndCerts.ORGANIZATION_NAME);
 		body.addProperty("organization_identifier", TestKeysAndCerts.ORGANIZATION_IDENTIFIER);
 		body.add("trust_anchors", anchors);
+		JsonObject loteSigner = new JsonObject();
+		loteSigner.addProperty("name", LOTE_SIGNER_SLUG);
+		loteSigner.addProperty("subject", TestKeysAndCerts.getLoteSignerCert().getSubjectX500Principal().getName());
+		loteSigner.addProperty("url", TestKeysAndCerts.getHttpsBaseUrl() + PATH_PREFIX + LOTE_SIGNER_SLUG + ".pem");
+		loteSigner.addProperty("der_url", TestKeysAndCerts.getHttpsBaseUrl() + PATH_PREFIX + LOTE_SIGNER_SLUG + ".crt");
+		loteSigner.addProperty("role", "Seals the suite's lists of trusted entities, served under /lote");
+		loteSigner.addProperty("ephemeral", TestKeysAndCerts.getLoteSigner().getEphemeral());
+		body.add("lote_signer", loteSigner);
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body.toString());
 	}
 
@@ -122,6 +134,9 @@ public class TrustAnchorEndpoint {
 	@SecurityRequirements
 	public ResponseEntity<String> getTrustAnchorCert(
 			@Parameter(description = "The CA's name, as listed at /trust-anchors") @PathVariable("slug") String slug) {
+		if (LOTE_SIGNER_SLUG.equals(slug)) {
+			return ResponseEntity.ok(TestKeysAndCerts.getLoteSignerCertPem() + "\n");
+		}
 		TestKeysAndCerts.SuiteCa ca = caBySlug(slug);
 		if (ca == null) {
 			return ResponseEntity.notFound().build();
@@ -133,8 +148,8 @@ public class TrustAnchorEndpoint {
 	@ResponseBody
 	@Operation(operationId = "trustAnchorCertDer",
 		summary = "Returns one of the suite's CA certificates, DER encoded",
-		description = "Returns the named CA certificate, DER encoded: the form the authority information access of the"
-			+ " suite's leaf certificates points at. See /trust-anchors for the names.")
+		description = "Returns the named CA certificate, or the LoTE sealing certificate, DER encoded: the form the authority"
+			+ " information access of the suite's leaf certificates points at. See /trust-anchors for the names.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "The CA certificate",
 			content = @Content(mediaType = CERTIFICATE_CONTENT_TYPE, schema = @Schema(type = "string", format = "binary"))),
@@ -143,13 +158,18 @@ public class TrustAnchorEndpoint {
 	// empty @SecurityRequirements clears the document-wide bearerAuth requirement: this endpoint is permitAll
 	@SecurityRequirements
 	public ResponseEntity<byte[]> getTrustAnchorCertDer(
-			@Parameter(description = "The CA's name, as listed at /trust-anchors") @PathVariable("slug") String slug) {
+			@Parameter(description = "The CA's name, as listed at /trust-anchors") @PathVariable("slug") String slug) throws CertificateEncodingException {
+		if (LOTE_SIGNER_SLUG.equals(slug)) {
+			return der(TestKeysAndCerts.getLoteSignerCert().getEncoded());
+		}
 		TestKeysAndCerts.SuiteCa ca = caBySlug(slug);
 		if (ca == null) {
 			return ResponseEntity.notFound().build();
 		}
-		var encoded = ca.getCert().getEncoded();
-		return ResponseEntity.ok().contentType(MediaType.parseMediaType(CERTIFICATE_CONTENT_TYPE))
-			.body(encoded.toByteArray(0, encoded.getSize()));
+		return der(ca.getJavaCert().getEncoded());
+	}
+
+	private static ResponseEntity<byte[]> der(byte[] encoded) {
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(CERTIFICATE_CONTENT_TYPE)).body(encoded);
 	}
 }

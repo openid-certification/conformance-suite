@@ -85,6 +85,12 @@ spec:
               name: suite-ca-keys
               key: access-ca
               optional: true
+        - name: SUITE_CA_KEY_LOTE_SIGNER
+          valueFrom:
+            secretKeyRef:
+              name: suite-ca-keys
+              key: lote-signer
+              optional: true
         - name: OIDC_GOOGLE_CLIENTID
           valueFrom:
             secretKeyRef:

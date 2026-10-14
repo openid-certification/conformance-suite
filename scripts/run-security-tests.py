@@ -319,6 +319,13 @@ def unauthenticated_get(base_url, path, verify_ssl, params=None):
         return client.get(f"{base_url}{path}", params=params)
 
 
+def decode_jws(compact):
+    """The dot-separated parts of a compact JWS with its header and payload decoded; the signature is not checked."""
+    parts = compact.strip().split(".")
+    header, payload = (json.loads(base64.urlsafe_b64decode(p + "=" * (-len(p) % 4))) for p in parts[:2])
+    return parts, header, payload
+
+
 def run_tests():
     base_url, token, token_2, verify_ssl = get_config()
     print(f"Server: {base_url}")
@@ -1821,6 +1828,32 @@ def run_tests():
                      f"HTTP {resp.status_code} {resp.headers.get('content-type')}")
     resp = unauthenticated_get(base_url, "trust-anchors/no-such-ca.pem", verify_ssl)
     runner.check_status("Metadata: unknown trust anchor name returns 404", resp, 404)
+    resp = unauthenticated_get(base_url, "trust-anchors/lote-signer.pem", verify_ssl)
+    runner.check("Metadata: the LoTE sealing certificate is publicly reachable as PEM",
+                 resp.status_code == 200 and "BEGIN CERTIFICATE" in resp.text,
+                 f"HTTP {resp.status_code}")
+    lote_signer_pem = resp.text if resp.status_code == 200 else ""
+
+    # the suite's lists of trusted entities are public too: implementations under test fetch them
+    # as they would a scheme operator's, and the sealing certificate in each header is the one above
+    for slug in ("pid-providers", "wallet-providers", "wrpac-providers", "wrprc-providers"):
+        for prefix, empty in (("lote/", False), ("lote/empty/", True)):
+            resp = unauthenticated_get(base_url, f"{prefix}{slug}.jwt", verify_ssl)
+            ok = resp.status_code == 200 and resp.headers.get("content-type", "").startswith("application/jwt")
+            detail = f"HTTP {resp.status_code} {resp.headers.get('content-type')}"
+            if ok:
+                try:
+                    parts, header, payload = decode_jws(resp.text)
+                    signer_der = base64.b64decode("".join(l for l in lote_signer_pem.splitlines() if not l.startswith("-----")))
+                    ok = (len(parts) == 3 and header.get("alg") == "ES256"
+                          and base64.b64decode(header["x5c"][0]) == signer_der
+                          and "LoTE" in payload and ("TrustedEntitiesList" in payload["LoTE"]) == (not empty and slug != "wrprc-providers"))
+                    detail = f"alg={header.get('alg')} lists={list(payload.get('LoTE', {}).keys())}"
+                except Exception as e:  # noqa: BLE001 - any decoding problem fails the check
+                    ok, detail = False, f"undecodable: {e}"
+            runner.check(f"Metadata: /{prefix}{slug}.jwt is a publicly reachable JWS sealed by the LoTE signer", ok, detail)
+    resp = unauthenticated_get(base_url, "lote/no-such-list.jwt", verify_ssl)
+    runner.check_status("Metadata: unknown LoTE name returns 404", resp, 404)
     resp = unauthenticated_get(base_url, "crl/no-such-ca.crl", verify_ssl)
     runner.check_status("Metadata: unknown CRL name returns 404", resp, 404)
 

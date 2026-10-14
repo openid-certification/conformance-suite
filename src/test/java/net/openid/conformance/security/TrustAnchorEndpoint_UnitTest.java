@@ -88,6 +88,23 @@ public class TrustAnchorEndpoint_UnitTest {
 	}
 
 	@Test
+	public void servesTheLoteSignerAndNamesItInTheIndex() throws Exception {
+		ResponseEntity<String> response = endpoint.getTrustAnchorCert(TrustAnchorEndpoint.LOTE_SIGNER_SLUG);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(
+			new ByteArrayInputStream(response.getBody().getBytes(StandardCharsets.UTF_8)));
+		assertThat(cert).isEqualTo(TestKeysAndCerts.getLoteSignerCert());
+
+		ResponseEntity<byte[]> der = endpoint.getTrustAnchorCertDer(TrustAnchorEndpoint.LOTE_SIGNER_SLUG);
+		assertThat(der.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(der.getBody()).isEqualTo(TestKeysAndCerts.getLoteSignerCert().getEncoded());
+
+		JsonObject index = JsonParser.parseString(endpoint.listTrustAnchors().getBody()).getAsJsonObject();
+		assertThat(OIDFJSON.getString(index.getAsJsonObject("lote_signer").get("url"))).endsWith("/trust-anchors/lote-signer.pem");
+		assertThat(OIDFJSON.getString(index.getAsJsonObject("lote_signer").get("der_url"))).endsWith("/trust-anchors/lote-signer.crt");
+	}
+
+	@Test
 	public void unknownNameIs404() {
 		assertThat(endpoint.getTrustAnchorCert("no-such-ca").getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(TrustAnchorEndpoint.caBySlug("no-such-ca")).isNull();
