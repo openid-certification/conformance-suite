@@ -71,7 +71,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		JsonElement signedMetadataElement = env.getElementFromObject("pdp", "signed_metadata");
 		if(signedMetadataElement != null && !signedMetadataElement.isJsonNull()) {
 			eventLog.startBlock("Verify signed metadata");
-			callAndStopOnFailure(EnsurePDPJwksConfigured.class, "RFC7517-4");
+			callAndStopOnFailure(EnsurePDPJwksConfigured.class);
 			// Check the expected issuer before it is compared against the JWT, so a malformed
 			// value is reported as the configuration error it is rather than as a PDP mismatch.
 			callAndStopOnFailure(ValidatePDPMetadataIssuer.class, "AUTHZEN-9.1.3", "AUTHZEN-11.8", "RFC7519-4.1.1");
@@ -103,7 +103,7 @@ public abstract class AbstractAuthzenPDPMetadataTest extends AbstractRedirectSer
 		eventLog.startBlock("Check PDP Server Configuration");
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
-		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
+		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1", "AUTHZEN-10.1");
 		if (fromDiscovery) {
 			// §9.2.3: "If these values are not identical, the data contained in the response MUST NOT
 			// be used." Everything after this point runs against the endpoints that response names, so
