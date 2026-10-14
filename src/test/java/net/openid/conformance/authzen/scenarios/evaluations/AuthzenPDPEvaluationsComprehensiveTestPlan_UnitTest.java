@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The comprehensive plan is defined as the certification-track plan plus the OPTIONAL
- * Section 7.1.2.1 short-circuiting semantics. Java annotations cannot compose arrays, so the
- * module list is duplicated by hand; these tests are what stops the two lists drifting apart
- * when a module is added to only one of them.
+ * The comprehensive plan is defined as the certification-track plan plus the modules that need
+ * the OPTIONAL options member (Section 7.1.2) implemented. Java annotations cannot compose
+ * arrays, so the module list is duplicated by hand; these tests are what stops the two lists
+ * drifting apart when a module is added to only one of them.
  */
 class AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest {
 
@@ -60,7 +60,7 @@ class AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest {
 			.collect(Collectors.toSet());
 
 		assertEquals(OPTIONAL_SEMANTIC_MODULES, extra,
-			"The only modules the comprehensive plan may add are the OPTIONAL Section 7.1.2.1 semantics");
+			"The only modules the comprehensive plan may add are the ones that need the OPTIONAL options member implemented");
 	}
 
 	@Test
@@ -69,7 +69,7 @@ class AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest {
 
 		for (Class<? extends TestModule> module : OPTIONAL_SEMANTIC_MODULES) {
 			assertFalse(certification.contains(module),
-				module.getSimpleName() + " requires OPTIONAL evaluations_semantic support, so it must not be in "
+				module.getSimpleName() + " requires OPTIONAL options support, so it must not be in "
 					+ "AuthzenPDPEvaluationsTestPlan");
 		}
 	}
@@ -83,7 +83,7 @@ class AuthzenPDPEvaluationsComprehensiveTestPlan_UnitTest {
 
 	@Test
 	public void comprehensivePlanIsNotCertifiable() {
-		// The plan requires OPTIONAL evaluation semantics, so it must not yield a certification package.
+		// The plan requires the OPTIONAL options member, so it must not yield a certification package.
 		for (String support : List.of("core", "properties")) {
 			VariantSelection variant = new VariantSelection(Map.of("authzen_support", support));
 			assertTrue(new AuthzenPDPEvaluationsComprehensiveTestPlan().certificationProfileName(variant).isEmpty(),
