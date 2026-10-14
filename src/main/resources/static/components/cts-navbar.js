@@ -924,6 +924,29 @@ class CtsNavbar extends LitElement {
     );
   }
 
+  /**
+   * The login page, told to come back to this page once signed in. The login
+   * page itself and the bare home page need no way back.
+   * @returns {string} The Sign in link's href.
+   */
+  _signInHref() {
+    const { pathname, search } = window.location;
+    if (pathname === "/" || pathname.endsWith("/login.html")) return "login.html";
+    return `login.html?returnTo=${encodeURIComponent(pathname + search)}`;
+  }
+
+  /**
+   * Re-reads the page URL into the Sign in link just before it is followed.
+   * Filter chips and view tabs rewrite the URL with the History API, which
+   * fires no event this element could re-render on. Pointerdown precedes
+   * click, middle-click and the context menu; focus precedes keyboard
+   * activation, and the URL cannot change while the link holds focus.
+   * @param {Event} e Pointerdown or focus on the Sign in link.
+   */
+  _refreshSignInHref(e) {
+    /** @type {HTMLAnchorElement} */ (e.currentTarget).href = this._signInHref();
+  }
+
   _renderAccount() {
     if (this._loading) {
       // Skeleton circle reserves the avatar's 30x30 box without flashing
@@ -932,7 +955,13 @@ class CtsNavbar extends LitElement {
       return html`<span class="cts-skel-avatar" aria-hidden="true"></span>`;
     }
     if (!this._user) {
-      return html`<a class="cts-nav-action" href="login.html">Sign in</a>`;
+      return html`<a
+        class="cts-nav-action"
+        href=${this._signInHref()}
+        @pointerdown=${this._refreshSignInHref}
+        @focus=${this._refreshSignInHref}
+        >Sign in</a
+      >`;
     }
 
     const initials = computeInitials(this._user.displayName);
