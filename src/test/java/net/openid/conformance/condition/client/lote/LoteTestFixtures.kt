@@ -223,6 +223,9 @@ object LoteTestFixtures {
 	fun eudiwDevList(name: String): String =
 		LoteTestFixtures::class.java.getResourceAsStream("/lote/eudiw-dev-$name.jwt")!!.use { String(it.readAllBytes()).trim() }
 
+	fun ecDevelopmentList(name: String): String =
+		LoteTestFixtures::class.java.getResourceAsStream("/lote/ec-development-$name.jwt")!!.use { String(it.readAllBytes()).trim() }
+
 	/** Puts a fetched list into the environment as RegisterLote and CallLoteEndpoint would. */
 	fun putLote(env: Environment, slot: LoteSlot, jws: String) {
 		val lote = JsonObject()
