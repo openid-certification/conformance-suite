@@ -9,7 +9,7 @@ import net.openid.conformance.plan.TestPlan;
  *
  * <p>Section 7.1.2.1 defines three evaluation semantics, but {@code options} — and with it
  * {@code evaluations_semantic} — is an OPTIONAL request member, so a conformant PDP may
- * implement only the {@code execute_all} default. The three short-circuiting modules below
+ * implement only the {@code execute_all} default. The modules below
  * therefore cannot sit in a plan a PDP is expected to pass in full:
  *
  * <ul>
@@ -18,8 +18,8 @@ import net.openid.conformance.plan.TestPlan;
  *       observable on the wire (a truncated {@code evaluations} array), which a PDP that does
  *       not implement the option cannot produce;</li>
  *   <li>{@link AuthzenPDPEvaluationsUnknownSemanticValueTest} requires HTTP 400 for an
- *       unrecognized value, which presupposes the option is implemented at all — a PDP that
- *       ignores {@code options} answers 200.</li>
+ *       unrecognized {@code evaluations_semantic} value, which presupposes the option is
+ *       implemented at all — a PDP that ignores {@code options} answers 200.</li>
  * </ul>
  *
  * <p>Run this plan to check a PDP that does claim support for the short-circuiting semantics;
@@ -74,6 +74,10 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPEvaluationsRejectMalformedJsonTest.class,
 		AuthzenPDPEvaluationsRejectEmptyBodyTest.class,
+		// Invalid field type: certification scenario 5.4.6 requires HTTP 400 "when a field has an
+		// invalid type". options is OPTIONAL for a PDP to act on, but every Batch Core PDP accepts
+		// it (execute-all-explicit above), so it is checked like context and properties.
+		AuthzenPDPEvaluationsOptionsIsStringTest.class,
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
