@@ -1,4 +1,4 @@
-import { LitElement, html, nothing, css } from "lit";
+import { LitElement, html, nothing } from "lit";
 
 /**
  * Ordered map of `/api/server` response keys to their display labels. The
@@ -14,38 +14,6 @@ const SERVER_INFO_LABELS = {
   tag: "Tag",
   build_time: "Build Time",
 };
-
-const STYLE_ID = "cts-footer-styles";
-
-const STYLE_TEXT = css`
-  .oidf-footer {
-    margin-top: var(--space-12);
-    padding: var(--space-6) var(--space-6);
-    border-top: 1px solid var(--border);
-    text-align: center;
-  }
-  .oidf-footer-brand {
-    display: block;
-    margin-bottom: var(--space-2);
-  }
-  .oidf-footer .serverInfo {
-    display: block;
-  }
-`;
-
-/**
- * Inject the scoped stylesheet for `cts-footer` into `<head>` once. The
- * `STYLE_ID` flag makes this a no-op on subsequent component mounts so
- * multiple instances on the same page do not duplicate the rules. Mirrors
- * the head-style injection pattern used by `cts-empty-state` / `cts-card`.
- */
-function injectStyles() {
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT.cssText;
-  document.head.appendChild(style);
-}
 
 /**
  * Suite-wide page footer. Always renders the static "OpenID Foundation
@@ -91,7 +59,6 @@ class CtsFooter extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    injectStyles();
     this._fetchServerInfo();
   }
 

@@ -397,3 +397,150 @@ cts-link-button > a:focus,
 #copyTestPlanUrlModal .oidf-modal-body p {
   margin-block: 0 var(--space-4);
 }
+
+/* ---- Page chrome shared by components and plain pages -----------
+   The navbar bar and brand block, the page head and the footer are
+   rendered by cts-navbar, cts-page-head and cts-footer on the app
+   pages, and as plain markup with the same class names by the
+   Thymeleaf pages the suite serves to the test browser
+   (implicitCallback.html, resultCaptured.html), which load no
+   components. The rules live here so there is one copy. Interactive
+   navbar parts (links, menus, account zone) stay in cts-navbar.js.
+   ---------------------------------------------------------------- */
+.cts-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0 var(--space-5);
+  background: var(--ink-900);
+  color: var(--ink-0);
+  gap: var(--space-6);
+  font-family: var(--font-sans);
+}
+.cts-nav .cts-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration-line: none;
+  color: var(--ink-0);
+  flex-shrink: 0;
+}
+.cts-nav .cts-brand img {
+  height: 28px;
+  width: auto;
+  /* Optical lift — the OpenID mark's baseline sits a touch low against
+     the wordmark; -4px aligns the visual center of the logo with the
+     wordmark's cap-height row. Reset to 0 on mobile where the wordmark
+     is hidden and the lift would just look like a misalignment. */
+  position: relative;
+  top: -4px;
+}
+.cts-nav .cts-brand-name {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-13);
+  letter-spacing: 0.04em;
+  color: var(--ink-0);
+}
+/* Tablet landscape and below — tighten the brand block. The user zone
+   is now a single avatar so there's nothing on the right to compress. */
+@media (max-width: 1023px) {
+  .cts-nav {
+    gap: var(--space-4);
+    padding: 0 var(--space-4);
+  }
+}
+/* Below tablet portrait — collapse the brand to the logo only. */
+@media (max-width: 820px) {
+  .cts-nav {
+    gap: var(--space-3);
+  }
+  /* Nudge the brand up a few pixels on small screens to optically align
+     with the hamburger and avatar icons in the collapsed row. */
+  .cts-nav .cts-brand {
+    position: relative;
+    top: -3px;
+  }
+  .cts-nav .cts-brand-name {
+    display: none;
+  }
+  /* Shrink the logo a notch on phones — the wordmark is gone so the
+     mark itself can come down without losing legibility, leaving more
+     room for the hamburger and avatar at the row edges. The desktop
+     optical lift is reset since there's no wordmark to align against. */
+  .cts-nav .cts-brand img {
+    height: 22px;
+    top: 0;
+  }
+}
+/* Phones — tighten edge padding. */
+@media (max-width: 640px) {
+  .cts-nav {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+}
+
+/* Page head: a `.t-title` heading with optional `.t-meta` subtitle on
+   the left, an actions cluster on the right, and a 1px `--border`
+   divider underneath. */
+cts-page-head {
+  display: block;
+}
+.oidf-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+}
+.oidf-page-head-text {
+  min-width: 0;
+  flex: 1;
+}
+.oidf-page-head-title {
+  margin: 0;
+  color: var(--fg);
+}
+.oidf-page-head-sub {
+  margin: var(--space-2) 0 0;
+}
+.oidf-page-head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+/* On phones the actions cluster drops below the title as its own
+   full-width row. The text block is flex: 1, so wrapping alone would
+   never happen; the explicit 100% basis is what forces the drop. */
+@media (max-width: 480px) {
+  .oidf-page-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .oidf-page-head-actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Footer. cts-footer also carries the legacy `pageFooter` class from
+   layout.css, so the plain pages use the same three classes. */
+.oidf-footer {
+  margin-top: var(--space-12);
+  padding: var(--space-6) var(--space-6);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.oidf-footer-brand {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+.oidf-footer .serverInfo {
+  display: block;
+}

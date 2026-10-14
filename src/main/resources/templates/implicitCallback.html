@@ -5,37 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OIDF Conformance: Processing Implicit Callback</title>
 
-    <!-- Served to the suite's own headless browser: only suite-hosted assets, see callback-page.css -->
+    <!-- Served to the suite's own headless browser: only suite-hosted assets and no components; the chrome
+         below reuses the cts-navbar / cts-page-head / cts-footer rules from oidf-app.css -->
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="/css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
-    <link rel="stylesheet" href="/css/callback-page.css">
 </head>
 <body>
-    <nav class="oidf-callback-nav">
-        <a class="oidf-callback-brand" href="/plans.html">
+    <nav class="cts-nav">
+        <a class="cts-brand" href="/plans.html">
             <img src="/images/openid-dark.svg" alt="OpenID Foundation" width="93" height="28">
-            <span>CONFORMANCE SUITE</span>
+            <span class="cts-brand-name">CONFORMANCE SUITE</span>
         </a>
     </nav>
 
     <main class="narrow-page">
         <div id="waiting">
-            <div class="oidf-callback-head">
-                <h1 class="t-title">Please wait...</h1>
-                <p class="t-meta">Processing response from authorization server</p>
+            <div class="oidf-page-head">
+                <div class="oidf-page-head-text">
+                    <h1 class="t-title oidf-page-head-title">Please wait...</h1>
+                    <p class="t-meta oidf-page-head-sub">Processing response from authorization server</p>
+                </div>
             </div>
             <p>The server should have returned its results as part of a URI fragment. This data normally stays in the browser and needs to be explicitly sent to the test framework for further processing.</p>
         </div>
         <div id="complete" hidden>
-            <div class="oidf-callback-head">
-                <h1 class="t-title">Response received</h1>
+            <div class="oidf-page-head">
+                <div class="oidf-page-head-text">
+                    <h1 class="t-title oidf-page-head-title">Response received</h1>
+                </div>
             </div>
             <p>The response has been sent to the server for processing. You may return to <a th:href="${returnUrl}">the test results page.</a></p>
         </div>
         <div id="rejected" hidden>
-            <div class="oidf-callback-head">
-                <h1 class="t-title">Response not accepted</h1>
+            <div class="oidf-page-head">
+                <div class="oidf-page-head-text">
+                    <h1 class="t-title oidf-page-head-title">Response not accepted</h1>
+                </div>
             </div>
             <p>The test framework did not accept the response: HTTP <span id="rejected-reason"></span></p>
             <p>The test may no longer be waiting for this callback. Check the test log on <a th:href="${returnUrl}">the test results page.</a></p>

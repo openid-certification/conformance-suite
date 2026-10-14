@@ -1,66 +1,4 @@
-import { LitElement, html, nothing, css } from "lit";
-
-const STYLE_ID = "cts-page-head-styles";
-
-/**
- * Scoped CSS for the page-head pattern. Mirrors the OIDF design archive's
- * standard page header: a `.t-title` heading (32px display) with optional
- * `.t-meta` subtitle on the left, an actions slot on the right, and a
- * 1px `--border` divider underneath. All values flow from oidf-tokens.css.
- */
-const STYLE_TEXT = css`
-  cts-page-head {
-    display: block;
-  }
-  .oidf-page-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-5);
-    padding-bottom: var(--space-4);
-    margin-bottom: var(--space-5);
-    border-bottom: 1px solid var(--border);
-    font-family: var(--font-sans);
-  }
-  .oidf-page-head-text {
-    min-width: 0;
-    flex: 1;
-  }
-  .oidf-page-head-title {
-    margin: 0;
-    color: var(--fg);
-  }
-  .oidf-page-head-sub {
-    margin: var(--space-2) 0 0;
-  }
-  .oidf-page-head-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    flex-shrink: 0;
-  }
-  /* On phones the actions cluster drops below the title as its own
-   * full-width row. The text block is flex: 1, so wrapping alone would
-   * never happen; the explicit 100% basis is what forces the drop. */
-  @media (max-width: 480px) {
-    .oidf-page-head {
-      flex-wrap: wrap;
-      align-items: flex-start;
-    }
-    .oidf-page-head-actions {
-      flex-basis: 100%;
-      justify-content: flex-start;
-    }
-  }
-`;
-
-function injectStyles() {
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT.cssText;
-  document.head.appendChild(style);
-}
+import { LitElement, html, nothing } from "lit";
 
 /**
  * Standard page-header pattern used by every page-level migration in
@@ -114,7 +52,6 @@ class CtsPageHead extends LitElement {
       }
     }
     super.connectedCallback();
-    injectStyles();
   }
 
   firstUpdated() {
