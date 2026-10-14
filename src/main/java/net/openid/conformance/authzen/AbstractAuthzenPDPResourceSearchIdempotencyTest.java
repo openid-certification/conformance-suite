@@ -5,9 +5,9 @@ import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResultsMatchI
 
 /**
  * Sends the same Resource Search request multiple times consecutively and asserts
- * the PDP returns the same results each time. The cert profile only defines idempotency for the single
- * Evaluation API (section 2.6); the same principle is exercised here for
- * Resource Search. The loop body is shared with the other idempotency families via
+ * the PDP returns the same results each time. Certification scenario 5.6 states this
+ * for decision values; the same principle is applied here to Resource Search results.
+ * The loop body is shared with the other idempotency families via
  * {@link AbstractAuthzenPDPTest#runIdempotencyLoop}.
  */
 public abstract class AbstractAuthzenPDPResourceSearchIdempotencyTest extends AbstractAuthzenPDPResourceSearchTest {

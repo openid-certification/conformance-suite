@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.Environment;
 
 /**
  * Apply the precedence rule for signed PDP discovery metadata (certification
- * profile https://github.com/openid/authzen/issues/433 §6.4): "Metadata values in
+ * scenario 9.4): "Metadata values in
  * the signed token take precedence over plain JSON values in the response."
  *
  * <p>When {@link ExtractPDPSignedMetadata} decoded a {@code signed_metadata} JWT
