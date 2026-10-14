@@ -36,5 +36,14 @@
   "condition": "WarnChangedPageRequestAccepted",
   "expected-result": "warning",
   "comment": "Cerbos PDP behaviour: it returns the next page when a page token arrives with a changed page.limit, where Section 8.2 says the PDP SHOULD return an error"
+ },
+ {
+  "test-name": "authzen-pdp-*-reject-*-method",
+  "variant": "*",
+  "configuration-filename": "*",
+  "current-block": "*",
+  "condition": "WarnMethodRejectedWithNotFound",
+  "expected-result": "warning",
+  "comment": "Cerbos PDP behaviour: it answers GET and PUT on the AuthZEN endpoints with 404, the fallback the AuthZEN working group accepts when a framework routes on method and path; 405 with Allow: POST is preferred"
  }
 ]
